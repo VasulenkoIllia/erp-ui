@@ -131,3 +131,30 @@ test.describe("скриншоти @screenshots", () => {
       })
   }
 })
+
+// Кроки, до яких треба дійти діями: код підтвердження після пароля.
+test.describe("скриншоти кроків @screenshots", () => {
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "dark", width: 1440 },
+  ] as const
+  for (const { palette, theme, width } of cases)
+    test(`challenge ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(
+        Boolean(process.env.SCREENSHOT_PAGES) &&
+          !process.env.SCREENSHOT_PAGES?.split(",").includes("challenge"),
+      )
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/login", { user: null })
+      await page.getByLabel("Email").fill("olena@zoriana.example")
+      await page.getByLabel("Пароль", { exact: true }).fill("demo")
+      await page.getByRole("button", { name: "Увійти", exact: true }).click()
+      await page.getByLabel("Код", { exact: true }).fill("123")
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `challenge-${palette}-${theme}-${width}.png`),
+        fullPage: true,
+      })
+    })
+})

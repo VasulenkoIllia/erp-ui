@@ -479,7 +479,7 @@ function LoginStart({
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full bg-card"
               disabled={busy}
               onClick={() => {
                 void run(() => provider.login({ method: "passkey" }))
