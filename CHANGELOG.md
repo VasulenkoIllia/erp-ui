@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-10-13
+
+Перша версія: основа (теми, токени, стилі), 20 примітивів на Base UI (Nova), реєстр із доставкою в проекти. Встановлення: `npx shadcn add VasulenkoIllia/erp-ui/base#v0.1.0`.
+
 ### Додано — крок 0.2b (реєстр і доставка)
 
 - `registry.json` — 25 елементів (`base`, `tokens`, `claude`, `lib/utils`, `hooks/use-resolved-theme`, 20 × `ui/*`), генерується `pnpm registry` з `registry/registry.config.mjs`; `docs/CATALOG.md` — каталог.
