@@ -235,7 +235,9 @@ test.describe("«Увійти як…» (ADR-0011)", () => {
     await expect(page).toHaveURL(/#\/data$/)
     const banner = page.getByRole("region", { name: "Режим «Увійти як…»" })
     await expect(banner).toContainText("Ви працюєте як Іван Петренко")
-    await expect(banner).toContainText("Дії записуються від імені Олена Коваль")
+    await expect(banner).toContainText(
+      "Усі дії записуються в журнал під вашим іменем (Олена Коваль).",
+    )
     await expect(
       page.getByRole("button", { name: "Меню користувача: Іван Петренко" }),
     ).toBeVisible()

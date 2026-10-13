@@ -209,41 +209,49 @@ export function ImpersonationBanner({
       data-slot="impersonation-banner"
       aria-label={t("auth.impersonation.region")}
       className={cn(
-        "flex flex-wrap items-center gap-x-3 gap-y-2 bg-warning-soft px-4 py-2 text-sm text-warning-foreground",
+        "@container bg-warning-soft px-4 py-2 text-sm text-warning-foreground",
         className,
       )}
     >
-      <UserCogIcon aria-hidden className="size-4 shrink-0" />
-      <p className="min-w-0 flex-1">
-        <span className="font-medium">
-          {t("auth.impersonation.banner", { name: me.name })}
-        </span>{" "}
-        {t("auth.impersonation.bannerHint", { admin: me.impersonator.name })}
-      </p>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={busy}
-        onClick={() => {
-          setBusy(true)
-          provider
-            .stopImpersonation()
-            .then(() => {
-              void queryClient.invalidateQueries()
-              toast.success(t("auth.impersonation.stopped"))
-              onStopped?.()
-            })
-            .catch((failure: unknown) => {
-              toast.error(errorText(failure))
-            })
-            .finally(() => {
-              setBusy(false)
-            })
-        }}
-      >
-        {busy ? <Spinner aria-hidden /> : null}
-        {t("auth.impersonation.stop")}
-      </Button>
+      <div className="flex items-center gap-3">
+        <UserCogIcon aria-hidden className="size-4 shrink-0" />
+        <p className="min-w-0 flex-1">
+          <span className="font-medium">
+            {t("auth.impersonation.banner", { name: me.name })}
+          </span>
+          {/* На вузькому екрані смуга липне вгорі — лише головне, щоб не забирати місце. */}
+          <span className="hidden @2xl:inline">
+            {" "}
+            {t("auth.impersonation.bannerHint", {
+              admin: me.impersonator.name,
+            })}
+          </span>
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true)
+            provider
+              .stopImpersonation()
+              .then(() => {
+                void queryClient.invalidateQueries()
+                toast.success(t("auth.impersonation.stopped"))
+                onStopped?.()
+              })
+              .catch((failure: unknown) => {
+                toast.error(errorText(failure))
+              })
+              .finally(() => {
+                setBusy(false)
+              })
+          }}
+        >
+          {busy ? <Spinner aria-hidden /> : null}
+          {t("auth.impersonation.stop")}
+        </Button>
+      </div>
     </section>
   )
 }

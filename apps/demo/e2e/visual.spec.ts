@@ -259,6 +259,9 @@ test.describe("скриншоти кроків 0.5b2 @screenshots", () => {
             .click()
           await page.getByRole("option", { name: brand }).click()
           await page.getByText(brand).first().waitFor()
+          await page.evaluate(() => {
+            window.scrollTo(0, 0)
+          })
           await expectNoA11yViolations(page)
           const slug = brand === "Бухгалтерія Плюс" ? "buh-plus" : "zoriana"
           await page.screenshot({
