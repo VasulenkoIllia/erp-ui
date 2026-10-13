@@ -23,27 +23,33 @@ import {
 import { hasPermission } from "@/registry/lib/auth"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
-  applyScenario,
-  currentMockUser,
-  errorResponse,
-  json,
-  noContent,
-} from "@/registry/lib/mock-server"
-
-export {
   createPlatformHandlers,
   DEFAULT_MOCK_METHODS,
   type MockInvite,
   type PlatformMockOptions,
 } from "@/registry/lib/mock-auth"
-export {
+import {
+  applyScenario,
   currentMockUser,
   errorResponse,
+  json,
+  noContent,
   signInMock,
   subscribeMockMessages,
   type MockMessage,
   type MockUser,
 } from "@/registry/lib/mock-server"
+
+// erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
+export {
+  createPlatformHandlers,
+  currentMockUser,
+  DEFAULT_MOCK_METHODS,
+  errorResponse,
+  signInMock,
+  subscribeMockMessages,
+}
+export type { MockInvite, MockMessage, MockUser, PlatformMockOptions }
 
 /* ---------------------------------- Ресурси ---------------------------------- */
 
