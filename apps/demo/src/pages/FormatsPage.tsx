@@ -294,7 +294,7 @@ export function FormatsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} lead={t("lead")} />
-      <div className="grid items-start gap-6 @4xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 @4xl:grid-cols-2">
         <div className="@4xl:col-span-2">
           <IdsSection />
         </div>

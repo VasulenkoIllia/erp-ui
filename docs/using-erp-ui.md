@@ -24,6 +24,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/base
 - теми й токени в `src/styles/erp-ui/` і замінює `src/index.css` точкою входу erp-ui (CLI спитає дозволу);
 - `cn` у `src/lib/utils.ts` і `useResolvedTheme` у `src/hooks/`;
 - мови й форматери: `src/lib/i18n.ts` (+ рядки кіта `i18n-uk.ts`, `i18n-en.ts`) і `src/lib/format.ts`;
+- вподобання вигляду `src/lib/appearance.ts` + `src/hooks/use-appearance.ts` і словник іконок `src/lib/icons.tsx`;
 - скіл для Claude Code у `.claude/skills/erp-ui/`, SPEC і каталог у `docs/erp-ui/`.
 
 Після цього додайте в `CLAUDE.md` проекту рядок:
@@ -46,18 +47,21 @@ npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 
 ## 3. Мови й формати
 
-У `src/main.tsx` до рендеру створіть i18next із рядками проекту (ADR-0007):
+У `src/main.tsx` до рендеру застосуйте вподобання вигляду й створіть i18next із рядками проекту (ADR-0007, ADR-0008):
 
 ```tsx
+import { initAppearance, syncLanguage } from "@/lib/appearance"
 import { createI18n } from "@/lib/i18n"
 import en from "@/i18n/en.json"
 import uk from "@/i18n/uk.json"
 
-createI18n({
-  language: savedPreferences.language, // "uk" | "en"; без нього — українська
-  resources: { uk: { app: uk }, en: { app: en } },
-  defaultNamespace: "app",
-})
+initAppearance() // палітра, тема, щільність, сайдбар і мова з кешу (на сервері — PF11)
+syncLanguage(
+  createI18n({
+    resources: { uk: { app: uk }, en: { app: en } },
+    defaultNamespace: "app",
+  }),
+)
 ```
 
 - Рядки компонентів кіта (простір імен `erp-ui`) підключаються самі. Перевизначити рядок: `i18n.addResourceBundle("uk", "erp-ui", { common: { close: "Закрити вікно" } }, true, true)`.
@@ -76,7 +80,61 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 - Ідентифікатори й телефони: `npx shadcn@latest add VasulenkoIllia/erp-ui/erp/ua-id-input VasulenkoIllia/erp-ui/erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`React.lazy`).
 
-## 4. Вигляд
+## 4. Оболонка застосунку
+
+```sh
+npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/erp/command-palette \
+  VasulenkoIllia/erp-ui/erp/user-menu VasulenkoIllia/erp-ui/erp/company-switcher \
+  VasulenkoIllia/erp-ui/erp/notification-bell VasulenkoIllia/erp-ui/erp/page-state
+```
+
+```tsx
+<IconProvider>
+  <TooltipProvider>
+    <AppShell
+      nav={[{ id: "sales", label: t("nav.sales"), items: [
+        { id: "K2", label: kitT("modules.K2"), href: "/invoices", icon: MODULE_ICONS.K2, mobile: true },
+      ] }]}
+      activeId="K2"
+      breadcrumbs={[{ label: t("nav.sales") }, { label: kitT("modules.K2") }]}
+      header={<CompanySwitcher companies={companies} value={companyId} onValueChange={setCompanyId} />}
+      actions={<>
+        <CommandPaletteTrigger onClick={openPalette} />
+        <NotificationBell count={unread} />
+        <UserMenu user={me} onSignOut={signOut} />
+      </>}
+      renderLink={(href) => <Link to={href} />} // React Router; без нього — <a href>
+    >
+      {page}
+    </AppShell>
+    <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
+  </TooltipProvider>
+</IconProvider>
+```
+
+- Десктоп — сайдбар із групами, планшет — вузька панель з іконками, телефон — нижня панель (пункти з `mobile: true`, до 4) + «Ще».
+- Іконки модулів, статусів і дій — лише з `lib/icons` (`MODULE_ICONS`, `STATUS_ICONS`, `ACTION_ICONS`); гривня — `HryvniaIcon`.
+- Стани списків і сторінок — `PageState` і `PageSkeleton` з `erp/page-state`; порожній стан не підміняє помилку.
+- Сітки сторінок — з `grid-cols-1` (`minmax(0, 1fr)`), інакше широка таблиця розпирає сторінку на телефоні.
+
+Щоб тема не блимала до завантаження JS, додайте в `<head>` `index.html` (логіка — як у `lib/appearance`):
+
+```html
+<script>
+  ;(function () {
+    var root = document.documentElement, a = {}
+    try { a = JSON.parse(localStorage.getItem("erp-ui:appearance") || "{}") || {} } catch (e) {}
+    root.dataset.palette = a.palette || "sapphire"
+    root.classList.toggle("dark", a.theme === "dark" ||
+      (a.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches))
+    if (a.density === "compact") root.dataset.density = "compact"
+    if (a.sidebar === "dark") root.dataset.sidebar = "dark"
+    root.lang = a.language === "en" ? "en" : "uk"
+  })()
+</script>
+```
+
+## 5. Вигляд
 
 Палітра, тема, щільність і сайдбар задаються атрибутами `<html>` (SPEC §6.2):
 
@@ -86,7 +144,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 
 Палітри: `sapphire`, `graphite` (основні), `indigo`, `teal`, `terracotta`. Без класу `dark` — світла тема.
 
-## 5. Оновлення
+## 6. Оновлення
 
 ```sh
 npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button --diff   # що зміниться, нічого не записує
@@ -97,7 +155,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button          # застосу�
 - Закріпити версію: `…/ui/button#v0.1.0` (git-тег; список — теги репозиторію й `CHANGELOG.md`). Без `#…` береться найновіше з `main`.
 - Якщо компонент довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`. При оновленні вона буде видна в `--diff`, а вдалу правку варто перенести в реєстр.
 
-## 6. Чого не робити
+## 7. Чого не робити
 
 - Не копіювати компоненти руками з репозиторію — лише через `shadcn add` (так працюють оновлення).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.

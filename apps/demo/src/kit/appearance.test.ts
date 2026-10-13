@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 import {
   DEFAULT_APPEARANCE,
-  STORAGE_KEY,
+  APPEARANCE_STORAGE_KEY as STORAGE_KEY,
   applyAppearance,
   isDark,
   parseAppearance,
   readStoredAppearance,
   storeAppearance,
-} from "./appearance"
+} from "@/registry/lib/appearance"
 
 describe("parseAppearance", () => {
   it("повертає типові значення для порожнього чи зламаного вводу", () => {

@@ -56,6 +56,9 @@ const SHOT_PAGES = {
   appearance: "/",
   primitives: "/#/primitives",
   formats: "/#/formats",
+  icons: "/#/icons",
+  states: "/#/states",
+  module: "/#/m/K2",
 } as const
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
-import { STORAGE_KEY } from "./appearance"
+import { APPEARANCE_STORAGE_KEY as STORAGE_KEY } from "@/registry/lib/appearance"
 import { AppearanceControls } from "./AppearanceControls"
 
 describe("AppearanceControls", () => {

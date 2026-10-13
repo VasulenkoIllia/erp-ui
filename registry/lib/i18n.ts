@@ -50,7 +50,7 @@ export function createI18n({
   resources = {},
   defaultNamespace = ERP_UI_NAMESPACE,
 }: CreateI18nOptions = {}): i18n {
-  const kit: Record<Language, ErpUiMessages> = { uk, en }
+  const kit: Record<Language, object> = { uk, en }
   const merged = Object.fromEntries(
     LANGUAGES.map((lng) => [
       lng,

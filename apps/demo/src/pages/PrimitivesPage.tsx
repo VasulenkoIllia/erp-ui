@@ -504,7 +504,7 @@ export function PrimitivesPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} lead={t("lead")} />
-      <div className="grid items-start gap-6 @4xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 @4xl:grid-cols-2">
         <ButtonsSection />
         <StatusesSection />
         <FieldsSection />

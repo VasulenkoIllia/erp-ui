@@ -1,7 +1,17 @@
 // Підставляється після `shadcn add`: перевіряє, що встановлені елементи компілюються разом.
 import { useState } from "react"
 
+import { AppShell } from "@/components/erp/app-shell"
+import {
+  CommandPalette,
+  CommandPaletteTrigger,
+  useCommandPaletteShortcut,
+} from "@/components/erp/command-palette"
+import { CompanySwitcher } from "@/components/erp/company-switcher"
+import { NotificationBell } from "@/components/erp/notification-bell"
+import { PageState } from "@/components/erp/page-state"
 import { PhoneInput } from "@/components/erp/phone-input"
+import { UserMenu } from "@/components/erp/user-menu"
 import { UaIdInput, uaIdIssueKey } from "@/components/erp/ua-id-input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -44,6 +54,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useResolvedTheme } from "@/hooks/use-resolved-theme"
+import { HryvniaIcon, IconProvider, MODULE_ICONS } from "@/lib/icons"
 import { useFormat } from "@/lib/format"
 import { useErpUiT, useLanguage } from "@/lib/i18n"
 import { validatePhone } from "@/lib/phone"
@@ -58,9 +69,27 @@ export function App() {
   const [iban, setIban] = useState("")
   const [phone, setPhone] = useState("")
   const ibanIssue = validateUaId("iban", iban)
+  const [palette, setPalette] = useState(false)
+  useCommandPaletteShortcut(() => setPalette(true))
   return (
+    <IconProvider>
     <TooltipProvider>
-      <main className={cn("p-6", "space-y-4")} data-theme={theme}>
+      <AppShell
+        nav={[{ id: "sales", label: t("modules.K2"), items: [{ id: "K2", label: t("modules.K2"), href: "#/k2", icon: MODULE_ICONS.K2, mobile: true }] }]}
+        activeId="K2"
+        breadcrumbs={[{ label: t("modules.K2") }]}
+        header={<CompanySwitcher companies={[{ id: "a", name: "ТОВ «А»" }, { id: "b", name: "ФОП Б" }]} value="a" onValueChange={() => undefined} />}
+        actions={
+          <>
+            <CommandPaletteTrigger compact onClick={() => setPalette(true)} />
+            <NotificationBell count={1} />
+            <UserMenu user={{ name: "Олена Коваль" }} onSignOut={() => undefined} />
+          </>
+        }
+      >
+      <PageState kind="empty" icon={HryvniaIcon} />
+      <CommandPalette open={palette} onOpenChange={setPalette} commands={[{ id: "k2", label: t("modules.K2"), group: "Модулі", onSelect: () => undefined }]} />
+      <div className={cn("p-6", "space-y-4")} data-theme={theme}>
         <Card>
           <CardHeader>
             <CardTitle>erp-ui</CardTitle>
@@ -131,8 +160,10 @@ export function App() {
             </Tooltip>
           </CardContent>
         </Card>
-      </main>
+      </div>
+      </AppShell>
       <Toaster />
     </TooltipProvider>
+    </IconProvider>
   )
 }
