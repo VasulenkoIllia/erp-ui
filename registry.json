@@ -162,6 +162,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -177,6 +182,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -185,6 +195,11 @@
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/lib/preferences.ts",
@@ -228,7 +243,7 @@
       "name": "auth",
       "type": "registry:item",
       "title": "Вхід і акаунт",
-      "description": "Усі екрани входу й безпеки акаунта (ADR-0010, ADR-0011): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу.",
+      "description": "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0013): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -320,6 +335,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -345,6 +365,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -368,6 +393,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -578,9 +608,34 @@
           "path": "registry/erp/reset-factors.tsx",
           "type": "registry:component",
           "target": "@components/erp/reset-factors.tsx"
+        },
+        {
+          "path": "registry/erp/user-access.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/user-access.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/erp/audit-log.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/audit-log.tsx"
+        },
+        {
+          "path": "registry/erp/webhooks-section.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/webhooks-section.tsx"
+        },
+        {
+          "path": "registry/erp/notification-settings-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-settings-form.tsx"
         }
       ],
-      "docs": "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).\n1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).\n2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.\n3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).\n4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.\n5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.\n6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).\n7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).",
+      "docs": "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).\n1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).\n2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.\n3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).\n4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.\n5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.\n6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).\n7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).\n8) Сповіщення: NotificationSettingsForm (erp/notification-settings-form). Адміністратор (ADR-0013): useUserAccessSheet і ActiveSessionsSection (erp/user-access), AuditLog (erp/audit-log), WebhooksSection (erp/webhooks-section).",
       "meta": {
         "layer": "auth",
         "status": "beta",
@@ -635,6 +690,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -665,14 +725,34 @@
           "target": "@lib/mock-admin.ts"
         },
         {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
           "path": "registry/lib/mock-auth.ts",
           "type": "registry:lib",
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -693,6 +773,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/erp/dev-panel.tsx",
@@ -1950,6 +2035,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -2041,6 +2131,56 @@
       }
     },
     {
+      "name": "lib/audit",
+      "type": "registry:lib",
+      "title": "Журнал аудиту",
+      "description": "Контракт журналу (хто, що, коли, звідки; «було → стало»; причина), плоскі фільтри, експорт CSV — provider.audit.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "audit",
+        "spec": [
+          "A5",
+          "PF01"
+        ]
+      }
+    },
+    {
       "name": "lib/auth",
       "type": "registry:lib",
       "title": "Вхід і права",
@@ -2073,6 +2213,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2088,6 +2233,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -2101,6 +2251,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2396,6 +2551,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -2416,6 +2576,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
@@ -2424,6 +2589,11 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -2439,6 +2609,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2487,6 +2662,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -2512,6 +2692,11 @@
           "target": "@lib/mock-account.ts"
         },
         {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
@@ -2520,6 +2705,11 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -2535,6 +2725,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2543,6 +2738,112 @@
         "demo": "securityPolicy",
         "spec": [
           "PF01",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-audit",
+      "type": "registry:lib",
+      "title": "Мок журналу аудиту",
+      "description": "Журнал у localStorage: мок сам записує входи, безпеку, доступ, інтеграції й зміни записів (createResourceHandlers) з «було → стало».",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "audit",
+        "spec": [
+          "A5",
           "§17"
         ]
       }
@@ -2583,6 +2884,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -2613,6 +2919,16 @@
           "target": "@lib/mock-admin.ts"
         },
         {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
@@ -2621,6 +2937,16 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -2641,6 +2967,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2649,6 +2980,112 @@
         "demo": "login",
         "spec": [
           "PF01",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-notifications",
+      "type": "registry:lib",
+      "title": "Мок налаштувань сповіщень",
+      "description": "Події й канали проекту мовами, вибір користувача й тихі години в localStorage, перевірка обов'язкових каналів.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "notifications",
+        "spec": [
+          "PF10",
           "§17"
         ]
       }
@@ -2711,6 +3148,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -2736,6 +3178,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -2749,6 +3196,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2761,10 +3213,121 @@
       }
     },
     {
+      "name": "lib/mock-webhooks",
+      "type": "registry:lib",
+      "title": "Мок вебхуків",
+      "description": "Підписки й доставки в localStorage; події записів із шини мок-сервера; результат доставки за адресою (*.invalid, /fail).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "integrations",
+        "spec": [
+          "PF17",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/mocks",
       "type": "registry:lib",
       "title": "Мок-сервер MSW",
-      "description": "createPlatformHandlers (вхід із 2FA, /me, вподобання) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії) за контрактами API.",
+      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API.",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -2794,6 +3357,11 @@
           "path": "registry/lib/appearance.ts",
           "type": "registry:lib",
           "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
         },
         {
           "path": "registry/lib/auth.ts",
@@ -2826,9 +3394,19 @@
           "target": "@lib/mock-admin.ts"
         },
         {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
           "path": "registry/lib/mock-auth.ts",
           "type": "registry:lib",
           "target": "@lib/mock-auth.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -2839,6 +3417,16 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -2859,6 +3447,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -2867,6 +3460,30 @@
         "demo": "data",
         "spec": [
           "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/notification-settings",
+      "type": "registry:lib",
+      "title": "Налаштування сповіщень",
+      "description": "Контракт: події проекту × канали (у застосунку, email, push, месенджери), обов'язкові сповіщення безпеки, тихі години.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "notifications",
+        "spec": [
+          "PF10"
         ]
       }
     },
@@ -3069,6 +3686,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -3152,6 +3774,41 @@
         "status": "beta",
         "spec": [
           "§6.5"
+        ]
+      }
+    },
+    {
+      "name": "lib/webhooks",
+      "type": "registry:lib",
+      "title": "Вебхуки",
+      "description": "Контракт підписок на події: адреса https, події, секрет підпису (HMAC), тестова подія, журнал доставок і повтор — provider.webhooks.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "integrations",
+        "spec": [
+          "PF11",
+          "PF17"
         ]
       }
     },
@@ -3308,6 +3965,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -3328,6 +3990,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -3341,6 +4008,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         }
       ],
       "meta": {
@@ -3428,6 +4100,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -3453,6 +4130,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -3471,6 +4153,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/badge.tsx",
@@ -3633,6 +4320,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -3656,6 +4348,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -3686,6 +4383,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -3872,6 +4574,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -3897,6 +4604,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -3920,6 +4632,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -4071,6 +4788,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -4089,6 +4811,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -4114,6 +4841,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -4260,6 +4992,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -4285,6 +5022,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -4308,6 +5050,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -4497,6 +5244,200 @@
       }
     },
     {
+      "name": "erp/audit-log",
+      "type": "registry:component",
+      "title": "Журнал аудиту",
+      "description": "AuditLog: пошук, розділ, період, подробиці («було → стало», причина, пристрій), експорт CSV; filter — історія одного запису.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/audit-log.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/audit-log.tsx"
+        },
+        {
+          "path": "registry/erp/account-devices.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/account-devices.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "audit",
+        "spec": [
+          "A5",
+          "PF01"
+        ]
+      }
+    },
+    {
       "name": "erp/auth-layout",
       "type": "registry:component",
       "title": "Основа екранів входу",
@@ -4536,6 +5477,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -4556,6 +5502,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -4574,6 +5525,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/card.tsx",
@@ -4771,6 +5727,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -4791,6 +5752,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -4809,6 +5775,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -5297,6 +6268,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -5317,6 +6293,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -5335,6 +6316,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -5461,6 +6447,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -5479,6 +6470,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -5504,6 +6500,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -5667,6 +6668,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -5692,6 +6698,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -5715,6 +6726,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -5872,6 +6888,184 @@
       }
     },
     {
+      "name": "erp/notification-settings-form",
+      "type": "registry:component",
+      "title": "Налаштування сповіщень",
+      "description": "NotificationSettingsForm: матриця подій і каналів (на телефоні — картки), обов'язкові сповіщення безпеки, тихі години, дозвіл push у браузері.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/notification-settings-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-settings-form.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "notifications",
+        "spec": [
+          "PF10"
+        ]
+      }
+    },
+    {
       "name": "erp/page-state",
       "type": "registry:component",
       "title": "Стани сторінки",
@@ -5984,6 +7178,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -6002,6 +7201,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6027,6 +7231,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -6207,6 +7416,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -6225,6 +7439,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6250,6 +7469,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -6427,6 +7651,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -6445,6 +7674,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6470,6 +7704,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -6611,6 +7850,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -6636,6 +7880,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -6659,6 +7908,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -6812,6 +8066,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -6830,6 +8089,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6855,6 +8119,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -6994,6 +8263,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -7014,6 +8288,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -7032,6 +8311,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -7122,6 +8406,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -7140,6 +8429,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7170,6 +8464,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -7279,6 +8578,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
           "path": "registry/lib/auth.ts",
           "type": "registry:lib",
           "target": "@lib/auth.ts"
@@ -7304,6 +8608,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -7322,6 +8631,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -7472,6 +8786,246 @@
       }
     },
     {
+      "name": "erp/user-access",
+      "type": "registry:component",
+      "title": "Доступ користувачів",
+      "description": "Панель доступу (стан, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "input-otp@^1.5.0",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/user-access.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/user-access.tsx"
+        },
+        {
+          "path": "registry/erp/account-devices.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/account-devices.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-input.tsx"
+        },
+        {
+          "path": "registry/erp/reauth-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/reauth-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/reset-factors.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/reset-factors.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/password.ts",
+          "type": "registry:lib",
+          "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/input-otp.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-otp.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "users",
+        "spec": [
+          "PF01",
+          "A2"
+        ]
+      }
+    },
+    {
       "name": "erp/user-menu",
       "type": "registry:component",
       "title": "Меню користувача",
@@ -7553,6 +9107,251 @@
         "spec": [
           "§6.2",
           "PF11"
+        ]
+      }
+    },
+    {
+      "name": "erp/webhooks-section",
+      "type": "registry:component",
+      "title": "Вебхуки",
+      "description": "WebhooksSection: підписки, увімкнення, тестова подія, новий секрет (показ один раз), журнал доставок із повтором.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "input-otp@^1.5.0",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/webhooks-section.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/webhooks-section.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/copy-button.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/copy-button.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-input.tsx"
+        },
+        {
+          "path": "registry/erp/reauth-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/reauth-dialog.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/password.ts",
+          "type": "registry:lib",
+          "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/input-otp.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-otp.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "integrations",
+        "spec": [
+          "PF11",
+          "PF17"
         ]
       }
     }

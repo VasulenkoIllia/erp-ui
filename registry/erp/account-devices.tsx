@@ -65,7 +65,7 @@ export function deviceLabel(device: Device, t: ErpUiTranslate): string {
     : t(`auth.devices.types.${device.type}`)
 }
 
-function DeviceIcon({ device }: { device: Device }) {
+export function DeviceIcon({ device }: { device: Device }) {
   const Icon = DEVICE_ICONS[device.type]
   return (
     <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">

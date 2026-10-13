@@ -4,10 +4,12 @@ import { useNavigate } from "react-router"
 
 import { useImpersonation } from "@/registry/erp/impersonation"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
+import { RecoveryRequestsSection } from "@/registry/erp/reset-factors"
 import {
-  RecoveryRequestsSection,
-  useResetFactors,
-} from "@/registry/erp/reset-factors"
+  ActiveSessionsSection,
+  UserBlockedBadge,
+  useUserAccessSheet,
+} from "@/registry/erp/user-access"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { hasPermission } from "@/registry/lib/auth"
@@ -30,8 +32,9 @@ const initials = (name: string) =>
     .join("")
 
 /**
- * Користувачі компанії з «Увійти як…» (ADR-0011). Повний модуль користувачів і ролей — A2 у хвилі 1;
- * тут — лише список, щоб показати вхід від імені користувача.
+ * Користувачі компанії: «Увійти як…» (ADR-0011), доступ — сесії, скидання другого кроку,
+ * блокування (ADR-0013), запити на відновлення й активні сесії. Повний модуль користувачів і
+ * ролей — A2 у хвилі 1; тут — простий список.
  */
 export function UsersPage() {
   const { t } = useTranslation("demo", { keyPrefix: "usersPage" })
@@ -48,11 +51,11 @@ export function UsersPage() {
       void navigate(ROUTES.data)
     },
   })
-  const reset = useResetFactors()
+  const access = useUserAccessSheet()
   const canImpersonate = me
     ? hasPermission(me.permissions, "users", "impersonate")
     : false
-  const canReset =
+  const canManage =
     me && !me.impersonator
       ? hasPermission(me.permissions, "users", "update")
       : false
@@ -86,7 +89,10 @@ export function UsersPage() {
                     <AvatarFallback>{initials(user.name)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{user.name}</p>
+                    <p className="flex flex-wrap items-center gap-2 font-medium">
+                      <span className="truncate">{user.name}</span>
+                      {canManage ? <UserBlockedBadge userId={user.id} /> : null}
+                    </p>
                     <p className="truncate text-sm text-muted-foreground">
                       {[
                         user.email,
@@ -115,22 +121,22 @@ export function UsersPage() {
                         {kitT("auth.impersonation.action")}
                       </Button>
                     ) : null}
-                    {canReset ? (
+                    {canManage ? (
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label={kitT("resetFactors.actionFor", {
+                        aria-label={kitT("userAccess.actionFor", {
                           name: user.name,
                         })}
                         onClick={() => {
-                          reset.start({
+                          access.open({
                             id: user.id,
                             name: user.name,
                             email: user.email,
                           })
                         }}
                       >
-                        {kitT("resetFactors.action")}
+                        {kitT("userAccess.action")}
                       </Button>
                     ) : null}
                   </div>
@@ -146,7 +152,7 @@ export function UsersPage() {
     <div className="space-y-6">
       <PageHeader title={t("title")} lead={t("lead")} />
       <div className="max-w-3xl space-y-6">
-        {canReset ? (
+        {canManage ? (
           <Section
             title={kitT("resetFactors.requestsTitle")}
             description={kitT("resetFactors.requestsDescription")}
@@ -155,9 +161,17 @@ export function UsersPage() {
           </Section>
         ) : null}
         {body}
+        {canManage ? (
+          <Section
+            title={t("sessionsTitle")}
+            description={t("sessionsDescription")}
+          >
+            <ActiveSessionsSection />
+          </Section>
+        ) : null}
       </div>
       {dialog}
-      {reset.dialog}
+      {access.sheet}
     </div>
   )
 }

@@ -104,4 +104,17 @@ export const ACCOUNT_SEEDS: Record<string, MockAccountSeed> = {
       },
     ],
   },
+  // Іван — одна сесія на телефоні: адміністратор бачить її в «Доступі» й може завершити.
+  "u-ivan": {
+    sessions: [
+      {
+        id: "s-ivan-android",
+        device: ANDROID,
+        ip: "198.51.100.88",
+        location: KYIV,
+        createdAt: ago(60 * 24 * 2),
+        lastActiveAt: ago(25),
+      },
+    ],
+  },
 }

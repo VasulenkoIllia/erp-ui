@@ -14,9 +14,20 @@ import {
   localizedText,
   type LocalizedText,
 } from "@/registry/lib/auth"
-import { CURRENT_IP, resetMockFactors } from "@/registry/lib/mock-account"
 import {
+  endAllMockUserSessions,
+  endMockUserSession,
+  mockAccessSummary,
+  mockBlocked,
+  mockUserSessions,
+  resetMockFactors,
+  setMockBlocked,
+} from "@/registry/lib/mock-account"
+import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
+import {
+  CURRENT_IP,
   currentMockUser,
+  emitMockEvent,
   errorResponse,
   getMockSession,
   impersonationForbidden,
@@ -127,6 +138,49 @@ const validation = (fields: Record<string, string>) =>
 const forbidden = (message: string) =>
   errorResponse(403, { code: "forbidden", message })
 
+const notFound = () =>
+  errorResponse(404, { code: "not_found", message: "Not found" })
+
+/** Політика одним рівнем — для «було → стало» в журналі аудиту. */
+function flattenPolicy({ password, ...rest }: SecurityPolicy) {
+  return {
+    ...rest,
+    "password.minLength": password.minLength,
+    "password.expiryDays": password.expiryDays,
+    "password.preventReuse": password.preventReuse,
+  }
+}
+
+const POLICY_LABELS: Record<string, LocalizedText> = {
+  twoFactor: {
+    uk: "Обов'язкова двоетапна перевірка",
+    en: "Required two-step verification",
+  },
+  twoFactorRoles: { uk: "Ролі з обов'язковою перевіркою", en: "Roles" },
+  allowedFactors: { uk: "Дозволені способи", en: "Allowed methods" },
+  passwordless: { uk: "Вхід без пароля", en: "Passwordless sign-in" },
+  ssoProviders: { uk: "Вхід через провайдера", en: "Sign-in providers" },
+  "password.minLength": {
+    uk: "Мінімальна довжина пароля",
+    en: "Minimum password length",
+  },
+  "password.expiryDays": {
+    uk: "Термін дії пароля, днів",
+    en: "Password expiry, days",
+  },
+  "password.preventReuse": {
+    uk: "Не повторювати останніх паролів",
+    en: "Prevent reusing passwords",
+  },
+  sessionMinutes: { uk: "Сесія без активності, хв", en: "Idle session, min" },
+  idleTimeoutMinutes: { uk: "Автовихід, хв", en: "Auto sign-out, min" },
+  trustedDeviceDays: {
+    uk: "Довірений пристрій, днів",
+    en: "Trusted device, days",
+  },
+  ipAllowlist: { uk: "Дозволені адреси", en: "Allowed addresses" },
+}
+
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
@@ -136,19 +190,31 @@ export function createAdminHandlers({
   providers,
   reauthRequired,
 }: AdminMockOptions): HttpHandler[] {
-  /** Адміністратор із правом; зміни — ще й не «Увійти як…» і з повторним підтвердженням. */
+  /**
+   * Адміністратор із правом. `change` — не під час «Увійти як…»; `sensitive` — ще й після
+   * повторного підтвердження.
+   */
   const admin = (
     resource: "security" | "users",
     action: "read" | "update",
-    change = false,
+    level: "read" | "change" | "sensitive" = "read",
   ): MockUser | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
     if (!hasPermission(user.permissions, resource, action))
       return forbidden(`Missing ${resource}:${action}`)
-    if (!change) return user
-    return impersonationForbidden() ?? reauthRequired() ?? user
+    if (level === "read") return user
+    const denied = impersonationForbidden()
+    if (denied) return denied
+    return level === "sensitive" ? (reauthRequired() ?? user) : user
   }
+
+  const targetUser = (id: unknown) => mockUsersList().find((u) => u.id === id)
+  const asTarget = (user: MockUser) => ({
+    type: "users",
+    id: user.id,
+    name: user.name,
+  })
 
   const readRequests = () => read<RecoveryRequest[]>(RECOVERY_KEY, [])
 
@@ -173,7 +239,7 @@ export function createAdminHandlers({
     }),
 
     http.put(`${baseUrl}/security-policy`, async ({ request }) => {
-      const user = admin("security", "update", true)
+      const user = admin("security", "update", "sensitive")
       if (user instanceof Response) return user
       const parsed = securityPolicySchema.safeParse(await request.json())
       if (!parsed.success)
@@ -202,8 +268,18 @@ export function createAdminHandlers({
       )
         fields.ipAllowlist = "excludesCurrent"
       if (Object.keys(fields).length) return validation(fields)
+      const before = getMockPolicy()
       write(POLICY_KEY, policy)
       setSessionMinutes(policy.sessionMinutes)
+      recordAudit({
+        action: "security.policy_updated",
+        category: "security",
+        changes: auditChanges(
+          flattenPolicy(before),
+          flattenPolicy(policy),
+          POLICY_LABELS,
+        ),
+      })
       return json(policy)
     }),
 
@@ -231,6 +307,12 @@ export function createAdminHandlers({
         ...readRequests().filter((r) => r.userId !== user.id),
       ])
       sendMockMessage({ channel: "email", to: user.email, kind: "recovery" })
+      recordAudit({
+        action: "auth.recovery_requested",
+        category: "auth",
+        actor: { type: "user", id: user.id, name: user.name },
+        ...(entry.comment ? { reason: entry.comment } : {}),
+      })
       return json({ status: "queued" }, { status: 202 })
     }),
 
@@ -253,7 +335,7 @@ export function createAdminHandlers({
     http.post(
       `${baseUrl}/users/:id/reset-factors`,
       async ({ params, request }) => {
-        const user = admin("users", "update", true)
+        const user = admin("users", "update", "sensitive")
         if (user instanceof Response) return user
         const { reason } = (await request.json()) as { reason?: string }
         if (!reason?.trim()) return validation({ reason: "required" })
@@ -262,6 +344,12 @@ export function createAdminHandlers({
           return errorResponse(404, { code: "not_found", message: "Not found" })
         if (target.id === user.id) return validation({ userId: "invalid" })
         resetMockFactors(target)
+        recordAudit({
+          action: "security.factors_reset",
+          category: "security",
+          target: asTarget(target),
+          reason: reason.trim(),
+        })
         write(
           RECOVERY_KEY,
           readRequests().filter((r) => r.userId !== target.id),
@@ -275,5 +363,126 @@ export function createAdminHandlers({
         return noContent()
       },
     ),
+
+    /* ------------------------- Доступ користувача ------------------------- */
+
+    http.get(`${baseUrl}/users/:id/access`, ({ params, request }) => {
+      const user = admin("users", "update")
+      if (user instanceof Response) return user
+      const target = targetUser(params.id)
+      if (!target) return notFound()
+      const blocked = mockBlocked(target)
+      const language = languageOf(request)
+      return json({
+        userId: target.id,
+        status: blocked ? "blocked" : "active",
+        blocked,
+        ...mockAccessSummary(target),
+        sessions: mockUserSessions(target, language).map((session) => ({
+          ...session,
+          user: { id: target.id, name: target.name, email: target.email },
+        })),
+      })
+    }),
+
+    http.get(`${baseUrl}/sessions`, ({ request }) => {
+      const user = admin("users", "update")
+      if (user instanceof Response) return user
+      const params = new URL(request.url).searchParams
+      const q = params.get("q")?.trim().toLocaleLowerCase("uk") ?? ""
+      const page = Math.max(1, Number(params.get("page")) || 1)
+      const perPage = Math.min(
+        100,
+        Math.max(1, Number(params.get("perPage")) || 20),
+      )
+      const language = languageOf(request)
+      const sessions = mockUsersList()
+        .filter(
+          (u) =>
+            !q ||
+            u.name.toLocaleLowerCase("uk").includes(q) ||
+            u.email.toLowerCase().includes(q),
+        )
+        .flatMap((u) =>
+          mockUserSessions(u, language).map((session) => ({
+            ...session,
+            user: { id: u.id, name: u.name, email: u.email },
+          })),
+        )
+        .sort((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt))
+      const start = (page - 1) * perPage
+      return json({
+        data: sessions.slice(start, start + perPage),
+        total: sessions.length,
+      })
+    }),
+
+    http.delete(`${baseUrl}/sessions/:id`, ({ params }) => {
+      const user = admin("users", "update", "change")
+      if (user instanceof Response) return user
+      if (params.id === getMockSession()?.id)
+        return errorResponse(409, {
+          code: "conflict",
+          message: "This is your current session — sign out instead",
+        })
+      const owner = mockUsersList().find((u) =>
+        endMockUserSession(u, String(params.id)),
+      )
+      if (!owner) return notFound()
+      recordAudit({
+        action: "users.session_ended",
+        category: "users",
+        target: asTarget(owner),
+      })
+      return noContent()
+    }),
+
+    http.post(`${baseUrl}/users/:id/sign-out`, ({ params }) => {
+      const user = admin("users", "update", "change")
+      if (user instanceof Response) return user
+      const target = targetUser(params.id)
+      if (!target) return notFound()
+      endAllMockUserSessions(target)
+      recordAudit({
+        action: "users.signed_out",
+        category: "users",
+        target: asTarget(target),
+      })
+      return noContent()
+    }),
+
+    http.post(`${baseUrl}/users/:id/block`, async ({ params, request }) => {
+      const user = admin("users", "update", "sensitive")
+      if (user instanceof Response) return user
+      const target = targetUser(params.id)
+      if (!target) return notFound()
+      if (target.id === user.id) return validation({ userId: "invalid" })
+      const { reason } = (await request.json()) as { reason?: string }
+      if (!reason?.trim()) return validation({ reason: "required" })
+      setMockBlocked(target, { by: user.name, reason: reason.trim() })
+      recordAudit({
+        action: "users.blocked",
+        category: "users",
+        target: asTarget(target),
+        reason: reason.trim(),
+      })
+      emitMockEvent("users.blocked", { id: target.id, name: target.name })
+      return noContent()
+    }),
+
+    http.post(`${baseUrl}/users/:id/unblock`, ({ params }) => {
+      const user = admin("users", "update", "sensitive")
+      if (user instanceof Response) return user
+      const target = targetUser(params.id)
+      if (!target) return notFound()
+      setMockBlocked(target, null)
+      recordAudit({
+        action: "users.unblocked",
+        category: "users",
+        target: asTarget(target),
+      })
+      emitMockEvent("users.unblocked", { id: target.id, name: target.name })
+      return noContent()
+    }),
   ]
 }

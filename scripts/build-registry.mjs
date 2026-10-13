@@ -104,6 +104,18 @@ function build() {
       problems.push(`Немає опису для ${f.name} у registry/registry.config.mjs`)
   for (const name of Object.keys(CODE_ITEMS))
     if (!byName.has(name)) problems.push(`Опис ${name} є, а файлу немає`)
+  // shadcn CLI переписує імпорти за назвою файлу: lib/x і erp/x в одному пакунку плутаються
+  // (імпорт lib/x стає @/components/erp/x). Назви файлів у різних шарах мають бути різними.
+  const byBase = new Map()
+  for (const f of files) {
+    const base = f.name.split("/").at(-1)
+    const other = byBase.get(base)
+    if (other)
+      problems.push(
+        `${f.file}: та сама назва файлу, що й ${other.file} — shadcn CLI їх переплутає; перейменуйте один`,
+      )
+    else byBase.set(base, f)
+  }
   // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
     const src = readFileSync(path.join(root, f.file), "utf8")

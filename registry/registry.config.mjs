@@ -140,7 +140,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід із 2FA, /me, вподобання) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії) за контрактами API.",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API.",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -232,6 +232,54 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "securityPolicy",
     spec: ["PF01", "§17"],
+  },
+  "lib/audit": {
+    title: "Журнал аудиту",
+    description:
+      "Контракт журналу (хто, що, коли, звідки; «було → стало»; причина), плоскі фільтри, експорт CSV — provider.audit.",
+    status: "beta",
+    demo: "audit",
+    spec: ["A5", "PF01"],
+  },
+  "lib/webhooks": {
+    title: "Вебхуки",
+    description:
+      "Контракт підписок на події: адреса https, події, секрет підпису (HMAC), тестова подія, журнал доставок і повтор — provider.webhooks.",
+    status: "beta",
+    demo: "integrations",
+    spec: ["PF11", "PF17"],
+  },
+  "lib/notification-settings": {
+    title: "Налаштування сповіщень",
+    description:
+      "Контракт: події проекту × канали (у застосунку, email, push, месенджери), обов'язкові сповіщення безпеки, тихі години.",
+    status: "beta",
+    demo: "notifications",
+    spec: ["PF10"],
+  },
+  "lib/mock-audit": {
+    title: "Мок журналу аудиту",
+    description:
+      "Журнал у localStorage: мок сам записує входи, безпеку, доступ, інтеграції й зміни записів (createResourceHandlers) з «було → стало».",
+    status: "beta",
+    demo: "audit",
+    spec: ["A5", "§17"],
+  },
+  "lib/mock-webhooks": {
+    title: "Мок вебхуків",
+    description:
+      "Підписки й доставки в localStorage; події записів із шини мок-сервера; результат доставки за адресою (*.invalid, /fail).",
+    status: "beta",
+    demo: "integrations",
+    spec: ["PF17", "§17"],
+  },
+  "lib/mock-notifications": {
+    title: "Мок налаштувань сповіщень",
+    description:
+      "Події й канали проекту мовами, вибір користувача й тихі години в localStorage, перевірка обов'язкових каналів.",
+    status: "beta",
+    demo: "notifications",
+    spec: ["PF10", "§17"],
   },
   "lib/mock-account": {
     title: "Мок безпеки акаунта",
@@ -494,6 +542,38 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "users",
     spec: ["PF01", "A2", "A5"],
+  },
+  "erp/audit-log": {
+    title: "Журнал аудиту",
+    description:
+      "AuditLog: пошук, розділ, період, подробиці («було → стало», причина, пристрій), експорт CSV; filter — історія одного запису.",
+    status: "beta",
+    demo: "audit",
+    spec: ["A5", "PF01"],
+  },
+  "erp/webhooks-section": {
+    title: "Вебхуки",
+    description:
+      "WebhooksSection: підписки, увімкнення, тестова подія, новий секрет (показ один раз), журнал доставок із повтором.",
+    status: "beta",
+    demo: "integrations",
+    spec: ["PF11", "PF17"],
+  },
+  "erp/notification-settings-form": {
+    title: "Налаштування сповіщень",
+    description:
+      "NotificationSettingsForm: матриця подій і каналів (на телефоні — картки), обов'язкові сповіщення безпеки, тихі години, дозвіл push у браузері.",
+    status: "beta",
+    demo: "notifications",
+    spec: ["PF10"],
+  },
+  "erp/user-access": {
+    title: "Доступ користувачів",
+    description:
+      "Панель доступу (стан, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
   },
   "erp/copy-button": {
     title: "Кнопка «Копіювати»",
@@ -827,7 +907,7 @@ export const BUNDLE_ITEMS = {
   auth: {
     title: "Вхід і акаунт",
     description:
-      "Усі екрани входу й безпеки акаунта (ADR-0010, ADR-0011): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу.",
+      "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0013): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
@@ -846,6 +926,10 @@ export const BUNDLE_ITEMS = {
       "erp/api-tokens",
       "erp/security-policy-form",
       "erp/reset-factors",
+      "erp/user-access",
+      "erp/audit-log",
+      "erp/webhooks-section",
+      "erp/notification-settings-form",
     ],
     docs: [
       "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
@@ -856,6 +940,7 @@ export const BUNDLE_ITEMS = {
       "5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.",
       "6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).",
       "7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).",
+      "8) Сповіщення: NotificationSettingsForm (erp/notification-settings-form). Адміністратор (ADR-0013): useUserAccessSheet і ActiveSessionsSection (erp/user-access), AuditLog (erp/audit-log), WebhooksSection (erp/webhooks-section).",
     ].join("\n"),
   },
   mocks: {

@@ -131,6 +131,7 @@ export const API_ERROR_CODES = [
   "impersonation_forbidden",
   "factor_setup_required",
   "ip_not_allowed",
+  "account_blocked",
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 
@@ -197,6 +198,8 @@ export interface RequestOptions<T> {
   /** zod-схема відповіді: перевіряє, що сервер дотримується контракту (SPEC §18.4). */
   schema?: z.ZodType<T>
   signal?: AbortSignal
+  /** "blob" — файл (експорт CSV тощо) замість JSON; помилки однаково приходять JSON. */
+  responseType?: "json" | "blob"
 }
 
 export interface ApiClientOptions {
@@ -220,7 +223,7 @@ export function createApiClient({
   async function request<T = unknown>(
     method: string,
     path: string,
-    { query, body, schema, signal }: RequestOptions<T> = {},
+    { query, body, schema, signal, responseType }: RequestOptions<T> = {},
   ): Promise<T> {
     const search =
       query instanceof URLSearchParams
@@ -231,7 +234,9 @@ export function createApiClient({
             ),
           )
     const url = `${baseUrl}${path}${search.size ? `?${search.toString()}` : ""}`
-    const headers = new Headers({ Accept: "application/json" })
+    const headers = new Headers({
+      Accept: responseType === "blob" ? "*/*" : "application/json",
+    })
     // FormData (файли) — браузер сам ставить multipart/form-data з межею.
     const multipart = body instanceof FormData
     if (body !== undefined && !multipart)
@@ -283,6 +288,7 @@ export function createApiClient({
     }
 
     if (response.status === 204) return undefined as T
+    if (responseType === "blob") return (await response.blob()) as T
     const data: unknown = await response.json()
     return schema ? schema.parse(data) : (data as T)
   }

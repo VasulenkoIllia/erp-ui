@@ -14,7 +14,10 @@ export const ROUTES = {
   security: "/settings/security",
   users: "/settings/users",
   profile: "/settings/profile",
+  notifications: "/settings/notifications",
   securityPolicy: "/settings/security-policy",
+  audit: "/settings/audit",
+  integrations: "/settings/integrations",
 } as const
 export type Route = keyof typeof ROUTES
 

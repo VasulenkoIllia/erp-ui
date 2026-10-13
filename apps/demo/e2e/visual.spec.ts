@@ -66,6 +66,9 @@ const SHOT_PAGES = {
   users: "/#/settings/users",
   profile: "/#/settings/profile",
   securityPolicy: "/#/settings/security-policy",
+  notifications: "/#/settings/notifications",
+  audit: "/#/settings/audit",
+  integrations: "/#/settings/integrations",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
@@ -464,6 +467,139 @@ test.describe("скриншоти кроків 0.5b3 @screenshots", () => {
       await expectNoA11yViolations(page)
       await page.screenshot({
         path: path.join(shotsDir, `reset-${palette}-${theme}-${width}.png`),
+      })
+    })
+  }
+})
+
+// Крок 0.5b4: журнал аудиту з подробицями, вебхук (секрет, журнал доставок), доступ користувача.
+test.describe("скриншоти кроків 0.5b4 @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "light", width: 1440 },
+  ] as const
+  const reauth = async (page: Page) => {
+    const dialog = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+    await dialog.getByLabel("Пароль", { exact: true }).fill("demo")
+    await dialog
+      .getByRole("button", { name: "Підтвердити", exact: true })
+      .click()
+    await dialog.waitFor({ state: "hidden" })
+  }
+  /** Дочекатися кінця анімацій появи (діалоги, панелі). */
+  const settled = (page: Page) =>
+    page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+    )
+
+  for (const { palette, theme, width } of cases) {
+    test(`audit-details ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("audit-details"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/audit")
+      await page
+        .getByRole("button", { name: "Подробиці: Зміна політики безпеки" })
+        .click()
+      await page.getByRole("table", { name: "Що змінилося" }).waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `audit-details-${palette}-${theme}-${width}.png`,
+        ),
+        fullPage: true,
+      })
+    })
+
+    test(`webhook ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("webhook"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/integrations")
+      await page.getByRole("button", { name: "Додати вебхук" }).click()
+      const dialog = page.getByRole("dialog", { name: "Новий вебхук" })
+      await dialog.getByLabel("Адреса").fill("https://crm.example.com/hooks")
+      await dialog.getByLabel("Опис (необов'язково)").fill("CRM партнера")
+      await dialog
+        .getByRole("group", { name: "Рахунки" })
+        .getByRole("checkbox", { name: "Рахунок змінено" })
+        .check()
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `webhook-new-${palette}-${theme}-${width}.png`,
+        ),
+      })
+      await dialog.getByRole("button", { name: "Додати", exact: true }).click()
+      await reauth(page)
+      await page
+        .getByRole("dialog", { name: "Збережіть секрет підпису" })
+        .waitFor()
+      await settled(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `webhook-secret-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+
+    test(`deliveries ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("deliveries"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/integrations")
+      await page
+        .getByRole("button", {
+          name: "Дії: https://1c.zoriana.example/hooks/erp",
+        })
+        .click()
+      await page.getByRole("menuitem", { name: "Журнал доставок" }).click()
+      const sheet = page.getByRole("dialog", { name: "Журнал доставок" })
+      await sheet
+        .getByRole("button", { name: /Подробиці доставки/ })
+        .first()
+        .click()
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `deliveries-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+
+    test(`access ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("access"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/users")
+      await page.getByRole("button", { name: "Доступ: Іван Петренко" }).click()
+      const sheet = page.getByRole("dialog", { name: "Доступ: Іван Петренко" })
+      await sheet.getByText("Активні сесії").waitFor()
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `access-${palette}-${theme}-${width}.png`),
+      })
+      await sheet.getByRole("button", { name: "Заблокувати" }).click()
+      const block = page.getByRole("dialog", {
+        name: "Іван Петренко: заблокувати акаунт?",
+      })
+      await block.getByLabel("Причина").fill("Звільнення 13.10.2026")
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `block-${palette}-${theme}-${width}.png`),
       })
     })
   }

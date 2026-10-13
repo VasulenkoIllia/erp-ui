@@ -12,6 +12,10 @@ import {
 } from "@/components/erp/account-devices"
 import { FactorsSection } from "@/components/erp/account-factors"
 import { ApiTokensSection } from "@/components/erp/api-tokens"
+import { AuditLog } from "@/components/erp/audit-log"
+import { NotificationSettingsForm } from "@/components/erp/notification-settings-form"
+import { ActiveSessionsSection, UserBlockedBadge, useUserAccessSheet } from "@/components/erp/user-access"
+import { WebhooksSection } from "@/components/erp/webhooks-section"
 import { AvatarEditor } from "@/components/erp/avatar-editor"
 import { BackupCodesDialog, FactorSetupStep } from "@/components/erp/factor-setup"
 import { ProfileForm, ProfilePhoto } from "@/components/erp/profile-form"
@@ -34,7 +38,9 @@ import { useHasPermission, useMe } from "@/hooks/use-me"
 import { createApiClient, isApiError } from "@/lib/api"
 import { getAppearance } from "@/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
+import { auditToCsv } from "@/lib/audit"
 import { ipAllowed, isValidCidr } from "@/lib/security-policy"
+import { webhookUrlIssue } from "@/lib/webhooks"
 import { createDataProvider } from "@/lib/data-provider"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
@@ -126,6 +132,23 @@ function Admin() {
   )
 }
 
+function Operations() {
+  const access = useUserAccessSheet()
+  return (
+    <>
+      <AuditLog filter={{ targetType: "invoices", targetId: "1" }} actionLabels={{ "invoices.paid": "Оплата" }} />
+      <WebhooksSection />
+      <NotificationSettingsForm />
+      <ActiveSessionsSection />
+      <UserBlockedBadge userId="u2" />
+      <button type="button" onClick={() => access.open({ id: "u2", name: "Іван", email: "ivan@example.com" })}>
+        {webhookUrlIssue("https://example.com") ?? auditToCsv([]).length}
+      </button>
+      {access.sheet}
+    </>
+  )
+}
+
 function Account() {
   useBrandAppearance()
   const branding = useBranding()
@@ -169,6 +192,7 @@ export function Data() {
       <AccountDataSection />
       <Account />
       <Admin />
+      <Operations />
     </CoreAdminContext>
   )
 }

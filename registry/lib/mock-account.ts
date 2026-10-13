@@ -11,7 +11,6 @@ import { http, type HttpHandler } from "msw/http"
 
 import {
   API_TOKEN_EXPIRY_DAYS,
-  deviceFromUserAgent,
   SETUP_FACTORS,
   type AccountSession,
   type ApiToken,
@@ -23,6 +22,7 @@ import {
   type TrustedDevice,
 } from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
+import { recordAudit } from "@/registry/lib/mock-audit"
 import {
   AUTH_FACTORS,
   hasPermission,
@@ -32,6 +32,9 @@ import {
   type Me,
 } from "@/registry/lib/auth"
 import {
+  CURRENT_IP,
+  CURRENT_LOCATION,
+  currentDevice,
   currentMockUser,
   errorResponse,
   getMockSession,
@@ -98,18 +101,16 @@ interface MockAccountState {
   apiTokens: MockApiToken[]
   /** Попередні паролі — для правила «не повторювати» (мок тримає їх відкрито). */
   passwordHistory: string[]
+  /** Адміністратор заблокував акаунт (ADR-0013). */
+  blocked?: { at: string; by: string; reason: string }
 }
 
 const KEY = (userId: string) => `erp-ui:mock-account:${userId}`
 const SEED_DATE = "2026-06-02T09:15:00.000Z"
 const BACKUP_TOTAL = 10
 const SIGN_IN_LIMIT = 100
-/** Адреса з діапазону для документації (RFC 5737) — не справжня. */
-export const CURRENT_IP = "192.0.2.24"
-const CURRENT_LOCATION: LocalizedText = {
-  uk: "Київ, Україна",
-  en: "Kyiv, Ukraine",
-}
+// erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
+export { CURRENT_IP }
 
 let seeds: Record<string, MockAccountSeed> = {}
 
@@ -222,7 +223,19 @@ export function passwordChanged(user: MockUser, password: string): void {
     s.passwordHistory = [password, ...s.passwordHistory].slice(0, 24)
   })
   user.password = password
+  recordAudit({
+    action: "auth.password_changed",
+    category: "auth",
+    actor: actorOf(user),
+  })
 }
+
+/** Користувач як автор події журналу аудиту. */
+const actorOf = (user: MockUser) => ({
+  type: "user" as const,
+  id: user.id,
+  name: user.name,
+})
 
 /** Чи був пароль серед `count` останніх. */
 export function passwordReused(
@@ -271,8 +284,89 @@ export function resetMockFactors(user: MockUser): void {
   })
 }
 
-function currentDevice(): Device {
-  return deviceFromUserAgent(globalThis.navigator?.userAgent ?? "")
+/* --------------------------- Для адміністратора --------------------------- */
+
+/** Заблоковано адміністратором: хто, коли, чому; null — активний. */
+export function mockBlocked(
+  user: MockUser,
+): { at: string; by: string; reason: string } | null {
+  return loadState(user).blocked ?? null
+}
+
+/** Заблокувати (сесії завершуються) або розблокувати (`null`). */
+export function setMockBlocked(
+  user: MockUser,
+  value: { by: string; reason: string } | null,
+): void {
+  update(user, (s) => {
+    if (value) {
+      s.blocked = { at: new Date().toISOString(), ...value }
+      s.sessions = []
+      delete s.trustedHere
+    } else delete s.blocked
+  })
+}
+
+/** Сесії користувача мовою `language`; сесія цього браузера — `current`, якщо вона його. */
+export function mockUserSessions(
+  user: MockUser,
+  language: string,
+): AccountSession[] {
+  const session = getMockSession()
+  const own = session?.stage === "authenticated" && session.userId === user.id
+  const admin =
+    own && session.impersonatorId
+      ? mockUsersList().find((u) => u.id === session.impersonatorId)
+      : undefined
+  const current: AccountSession[] = own
+    ? [
+        {
+          id: session.id ?? "current",
+          current: true,
+          device: currentDevice(),
+          ip: CURRENT_IP,
+          location: localizedText(CURRENT_LOCATION, language),
+          createdAt: new Date(session.startedAt ?? Date.now()).toISOString(),
+          lastActiveAt: new Date().toISOString(),
+          ...(admin ? { impersonatedBy: admin.name } : {}),
+        },
+      ]
+    : []
+  return [
+    ...current,
+    ...loadState(user).sessions.map((s) => ({
+      ...localize(s, language),
+      current: false,
+    })),
+  ]
+}
+
+/** Завершити сесію іншого пристрою користувача; false — такої немає. */
+export function endMockUserSession(user: MockUser, sessionId: string): boolean {
+  if (!loadState(user).sessions.some((s) => s.id === sessionId)) return false
+  update(user, (s) => {
+    s.sessions = s.sessions.filter((item) => item.id !== sessionId)
+  })
+  return true
+}
+
+/** Завершити всі сесії користувача на інших пристроях. */
+export function endAllMockUserSessions(user: MockUser): void {
+  update(user, (s) => {
+    s.sessions = []
+  })
+}
+
+/** Налаштовані способи другого кроку й останній успішний вхід. */
+export function mockAccessSummary(user: MockUser): {
+  factors: SetupFactor[]
+  lastSignInAt: string | null
+} {
+  const state = loadState(user)
+  return {
+    factors: [...new Set(state.factors.map((f) => f.type))],
+    lastSignInAt: state.signIns.find((e) => e.result === "success")?.at ?? null,
+  }
 }
 
 const deviceKey = (device: Device) =>
@@ -314,6 +408,22 @@ export function recordSignIn(
           : f,
       )
   })
+  if (event.method !== "impersonation")
+    recordAudit({
+      action:
+        event.result === "success"
+          ? "auth.sign_in"
+          : event.result === "blocked"
+            ? "auth.sign_in_blocked"
+            : "auth.sign_in_failed",
+      category: "auth",
+      ...(event.result === "success" ? {} : { result: "failure" as const }),
+      actor: actorOf(user),
+      details: {
+        method: event.method,
+        ...(event.provider ? { provider: event.provider } : {}),
+      },
+    })
   if (isNew && state.newSignInAlerts)
     sendMockMessage({
       channel: "email",
@@ -445,6 +555,12 @@ export function createAccountHandlers({
 
   /** Новий фактор; перший — разом із резервними кодами. */
   const enroll = (user: MockUser, factor: Factor, replaceType?: boolean) => {
+    recordAudit({
+      action: "auth.factor_added",
+      category: "auth",
+      actor: actorOf(user),
+      details: { type: factor.type },
+    })
     let codes: string[] | undefined
     update(user, (s) => {
       const first = s.factors.length === 0
@@ -688,10 +804,17 @@ export function createAccountHandlers({
           code: "factor_required",
           message: "Two-step verification is required",
         })
+      const removed = state.factors.find((f) => f.id === params.id)
       update(guard, (s) => {
         s.factors = s.factors.filter((f) => f.id !== params.id)
         // Без факторів резервні коди не потрібні.
         if (!s.factors.length) s.backupCodes = null
+      })
+      recordAudit({
+        action: "auth.factor_removed",
+        category: "auth",
+        actor: actorOf(guard),
+        ...(removed ? { details: { type: removed.type } } : {}),
       })
       return noContent()
     }),
@@ -715,26 +838,7 @@ export function createAccountHandlers({
     http.get(`${baseUrl}/me/sessions`, ({ request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
-      const session = getMockSession()
-      const language = languageOf(request)
-      const admin = session?.impersonatorId
-        ? mockUsersList().find((u) => u.id === session.impersonatorId)
-        : undefined
-      const current: AccountSession = {
-        id: session?.id ?? "current",
-        current: true,
-        device: currentDevice(),
-        ip: CURRENT_IP,
-        location: localizedText(CURRENT_LOCATION, language),
-        createdAt: new Date(session?.startedAt ?? Date.now()).toISOString(),
-        lastActiveAt: new Date().toISOString(),
-        ...(admin ? { impersonatedBy: admin.name } : {}),
-      }
-      const others = loadState(user).sessions.map((s) => ({
-        ...localize(s, language),
-        current: false,
-      }))
-      return json([current, ...others])
+      return json(mockUserSessions(user, languageOf(request)))
     }),
 
     http.delete(`${baseUrl}/me/sessions/:id`, ({ params }) => {
@@ -961,6 +1065,13 @@ export function createAccountHandlers({
       update(guard, (s) => {
         s.apiTokens = [item, ...s.apiTokens]
       })
+      recordAudit({
+        action: "integrations.api_token_created",
+        category: "integrations",
+        actor: actorOf(guard),
+        target: { type: "api_tokens", id: item.id, name: item.name },
+        details: { scopes: scopes.join(", ") },
+      })
       return json({ token: secret, item: publicToken(item) }, { status: 201 })
     }),
 
@@ -969,10 +1080,20 @@ export function createAccountHandlers({
       if (!user) return unauthenticated()
       const forbidden = impersonationForbidden()
       if (forbidden) return forbidden
-      if (!loadState(user).apiTokens.some((t) => t.id === params.id))
-        return notFound()
+      const revoked = loadState(user).apiTokens.find((t) => t.id === params.id)
+      if (!revoked) return notFound()
       update(user, (s) => {
         s.apiTokens = s.apiTokens.filter((t) => t.id !== params.id)
+      })
+      recordAudit({
+        action: "integrations.api_token_revoked",
+        category: "integrations",
+        actor: actorOf(user),
+        target: {
+          type: "api_tokens",
+          id: String(params.id),
+          ...(revoked ? { name: revoked.name } : {}),
+        },
       })
       return noContent()
     }),
@@ -1021,6 +1142,13 @@ export function createAccountHandlers({
         method: "impersonation",
         impersonatedBy: admin.name,
       })
+      recordAudit({
+        action: "auth.impersonation_started",
+        category: "auth",
+        actor: actorOf(admin),
+        target: { type: "users", id: target.id, name: target.name },
+        reason,
+      })
       return noContent()
     }),
 
@@ -1038,6 +1166,17 @@ export function createAccountHandlers({
         impersonatorId: undefined,
         reauthUntil: undefined,
       })
+      const admin = mockUsersList().find((u) => u.id === session.impersonatorId)
+      const target = mockUsersList().find((u) => u.id === session.userId)
+      if (admin)
+        recordAudit({
+          action: "auth.impersonation_ended",
+          category: "auth",
+          actor: actorOf(admin),
+          ...(target
+            ? { target: { type: "users", id: target.id, name: target.name } }
+            : {}),
+        })
       return noContent()
     }),
   ]

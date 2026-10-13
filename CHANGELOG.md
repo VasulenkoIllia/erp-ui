@@ -4,6 +4,45 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5b4 (журнал аудиту, вебхуки, сповіщення, доступ користувачів, ADR-0013)
+
+- `lib/audit` (`provider.audit`):
+  - `getEvents` з плоскими фільтрами (`auditQuery`) і `exportEvents` (CSV);
+  - `auditToCsv` — для бекендів на TS.
+- `lib/webhooks` (`provider.webhooks`):
+  - підписки: `list`, `create` (секрет один раз), `update`, `remove`, `rotateSecret`;
+  - доставки: `test`, `getDeliveries`, `redeliver`;
+  - перевірка адреси: `webhookUrlIssue`.
+- `lib/notification-settings`: контракт подій, каналів і тихих годин; `provider.account.getNotificationSettings` / `updateNotificationSettings`.
+- `provider.admin`:
+  - доступ і сесії: `getUserAccess`, `getSessions`, `endSession`, `signOutUser`;
+  - блокування: `blockUser`, `unblockUser`.
+- Екрани:
+  - `erp/audit-log` — `AuditLog`, `auditActionLabel`;
+  - `erp/webhooks-section` — `WebhooksSection`;
+  - `erp/notification-settings-form` — `NotificationSettingsForm`;
+  - `erp/user-access` — `useUserAccessSheet`, `useUserAccess`, `UserBlockedBadge`, `ActiveSessionsSection`.
+- `lib/api`: `responseType: "blob"`; код `account_blocked`.
+- Мок:
+  - `lib/mock-audit` пише журнал сам: входи, безпека, доступ, інтеграції, зміни записів із «було → стало»;
+  - `lib/mock-webhooks` доставляє події з шини мок-сервера (`emitMockEvent`, `subscribeMockEvents`);
+  - `lib/mock-notifications`;
+  - блокування в моку входу;
+  - `createResourceHandlers` — опції `label`, `titleField`, `fieldLabels`;
+  - `createPlatformHandlers` — `auditSeeds`, `webhookEvents`, `webhookSeeds`, `notificationChannels`, `notificationEvents`.
+- Демо:
+  - сторінки «Журнал аудиту», «Інтеграції» (вебхуки), «Сповіщення»;
+  - на «Користувачах» — «Доступ» і активні сесії компанії;
+  - Іван має сесію на телефоні.
+- Тести: 12 модульних (`operations.test.ts`), 8 e2e (`operations.spec.ts`) з axe.
+
+### Змінено — крок 0.5b4
+
+- На «Користувачах» замість кнопки «Скинути двоетапну перевірку» в рядку — «Доступ»: скидання, сесії й блокування в одній панелі.
+- `DeviceIcon` експортовано з `erp/account-devices`; поточна адреса й пристрій мока — у `lib/mock-server`.
+- Журнали (аудит, доставки, сесії, доступ) завжди запитуються наново при показі (`refetchOnMount: "always"`).
+- Реєстр відхиляє однакові назви файлів у різних шарах (`lib/x` і `erp/x`): shadcn CLI переписує імпорти за назвою й плутає їх.
+
 ### Додано — крок 0.5b3 (профіль, політики, відновлення доступу, токени API, ADR-0012)
 
 - Профіль (`provider.account`):

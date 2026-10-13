@@ -10,8 +10,9 @@
 import { HttpResponse } from "msw/http"
 import { delay } from "msw/utils/delay"
 
+import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
 import type { ApiErrorBody } from "@/registry/lib/api"
-import type { AuthFactor, Me } from "@/registry/lib/auth"
+import type { AuthFactor, LocalizedText, Me } from "@/registry/lib/auth"
 import { SLOW_DELAY_MS, type Scenario } from "@/registry/lib/mock-scenarios"
 import { SESSION_EXPIRES_HEADER } from "@/registry/lib/session"
 
@@ -59,6 +60,21 @@ export async function applyScenario(
     default:
       return null
   }
+}
+
+/* ---------------------------- Звідки прийшов запит ---------------------------- */
+
+/** Адреса з діапазону для документації (RFC 5737) — не справжня. */
+export const CURRENT_IP = "192.0.2.24"
+/** Місце за адресою, як його визначив би сервер. */
+export const CURRENT_LOCATION: LocalizedText = {
+  uk: "Київ, Україна",
+  en: "Kyiv, Ukraine",
+}
+
+/** Пристрій цього браузера (з User-Agent). */
+export function currentDevice(): Device {
+  return deviceFromUserAgent(globalThis.navigator?.userAgent ?? "")
 }
 
 /* -------------------------------- Користувачі -------------------------------- */
@@ -283,4 +299,35 @@ export function maskPhone(phone: string): string {
 export function maskEmail(email: string): string {
   const [name = "", domain = ""] = email.split("@")
   return `${name.slice(0, 1)}•••@${domain}`
+}
+
+/* ------------------------------- Події сервера ------------------------------- */
+
+/**
+ * Подія на «сервері»: запис створено чи змінено (`invoices.updated`), дія безпеки. Слухачі —
+ * вебхуки (lib/mock-webhooks), далі реальний час (крок 0.5c).
+ */
+export interface MockEvent {
+  /** `<ресурс>.<дія>`: «invoices.created», «users.blocked». */
+  type: string
+  at: string
+  data: Record<string, unknown>
+}
+
+const eventListeners = new Set<(event: MockEvent) => void>()
+
+export function subscribeMockEvents(
+  listener: (event: MockEvent) => void,
+): () => void {
+  eventListeners.add(listener)
+  return () => {
+    eventListeners.delete(listener)
+  }
+}
+
+export function emitMockEvent(type: string, data: Record<string, unknown>) {
+  const event: MockEvent = { type, at: new Date().toISOString(), data }
+  eventListeners.forEach((listener) => {
+    listener(event)
+  })
 }

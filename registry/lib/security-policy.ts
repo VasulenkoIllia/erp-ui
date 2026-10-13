@@ -13,11 +13,19 @@
  * - `GET /recovery-requests` → запити «втратив доступ до другого кроку»; `DELETE /recovery-requests/:id`
  *   — відхилити. `POST /users/:id/reset-factors` { reason } → 204: скинути фактори, резервні коди,
  *   довірені пристрої й сесії користувача; лист користувачу, запис в аудит.
+ * - Доступ користувача (ADR-0013, право `users:update`):
+ *   - `GET /users/:id/access` → стан (активний чи заблокований, ким і чому), фактори, останній
+ *     вхід, сесії;
+ *   - `GET /sessions?q=&page=&perPage=` → { data, total }: активні сесії всіх користувачів;
+ *     `DELETE /sessions/:id` — завершити; `POST /users/:id/sign-out` — завершити всі сесії людини;
+ *   - `POST /users/:id/block` { reason } → 204 (повторне підтвердження; не себе; сесії
+ *     завершуються, токени API не діють); `POST /users/:id/unblock` → 204;
+ *   - вхід заблокованого — 403 `account_blocked`.
  */
 import { z } from "zod"
 
-import { SETUP_FACTORS } from "@/registry/lib/account"
-import type { ApiClient } from "@/registry/lib/api"
+import { accountSessionSchema, SETUP_FACTORS } from "@/registry/lib/account"
+import { listResultSchema, type ApiClient } from "@/registry/lib/api"
 
 /* --------------------------------- Схеми --------------------------------- */
 
@@ -86,6 +94,28 @@ export const recoveryRequestSchema = z.object({
 })
 export type RecoveryRequest = z.infer<typeof recoveryRequestSchema>
 
+/** Сесія будь-якого користувача — для адміністратора. */
+export const adminSessionSchema = accountSessionSchema.extend({
+  user: z.object({ id: z.string(), name: z.string(), email: z.string() }),
+})
+export type AdminSession = z.infer<typeof adminSessionSchema>
+
+const adminSessionsPageSchema = listResultSchema(adminSessionSchema)
+export type AdminSessionsPage = z.infer<typeof adminSessionsPageSchema>
+
+export const userAccessSchema = z.object({
+  userId: z.string(),
+  status: z.enum(["active", "blocked"]),
+  blocked: z
+    .object({ at: z.string(), by: z.string(), reason: z.string() })
+    .nullable(),
+  /** Налаштовані способи другого кроку. */
+  factors: z.array(z.enum(SETUP_FACTORS)),
+  lastSignInAt: z.string().nullable(),
+  sessions: z.array(adminSessionSchema),
+})
+export type UserAccess = z.infer<typeof userAccessSchema>
+
 /* -------------------------------- Клієнт API -------------------------------- */
 
 export interface AdminApi {
@@ -95,6 +125,18 @@ export interface AdminApi {
   declineRecoveryRequest: (id: string) => Promise<void>
   /** Скинути другий крок користувача (втратив телефон і коди); причина — в аудит. */
   resetFactors: (userId: string, reason: string) => Promise<void>
+  getUserAccess: (userId: string) => Promise<UserAccess>
+  /** Активні сесії всіх; `q` — ім'я чи email. */
+  getSessions: (
+    q: string,
+    page: number,
+    perPage: number,
+  ) => Promise<AdminSessionsPage>
+  endSession: (sessionId: string) => Promise<void>
+  /** Завершити всі сесії користувача. */
+  signOutUser: (userId: string) => Promise<void>
+  blockUser: (userId: string, reason: string) => Promise<void>
+  unblockUser: (userId: string) => Promise<void>
 }
 
 export function createAdminApi(client: ApiClient): AdminApi {
@@ -115,12 +157,41 @@ export function createAdminApi(client: ApiClient): AdminApi {
         reason,
       })
     },
+    getUserAccess: (userId) =>
+      client.get(`/users/${encodeURIComponent(userId)}/access`, {
+        schema: userAccessSchema,
+      }),
+    getSessions: (q, page, perPage) =>
+      client.get("/sessions", {
+        query: {
+          q: q.trim() || undefined,
+          page: String(page),
+          perPage: String(perPage),
+        },
+        schema: adminSessionsPageSchema,
+      }),
+    async endSession(sessionId) {
+      await client.delete(`/sessions/${encodeURIComponent(sessionId)}`)
+    },
+    async signOutUser(userId) {
+      await client.post(`/users/${encodeURIComponent(userId)}/sign-out`)
+    },
+    async blockUser(userId, reason) {
+      await client.post(`/users/${encodeURIComponent(userId)}/block`, {
+        reason,
+      })
+    },
+    async unblockUser(userId) {
+      await client.post(`/users/${encodeURIComponent(userId)}/unblock`)
+    },
   }
 }
 
 export const ADMIN_QUERY_KEYS = {
   securityPolicy: ["erp-ui", "admin", "security-policy"],
   recoveryRequests: ["erp-ui", "admin", "recovery-requests"],
+  sessions: ["erp-ui", "admin", "sessions"],
+  userAccess: (userId: string) => ["erp-ui", "admin", "user-access", userId],
 } as const
 
 /* -------------------------------- Адреси IP -------------------------------- */

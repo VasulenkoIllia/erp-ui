@@ -57,9 +57,11 @@ import {
 } from "@/registry/lib/account"
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
+import { createAuditApi, type AuditApi } from "@/registry/lib/audit"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
 import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
+import { createWebhooksApi, type WebhooksApi } from "@/registry/lib/webhooks"
 
 /* --------------------------------- Схеми --------------------------------- */
 
@@ -412,8 +414,15 @@ export interface ErpAuthProvider extends AuthProvider {
   stopImpersonation: () => Promise<void>
   /** Фактори, резервні коди, сесії, пристрої, журнал входів, профіль, токени API (lib/account). */
   account: AccountApi
-  /** Політика безпеки, запити на відновлення, скидання другого кроку (lib/security-policy). */
+  /**
+   * Політика безпеки, запити на відновлення, скидання другого кроку, доступ користувачів —
+   * сесії й блокування (lib/security-policy).
+   */
   admin: AdminApi
+  /** Журнал аудиту (lib/audit, ADR-0013). */
+  audit: AuditApi
+  /** Вебхуки (lib/webhooks, ADR-0013). */
+  webhooks: WebhooksApi
   /** Обов'язковий другий крок налаштовано — завершити вхід. */
   completeFactorSetup: () => Promise<void>
   /** Немає доступу до жодного фактора: попросити адміністратора відновити (на кроці коду). */
@@ -606,6 +615,10 @@ export function createAuthProvider(
     }),
 
     admin: createAdminApi(client),
+
+    audit: createAuditApi(client),
+
+    webhooks: createWebhooksApi(client),
 
     completeFactorSetup: () => post("/auth/factor-setup/complete"),
 

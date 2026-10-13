@@ -3,9 +3,11 @@
  * щоб UI будувався й тестувався без нього. Підключається лише в розробці, демо й тестах.
  *
  * - `createPlatformHandlers` (lib/mock-auth) — усі способи входу, `/me`, вподобання PF11, а також
- *   фактори, сесії, журнал входів і «Увійти як…» (lib/mock-account).
+ *   фактори, сесії, журнал входів і «Увійти як…» (lib/mock-account), політика й доступ
+ *   користувачів (lib/mock-admin), журнал аудиту, вебхуки й сповіщення (ADR-0013).
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
- *   версіями (409) і прив'язкою до компанії (`X-Company-Id`).
+ *   версіями (409) і прив'язкою до компанії (`X-Company-Id`); кожна зміна — у журнал аудиту
+ *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks).
  * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
  * - Кожен обробник ресурсу поважає сценарій із lib/mock-scenarios.
  * - Мок сам перевіряє права, як справжній сервер (SPEC: приховування в UI — лише косметика).
@@ -21,8 +23,13 @@ import {
   type FilterValue,
   type SortField,
 } from "@/registry/lib/api"
-import { hasPermission } from "@/registry/lib/auth"
+import { hasPermission, type LocalizedText } from "@/registry/lib/auth"
 import type { MockAccountSeed } from "@/registry/lib/mock-account"
+import {
+  auditChanges,
+  recordAudit,
+  type MockAuditEvent,
+} from "@/registry/lib/mock-audit"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -33,6 +40,7 @@ import {
 import {
   applyScenario,
   currentMockUser,
+  emitMockEvent,
   errorResponse,
   json,
   noContent,
@@ -53,6 +61,7 @@ export {
 }
 export type {
   MockAccountSeed,
+  MockAuditEvent,
   MockInvite,
   MockMessage,
   MockUser,
@@ -80,6 +89,12 @@ export interface MockResourceOptions<T extends MockRecord> {
   baseUrl?: string
   /** Генератор id нових записів. */
   newId?: () => string
+  /** Назва ресурсу для журналу аудиту: { uk: "Рахунки", en: "Invoices" }. */
+  label?: LocalizedText
+  /** Поле з назвою запису для журналу (за замовчуванням — перше з `searchFields`). */
+  titleField?: keyof T & string
+  /** Назви полів для «було → стало» в журналі. */
+  fieldLabels?: Partial<Record<keyof T & string, LocalizedText>>
 }
 
 function matches(value: unknown, op: string, raw: FilterValue): boolean {
@@ -138,6 +153,12 @@ function fieldErrors(error: z.ZodError): Record<string, string> {
   )
 }
 
+const DATA_VERBS = {
+  created: { uk: "створення", en: "created" },
+  updated: { uk: "зміна", en: "updated" },
+  deleted: { uk: "видалення", en: "deleted" },
+} as const
+
 export function createResourceHandlers<T extends MockRecord>({
   resource,
   schema,
@@ -145,6 +166,9 @@ export function createResourceHandlers<T extends MockRecord>({
   searchFields = [],
   baseUrl = API_PREFIX,
   newId = () => crypto.randomUUID(),
+  label,
+  titleField = searchFields[0],
+  fieldLabels = {},
 }: MockResourceOptions<T>) {
   let records: T[] = structuredClone(data)
   /** Записи, для яких сценарій conflict уже імітував чуже збереження. */
@@ -179,6 +203,46 @@ export function createResourceHandlers<T extends MockRecord>({
 
   const notFound = () =>
     errorResponse(404, { code: "not_found", message: `${resource}: not found` })
+
+  /** Зміна запису → журнал аудиту й шина подій (вебхуки, далі реальний час). */
+  const changed = (
+    verb: "created" | "updated" | "deleted",
+    record: T,
+    previous?: T,
+  ) => {
+    const title = titleField ? record[titleField] : undefined
+    recordAudit({
+      action: `${resource}.${verb}`,
+      category: "data",
+      ...(label
+        ? {
+            actionLabel: Object.fromEntries(
+              Object.entries(label).map(([language, text]) => [
+                language,
+                `${text}: ${DATA_VERBS[verb][language === "en" ? "en" : "uk"]}`,
+              ]),
+            ),
+          }
+        : {}),
+      target: {
+        type: resource,
+        id: record.id,
+        ...(title !== undefined && title !== null
+          ? { name: String(title) }
+          : {}),
+      },
+      ...(previous
+        ? {
+            changes: auditChanges(
+              previous,
+              record,
+              fieldLabels as Record<string, LocalizedText>,
+            ),
+          }
+        : {}),
+    })
+    emitMockEvent(`${resource}.${verb}`, { ...record })
+  }
 
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {
@@ -241,6 +305,7 @@ export function createResourceHandlers<T extends MockRecord>({
         })
       }
       records = [parsed.data, ...records]
+      changed("created", parsed.data)
       return json(parsed.data, { status: 201 })
     }),
 
@@ -282,15 +347,18 @@ export function createResourceHandlers<T extends MockRecord>({
         })
       }
       records[index] = parsed.data
+      changed("updated", parsed.data, latest)
       return json(parsed.data)
     }),
 
     http.delete(`${url}/:id`, async ({ params }) => {
       const denied = await guard("delete")
       if (denied) return denied
-      const before = records.length
+      const removed = records.find((r) => r.id === params.id)
+      if (!removed) return notFound()
       records = records.filter((r) => r.id !== params.id)
-      return records.length < before ? noContent() : notFound()
+      changed("deleted", removed)
+      return noContent()
     }),
   ]
 

@@ -11,7 +11,10 @@
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
-      "securityPolicy": "Security policies"
+      "notifications": "Notifications",
+      "securityPolicy": "Security policies",
+      "audit": "Audit log",
+      "integrations": "Integrations"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -352,8 +355,10 @@
   },
   "usersPage": {
     "title": "Users",
-    "lead": "Company users. An administrator can sign in as a user to look into a request — the action is logged.",
-    "listLabel": "Company users"
+    "lead": "Company users. An administrator manages access (sessions, two-step verification, blocking) and can sign in as a user to look into a request — everything goes to the audit log.",
+    "listLabel": "Company users",
+    "sessionsTitle": "Active sessions",
+    "sessionsDescription": "Where company users are signed in right now; end any suspicious session."
   },
   "profilePage": {
     "title": "Profile",
@@ -362,5 +367,19 @@
   "securityPolicyPage": {
     "title": "Security policies",
     "lead": "What to require from every user: two-step verification, sign-in methods, password, session, allowed addresses. Changes ask you to confirm it's you."
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "lead": "Which events to notify you about and where: in the app, by email, push, Telegram. Quiet hours follow your time zone."
+  },
+  "auditPage": {
+    "title": "Audit log",
+    "lead": "Who did what and when in the company: sign-ins, security, users, integrations, record changes. Change an invoice on the “Data & mocks” page and the event appears here."
+  },
+  "integrationsPage": {
+    "title": "Integrations",
+    "lead": "Webhooks notify external systems about events. API tokens for incoming requests live in “Account security”.",
+    "webhooksTitle": "Webhooks",
+    "webhooksDescription": "Event subscriptions: URL, events, signing secret, delivery log."
   }
 }

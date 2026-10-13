@@ -27,11 +27,17 @@
  * - Токени API (ADR-0012): `GET /me/api-tokens` → { tokens, scopes }; `POST /me/api-tokens`
  *   { name, scopes, expiresInDays } → { token, item } — сам токен показується один раз;
  *   `DELETE /me/api-tokens/:id` — відкликати. Права токена — не ширші за права користувача.
+ * - Сповіщення (ADR-0013): `GET` / `PUT /me/notification-settings` — див. lib/notification-settings.
  * - Під час «Увійти як…» (ADR-0011) зміни безпеки недоступні: 403 `impersonation_forbidden`.
  */
 import { z } from "zod"
 
 import { listResultSchema, type ApiClient } from "@/registry/lib/api"
+import {
+  notificationSettingsSchema,
+  type NotificationSettings,
+  type NotificationSettingsUpdate,
+} from "@/registry/lib/notification-settings"
 import { createPasskey } from "@/registry/lib/passkey"
 
 /* --------------------------------- Схеми --------------------------------- */
@@ -260,6 +266,11 @@ export interface AccountApi {
     expiresInDays: number | null
   }) => Promise<ApiTokenCreated>
   revokeApiToken: (id: string) => Promise<void>
+  /** Сповіщення: події, канали, тихі години (ADR-0013, lib/notification-settings). */
+  getNotificationSettings: () => Promise<NotificationSettings>
+  updateNotificationSettings: (
+    update: NotificationSettingsUpdate,
+  ) => Promise<NotificationSettings>
 }
 
 export interface AccountApiOptions {
@@ -409,6 +420,16 @@ export function createAccountApi(
     async revokeApiToken(tokenId) {
       await client.delete(`/me/api-tokens/${id(tokenId)}`)
     },
+
+    getNotificationSettings: () =>
+      client.get("/me/notification-settings", {
+        schema: notificationSettingsSchema,
+      }),
+
+    updateNotificationSettings: (update) =>
+      client.put("/me/notification-settings", update, {
+        schema: notificationSettingsSchema,
+      }),
   }
 }
 
@@ -421,6 +442,7 @@ export const ACCOUNT_QUERY_KEYS = {
   trustedDevices: ["erp-ui", "account", "trusted-devices"],
   signIns: ["erp-ui", "account", "sign-ins"],
   apiTokens: ["erp-ui", "account", "api-tokens"],
+  notifications: ["erp-ui", "account", "notifications"],
 } as const
 
 /** Опис пристрою з User-Agent — для моків і серверів без власного розбору. */

@@ -28,6 +28,7 @@ import {
   consumeBackupCode,
   createAccountHandlers,
   isTrustedHere,
+  mockBlocked,
   mockFactorTypes,
   mockProfile,
   passwordChanged,
@@ -38,6 +39,21 @@ import {
   trustHere,
   type MockAccountSeed,
 } from "@/registry/lib/mock-account"
+import {
+  createAuditHandlers,
+  setMockAuditSeeds,
+  type MockAuditEvent,
+} from "@/registry/lib/mock-audit"
+import {
+  createNotificationHandlers,
+  type MockNotificationEvent,
+} from "@/registry/lib/mock-notifications"
+import {
+  createWebhookHandlers,
+  setMockWebhookSeeds,
+  type MockWebhookEventType,
+  type MockWebhookSeed,
+} from "@/registry/lib/mock-webhooks"
 import {
   createAdminHandlers,
   DEFAULT_MOCK_POLICY,
@@ -124,6 +140,15 @@ export interface PlatformMockOptions {
   roles?: { id: string; name: LocalizedText }[]
   /** Назви ресурсів для прав токенів API: { invoices: { uk: "Рахунки", en: "Invoices" } }. */
   apiResources?: Record<string, LocalizedText>
+  /** Початкові події журналу аудиту (ADR-0013). */
+  auditSeeds?: MockAuditEvent[]
+  /** Події для вебхуків: { "invoices.created": { label, group } }. */
+  webhookEvents?: Record<string, MockWebhookEventType>
+  /** Початкові підписки вебхуків із доставками. */
+  webhookSeeds?: MockWebhookSeed[]
+  /** Канали й події сповіщень проекту. */
+  notificationChannels?: { id: string; label?: LocalizedText }[]
+  notificationEvents?: MockNotificationEvent[]
 }
 
 const RESEND_SECONDS = 30
@@ -178,9 +203,16 @@ export function createPlatformHandlers({
   securityPolicy,
   roles,
   apiResources,
+  auditSeeds = [],
+  webhookEvents,
+  webhookSeeds = [],
+  notificationChannels,
+  notificationEvents,
 }: PlatformMockOptions): HttpHandler[] {
   setMockUsers(users)
   setMockAccountSeeds(accountSeeds)
+  setMockAuditSeeds(auditSeeds)
+  setMockWebhookSeeds(webhookSeeds)
   const baseMethods = { ...DEFAULT_MOCK_METHODS, ...methodsOverride }
   setMockPolicyDefaults({
     ...DEFAULT_MOCK_POLICY,
@@ -328,6 +360,8 @@ export function createPlatformHandlers({
     second = false,
   ) => {
     const user = mockUsersList().find((u) => u.id === userId)
+    const blocked = user ? accountBlocked(user, method) : null
+    if (blocked) return blocked
     if (!ipAllowedByPolicy()) {
       if (user) recordSignIn(user, { result: "blocked", method })
       writeMockSession(null)
@@ -370,8 +404,21 @@ export function createPlatformHandlers({
       : null
   }
 
+  /** Заблокований адміністратором акаунт не входить (ADR-0013). */
+  const accountBlocked = (user: MockUser, method: SignInMethod) => {
+    if (!mockBlocked(user)) return null
+    recordSignIn(user, { result: "blocked", method })
+    writeMockSession(null)
+    return errorResponse(403, {
+      code: "account_blocked",
+      message: "This account is blocked",
+    })
+  }
+
   /** Пароль чи токен підтверджено: другий фактор, його налаштування (політика) або вхід. */
   const afterFirstFactor = (user: MockUser, method: SignInMethod) => {
+    const blocked = accountBlocked(user, method)
+    if (blocked) return blocked
     if (!ipAllowedByPolicy()) {
       recordSignIn(user, { result: "blocked", method })
       return ipNotAllowed()
@@ -956,6 +1003,20 @@ export function createPlatformHandlers({
       roles,
       providers: baseMethods.providers.map(({ id, name }) => ({ id, name })),
       reauthRequired,
+    }),
+
+    ...createAuditHandlers({ baseUrl }),
+
+    ...createWebhookHandlers({
+      baseUrl,
+      events: webhookEvents,
+      reauthRequired,
+    }),
+
+    ...createNotificationHandlers({
+      baseUrl,
+      channels: notificationChannels,
+      events: notificationEvents,
     }),
 
     ...createAccountHandlers({

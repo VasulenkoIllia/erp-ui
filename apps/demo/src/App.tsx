@@ -1,15 +1,18 @@
 import { useQueryClient } from "@tanstack/react-query"
 import {
+  Bell,
   Blocks,
   Database,
   Languages,
   LayoutTemplate,
   Palette,
+  ScrollText,
   Shapes,
   ShieldCheck,
   ShieldEllipsis,
   UserRound,
   Users,
+  Webhook,
 } from "lucide-react"
 import { useLogout } from "ra-core"
 import {
@@ -110,6 +113,19 @@ const SecurityPolicyPage = lazy(() =>
     default: m.SecurityPolicyPage,
   })),
 )
+const NotificationsPage = lazy(() =>
+  import("@/pages/NotificationsPage").then((m) => ({
+    default: m.NotificationsPage,
+  })),
+)
+const AuditPage = lazy(() =>
+  import("@/pages/AuditPage").then((m) => ({ default: m.AuditPage })),
+)
+const IntegrationsPage = lazy(() =>
+  import("@/pages/IntegrationsPage").then((m) => ({
+    default: m.IntegrationsPage,
+  })),
+)
 
 const PAGES: Record<Route, React.ComponentType> = {
   appearance: AppearancePage,
@@ -121,7 +137,10 @@ const PAGES: Record<Route, React.ComponentType> = {
   security: SecurityPage,
   users: UsersPage,
   profile: ProfilePage,
+  notifications: NotificationsPage,
   securityPolicy: SecurityPolicyPage,
+  audit: AuditPage,
+  integrations: IntegrationsPage,
 }
 
 const PAGE_ICONS: Record<Route, typeof Palette> = {
@@ -134,7 +153,10 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   security: ShieldCheck,
   users: Users,
   profile: UserRound,
+  notifications: Bell,
   securityPolicy: ShieldEllipsis,
+  audit: ScrollText,
+  integrations: Webhook,
 }
 
 /** Розділи в нижній панелі телефона. */
