@@ -51,6 +51,15 @@ export const handlers = [
     invites: MOCK_INVITES,
     branding: currentBranding,
     accountSeeds: ACCOUNT_SEEDS,
+    roles: [
+      { id: "accountant", name: { uk: "Бухгалтер", en: "Accountant" } },
+      { id: "admin", name: { uk: "Адміністратор", en: "Administrator" } },
+      { id: "sales", name: { uk: "Менеджер з продажу", en: "Sales manager" } },
+    ],
+    apiResources: {
+      invoices: { uk: "Рахунки", en: "Invoices" },
+      users: { uk: "Користувачі", en: "Users" },
+    },
   }),
   ...invoices.handlers,
   ...users.handlers,

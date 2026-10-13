@@ -62,6 +62,9 @@ export async function startMocks() {
       accountSeeds,
       branding: { name: "ТОВ «А»", palette: "teal" },
       twoFactorRequired: () => true,
+      securityPolicy: { twoFactor: "roles", twoFactorRoles: ["accountant"], ipAllowlist: [] },
+      roles: [{ id: "accountant", name: { uk: "Бухгалтер", en: "Accountant" } }],
+      apiResources: { invoices: { uk: "Рахунки", en: "Invoices" } },
     }),
     ...invoices.handlers,
   ).start()

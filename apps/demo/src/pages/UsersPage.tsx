@@ -4,6 +4,10 @@ import { useNavigate } from "react-router"
 
 import { useImpersonation } from "@/registry/erp/impersonation"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
+import {
+  RecoveryRequestsSection,
+  useResetFactors,
+} from "@/registry/erp/reset-factors"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { hasPermission } from "@/registry/lib/auth"
@@ -16,6 +20,7 @@ import type { UserRecord } from "@/mocks/handlers"
 import { ROUTES } from "@/router"
 
 import { PageHeader } from "./PageHeader"
+import { Section } from "./Section"
 
 const initials = (name: string) =>
   name
@@ -43,9 +48,14 @@ export function UsersPage() {
       void navigate(ROUTES.data)
     },
   })
+  const reset = useResetFactors()
   const canImpersonate = me
     ? hasPermission(me.permissions, "users", "impersonate")
     : false
+  const canReset =
+    me && !me.impersonator
+      ? hasPermission(me.permissions, "users", "update")
+      : false
 
   let body: React.ReactNode
   if (isPending) body = <PageSkeleton rows={3} />
@@ -89,20 +99,41 @@ export function UsersPage() {
                     </p>
                   </div>
                 </div>
-                {canImpersonate && user.id !== me?.id && !me?.impersonator ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="self-start @md:self-center"
-                    aria-label={kitT("auth.impersonation.actionFor", {
-                      name: user.name,
-                    })}
-                    onClick={() => {
-                      start({ id: user.id, name: user.name })
-                    }}
-                  >
-                    {kitT("auth.impersonation.action")}
-                  </Button>
+                {user.id !== me?.id ? (
+                  <div className="flex flex-wrap gap-2">
+                    {canImpersonate && !me?.impersonator ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={kitT("auth.impersonation.actionFor", {
+                          name: user.name,
+                        })}
+                        onClick={() => {
+                          start({ id: user.id, name: user.name })
+                        }}
+                      >
+                        {kitT("auth.impersonation.action")}
+                      </Button>
+                    ) : null}
+                    {canReset ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={kitT("resetFactors.actionFor", {
+                          name: user.name,
+                        })}
+                        onClick={() => {
+                          reset.start({
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                          })
+                        }}
+                      >
+                        {kitT("resetFactors.action")}
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : null}
               </li>
             ))}
@@ -114,8 +145,19 @@ export function UsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} lead={t("lead")} />
-      <div className="max-w-3xl">{body}</div>
+      <div className="max-w-3xl space-y-6">
+        {canReset ? (
+          <Section
+            title={kitT("resetFactors.requestsTitle")}
+            description={kitT("resetFactors.requestsDescription")}
+          >
+            <RecoveryRequestsSection />
+          </Section>
+        ) : null}
+        {body}
+      </div>
       {dialog}
+      {reset.dialog}
     </div>
   )
 }

@@ -217,6 +217,22 @@ export const CODE_ITEMS = {
     demo: "login",
     spec: ["PF01", "§17"],
   },
+  "lib/security-policy": {
+    title: "Політики безпеки й відновлення доступу",
+    description:
+      "Контракт політики організації (другий крок, способи входу, пароль, сесія, адреси), запити на відновлення, скидання факторів; перевірка IP/CIDR — provider.admin.",
+    status: "beta",
+    demo: "securityPolicy",
+    spec: ["PF01"],
+  },
+  "lib/mock-admin": {
+    title: "Мок адміністрування безпеки",
+    description:
+      "Політика безпеки в localStorage, її дія на вхід, запити «втратив доступ» і скидання факторів користувача.",
+    status: "beta",
+    demo: "securityPolicy",
+    spec: ["PF01", "§17"],
+  },
   "lib/mock-account": {
     title: "Мок безпеки акаунта",
     description:
@@ -423,6 +439,62 @@ export const CODE_ITEMS = {
     demo: "users",
     spec: ["PF01", "A2", "A5"],
   },
+  "erp/factor-setup": {
+    title: "Налаштування факторів",
+    description:
+      "Діалоги застосунку з QR, SMS, email і ключа доступу, резервні коди, useFactorSetup; FactorSetupStep — крок входу, коли політика вимагає другий крок.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/profile-form": {
+    title: "Профіль користувача",
+    description:
+      "ProfilePhoto (фото з обрізанням) і ProfileForm: ім'я, посада, контактний телефон, часовий пояс, підпис для листів.",
+    status: "beta",
+    demo: "profile",
+    spec: ["PF01", "§11"],
+  },
+  "erp/avatar-editor": {
+    title: "Редактор фото",
+    description:
+      "Вибір і перевірка файла, обрізання квадрата (перетягування, масштаб, клавіатура), стиснення 256×256 WebP на клієнті; аватар чи логотип.",
+    status: "beta",
+    demo: "profile",
+    spec: ["PF01"],
+  },
+  "erp/timezone-select": {
+    title: "Часовий пояс",
+    description:
+      "Пошук поясу IANA зі зсувом UTC на сьогодні; застарілі назви (Europe/Kiev) — сучасними.",
+    status: "beta",
+    demo: "profile",
+    spec: ["§11"],
+  },
+  "erp/api-tokens": {
+    title: "Токени API",
+    description:
+      "Персональні токени для інтеграцій: права не ширші за користувача, термін дії, показ один раз, відкликання.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01", "PF17"],
+  },
+  "erp/security-policy-form": {
+    title: "Політики безпеки",
+    description:
+      "Форма адміністратора: обов'язковий другий крок (усі чи ролі), дозволені способи, пароль, сесія й автовихід, дозволені адреси без ризику відрізати себе.",
+    status: "beta",
+    demo: "securityPolicy",
+    spec: ["PF01"],
+  },
+  "erp/reset-factors": {
+    title: "Відновлення доступу",
+    description:
+      "Запити «немає доступу до другого кроку» й useResetFactors: адміністратор скидає фактори з причиною для аудиту.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2", "A5"],
+  },
   "erp/copy-button": {
     title: "Кнопка «Копіювати»",
     description:
@@ -539,6 +611,20 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "primitives",
     spec: ["§8.3"],
+  },
+  "ui/combobox": {
+    title: "Комбобокс",
+    description:
+      "Поле з пошуком по списку (Base UI Combobox): довідники, часові пояси; чипи для кількох значень.",
+    status: "beta",
+    demo: "profile",
+  },
+  "ui/slider": {
+    title: "Повзунок",
+    description:
+      "Base UI Slider: доріжка з контрастом 3:1, доступна назва й текст значення для скрінрідера.",
+    status: "beta",
+    demo: "profile",
   },
   "ui/input-otp": {
     title: "Поле коду",
@@ -755,6 +841,11 @@ export const BUNDLE_ITEMS = {
       "erp/account-factors",
       "erp/account-devices",
       "erp/impersonation",
+      "erp/factor-setup",
+      "erp/profile-form",
+      "erp/api-tokens",
+      "erp/security-policy-form",
+      "erp/reset-factors",
     ],
     docs: [
       "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
@@ -763,6 +854,8 @@ export const BUNDLE_ITEMS = {
       "3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).",
       "4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.",
       "5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.",
+      "6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).",
+      "7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).",
     ].join("\n"),
   },
   mocks: {

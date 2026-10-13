@@ -13,6 +13,8 @@ export const ROUTES = {
   data: "/data",
   security: "/settings/security",
   users: "/settings/users",
+  profile: "/settings/profile",
+  securityPolicy: "/settings/security-policy",
 } as const
 export type Route = keyof typeof ROUTES
 

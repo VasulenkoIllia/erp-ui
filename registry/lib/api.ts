@@ -129,6 +129,8 @@ export const API_ERROR_CODES = [
   "password_change_required",
   "factor_required",
   "impersonation_forbidden",
+  "factor_setup_required",
+  "ip_not_allowed",
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 
@@ -230,7 +232,10 @@ export function createApiClient({
           )
     const url = `${baseUrl}${path}${search.size ? `?${search.toString()}` : ""}`
     const headers = new Headers({ Accept: "application/json" })
-    if (body !== undefined) headers.set("Content-Type", "application/json")
+    // FormData (файли) — браузер сам ставить multipart/form-data з межею.
+    const multipart = body instanceof FormData
+    if (body !== undefined && !multipart)
+      headers.set("Content-Type", "application/json")
     const companyId = getCompanyId?.()
     if (companyId) headers.set(COMPANY_HEADER, companyId)
     const language = getLanguage?.()
@@ -241,7 +246,12 @@ export function createApiClient({
       response = await (fetchImpl ?? fetch)(url, {
         method,
         headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body:
+          body === undefined
+            ? undefined
+            : multipart
+              ? body
+              : JSON.stringify(body),
         credentials: "include",
         signal,
       })

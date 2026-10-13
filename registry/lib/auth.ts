@@ -35,6 +35,14 @@
  *   `users:impersonate` і повторне підтвердження; `DELETE /auth/impersonation` → назад до свого
  *   акаунта. Поки триває, `GET /me` містить `impersonator`.
  * - Фактори, сесії, пристрої й журнал входів — `provider.account` (lib/account).
+ * - Політика безпеки організації (ADR-0012, lib/security-policy, `provider.admin`):
+ *   - обов'язковий другий крок без налаштованого фактора → `{ status: "factor_setup_required",
+ *     factors }`: користувач налаштовує фактор (ті самі `/me/factors/*`, без повторного
+ *     підтвердження) і завершує `POST /auth/factor-setup/complete` → результат входу;
+ *   - пароль, термін дії якого минув, → `password_change_required` з `reason: "expired"`;
+ *   - адреса поза дозволеним списком → 403 `ip_not_allowed`.
+ * - Немає доступу до жодного фактора: `POST /auth/recovery-request` { comment } на кроці коду → 202;
+ *   адміністратор скидає другий крок (`provider.admin.resetFactors`).
  *
  * Права — рядки `<ресурс>:<дія>` ("invoices:approve"), `*` — будь-що. Перевірка на клієнті лише
  * ховає й вимикає дії; сервер (і MSW-моки) перевіряють ті самі права самі.
@@ -42,10 +50,15 @@
 import type { AuthProvider } from "ra-core"
 import { z } from "zod"
 
-import { createAccountApi, type AccountApi } from "@/registry/lib/account"
+import {
+  createAccountApi,
+  SETUP_FACTORS,
+  type AccountApi,
+} from "@/registry/lib/account"
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
+import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
 
 /* --------------------------------- Схеми --------------------------------- */
@@ -127,6 +140,8 @@ export const authMethodsSchema = z.object({
   /** Ключ сайту Turnstile для перевірки «не бот». */
   captchaSiteKey: z.string().optional(),
   branding: brandingSchema.optional(),
+  /** Вимоги до пароля з політики організації (ADR-0012); немає — типові кіта. */
+  passwordPolicy: z.object({ minLength: z.number().int().min(1) }).optional(),
 })
 export type AuthMethods = z.infer<typeof authMethodsSchema>
 
@@ -146,10 +161,26 @@ export const challengeSchema = z.object({
 })
 export type Challenge = z.infer<typeof challengeSchema>
 
+/** Чому треба новий пароль: тимчасовий, минув термін, не відповідає політиці. */
+export const PASSWORD_CHANGE_REASONS = [
+  "temporary",
+  "expired",
+  "policy",
+] as const
+export type PasswordChangeReason = (typeof PASSWORD_CHANGE_REASONS)[number]
+
 export const loginResultSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("authenticated") }),
   z.object({ status: z.literal("challenge"), challenge: challengeSchema }),
-  z.object({ status: z.literal("password_change_required") }),
+  z.object({
+    status: z.literal("password_change_required"),
+    reason: z.enum(PASSWORD_CHANGE_REASONS).optional(),
+  }),
+  z.object({
+    status: z.literal("factor_setup_required"),
+    /** Які фактори політика дозволяє налаштувати. */
+    factors: z.array(z.enum(SETUP_FACTORS)).min(1),
+  }),
 ])
 export type LoginResult = z.infer<typeof loginResultSchema>
 
@@ -177,6 +208,10 @@ export const meSchema = z.object({
   sessionExpiresAt: z.string().optional(),
   /** Адміністратор, що працює від імені цього користувача («Увійти як…»). */
   impersonator: z.object({ id: z.string(), name: z.string() }).optional(),
+  /** Профіль (ADR-0012): посада, часовий пояс IANA, підпис для листів. */
+  position: z.string().optional(),
+  timezone: z.string().optional(),
+  signature: z.string().optional(),
 })
 export type Me = z.infer<typeof meSchema>
 
@@ -260,15 +295,38 @@ export function isChallengeRequired(
   return error instanceof AuthChallengeError
 }
 
-/** Пароль тимчасовий чи скинутий адміністратором: спершу встановити новий. */
+/** Пароль тимчасовий, протермінований чи не за політикою: спершу встановити новий. */
 export class PasswordChangeRequiredError extends ApiError {
-  constructor() {
+  readonly reason: PasswordChangeReason
+
+  constructor(reason: PasswordChangeReason = "temporary") {
     super(401, {
       code: "password_change_required",
       message: "Set a new password to continue",
     })
     this.name = "PasswordChangeRequiredError"
+    this.reason = reason
   }
+}
+
+/** Політика вимагає другий крок, а його ще немає: налаштувати, потім `completeFactorSetup`. */
+export class FactorSetupRequiredError extends ApiError {
+  readonly factors: (typeof SETUP_FACTORS)[number][]
+
+  constructor(factors: (typeof SETUP_FACTORS)[number][]) {
+    super(401, {
+      code: "factor_setup_required",
+      message: "Set up two-step verification to continue",
+    })
+    this.name = "FactorSetupRequiredError"
+    this.factors = factors
+  }
+}
+
+export function isFactorSetupRequired(
+  error: unknown,
+): error is FactorSetupRequiredError {
+  return error instanceof FactorSetupRequiredError
 }
 
 export function isPasswordChangeRequired(
@@ -352,8 +410,14 @@ export interface ErpAuthProvider extends AuthProvider {
   impersonate: (userId: string, reason: string) => Promise<void>
   /** Повернутися до свого акаунта. */
   stopImpersonation: () => Promise<void>
-  /** Фактори, резервні коди, сесії, пристрої, журнал входів (lib/account). */
+  /** Фактори, резервні коди, сесії, пристрої, журнал входів, профіль, токени API (lib/account). */
   account: AccountApi
+  /** Політика безпеки, запити на відновлення, скидання другого кроку (lib/security-policy). */
+  admin: AdminApi
+  /** Обов'язковий другий крок налаштовано — завершити вхід. */
+  completeFactorSetup: () => Promise<void>
+  /** Немає доступу до жодного фактора: попросити адміністратора відновити (на кроці коду). */
+  requestRecovery: (comment: string) => Promise<void>
 }
 
 export interface AuthProviderOptions {
@@ -403,7 +467,9 @@ export function createAuthProvider(
     if (result.status === "challenge")
       throw new AuthChallengeError(result.challenge)
     if (result.status === "password_change_required")
-      throw new PasswordChangeRequiredError()
+      throw new PasswordChangeRequiredError(result.reason)
+    if (result.status === "factor_setup_required")
+      throw new FactorSetupRequiredError(result.factors)
     me = null
     await loadMe()
     broadcastAuthEvent({ type: "login" })
@@ -531,11 +597,21 @@ export function createAuthProvider(
     },
 
     account: createAccountApi(client, {
-      onFactorsChange: () => {
+      onMeChange: () => {
+        // На кроці налаштування другого кроку профілю ще немає — оновлювати нічого.
+        if (!me) return Promise.resolve()
         me = null
         return loadMe()
       },
     }),
+
+    admin: createAdminApi(client),
+
+    completeFactorSetup: () => post("/auth/factor-setup/complete"),
+
+    async requestRecovery(comment) {
+      await client.post("/auth/recovery-request", { comment })
+    },
 
     /** `{ remote: true }` — вихід уже стався в іншій вкладці: лише очистити стан тут. */
     async logout(params?: { remote?: boolean }) {

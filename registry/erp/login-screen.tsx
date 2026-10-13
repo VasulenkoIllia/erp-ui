@@ -18,15 +18,19 @@ import {
 } from "@/registry/erp/auth-layout"
 import { TurnstileCaptcha, type CaptchaRenderer } from "@/registry/erp/captcha"
 import { ChallengeForm } from "@/registry/erp/challenge-form"
+import { FactorSetupStep } from "@/registry/erp/factor-setup"
 import { PasswordInput, PasswordStrength } from "@/registry/erp/password-input"
 import { SsoButtons } from "@/registry/erp/sso-buttons"
+import type { SetupFactor } from "@/registry/lib/account"
 import { isApiError } from "@/registry/lib/api"
 import {
   isCaptchaRequired,
   isChallengeRequired,
+  isFactorSetupRequired,
   isPasswordChangeRequired,
   type AuthMethods,
   type Challenge,
+  type PasswordChangeReason,
   type SsoProvider,
 } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -49,7 +53,8 @@ type StartMethod = "password" | "email" | "sms"
 type Step =
   | { kind: "start" }
   | { kind: "challenge"; challenge: Challenge }
-  | { kind: "password_change" }
+  | { kind: "password_change"; reason: PasswordChangeReason }
+  | { kind: "factor_setup"; factors: SetupFactor[] }
 
 /** Адреса повернення з SSO: маршрут `callback` з `next`; хеш-роутинг ra-core враховано. */
 export function defaultSsoReturnUrl(callbackPath: string, next: string) {
@@ -113,7 +118,11 @@ export function LoginScreen({
         return
       }
       if (isPasswordChangeRequired(failure)) {
-        setStep({ kind: "password_change" })
+        setStep({ kind: "password_change", reason: failure.reason })
+        return
+      }
+      if (isFactorSetupRequired(failure)) {
+        setStep({ kind: "factor_setup", factors: failure.factors })
         return
       }
       throw failure
@@ -143,16 +152,39 @@ export function LoginScreen({
               : undefined
           }
           onRestart={restart}
+          onRequestRecovery={(comment) => provider.requestRecovery(comment)}
         />
       </AuthLayout>
     )
   }
 
+  if (step.kind === "factor_setup")
+    return (
+      <AuthLayout
+        title={t("auth.factorSetup.title")}
+        description={t("auth.factorSetup.lead")}
+        logo={logo}
+        footer={footer}
+      >
+        <FactorSetupStep
+          factors={step.factors}
+          onComplete={() => handle(() => provider.completeFactorSetup())}
+          onRestart={restart}
+        />
+      </AuthLayout>
+    )
+
   if (step.kind === "password_change")
     return (
       <AuthLayout
         title={t("auth.forced.title")}
-        description={t("auth.forced.lead")}
+        description={t(
+          step.reason === "expired"
+            ? "auth.forced.expired"
+            : step.reason === "policy"
+              ? "auth.forced.policy"
+              : "auth.forced.lead",
+        )}
         logo={logo}
         footer={footer}
       >

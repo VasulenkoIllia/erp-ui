@@ -15,7 +15,7 @@ export const MOCK_USERS: MockUser[] = [
     password: "demo",
     totpCode: "123456",
     roles: ["accountant", "admin"],
-    permissions: ["invoices:*", "users:*"],
+    permissions: ["invoices:*", "users:*", "security:*"],
     companies: COMPANIES,
     companyId: "zoriana",
     phone: "+380671234545",

@@ -9,7 +9,7 @@ import {
   it,
 } from "vitest"
 
-import { formatBackupCode } from "@/registry/erp/account-factors"
+import { formatBackupCode } from "@/registry/erp/factor-setup"
 import { deviceFromUserAgent } from "@/registry/lib/account"
 import { createApiClient } from "@/registry/lib/api"
 import {

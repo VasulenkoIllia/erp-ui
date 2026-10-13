@@ -13,7 +13,12 @@ import { PasskeyCancelledError, readSmsCode } from "@/registry/lib/passkey"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
-import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import {
   InputOTP,
@@ -22,6 +27,7 @@ import {
   InputOTPSlot,
 } from "@/registry/ui/input-otp"
 import { Spinner } from "@/registry/ui/spinner"
+import { Textarea } from "@/registry/ui/textarea"
 
 /** Секунди, що лишилися до `until` (мс); оновлюється щосекунди. */
 function useSecondsLeft(until: number): number {
@@ -50,6 +56,8 @@ const SENDS: AuthFactor[] = ["sms", "email"]
  *   WebOTP. Шостий символ надсилає форму сам.
  * - «Надіслати ще раз» стає доступним через `resendIn` секунд; інші методи — кнопками нижче.
  * - «Запам'ятати пристрій» — лише для другого кроку після пароля, якщо проект це дозволяє.
+ * - «Немає доступу до жодного способу?» (`onRequestRecovery`, ADR-0012) — запит адміністратору
+ *   скинути другий крок; лише після пароля.
  */
 export function ChallengeForm({
   challenge,
@@ -58,6 +66,7 @@ export function ChallengeForm({
   onPasskey,
   trustedDeviceDays = 0,
   onRestart,
+  onRequestRecovery,
 }: {
   challenge: Challenge
   onVerify: (
@@ -71,6 +80,8 @@ export function ChallengeForm({
   trustedDeviceDays?: number
   /** «Почати спочатку» (інший акаунт, забагато спроб). */
   onRestart?: () => void
+  /** Запит адміністратору відновити доступ (`provider.requestRecovery`). */
+  onRequestRecovery?: (comment: string) => Promise<void>
 }) {
   const t = useErpUiT()
   const apiMessage = useApiErrorMessage()
@@ -327,6 +338,10 @@ export function ChallengeForm({
         </div>
       ) : null}
 
+      {onRequestRecovery && current.secondFactor ? (
+        <RecoveryRequest onRequest={onRequestRecovery} />
+      ) : null}
+
       {onRestart ? (
         <Button
           type="button"
@@ -337,6 +352,114 @@ export function ChallengeForm({
           {t("auth.challenge.restart")}
         </Button>
       ) : null}
+    </div>
+  )
+}
+
+/** «Немає доступу до жодного способу?» → запит адміністратору (ADR-0012). */
+function RecoveryRequest({
+  onRequest,
+}: {
+  onRequest: (comment: string) => Promise<void>
+}) {
+  const t = useErpUiT()
+  const apiMessage = useApiErrorMessage()
+  const id = React.useId()
+  const [open, setOpen] = React.useState(false)
+  const [comment, setComment] = React.useState("")
+  const [busy, setBusy] = React.useState(false)
+  const [sent, setSent] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const panel = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    if (open) panel.current?.focus()
+  }, [open])
+
+  if (sent)
+    return (
+      <Alert variant="success" role="status">
+        <AlertDescription>{t("auth.recovery.sent")}</AlertDescription>
+      </Alert>
+    )
+  if (!open)
+    return (
+      <Button
+        type="button"
+        variant="link"
+        className="h-auto min-h-touch px-0"
+        onClick={() => {
+          setOpen(true)
+        }}
+      >
+        {t("auth.recovery.link")}
+      </Button>
+    )
+  return (
+    <div
+      ref={panel}
+      tabIndex={-1}
+      className="space-y-3 rounded-lg border p-3 outline-none"
+      data-slot="recovery-request"
+    >
+      <p className="text-sm font-medium">{t("auth.recovery.link")}</p>
+      <p className="text-sm text-muted-foreground">
+        {t("auth.recovery.description")}
+      </p>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+      <Field>
+        <FieldLabel htmlFor={`${id}-comment`}>
+          {t("auth.recovery.commentLabel")}
+        </FieldLabel>
+        <Textarea
+          id={`${id}-comment`}
+          rows={2}
+          maxLength={500}
+          value={comment}
+          aria-describedby={`${id}-hint`}
+          onChange={(event) => {
+            setComment(event.target.value)
+          }}
+        />
+        <FieldDescription id={`${id}-hint`}>
+          {t("auth.recovery.commentHint")}
+        </FieldDescription>
+      </Field>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true)
+            setError(null)
+            onRequest(comment.trim())
+              .then(() => {
+                setSent(true)
+              })
+              .catch((failure: unknown) => {
+                setError(apiMessage(failure))
+              })
+              .finally(() => {
+                setBusy(false)
+              })
+          }}
+        >
+          {busy ? <Spinner aria-hidden /> : null}
+          {t("auth.recovery.submit")}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setOpen(false)
+          }}
+        >
+          {t("auth.account.cancel")}
+        </Button>
+      </div>
     </div>
   )
 }

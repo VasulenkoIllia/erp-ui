@@ -7,6 +7,8 @@ import {
   Palette,
   Shapes,
   ShieldCheck,
+  ShieldEllipsis,
+  UserRound,
   Users,
 } from "lucide-react"
 import { useLogout } from "ra-core"
@@ -100,6 +102,14 @@ const FormatsPage = lazy(() =>
 const SecurityPage = lazy(() =>
   import("@/pages/SecurityPage").then((m) => ({ default: m.SecurityPage })),
 )
+const ProfilePage = lazy(() =>
+  import("@/pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
+)
+const SecurityPolicyPage = lazy(() =>
+  import("@/pages/SecurityPolicyPage").then((m) => ({
+    default: m.SecurityPolicyPage,
+  })),
+)
 
 const PAGES: Record<Route, React.ComponentType> = {
   appearance: AppearancePage,
@@ -110,6 +120,8 @@ const PAGES: Record<Route, React.ComponentType> = {
   data: DataPage,
   security: SecurityPage,
   users: UsersPage,
+  profile: ProfilePage,
+  securityPolicy: SecurityPolicyPage,
 }
 
 const PAGE_ICONS: Record<Route, typeof Palette> = {
@@ -121,6 +133,8 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   data: Database,
   security: ShieldCheck,
   users: Users,
+  profile: UserRound,
+  securityPolicy: ShieldEllipsis,
 }
 
 /** Розділи в нижній панелі телефона. */
@@ -209,6 +223,17 @@ function useMockMessages() {
         }
         if (message.kind === "export") {
           toast(t("exportToast", { to: message.to }), options)
+          return
+        }
+        if (message.kind === "recovery") {
+          toast(t("recoveryToast", { to: message.to }), options)
+          return
+        }
+        if (message.kind === "factors_reset") {
+          toast(t("factorsResetToast", { to: message.to }), {
+            ...options,
+            description: message.detail,
+          })
           return
         }
         if (message.kind === "new_sign_in") {
@@ -415,7 +440,11 @@ function Shell({
                     })
                   }}
                 >
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      void navigate(ROUTES.profile)
+                    }}
+                  >
                     <SHELL_ICONS.user aria-hidden />
                     {t("user.profile")}
                   </DropdownMenuItem>

@@ -4,6 +4,52 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5b3 (профіль, політики, відновлення доступу, токени API, ADR-0012)
+
+- Профіль (`provider.account`):
+  - `updateProfile` (ім'я, посада, контактний телефон, часовий пояс, підпис);
+  - `uploadAvatar` / `removeAvatar`;
+  - `/me` повертає `position`, `timezone`, `signature`.
+- Токени API: `getApiTokens`, `createApiToken` (права з прав користувача, термін 30/90/365 днів чи без терміну), `revokeApiToken`.
+- `lib/security-policy` (`provider.admin`):
+  - політика організації: `getSecurityPolicy`, `updateSecurityPolicy`;
+  - запити на відновлення: `getRecoveryRequests`, `declineRecoveryRequest`;
+  - скидання другого кроку: `resetFactors`;
+  - адреси: `isValidCidr`, `ipInCidr`, `ipAllowed`.
+- `lib/auth`:
+  - обов'язковий другий крок під час входу: `factor_setup_required`, `isFactorSetupRequired`, `completeFactorSetup`;
+  - `requestRecovery` на кроці коду;
+  - причина зміни пароля: `PasswordChangeRequiredError.reason`;
+  - `passwordPolicy.minLength` у `GET /auth/methods`.
+- Екрани:
+  - `erp/profile-form` — `ProfileForm`, `ProfilePhoto`;
+  - `erp/avatar-editor` — обрізання й стиснення фото в браузері;
+  - `erp/timezone-select`;
+  - `erp/api-tokens` — `ApiTokensSection`;
+  - `erp/security-policy-form` — `SecurityPolicyForm`;
+  - `erp/reset-factors` — `useResetFactors`, `RecoveryRequestsSection`;
+  - `erp/factor-setup` — `FactorSetupStep`, `useFactorSetup`, `BackupCodesDialog`, `PhoneField`.
+- Примітиви: `ui/combobox`, `ui/slider` (порти shadcn base-nova).
+- `ChallengeForm`: «Немає доступу до жодного способу?» (`onRequestRecovery`).
+- `lib/api`: `FormData` — як multipart; коди `factor_setup_required`, `ip_not_allowed`.
+- Мок:
+  - `lib/mock-admin` — політика, запити, скидання;
+  - вхід виконує політику: другий крок, термін і повтор пароля, адреси, дні довіри;
+  - `createPlatformHandlers` приймає `securityPolicy`, `roles`, `apiResources`.
+- Демо:
+  - сторінки «Профіль» і «Політики безпеки»;
+  - запити й скидання на «Користувачах»;
+  - токени API на «Безпеці акаунта».
+- Тести: 18 модульних (`admin.test.ts`), 7 e2e (`admin.spec.ts`) з axe.
+
+### Змінено — крок 0.5b3
+
+- `BackupCodesDialog` і діалоги налаштування факторів переїхали з `erp/account-factors` до `erp/factor-setup`. Сторінка входу не тягне libphonenumber: поле телефону підставляється ззовні (`PhoneField`).
+- Індикатор складності пароля враховує мінімальну довжину з політики.
+- Опція `createAccountApi` `onMe` → `onMeChange`.
+- Мок: історія паролів зберігає й попередній пароль (`passwordChanged` сам міняє пароль).
+- `ui/combobox`: кнопки-іконки мають назви для екранного читача.
+
 ### Додано — крок 0.5b2 (акаунт: фактори, пристрої, бренд, «Увійти як…», ADR-0011)
 
 - `lib/account` (`provider.account`):

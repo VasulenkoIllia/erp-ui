@@ -1,6 +1,6 @@
 /**
- * Мок безпеки акаунта (ADR-0011): фактори з налаштуванням, резервні коди, сесії, довірені
- * пристрої, журнал входів, листи про новий вхід і «Увійти як…».
+ * Мок акаунта (ADR-0011, ADR-0012): фактори з налаштуванням, резервні коди, сесії, довірені
+ * пристрої, журнал входів, листи про новий вхід, «Увійти як…», профіль і фото, токени API.
  *
  * - Стан кожного користувача живе в localStorage (`erp-ui:mock-account:<id>`), як дані сервера:
  *   переживає перезавантаження демо. Початковий — з `MockUser.factors` і `seeds`.
@@ -10,9 +10,11 @@
 import { http, type HttpHandler } from "msw/http"
 
 import {
+  API_TOKEN_EXPIRY_DAYS,
   deviceFromUserAgent,
   SETUP_FACTORS,
   type AccountSession,
+  type ApiToken,
   type Device,
   type Factor,
   type SetupFactor,
@@ -27,6 +29,7 @@ import {
   localizedText,
   type AuthFactor,
   type LocalizedText,
+  type Me,
 } from "@/registry/lib/auth"
 import {
   currentMockUser,
@@ -63,6 +66,21 @@ export interface MockAccountSeed {
   newSignInAlerts?: boolean
 }
 
+/** Змінене в профілі (поверх `MockUser`); avatarUrl: null — фото видалено. */
+type MockProfile = Partial<{
+  name: string
+  position: string
+  phone: string
+  timezone: string
+  signature: string
+  avatarUrl: string | null
+}>
+
+interface MockApiToken extends ApiToken {
+  /** Мок зберігає сам токен; справжній сервер — лише хеш. */
+  secret: string
+}
+
 interface MockAccountState {
   factors: Factor[]
   backupCodes: string[] | null
@@ -76,6 +94,10 @@ interface MockAccountState {
   knownDevices: string[]
   /** Цей браузер — довірений пристрій (мс). */
   trustedHere?: { since: number; until: number }
+  profile: MockProfile
+  apiTokens: MockApiToken[]
+  /** Попередні паролі — для правила «не повторювати» (мок тримає їх відкрито). */
+  passwordHistory: string[]
 }
 
 const KEY = (userId: string) => `erp-ui:mock-account:${userId}`
@@ -83,7 +105,7 @@ const SEED_DATE = "2026-06-02T09:15:00.000Z"
 const BACKUP_TOTAL = 10
 const SIGN_IN_LIMIT = 100
 /** Адреса з діапазону для документації (RFC 5737) — не справжня. */
-const CURRENT_IP = "192.0.2.24"
+export const CURRENT_IP = "192.0.2.24"
 const CURRENT_LOCATION: LocalizedText = {
   uk: "Київ, Україна",
   en: "Kyiv, Ukraine",
@@ -125,6 +147,9 @@ function initialState(user: MockUser): MockAccountState {
     trustedDevices: seed.trustedDevices ?? [],
     signIns: seed.signIns ?? [],
     knownDevices: [],
+    profile: {},
+    apiTokens: [],
+    passwordHistory: [user.password],
   }
 }
 
@@ -187,9 +212,62 @@ export function trustHere(user: MockUser, days: number): void {
   })
 }
 
-export function passwordChanged(user: MockUser): void {
+/**
+ * Новий пароль: сам пароль, дата зміни й історія для правила «не повторювати». Стан читається
+ * до заміни пароля, тож у історії лишається й попередній.
+ */
+export function passwordChanged(user: MockUser, password: string): void {
   update(user, (s) => {
     s.passwordChangedAt = new Date().toISOString()
+    s.passwordHistory = [password, ...s.passwordHistory].slice(0, 24)
+  })
+  user.password = password
+}
+
+/** Чи був пароль серед `count` останніх. */
+export function passwordReused(
+  user: MockUser,
+  password: string,
+  count: number,
+): boolean {
+  return (
+    count > 0 &&
+    loadState(user).passwordHistory.slice(0, count).includes(password)
+  )
+}
+
+/** Коли востаннє змінено пароль (мс). */
+export function passwordChangedAt(user: MockUser): number | null {
+  const at = loadState(user).passwordChangedAt
+  return at ? Date.parse(at) : null
+}
+
+/** Профіль поверх даних користувача — для `GET /me`. */
+export function mockProfile(user: MockUser): Partial<Me> {
+  const { avatarUrl, ...profile } = loadState(user).profile
+  return {
+    ...Object.fromEntries(
+      Object.entries(profile).filter(([, value]) => value !== ""),
+    ),
+    ...(avatarUrl === null
+      ? { avatarUrl: undefined }
+      : avatarUrl
+        ? { avatarUrl }
+        : {}),
+  }
+}
+
+/**
+ * Адміністратор скинув другий крок: фактори, резервні коди, довірені пристрої й інші сесії
+ * зникають — наступний вхід лише паролем (або налаштування, якщо політика вимагає).
+ */
+export function resetMockFactors(user: MockUser): void {
+  update(user, (s) => {
+    s.factors = []
+    s.backupCodes = null
+    s.trustedDevices = []
+    delete s.trustedHere
+    s.sessions = []
   })
 }
 
@@ -251,18 +329,36 @@ export interface AccountMockOptions {
   baseUrl?: string
   /** Код, який мок приймає під час налаштування застосунку, SMS і email. */
   sentCode?: string
-  /** Які фактори можна додати. */
-  available?: SetupFactor[]
+  /** Які фактори можна додати (зважає на політику безпеки). */
+  available?: () => SetupFactor[]
   /** Компанія вимагає другий крок: останній фактор не видалити. */
   twoFactorRequired?: (user: MockUser) => boolean
   /** Назва в застосунку-автентифікаторі й у вікні ключа доступу (бренд може змінюватися). */
   issuer?: () => string | undefined
   /** Повторне підтвердження: відповідь 403 або null — можна. */
   reauthRequired: () => Response | null
+  /** Назви ресурсів для прав токенів API: { invoices: { uk: "Рахунки", en: "Invoices" } }. */
+  apiResources?: Record<string, LocalizedText>
 }
 
 const RESEND_SECONDS = 30
 const NAME_MAX = 64
+/** Фото профілю після обрізання — кілька десятків КБ; більше — щось пішло не так. */
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024
+
+const TOKEN_ACTIONS: { action: string; label: LocalizedText }[] = [
+  { action: "read", label: { uk: "Перегляд", en: "Read" } },
+  { action: "create", label: { uk: "Створення", en: "Create" } },
+  { action: "update", label: { uk: "Зміна", en: "Update" } },
+  { action: "delete", label: { uk: "Видалення", en: "Delete" } },
+]
+
+/** Токен без секрету — те, що бачить список. */
+const publicToken = (token: MockApiToken): ApiToken => {
+  const { secret, ...item } = token
+  void secret
+  return item
+}
 
 function base64Url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
@@ -313,20 +409,39 @@ interface PendingSetup {
 export function createAccountHandlers({
   baseUrl = API_PREFIX,
   sentCode = "123456",
-  available = [...SETUP_FACTORS],
+  available = () => [...SETUP_FACTORS],
   twoFactorRequired = () => false,
   issuer: issuerOf,
   reauthRequired,
+  apiResources = {},
 }: AccountMockOptions): HttpHandler[] {
   const setups = new Map<string, PendingSetup>()
   const issuer = () => issuerOf?.() ?? "erp-ui"
 
-  /** Зміна безпеки: увійшов, не «Увійти як…», свіже повторне підтвердження. */
+  /**
+   * Зміна безпеки: увійшов, не «Увійти як…», свіже повторне підтвердження. На кроці входу
+   * «налаштуйте другий крок» (політика, ADR-0012) пароль щойно перевірено — без підтвердження.
+   */
   const guardChange = (): MockUser | Response => {
+    const session = getMockSession()
+    if (session?.stage === "factor_setup" && session.expiresAt > Date.now())
+      return (
+        mockUsersList().find((u) => u.id === session.userId) ??
+        unauthenticated()
+      )
     const user = currentMockUser()
     if (!user) return unauthenticated()
     return impersonationForbidden() ?? reauthRequired() ?? user
   }
+
+  /** Політика організації може заборонити тип фактора. */
+  const notAllowed = (type: SetupFactor) =>
+    available().includes(type)
+      ? null
+      : errorResponse(403, {
+          code: "forbidden",
+          message: `Factor ${type} is disabled by the security policy`,
+        })
 
   /** Новий фактор; перший — разом із резервними кодами. */
   const enroll = (user: MockUser, factor: Factor, replaceType?: boolean) => {
@@ -356,6 +471,18 @@ export function createAccountHandlers({
     ...extra,
   })
 
+  /** Права для токенів: з прав користувача, лише відомі ресурси (`apiResources`). */
+  const tokenScopes = (user: MockUser, language: string) =>
+    Object.entries(apiResources).flatMap(([resource, label]) =>
+      TOKEN_ACTIONS.filter(({ action }) =>
+        hasPermission(user.permissions, resource, action),
+      ).map(({ action, label: actionLabel }) => ({
+        id: `${resource}:${action}`,
+        label: localizedText(actionLabel, language) ?? action,
+        group: localizedText(label, language) ?? resource,
+      })),
+    )
+
   const verifySetup = async (
     request: Request,
     type: PendingSetup["type"],
@@ -382,7 +509,7 @@ export function createAccountHandlers({
       const state = loadState(user)
       return json({
         factors: state.factors,
-        available,
+        available: available(),
         backupCodes:
           state.backupCodes && state.factors.length
             ? { remaining: state.backupCodes.length, total: state.backupTotal }
@@ -410,6 +537,8 @@ export function createAccountHandlers({
     http.post(`${baseUrl}/me/factors/totp`, () => {
       const guard = guardChange()
       if (guard instanceof Response) return guard
+      const disabled = notAllowed("totp")
+      if (disabled) return disabled
       const secret = base32Secret()
       const setupId = randomToken()
       setups.set(setupId, { userId: guard.id, type: "totp" })
@@ -431,6 +560,8 @@ export function createAccountHandlers({
     http.post(`${baseUrl}/me/factors/sms`, async ({ request }) => {
       const guard = guardChange()
       if (guard instanceof Response) return guard
+      const disabled = notAllowed("sms")
+      if (disabled) return disabled
       const { phone } = (await request.json()) as { phone?: string }
       const digits = phone?.replace(/\D/g, "") ?? ""
       if (!phone) return validation({ phone: "required" })
@@ -472,6 +603,8 @@ export function createAccountHandlers({
     http.post(`${baseUrl}/me/factors/email`, () => {
       const guard = guardChange()
       if (guard instanceof Response) return guard
+      const disabled = notAllowed("email")
+      if (disabled) return disabled
       if (loadState(guard).factors.some((f) => f.type === "email"))
         return errorResponse(409, {
           code: "conflict",
@@ -486,6 +619,8 @@ export function createAccountHandlers({
     http.post(`${baseUrl}/me/factors/passkey/options`, ({ request }) => {
       const guard = guardChange()
       if (guard instanceof Response) return guard
+      const disabled = notAllowed("passkey")
+      if (disabled) return disabled
       return json({
         publicKey: {
           challenge: base64Url(
@@ -704,6 +839,142 @@ export function createAccountHandlers({
           .map((event) => localize(event, language)),
         total: all.length,
       })
+    }),
+
+    /* ------------------------------- Профіль ------------------------------- */
+
+    http.patch(`${baseUrl}/me`, async ({ request }) => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      const body = (await request.json()) as Record<string, unknown>
+      const text = (key: string) =>
+        typeof body[key] === "string" ? body[key].trim() : undefined
+      const fields: Record<string, string> = {}
+      const name = text("name")
+      if (name !== undefined && !name) fields.name = "required"
+      for (const [key, max] of [
+        ["name", 100],
+        ["position", 100],
+        ["signature", 1000],
+      ] as const)
+        if ((text(key)?.length ?? 0) > max) fields[key] = "tooLong"
+      const phone = text("phone")
+      if (phone && phone.replace(/\D/g, "").length < 10)
+        fields.phone = "invalid"
+      const timezone = text("timezone")
+      if (timezone)
+        try {
+          new Intl.DateTimeFormat("en", { timeZone: timezone })
+        } catch {
+          fields.timezone = "invalid"
+        }
+      if (Object.keys(fields).length) return validation(fields)
+      update(user, (s) => {
+        for (const key of [
+          "name",
+          "position",
+          "phone",
+          "timezone",
+          "signature",
+        ] as const) {
+          const value = text(key)
+          if (value !== undefined) s.profile[key] = value
+        }
+      })
+      return noContent()
+    }),
+
+    http.put(`${baseUrl}/me/avatar`, async ({ request }) => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      const file = (await request.formData()).get("file")
+      // Не `instanceof Blob`: у тестах (jsdom) файл приходить з іншого «світу» JS.
+      if (!file || typeof file === "string")
+        return validation({ file: "required" })
+      if (!file.type.startsWith("image/")) return validation({ file: "type" })
+      if (file.size > AVATAR_MAX_BYTES) return validation({ file: "tooLarge" })
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      let binary = ""
+      for (const byte of bytes) binary += String.fromCharCode(byte)
+      const avatarUrl = `data:${file.type};base64,${btoa(binary)}`
+      update(user, (s) => {
+        s.profile.avatarUrl = avatarUrl
+      })
+      return json({ avatarUrl })
+    }),
+
+    http.delete(`${baseUrl}/me/avatar`, () => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      update(user, (s) => {
+        s.profile.avatarUrl = null
+      })
+      return noContent()
+    }),
+
+    /* ------------------------------ Токени API ------------------------------ */
+
+    http.get(`${baseUrl}/me/api-tokens`, ({ request }) => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      return json({
+        tokens: loadState(user).apiTokens.map(publicToken),
+        scopes: tokenScopes(user, languageOf(request)),
+      })
+    }),
+
+    http.post(`${baseUrl}/me/api-tokens`, async ({ request }) => {
+      const guard = guardChange()
+      if (guard instanceof Response) return guard
+      const body = (await request.json()) as {
+        name?: string
+        scopes?: string[]
+        expiresInDays?: number | null
+      }
+      const fields: Record<string, string> = {}
+      const name = body.name?.trim() ?? ""
+      if (!name) fields.name = "required"
+      else if (name.length > NAME_MAX) fields.name = "tooLong"
+      const allowed = new Set(tokenScopes(guard, "uk").map((scope) => scope.id))
+      const scopes = body.scopes ?? []
+      if (!scopes.length) fields.scopes = "required"
+      else if (scopes.some((scope) => !allowed.has(scope)))
+        fields.scopes = "invalid"
+      const days = body.expiresInDays ?? null
+      if (!(API_TOKEN_EXPIRY_DAYS as readonly (number | null)[]).includes(days))
+        fields.expiresInDays = "invalid"
+      if (Object.keys(fields).length) return validation(fields)
+      const secret = `erp_${randomToken()}${randomToken()}`
+      const item: MockApiToken = {
+        id: `tok-${randomToken().slice(0, 8)}`,
+        name,
+        prefix: `${secret.slice(0, 8)}…`,
+        scopes,
+        createdAt: new Date().toISOString(),
+        expiresAt:
+          days === null
+            ? null
+            : new Date(Date.now() + days * 86_400_000).toISOString(),
+        lastUsedAt: null,
+        secret,
+      }
+      update(guard, (s) => {
+        s.apiTokens = [item, ...s.apiTokens]
+      })
+      return json({ token: secret, item: publicToken(item) }, { status: 201 })
+    }),
+
+    http.delete(`${baseUrl}/me/api-tokens/:id`, ({ params }) => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      const forbidden = impersonationForbidden()
+      if (forbidden) return forbidden
+      if (!loadState(user).apiTokens.some((t) => t.id === params.id))
+        return notFound()
+      update(user, (s) => {
+        s.apiTokens = s.apiTokens.filter((t) => t.id !== params.id)
+      })
+      return noContent()
     }),
 
     /* ------------------------------ «Увійти як…» ------------------------------ */

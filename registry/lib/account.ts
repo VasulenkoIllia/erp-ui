@@ -1,6 +1,6 @@
 /**
- * Безпека акаунта (ADR-0011, PF01): способи підтвердження, резервні коди, сесії й пристрої,
- * журнал входів і листи про вхід з нового пристрою.
+ * Акаунт користувача (ADR-0011, ADR-0012, PF01): профіль, способи підтвердження, резервні коди,
+ * сесії й пристрої, журнал входів, листи про вхід з нового пристрою, токени API.
  *
  * Контракт (усе — під `/api/v1`, для користувача, що увійшов):
  * - `GET /me/security` → фактори, які можна додати, залишок резервних кодів, чи вимагає компанія
@@ -22,6 +22,11 @@
  * - `GET /me/trusted-devices` → пристрої без другого кроку; `DELETE /me/trusted-devices/:id`;
  *   `DELETE /me/trusted-devices` — забути всі.
  * - `GET /me/sign-ins?page=&perPage=` → { data, total }: журнал входів, новіші першими.
+ * - Профіль (ADR-0012): `PATCH /me` { name, position, phone, timezone, signature } → 204;
+ *   `PUT /me/avatar` (multipart, поле `file`) → { avatarUrl }; `DELETE /me/avatar` → 204.
+ * - Токени API (ADR-0012): `GET /me/api-tokens` → { tokens, scopes }; `POST /me/api-tokens`
+ *   { name, scopes, expiresInDays } → { token, item } — сам токен показується один раз;
+ *   `DELETE /me/api-tokens/:id` — відкликати. Права токена — не ширші за права користувача.
  * - Під час «Увійти як…» (ADR-0011) зміни безпеки недоступні: 403 `impersonation_forbidden`.
  */
 import { z } from "zod"
@@ -168,6 +173,60 @@ export type SignInEvent = z.infer<typeof signInEventSchema>
 const signInPageSchema = listResultSchema(signInEventSchema)
 export type SignInPage = z.infer<typeof signInPageSchema>
 
+/** Що користувач змінює у профілі; відсутнє поле — без змін, "" — очистити. */
+export interface ProfileUpdate {
+  name?: string
+  /** Посада: «Головна бухгалтерка». */
+  position?: string
+  /** Контактний телефон (E.164); вхід кодом у SMS — окремо, у факторах. */
+  phone?: string
+  /** Часовий пояс IANA: «Europe/Kyiv». */
+  timezone?: string
+  /** Підпис для листів і документів. */
+  signature?: string
+}
+
+const avatarSchema = z.object({ avatarUrl: z.string() })
+
+/** Термін дії токена в днях; null — без терміну. */
+export const API_TOKEN_EXPIRY_DAYS = [30, 90, 365, null] as const
+
+export const apiTokenSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** Початок токена, щоб відрізнити: «erp_7f3a…». */
+  prefix: z.string(),
+  scopes: z.array(z.string()),
+  createdAt: z.string(),
+  expiresAt: z.string().nullable(),
+  lastUsedAt: z.string().nullable().optional(),
+})
+export type ApiToken = z.infer<typeof apiTokenSchema>
+
+export const apiTokenScopeSchema = z.object({
+  /** Право `<ресурс>:<дія>`: «invoices:read». */
+  id: z.string(),
+  /** Підпис мовою з `Accept-Language`: «Перегляд». */
+  label: z.string(),
+  /** Група (ресурс): «Рахунки». */
+  group: z.string(),
+})
+export type ApiTokenScope = z.infer<typeof apiTokenScopeSchema>
+
+const apiTokensSchema = z.object({
+  tokens: z.array(apiTokenSchema),
+  /** Права, які можна дати токену (не ширші за права користувача). */
+  scopes: z.array(apiTokenScopeSchema),
+})
+export type ApiTokens = z.infer<typeof apiTokensSchema>
+
+const apiTokenCreatedSchema = z.object({
+  /** Повний токен — показати один раз. */
+  token: z.string(),
+  item: apiTokenSchema,
+})
+export type ApiTokenCreated = z.infer<typeof apiTokenCreatedSchema>
+
 /* -------------------------------- Клієнт API -------------------------------- */
 
 export interface AccountApi {
@@ -190,22 +249,33 @@ export interface AccountApi {
   forgetDevice: (id: string) => Promise<void>
   forgetAllDevices: () => Promise<void>
   getSignIns: (page: number, perPage: number) => Promise<SignInPage>
+  updateProfile: (patch: ProfileUpdate) => Promise<void>
+  /** Квадратне зображення (AvatarEditor обрізає й стискає); повертає нову адресу. */
+  uploadAvatar: (image: Blob) => Promise<string>
+  removeAvatar: () => Promise<void>
+  getApiTokens: () => Promise<ApiTokens>
+  createApiToken: (data: {
+    name: string
+    scopes: string[]
+    expiresInDays: number | null
+  }) => Promise<ApiTokenCreated>
+  revokeApiToken: (id: string) => Promise<void>
 }
 
 export interface AccountApiOptions {
-  /** Набір факторів змінився: профіль (`me.factors`) треба завантажити заново. */
-  onFactorsChange?: () => Promise<unknown>
+  /** Профіль змінився (фактори, ім'я, фото): `/me` треба завантажити заново. */
+  onMeChange?: () => Promise<unknown>
 }
 
 const id = (value: string) => encodeURIComponent(value)
 
 export function createAccountApi(
   client: ApiClient,
-  { onFactorsChange }: AccountApiOptions = {},
+  { onMeChange }: AccountApiOptions = {},
 ): AccountApi {
-  /** Після зміни факторів оновити профіль, але повернути результат дії. */
+  /** Після зміни оновити профіль, але повернути результат дії. */
   const changed = async <T>(result: T): Promise<T> => {
-    await onFactorsChange?.()
+    await onMeChange?.()
     return result
   }
 
@@ -310,6 +380,35 @@ export function createAccountApi(
         query: { page: String(page), perPage: String(perPage) },
         schema: signInPageSchema,
       }),
+
+    async updateProfile(patch) {
+      await client.patch("/me", patch)
+      await changed(undefined)
+    },
+
+    async uploadAvatar(image) {
+      const form = new FormData()
+      form.append("file", image, "avatar")
+      const { avatarUrl } = await client.put("/me/avatar", form, {
+        schema: avatarSchema,
+      })
+      return changed(avatarUrl)
+    },
+
+    async removeAvatar() {
+      await client.delete("/me/avatar")
+      await changed(undefined)
+    },
+
+    getApiTokens: () =>
+      client.get("/me/api-tokens", { schema: apiTokensSchema }),
+
+    createApiToken: (data) =>
+      client.post("/me/api-tokens", data, { schema: apiTokenCreatedSchema }),
+
+    async revokeApiToken(tokenId) {
+      await client.delete(`/me/api-tokens/${id(tokenId)}`)
+    },
   }
 }
 
@@ -321,6 +420,7 @@ export const ACCOUNT_QUERY_KEYS = {
   sessions: ["erp-ui", "account", "sessions"],
   trustedDevices: ["erp-ui", "account", "trusted-devices"],
   signIns: ["erp-ui", "account", "sign-ins"],
+  apiTokens: ["erp-ui", "account", "api-tokens"],
 } as const
 
 /** Опис пристрою з User-Agent — для моків і серверів без власного розбору. */

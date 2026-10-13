@@ -17,14 +17,17 @@ import {
 } from "@/registry/erp/auth-layout"
 import { TurnstileCaptcha, type CaptchaRenderer } from "@/registry/erp/captcha"
 import { ChallengeForm } from "@/registry/erp/challenge-form"
+import { FactorSetupStep } from "@/registry/erp/factor-setup"
 import { NewPasswordForm } from "@/registry/erp/login-screen"
+import type { SetupFactor } from "@/registry/lib/account"
 import { isApiError } from "@/registry/lib/api"
 import {
   isCaptchaRequired,
   isChallengeRequired,
+  isFactorSetupRequired,
   type Challenge,
 } from "@/registry/lib/auth"
-import { useErpUiT } from "@/registry/lib/i18n"
+import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button, buttonVariants } from "@/registry/ui/button"
@@ -57,11 +60,15 @@ function BackToLogin({ paths }: { paths?: Partial<AuthPaths> }) {
   )
 }
 
-/** Після скидання пароля чи прийняття запрошення сервер може попросити другий фактор. */
+/**
+ * Після скидання пароля чи прийняття запрошення сервер може попросити другий фактор або, за
+ * політикою (ADR-0012), налаштувати його.
+ */
 function useLoginFlow(afterLogin?: string) {
   const provider = useErpAuthProvider()
   const done = useAfterLogin(afterLogin)
   const [challenge, setChallenge] = React.useState<Challenge | null>(null)
+  const [setup, setSetup] = React.useState<SetupFactor[] | null>(null)
   const handle = async (action: () => Promise<void>) => {
     try {
       await action()
@@ -71,19 +78,34 @@ function useLoginFlow(afterLogin?: string) {
         setChallenge(failure.challenge)
         return
       }
+      if (isFactorSetupRequired(failure)) {
+        setSetup(failure.factors)
+        return
+      }
       throw failure
     }
   }
-  const challengeForm = challenge ? (
+  const challengeForm = setup ? (
+    <FactorSetupStep
+      factors={setup}
+      onComplete={() => handle(() => provider.completeFactorSetup())}
+    />
+  ) : challenge ? (
     <ChallengeForm
       challenge={challenge}
       onVerify={(method, code, trustDevice) =>
         handle(() => provider.login({ method, code, trustDevice }))
       }
       onSend={(method) => provider.sendCode(method)}
+      onRequestRecovery={(comment) => provider.requestRecovery(comment)}
     />
   ) : null
-  return { handle, challengeForm }
+  const stepTitle: ErpUiKey | null = setup
+    ? "auth.factorSetup.title"
+    : challenge
+      ? "auth.challenge.title"
+      : null
+  return { handle, challengeForm, stepTitle }
 }
 
 export function ForgotPasswordScreen({
@@ -249,7 +271,7 @@ export function ResetPasswordScreen({
 }: ScreenProps & { token: string | null }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
-  const { handle, challengeForm } = useLoginFlow(afterLogin)
+  const { handle, challengeForm, stepTitle } = useLoginFlow(afterLogin)
   const [expired, setExpired] = React.useState(!token)
   const forgot = (
     <LinkBase
@@ -261,7 +283,7 @@ export function ResetPasswordScreen({
   )
   return (
     <AuthLayout
-      title={challengeForm ? t("auth.challenge.title") : t("auth.reset.title")}
+      title={stepTitle ? t(stepTitle) : t("auth.reset.title")}
       description={challengeForm || expired ? undefined : t("auth.reset.lead")}
       logo={logo}
       footer={footer}
@@ -304,7 +326,7 @@ export function AcceptInviteScreen({
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const ids = React.useId()
-  const { handle, challengeForm } = useLoginFlow(afterLogin)
+  const { handle, challengeForm, stepTitle } = useLoginFlow(afterLogin)
   const invite = useQuery({
     queryKey: ["erp-ui", "invite", token],
     queryFn: () => provider.getInvite(token ?? ""),
@@ -320,7 +342,7 @@ export function AcceptInviteScreen({
 
   return (
     <AuthLayout
-      title={challengeForm ? t("auth.challenge.title") : title}
+      title={stepTitle ? t(stepTitle) : title}
       description={
         invite.data && !challengeForm
           ? invite.data.invitedBy
@@ -406,7 +428,7 @@ export function EmailLinkScreen({
 }: ScreenProps & { token: string | null }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
-  const { handle, challengeForm } = useLoginFlow(afterLogin)
+  const { handle, challengeForm, stepTitle } = useLoginFlow(afterLogin)
   const [failed, setFailed] = React.useState(!token)
   const started = React.useRef(false)
 
@@ -421,7 +443,7 @@ export function EmailLinkScreen({
 
   return (
     <AuthLayout
-      title={challengeForm ? t("auth.challenge.title") : t("auth.title")}
+      title={stepTitle ? t(stepTitle) : t("auth.title")}
       logo={logo}
       footer={footer}
     >

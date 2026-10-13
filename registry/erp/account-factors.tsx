@@ -2,17 +2,7 @@
 
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { REGEXP_ONLY_DIGITS } from "input-otp"
-import {
-  DownloadIcon,
-  EllipsisVerticalIcon,
-  FingerprintIcon,
-  KeyRoundIcon,
-  MailIcon,
-  MessageSquareIcon,
-  SmartphoneIcon,
-  type LucideIcon,
-} from "lucide-react"
+import { EllipsisVerticalIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -20,26 +10,23 @@ import {
   useErpAuthProvider,
   useFieldError,
 } from "@/registry/erp/auth-layout"
-import { CopyButton } from "@/registry/erp/copy-button"
+import {
+  BackupCodesDialog,
+  FACTOR_ICONS,
+  useFactorSetup,
+  type PhoneField,
+} from "@/registry/erp/factor-setup"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { PhoneInput } from "@/registry/erp/phone-input"
-import { QrCode } from "@/registry/erp/qr-code"
 import { useReauth } from "@/registry/erp/reauth-dialog"
-import { useMe } from "@/registry/hooks/use-me"
 import {
   ACCOUNT_QUERY_KEYS,
   type Factor,
   type FactorEnrolled,
-  type SetupFactor,
-  type SmsSetup,
-  type TotpSetup,
 } from "@/registry/lib/account"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
-import {
-  PasskeyCancelledError,
-  passkeysSupported,
-} from "@/registry/lib/passkey"
+import { passkeysSupported } from "@/registry/lib/passkey"
 import { validatePhone } from "@/registry/lib/phone"
 import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -57,19 +44,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/registry/ui/dropdown-menu"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/registry/ui/field"
+import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/registry/ui/input-otp"
 import { Spinner } from "@/registry/ui/spinner"
 
 /**
@@ -79,22 +55,10 @@ import { Spinner } from "@/registry/ui/spinner"
  * які показуємо один раз.
  */
 
-const FACTOR_ICONS: Record<SetupFactor, LucideIcon> = {
-  totp: SmartphoneIcon,
-  sms: MessageSquareIcon,
-  email: MailIcon,
-  passkey: FingerprintIcon,
-}
-
-/** «ab12cd34» → «ab12-cd34»: легше читати й переписувати. */
-export function formatBackupCode(code: string): string {
-  return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code
-}
+/** Телефон у налаштуваннях — з маскою й перевіркою країн (LC12). */
+const PHONE_FIELD: PhoneField = { Input: PhoneInput, validate: validatePhone }
 
 type Open =
-  | { kind: "totp"; setup: TotpSetup }
-  | { kind: "sms" }
-  | { kind: "passkey" }
   | { kind: "rename"; factor: Factor }
   | { kind: "remove"; factor: Factor; last: boolean }
   | { kind: "regenerate" }
@@ -108,7 +72,6 @@ export function FactorsSection() {
   const { guard, dialog: reauthDialog } = useReauth()
   const [open, setOpen] = React.useState<Open | null>(null)
   const [codes, setCodes] = React.useState<string[] | null>(null)
-  const [busy, setBusy] = React.useState<SetupFactor | null>(null)
   const query = useQuery({
     queryKey: ACCOUNT_QUERY_KEYS.security,
     queryFn: () => provider.account.getSecurity(),
@@ -119,7 +82,6 @@ export function FactorsSection() {
 
   /** Фактор додано: оновити список, показати резервні коди, якщо прийшли. */
   const enrolled = (result: FactorEnrolled) => {
-    setOpen(null)
     void refresh()
     toast.success(t("auth.factors.enabled"))
     if (result.backupCodes) setCodes(result.backupCodes)
@@ -133,22 +95,13 @@ export function FactorsSection() {
   const label = (factor: Factor) =>
     factor.name ?? t(`auth.factors.types.${factor.type}`)
 
-  const start = (type: SetupFactor) => {
-    if (type === "sms" || type === "passkey") {
-      setOpen({ kind: type })
-      return
-    }
-    setBusy(type)
-    const action =
-      type === "totp"
-        ? guard(() => provider.account.startTotp()).then((setup) => {
-            setOpen({ kind: "totp", setup })
-          })
-        : guard(() => provider.account.enableEmail()).then(enrolled)
-    action.catch(fail).finally(() => {
-      setBusy(null)
-    })
-  }
+  const setup = useFactorSetup({
+    guard,
+    phone: PHONE_FIELD,
+    onEnrolled: enrolled,
+    onError: fail,
+    nested: reauthDialog,
+  })
 
   if (query.isPending) return <SectionSkeleton rows={3} />
   if (query.isError)
@@ -171,6 +124,7 @@ export function FactorsSection() {
   )
   // Діалог відкрито — повторне підтвердження показуємо всередині нього (вкладений діалог).
   const nested = open ? reauthDialog : null
+  const busy = setup.busy
 
   return (
     <div className="@container space-y-4" data-slot="factors-section">
@@ -303,7 +257,7 @@ export function FactorsSection() {
                   variant="outline"
                   disabled={busy !== null}
                   onClick={() => {
-                    start(type)
+                    setup.start(type)
                   }}
                 >
                   {busy === type ? (
@@ -319,40 +273,7 @@ export function FactorsSection() {
         </div>
       ) : null}
 
-      {open?.kind === "totp" ? (
-        <TotpDialog
-          setup={open.setup}
-          guard={guard}
-          onClose={() => {
-            setOpen(null)
-          }}
-          onEnrolled={enrolled}
-        >
-          {nested}
-        </TotpDialog>
-      ) : null}
-      {open?.kind === "sms" ? (
-        <SmsDialog
-          guard={guard}
-          onClose={() => {
-            setOpen(null)
-          }}
-          onEnrolled={enrolled}
-        >
-          {nested}
-        </SmsDialog>
-      ) : null}
-      {open?.kind === "passkey" ? (
-        <PasskeyDialog
-          guard={guard}
-          onClose={() => {
-            setOpen(null)
-          }}
-          onEnrolled={enrolled}
-        >
-          {nested}
-        </PasskeyDialog>
-      ) : null}
+      {setup.dialogs}
       {open?.kind === "rename" ? (
         <RenameDialog
           factor={open.factor}
@@ -423,457 +344,8 @@ export function FactorsSection() {
           setCodes(null)
         }}
       />
-      {open ? null : reauthDialog}
+      {open || setup.open ? null : reauthDialog}
     </div>
-  )
-}
-
-type Guard = ReturnType<typeof useReauth>["guard"]
-
-/** Поле 6-значного коду (застосунок, SMS). */
-function CodeField({
-  id,
-  label,
-  value,
-  error,
-  onChange,
-  onComplete,
-  inputRef,
-}: {
-  id: string
-  label: string
-  value: string
-  error?: string
-  onChange: (value: string) => void
-  onComplete: (value: string) => void
-  inputRef?: React.Ref<HTMLInputElement>
-}) {
-  return (
-    <Field data-invalid={error ? true : undefined}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <InputOTP
-        ref={inputRef}
-        id={id}
-        maxLength={6}
-        pattern={REGEXP_ONLY_DIGITS}
-        inputMode="numeric"
-        value={value}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        onChange={onChange}
-        onComplete={onComplete}
-      >
-        <InputOTPGroup>
-          <InputOTPSlot index={0} />
-          <InputOTPSlot index={1} />
-          <InputOTPSlot index={2} />
-        </InputOTPGroup>
-        <InputOTPSeparator />
-        <InputOTPGroup>
-          <InputOTPSlot index={3} />
-          <InputOTPSlot index={4} />
-          <InputOTPSlot index={5} />
-        </InputOTPGroup>
-      </InputOTP>
-      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
-    </Field>
-  )
-}
-
-/** Код перевірки: хибний — під полем, решта — банером. */
-function useVerify(onEnrolled: (result: FactorEnrolled) => void) {
-  const t = useErpUiT()
-  const fieldError = useFieldError()
-  const errorText = useAuthErrorText()
-  const [busy, setBusy] = React.useState(false)
-  const [code, setCode] = React.useState("")
-  const [codeError, setCodeError] = React.useState<string>()
-  const [error, setError] = React.useState<string | null>(null)
-  const run = (action: () => Promise<FactorEnrolled>) => {
-    setBusy(true)
-    setError(null)
-    setCodeError(undefined)
-    action()
-      .then(onEnrolled)
-      .catch((failure: unknown) => {
-        if (fieldError(failure, "code"))
-          setCodeError(t("auth.challenge.invalidCode"))
-        else if (failure) setError(errorText(failure))
-        setCode("")
-      })
-      .finally(() => {
-        setBusy(false)
-      })
-  }
-  return { busy, code, setCode, codeError, error, run }
-}
-
-function TotpDialog({
-  setup,
-  guard,
-  onClose,
-  onEnrolled,
-  children,
-}: {
-  setup: TotpSetup
-  guard: Guard
-  onClose: () => void
-  onEnrolled: (result: FactorEnrolled) => void
-  children?: React.ReactNode
-}) {
-  const t = useErpUiT()
-  const provider = useErpAuthProvider()
-  const id = React.useId()
-  const { busy, code, setCode, codeError, error, run } = useVerify(onEnrolled)
-  const verify = (value: string) => {
-    run(() => guard(() => provider.account.verifyTotp(setup.setupId, value)))
-  }
-  const secret = setup.secret.replace(/(.{4})/g, "$1 ").trim()
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <form
-          className="grid gap-4"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault()
-            verify(code)
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{t("auth.factors.totp.title")}</DialogTitle>
-            <DialogDescription>{t("auth.factors.totp.scan")}</DialogDescription>
-          </DialogHeader>
-          <QrCode
-            value={setup.uri}
-            label={t("auth.factors.totp.qrLabel")}
-            className="mx-auto"
-          />
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {t("auth.factors.totp.manual")}
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 rounded-md bg-muted px-2 py-1.5 font-mono text-sm break-all">
-                {secret}
-              </code>
-              <CopyButton
-                value={setup.secret}
-                label={t("auth.factors.totp.copySecret")}
-              />
-            </div>
-          </div>
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <CodeField
-            id={`${id}-code`}
-            label={t("auth.factors.totp.enterCode")}
-            value={code}
-            error={codeError}
-            onChange={setCode}
-            onComplete={verify}
-          />
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t("auth.account.cancel")}
-            </Button>
-            <Button type="submit" disabled={busy || code.length < 6}>
-              {busy ? <Spinner aria-hidden /> : null}
-              {t("auth.challenge.verify")}
-            </Button>
-          </DialogFooter>
-        </form>
-        {children}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function SmsDialog({
-  guard,
-  onClose,
-  onEnrolled,
-  children,
-}: {
-  guard: Guard
-  onClose: () => void
-  onEnrolled: (result: FactorEnrolled) => void
-  children?: React.ReactNode
-}) {
-  const t = useErpUiT()
-  const provider = useErpAuthProvider()
-  const fieldError = useFieldError()
-  const errorText = useAuthErrorText()
-  const { data: me } = useMe()
-  const id = React.useId()
-  const [phone, setPhone] = React.useState(me?.phone ?? "")
-  const [phoneError, setPhoneError] = React.useState<string>()
-  const [sending, setSending] = React.useState(false)
-  const [sendError, setSendError] = React.useState<string | null>(null)
-  const [setup, setSetup] = React.useState<SmsSetup | null>(null)
-  const { busy, code, setCode, codeError, error, run } = useVerify(onEnrolled)
-  const codeInput = React.useRef<HTMLInputElement>(null)
-  React.useEffect(() => {
-    if (setup) codeInput.current?.focus()
-  }, [setup])
-
-  const send = () => {
-    const issue = phone ? validatePhone(phone) : "required"
-    if (issue) {
-      setPhoneError(
-        issue === "required"
-          ? t("auth.fieldErrors.required")
-          : t(`validation.phone.${issue}`),
-      )
-      return
-    }
-    setPhoneError(undefined)
-    setSending(true)
-    setSendError(null)
-    guard(() => provider.account.startSms(phone))
-      .then(setSetup)
-      .catch((failure: unknown) => {
-        const message = fieldError(failure, "phone")
-        if (message) setPhoneError(message)
-        else if (failure) setSendError(errorText(failure))
-      })
-      .finally(() => {
-        setSending(false)
-      })
-  }
-  const verify = (value: string) => {
-    if (!setup) return
-    run(() => guard(() => provider.account.verifySms(setup.setupId, value)))
-  }
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <form
-          className="grid gap-4"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (setup) verify(code)
-            else send()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{t("auth.factors.sms.title")}</DialogTitle>
-            <DialogDescription>
-              {t("auth.factors.sms.description")}
-            </DialogDescription>
-          </DialogHeader>
-          {sendError || error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{sendError ?? error}</AlertDescription>
-            </Alert>
-          ) : null}
-          {setup ? (
-            <CodeField
-              id={`${id}-code`}
-              inputRef={codeInput}
-              label={t("auth.factors.sms.codeLabel", {
-                destination: setup.destination,
-              })}
-              value={code}
-              error={codeError}
-              onChange={setCode}
-              onComplete={verify}
-            />
-          ) : (
-            <Field data-invalid={phoneError ? true : undefined}>
-              <FieldLabel htmlFor={`${id}-phone`}>
-                {t("auth.factors.sms.phoneLabel")}
-              </FieldLabel>
-              <PhoneInput
-                id={`${id}-phone`}
-                value={phone}
-                onValueChange={setPhone}
-                aria-invalid={phoneError ? true : undefined}
-                aria-describedby={phoneError ? `${id}-phone-error` : undefined}
-              />
-              {phoneError ? (
-                <FieldError id={`${id}-phone-error`}>{phoneError}</FieldError>
-              ) : null}
-            </Field>
-          )}
-          <DialogFooter>
-            {setup ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSetup(null)
-                  setCode("")
-                }}
-              >
-                {t("auth.factors.sms.otherNumber")}
-              </Button>
-            ) : (
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t("auth.account.cancel")}
-              </Button>
-            )}
-            <Button
-              type="submit"
-              disabled={setup ? busy || code.length < 6 : sending}
-            >
-              {busy || sending ? <Spinner aria-hidden /> : null}
-              {setup ? t("auth.challenge.verify") : t("auth.factors.sms.send")}
-            </Button>
-          </DialogFooter>
-        </form>
-        {children}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-/** Назва ключа за замовчуванням: «Chrome, macOS». */
-function defaultPasskeyName(): string {
-  if (typeof navigator === "undefined") return ""
-  const ua = navigator.userAgent
-  const browser = /Edg\//.test(ua)
-    ? "Edge"
-    : /Firefox\//.test(ua)
-      ? "Firefox"
-      : /Chrome\//.test(ua)
-        ? "Chrome"
-        : /Safari\//.test(ua)
-          ? "Safari"
-          : ""
-  const os = /iPhone|iPad/.test(ua)
-    ? "iOS"
-    : /Android/.test(ua)
-      ? "Android"
-      : /Windows/.test(ua)
-        ? "Windows"
-        : /Mac OS/.test(ua)
-          ? "macOS"
-          : /Linux/.test(ua)
-            ? "Linux"
-            : ""
-  return [browser, os].filter(Boolean).join(", ")
-}
-
-function PasskeyDialog({
-  guard,
-  onClose,
-  onEnrolled,
-  children,
-}: {
-  guard: Guard
-  onClose: () => void
-  onEnrolled: (result: FactorEnrolled) => void
-  children?: React.ReactNode
-}) {
-  const t = useErpUiT()
-  const provider = useErpAuthProvider()
-  const fieldError = useFieldError()
-  const errorText = useAuthErrorText()
-  const id = React.useId()
-  const [name, setName] = React.useState(defaultPasskeyName)
-  const [nameError, setNameError] = React.useState<string>()
-  const [error, setError] = React.useState<string | null>(null)
-  const [busy, setBusy] = React.useState(false)
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <form
-          className="grid gap-4"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (!name.trim()) {
-              setNameError(t("auth.fieldErrors.required"))
-              return
-            }
-            setNameError(undefined)
-            setError(null)
-            setBusy(true)
-            guard(() => provider.account.addPasskey(name.trim()))
-              .then(onEnrolled)
-              .catch((failure: unknown) => {
-                if (failure instanceof PasskeyCancelledError)
-                  setError(t("auth.factors.passkey.cancelled"))
-                else {
-                  const message = fieldError(failure, "name")
-                  if (message) setNameError(message)
-                  else if (failure) setError(errorText(failure))
-                }
-              })
-              .finally(() => {
-                setBusy(false)
-              })
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{t("auth.factors.passkey.title")}</DialogTitle>
-            <DialogDescription>
-              {t("auth.factors.passkey.description")}
-            </DialogDescription>
-          </DialogHeader>
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <Field data-invalid={nameError ? true : undefined}>
-            <FieldLabel htmlFor={`${id}-name`}>
-              {t("auth.factors.passkey.nameLabel")}
-            </FieldLabel>
-            <Input
-              id={`${id}-name`}
-              value={name}
-              maxLength={64}
-              autoComplete="off"
-              aria-invalid={nameError ? true : undefined}
-              aria-describedby={`${id}-hint${nameError ? ` ${id}-error` : ""}`}
-              onChange={(event) => {
-                setName(event.target.value)
-              }}
-            />
-            <FieldDescription id={`${id}-hint`}>
-              {t("auth.factors.passkey.nameHint")}
-            </FieldDescription>
-            {nameError ? (
-              <FieldError id={`${id}-error`}>{nameError}</FieldError>
-            ) : null}
-          </Field>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t("auth.account.cancel")}
-            </Button>
-            <Button type="submit" disabled={busy}>
-              {busy ? <Spinner aria-hidden /> : <FingerprintIcon aria-hidden />}
-              {t("auth.factors.passkey.create")}
-            </Button>
-          </DialogFooter>
-        </form>
-        {children}
-      </DialogContent>
-    </Dialog>
   )
 }
 
@@ -1017,84 +489,6 @@ function ConfirmDialog({
           </Button>
         </DialogFooter>
         {children}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-/** Нові резервні коди — показуємо один раз: копіювати, завантажити, «Я зберіг коди». */
-export function BackupCodesDialog({
-  codes,
-  onClose,
-}: {
-  codes: string[] | null
-  onClose: () => void
-}) {
-  const t = useErpUiT()
-  const { data: me } = useMe()
-  const formatted = (codes ?? []).map(formatBackupCode)
-  const text = [
-    t("auth.factors.backup.fileTitle", { account: me?.email ?? "" }),
-    "",
-    ...formatted,
-    "",
-  ].join("\n")
-
-  return (
-    <Dialog
-      open={codes !== null}
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("auth.factors.backup.dialogTitle")}</DialogTitle>
-          <DialogDescription>
-            {t("auth.factors.backup.dialogDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        <ul
-          aria-label={t("auth.factors.backup.listLabel")}
-          className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-3 font-mono text-sm"
-        >
-          {formatted.map((code) => (
-            <li key={code} className="text-center tabular-nums">
-              {code}
-            </li>
-          ))}
-        </ul>
-        <div className="flex flex-wrap gap-2">
-          <CopyButton
-            value={formatted.join("\n")}
-            label={t("auth.factors.backup.copy")}
-            variant="outline"
-            showLabel
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const url = URL.createObjectURL(
-                new Blob([text], { type: "text/plain;charset=utf-8" }),
-              )
-              const link = document.createElement("a")
-              link.href = url
-              link.download = "backup-codes.txt"
-              link.click()
-              URL.revokeObjectURL(url)
-            }}
-          >
-            <DownloadIcon aria-hidden />
-            {t("auth.factors.backup.download")}
-          </Button>
-        </div>
-        <DialogFooter>
-          <Button type="button" onClick={onClose}>
-            {t("auth.factors.backup.done")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

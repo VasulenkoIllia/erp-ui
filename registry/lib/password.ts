@@ -53,8 +53,9 @@ function hasSequence(value: string, length = 4): boolean {
 export function passwordStrength(
   password: string,
   context: string[] = [],
+  minLength: number = PASSWORD_MIN_LENGTH,
 ): PasswordStrength {
-  if (password.length < PASSWORD_MIN_LENGTH) return 0
+  if (password.length < minLength) return 0
   const lower = password.toLocaleLowerCase("uk")
   const personal = context
     .flatMap((value) => value.toLocaleLowerCase("uk").split(/[\s@.]+/))

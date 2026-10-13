@@ -108,7 +108,8 @@ export interface MockSession {
   /** Адміністратор, що працює від імені `userId` («Увійти як…»). */
   impersonatorId?: string
   userId: string
-  stage: "challenge" | "password_change" | "authenticated"
+  /** factor_setup — політика вимагає другий крок, а його ще немає (ADR-0012). */
+  stage: "challenge" | "password_change" | "factor_setup" | "authenticated"
   challenge?: MockChallenge
   /** Коли сесія закінчиться без активності (мс). */
   expiresAt: number
@@ -121,6 +122,7 @@ export interface MockSession {
 const STAGES: MockSession["stage"][] = [
   "challenge",
   "password_change",
+  "factor_setup",
   "authenticated",
 ]
 
@@ -234,7 +236,7 @@ export interface MockMessage {
   to: string
   /**
    * Для чого: вхід, відновлення пароля, запрошення, підтвердження, повідомлення про зміну email,
-   * експорт даних, вхід з нового пристрою.
+   * експорт даних, вхід з нового пристрою, запит на відновлення доступу, скинутий другий крок.
    */
   kind:
     | "login"
@@ -244,6 +246,8 @@ export interface MockMessage {
     | "notice"
     | "export"
     | "new_sign_in"
+    | "recovery"
+    | "factors_reset"
   code?: string
   link?: string
   /** Подробиці: пристрій нового входу. */

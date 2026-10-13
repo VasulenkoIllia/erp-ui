@@ -3,6 +3,7 @@
 import * as React from "react"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 
+import { useAuthMethods } from "@/registry/erp/auth-layout"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   PASSWORD_MIN_LENGTH,
@@ -75,11 +76,14 @@ export function PasswordStrength({
   className?: string
 }) {
   const t = useErpUiT()
-  const strength = passwordStrength(password, context)
+  // Мінімальна довжина — з політики організації (ADR-0012), без неї — типова кіта.
+  const minLength =
+    useAuthMethods().data?.passwordPolicy?.minLength ?? PASSWORD_MIN_LENGTH
+  const strength = passwordStrength(password, context, minLength)
   const key = PASSWORD_STRENGTH_KEYS[strength]
   const value =
     key === "tooShort"
-      ? t("auth.strength.tooShort", { min: PASSWORD_MIN_LENGTH })
+      ? t("auth.strength.tooShort", { min: minLength })
       : t(`auth.strength.${key}`)
   return (
     <div

@@ -1,4 +1,4 @@
-import { test } from "@playwright/test"
+import { test, type Page } from "@playwright/test"
 import path from "node:path"
 
 import { expectNoA11yViolations, openWith, USERS } from "./helpers"
@@ -64,6 +64,8 @@ const SHOT_PAGES = {
   signup: "/#/signup",
   security: "/#/settings/security",
   users: "/#/settings/users",
+  profile: "/#/settings/profile",
+  securityPolicy: "/#/settings/security-policy",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
@@ -271,4 +273,198 @@ test.describe("скриншоти кроків 0.5b2 @screenshots", () => {
             ),
           })
         })
+})
+
+// Крок 0.5b3: фото профілю, токен API, обов'язковий другий крок, запит і скидання доступу.
+test.describe("скриншоти кроків 0.5b3 @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "light", width: 1440 },
+  ] as const
+
+  /** Дані мок-сервера в localStorage до завантаження сторінки. */
+  const seed = (page: Page, key: string, value: unknown) =>
+    page.addInitScript(
+      ([k, v]) => {
+        localStorage.setItem(k, v)
+      },
+      [key, JSON.stringify(value)] as const,
+    )
+  const reauth = async (page: Page) => {
+    const dialog = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+    await dialog.getByLabel("Пароль", { exact: true }).fill("demo")
+    await dialog
+      .getByRole("button", { name: "Підтвердити", exact: true })
+      .click()
+    await dialog.waitFor({ state: "hidden" })
+  }
+
+  for (const { palette, theme, width } of cases) {
+    test(`crop ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("crop"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/profile", {
+        user: USERS.sales,
+      })
+      const base64 = await page.evaluate(() => {
+        const canvas = document.createElement("canvas")
+        canvas.width = 640
+        canvas.height = 420
+        const context = canvas.getContext("2d")
+        // Кольори — з токенів теми (canvas розуміє oklch).
+        const token = (name: string) =>
+          getComputedStyle(document.documentElement)
+            .getPropertyValue(name)
+            .trim()
+        if (context) {
+          const gradient = context.createLinearGradient(0, 0, 640, 420)
+          gradient.addColorStop(0, token("--primary"))
+          gradient.addColorStop(1, token("--chart-2"))
+          context.fillStyle = gradient
+          context.fillRect(0, 0, 640, 420)
+          context.fillStyle = token("--warning")
+          context.beginPath()
+          context.arc(320, 190, 110, 0, Math.PI * 2)
+          context.fill()
+        }
+        return canvas.toDataURL("image/png").split(",")[1] ?? ""
+      })
+      await page.locator('input[type="file"]').setInputFiles({
+        name: "photo.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(base64, "base64"),
+      })
+      await page.getByRole("dialog", { name: "Обріжте фото" }).waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `crop-${palette}-${theme}-${width}.png`),
+      })
+    })
+
+    test(`api-token ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("api-token"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/security")
+      await page.getByRole("button", { name: "Створити токен" }).click()
+      const dialog = page.getByRole("dialog", { name: "Новий токен API" })
+      await dialog.getByLabel("Назва").fill("Інтеграція з 1С")
+      await dialog
+        .getByRole("group", { name: "Рахунки" })
+        .getByRole("checkbox", { name: "Перегляд" })
+        .check()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `api-token-new-${palette}-${theme}-${width}.png`,
+        ),
+      })
+      await dialog.getByRole("button", { name: "Створити токен" }).click()
+      await reauth(page)
+      await page.getByRole("dialog", { name: "Збережіть токен" }).waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `api-token-${palette}-${theme}-${width}.png`),
+      })
+    })
+
+    test(`factor-setup ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("factor-setup"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await seed(page, "erp-ui:mock-security-policy", {
+        twoFactor: "all",
+        twoFactorRoles: [],
+        allowedFactors: ["totp", "sms", "email", "passkey"],
+        passwordless: ["email", "sms", "passkey"],
+        ssoProviders: ["google", "apple"],
+        password: { minLength: 10, expiryDays: null, preventReuse: 0 },
+        sessionMinutes: 30,
+        idleTimeoutMinutes: null,
+        trustedDeviceDays: 30,
+        ipAllowlist: [],
+      })
+      await openWith(page, { palette, theme }, "/#/login", { user: null })
+      await page.getByLabel("Email").fill("ivan@zoriana.example")
+      await page.getByLabel("Пароль", { exact: true }).fill("demo")
+      await page.getByRole("button", { name: "Увійти", exact: true }).click()
+      await page
+        .getByRole("heading", { name: "Налаштуйте двоетапну перевірку" })
+        .waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `factor-setup-${palette}-${theme}-${width}.png`,
+        ),
+        fullPage: true,
+      })
+    })
+
+    test(`recovery ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("recovery"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/login", { user: null })
+      await page.getByLabel("Email").fill("olena@zoriana.example")
+      await page.getByLabel("Пароль", { exact: true }).fill("demo")
+      await page.getByRole("button", { name: "Увійти", exact: true }).click()
+      await page
+        .getByRole("button", { name: "Немає доступу до жодного способу?" })
+        .click()
+      await page
+        .getByLabel("Що сталося (необов'язково)")
+        .fill("Загубила телефон, резервних кодів немає")
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `recovery-${palette}-${theme}-${width}.png`),
+        fullPage: true,
+      })
+    })
+
+    test(`reset ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("reset"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await seed(page, "erp-ui:mock-recovery-requests", [
+        {
+          id: "rec-demo",
+          userId: "u-ivan",
+          userName: "Іван Петренко",
+          email: "ivan@zoriana.example",
+          requestedAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+          comment: "Загубив телефон, резервних кодів немає",
+        },
+      ])
+      await openWith(page, { palette, theme }, "/#/settings/users")
+      await page
+        .getByRole("list", { name: "Запити на відновлення доступу" })
+        .waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `recovery-requests-${palette}-${theme}-${width}.png`,
+        ),
+        fullPage: true,
+      })
+      await page
+        .getByRole("list", { name: "Запити на відновлення доступу" })
+        .getByRole("button", {
+          name: "Скинути двоетапну перевірку: Іван Петренко",
+        })
+        .click()
+      const dialog = page.getByRole("dialog", {
+        name: "Іван Петренко: скинути двоетапну перевірку?",
+      })
+      await dialog
+        .getByLabel("Як ви перевірили особу")
+        .fill("Дзвінок на робочий номер")
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `reset-${palette}-${theme}-${width}.png`),
+      })
+    })
+  }
 })

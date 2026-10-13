@@ -9,7 +9,9 @@
       "states": "Page states",
       "data": "Data & mocks",
       "security": "Account security",
-      "users": "Users"
+      "users": "Users",
+      "profile": "Profile",
+      "securityPolicy": "Security policies"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -340,7 +342,9 @@
       "none": "No brand",
       "buh-plus": "Бухгалтерія Плюс",
       "zoriana": "Зоряна логістика"
-    }
+    },
+    "recoveryToast": "Email to {{to}}: your access recovery request was received",
+    "factorsResetToast": "Email to {{to}}: an administrator reset your two-step verification"
   },
   "securityPage": {
     "title": "Account security",
@@ -350,5 +354,13 @@
     "title": "Users",
     "lead": "Company users. An administrator can sign in as a user to look into a request — the action is logged.",
     "listLabel": "Company users"
+  },
+  "profilePage": {
+    "title": "Profile",
+    "lead": "Photo, name, job title, contact phone, time zone and email signature."
+  },
+  "securityPolicyPage": {
+    "title": "Security policies",
+    "lead": "What to require from every user: two-step verification, sign-in methods, password, session, allowed addresses. Changes ask you to confirm it's you."
   }
 }

@@ -201,11 +201,18 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
   - `FactorsSection` — застосунок із QR, SMS, email, ключі доступу, резервні коди;
   - `ChangePasswordForm`, `ChangeEmailForm`, `AccountDataSection` з `erp/account-security`;
   - `SessionsSection`, `TrustedDevicesSection`, `SignInAlertsSwitch`, `SignInHistory` з `erp/account-devices`.
+- Профіль (ADR-0012): `ProfilePhoto` і `ProfileForm` з `erp/profile-form` — фото з обрізанням, ім'я, посада, контактний телефон, часовий пояс (`TimezoneSelect`), підпис.
+- Токени API для інтеграцій: `ApiTokensSection` з `erp/api-tokens` (права й ресурси дає бекенд, токен показується один раз).
+- Адміністратору (права `security:*`, `users:update`):
+  - `SecurityPolicyForm` з `erp/security-policy-form` — обов'язковий другий крок, способи входу, пароль, сесія, дозволені адреси;
+  - `RecoveryRequestsSection` і `useResetFactors()` з `erp/reset-factors` — запити «втратив доступ до другого кроку» й скидання з причиною.
+- Політику виконує вхід сам: налаштування другого кроку під час входу (`FactorSetupStep`), новий пароль після терміну, 403 `ip_not_allowed`. Для SMS у `FactorSetupStep`/`useFactorSetup` можна передати `phone={{ Input: PhoneInput, validate: validatePhone }}` — на сторінці входу без нього легше пакунок.
 - Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
 - «Увійти як…»: у списку користувачів — `useImpersonation({ onStarted })`, в оболонці — `<AppShell banner={<ImpersonationBanner onStopped={…} />}>`.
 - Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance()`, щоб палітра бренду була типовою й після входу.
 - Клієнт API: `createApiClient({ getCompanyId, getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
-- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» пишеться в аудит із причиною.
+- Моки: `createPlatformHandlers({ …, securityPolicy, roles, apiResources })` — типова політика, назви ролей і ресурси для прав токенів.
+- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» і скидання другого кроку пишуться в аудит із причиною; токени API зберігаються лише хешем; політика (другий крок, пароль, адреси) перевіряється на сервері.
 
 ## 7. Вигляд
 

@@ -10,7 +10,14 @@ import {
   SignInHistory,
   TrustedDevicesSection,
 } from "@/components/erp/account-devices"
-import { BackupCodesDialog, FactorsSection } from "@/components/erp/account-factors"
+import { FactorsSection } from "@/components/erp/account-factors"
+import { ApiTokensSection } from "@/components/erp/api-tokens"
+import { AvatarEditor } from "@/components/erp/avatar-editor"
+import { BackupCodesDialog, FactorSetupStep } from "@/components/erp/factor-setup"
+import { ProfileForm, ProfilePhoto } from "@/components/erp/profile-form"
+import { RecoveryRequestsSection, useResetFactors } from "@/components/erp/reset-factors"
+import { SecurityPolicyForm } from "@/components/erp/security-policy-form"
+import { TimezoneSelect } from "@/components/erp/timezone-select"
 import { AccountDataSection, ChangeEmailForm, ChangePasswordForm } from "@/components/erp/account-security"
 import { AcceptInviteScreen, ForgotPasswordScreen } from "@/components/erp/account-recovery"
 import { BrandLogo, useBrandAppearance, useBranding } from "@/components/erp/auth-layout"
@@ -27,6 +34,7 @@ import { useHasPermission, useMe } from "@/hooks/use-me"
 import { createApiClient, isApiError } from "@/lib/api"
 import { getAppearance } from "@/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
+import { ipAllowed, isValidCidr } from "@/lib/security-policy"
 import { createDataProvider } from "@/lib/data-provider"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
@@ -97,6 +105,27 @@ function Invoices() {
   )
 }
 
+function Admin() {
+  const [zone, setZone] = useState("Europe/Kyiv")
+  const reset = useResetFactors({ onDone: () => undefined })
+  return (
+    <>
+      <ProfilePhoto />
+      <ProfileForm />
+      <AvatarEditor name="Олена" onSave={async () => undefined} onRemove={async () => undefined} maxBytes={1024} />
+      <TimezoneSelect value={zone} onValueChange={setZone} />
+      <ApiTokensSection />
+      <SecurityPolicyForm />
+      <RecoveryRequestsSection />
+      <FactorSetupStep factors={["totp", "email"]} onComplete={() => authProvider.completeFactorSetup()} />
+      <button type="button" onClick={() => reset.start({ id: "u2", name: "Іван", email: "ivan@example.com" })}>
+        {isValidCidr("10.0.0.0/8") && ipAllowed("10.1.2.3", ["10.0.0.0/8"]) ? "Скинути" : "—"}
+      </button>
+      {reset.dialog}
+    </>
+  )
+}
+
 function Account() {
   useBrandAppearance()
   const branding = useBranding()
@@ -139,6 +168,7 @@ export function Data() {
       <ChangeEmailForm />
       <AccountDataSection />
       <Account />
+      <Admin />
     </CoreAdminContext>
   )
 }

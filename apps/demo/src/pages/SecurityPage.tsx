@@ -8,6 +8,7 @@ import {
   TrustedDevicesSection,
 } from "@/registry/erp/account-devices"
 import { FactorsSection } from "@/registry/erp/account-factors"
+import { ApiTokensSection } from "@/registry/erp/api-tokens"
 import {
   AccountDataSection,
   ChangeEmailForm,
@@ -21,7 +22,7 @@ import { Section } from "./Section"
 
 /**
  * Налаштування безпеки акаунта (PF01): способи входу, пароль, email, сесії й пристрої, журнал
- * входів, експорт і видалення.
+ * входів, токени API, експорт і видалення.
  */
 export function SecurityPage() {
   const { t } = useTranslation("demo", { keyPrefix: "securityPage" })
@@ -64,6 +65,12 @@ export function SecurityPage() {
           >
             <SignInAlertsSwitch />
             <SignInHistory />
+          </Section>
+          <Section
+            title={kitT("apiTokens.title")}
+            description={kitT("apiTokens.description")}
+          >
+            <ApiTokensSection />
           </Section>
           <Section title={kitT("auth.account.dataTitle")}>
             <AccountDataSection />

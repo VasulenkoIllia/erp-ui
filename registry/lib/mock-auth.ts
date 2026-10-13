@@ -10,13 +10,18 @@
  */
 import { http, type HttpHandler } from "msw/http"
 
-import type { SetupFactor, SignInMethod } from "@/registry/lib/account"
+import {
+  SETUP_FACTORS,
+  type SetupFactor,
+  type SignInMethod,
+} from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
 import {
   meSchema,
   type AuthFactor,
   type AuthMethods,
   type Branding,
+  type LocalizedText,
   type Me,
 } from "@/registry/lib/auth"
 import {
@@ -24,12 +29,24 @@ import {
   createAccountHandlers,
   isTrustedHere,
   mockFactorTypes,
+  mockProfile,
   passwordChanged,
+  passwordChangedAt,
+  passwordReused,
   recordSignIn,
   setMockAccountSeeds,
   trustHere,
   type MockAccountSeed,
 } from "@/registry/lib/mock-account"
+import {
+  createAdminHandlers,
+  DEFAULT_MOCK_POLICY,
+  getMockPolicy,
+  ipAllowedByPolicy,
+  ipNotAllowed,
+  policyRequiresFactor,
+  setMockPolicyDefaults,
+} from "@/registry/lib/mock-admin"
 import {
   addMockUser,
   authenticate,
@@ -53,6 +70,7 @@ import {
   type MockUser,
 } from "@/registry/lib/mock-server"
 import type { Preferences } from "@/registry/lib/preferences"
+import type { SecurityPolicy } from "@/registry/lib/security-policy"
 
 export const DEFAULT_MOCK_METHODS: AuthMethods = {
   password: true,
@@ -98,13 +116,18 @@ export interface PlatformMockOptions {
   accountSeeds?: Record<string, MockAccountSeed>
   /** Які фактори можна додати в налаштуваннях. */
   availableFactors?: SetupFactor[]
-  /** Компанія вимагає другий крок (останній фактор не видалити). */
+  /** Компанія вимагає другий крок (останній фактор не видалити) — понад політику безпеки. */
   twoFactorRequired?: (user: MockUser) => boolean
+  /** Типова політика безпеки (ADR-0012); адміністратор змінює її в `PUT /security-policy`. */
+  securityPolicy?: Partial<SecurityPolicy>
+  /** Назви ролей для політики безпеки. */
+  roles?: { id: string; name: LocalizedText }[]
+  /** Назви ресурсів для прав токенів API: { invoices: { uk: "Рахунки", en: "Invoices" } }. */
+  apiResources?: Record<string, LocalizedText>
 }
 
 const RESEND_SECONDS = 30
 const MAX_ATTEMPTS = 5
-const PASSWORD_MIN = 10
 const PREFS_KEY = (userId: string) => `erp-ui:mock-preferences:${userId}`
 
 function toMe(user: MockUser): Me {
@@ -114,6 +137,7 @@ function toMe(user: MockUser): Me {
     : undefined
   return meSchema.parse({
     ...user,
+    ...mockProfile(user),
     factors: mockFactorTypes(user),
     sessionExpiresAt: new Date(session?.expiresAt ?? newExpiry()).toISOString(),
     ...(admin ? { impersonator: { id: admin.id, name: admin.name } } : {}),
@@ -151,11 +175,47 @@ export function createPlatformHandlers({
   accountSeeds = {},
   availableFactors,
   twoFactorRequired,
+  securityPolicy,
+  roles,
+  apiResources,
 }: PlatformMockOptions): HttpHandler[] {
   setMockUsers(users)
-  setSessionMinutes(sessionMinutes)
   setMockAccountSeeds(accountSeeds)
-  const methods = { ...DEFAULT_MOCK_METHODS, ...methodsOverride }
+  const baseMethods = { ...DEFAULT_MOCK_METHODS, ...methodsOverride }
+  setMockPolicyDefaults({
+    ...DEFAULT_MOCK_POLICY,
+    passwordless: [...baseMethods.passwordless],
+    ssoProviders: baseMethods.providers.map((p) => p.id),
+    sessionMinutes,
+    idleTimeoutMinutes: baseMethods.idleTimeoutMinutes,
+    trustedDeviceDays: baseMethods.trustedDeviceDays,
+    ...securityPolicy,
+  })
+  setSessionMinutes(getMockPolicy().sessionMinutes)
+  /** Налаштування входу з урахуванням політики організації (ADR-0012). */
+  const currentMethods = () => {
+    const policy = getMockPolicy()
+    return {
+      ...baseMethods,
+      passwordless: baseMethods.passwordless.filter((m) =>
+        policy.passwordless.includes(m),
+      ),
+      providers: baseMethods.providers.filter((p) =>
+        policy.ssoProviders.includes(p.id),
+      ),
+      trustedDeviceDays: policy.trustedDeviceDays,
+      idleTimeoutMinutes: policy.idleTimeoutMinutes,
+      passwordPolicy: { minLength: policy.password.minLength },
+    }
+  }
+  const methods = baseMethods
+  /** Фактори, які можна налаштувати: проект ∩ політика. */
+  const setupFactors = () =>
+    (availableFactors ?? [...SETUP_FACTORS]).filter((f) =>
+      getMockPolicy().allowedFactors.includes(f),
+    )
+  const factorRequired = (user: MockUser) =>
+    policyRequiresFactor(user) || (twoFactorRequired?.(user) ?? false)
   const brandingNow = () =>
     typeof branding === "function" ? branding() : branding
   /** Невдалі спроби за email — після captchaAfter потрібна перевірка «не бот». */
@@ -268,15 +328,31 @@ export function createPlatformHandlers({
     second = false,
   ) => {
     const user = mockUsersList().find((u) => u.id === userId)
-    if (user && trustDevice && second && methods.trustedDeviceDays > 0)
-      trustHere(user, methods.trustedDeviceDays)
-    if (user?.mustChangePassword) {
+    if (!ipAllowedByPolicy()) {
+      if (user) recordSignIn(user, { result: "blocked", method })
+      writeMockSession(null)
+      return ipNotAllowed()
+    }
+    const policy = getMockPolicy()
+    if (user && trustDevice && second && policy.trustedDeviceDays > 0)
+      trustHere(user, policy.trustedDeviceDays)
+    const changedAt = user ? passwordChangedAt(user) : null
+    // Термін пароля перевіряємо лише після входу паролем (з кодом чи без).
+    const expired =
+      policy.password.expiryDays !== null &&
+      (method === "password" || second) &&
+      changedAt !== null &&
+      changedAt + policy.password.expiryDays * 86_400_000 < Date.now()
+    if (user?.mustChangePassword || expired) {
       writeMockSession({
         userId,
         stage: "password_change",
         expiresAt: Date.now() + 15 * 60_000,
       })
-      return json({ status: "password_change_required" })
+      return json({
+        status: "password_change_required",
+        reason: user?.mustChangePassword ? "temporary" : "expired",
+      })
     }
     authenticate(userId)
     if (user) recordSignIn(user, { result: "success", method })
@@ -294,9 +370,21 @@ export function createPlatformHandlers({
       : null
   }
 
-  /** Пароль чи токен підтверджено: другий фактор або вхід. */
+  /** Пароль чи токен підтверджено: другий фактор, його налаштування (політика) або вхід. */
   const afterFirstFactor = (user: MockUser, method: SignInMethod) => {
+    if (!ipAllowedByPolicy()) {
+      recordSignIn(user, { result: "blocked", method })
+      return ipNotAllowed()
+    }
     const factors = mockFactorTypes(user)
+    if (!factors.length && factorRequired(user)) {
+      writeMockSession({
+        userId: user.id,
+        stage: "factor_setup",
+        expiresAt: Date.now() + 15 * 60_000,
+      })
+      return json({ status: "factor_setup_required", factors: setupFactors() })
+    }
     if (factors.length && !isTrustedHere(user)) {
       const preferred: AuthFactor = factors.includes("totp")
         ? "totp"
@@ -311,7 +399,13 @@ export function createPlatformHandlers({
   }
 
   const weakPassword = (password: unknown) =>
-    typeof password !== "string" || password.length < PASSWORD_MIN
+    typeof password !== "string" ||
+    password.length < getMockPolicy().password.minLength
+
+  /** Пароль серед останніх N (політика «не повторювати»). */
+  const reused = (user: MockUser, password: unknown) =>
+    typeof password === "string" &&
+    passwordReused(user, password, getMockPolicy().password.preventReuse)
 
   const validation = (fields: Record<string, string>) =>
     errorResponse(422, {
@@ -323,7 +417,8 @@ export function createPlatformHandlers({
   return [
     http.get(`${baseUrl}/auth/methods`, () => {
       const brand = brandingNow()
-      return json(brand ? { ...methods, branding: brand } : methods)
+      const current = currentMethods()
+      return json(brand ? { ...current, branding: brand } : current)
     }),
 
     http.post(`${baseUrl}/auth/login`, async ({ request }) => {
@@ -358,7 +453,7 @@ export function createPlatformHandlers({
       }
       if (body.method !== "email" && body.method !== "sms")
         return validation({ method: "invalid" })
-      if (!methods.passwordless.includes(body.method))
+      if (!currentMethods().passwordless.includes(body.method))
         return errorResponse(403, {
           code: "forbidden",
           message: "Method disabled",
@@ -474,7 +569,10 @@ export function createPlatformHandlers({
 
     http.post(`${baseUrl}/auth/passkey/options`, ({ request }) => {
       const session = getMockSession()
-      if (!methods.passwordless.includes("passkey") && !session?.challenge)
+      if (
+        !currentMethods().passwordless.includes("passkey") &&
+        !session?.challenge
+      )
         return errorResponse(403, {
           code: "forbidden",
           message: "Method disabled",
@@ -563,9 +661,9 @@ export function createPlatformHandlers({
       if (weakPassword(body.password)) return validation({ password: "weak" })
       const user = mockUsersList().find((u) => u.id === entry.userId)
       if (!user) return unauthenticated()
+      if (reused(user, body.password)) return validation({ password: "reused" })
       tokens.delete(body.token)
-      user.password = body.password as string
-      passwordChanged(user)
+      passwordChanged(user, body.password as string)
       return afterFirstFactor(user, "link")
     }),
 
@@ -682,9 +780,9 @@ export function createPlatformHandlers({
           return unauthenticated()
         if (weakPassword(password)) return validation({ password: "weak" })
         if (password === user.password) return validation({ password: "same" })
-        user.password = password as string
+        if (reused(user, password)) return validation({ password: "reused" })
         user.mustChangePassword = false
-        passwordChanged(user)
+        passwordChanged(user, password as string)
         authenticate(user.id)
         recordSignIn(user, { result: "success", method: "password" })
         return json({ status: "authenticated" })
@@ -806,8 +904,9 @@ export function createPlatformHandlers({
         return validation({ currentPassword: "invalid" })
       if (weakPassword(body.newPassword))
         return validation({ newPassword: "weak" })
-      user.password = body.newPassword as string
-      passwordChanged(user)
+      if (reused(user, body.newPassword))
+        return validation({ newPassword: "reused" })
+      passwordChanged(user, body.newPassword as string)
       return noContent()
     }),
 
@@ -839,11 +938,32 @@ export function createPlatformHandlers({
       return json(prefs)
     }),
 
+    /** Обов'язковий другий крок налаштовано — завершити вхід (ADR-0012). */
+    http.post(`${baseUrl}/auth/factor-setup/complete`, () => {
+      const session = getMockSession()
+      const user = mockUsersList().find((u) => u.id === session?.userId)
+      if (session?.stage !== "factor_setup" || !user) return unauthenticated()
+      if (!mockFactorTypes(user).length)
+        return errorResponse(409, {
+          code: "factor_required",
+          message: "Set up a method first",
+        })
+      return signedIn(user.id, "password")
+    }),
+
+    ...createAdminHandlers({
+      baseUrl,
+      roles,
+      providers: baseMethods.providers.map(({ id, name }) => ({ id, name })),
+      reauthRequired,
+    }),
+
     ...createAccountHandlers({
       baseUrl,
       sentCode,
-      available: availableFactors,
-      twoFactorRequired,
+      available: setupFactors,
+      twoFactorRequired: factorRequired,
+      apiResources,
       issuer: () => brandingNow()?.name,
       reauthRequired,
     }),
