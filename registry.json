@@ -1,0 +1,27 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "erp-ui",
+  "homepage": "https://github.com/VasulenkoIllia/erp-ui",
+  "items": [
+    {
+      "name": "lib/utils",
+      "type": "registry:lib",
+      "dependencies": ["cn@^0.4.0"],
+      "files": [{ "path": "registry/lib/utils.ts", "type": "registry:lib", "target": "@lib/utils.ts" }]
+    },
+    {
+      "name": "ui/button",
+      "type": "registry:ui",
+      "dependencies": ["@base-ui/react@^1.9.0", "class-variance-authority@^0.7.1"],
+      "registryDependencies": ["VasulenkoIllia/erp-ui/lib/utils"],
+      "files": [{ "path": "registry/ui/button.tsx", "type": "registry:ui", "target": "@ui/button.tsx" }]
+    },
+    {
+      "name": "ui/dialog",
+      "type": "registry:ui",
+      "dependencies": ["@base-ui/react@^1.9.0", "lucide-react"],
+      "registryDependencies": ["VasulenkoIllia/erp-ui/ui/button", "VasulenkoIllia/erp-ui/lib/utils"],
+      "files": [{ "path": "registry/ui/dialog.tsx", "type": "registry:ui", "target": "@ui/dialog.tsx" }]
+    }
+  ]
+}
