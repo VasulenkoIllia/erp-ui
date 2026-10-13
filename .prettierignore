@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+**/*.md
+design/
+docs/
+**/dist/
+**/playwright-report/
+**/test-results/

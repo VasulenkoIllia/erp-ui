@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uk" data-palette="sapphire">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>erp-ui · демо</title>
+    <script>
+      // Застосувати вигляд до першого малювання, щоб не блимало.
+      // Логіка дзеркалить src/appearance/appearance.ts — змінювати разом.
+      ;(function () {
+        var root = document.documentElement
+        var a = {}
+        try {
+          a =
+            JSON.parse(localStorage.getItem("erp-ui:appearance") || "{}") || {}
+        } catch (e) {}
+        var palettes = ["sapphire", "graphite", "indigo", "teal", "terracotta"]
+        root.dataset.palette =
+          palettes.indexOf(a.palette) >= 0 ? a.palette : "sapphire"
+        var dark =
+          a.theme === "dark" ||
+          (a.theme !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        root.classList.toggle("dark", dark)
+        if (a.density === "compact") root.dataset.density = "compact"
+        if (a.sidebar === "dark") root.dataset.sidebar = "dark"
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
