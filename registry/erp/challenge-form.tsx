@@ -80,6 +80,8 @@ export function ChallengeForm({
   const [code, setCode] = React.useState("")
   const [trust, setTrust] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
+  // Поки сервер перемикає метод, поле старого методу вимкнене: введене в нього зникло б.
+  const [switching, setSwitching] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [codeError, setCodeError] = React.useState<string | null>(null)
   const [resendAt, setResendAt] = React.useState(
@@ -112,6 +114,7 @@ export function ChallengeForm({
 
   const switchTo = async (next: AuthFactor) => {
     setBusy(true)
+    setSwitching(true)
     setError(null)
     setCodeError(null)
     try {
@@ -123,6 +126,7 @@ export function ChallengeForm({
       setError(apiMessage(failure))
     } finally {
       setBusy(false)
+      setSwitching(false)
     }
   }
 
@@ -208,6 +212,7 @@ export function ChallengeForm({
                 pattern={REGEXP_ONLY_DIGITS}
                 inputMode="numeric"
                 value={code}
+                disabled={switching}
                 aria-invalid={codeError ? true : undefined}
                 aria-describedby={codeError ? `${ids}-error` : undefined}
                 onChange={(value) => {
@@ -238,6 +243,7 @@ export function ChallengeForm({
                 spellCheck={false}
                 autoCapitalize="none"
                 className="font-mono tracking-widest"
+                disabled={switching}
                 aria-invalid={codeError ? true : undefined}
                 aria-describedby={codeError ? `${ids}-error` : undefined}
                 onChange={(event) => {
