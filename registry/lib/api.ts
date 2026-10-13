@@ -9,8 +9,15 @@
  * - Конкурентне редагування: запис має `version`; PATCH надсилає її, розбіжність → 409 `conflict` з `current`.
  * - Сесія — httpOnly cookie (ADR-0003), тож клієнт завжди шле `credentials: "include"`.
  * - Компанія — заголовок `X-Company-Id` (PF02).
+ * - Термін сесії — заголовок `X-Session-Expires-At` у відповідях (ADR-0010): клієнт передає його
+ *   в lib/session, щоб попередити про завершення сесії.
  */
 import { z } from "zod"
+
+import {
+  SESSION_EXPIRES_HEADER,
+  setSessionExpiresAt,
+} from "@/registry/lib/session"
 
 export const API_PREFIX = "/api/v1"
 export const COMPANY_HEADER = "X-Company-Id"
@@ -115,7 +122,11 @@ export const API_ERROR_CODES = [
   "rate_limited",
   "server",
   "offline",
-  "two_factor_required",
+  "challenge_required",
+  "captcha_required",
+  "token_expired",
+  "reauth_required",
+  "password_change_required",
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 
@@ -231,6 +242,9 @@ export function createApiClient({
       if (signal?.aborted) throw error
       throw new ApiError(0, { code: "offline", message: "Network error" })
     }
+
+    const sessionExpiresAt = response.headers.get(SESSION_EXPIRES_HEADER)
+    if (sessionExpiresAt) setSessionExpiresAt(sessionExpiresAt)
 
     if (!response.ok) {
       let payload: unknown = null

@@ -177,7 +177,30 @@ createRoot(root).render(
 - Моки: `createResourceHandlers({ resource, schema, data, searchFields })` дає CRUD із фільтрами, сортуванням, правами й версіями. `<DevPanel resources={["invoices"]} compact onChange={() => queryClient.invalidateQueries()} />` — у `actions` топбара, лише в розробці.
 - Повний приклад — `apps/demo` у репозиторії erp-ui: `src/data/providers.ts`, `src/mocks/`, `src/pages/DataPage.tsx`, `src/pages/LoginPage.tsx`.
 
-## 6. Вигляд
+## 6. Вхід і акаунт
+
+```sh
+npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани входу й безпеки (потрібен пакунок data)
+```
+
+Що показати на сторінці входу, вирішує бекенд (`GET /auth/methods`, ADR-0010): пароль, код на email чи в SMS, ключ доступу, Google, Apple, будь-який OIDC, реєстрація, відновлення. Маршрути — поза оболонкою:
+
+```tsx
+/login          → <LoginScreen afterLogin="/" />
+/login/forgot   → <ForgotPasswordScreen />
+/login/reset    → <ResetPasswordScreen token={search.get("token")} />
+/login/invite   → <AcceptInviteScreen token={search.get("token")} />
+/login/link     → <EmailLinkScreen token={search.get("token")} />
+/signup         → <SignUpScreen afterSignUp="/onboarding" />
+/auth/callback  → <SsoCallbackScreen />
+```
+
+- Інші адреси — пропс `paths`. Після входу — туди, звідки ra-core перенаправив, або `afterLogin`.
+- У оболонці, коли користувач увійшов: `<SessionGuard idleMinutes={methods.idleTimeoutMinutes} />` (попередження перед кінцем сесії, вихід у всіх вкладках).
+- Налаштування: `ChangePasswordForm`, `ChangeEmailForm`, `AccountDataSection` з `erp/account-security`. Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
+- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері.
+
+## 7. Вигляд
 
 Палітра, тема, щільність і сайдбар задаються атрибутами `<html>` (SPEC §6.2):
 
@@ -187,7 +210,7 @@ createRoot(root).render(
 
 Палітри: `sapphire`, `graphite` (основні), `indigo`, `teal`, `terracotta`. Без класу `dark` — світла тема.
 
-## 7. Оновлення
+## 8. Оновлення
 
 ```sh
 npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button --diff   # що зміниться, нічого не записує
@@ -198,7 +221,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button          # застосу�
 - Закріпити версію: `…/ui/button#v0.1.0` (git-тег; список — теги репозиторію й `CHANGELOG.md`). Без `#…` береться найновіше з `main`.
 - Якщо компонент довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`. При оновленні вона буде видна в `--diff`, а вдалу правку варто перенести в реєстр.
 
-## 8. Чого не робити
+## 9. Чого не робити
 
 - Не копіювати компоненти руками з репозиторію — лише через `shadcn add` (так працюють оновлення).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.

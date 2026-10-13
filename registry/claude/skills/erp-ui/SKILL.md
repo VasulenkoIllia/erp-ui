@@ -29,6 +29,7 @@ description: Build or change any UI in an ERP/CRM project that uses the private 
 - **Дані** лише через контракт модуля (`contract.ts`). Змінюєш контракт — оновлюєш моки (`mocks.ts`), fixtures і переклади в тому ж коміті.
 - **API й вхід** — за ADR-0002/0003 кіта: `createApiClient` + `createDataProvider` + `createAuthProvider` (пакунок `data`), хуки ra-core (`useGetList`, `useUpdate`, `useCanAccess`, `useAuthenticated`), профіль — `useMe()`. Фільтри — плоскі (`status`, `amount_gte`, `q`), збереження — з `version`, 409 → `ConflictDialog`, текст помилки — `useApiErrorMessage`. Свого fetch-шару не пиши.
 - **Моки** — `createResourceHandlers` / `createPlatformHandlers` з `lib/mocks` (пакунок `mocks`), сценарії перемикає `DevPanel`; кожен екран перевір у всіх семи сценаріях.
+- **Вхід і акаунт** — лише екрани пакунка `auth` (ADR-0010): `LoginScreen`, екрани відновлення, `SignUpScreen`, `SessionGuard`, форми `account-security`; що ввімкнено, вирішує `GET /auth/methods`. Чутливі дії — через `useReauth().guard`. Своїх форм входу й «повторіть пароль» не пиши.
 - **Інтеграції** (доставка, ПРРО, банк, ЕДО, KSeF…): показуй нормалізований статус і сирий код провайдера; адреси, ставки й ліміти — дані з датою дії, не константи.
 - **Компоненти з реєстру** не переписуй мовчки. Якщо змінюєш — позначка `// erp-ui: local override — <причина>` і пропозиція перенести зміну в реєстр.
 

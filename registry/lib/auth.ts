@@ -1,13 +1,34 @@
 /**
- * Вхід і профіль (ADR-0003, PF01): httpOnly cookie-сесія + 2FA застосунком (TOTP).
+ * Вхід, профіль і права (ADR-0003, ADR-0010, PF01): httpOnly cookie-сесія, коди підтвердження,
+ * вхід без пароля, ключі доступу, SSO, відновлення пароля, запрошення й реєстрація.
  *
- * Контракт:
- * - `POST /auth/login` { email, password } → { status: "authenticated" | "two_factor_required" }.
- *   Сервер ставить cookie сесії (для 2FA — тимчасової, лише для кроку коду).
- * - `POST /auth/2fa` { code } → { status: "authenticated" }; хибний код — 422 з `fieldErrors.code`.
- * - `POST /auth/logout` → 204.
- * - `GET /me` → профіль, ролі, ефективні права, компанії; без сесії — 401.
- * Токенів у JS немає: їх неможливо вкрасти через XSS, а сесію сервер відкликає одним рядком.
+ * Контракт (усе — під `/api/v1`):
+ * - `GET /auth/methods` → що ввімкнено в проекті: пароль, вхід без пароля, SSO-провайдери, реєстрація…
+ * - `POST /auth/login` { email, password } → `{ status: "authenticated" }` або
+ *   `{ status: "challenge", challenge }` — сервер просить підтвердження (другий фактор).
+ * - `POST /auth/start` { method: "email" | "sms", identifier } → challenge: код (і посилання) надіслано.
+ * - `POST /auth/challenge/send` { method } → challenge: інший метод або повторне надсилання.
+ * - `POST /auth/challenge/verify` { method, code, trustDevice } → результат входу;
+ *   хибний код — 422 `fieldErrors.code`, забагато спроб — 429.
+ * - `POST /auth/link` { token } — посилання з листа; `POST /auth/passkey/options` → `{ publicKey }`,
+ *   `POST /auth/passkey/verify` { credential } — ключ доступу (і без пароля, і другим фактором).
+ * - SSO: браузер переходить на `GET /auth/sso/<провайдер>/start?returnTo=…`; після провайдера сервер
+ *   ставить cookie й повертає на `returnTo` (маршрут застосунку `/auth/callback`).
+ * - `POST /auth/password/forgot` { email } → 204 завжди (не розкриваємо, чи є такий акаунт);
+ *   `POST /auth/password/reset` { token, password } → результат входу.
+ * - `GET /auth/invite?token=` → запрошення; `POST /auth/invite/accept` { token, name, password }.
+ * - `POST /auth/signup` { name, email, password, company } → challenge (підтвердити email).
+ * - `{ status: "password_change_required" }` — тимчасовий чи скинутий пароль: спершу новий,
+ *   `POST /auth/password/change-required` { password } → результат входу.
+ * - `POST /auth/reauth` { password } або { method, code } → { grantedUntil }: повторне підтвердження
+ *   перед чутливими діями; без нього вони відповідають 403 `reauth_required`.
+ * - `POST /me/email` { email } → challenge (код на нову адресу); `POST /me/email/verify` { code }.
+ * - `POST /me/export` → дані надходять листом; `DELETE /me` — видалити акаунт.
+ * - `POST /auth/session/extend` → { expiresAt }; `POST /auth/logout` → 204.
+ * - `GET /me` → профіль, ролі, ефективні права, компанії, увімкнені фактори; без сесії — 401.
+ * - `POST /me/password` { currentPassword, newPassword } → 204.
+ * - Після кількох невдалих спроб сервер відповідає 428 `captcha_required`; запит повторюється з
+ *   `captchaToken` (Turnstile, ADR-0010).
  *
  * Права — рядки `<ресурс>:<дія>` ("invoices:approve"), `*` — будь-що. Перевірка на клієнті лише
  * ховає й вимикає дії; сервер (і MSW-моки) перевіряють ті самі права самі.
@@ -16,20 +37,72 @@ import type { AuthProvider } from "ra-core"
 import { z } from "zod"
 
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
+import { getPasskeyAssertion } from "@/registry/lib/passkey"
+import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
 
-export const loginRequestSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1),
-})
-export type LoginRequest = z.infer<typeof loginRequestSchema>
+/* --------------------------------- Схеми --------------------------------- */
 
-export const twoFactorRequestSchema = z.object({
-  code: z.string().regex(/^\d{6}$/),
-})
+/** Методи підтвердження: застосунок, резервний код, SMS/Viber, email, ключ доступу. */
+export const AUTH_FACTORS = [
+  "totp",
+  "backup_code",
+  "sms",
+  "email",
+  "passkey",
+] as const
+export type AuthFactor = (typeof AUTH_FACTORS)[number]
 
-export const loginResultSchema = z.object({
-  status: z.enum(["authenticated", "two_factor_required"]),
+/** Вхід без пароля: код чи посилання на email, код у SMS/Viber, ключ доступу. */
+export const PASSWORDLESS_METHODS = ["email", "sms", "passkey"] as const
+export type PasswordlessMethod = (typeof PASSWORDLESS_METHODS)[number]
+
+export const ssoProviderSchema = z.object({
+  /** Сегмент шляху `/auth/sso/<id>/start`. */
+  id: z.string(),
+  /** google і apple мають готові кнопки за правилами брендів; oidc — будь-який провайдер з конфігу. */
+  type: z.enum(["google", "apple", "oidc"]),
+  /** Назва для кнопки «Увійти через …» (для oidc). */
+  name: z.string(),
 })
+export type SsoProvider = z.infer<typeof ssoProviderSchema>
+
+export const authMethodsSchema = z.object({
+  password: z.boolean(),
+  passwordless: z.array(z.enum(PASSWORDLESS_METHODS)),
+  providers: z.array(ssoProviderSchema),
+  passwordReset: z.boolean(),
+  signUp: z.boolean(),
+  /** Скільки днів пристрій може бути довіреним (без другого фактора); 0 — вимкнено. */
+  trustedDeviceDays: z.number().int().min(0),
+  /** Автовихід після бездіяльності, хв; null — вимкнено. */
+  idleTimeoutMinutes: z.number().int().positive().nullable(),
+  /** Ключ сайту Turnstile для перевірки «не бот». */
+  captchaSiteKey: z.string().optional(),
+})
+export type AuthMethods = z.infer<typeof authMethodsSchema>
+
+export const challengeSchema = z.object({
+  /** Методи, якими можна підтвердити цей вхід. */
+  methods: z.array(z.enum(AUTH_FACTORS)).min(1),
+  /** Поточний метод: для sms/email код уже надіслано. */
+  method: z.enum(AUTH_FACTORS),
+  /** Куди надіслано код, у маскованому вигляді: «+380 •• ••• 45», «o•••@zoriana.example». */
+  destination: z.string().optional(),
+  /** Через скільки секунд можна надіслати код знову. */
+  resendIn: z.number().int().min(0).optional(),
+  /** Довжина коду (за замовчуванням 6; резервні коди — свої). */
+  codeLength: z.number().int().min(4).max(12).optional(),
+  /** true — другий крок після пароля; false — вхід без пароля. */
+  secondFactor: z.boolean(),
+})
+export type Challenge = z.infer<typeof challengeSchema>
+
+export const loginResultSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("authenticated") }),
+  z.object({ status: z.literal("challenge"), challenge: challengeSchema }),
+  z.object({ status: z.literal("password_change_required") }),
+])
+export type LoginResult = z.infer<typeof loginResultSchema>
 
 export const companyRefSchema = z.object({
   id: z.string(),
@@ -41,6 +114,7 @@ export const meSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
+  phone: z.string().optional(),
   avatarUrl: z.string().optional(),
   roles: z.array(z.string()),
   /** Ефективні права з усіх ролей: "invoices:read", "invoices:*", "*". */
@@ -48,9 +122,43 @@ export const meSchema = z.object({
   companies: z.array(companyRefSchema),
   /** Компанія за замовчуванням для `X-Company-Id`. */
   companyId: z.string().nullable(),
-  twoFactorEnabled: z.boolean(),
+  /** Увімкнені другі фактори; порожньо — другого кроку немає. */
+  factors: z.array(z.enum(AUTH_FACTORS)),
+  /** Коли сесія закінчиться без активності (ISO). */
+  sessionExpiresAt: z.string().optional(),
 })
 export type Me = z.infer<typeof meSchema>
+
+export const inviteSchema = z.object({
+  email: z.string(),
+  name: z.string().optional(),
+  companyName: z.string(),
+  invitedBy: z.string().optional(),
+})
+export type Invite = z.infer<typeof inviteSchema>
+
+export const signUpRequestSchema = z.object({
+  name: z.string().min(1),
+  email: z.email(),
+  password: z.string().min(1),
+  company: z.object({
+    name: z.string().min(1),
+    /** ЄДРПОУ або РНОКПП (LC12), необов'язково. */
+    code: z.string().optional(),
+  }),
+  captchaToken: z.string().optional(),
+})
+export type SignUpRequest = z.infer<typeof signUpRequestSchema>
+
+const expiresSchema = z.object({ expiresAt: z.string() })
+const reauthSchema = z.object({ grantedUntil: z.string() })
+const passkeyOptionsSchema = z.object({
+  publicKey: z.custom<PublicKeyCredentialRequestOptionsJSON>(
+    (value) => typeof value === "object" && value !== null,
+  ),
+})
+
+/* ---------------------------------- Права ---------------------------------- */
 
 /** Ключ кешу профілю в TanStack Query (hooks/use-me); `onMe` провайдера оновлює його. */
 export const ME_QUERY_KEY = ["erp-ui", "me"] as const
@@ -79,25 +187,140 @@ export function hasPermission(
   )
 }
 
-/** Помилка входу, після якої UI просить код 2FA. */
-export function isTwoFactorRequired(error: unknown): boolean {
-  return isApiError(error) && error.code === "two_factor_required"
+/* --------------------------------- Помилки --------------------------------- */
+
+/** Сервер просить підтвердити вхід: показати форму коду з `challenge`. */
+export class AuthChallengeError extends ApiError {
+  readonly challenge: Challenge
+
+  constructor(challenge: Challenge) {
+    super(401, {
+      code: "challenge_required",
+      message: "Sign-in confirmation required",
+    })
+    this.name = "AuthChallengeError"
+    this.challenge = challenge
+  }
 }
+
+export function isChallengeRequired(
+  error: unknown,
+): error is AuthChallengeError {
+  return error instanceof AuthChallengeError
+}
+
+/** Пароль тимчасовий чи скинутий адміністратором: спершу встановити новий. */
+export class PasswordChangeRequiredError extends ApiError {
+  constructor() {
+    super(401, {
+      code: "password_change_required",
+      message: "Set a new password to continue",
+    })
+    this.name = "PasswordChangeRequiredError"
+  }
+}
+
+export function isPasswordChangeRequired(
+  error: unknown,
+): error is PasswordChangeRequiredError {
+  return error instanceof PasswordChangeRequiredError
+}
+
+/** Чутлива дія потребує повторного підтвердження (ReauthDialog), після нього — повторити. */
+export function isReauthRequired(error: unknown): boolean {
+  return isApiError(error) && error.code === "reauth_required"
+}
+
+/** Після кількох невдалих спроб сервер просить перевірку «не бот». */
+export function isCaptchaRequired(error: unknown): boolean {
+  return isApiError(error) && error.code === "captcha_required"
+}
+
+/* -------------------------------- Провайдер -------------------------------- */
+
+export type LoginParams =
+  | { email: string; password: string; captchaToken?: string }
+  | { method: "email" | "sms"; identifier: string; captchaToken?: string }
+  | {
+      method: Exclude<AuthFactor, "passkey">
+      code: string
+      trustDevice?: boolean
+    }
+  | { method: "passkey"; trustDevice?: boolean }
+  | { link: string }
 
 export interface ErpAuthProvider extends AuthProvider {
   /** Профіль поточного користувача (кешується до виходу чи нового входу). */
   getMe: () => Promise<Me>
+  /** Завантажити профіль заново (вхід в іншій вкладці, зміна даних). */
+  refreshMe: () => Promise<Me>
+  /** Що ввімкнено в проекті: від цього залежить сторінка входу. */
+  getMethods: () => Promise<AuthMethods>
+  login: (params: LoginParams) => Promise<void>
+  /** Інший метод підтвердження або повторне надсилання коду. */
+  sendCode: (method: AuthFactor) => Promise<Challenge>
+  /** Адреса, на яку браузер переходить для входу через провайдера. */
+  ssoUrl: (providerId: string, returnTo: string) => string
+  forgotPassword: (email: string, captchaToken?: string) => Promise<void>
+  resetPassword: (token: string, password: string) => Promise<void>
+  getInvite: (token: string) => Promise<Invite>
+  acceptInvite: (
+    token: string,
+    data: { name: string; password: string },
+  ) => Promise<void>
+  signUp: (data: SignUpRequest) => Promise<void>
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>
+  /** Продовжити сесію («Продовжити роботу» в попередженні). */
+  extendSession: () => Promise<void>
+  /** Новий пароль замість тимчасового (після `password_change_required`). */
+  setNewPassword: (password: string) => Promise<void>
+  /** Повторне підтвердження перед чутливою дією; повертає, до коли діє дозвіл (ISO). */
+  reauthenticate: (
+    params: { password: string } | { method: AuthFactor; code: string },
+  ) => Promise<string>
+  /** Змінити email: код надходить на нову адресу. */
+  changeEmail: (email: string) => Promise<Challenge>
+  confirmEmail: (code: string) => Promise<void>
+  /** Експорт персональних даних (GDPR): архів надходить листом. */
+  exportData: () => Promise<void>
+  /** Видалити акаунт (після повторного підтвердження) і вийти. */
+  deleteAccount: () => Promise<void>
+}
+
+export interface AuthProviderOptions {
+  /** Зміна профілю: вхід, вихід, перезавантаження. */
+  onMe?: (me: Me | null) => void
+  /** Адреса API для переходів браузера (SSO); за замовчуванням — `/api/v1`. */
+  baseUrl?: string
+  /** Перевизначити адресу SSO (напр. демо-сторінка провайдера). */
+  ssoUrl?: (providerId: string, returnTo: string) => string
+}
+
+/** Параметр з адреси, зокрема з хеша (`#/auth/callback?next=…`). */
+export function urlParam(name: string): string | null {
+  if (typeof window === "undefined") return null
+  const { search, hash } = window.location
+  const fromHash = hash.includes("?") ? hash.slice(hash.indexOf("?")) : ""
+  return (
+    new URLSearchParams(fromHash).get(name) ??
+    new URLSearchParams(search).get(name)
+  )
 }
 
 export function createAuthProvider(
   client: ApiClient,
-  { onMe }: { onMe?: (me: Me | null) => void } = {},
+  { onMe, baseUrl = "/api/v1", ssoUrl }: AuthProviderOptions = {},
 ): ErpAuthProvider {
   let me: Promise<Me> | null = null
 
   const loadMe = () => {
     me ??= client.get("/me", { schema: meSchema }).then(
       (profile) => {
+        if (profile.sessionExpiresAt)
+          setSessionExpiresAt(profile.sessionExpiresAt)
         onMe?.(profile)
         return profile
       },
@@ -109,36 +332,128 @@ export function createAuthProvider(
     return me
   }
 
+  /** Результат кроку входу: профіль або виклик підтвердження. */
+  const finish = async (result: LoginResult) => {
+    if (result.status === "challenge")
+      throw new AuthChallengeError(result.challenge)
+    if (result.status === "password_change_required")
+      throw new PasswordChangeRequiredError()
+    me = null
+    await loadMe()
+    broadcastAuthEvent({ type: "login" })
+  }
+
+  const post = (path: string, body?: unknown) =>
+    client.post(path, body, { schema: loginResultSchema }).then(finish)
+
+  const loginWithPasskey = async (trustDevice?: boolean) => {
+    const { publicKey } = await client.post(
+      "/auth/passkey/options",
+      undefined,
+      { schema: passkeyOptionsSchema },
+    )
+    const credential = await getPasskeyAssertion(publicKey)
+    await post("/auth/passkey/verify", { credential, trustDevice })
+  }
+
   return {
     getMe: loadMe,
 
-    async login(params: { email?: string; password?: string; code?: string }) {
+    refreshMe: () => {
       me = null
-      if (params.code) {
-        await client.post(
-          "/auth/2fa",
-          { code: params.code },
-          { schema: loginResultSchema },
-        )
-      } else {
-        const result = await client.post(
-          "/auth/login",
-          { email: params.email, password: params.password },
-          { schema: loginResultSchema },
-        )
-        if (result.status === "two_factor_required") {
-          throw new ApiError(401, {
-            code: "two_factor_required",
-            message: "Two-factor code required",
-          })
-        }
-      }
+      return loadMe()
+    },
+
+    getMethods: () =>
+      client.get("/auth/methods", { schema: authMethodsSchema }),
+
+    login(params: LoginParams) {
+      if ("link" in params) return post("/auth/link", { token: params.link })
+      if ("password" in params) return post("/auth/login", params)
+      if (params.method === "passkey")
+        return loginWithPasskey(params.trustDevice)
+      if ("code" in params) return post("/auth/challenge/verify", params)
+      return post("/auth/start", params)
+    },
+
+    sendCode: (method) =>
+      client.post(
+        "/auth/challenge/send",
+        { method },
+        { schema: challengeSchema },
+      ),
+
+    ssoUrl:
+      ssoUrl ??
+      ((providerId, returnTo) =>
+        `${baseUrl}/auth/sso/${encodeURIComponent(providerId)}/start?returnTo=${encodeURIComponent(returnTo)}`),
+
+    async forgotPassword(email, captchaToken) {
+      await client.post("/auth/password/forgot", { email, captchaToken })
+    },
+
+    resetPassword: (token, password) =>
+      post("/auth/password/reset", { token, password }),
+
+    getInvite: (token) =>
+      client.get("/auth/invite", { query: { token }, schema: inviteSchema }),
+
+    acceptInvite: (token, data) =>
+      post("/auth/invite/accept", { token, ...data }),
+
+    signUp: (data) => post("/auth/signup", data),
+
+    async changePassword(currentPassword, newPassword) {
+      await client.post("/me/password", { currentPassword, newPassword })
+    },
+
+    async extendSession() {
+      const { expiresAt } = await client.post(
+        "/auth/session/extend",
+        undefined,
+        { schema: expiresSchema },
+      )
+      setSessionExpiresAt(expiresAt)
+    },
+
+    setNewPassword: (password) =>
+      post("/auth/password/change-required", { password }),
+
+    async reauthenticate(params) {
+      const { grantedUntil } = await client.post("/auth/reauth", params, {
+        schema: reauthSchema,
+      })
+      return grantedUntil
+    },
+
+    changeEmail: (email) =>
+      client.post("/me/email", { email }, { schema: challengeSchema }),
+
+    async confirmEmail(code) {
+      await client.post("/me/email/verify", { code })
+      me = null
       await loadMe()
     },
 
-    async logout() {
+    async exportData() {
+      await client.post("/me/export")
+    },
+
+    async deleteAccount() {
+      await client.delete("/me")
       me = null
       onMe?.(null)
+      setSessionExpiresAt(null)
+      broadcastAuthEvent({ type: "logout" })
+    },
+
+    /** `{ remote: true }` — вихід уже стався в іншій вкладці: лише очистити стан тут. */
+    async logout(params?: { remote?: boolean }) {
+      me = null
+      onMe?.(null)
+      setSessionExpiresAt(null)
+      if (params?.remote) return
+      broadcastAuthEvent({ type: "logout" })
       try {
         await client.post("/auth/logout")
       } catch {
@@ -157,6 +472,17 @@ export function createAuthProvider(
         return Promise.reject(error)
       }
       return Promise.resolve()
+    },
+
+    /** Повернення з SSO (маршрут `/auth/callback`): помилка провайдера або профіль і `next`. */
+    async handleCallback() {
+      const error = urlParam("error")
+      if (error)
+        throw new ApiError(401, { code: "unauthenticated", message: error })
+      me = null
+      await loadMe()
+      broadcastAuthEvent({ type: "login" })
+      return { redirectTo: urlParam("next") ?? "/" }
     },
 
     async getIdentity() {

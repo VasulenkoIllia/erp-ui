@@ -7,7 +7,8 @@
       "formats": "Languages & formats",
       "icons": "Icons",
       "states": "Page states",
-      "data": "Data & mocks"
+      "data": "Data & mocks",
+      "security": "Account security"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -312,23 +313,28 @@
       "sales": "Sales manager"
     }
   },
-  "loginPage": {
-    "title": "Sign in",
-    "lead": "Session in an httpOnly cookie plus a code from an authenticator app (ADR-0003).",
-    "email": "Email",
-    "password": "Password",
-    "submit": "Sign in",
-    "codeTitle": "Verification code",
-    "codeHint": "Enter the 6 digits from your authenticator app.",
-    "code": "Code",
-    "verify": "Verify",
-    "back": "Use another account",
-    "invalidCredentials": "Incorrect email or password",
-    "invalidCode": "The code does not match — check the app and try again",
-    "failed": "Could not sign in: {{message}}",
-    "demoTitle": "Demo accounts",
-    "demoAccountant": "Accountant: password demo, 2FA code 123456",
-    "demoSales": "Sales manager, read-only: password demo",
-    "language": "Interface language"
+  "authDemo": {
+    "accountsTitle": "Demo accounts",
+    "signInAs": "Fill in {{email}}",
+    "accountant": "Accountant: password demo; app, SMS and email code 123456; backup code ab12cd34; passkey",
+    "sales": "Sales manager, read-only: password demo, no second step",
+    "temporary": "New colleague with temporary password temp-password — sets their own",
+    "invite": "Open a colleague's invitation",
+    "language": "Interface language",
+    "captcha": "Demo “not a bot” check (projects use Cloudflare Turnstile)",
+    "smsToast": "SMS to {{to}}: code {{code}}",
+    "emailToast": "Email to {{to}}",
+    "emailCode": "code {{code}}",
+    "openLink": "Open the link from the email",
+    "noticeToast": "Email to {{to}}: your sign-in email was changed",
+    "exportToast": "Email to {{to}}: your data archive is ready",
+    "ssoTitle": "{{provider}} — demo provider",
+    "ssoLead": "This is the provider step: choose an account or cancel. Real sign-in opens the Google or Apple page.",
+    "ssoContinue": "Continue as {{name}}",
+    "ssoCancel": "Cancel sign-in"
+  },
+  "securityPage": {
+    "title": "Account security",
+    "lead": "Password, sign-in email, data export and account deletion. Sensitive actions ask you to confirm it's you."
   }
 }

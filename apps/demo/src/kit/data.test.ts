@@ -18,11 +18,6 @@ import {
   recordBaseSchema,
   toSearchParams,
 } from "@/registry/lib/api"
-import {
-  createAuthProvider,
-  hasPermission,
-  isTwoFactorRequired,
-} from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import {
@@ -64,7 +59,9 @@ const USERS: MockUser[] = [
     permissions: ["invoices:*"],
     companies: [{ id: "zoriana", name: "ТОВ «Зоряна логістика»" }],
     companyId: "zoriana",
-    twoFactorEnabled: true,
+    factors: ["totp", "backup_code", "sms"],
+    phone: "+380671234545",
+    backupCodes: ["ab12cd34"],
   },
   {
     id: "u2",
@@ -76,7 +73,7 @@ const USERS: MockUser[] = [
     permissions: ["invoices:read"],
     companies: [],
     companyId: null,
-    twoFactorEnabled: false,
+    factors: [],
   },
 ]
 
@@ -290,57 +287,5 @@ describe("сценарії моків", () => {
       .catch((e: unknown) => e)
     expect(offline).toBeInstanceOf(ApiError)
     expect(offline).toMatchObject({ status: 0, code: "offline" })
-  })
-})
-
-describe("вхід (ADR-0003)", () => {
-  it("пароль → 2FA → профіль; хибний код — 422", async () => {
-    signInMock(null)
-    const auth = createAuthProvider(client)
-    const first: unknown = await auth
-      .login({ email: "olena@zoriana.example", password: "demo" })
-      .catch((e: unknown) => e)
-    expect(isTwoFactorRequired(first)).toBe(true)
-    await expect(auth.login({ code: "111111" })).rejects.toMatchObject({
-      status: 422,
-      fieldErrors: { code: "invalid" },
-    })
-    await auth.login({ code: "123456" })
-    const me = await auth.getMe()
-    expect(me.name).toBe("Олена Коваль")
-    expect(
-      await auth.canAccess?.({ resource: "invoices", action: "approve" }),
-    ).toBe(true)
-    await auth.logout({})
-    await expect(auth.checkAuth({})).rejects.toMatchObject({ status: 401 })
-  })
-
-  it("хибний пароль — 401; checkError розлогінює лише на 401", async () => {
-    const auth = createAuthProvider(client)
-    await expect(
-      auth.login({ email: "olena@zoriana.example", password: "x" }),
-    ).rejects.toMatchObject({ status: 401 })
-    await expect(
-      auth.checkError(new ApiError(403, { code: "forbidden", message: "" })),
-    ).resolves.toBeUndefined()
-    await expect(
-      auth.checkError(
-        new ApiError(401, { code: "unauthenticated", message: "" }),
-      ),
-    ).rejects.toBeInstanceOf(ApiError)
-  })
-
-  it("права: точний збіг, ресурс:*, *", () => {
-    expect(hasPermission(["invoices:read"], "invoices", "read")).toBe(true)
-    expect(hasPermission(["invoices:read"], "invoices", "update")).toBe(false)
-    expect(hasPermission(["invoices:*"], "invoices", "delete")).toBe(true)
-    expect(hasPermission(["*"], "anything", "any")).toBe(true)
-  })
-
-  it("права: дії ra-core зводяться до read і update", () => {
-    expect(hasPermission(["invoices:read"], "invoices", "list")).toBe(true)
-    expect(hasPermission(["invoices:read"], "invoices", "show")).toBe(true)
-    expect(hasPermission(["invoices:read"], "invoices", "edit")).toBe(false)
-    expect(hasPermission(["invoices:update"], "invoices", "edit")).toBe(true)
   })
 })

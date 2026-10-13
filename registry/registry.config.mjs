@@ -161,6 +161,54 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§8.3"],
   },
+  "lib/session": {
+    title: "Стан сесії",
+    description:
+      "Термін сесії з заголовка X-Session-Expires-At, активність користувача по всіх вкладках, події входу й виходу між вкладками.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "lib/passkey": {
+    title: "Ключі доступу й WebOTP",
+    description:
+      "Обгортки WebAuthn (passkeys) у JSON-формі й автозаповнення коду з SMS (WebOTP); скасування — PasskeyCancelledError.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "lib/password": {
+    title: "Надійність пароля",
+    description:
+      "Легка оцінка надійності без словників: довжина, різноманітність, послідовності, збіг з email чи ім'ям.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "lib/brand-icons": {
+    title: "Логотипи провайдерів входу",
+    description:
+      "Google «G» (офіційні кольори) і Apple (CC0, currentColor) — лише для кнопок «Увійти через …».",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§20"],
+  },
+  "lib/mock-server": {
+    title: "Основа мок-сервера",
+    description:
+      "Відповіді з терміном сесії, сценарії, ковзна сесія, користувачі моків, «надіслані» SMS і листи, маскування адрес.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
+  "lib/mock-auth": {
+    title: "Мок входу",
+    description:
+      "Усі способи входу з контракту lib/auth: коди, без пароля, ключ доступу, SSO, відновлення, запрошення, реєстрація, довірений пристрій, «не бот», GDPR.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§17"],
+  },
   "hooks/use-appearance": {
     title: "useAppearance",
     description:
@@ -246,6 +294,94 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§17"],
+  },
+  "erp/auth-layout": {
+    title: "Основа екранів входу",
+    description:
+      "Картка екрана входу з фокусом на заголовку кроку, AUTH_PATHS, перехід після входу, тексти помилок полів.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "erp/login-screen": {
+    title: "Екран входу",
+    description:
+      "Способи з конфігу сервера: пароль, код на email чи в SMS, ключ доступу, Google/Apple/OIDC; далі — код підтвердження або новий пароль замість тимчасового; «не бот».",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "erp/challenge-form": {
+    title: "Код підтвердження",
+    description:
+      "Застосунок, резервний код, SMS/Viber, email, ключ доступу; клітинки коду, повтор із відліком, інший спосіб, «Запам'ятати пристрій».",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "erp/account-recovery": {
+    title: "Відновлення доступу",
+    description:
+      "«Забули пароль?», новий пароль за посиланням, прийняття запрошення, вхід за посиланням із листа, повернення з SSO.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "erp/sign-up-screen": {
+    title: "Реєстрація",
+    description:
+      "Самостійна реєстрація SaaS: людина, email, пароль, компанія (ЄДРПОУ чи РНОКПП) і підтвердження email кодом.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "PF18"],
+  },
+  "erp/password-input": {
+    title: "Поле пароля",
+    description:
+      "Кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7) і підказка надійності текстом.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§10"],
+  },
+  "erp/sso-buttons": {
+    title: "Кнопки SSO",
+    description:
+      "«Увійти через Google», «Увійти з Apple» за правилами брендів і нейтральна кнопка для будь-якого OIDC.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+  },
+  "erp/captcha": {
+    title: "Перевірка «не бот»",
+    description:
+      "Cloudflare Turnstile у режимі interaction-only лише після кількох невдалих спроб; можна замінити своїм віджетом.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§10"],
+  },
+  "erp/session-guard": {
+    title: "Охорона сесії",
+    description:
+      "Попередження з відліком перед кінцем сесії чи автовиходом через бездіяльність, «Продовжити роботу», вихід у всіх вкладках.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/reauth-dialog": {
+    title: "Повторне підтвердження",
+    description:
+      "useReauth: перед чутливою дією — пароль або код застосунку, після підтвердження дія повторюється сама.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/account-security": {
+    title: "Безпека акаунта",
+    description:
+      "Зміна пароля, зміна email із кодом на нову адресу, експорт даних і видалення акаунта з введенням слова (GDPR).",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
   },
   "erp/ua-id-input": {
     title: "Поле ідентифікатора UA",
@@ -347,6 +483,13 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "primitives",
     spec: ["§8.3"],
+  },
+  "ui/input-otp": {
+    title: "Поле коду",
+    description:
+      "Клітинки одноразового коду на input-otp: одне справжнє поле, автозаповнення з SMS, вставка, висота з токена щільності.",
+    status: "beta",
+    demo: "login",
   },
   "ui/input-group": {
     title: "Група поля",
@@ -537,6 +680,28 @@ export const BUNDLE_ITEMS = {
       "2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).",
       "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.",
       "4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
+    ].join("\n"),
+  },
+  auth: {
+    title: "Вхід і акаунт",
+    description:
+      "Усі екрани входу й безпеки акаунта (ADR-0010): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження.",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01"],
+    files: [],
+    include: [
+      "erp/login-screen",
+      "erp/account-recovery",
+      "erp/sign-up-screen",
+      "erp/session-guard",
+      "erp/account-security",
+    ],
+    docs: [
+      "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
+      "1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).",
+      "2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.",
+      "3) Налаштування: ChangePasswordForm, ChangeEmailForm, AccountDataSection з erp/account-security.",
     ].join("\n"),
   },
   mocks: {

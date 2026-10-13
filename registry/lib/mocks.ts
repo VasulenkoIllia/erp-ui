@@ -1,15 +1,15 @@
 /**
- * Мок-сервер на MSW за контрактами erp-ui (ADR-0002, ADR-0003): поводиться як бекенд, щоб UI
- * будувався й тестувався без нього. Підключається лише в розробці, демо й тестах.
+ * Мок-сервер на MSW за контрактами erp-ui (ADR-0002, ADR-0003, ADR-0010): поводиться як бекенд,
+ * щоб UI будувався й тестувався без нього. Підключається лише в розробці, демо й тестах.
  *
- * - `createPlatformHandlers` — вхід із 2FA, `/me`, вподобання PF11.
+ * - `createPlatformHandlers` (lib/mock-auth) — усі способи входу, `/me`, вподобання PF11.
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії (`X-Company-Id`).
- * - Кожен обробник поважає сценарій із lib/mock-scenarios.
+ * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
+ * - Кожен обробник ресурсу поважає сценарій із lib/mock-scenarios.
  * - Мок сам перевіряє права, як справжній сервер (SPEC: приховування в UI — лише косметика).
  */
-import { http, HttpResponse, type HttpHandler } from "msw/http"
-import { delay } from "msw/utils/delay"
+import { http, type HttpHandler } from "msw/http"
 import type { z } from "zod"
 
 import {
@@ -17,190 +17,33 @@ import {
   COMPANY_HEADER,
   fromSearchParams,
   parseFilterKey,
-  type ApiErrorBody,
   type FilterValue,
   type SortField,
 } from "@/registry/lib/api"
-import { hasPermission, meSchema, type Me } from "@/registry/lib/auth"
+import { hasPermission } from "@/registry/lib/auth"
+import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
-  scenarioFor,
-  SLOW_DELAY_MS,
-  type Scenario,
-} from "@/registry/lib/mock-scenarios"
-import type { Preferences } from "@/registry/lib/preferences"
+  applyScenario,
+  currentMockUser,
+  errorResponse,
+  json,
+  noContent,
+} from "@/registry/lib/mock-server"
 
-export function errorResponse(status: number, body: ApiErrorBody) {
-  return HttpResponse.json(body, { status })
-}
-
-/** Сценарій перед обробкою: відповідь одразу (помилка, офлайн) або null — продовжувати. */
-async function applyScenario(scenario: Scenario): Promise<Response | null> {
-  switch (scenario) {
-    case "offline":
-      return HttpResponse.error()
-    case "error":
-      return errorResponse(500, {
-        code: "server",
-        message: "Mock: server error",
-      })
-    case "forbidden":
-      return errorResponse(403, {
-        code: "forbidden",
-        message: "Mock: forbidden",
-      })
-    case "slow":
-      await delay(SLOW_DELAY_MS)
-      return null
-    default:
-      return null
-  }
-}
-
-/* ------------------------------ Сесія й платформа ------------------------------ */
-
-export interface MockUser extends Me {
-  password: string
-  /** Код 2FA, який мок приймає (у справжньому сервері — TOTP). */
-  totpCode: string
-}
-
-const SESSION_KEY = "erp-ui:mock-session"
-type Session = { userId: string; stage: "two_factor" | "authenticated" }
-
-function readSession(): Session | null {
-  try {
-    const raw = globalThis.localStorage?.getItem(SESSION_KEY)
-    return raw ? (JSON.parse(raw) as Session) : null
-  } catch {
-    return null
-  }
-}
-
-let memorySession: Session | null = readSession()
-
-function writeSession(session: Session | null) {
-  memorySession = session
-  try {
-    if (session)
-      globalThis.localStorage?.setItem(SESSION_KEY, JSON.stringify(session))
-    else globalThis.localStorage?.removeItem(SESSION_KEY)
-  } catch {
-    // Без сховища сесія живе до перезавантаження.
-  }
-}
-
-let mockUsers: MockUser[] = []
-
-/** Користувач поточної мок-сесії (після 2FA). */
-export function currentMockUser(): MockUser | null {
-  const session = memorySession
-  if (session?.stage !== "authenticated") return null
-  return mockUsers.find((u) => u.id === session.userId) ?? null
-}
-
-/** Увійти в мок без форми — для тестів і демо. */
-export function signInMock(userId: string | null) {
-  writeSession(userId ? { userId, stage: "authenticated" } : null)
-}
-
-/** Профіль без пароля й коду: схема відкидає зайві поля. */
-const toMe = (user: MockUser): Me => meSchema.parse(user)
-
-const PREFS_KEY = (userId: string) => `erp-ui:mock-preferences:${userId}`
-
-export function createPlatformHandlers({
-  users,
-  baseUrl = API_PREFIX,
-  defaultPreferences,
-}: {
-  users: MockUser[]
-  baseUrl?: string
-  defaultPreferences?: Partial<Preferences>
-}): HttpHandler[] {
-  mockUsers = users
-  const unauthenticated = () =>
-    errorResponse(401, { code: "unauthenticated", message: "Not signed in" })
-
-  return [
-    http.post(`${baseUrl}/auth/login`, async ({ request }) => {
-      const body = (await request.json()) as {
-        email?: string
-        password?: string
-      }
-      const user = users.find(
-        (u) =>
-          u.email.toLowerCase() === body.email?.toLowerCase() &&
-          u.password === body.password,
-      )
-      if (!user) {
-        return errorResponse(401, {
-          code: "unauthenticated",
-          message: "Invalid email or password",
-        })
-      }
-      if (user.twoFactorEnabled) {
-        writeSession({ userId: user.id, stage: "two_factor" })
-        return HttpResponse.json({ status: "two_factor_required" })
-      }
-      writeSession({ userId: user.id, stage: "authenticated" })
-      return HttpResponse.json({ status: "authenticated" })
-    }),
-
-    http.post(`${baseUrl}/auth/2fa`, async ({ request }) => {
-      const { code } = (await request.json()) as { code?: string }
-      const session = memorySession
-      const user = users.find((u) => u.id === session?.userId)
-      if (session?.stage !== "two_factor" || !user) return unauthenticated()
-      if (code !== user.totpCode) {
-        return errorResponse(422, {
-          code: "validation",
-          message: "Invalid code",
-          fieldErrors: { code: "invalid" },
-        })
-      }
-      writeSession({ userId: user.id, stage: "authenticated" })
-      return HttpResponse.json({ status: "authenticated" })
-    }),
-
-    http.post(`${baseUrl}/auth/logout`, () => {
-      writeSession(null)
-      return new HttpResponse(null, { status: 204 })
-    }),
-
-    http.get(`${baseUrl}/me`, () => {
-      const user = currentMockUser()
-      return user ? HttpResponse.json(toMe(user)) : unauthenticated()
-    }),
-
-    http.get(`${baseUrl}/me/preferences`, () => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      try {
-        const raw = globalThis.localStorage?.getItem(PREFS_KEY(user.id))
-        return HttpResponse.json(
-          raw ? (JSON.parse(raw) as Preferences) : (defaultPreferences ?? {}),
-        )
-      } catch {
-        return HttpResponse.json(defaultPreferences ?? {})
-      }
-    }),
-
-    http.put(`${baseUrl}/me/preferences`, async ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const prefs = (await request.json()) as Preferences
-      try {
-        globalThis.localStorage?.setItem(
-          PREFS_KEY(user.id),
-          JSON.stringify(prefs),
-        )
-      } catch {
-        // Не збереглося — мок однаково відповідає успіхом.
-      }
-      return HttpResponse.json(prefs)
-    }),
-  ]
-}
+export {
+  createPlatformHandlers,
+  DEFAULT_MOCK_METHODS,
+  type MockInvite,
+  type PlatformMockOptions,
+} from "@/registry/lib/mock-auth"
+export {
+  currentMockUser,
+  errorResponse,
+  signInMock,
+  subscribeMockMessages,
+  type MockMessage,
+  type MockUser,
+} from "@/registry/lib/mock-server"
 
 /* ---------------------------------- Ресурси ---------------------------------- */
 
@@ -327,8 +170,7 @@ export function createResourceHandlers<T extends MockRecord>({
     http.get(url, async ({ request }) => {
       const denied = await guard("read")
       if (denied) return denied
-      if (scenarioFor(resource) === "empty")
-        return HttpResponse.json({ data: [], total: 0 })
+      if (scenarioFor(resource) === "empty") return json({ data: [], total: 0 })
       const { page, perPage, sort, filter } = fromSearchParams(
         new URL(request.url).searchParams,
       )
@@ -352,7 +194,7 @@ export function createResourceHandlers<T extends MockRecord>({
       })
       const sorted = sortRecords(filtered, sort)
       const start = (page - 1) * perPage
-      return HttpResponse.json({
+      return json({
         data: sorted.slice(start, start + perPage),
         total: sorted.length,
       })
@@ -364,7 +206,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const record = records
         .filter(inCompany(request))
         .find((r) => r.id === params.id)
-      return record ? HttpResponse.json(record) : notFound()
+      return record ? json(record) : notFound()
     }),
 
     http.post(url, async ({ request }) => {
@@ -385,7 +227,7 @@ export function createResourceHandlers<T extends MockRecord>({
         })
       }
       records = [parsed.data, ...records]
-      return HttpResponse.json(parsed.data, { status: 201 })
+      return json(parsed.data, { status: 201 })
     }),
 
     http.patch(`${url}/:id`, async ({ params, request }) => {
@@ -426,7 +268,7 @@ export function createResourceHandlers<T extends MockRecord>({
         })
       }
       records[index] = parsed.data
-      return HttpResponse.json(parsed.data)
+      return json(parsed.data)
     }),
 
     http.delete(`${url}/:id`, async ({ params }) => {
@@ -434,9 +276,7 @@ export function createResourceHandlers<T extends MockRecord>({
       if (denied) return denied
       const before = records.length
       records = records.filter((r) => r.id !== params.id)
-      return records.length < before
-        ? new HttpResponse(null, { status: 204 })
-        : notFound()
+      return records.length < before ? noContent() : notFound()
     }),
   ]
 

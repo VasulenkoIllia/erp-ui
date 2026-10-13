@@ -61,10 +61,12 @@ const SHOT_PAGES = {
   module: "/#/m/K2",
   data: "/#/data",
   login: "/#/login",
+  signup: "/#/signup",
+  security: "/#/settings/security",
 } as const
-/** Сторінка входу — для гостя, решта — під бухгалтером. */
+/** Екрани входу — для гостя, решта — під бухгалтером. */
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
-  pageId === "login" ? { user: null } : {}
+  pageId === "login" || pageId === "signup" ? { user: null } : {}
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
 )
