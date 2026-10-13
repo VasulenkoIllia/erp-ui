@@ -115,6 +115,18 @@
     outline-offset: 2px;
   }
 
+  /* Липкий топбар (h-14) і нижня панель телефона оболонки не перекривають елемент у фокусі
+   * (WCAG 2.4.11): прокрутка до нього лишає відступ під ними. */
+  html:has([data-slot="app-shell"]) {
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: 5rem;
+  }
+  @media (min-width: 48rem) {
+    html:has([data-slot="app-shell"]) {
+      scroll-padding-bottom: 1rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

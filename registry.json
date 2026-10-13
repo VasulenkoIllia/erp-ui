@@ -7,11 +7,12 @@
       "name": "base",
       "type": "registry:item",
       "title": "Основа erp-ui",
-      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, мови й форматери, скіл і правила для Claude Code.",
+      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code.",
       "dependencies": [
         "@fontsource/geist@^5.3.0",
         "cn@^0.4.0",
         "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
         "react-i18next@^17.0.16",
         "shadcn@^4.21.4",
         "tw-animate-css@^1.4.0"
@@ -86,9 +87,24 @@
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/hooks/use-appearance.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-appearance.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
         }
       ],
-      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру викличте createI18n() з @/lib/i18n (рядки проекту — параметром resources).\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
+      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру: initAppearance() з @/lib/appearance і syncLanguage(createI18n({ resources })) з @/lib/i18n.\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
       "meta": {
         "layer": "base",
         "status": "beta",
@@ -179,6 +195,63 @@
       }
     },
     {
+      "name": "ui/alert",
+      "type": "registry:ui",
+      "title": "Повідомлення",
+      "description": "Банер у потоці сторінки; варіанти статусів — soft-тло + *-foreground.",
+      "dependencies": [
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "states",
+        "spec": [
+          "§6.3"
+        ]
+      }
+    },
+    {
+      "name": "ui/avatar",
+      "type": "registry:ui",
+      "title": "Аватар",
+      "description": "Фото або ініціали; групи аватарів.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/avatar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/avatar.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance"
+      }
+    },
+    {
       "name": "ui/badge",
       "type": "registry:ui",
       "title": "Бейдж",
@@ -206,6 +279,54 @@
         "demo": "primitives",
         "spec": [
           "§6.3"
+        ]
+      }
+    },
+    {
+      "name": "ui/breadcrumb",
+      "type": "registry:ui",
+      "title": "Хлібні крихти",
+      "description": "Шлях до сторінки; підписи для скрінрідера мовою інтерфейсу.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/breadcrumb.tsx",
+          "type": "registry:ui",
+          "target": "@ui/breadcrumb.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§7"
         ]
       }
     },
@@ -350,6 +471,64 @@
       }
     },
     {
+      "name": "ui/dropdown-menu",
+      "type": "registry:ui",
+      "title": "Меню",
+      "description": "Випадне меню на Base UI: пункти, перемикачі, прапорці, підменю.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0",
+        "lucide-react@^1.55.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance"
+      }
+    },
+    {
+      "name": "ui/empty",
+      "type": "registry:ui",
+      "title": "Порожній блок",
+      "description": "Основа станів сторінки: іконка, заголовок, опис, дії.",
+      "dependencies": [
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "states",
+        "spec": [
+          "§8.1"
+        ]
+      }
+    },
+    {
       "name": "ui/field",
       "type": "registry:ui",
       "title": "Поле форми",
@@ -467,6 +646,32 @@
       }
     },
     {
+      "name": "ui/kbd",
+      "type": "registry:ui",
+      "title": "Клавіша",
+      "description": "Позначення клавіш і поєднань (Ctrl K).",
+      "dependencies": [
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/kbd.tsx",
+          "type": "registry:ui",
+          "target": "@ui/kbd.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance"
+      }
+    },
+    {
       "name": "ui/label",
       "type": "registry:ui",
       "title": "Підпис",
@@ -490,6 +695,33 @@
         "layer": "ui",
         "status": "beta",
         "demo": "primitives"
+      }
+    },
+    {
+      "name": "ui/popover",
+      "type": "registry:ui",
+      "title": "Спливна панель",
+      "description": "Popover на Base UI з заголовком і описом.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance"
       }
     },
     {
@@ -599,6 +831,86 @@
         "spec": [
           "§9",
           "UI38"
+        ]
+      }
+    },
+    {
+      "name": "ui/sidebar",
+      "type": "registry:ui",
+      "title": "Сайдбар",
+      "description": "Основа оболонки: розгорнутий, вузька панель з іконками, шторка на телефоні; пункти з токенів щільності, Ctrl+B поза полями вводу.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sidebar.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§7",
+          "§9"
         ]
       }
     },
@@ -869,6 +1181,48 @@
       }
     },
     {
+      "name": "lib/appearance",
+      "type": "registry:lib",
+      "title": "Вподобання вигляду",
+      "description": "Палітра, тема, щільність, сайдбар і мова: атрибути <html>, кеш у localStorage, initAppearance, syncLanguage з i18next.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§6.2",
+          "§11",
+          "PF11"
+        ]
+      }
+    },
+    {
       "name": "lib/format",
       "type": "registry:lib",
       "title": "Форматери Intl",
@@ -994,6 +1348,30 @@
       }
     },
     {
+      "name": "lib/icons",
+      "type": "registry:lib",
+      "title": "Словник іконок",
+      "description": "Поняття → іконка lucide: модулі A1…T1 і LC01…LC12, статуси, дії з документами, оболонка; HryvniaIcon; IconProvider (лінія 2).",
+      "dependencies": [
+        "lucide-react@^1.55.0"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "icons",
+        "spec": [
+          "§6.5"
+        ]
+      }
+    },
+    {
       "name": "lib/phone",
       "type": "registry:lib",
       "title": "Телефони",
@@ -1066,6 +1444,74 @@
       }
     },
     {
+      "name": "hooks/use-appearance",
+      "type": "registry:hook",
+      "title": "useAppearance",
+      "description": "Поточні вподобання вигляду й функція зміни; перемальовує при будь-якій зміні.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-appearance.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-appearance.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§6.2"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-breakpoint",
+      "type": "registry:hook",
+      "title": "useBreakpoint",
+      "description": "Брейкпоінт оболонки: телефон < 768 px, планшет до 1279 px, десктоп ≥ 1280 px.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§7",
+          "§9"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-resolved-theme",
       "type": "registry:hook",
       "title": "useResolvedTheme",
@@ -1083,6 +1529,386 @@
         "status": "beta",
         "spec": [
           "§6.2"
+        ]
+      }
+    },
+    {
+      "name": "erp/app-shell",
+      "type": "registry:component",
+      "title": "Оболонка застосунку",
+      "description": "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон), топбар із хлібними крихтами, «Перейти до вмісту».",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/app-shell.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/app-shell.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/breadcrumb.tsx",
+          "type": "registry:ui",
+          "target": "@ui/breadcrumb.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sidebar.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§7",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/command-palette",
+      "type": "registry:component",
+      "title": "Палітра команд",
+      "description": "Cmd/Ctrl+K: пошук розділів і дій за назвою й ключовими словами; на Base UI Autocomplete.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/command-palette.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/command-palette.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/kbd.tsx",
+          "type": "registry:ui",
+          "target": "@ui/kbd.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "UI15",
+          "PF06"
+        ]
+      }
+    },
+    {
+      "name": "erp/company-switcher",
+      "type": "registry:component",
+      "title": "Перемикач компанії",
+      "description": "Компанія чи робочий простір у шапці сайдбара; одна компанія — без меню.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/company-switcher.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/company-switcher.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sidebar.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "PF02"
+        ]
+      }
+    },
+    {
+      "name": "erp/notification-bell",
+      "type": "registry:component",
+      "title": "Дзвіник сповіщень",
+      "description": "Кнопка з лічильником у підписі й панель; заглушка до PF10.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/notification-bell.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-bell.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "draft",
+        "demo": "appearance",
+        "spec": [
+          "UI02",
+          "PF10"
+        ]
+      }
+    },
+    {
+      "name": "erp/page-state",
+      "type": "registry:component",
+      "title": "Стани сторінки",
+      "description": "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "states",
+        "spec": [
+          "§8.1",
+          "§8.2"
         ]
       }
     },
@@ -1211,6 +2037,86 @@
         "spec": [
           "LC12",
           "§8.3"
+        ]
+      }
+    },
+    {
+      "name": "erp/user-menu",
+      "type": "registry:component",
+      "title": "Меню користувача",
+      "description": "Профіль, тема, палітра, щільність, мова, темний сайдбар, вихід; пункти проекту — дочірніми елементами.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/user-menu.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/user-menu.tsx"
+        },
+        {
+          "path": "registry/hooks/use-appearance.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-appearance.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/avatar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/avatar.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "appearance",
+        "spec": [
+          "§6.2",
+          "PF11"
         ]
       }
     }

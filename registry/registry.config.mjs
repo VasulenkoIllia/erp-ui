@@ -65,12 +65,91 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["LC12"],
   },
+  "lib/appearance": {
+    title: "Вподобання вигляду",
+    description:
+      "Палітра, тема, щільність, сайдбар і мова: атрибути <html>, кеш у localStorage, initAppearance, syncLanguage з i18next.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§6.2", "§11", "PF11"],
+  },
+  "lib/icons": {
+    title: "Словник іконок",
+    description:
+      "Поняття → іконка lucide: модулі A1…T1 і LC01…LC12, статуси, дії з документами, оболонка; HryvniaIcon; IconProvider (лінія 2).",
+    status: "beta",
+    demo: "icons",
+    spec: ["§6.5"],
+  },
+  "hooks/use-appearance": {
+    title: "useAppearance",
+    description:
+      "Поточні вподобання вигляду й функція зміни; перемальовує при будь-якій зміні.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§6.2"],
+  },
+  "hooks/use-breakpoint": {
+    title: "useBreakpoint",
+    description:
+      "Брейкпоінт оболонки: телефон < 768 px, планшет до 1279 px, десктоп ≥ 1280 px.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§7", "§9"],
+  },
   "hooks/use-resolved-theme": {
     title: "useResolvedTheme",
     description:
       "Поточна тема з класу dark на <html> — для компонентів, яким потрібна тема.",
     status: "beta",
     spec: ["§6.2"],
+  },
+  "erp/app-shell": {
+    title: "Оболонка застосунку",
+    description:
+      "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон), топбар із хлібними крихтами, «Перейти до вмісту».",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§7", "§9", "§10"],
+  },
+  "erp/command-palette": {
+    title: "Палітра команд",
+    description:
+      "Cmd/Ctrl+K: пошук розділів і дій за назвою й ключовими словами; на Base UI Autocomplete.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["UI15", "PF06"],
+  },
+  "erp/user-menu": {
+    title: "Меню користувача",
+    description:
+      "Профіль, тема, палітра, щільність, мова, темний сайдбар, вихід; пункти проекту — дочірніми елементами.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§6.2", "PF11"],
+  },
+  "erp/company-switcher": {
+    title: "Перемикач компанії",
+    description:
+      "Компанія чи робочий простір у шапці сайдбара; одна компанія — без меню.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["PF02"],
+  },
+  "erp/notification-bell": {
+    title: "Дзвіник сповіщень",
+    description: "Кнопка з лічильником у підписі й панель; заглушка до PF10.",
+    status: "draft",
+    demo: "appearance",
+    spec: ["UI02", "PF10"],
+  },
+  "erp/page-state": {
+    title: "Стани сторінки",
+    description:
+      "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження.",
+    status: "beta",
+    demo: "states",
+    spec: ["§8.1", "§8.2"],
   },
   "erp/ua-id-input": {
     title: "Поле ідентифікатора UA",
@@ -88,6 +167,20 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["LC12", "§8.3"],
   },
+  "ui/alert": {
+    title: "Повідомлення",
+    description:
+      "Банер у потоці сторінки; варіанти статусів — soft-тло + *-foreground.",
+    status: "beta",
+    demo: "states",
+    spec: ["§6.3"],
+  },
+  "ui/avatar": {
+    title: "Аватар",
+    description: "Фото або ініціали; групи аватарів.",
+    status: "beta",
+    demo: "appearance",
+  },
   "ui/badge": {
     title: "Бейдж",
     description:
@@ -95,6 +188,13 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "primitives",
     spec: ["§6.3"],
+  },
+  "ui/breadcrumb": {
+    title: "Хлібні крихти",
+    description: "Шлях до сторінки; підписи для скрінрідера мовою інтерфейсу.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§7"],
   },
   "ui/button": {
     title: "Кнопка",
@@ -123,6 +223,20 @@ export const CODE_ITEMS = {
     demo: "primitives",
     spec: ["§8.2"],
   },
+  "ui/dropdown-menu": {
+    title: "Меню",
+    description:
+      "Випадне меню на Base UI: пункти, перемикачі, прапорці, підменю.",
+    status: "beta",
+    demo: "appearance",
+  },
+  "ui/empty": {
+    title: "Порожній блок",
+    description: "Основа станів сторінки: іконка, заголовок, опис, дії.",
+    status: "beta",
+    demo: "states",
+    spec: ["§8.1"],
+  },
   "ui/field": {
     title: "Поле форми",
     description: "Підпис, опис і помилка поля; групи й набори полів.",
@@ -146,11 +260,23 @@ export const CODE_ITEMS = {
     demo: "primitives",
     spec: ["§8.3"],
   },
+  "ui/kbd": {
+    title: "Клавіша",
+    description: "Позначення клавіш і поєднань (Ctrl K).",
+    status: "beta",
+    demo: "appearance",
+  },
   "ui/label": {
     title: "Підпис",
     description: "Підпис поля над контролом.",
     status: "beta",
     demo: "primitives",
+  },
+  "ui/popover": {
+    title: "Спливна панель",
+    description: "Popover на Base UI з заголовком і описом.",
+    status: "beta",
+    demo: "appearance",
   },
   "ui/select": {
     title: "Список вибору",
@@ -170,6 +296,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "primitives",
     spec: ["§9", "UI38"],
+  },
+  "ui/sidebar": {
+    title: "Сайдбар",
+    description:
+      "Основа оболонки: розгорнутий, вузька панель з іконками, шторка на телефоні; пункти з токенів щільності, Ctrl+B поза полями вводу.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§7", "§9"],
   },
   "ui/skeleton": {
     title: "Скелетон",
@@ -258,7 +392,7 @@ export const BUNDLE_ITEMS = {
   base: {
     title: "Основа erp-ui",
     description:
-      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, мови й форматери, скіл і правила для Claude Code.",
+      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code.",
     status: "beta",
     demo: "appearance",
     spec: ["§3", "§6", "§19"],
@@ -268,13 +402,16 @@ export const BUNDLE_ITEMS = {
       "hooks/use-resolved-theme",
       "lib/i18n",
       "lib/format",
+      "lib/appearance",
+      "hooks/use-appearance",
+      "lib/icons",
     ],
     dependencies: ["@fontsource/geist", "tw-animate-css", "shadcn"],
     docs: [
       "erp-ui встановлено.",
       "1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.",
       "2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md",
-      "3) У main.tsx до рендеру викличте createI18n() з @/lib/i18n (рядки проекту — параметром resources).",
+      "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance і syncLanguage(createI18n({ resources })) з @/lib/i18n.",
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
     ].join("\n"),

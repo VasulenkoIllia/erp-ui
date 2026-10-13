@@ -1,13 +1,14 @@
 {
   "app": {
     "eyebrow": "erp-ui · demo",
-    "nav": "Demo sections",
     "pages": {
       "appearance": "Appearance",
       "primitives": "Primitives",
-      "formats": "Languages & formats"
+      "formats": "Languages & formats",
+      "icons": "Icons",
+      "states": "Page states"
     },
-    "language": "Interface language"
+    "product": "erp-ui · demo"
   },
   "appearancePage": {
     "title": "Themes & appearance",
@@ -47,20 +48,38 @@
     "tabsLabel": "Invoice status",
     "fields": "Fields: states (SPEC §8.3)",
     "field": {
-      "normal": { "label": "Company name", "hint": "Default state" },
-      "focus": { "label": "Contact person", "hint": "Focus" },
-      "error": { "label": "EDRPOU code" },
+      "normal": {
+        "label": "Company name",
+        "hint": "Default state"
+      },
+      "focus": {
+        "label": "Contact person",
+        "hint": "Focus"
+      },
+      "error": {
+        "label": "EDRPOU code"
+      },
       "async": {
         "label": "Counterparty EDRPOU code",
         "hint": "Checking the state register…"
       },
-      "dirty": { "label": "IBAN", "mark": "changed", "hint": "Not saved" },
-      "saved": { "label": "Note", "hint": "Autosaved at {{time}}" },
+      "dirty": {
+        "label": "IBAN",
+        "mark": "changed",
+        "hint": "Not saved"
+      },
+      "saved": {
+        "label": "Note",
+        "hint": "Autosaved at {{time}}"
+      },
       "readOnly": {
         "label": "VAT rate",
         "hint": "Read-only: available to the Accountant role"
       },
-      "locked": { "label": "Contract amount", "hint": "{{name}} is editing" },
+      "locked": {
+        "label": "Contract amount",
+        "hint": "{{name}} is editing"
+      },
       "disabled": {
         "label": "Document number",
         "value": "Assigned automatically",
@@ -165,22 +184,6 @@
     "sidebar": "Sidebar",
     "sidebarHint": "In the dark theme the sidebar is always dark."
   },
-  "palettes": {
-    "sapphire": "Sapphire",
-    "graphite": "Graphite",
-    "indigo": "Indigo",
-    "teal": "Teal",
-    "terracotta": "Terracotta"
-  },
-  "themes": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System"
-  },
-  "densities": {
-    "comfortable": "Comfortable",
-    "compact": "Compact"
-  },
   "sidebars": {
     "light": "Light",
     "dark": "Dark"
@@ -215,5 +218,52 @@
     },
     "charts": "Chart colours",
     "series": "Series {{index}}"
+  },
+  "nav": {
+    "kit": "Kit",
+    "erp": "ERP example"
+  },
+  "commands": {
+    "pages": "Demo pages",
+    "modules": "Modules",
+    "appearance": "Appearance & language",
+    "actions": "Actions",
+    "createInvoice": "Create invoice",
+    "invoiceCreated": "Draft invoice created",
+    "theme": "Theme: {{name}}",
+    "palette": "Palette: {{name}}",
+    "density": "Density: {{name}}",
+    "language": "Language: {{name}}"
+  },
+  "user": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "signedOut": "Signing out works only in a real app"
+  },
+  "iconsPage": {
+    "title": "Icons",
+    "lead": "Concept → icon dictionary (lib/icons): modules, statuses, document actions, shell; a custom hryvnia icon.",
+    "modules": "Modules",
+    "statuses": "Statuses",
+    "actions": "Record and document actions",
+    "shell": "Shell",
+    "hryvnia": "Hryvnia in lucide style",
+    "hryvniaHint": "Other lucide currency icons next to it for a style check.",
+    "stroke": "Stroke width",
+    "strokeHint": "The same across the app (IconProvider). Comparing 1.5 · 1.75 · 2.",
+    "strokeValue": "Stroke {{value}}"
+  },
+  "statesPage": {
+    "title": "Page states",
+    "lead": "Required collection states (SPEC §8.1): default texts come from kit strings, the action comes from the screen.",
+    "loading": "Initial loading",
+    "createInvoice": "Create invoice",
+    "retried": "Retrying the request…",
+    "reset": "Filters reset"
+  },
+  "modulePage": {
+    "lead": "Module {{id}} is not built yet — the shell already leads to it.",
+    "description": "Module screens arrive in their wave (SPEC §16). This shows a section without data.",
+    "states": "See page states"
   }
 }

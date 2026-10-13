@@ -48,18 +48,19 @@ test.describe("мови й формати: поведінка", () => {
     ).toBeVisible()
     await expect(page.getByText("48 600,00 ₴")).toBeVisible()
 
-    await page.getByRole("button", { name: "English" }).click()
+    // Мова — у меню користувача.
+    await page.getByRole("button", { name: /Меню користувача/ }).click()
+    await page.getByRole("menuitem", { name: /Мова/ }).click()
+    await page.getByRole("menuitemradio", { name: "English" }).click()
     await expect(html).toHaveAttribute("lang", "en")
     await expect(
       page.getByRole("heading", { level: 1, name: "Languages & formats" }),
     ).toBeVisible()
     await expect(page.getByText("₴48,600.00")).toBeVisible()
-    await expect(page.getByRole("button", { name: "English" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
-    // Зміна мови не переносить фокус на заголовок.
-    await expect(page.getByRole("button", { name: "English" })).toBeFocused()
+    // Зміна мови не переносить фокус на заголовок сторінки.
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Languages & formats" }),
+    ).not.toBeFocused()
 
     await page.reload()
     await expect(html).toHaveAttribute("lang", "en")

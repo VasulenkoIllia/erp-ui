@@ -4,6 +4,7 @@
  * Суми — цілі копійки + код валюти (SPEC §17).
  */
 import type { Money } from "@/registry/lib/format"
+import type { ModuleId } from "@/registry/lib/icons"
 
 export type StatusKind = "success" | "warning" | "destructive" | "info"
 
@@ -73,3 +74,32 @@ export const LC12_SAMPLES = {
 /** Момент «зараз» для прикладів відносного часу й дат — щоб скриншоти не змінювались. */
 export const DEMO_NOW = new Date("2026-10-13T09:00:00Z")
 export const DEMO_TIME_ZONE = "Europe/Kyiv"
+
+/** Компанії для перемикача (PF02). */
+export const COMPANIES = [
+  {
+    id: "zoriana",
+    name: "ТОВ «Зоряна логістика»",
+    description: "ЄДРПОУ 32855961",
+  },
+  {
+    id: "kovalenko",
+    name: "ФОП Коваленко О. В.",
+    description: "РНОКПП 1759013776",
+  },
+]
+
+export const DEMO_USER = {
+  name: "Олена Коваль",
+  email: "olena@zoriana.example",
+}
+
+/** Розділи прикладу ERP у навігації демо: модулі з SPEC §14 і лічильник «на погодженні». */
+export const ERP_EXAMPLE: { id: ModuleId; badge?: number }[] = [
+  { id: "O1" },
+  { id: "K2", badge: 3 },
+  { id: "B1" },
+  { id: "F2" },
+  { id: "F4" },
+  { id: "LC04" },
+]

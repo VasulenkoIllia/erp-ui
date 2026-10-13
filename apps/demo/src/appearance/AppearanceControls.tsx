@@ -10,8 +10,9 @@ import {
   THEME_MODES,
   type Palette,
   type ThemeMode,
-} from "./appearance"
-import { useAppearance } from "./store"
+} from "@/registry/lib/appearance"
+import { useAppearance } from "@/registry/hooks/use-appearance"
+import { useErpUiT } from "@/registry/lib/i18n"
 
 interface Option<T extends string> {
   value: T
@@ -100,6 +101,7 @@ const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
 export function AppearanceControls() {
   const [appearance, setAppearance] = useAppearance()
   const { t } = useTranslation()
+  const kitT = useErpUiT()
 
   return (
     <section
@@ -119,7 +121,7 @@ export function AppearanceControls() {
         }}
         options={PALETTES.map((palette) => ({
           value: palette,
-          label: t(`palettes.${palette}`),
+          label: kitT(`palettes.${palette}`),
           adornment: <PaletteSwatch palette={palette} />,
         }))}
       />
@@ -135,7 +137,7 @@ export function AppearanceControls() {
           const Icon = THEME_ICONS[theme]
           return {
             value: theme,
-            label: t(`themes.${theme}`),
+            label: kitT(`themes.${theme}`),
             adornment: <Icon aria-hidden className="size-4" />,
           }
         })}
@@ -150,7 +152,7 @@ export function AppearanceControls() {
         }}
         options={DENSITIES.map((density) => ({
           value: density,
-          label: t(`densities.${density}`),
+          label: kitT(`densities.${density}`),
         }))}
       />
 
