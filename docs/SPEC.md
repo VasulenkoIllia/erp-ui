@@ -127,7 +127,7 @@ erp-ui/
 | Автоматизація | React Flow 12 (@xyflow/react) + react-querybuilder | MIT | правила виконує сервер |
 | PDF | @react-pdf/renderer (прев'ю), pdf-lib, @pdfme/ui | MIT | юридичні документи рендерить сервер |
 | i18n | i18next + Intl | MIT | uk, en |
-| Палітра команд, тости, шторки | cmdk, sonner, vaul | MIT | |
+| Палітра команд, тости, шторки | cmdk, sonner; шторки — Drawer/Sheet з Base UI | MIT | vaul не потрібен (Base UI має Drawer); cmdk — виняток із бар'єра 2, ADR на кроці 0.4 |
 | Іконки | lucide-react | ISC | |
 | Шрифт | Geist (@fontsource/geist) | OFL | є кирилиця |
 | Моки | MSW | MIT | |
@@ -176,7 +176,7 @@ erp-ui/
 - Основний колір ніколи не червоний, зелений чи жовтий: ці кольори зайняті статусами.
 - У темній темі основна кнопка світла з темним текстом — так основний колір проходить контраст і як заливка, і як текст.
 - Темний сайдбар у світлій темі — опція (`data-sidebar="dark"`). У темній темі сайдбар завжди темний.
-- Готові значення: `design/themes.css` (OKLCH, формат shadcn), джерело — `design/palette-tokens.json`. Перевірка: `design/palette-contrast-report.json` (180 пар, 0 помилок).
+- Готові значення: `design/themes.css` (OKLCH, формат shadcn), генерується з `design/palette-tokens.json` скриптом `pnpm themes`. Перевірка: `pnpm check:contrast` і `design/palette-contrast-report.json` (370 пар, 0 помилок).
 
 ### 6.2 Перемикання тем
 

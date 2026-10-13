@@ -1,0 +1,48 @@
+import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
+import { test } from "node:test"
+
+import { checkContrast } from "./check-contrast.mjs"
+import { generateThemes } from "./generate-themes.mjs"
+import { contrastRatio, oklchToHex } from "./lib/color.mjs"
+
+const tokens = JSON.parse(
+  readFileSync(new URL("./palette-tokens.json", import.meta.url), "utf8"),
+)
+
+test("контраст за WCAG: біле й чорне — 21:1, однакові — 1:1", () => {
+  assert.equal(Math.round(contrastRatio("#ffffff", "#000000") * 100) / 100, 21)
+  assert.equal(contrastRatio("oklch(0.5 0.1 250)", "oklch(0.5 0.1 250)"), 1)
+})
+
+// hex у токенах — довідкові; допускаємо різницю округлення в 1 на канал.
+test("OKLCH → hex збігається з hex у токенах (±1 на канал)", () => {
+  const channels = (hex) =>
+    [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  for (const palette of Object.values(tokens)) {
+    for (const mode of [palette.light, palette.dark]) {
+      for (const [key, token] of Object.entries(mode)) {
+        if (key === "charts") continue
+        const actual = channels(oklchToHex(token.css))
+        const expected = channels(token.hex)
+        const diff = Math.max(
+          ...actual.map((c, i) => Math.abs(c - expected[i])),
+        )
+        assert.ok(
+          diff <= 1,
+          `${key}: ${token.css} → ${oklchToHex(token.css)}, у токенах ${token.hex}`,
+        )
+      }
+    }
+  }
+})
+
+test("themes.css згенеровано з актуальних токенів", () => {
+  const css = readFileSync(new URL("./themes.css", import.meta.url), "utf8")
+  assert.equal(css, generateThemes(tokens))
+})
+
+test("усі обов'язкові пари контрасту проходять", () => {
+  const failures = checkContrast(tokens).report.filter((r) => !r.pass)
+  assert.deepEqual(failures, [])
+})

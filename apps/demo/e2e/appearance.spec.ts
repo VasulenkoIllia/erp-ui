@@ -51,6 +51,11 @@ test.describe("перемикачі вигляду", () => {
   test("усе керується з клавіатури", async ({ page }) => {
     await openWith(page, { palette: "sapphire" })
     const sapphire = page.getByRole("radio", { name: "Сапфір" })
+    // Порядок Tab: навігація демо → перша група перемикачів.
+    await page.keyboard.press("Tab")
+    await expect(page.getByRole("link", { name: "Вигляд" })).toBeFocused()
+    await page.keyboard.press("Tab")
+    await expect(page.getByRole("link", { name: "Примітиви" })).toBeFocused()
     await page.keyboard.press("Tab")
     await expect(sapphire).toBeFocused()
 

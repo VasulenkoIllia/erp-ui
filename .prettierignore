@@ -1,6 +1,7 @@
 pnpm-lock.yaml
 **/*.md
-design/
+design/*.json
+design/themes.css
 docs/
 **/dist/
 **/playwright-report/

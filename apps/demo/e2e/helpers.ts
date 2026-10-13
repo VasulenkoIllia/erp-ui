@@ -14,6 +14,7 @@ export interface AppearanceSeed {
 export async function openWith(
   page: Page,
   seed: AppearanceSeed,
+  path = "/",
 ): Promise<void> {
   await page.addInitScript(
     ([key, value]) => {
@@ -21,7 +22,7 @@ export async function openWith(
     },
     [STORAGE_KEY, JSON.stringify(seed)] as const,
   )
-  await page.goto("/")
+  await page.goto(path)
   await page.evaluate(() => document.fonts.ready)
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
 }

@@ -1,0 +1,128 @@
+/*
+ * erp-ui · шар 1 (токени): Geist, мапінг токенів тем у Tailwind v4, шкала радіусів,
+ * утиліти щільності й базові стилі. Значення кольорів — у design/themes.css (генерується).
+ * Порядок у глобальному CSS застосунку:
+ *   tailwindcss → no-default-colors.css → tw-animate-css → shadcn/tailwind.css → themes.css → base.css
+ */
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/geist/700.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Шкала радіусів shadcn (стиль Nova): rounded-lg = --radius = 8 px (SPEC §6.5). */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Щільність (SPEC §6.5): розміри з токенів --control-h, --row-h, --touch-min. */
+@utility h-control {
+  height: var(--control-h);
+}
+@utility min-h-control {
+  min-height: var(--control-h);
+}
+@utility size-control {
+  width: var(--control-h);
+  height: var(--control-h);
+}
+@utility h-row {
+  height: var(--row-h);
+}
+/* Ціль дотику: не менша за контрол і за мінімум щільності (44 px звичайна, 24 px компактна). */
+@utility min-h-touch {
+  min-height: max(var(--control-h), var(--touch-min));
+}
+/* Невидима зона натиску ≥ --touch-min навколо меншого контрола (SPEC §9; WCAG 2.5.8).
+ * Елементу потрібне position: relative (клас relative). */
+@utility touch-target {
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--touch-min));
+    height: max(100%, var(--touch-min));
+    transform: translate(-50%, -50%);
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  body {
+    @apply bg-background text-sm text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  /* Суцільне кільце фокуса (без прозорості), щоб тримати контраст ≥ 3:1.
+   * Примітиви реєстру малюють фокус через ring-2 ring-ring; це правило — для решти елементів. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

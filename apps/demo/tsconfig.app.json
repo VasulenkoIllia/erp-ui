@@ -5,6 +5,7 @@
     "jsx": "react-jsx",
     "types": ["vite/client"],
     "paths": {
+      "@/registry/*": ["../../registry/*"],
       "@/*": ["./src/*"],
       "@design/*": ["../../design/*"]
     }
