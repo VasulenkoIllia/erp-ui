@@ -23,13 +23,19 @@ describe("parseAppearance", () => {
         theme: "neon",
         density: "compact",
         sidebar: 1,
+        language: "pl",
       }),
     ).toEqual({
       palette: "graphite",
       theme: "system",
       density: "compact",
       sidebar: "light",
+      language: "uk",
     })
+  })
+
+  it("зберігає англійську, якщо її обрано", () => {
+    expect(parseAppearance({ language: "en" }).language).toBe("en")
   })
 })
 
@@ -51,7 +57,13 @@ describe("applyAppearance", () => {
   it("ставить атрибути за SPEC §6.2", () => {
     applyAppearance(
       root,
-      { palette: "teal", theme: "dark", density: "compact", sidebar: "dark" },
+      {
+        palette: "teal",
+        theme: "dark",
+        density: "compact",
+        sidebar: "dark",
+        language: "uk",
+      },
       false,
     )
     expect(root.dataset.palette).toBe("teal")

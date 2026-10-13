@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 
 // erp-ui: основа — shadcn base-nova/table (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
@@ -26,12 +27,13 @@ function useHorizontalOverflow(ref: React.RefObject<HTMLDivElement | null>) {
 }
 
 // erp-ui: коли таблиця ширша за контейнер, область прокрутки стає зупинкою Tab з підписом
-// (WCAG 2.1.1, axe scrollable-region-focusable). label — підпис області (uk; i18n — крок 0.3).
+// (WCAG 2.1.1, axe scrollable-region-focusable). label — підпис області (за замовчуванням «Таблиця» мовою інтерфейсу).
 function Table({
   className,
-  label = "Таблиця",
+  label,
   ...props
 }: React.ComponentProps<"table"> & { label?: string }) {
+  const t = useErpUiT()
   const container = React.useRef<HTMLDivElement>(null)
   const overflowing = useHorizontalOverflow(container)
   return (
@@ -39,7 +41,11 @@ function Table({
       ref={container}
       data-slot="table-container"
       {...(overflowing
-        ? { role: "region", "aria-label": label, tabIndex: 0 }
+        ? {
+            role: "region",
+            "aria-label": label ?? t("common.table"),
+            tabIndex: 0,
+          }
         : {})}
       className="relative w-full overflow-x-auto rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >

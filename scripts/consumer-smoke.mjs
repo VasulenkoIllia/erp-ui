@@ -6,7 +6,7 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add <REPO>/base і всі елементи ui/* на одному ref → tsc → vite build.
+ * shadcn add <REPO>/base і всі елементи ui/* та erp/* на одному ref → tsc → vite build.
  * --diff-from: спершу ставить усе зі старого ref, потім показує `add --diff` для нового (оновлення).
  * Приватний репозиторій: потрібен `gh auth login` або GH_TOKEN з правом читання.
  */
@@ -37,7 +37,7 @@ const shadcnVersion = JSON.parse(
   readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
 ).version
 const uiItems = registry.items
-  .filter((it) => it.name.startsWith("ui/"))
+  .filter((it) => /^(ui|erp)\//.test(it.name))
   .map((it) => it.name)
 
 const dir = mkdtempSync(path.join(tmpdir(), "erp-ui-consumer-"))
@@ -89,6 +89,18 @@ try {
     throw new Error("Імпорти @/registry/… не переписано на аліаси проекту")
   if (!button.includes("erp-ui: основа"))
     throw new Error("Шапку походження втрачено")
+  const phone = readFileSync(
+    path.join(dir, "src/components/erp/phone-input.tsx"),
+    "utf8",
+  )
+  for (const expected of [
+    'from "@/components/ui/select"',
+    'from "@/lib/phone"',
+    'from "@/lib/i18n"',
+  ]) {
+    if (!phone.includes(expected))
+      throw new Error(`erp/phone-input: немає імпорту ${expected}`)
+  }
 
   run("pnpm", ["typecheck"])
   run("pnpm", ["build"])

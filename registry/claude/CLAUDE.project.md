@@ -7,6 +7,7 @@
 - Не пиши аналогів компонентів реєстру. Бракує — запропонуй додати в erp-ui.
 - Лише токени тем (`src/styles/erp-ui/themes.css`): палітра `data-palette` (основні — `sapphire`, `graphite`), клас `dark`, `data-density`, `data-sidebar`.
 - Стек: React 19, Vite, TypeScript, Tailwind v4, shadcn/ui на Base UI, ra-core + Shadcn Admin Kit, TanStack Query/Table, react-hook-form + zod, i18next (uk, en).
+- Мови: `createI18n()` з `src/lib/i18n.ts` у `main.tsx`; тексти — лише через i18n, числа, суми й дати — лише `useFormat()` з `src/lib/format.ts` (ADR-0007 erp-ui).
 - Дані — через контракти модулів (`contract.ts`) і MSW-моки; бекенд цього проекту реалізує ті самі контракти.
 - Перед здачею: стани, 360/768/1440 px, світла/темна тема, uk/en, клавіатура, axe.
 

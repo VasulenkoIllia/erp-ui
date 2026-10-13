@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 
 import { Button } from "@/registry/ui/button"
@@ -41,17 +42,18 @@ function DialogOverlay({
   )
 }
 
-// erp-ui: підпис кнопки закриття — параметр (uk за замовчуванням; i18n — крок 0.3).
+// erp-ui: підпис кнопки закриття — параметр; за замовчуванням «Закрити» мовою інтерфейсу.
 function DialogContent({
   className,
   children,
   showCloseButton = true,
-  closeLabel = "Закрити",
+  closeLabel,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
   closeLabel?: string
 }) {
+  const t = useErpUiT()
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -76,7 +78,7 @@ function DialogContent({
             }
           >
             <XIcon />
-            <span className="sr-only">{closeLabel}</span>
+            <span className="sr-only">{closeLabel ?? t("common.close")}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>
@@ -97,13 +99,14 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 function DialogFooter({
   className,
   showCloseButton = false,
-  closeLabel = "Закрити",
+  closeLabel,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean
   closeLabel?: string
 }) {
+  const t = useErpUiT()
   return (
     <div
       data-slot="dialog-footer"
@@ -116,7 +119,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close render={<Button variant="outline" />}>
-          {closeLabel}
+          {closeLabel ?? t("common.close")}
         </DialogPrimitive.Close>
       )}
     </div>

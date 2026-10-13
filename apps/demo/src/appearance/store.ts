@@ -33,7 +33,7 @@ export function setAppearance(patch: Partial<Appearance>): void {
   })
 }
 
-function subscribe(listener: () => void): () => void {
+export function subscribeAppearance(listener: () => void): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
@@ -56,6 +56,6 @@ export function useAppearance(): [
   Appearance,
   (patch: Partial<Appearance>) => void,
 ] {
-  const appearance = useSyncExternalStore(subscribe, getAppearance)
+  const appearance = useSyncExternalStore(subscribeAppearance, getAppearance)
   return [appearance, setAppearance]
 }

@@ -1,6 +1,6 @@
 /**
  * Опис елементів реєстру erp-ui — джерело для registry.json і docs/CATALOG.md (scripts/build-registry.mjs).
- * Кожен файл у registry/{ui,lib,hooks} мусить мати тут запис: так каталог завжди повний.
+ * Кожен файл у registry/{ui,erp,lib,hooks} мусить мати тут запис: так каталог завжди повний.
  *
  * status: draft — у роботі; beta — є в демо й тестах, API може змінитися; stable — після стрес-сторінки (крок 0.6).
  * demo: сторінка демо-застосунку (ключ ROUTES в apps/demo/src/router.ts), де елемент показано в усіх станах.
@@ -18,12 +18,75 @@ export const CODE_ITEMS = {
     status: "beta",
     spec: ["§6.5"],
   },
+  "lib/i18n": {
+    title: "Мови інтерфейсу",
+    description:
+      "i18next + react-i18next: createI18n, українська за замовчуванням, англійська з британськими форматами, <html lang>, useLanguage, useErpUiT.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
+  },
+  "lib/i18n-uk": {
+    title: "Рядки кіта uk",
+    description:
+      "Рядки компонентів кіта українською (простір імен erp-ui): підписи, помилки валідації LC12.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
+  },
+  "lib/i18n-en": {
+    title: "Рядки кіта en",
+    description: "Ті самі рядки англійською; паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
+  },
+  "lib/format": {
+    title: "Форматери Intl",
+    description:
+      "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11", "§17"],
+  },
+  "lib/ua-ids": {
+    title: "Ідентифікатори UA",
+    description:
+      "ЄДРПОУ, РНОКПП, ІПН платника ПДВ, IBAN UA: нормалізація, контрольні суми, групування IBAN, МФО.",
+    status: "beta",
+    demo: "formats",
+    spec: ["LC12"],
+  },
+  "lib/phone": {
+    title: "Телефони",
+    description:
+      "Номери будь-яких країн на даних Google (google-libphonenumber): E.164, маска під час введення, перевірка, список країн.",
+    status: "beta",
+    demo: "formats",
+    spec: ["LC12"],
+  },
   "hooks/use-resolved-theme": {
     title: "useResolvedTheme",
     description:
       "Поточна тема з класу dark на <html> — для компонентів, яким потрібна тема.",
     status: "beta",
     spec: ["§6.2"],
+  },
+  "erp/ua-id-input": {
+    title: "Поле ідентифікатора UA",
+    description:
+      "ЄДРПОУ, РНОКПП, ІПН ПДВ, IBAN з маскою (react-number-format); значення без пробілів; тексти помилок — uaIdIssueKey.",
+    status: "beta",
+    demo: "formats",
+    spec: ["LC12", "§8.3"],
+  },
+  "erp/phone-input": {
+    title: "Поле телефону",
+    description:
+      "Вибір країни (без РФ і РБ за замовчуванням) + маска; значення в E.164; номер без «+» — український.",
+    status: "beta",
+    demo: "formats",
+    spec: ["LC12", "§8.3"],
   },
   "ui/badge": {
     title: "Бейдж",
@@ -195,18 +258,24 @@ export const BUNDLE_ITEMS = {
   base: {
     title: "Основа erp-ui",
     description:
-      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, скіл і правила для Claude Code.",
+      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, мови й форматери, скіл і правила для Claude Code.",
     status: "beta",
     demo: "appearance",
     spec: ["§3", "§6", "§19"],
     files: [...TOKEN_FILES, ...CLAUDE_FILES],
-    include: ["lib/utils", "hooks/use-resolved-theme"],
+    include: [
+      "lib/utils",
+      "hooks/use-resolved-theme",
+      "lib/i18n",
+      "lib/format",
+    ],
     dependencies: ["@fontsource/geist", "tw-animate-css", "shadcn"],
     docs: [
       "erp-ui встановлено.",
       "1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.",
       "2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md",
-      '3) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
+      "3) У main.tsx до рендеру викличте createI18n() з @/lib/i18n (рядки проекту — параметром resources).",
+      '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
     ].join("\n"),
   },

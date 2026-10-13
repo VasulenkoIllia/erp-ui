@@ -1,8 +1,11 @@
 /**
- * Вигляд інтерфейсу: палітра, тема, щільність, сайдбар (SPEC §6.2).
- * Застосовується атрибутами на <html>. Логіку дзеркалить inline-скрипт в index.html.
+ * Вигляд інтерфейсу: палітра, тема, щільність, сайдбар (SPEC §6.2) і мова (SPEC §11).
+ * Вигляд застосовується атрибутами на <html>, мова — через i18next (він же ставить <html lang>).
+ * Логіку дзеркалить inline-скрипт в index.html.
  * localStorage — лише кеш; на сервері вподобання зберігатиме контракт PF11 (крок 0.5).
  */
+
+import { DEFAULT_LANGUAGE, LANGUAGES, type Language } from "@/registry/lib/i18n"
 
 export const PALETTES = [
   "sapphire",
@@ -27,6 +30,7 @@ export interface Appearance {
   theme: ThemeMode
   density: Density
   sidebar: Sidebar
+  language: Language
 }
 
 export const DEFAULT_APPEARANCE: Appearance = {
@@ -34,6 +38,7 @@ export const DEFAULT_APPEARANCE: Appearance = {
   theme: "system",
   density: "comfortable",
   sidebar: "light",
+  language: DEFAULT_LANGUAGE,
 }
 
 export const STORAGE_KEY = "erp-ui:appearance"
@@ -56,6 +61,7 @@ export function parseAppearance(value: unknown): Appearance {
     theme: pick(THEME_MODES, v.theme, DEFAULT_APPEARANCE.theme),
     density: pick(DENSITIES, v.density, DEFAULT_APPEARANCE.density),
     sidebar: pick(SIDEBARS, v.sidebar, DEFAULT_APPEARANCE.sidebar),
+    language: pick(LANGUAGES, v.language, DEFAULT_APPEARANCE.language),
   }
 }
 

@@ -7,10 +7,12 @@
       "name": "base",
       "type": "registry:item",
       "title": "Основа erp-ui",
-      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, скіл і правила для Claude Code.",
+      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, useResolvedTheme, мови й форматери, скіл і правила для Claude Code.",
       "dependencies": [
         "@fontsource/geist@^5.3.0",
         "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16",
         "shadcn@^4.21.4",
         "tw-animate-css@^1.4.0"
       ],
@@ -64,9 +66,29 @@
           "path": "registry/hooks/use-resolved-theme.ts",
           "type": "registry:hook",
           "target": "@hooks/use-resolved-theme.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
         }
       ],
-      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
+      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру викличте createI18n() з @/lib/i18n (рядки проекту — параметром resources).\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
       "meta": {
         "layer": "base",
         "status": "beta",
@@ -282,13 +304,30 @@
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
-        "lucide-react@^1.55.0"
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
           "path": "registry/ui/dialog.tsx",
           "type": "registry:ui",
           "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -517,13 +556,30 @@
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
-        "lucide-react@^1.55.0"
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
           "path": "registry/ui/sheet.tsx",
           "type": "registry:ui",
           "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -614,13 +670,30 @@
       "description": "Індикатор очікування з підписом для скрінрідера.",
       "dependencies": [
         "cn@^0.4.0",
-        "lucide-react@^1.55.0"
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
           "path": "registry/ui/spinner.tsx",
           "type": "registry:ui",
           "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -670,13 +743,30 @@
       "title": "Таблиця",
       "description": "Проста таблиця; рядки з токена щільності; прокрутка доступна з клавіатури.",
       "dependencies": [
-        "cn@^0.4.0"
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
           "path": "registry/ui/table.tsx",
           "type": "registry:ui",
           "target": "@ui/table.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -779,6 +869,180 @@
       }
     },
     {
+      "name": "lib/format",
+      "type": "registry:lib",
+      "title": "Форматери Intl",
+      "description": "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-en",
+      "type": "registry:lib",
+      "title": "Рядки кіта en",
+      "description": "Ті самі рядки англійською; паритет ключів перевіряє тест.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-uk",
+      "type": "registry:lib",
+      "title": "Рядки кіта uk",
+      "description": "Рядки компонентів кіта українською (простір імен erp-ui): підписи, помилки валідації LC12.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n",
+      "type": "registry:lib",
+      "title": "Мови інтерфейсу",
+      "description": "i18next + react-i18next: createI18n, українська за замовчуванням, англійська з британськими форматами, <html lang>, useLanguage, useErpUiT.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/phone",
+      "type": "registry:lib",
+      "title": "Телефони",
+      "description": "Номери будь-яких країн на даних Google (google-libphonenumber): E.164, маска під час введення, перевірка, список країн.",
+      "dependencies": [
+        "google-libphonenumber@^3.2.47"
+      ],
+      "devDependencies": [
+        "@types/google-libphonenumber@^7.4.31"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/phone.ts",
+          "type": "registry:lib",
+          "target": "@lib/phone.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "LC12"
+        ]
+      }
+    },
+    {
+      "name": "lib/ua-ids",
+      "type": "registry:lib",
+      "title": "Ідентифікатори UA",
+      "description": "ЄДРПОУ, РНОКПП, ІПН платника ПДВ, IBAN UA: нормалізація, контрольні суми, групування IBAN, МФО.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "LC12"
+        ]
+      }
+    },
+    {
       "name": "lib/utils",
       "type": "registry:lib",
       "title": "cn",
@@ -819,6 +1083,134 @@
         "status": "beta",
         "spec": [
           "§6.2"
+        ]
+      }
+    },
+    {
+      "name": "erp/phone-input",
+      "type": "registry:component",
+      "title": "Поле телефону",
+      "description": "Вибір країни (без РФ і РБ за замовчуванням) + маска; значення в E.164; номер без «+» — український.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0",
+        "google-libphonenumber@^3.2.47",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5"
+      ],
+      "devDependencies": [
+        "@types/google-libphonenumber@^7.4.31"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/phone-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/phone-input.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/phone.ts",
+          "type": "registry:lib",
+          "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "LC12",
+          "§8.3"
+        ]
+      }
+    },
+    {
+      "name": "erp/ua-id-input",
+      "type": "registry:component",
+      "title": "Поле ідентифікатора UA",
+      "description": "ЄДРПОУ, РНОКПП, ІПН ПДВ, IBAN з маскою (react-number-format); значення без пробілів; тексти помилок — uaIdIssueKey.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/ua-id-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/ua-id-input.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "LC12",
+          "§8.3"
         ]
       }
     }

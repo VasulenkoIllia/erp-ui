@@ -1,8 +1,7 @@
 import tokens from "@design/palette-tokens.json"
 import { Check, Monitor, Moon, Sun, type LucideIcon } from "lucide-react"
 import { useId, type ReactNode } from "react"
-
-import { strings } from "@/strings"
+import { useTranslation } from "react-i18next"
 
 import {
   DENSITIES,
@@ -100,7 +99,7 @@ const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
 
 export function AppearanceControls() {
   const [appearance, setAppearance] = useAppearance()
-  const s = strings.controls
+  const { t } = useTranslation()
 
   return (
     <section
@@ -108,11 +107,11 @@ export function AppearanceControls() {
       className="space-y-5 rounded-xl border border-border bg-card p-4 text-card-foreground"
     >
       <h2 id="appearance-title" className="text-base font-semibold">
-        {s.title}
+        {t("controls.title")}
       </h2>
 
       <OptionGroup
-        legend={s.palette}
+        legend={t("controls.palette")}
         name="palette"
         value={appearance.palette}
         onChange={(palette) => {
@@ -120,13 +119,13 @@ export function AppearanceControls() {
         }}
         options={PALETTES.map((palette) => ({
           value: palette,
-          label: strings.palettes[palette],
+          label: t(`palettes.${palette}`),
           adornment: <PaletteSwatch palette={palette} />,
         }))}
       />
 
       <OptionGroup
-        legend={s.theme}
+        legend={t("controls.theme")}
         name="theme"
         value={appearance.theme}
         onChange={(theme) => {
@@ -136,14 +135,14 @@ export function AppearanceControls() {
           const Icon = THEME_ICONS[theme]
           return {
             value: theme,
-            label: strings.themes[theme],
+            label: t(`themes.${theme}`),
             adornment: <Icon aria-hidden className="size-4" />,
           }
         })}
       />
 
       <OptionGroup
-        legend={s.density}
+        legend={t("controls.density")}
         name="density"
         value={appearance.density}
         onChange={(density) => {
@@ -151,21 +150,21 @@ export function AppearanceControls() {
         }}
         options={DENSITIES.map((density) => ({
           value: density,
-          label: strings.densities[density],
+          label: t(`densities.${density}`),
         }))}
       />
 
       <OptionGroup
-        legend={s.sidebar}
+        legend={t("controls.sidebar")}
         name="sidebar"
         value={appearance.sidebar}
-        hint={s.sidebarHint}
+        hint={t("controls.sidebarHint")}
         onChange={(sidebar) => {
           setAppearance({ sidebar })
         }}
         options={SIDEBARS.map((sidebar) => ({
           value: sidebar,
-          label: strings.sidebars[sidebar],
+          label: t(`sidebars.${sidebar}`),
         }))}
       />
     </section>

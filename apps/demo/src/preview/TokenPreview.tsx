@@ -12,22 +12,25 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
-import { strings, type StatusKind } from "@/strings"
+import { useFormat } from "@/registry/lib/format"
+
+import { INVOICES, type StatusKind } from "@/fixtures"
 
 /**
  * Прев'ю токенів: міні-оболонка зі списком рахунків. Лише для перевірки тем і щільності;
  * справжні примітиви й ERP-компоненти з'являться в реєстрі на кроках 0.2–0.6.
  */
 
-const NAV_ICONS: LucideIcon[] = [
-  LayoutDashboard,
-  FileText,
-  Users,
-  Package,
-  Settings,
-]
-const ACTIVE_NAV = 1
+const NAV_ITEMS = [
+  { key: "overview", icon: LayoutDashboard },
+  { key: "invoices", icon: FileText },
+  { key: "contacts", icon: Users },
+  { key: "stock", icon: Package },
+  { key: "settings", icon: Settings },
+] as const
+const ACTIVE_NAV = "invoices"
 
 const STATUS_STYLES: Record<
   StatusKind,
@@ -58,18 +61,20 @@ const CHART_CLASSES = [
 
 function StatusBadge({ kind }: { kind: StatusKind }) {
   const { className, icon: Icon } = STATUS_STYLES[kind]
+  const { t } = useTranslation()
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${className}`}
     >
       <Icon aria-hidden className="size-3.5" />
-      {strings.preview.statuses[kind]}
+      {t(`statuses.${kind}`)}
     </span>
   )
 }
 
 export function TokenPreview() {
-  const p = strings.preview
+  const { t } = useTranslation("demo", { keyPrefix: "preview" })
+  const format = useFormat()
 
   return (
     <section
@@ -77,19 +82,18 @@ export function TokenPreview() {
       className="@container overflow-hidden rounded-xl border border-border bg-card text-card-foreground"
     >
       <h2 id="preview-title" className="sr-only">
-        {p.title}
+        {t("title")}
       </h2>
       <div className="flex">
         <nav
-          aria-label={p.nav}
+          aria-label={t("nav")}
           className="hidden w-52 shrink-0 flex-col gap-1 border-r border-sidebar-border bg-sidebar p-2 text-sidebar-foreground @2xl:flex"
         >
-          {p.navItems.map((item, index) => {
-            const Icon = NAV_ICONS[index] ?? FileText
-            const active = index === ACTIVE_NAV
+          {NAV_ITEMS.map(({ key, icon: Icon }) => {
+            const active = key === ACTIVE_NAV
             return (
               <button
-                key={item}
+                key={key}
                 type="button"
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-control items-center gap-2 rounded-md px-2 text-left ${
@@ -102,7 +106,7 @@ export function TokenPreview() {
                   aria-hidden
                   className={`size-4 ${active ? "text-sidebar-primary" : ""}`}
                 />
-                {item}
+                {t(`navItems.${key}`)}
               </button>
             )
           })}
@@ -110,33 +114,33 @@ export function TokenPreview() {
 
         <div className="min-w-0 flex-1 space-y-4 p-4 @2xl:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl font-semibold">{p.pageTitle}</h3>
+            <h3 className="text-xl font-semibold">{t("pageTitle")}</h3>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 className="inline-flex min-h-touch items-center gap-2 rounded-md border border-input bg-card px-3 font-medium hover:bg-accent"
               >
                 <Download aria-hidden className="size-4" />
-                {p.export}
+                {t("export")}
               </button>
               <button
                 type="button"
                 className="inline-flex min-h-touch items-center gap-2 rounded-md bg-primary px-3 font-medium text-primary-foreground hover:bg-primary/90"
               >
                 <Plus aria-hidden className="size-4" />
-                {p.create}
+                {t("create")}
               </button>
             </div>
           </div>
 
           <div className="max-w-md space-y-1.5">
             <label htmlFor="preview-search" className="font-medium">
-              {p.search}
+              {t("search")}
             </label>
             <input
               id="preview-search"
               type="search"
-              placeholder={p.searchPlaceholder}
+              placeholder={t("searchPlaceholder")}
               className="block h-control w-full rounded-md border border-input bg-card px-3 placeholder:text-muted-foreground"
             />
           </div>
@@ -144,30 +148,30 @@ export function TokenPreview() {
           {/* Прокрутка на вузьких екранах має бути доступна з клавіатури (WCAG 2.1.1). */}
           <div
             role="region"
-            aria-label={p.tableCaption}
+            aria-label={t("tableCaption")}
             tabIndex={0}
             className="overflow-x-auto rounded-md"
           >
             <table className="w-full border-collapse">
-              <caption className="sr-only">{p.tableCaption}</caption>
+              <caption className="sr-only">{t("tableCaption")}</caption>
               <thead>
                 <tr className="h-row border-b border-border text-left text-muted-foreground">
                   <th scope="col" className="px-2 font-medium">
-                    {p.columns.number}
+                    {t("columns.number")}
                   </th>
                   <th scope="col" className="px-2 font-medium">
-                    {p.columns.client}
+                    {t("columns.client")}
                   </th>
                   <th scope="col" className="px-2 text-right font-medium">
-                    {p.columns.amount}
+                    {t("columns.amount")}
                   </th>
                   <th scope="col" className="px-2 font-medium">
-                    {p.columns.status}
+                    {t("columns.status")}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {p.rows.map((row) => (
+                {INVOICES.map((row) => (
                   <tr
                     key={row.number}
                     className="h-row border-b border-border last:border-0"
@@ -177,7 +181,7 @@ export function TokenPreview() {
                     </td>
                     <td className="px-2">{row.client}</td>
                     <td className="px-2 text-right whitespace-nowrap tabular-nums">
-                      {row.amount}
+                      {format.money(row.amount)}
                     </td>
                     <td className="px-2">
                       <StatusBadge kind={row.status} />
@@ -189,7 +193,7 @@ export function TokenPreview() {
           </div>
 
           <figure className="space-y-2">
-            <figcaption className="font-medium">{p.charts}</figcaption>
+            <figcaption className="font-medium">{t("charts")}</figcaption>
             <ul className="flex flex-wrap gap-x-4 gap-y-2">
               {CHART_CLASSES.map((className, index) => (
                 <li
@@ -200,7 +204,7 @@ export function TokenPreview() {
                     aria-hidden
                     className={`size-3 rounded-sm ${className}`}
                   />
-                  {p.series} {index + 1}
+                  {t("series", { index: index + 1 })}
                 </li>
               ))}
             </ul>
