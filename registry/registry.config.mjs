@@ -99,6 +99,7 @@ export const CODE_ITEMS = {
     title: "Розділювач",
     description: "Горизонтальна чи вертикальна лінія.",
     status: "beta",
+    demo: "primitives",
   },
   "ui/sheet": {
     title: "Шторка",
@@ -112,6 +113,7 @@ export const CODE_ITEMS = {
     description:
       "Заглушка контенту під час першого завантаження (лише в контейнерах).",
     status: "beta",
+    demo: "primitives",
     spec: ["§8.1", "§8.2"],
   },
   "ui/sonner": {
@@ -153,6 +155,7 @@ export const CODE_ITEMS = {
     title: "Багаторядкове поле",
     description: "Textarea з автовисотою.",
     status: "beta",
+    demo: "primitives",
   },
   "ui/tooltip": {
     title: "Підказка",

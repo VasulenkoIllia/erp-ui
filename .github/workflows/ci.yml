@@ -54,3 +54,25 @@ jobs:
           path: apps/demo/test-results/screenshots
           retention-days: 7
           if-no-files-found: ignore
+
+  consumer:
+    name: доставка в тестовий проект
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Чистий проект ставить base і всі ui/* з цього коміту приватного реєстру (ADR-0004).
+      - name: Install erp-ui into a clean project
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm consumer-smoke --ref ${{ github.event.pull_request.head.sha || github.sha }}

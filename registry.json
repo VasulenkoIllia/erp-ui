@@ -504,7 +504,8 @@
       ],
       "meta": {
         "layer": "ui",
-        "status": "beta"
+        "status": "beta",
+        "demo": "primitives"
       }
     },
     {
@@ -568,6 +569,7 @@
       "meta": {
         "layer": "ui",
         "status": "beta",
+        "demo": "primitives",
         "spec": [
           "§8.1",
           "§8.2"
@@ -742,7 +744,8 @@
       ],
       "meta": {
         "layer": "ui",
-        "status": "beta"
+        "status": "beta",
+        "demo": "primitives"
       }
     },
     {

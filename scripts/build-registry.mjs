@@ -205,6 +205,18 @@ function build() {
     }
   }
 
+  // Скіл для роботи в самому репозиторії — копія скіла, що ставиться в проекти.
+  const skill = "registry/claude/skills/erp-ui/SKILL.md"
+  const localSkill = ".claude/skills/erp-ui/SKILL.md"
+  if (
+    readFileSync(path.join(root, skill), "utf8") !==
+    readFileSync(path.join(root, localSkill), "utf8")
+  ) {
+    problems.push(
+      `${localSkill} розійшовся з ${skill}: правте ${skill} і скопіюйте`,
+    )
+  }
+
   const registry = {
     $schema: "https://ui.shadcn.com/schema/registry.json",
     name: "erp-ui",

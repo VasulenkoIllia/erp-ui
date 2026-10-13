@@ -58,6 +58,8 @@ import {
   SheetTrigger,
 } from "@/registry/ui/sheet"
 import { Spinner } from "@/registry/ui/spinner"
+import { Separator } from "@/registry/ui/separator"
+import { Skeleton } from "@/registry/ui/skeleton"
 import { Switch } from "@/registry/ui/switch"
 import {
   Table,
@@ -68,6 +70,7 @@ import {
   TableRow,
 } from "@/registry/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Textarea } from "@/registry/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
 import { strings, type StatusKind } from "@/strings"
@@ -330,6 +333,16 @@ function ChoiceSection() {
         <Switch id="f-remind" defaultChecked />
         <FieldLabel htmlFor="f-remind">{s.remind}</FieldLabel>
       </Field>
+      <Separator />
+      <Field>
+        <FieldLabel htmlFor="f-note">{s.note}</FieldLabel>
+        <Textarea id="f-note" placeholder={s.notePlaceholder} />
+      </Field>
+      {/* SPEC §8.2: скелетон — лише в контейнерах, у формі майбутнього контенту. */}
+      <div className="space-y-2" aria-hidden>
+        <Skeleton className="h-row w-full" />
+        <Skeleton className="h-row w-2/3" />
+      </div>
     </Section>
   )
 }
