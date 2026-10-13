@@ -1,0 +1,35 @@
+name: Release tag
+
+# Тег vX.Y.Z ставиться автоматично, коли в main потрапляє нова версія з package.json
+# (порядок випуску — docs/dev-setup.md). Проекти закріплюють версію через …#vX.Y.Z.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Tag the version from package.json if it is new
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "$version вже є — нічого не робимо"
+            exit 0
+          fi
+          if ! grep -q "^## \[${version#v}\]" CHANGELOG.md; then
+            echo "У CHANGELOG.md немає розділу [${version#v}] — тег не ставимо" >&2
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$version" -m "erp-ui $version"
+          git push origin "$version"
+          echo "Поставлено тег $version на $(git rev-parse --short HEAD)"
