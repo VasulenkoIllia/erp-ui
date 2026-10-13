@@ -101,6 +101,12 @@ export interface MockChallenge {
 }
 
 export interface MockSession {
+  /** Ідентифікатор сесії для списку пристроїв. */
+  id?: string
+  /** Коли почалася (мс). */
+  startedAt?: number
+  /** Адміністратор, що працює від імені `userId` («Увійти як…»). */
+  impersonatorId?: string
   userId: string
   stage: "challenge" | "password_change" | "authenticated"
   challenge?: MockChallenge
@@ -133,6 +139,9 @@ function readSession(): MockSession | null {
     // Порожній userId — вхід без пароля для невідомого акаунта: код просто не підійде.
     if (typeof session.userId !== "string") return null
     return {
+      id: session.id,
+      startedAt: session.startedAt,
+      impersonatorId: session.impersonatorId,
       userId: session.userId,
       stage: STAGES.includes(session.stage as MockSession["stage"])
         ? (session.stage as MockSession["stage"])
@@ -164,9 +173,30 @@ export function writeMockSession(session: MockSession | null): void {
 
 export const newExpiry = () => Date.now() + sessionMinutes * 60_000
 
+export const randomToken = () =>
+  Array.from(globalThis.crypto.getRandomValues(new Uint8Array(12)), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("")
+
 /** Почати авторизовану сесію користувача. */
 export function authenticate(userId: string): void {
-  writeMockSession({ userId, stage: "authenticated", expiresAt: newExpiry() })
+  writeMockSession({
+    id: randomToken(),
+    startedAt: Date.now(),
+    userId,
+    stage: "authenticated",
+    expiresAt: newExpiry(),
+  })
+}
+
+/** Адміністратор працює від імені користувача: зміни безпеки заборонені. */
+export function impersonationForbidden(): Response | null {
+  return getMockSession()?.impersonatorId
+    ? errorResponse(403, {
+        code: "impersonation_forbidden",
+        message: "Not available while impersonating",
+      })
+    : null
 }
 
 function sessionHeaders(): Record<string, string> {
@@ -202,10 +232,22 @@ export interface MockMessage {
   channel: "sms" | "email"
   /** Кому (як ввів користувач чи з профілю). */
   to: string
-  /** Для чого: вхід, відновлення пароля, запрошення, підтвердження, повідомлення, експорт даних. */
-  kind: "login" | "reset" | "invite" | "verify" | "notice" | "export"
+  /**
+   * Для чого: вхід, відновлення пароля, запрошення, підтвердження, повідомлення про зміну email,
+   * експорт даних, вхід з нового пристрою.
+   */
+  kind:
+    | "login"
+    | "reset"
+    | "invite"
+    | "verify"
+    | "notice"
+    | "export"
+    | "new_sign_in"
   code?: string
   link?: string
+  /** Подробиці: пристрій нового входу. */
+  detail?: string
 }
 
 const messageListeners = new Set<(message: MockMessage) => void>()

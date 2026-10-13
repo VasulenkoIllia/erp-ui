@@ -4,6 +4,39 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5b2 (акаунт: фактори, пристрої, бренд, «Увійти як…», ADR-0011)
+
+- `lib/account` (`provider.account`):
+  - фактори: застосунок (QR), SMS/Viber, email, ключ доступу — додати, перейменувати, вимкнути;
+  - резервні коди: перший фактор приносить коди, нові коди скасовують старі;
+  - сесії (вийти на пристрої й на всіх інших), довірені пристрої, журнал входів зі сторінками;
+  - лист про вхід з нового пристрою; `deviceFromUserAgent`.
+- `lib/auth`:
+  - `branding` у `GET /auth/methods`, `localizedText`;
+  - «Увійти як…»: `impersonate`, `stopImpersonation`, `me.impersonator`, `isImpersonationForbidden`.
+- Екрани:
+  - `erp/account-factors` — `FactorsSection`, `BackupCodesDialog`;
+  - `erp/account-devices` — `SessionsSection`, `TrustedDevicesSection`, `SignInHistory`, `SignInAlertsSwitch`;
+  - `erp/impersonation` — `useImpersonation`, `ImpersonationBanner`.
+- Спільні компоненти: `erp/copy-button` (UI43), `erp/qr-code` (UI32, lean-qr 2.7, MIT), `SectionSkeleton`.
+- Бренд сторінки входу в `erp/auth-layout`: логотип (світлий і темний), бічна панель, документи, назва у вкладці; `useAuthMethods`, `useBranding`, `useBrandAppearance`.
+- Токени `--scan` / `--scan-foreground` — коди завжди темні на світлому.
+- `AppShell`: слот `banner` над топбаром (липне разом із ним).
+- `lib/passkey`: `createPasskey`. `lib/api`: `getLanguage` → `Accept-Language`; коди `factor_required`, `impersonation_forbidden`.
+- Мок `lib/mock-account` (стан акаунта в localStorage, місця мовою `Accept-Language`); `createPlatformHandlers` приймає `branding`, `accountSeeds`, `availableFactors`, `twoFactorRequired`.
+- Демо:
+  - «Безпека акаунта» з усіма розділами;
+  - сторінка «Користувачі» з «Увійти як…»;
+  - перемикач бренду на сторінці входу (Бухгалтерія Плюс, Зоряна логістика).
+- Тести: 16 модульних (`account.test.ts`), 3 для бренду у вигляді; 12 e2e (`account.spec.ts`), зокрема ключ доступу через віртуальний автентифікатор і axe.
+
+### Змінено — крок 0.5b2
+
+- `lib/appearance` зберігає лише обране користувачем (`pickAppearance`); бренд — типові значення (`setBrandAppearance`). `syncPreferences` застосовує лише поля, які повернув сервер.
+- `useAuthMethods` і `AUTH_METHODS_QUERY_KEY` переїхали з `erp/login-screen` до `erp/auth-layout`.
+- Демо: «Безпека акаунта» вантажиться окремим чанком; Олена — ще й адміністратор (`users:*`).
+- Реєстр відхиляє `export … from "@/registry/…"`: shadcn CLI переписує такі шляхи хибно.
+
 ### Додано — крок 0.5b (вхід і акаунт, ADR-0010)
 
 - `lib/auth`:

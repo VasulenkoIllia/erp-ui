@@ -3,7 +3,9 @@
  *
  * - Вигляд застосовується атрибутами на <html>; мову застосовує i18next (`syncLanguage`).
  * - Сховище — модуль із підпискою (`useAppearance` у hooks/use-appearance). localStorage — лише кеш:
- *   на сервері вподобання зберігатиме контракт PF11 (крок 0.5).
+ *   на сервері вподобання зберігає контракт PF11 (lib/preferences).
+ * - Зберігаємо лише те, що користувач обрав сам; решту беремо з типових значень — компанії
+ *   (`initAppearance`) і бренду (`setBrandAppearance`, white-label, ADR-0011).
  * - Щоб тема не блимала до завантаження JS, index.html проекту містить inline-скрипт
  *   із тією самою логікою (зразок — docs/using-erp-ui.md).
  */
@@ -86,7 +88,30 @@ export function readStoredAppearance(
   }
 }
 
-export function storeAppearance(appearance: Appearance): void {
+/** Лише коректні поля: те, що користувач обрав сам. */
+export function pickAppearance(value: unknown): Partial<Appearance> {
+  const v =
+    typeof value === "object" && value !== null
+      ? (value as Record<string, unknown>)
+      : {}
+  const full = parseAppearance(v)
+  return Object.fromEntries(
+    (Object.keys(full) as (keyof Appearance)[])
+      .filter((key) => v[key] === full[key])
+      .map((key) => [key, full[key]]),
+  )
+}
+
+function readChosen(): Partial<Appearance> {
+  try {
+    const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY)
+    return pickAppearance(raw ? JSON.parse(raw) : null)
+  } catch {
+    return {}
+  }
+}
+
+export function storeAppearance(appearance: Partial<Appearance>): void {
   try {
     localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(appearance))
   } catch {
@@ -112,7 +137,19 @@ export function applyAppearance(
 }
 
 let current: Appearance = DEFAULT_APPEARANCE
+/** Типові значення компанії (`initAppearance`). */
+let base: Appearance = DEFAULT_APPEARANCE
+/** Типові значення бренду поверх компанії. */
+let brand: Partial<Appearance> = {}
+/** Обране користувачем — перекриває типові. */
+let chosen: Partial<Appearance> = {}
 const listeners = new Set<() => void>()
+
+function notify(): void {
+  listeners.forEach((listener) => {
+    listener()
+  })
+}
 
 function prefersDark(): boolean {
   return window.matchMedia(DARK_QUERY).matches
@@ -127,12 +164,29 @@ export function getAppearance(): Appearance {
 }
 
 export function setAppearance(patch: Partial<Appearance>): void {
-  current = { ...current, ...patch }
-  storeAppearance(current)
+  chosen = { ...chosen, ...patch }
+  current = { ...base, ...brand, ...chosen }
+  storeAppearance(chosen)
   apply()
-  listeners.forEach((listener) => {
-    listener()
-  })
+  notify()
+}
+
+/**
+ * Типові значення бренду (white-label): палітра з `GET /auth/methods` → `branding`. Діють там,
+ * де користувач не обрав свого; `null` — бренду немає.
+ */
+export function setBrandAppearance(patch: Partial<Appearance> | null): void {
+  brand = patch ?? {}
+  const next = { ...base, ...brand, ...chosen }
+  if (
+    (Object.keys(next) as (keyof Appearance)[]).every(
+      (k) => next[k] === current[k],
+    )
+  )
+    return
+  current = next
+  apply()
+  notify()
 }
 
 export function subscribeAppearance(listener: () => void): () => void {
@@ -149,7 +203,9 @@ export function subscribeAppearance(listener: () => void): () => void {
 export function initAppearance(
   defaults: Appearance = DEFAULT_APPEARANCE,
 ): () => void {
-  current = readStoredAppearance(defaults)
+  base = defaults
+  chosen = readChosen()
+  current = { ...base, ...brand, ...chosen }
   apply()
   const media = window.matchMedia(DARK_QUERY)
   const onChange = () => {

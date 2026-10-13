@@ -8,7 +8,8 @@
       "icons": "Icons",
       "states": "Page states",
       "data": "Data & mocks",
-      "security": "Account security"
+      "security": "Account security",
+      "users": "Users"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -310,13 +311,14 @@
     "reloaded": "Showing the saved version",
     "roles": {
       "accountant": "Accountant",
-      "sales": "Sales manager"
+      "sales": "Sales manager",
+      "admin": "Administrator"
     }
   },
   "authDemo": {
     "accountsTitle": "Demo accounts",
     "signInAs": "Fill in {{email}}",
-    "accountant": "Accountant: password demo; app, SMS and email code 123456; backup code ab12cd34; passkey",
+    "accountant": "Accountant and administrator (“Sign in as…”): password demo; app, SMS and email code 123456; backup code ab12cd34; passkey",
     "sales": "Sales manager, read-only: password demo, no second step",
     "temporary": "New colleague with temporary password temp-password — sets their own",
     "invite": "Open a colleague's invitation",
@@ -331,10 +333,22 @@
     "ssoTitle": "{{provider}} — demo provider",
     "ssoLead": "This is the provider step: choose an account or cancel. Real sign-in opens the Google or Apple page.",
     "ssoContinue": "Continue as {{name}}",
-    "ssoCancel": "Cancel sign-in"
+    "ssoCancel": "Cancel sign-in",
+    "newSignInToast": "Email to {{to}}: new sign-in to your account",
+    "brand": "Brand (white-label)",
+    "brands": {
+      "none": "No brand",
+      "buh-plus": "Бухгалтерія Плюс",
+      "zoriana": "Зоряна логістика"
+    }
   },
   "securityPage": {
     "title": "Account security",
-    "lead": "Password, sign-in email, data export and account deletion. Sensitive actions ask you to confirm it's you."
+    "lead": "Sign-in methods, password, email, devices and sign-in history, data export and account deletion. Sensitive actions ask you to confirm it's you."
+  },
+  "usersPage": {
+    "title": "Users",
+    "lead": "Company users. An administrator can sign in as a user to look into a request — the action is logged.",
+    "listLabel": "Company users"
   }
 }

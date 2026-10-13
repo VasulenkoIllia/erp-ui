@@ -45,6 +45,12 @@ const HEADER = `/*
 :root.dark {
   --overlay: oklch(0 0 0 / 0.3);
 }
+/* Scannable codes (QR, barcodes) — always dark on light in every palette and mode:
+ * inverted codes do not scan in every app. Contrast ≈ 19:1. */
+:root {
+  --scan: oklch(1 0 0);
+  --scan-foreground: oklch(0.15 0 0);
+}
 `
 
 const FOOTER = `
@@ -63,6 +69,8 @@ const FOOTER = `
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-soft: var(--destructive-soft);
   --color-overlay: var(--overlay);
+  --color-scan: var(--scan);
+  --color-scan-foreground: var(--scan-foreground);
   /* Hover основної кнопки: зсув до --foreground, тобто завжди «від» тексту кнопки —
    * контраст з primary-foreground лише зростає (перевіряє check-contrast, пара primaryHover). */
   --color-primary-hover: color-mix(in oklab, var(--primary) 85%, var(--foreground));

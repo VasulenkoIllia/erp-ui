@@ -29,6 +29,12 @@
  * - `POST /me/password` { currentPassword, newPassword } → 204.
  * - Після кількох невдалих спроб сервер відповідає 428 `captcha_required`; запит повторюється з
  *   `captchaToken` (Turnstile, ADR-0010).
+ * - `GET /auth/methods` → `branding`: логотип, назва, палітра й бічна панель сторінки входу —
+ *   сервер обирає за доменом (white-label, ADR-0011).
+ * - «Увійти як…» (ADR-0011): `POST /auth/impersonation` { userId, reason } → 204, право
+ *   `users:impersonate` і повторне підтвердження; `DELETE /auth/impersonation` → назад до свого
+ *   акаунта. Поки триває, `GET /me` містить `impersonator`.
+ * - Фактори, сесії, пристрої й журнал входів — `provider.account` (lib/account).
  *
  * Права — рядки `<ресурс>:<дія>` ("invoices:approve"), `*` — будь-що. Перевірка на клієнті лише
  * ховає й вимикає дії; сервер (і MSW-моки) перевіряють ті самі права самі.
@@ -36,7 +42,9 @@
 import type { AuthProvider } from "ra-core"
 import { z } from "zod"
 
+import { createAccountApi, type AccountApi } from "@/registry/lib/account"
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
+import { PALETTES } from "@/registry/lib/appearance"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
 
@@ -66,6 +74,46 @@ export const ssoProviderSchema = z.object({
 })
 export type SsoProvider = z.infer<typeof ssoProviderSchema>
 
+/** Текст однією мовою або за мовами: «Вхід» чи { uk: "Вхід", en: "Sign in" }. */
+export const localizedTextSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.string()),
+])
+export type LocalizedText = z.infer<typeof localizedTextSchema>
+
+/** Текст мовою інтерфейсу; немає перекладу — перший наявний. */
+export function localizedText(
+  value: LocalizedText | undefined,
+  language: string,
+): string | undefined {
+  if (value === undefined || typeof value === "string") return value
+  return value[language] ?? Object.values(value)[0]
+}
+
+/** Бренд сторінки входу (white-label): сервер обирає за доменом. */
+export const brandingSchema = z.object({
+  /** Назва компанії чи продукту: заголовок вкладки й підпис логотипа. */
+  name: z.string(),
+  logoUrl: z.string().optional(),
+  /** Логотип для темної теми; немає — той самий. */
+  logoDarkUrl: z.string().optional(),
+  /** Палітра бренду — типова для гостя й для користувача без власного вибору. */
+  palette: z.enum(PALETTES).optional(),
+  /** Бічна панель на широких екранах. */
+  panel: z
+    .object({
+      title: localizedTextSchema,
+      text: localizedTextSchema.optional(),
+      /** Фонове зображення (декоративне). */
+      imageUrl: z.string().optional(),
+    })
+    .optional(),
+  supportEmail: z.string().optional(),
+  termsUrl: z.string().optional(),
+  privacyUrl: z.string().optional(),
+})
+export type Branding = z.infer<typeof brandingSchema>
+
 export const authMethodsSchema = z.object({
   password: z.boolean(),
   passwordless: z.array(z.enum(PASSWORDLESS_METHODS)),
@@ -78,6 +126,7 @@ export const authMethodsSchema = z.object({
   idleTimeoutMinutes: z.number().int().positive().nullable(),
   /** Ключ сайту Turnstile для перевірки «не бот». */
   captchaSiteKey: z.string().optional(),
+  branding: brandingSchema.optional(),
 })
 export type AuthMethods = z.infer<typeof authMethodsSchema>
 
@@ -126,6 +175,8 @@ export const meSchema = z.object({
   factors: z.array(z.enum(AUTH_FACTORS)),
   /** Коли сесія закінчиться без активності (ISO). */
   sessionExpiresAt: z.string().optional(),
+  /** Адміністратор, що працює від імені цього користувача («Увійти як…»). */
+  impersonator: z.object({ id: z.string(), name: z.string() }).optional(),
 })
 export type Me = z.infer<typeof meSchema>
 
@@ -232,6 +283,15 @@ export function isReauthRequired(error: unknown): boolean {
 }
 
 /** Після кількох невдалих спроб сервер просить перевірку «не бот». */
+/** Дія недоступна, поки адміністратор працює від імені користувача. */
+export function isImpersonationForbidden(error: unknown): boolean {
+  return (
+    isApiError(error) &&
+    error.status === 403 &&
+    error.code === "impersonation_forbidden"
+  )
+}
+
 export function isCaptchaRequired(error: unknown): boolean {
   return isApiError(error) && error.code === "captcha_required"
 }
@@ -288,6 +348,12 @@ export interface ErpAuthProvider extends AuthProvider {
   exportData: () => Promise<void>
   /** Видалити акаунт (після повторного підтвердження) і вийти. */
   deleteAccount: () => Promise<void>
+  /** «Увійти як…»: адміністратор працює від імені користувача; причина — в аудит. */
+  impersonate: (userId: string, reason: string) => Promise<void>
+  /** Повернутися до свого акаунта. */
+  stopImpersonation: () => Promise<void>
+  /** Фактори, резервні коди, сесії, пристрої, журнал входів (lib/account). */
+  account: AccountApi
 }
 
 export interface AuthProviderOptions {
@@ -345,6 +411,13 @@ export function createAuthProvider(
 
   const post = (path: string, body?: unknown) =>
     client.post(path, body, { schema: loginResultSchema }).then(finish)
+
+  /** Сесія перемкнулася на іншого користувача: профіль заново, інші вкладки — теж. */
+  const switched = async () => {
+    me = null
+    await loadMe()
+    broadcastAuthEvent({ type: "login" })
+  }
 
   const loginWithPasskey = async (trustDevice?: boolean) => {
     const { publicKey } = await client.post(
@@ -446,6 +519,23 @@ export function createAuthProvider(
       setSessionExpiresAt(null)
       broadcastAuthEvent({ type: "logout" })
     },
+
+    async impersonate(userId, reason) {
+      await client.post("/auth/impersonation", { userId, reason })
+      await switched()
+    },
+
+    async stopImpersonation() {
+      await client.delete("/auth/impersonation")
+      await switched()
+    },
+
+    account: createAccountApi(client, {
+      onFactorsChange: () => {
+        me = null
+        return loadMe()
+      },
+    }),
 
     /** `{ remote: true }` — вихід уже стався в іншій вкладці: лише очистити стан тут. */
     async logout(params?: { remote?: boolean }) {

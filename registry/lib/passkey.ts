@@ -1,8 +1,9 @@
 /**
  * Ключі доступу (passkeys, WebAuthn) і автозаповнення коду з SMS (WebOTP) — обгортки над API браузера.
  *
- * - Сервер видає параметри у JSON-формі WebAuthn (`PublicKeyCredentialRequestOptionsJSON`), браузер
- *   повертає відповідь `credential.toJSON()` — без ручного base64url.
+ * - Сервер видає параметри у JSON-формі WebAuthn (`PublicKeyCredentialRequestOptionsJSON` для входу,
+ *   `PublicKeyCredentialCreationOptionsJSON` для нового ключа), браузер повертає
+ *   `credential.toJSON()` — без ручного base64url.
  * - Без підтримки в браузері кнопку ключа доступу не показуємо (`passkeysSupported`).
  * - Скасування користувачем — `PasskeyCancelledError`, а не помилка входу.
  */
@@ -39,6 +40,30 @@ export async function getPasskeyAssertion(
     return credential.toJSON()
   } catch (error) {
     // NotAllowedError — користувач закрив системне вікно або час вийшов.
+    if (
+      error instanceof DOMException &&
+      (error.name === "NotAllowedError" || error.name === "AbortError")
+    )
+      throw new PasskeyCancelledError()
+    throw error
+  }
+}
+
+/** Створити новий ключ доступу. Повертає JSON для `POST /me/factors/passkey`. */
+export async function createPasskey(
+  options: PublicKeyCredentialCreationOptionsJSON,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  try {
+    const credential = await navigator.credentials.create({
+      publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options),
+      signal,
+    })
+    if (!(credential instanceof PublicKeyCredential))
+      throw new PasskeyCancelledError()
+    return credential.toJSON()
+  } catch (error) {
+    // NotAllowedError — вікно закрито; InvalidStateError — цей ключ уже додано на пристрої.
     if (
       error instanceof DOMException &&
       (error.name === "NotAllowedError" || error.name === "AbortError")

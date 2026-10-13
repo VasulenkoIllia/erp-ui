@@ -2,7 +2,8 @@
  * Мок-сервер на MSW за контрактами erp-ui (ADR-0002, ADR-0003, ADR-0010): поводиться як бекенд,
  * щоб UI будувався й тестувався без нього. Підключається лише в розробці, демо й тестах.
  *
- * - `createPlatformHandlers` (lib/mock-auth) — усі способи входу, `/me`, вподобання PF11.
+ * - `createPlatformHandlers` (lib/mock-auth) — усі способи входу, `/me`, вподобання PF11, а також
+ *   фактори, сесії, журнал входів і «Увійти як…» (lib/mock-account).
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії (`X-Company-Id`).
  * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
@@ -21,6 +22,7 @@ import {
   type SortField,
 } from "@/registry/lib/api"
 import { hasPermission } from "@/registry/lib/auth"
+import type { MockAccountSeed } from "@/registry/lib/mock-account"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -49,7 +51,13 @@ export {
   signInMock,
   subscribeMockMessages,
 }
-export type { MockInvite, MockMessage, MockUser, PlatformMockOptions }
+export type {
+  MockAccountSeed,
+  MockInvite,
+  MockMessage,
+  MockUser,
+  PlatformMockOptions,
+}
 
 /* ---------------------------------- Ресурси ---------------------------------- */
 

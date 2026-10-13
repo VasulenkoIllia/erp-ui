@@ -81,6 +81,8 @@ export interface AppShellProps {
   breadcrumbs?: Crumb[]
   /** Права частина топбару. */
   actions?: React.ReactNode
+  /** Смуга над топбаром: «Увійти як…», оголошення, офлайн. */
+  banner?: React.ReactNode
   renderLink?: RenderLink
   children: React.ReactNode
 }
@@ -193,7 +195,7 @@ function Topbar({
   return (
     <header
       data-slot="topbar"
-      className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:px-4"
+      className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3 md:px-4"
     >
       <SidebarTrigger className="hidden md:inline-flex" />
       <Separator orientation="vertical" className="hidden h-5 md:block" />
@@ -241,6 +243,7 @@ export function AppShell({
   footer,
   breadcrumbs,
   actions,
+  banner,
   renderLink = defaultRenderLink,
   children,
 }: AppShellProps) {
@@ -269,11 +272,15 @@ export function AppShell({
         <SidebarRail />
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar
-          breadcrumbs={breadcrumbs}
-          actions={actions}
-          renderLink={renderLink}
-        />
+        {/* Смуга й топбар липнуть разом: «Увійти як…» видно на будь-якій прокрутці. */}
+        <div className="sticky top-0 z-20">
+          {banner}
+          <Topbar
+            breadcrumbs={breadcrumbs}
+            actions={actions}
+            renderLink={renderLink}
+          />
+        </div>
         <main
           id={MAIN_ID}
           tabIndex={-1}

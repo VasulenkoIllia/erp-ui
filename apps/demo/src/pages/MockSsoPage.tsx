@@ -31,6 +31,7 @@ export function MockSsoPage() {
       title={t("ssoTitle", { provider: name })}
       description={t("ssoLead")}
       logo={<Icon className="mx-auto size-10" />}
+      branded={false}
     >
       <ul className="space-y-2">
         {MOCK_USERS.slice(0, 2).map((user) => (

@@ -8,13 +8,13 @@ import {
   AuthLayout,
   useAfterLogin,
   useAuthErrorText,
+  useAuthMethods,
   useErpAuthProvider,
   useFieldError,
   type AuthPaths,
 } from "@/registry/erp/auth-layout"
 import { TurnstileCaptcha, type CaptchaRenderer } from "@/registry/erp/captcha"
 import { ChallengeForm } from "@/registry/erp/challenge-form"
-import { useAuthMethods } from "@/registry/erp/login-screen"
 import { PasswordInput, PasswordStrength } from "@/registry/erp/password-input"
 import {
   isCaptchaRequired,

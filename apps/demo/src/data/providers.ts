@@ -6,6 +6,7 @@ import { QueryClient } from "@tanstack/react-query"
 import type { i18n } from "i18next"
 
 import { createApiClient } from "@/registry/lib/api"
+import { getAppearance } from "@/registry/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { createRaI18nProvider } from "@/registry/lib/ra-i18n"
@@ -54,7 +55,10 @@ function ensureCompany(me: Me) {
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
 })
-export const apiClient = createApiClient({ getCompanyId })
+export const apiClient = createApiClient({
+  getCompanyId,
+  getLanguage: () => getAppearance().language,
+})
 export const authProvider = createAuthProvider(apiClient, {
   // Демо без справжніх Google і Apple: «провайдер» — сторінка демо з вибором акаунта.
   ssoUrl: (provider, returnTo) =>
