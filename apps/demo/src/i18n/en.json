@@ -6,9 +6,12 @@
       "primitives": "Primitives",
       "formats": "Languages & formats",
       "icons": "Icons",
-      "states": "Page states"
+      "states": "Page states",
+      "data": "Data & mocks"
     },
-    "product": "erp-ui · demo"
+    "product": "erp-ui · demo",
+    "signIn": "Sign in",
+    "signOut": "You have signed out"
   },
   "appearancePage": {
     "title": "Themes & appearance",
@@ -265,5 +268,67 @@
     "lead": "Module {{id}} is not built yet — the shell already leads to it.",
     "description": "Module screens arrive in their wave (SPEC §16). This shows a section without data.",
     "states": "See page states"
+  },
+  "dataPage": {
+    "title": "Data & mocks",
+    "lead": "Invoices from the MSW mock server through the ra-core dataProvider: filters, sorting, pagination, permissions and version conflicts. Server scenarios live in the developer panel.",
+    "search": "Search by number or client",
+    "statusFilter": "Invoice status",
+    "all": "All",
+    "statuses": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "partially_paid": "Partially paid",
+      "paid": "Paid",
+      "overdue": "Overdue"
+    },
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "tableLabel": "Customer invoices",
+    "refreshing": "Refreshing…",
+    "range": "{{from}}–{{to}} of {{total}}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "edit": "Edit {{number}}",
+    "editTitle": "Invoice No. {{number}}",
+    "editDescription": "Changes are saved with the record version: if someone has already saved something else, a conflict dialog appears.",
+    "client": "Client",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Invoice saved",
+    "saveFailed": "Could not save: {{message}}",
+    "readOnlyHint": "Editing is available to the Accountant role",
+    "createInvoice": "Create invoice",
+    "permissionsNote": "Signed in as {{name}} — {{roles}}.",
+    "reloaded": "Showing the saved version",
+    "roles": {
+      "accountant": "Accountant",
+      "sales": "Sales manager"
+    }
+  },
+  "loginPage": {
+    "title": "Sign in",
+    "lead": "Session in an httpOnly cookie plus a code from an authenticator app (ADR-0003).",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "codeTitle": "Verification code",
+    "codeHint": "Enter the 6 digits from your authenticator app.",
+    "code": "Code",
+    "verify": "Verify",
+    "back": "Use another account",
+    "invalidCredentials": "Incorrect email or password",
+    "invalidCode": "The code does not match — check the app and try again",
+    "failed": "Could not sign in: {{message}}",
+    "demoTitle": "Demo accounts",
+    "demoAccountant": "Accountant: password demo, 2FA code 123456",
+    "demoSales": "Sales manager, read-only: password demo",
+    "language": "Interface language"
   }
 }

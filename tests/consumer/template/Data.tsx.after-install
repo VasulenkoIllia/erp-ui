@@ -1,0 +1,93 @@
+// Підставляється після `shadcn add`: шар даних (ADR-0002, ADR-0003) компілюється разом із ra-core.
+import { QueryClient } from "@tanstack/react-query"
+import i18next from "i18next"
+import { CoreAdminContext, useGetList, useUpdate } from "ra-core"
+import { useState } from "react"
+
+import { ConflictDialog } from "@/components/erp/conflict-dialog"
+import { DevPanel } from "@/components/erp/dev-panel"
+import { useApiErrorMessage } from "@/hooks/use-api-error-message"
+import { useHasPermission, useMe } from "@/hooks/use-me"
+import { createApiClient, isApiError } from "@/lib/api"
+import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
+import { createDataProvider } from "@/lib/data-provider"
+import { syncPreferences } from "@/lib/preferences"
+import { createRaI18nProvider } from "@/lib/ra-i18n"
+
+const queryClient = new QueryClient()
+const api = createApiClient({ getCompanyId: () => "a" })
+const authProvider = createAuthProvider(api, {
+  onMe: (me) => {
+    queryClient.setQueryData(ME_QUERY_KEY, me)
+  },
+})
+const dataProvider = createDataProvider(api)
+
+interface Invoice {
+  id: string
+  version: number
+  client: string
+}
+
+function Invoices() {
+  const { data: me } = useMe()
+  const canEdit = useHasPermission("invoices", "update")
+  const { data, error } = useGetList<Invoice>("invoices", {
+    pagination: { page: 1, perPage: 25 },
+    sort: { field: "date", order: "DESC" },
+    filter: { status: ["paid", "sent"], amount_gte: 10000 },
+  })
+  const [update] = useUpdate<Invoice>()
+  const message = useApiErrorMessage()
+  const [conflict, setConflict] = useState<Invoice | null>(null)
+  const first = data?.[0]
+  return (
+    <>
+      <p>
+        {me?.name} {error ? message(error) : data?.length}
+      </p>
+      <button
+        type="button"
+        disabled={!canEdit || !first}
+        onClick={() => {
+          if (!first) return
+          void update(
+            "invoices",
+            { id: first.id, data: { client: "ТОВ «Б»", version: first.version }, previousData: first },
+            {
+              mutationMode: "pessimistic",
+              onError: (e) => {
+                if (isApiError(e) && e.code === "conflict") setConflict(e.current as Invoice)
+              },
+            },
+          )
+        }}
+      >
+        Зберегти
+      </button>
+      <ConflictDialog
+        open={conflict !== null}
+        onOpenChange={() => setConflict(null)}
+        fields={conflict ? [{ key: "client", label: "Клієнт", mine: "ТОВ «Б»", theirs: conflict.client }] : []}
+        onOverwrite={() => setConflict(null)}
+        onReload={() => setConflict(null)}
+      />
+      <DevPanel resources={["invoices"]} compact onChange={() => void queryClient.invalidateQueries()} />
+    </>
+  )
+}
+
+export function Data() {
+  return (
+    <CoreAdminContext
+      dataProvider={dataProvider}
+      authProvider={authProvider}
+      i18nProvider={createRaI18nProvider(i18next)}
+      queryClient={queryClient}
+    >
+      <Invoices />
+    </CoreAdminContext>
+  )
+}
+
+export const startPreferences = () => syncPreferences(api)

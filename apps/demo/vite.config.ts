@@ -12,8 +12,16 @@ export default defineConfig({
       "@design": fileURLToPath(new URL("../../design", import.meta.url)),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
-    // Компоненти реєстру лежать в іншому пакеті workspace — одна копія React на застосунок.
-    dedupe: ["react", "react-dom"],
+    // Компоненти реєстру лежать в іншому пакеті workspace — одна копія React, роутера й
+    // TanStack Query на застосунок (інакше контексти ra-core і демо розійдуться).
+    dedupe: [
+      "react",
+      "react-dom",
+      "react-router",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "ra-core",
+    ],
   },
   test: {
     environment: "jsdom",

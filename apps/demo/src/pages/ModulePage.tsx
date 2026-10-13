@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router"
 
 import { PageState } from "@/registry/erp/page-state"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -24,12 +25,12 @@ export function ModulePage({ moduleId }: { moduleId: ModuleId }) {
         title={name}
         description={t("description")}
         action={
-          <a
-            href={ROUTES.states}
+          <Link
+            to={ROUTES.states}
             className={cn(buttonVariants({ variant: "outline" }))}
           >
             {t("states")}
-          </a>
+          </Link>
         }
       />
     </div>

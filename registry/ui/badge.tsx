@@ -10,7 +10,9 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        // erp-ui: hover — primary-hover (контраст тексту не падає), як у Button.
+        default:
+          "bg-primary text-primary-foreground [a]:hover:bg-primary-hover",
         secondary:
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         // erp-ui: статуси (SPEC §6.3) — soft-тло + *-foreground; іконку й підпис додає StatusBadge.

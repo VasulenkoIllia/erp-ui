@@ -81,6 +81,86 @@ export const CODE_ITEMS = {
     demo: "icons",
     spec: ["§6.5"],
   },
+  "lib/language-names": {
+    title: "Назви мов",
+    description:
+      "Назви мов інтерфейсу їхніми ж мовами («Українська», «English») для перемикачів.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§11"],
+  },
+  "lib/api": {
+    title: "Конвенції API",
+    description:
+      "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
+  "lib/data-provider": {
+    title: "dataProvider ra-core",
+    description:
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
+  "lib/auth": {
+    title: "Вхід і права",
+    description:
+      "createAuthProvider (ADR-0003): httpOnly cookie + 2FA (TOTP), /me з ролями, правами й компаніями, hasPermission із діями ra-core.",
+    status: "beta",
+    demo: "data",
+    spec: ["PF01", "A2"],
+  },
+  "lib/preferences": {
+    title: "Вподобання на сервері",
+    description:
+      "syncPreferences: після входу застосовує вподобання з /me/preferences і зберігає кожну зміну (PF11).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF11", "§6.2"],
+  },
+  "lib/ra-i18n": {
+    title: "i18nProvider ra-core",
+    description:
+      "Повідомлення ra-core з рядків кіта мовою інтерфейсу; i18next лишається єдиним джерелом мови.",
+    status: "beta",
+    demo: "data",
+    spec: ["§11"],
+  },
+  "lib/mock-scenarios": {
+    title: "Сценарії моків",
+    description:
+      "success, error, empty, slow, conflict, forbidden, offline — для всіх ресурсів або окремо; вибір у localStorage.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
+  "lib/mocks": {
+    title: "Мок-сервер MSW",
+    description:
+      "createPlatformHandlers (вхід із 2FA, /me, вподобання) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії) за контрактами API.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
+  "hooks/use-me": {
+    title: "useMe",
+    description:
+      "Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission.",
+    status: "beta",
+    demo: "data",
+    spec: ["PF01", "A2"],
+  },
+  "hooks/use-api-error-message": {
+    title: "useApiErrorMessage",
+    description:
+      "Текст помилки API за кодом мовою інтерфейсу; відповідь зовнішнього сервісу — в дужках.",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.3"],
+  },
   "hooks/use-appearance": {
     title: "useAppearance",
     description:
@@ -150,6 +230,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "states",
     spec: ["§8.1", "§8.2"],
+  },
+  "erp/conflict-dialog": {
+    title: "Діалог конфлікту",
+    description:
+      "«Запис змінив інший користувач»: порівняння ваших і збережених значень, «Зберегти мої зміни» або «Взяти збережене».",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.2", "§17"],
+  },
+  "erp/dev-panel": {
+    title: "Панель розробника",
+    description:
+      "Перемикач сценаріїв моків для всіх ресурсів чи окремо; кнопка для топбара з позначкою нестандартного сценарію.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
   },
   "erp/ua-id-input": {
     title: "Поле ідентифікатора UA",
@@ -414,6 +510,49 @@ export const BUNDLE_ITEMS = {
       "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance і syncLanguage(createI18n({ resources })) з @/lib/i18n.",
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
+    ].join("\n"),
+  },
+  data: {
+    title: "Шар даних",
+    description:
+      "Клієнт API, dataProvider і authProvider для ra-core, вподобання на сервері, повідомлення ra-core, useMe, тексти помилок API.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17", "PF01", "PF11"],
+    files: [],
+    include: [
+      "lib/api",
+      "lib/data-provider",
+      "lib/auth",
+      "lib/preferences",
+      "lib/ra-i18n",
+      "hooks/use-me",
+      "hooks/use-api-error-message",
+    ],
+    // ra-core бере маршрутизацію з React Router (peer-залежності).
+    dependencies: ["react-router", "react-router-dom"],
+    docs: [
+      "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).",
+      "1) Створіть клієнт: createApiClient({ getCompanyId }) з @/lib/api.",
+      "2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).",
+      "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.",
+      "4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
+    ].join("\n"),
+  },
+  mocks: {
+    title: "Моки й панель розробника",
+    description:
+      "MSW-обробники за контрактами API, сценарії success/error/empty/slow/conflict/forbidden/offline і панель їх перемикання.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+    files: [],
+    include: ["lib/mock-scenarios", "lib/mocks", "erp/dev-panel"],
+    docs: [
+      "Моки erp-ui встановлено. msw — у devDependencies.",
+      "1) npx msw init public — файл service worker.",
+      "2) Обробники: createPlatformHandlers({ users }) і createResourceHandlers({ resource, schema, data }) з @/lib/mocks; setupWorker(...handlers).start() до рендеру — лише в розробці.",
+      "3) <DevPanel resources={[…]} compact onChange={() => queryClient.invalidateQueries()} /> — у топбар.",
     ].join("\n"),
   },
   tokens: {

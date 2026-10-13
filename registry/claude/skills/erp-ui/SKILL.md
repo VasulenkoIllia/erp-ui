@@ -27,6 +27,8 @@ description: Build or change any UI in an ERP/CRM project that uses the private 
 - **Стани** — `PageState` / `PageSkeleton` з `erp/page-state`; тексти за замовчуванням уже перекладені.
 - **ЄДРПОУ, РНОКПП, ІПН ПДВ, IBAN, телефон** — компоненти `erp/ua-id-input` і `erp/phone-input`, перевірка — `validateUaId` / `validatePhone`, текст помилки — `uaIdIssueKey` + `useErpUiT`. Зберігаються без пробілів (телефон — E.164).
 - **Дані** лише через контракт модуля (`contract.ts`). Змінюєш контракт — оновлюєш моки (`mocks.ts`), fixtures і переклади в тому ж коміті.
+- **API й вхід** — за ADR-0002/0003 кіта: `createApiClient` + `createDataProvider` + `createAuthProvider` (пакунок `data`), хуки ra-core (`useGetList`, `useUpdate`, `useCanAccess`, `useAuthenticated`), профіль — `useMe()`. Фільтри — плоскі (`status`, `amount_gte`, `q`), збереження — з `version`, 409 → `ConflictDialog`, текст помилки — `useApiErrorMessage`. Свого fetch-шару не пиши.
+- **Моки** — `createResourceHandlers` / `createPlatformHandlers` з `lib/mocks` (пакунок `mocks`), сценарії перемикає `DevPanel`; кожен екран перевір у всіх семи сценаріях.
 - **Інтеграції** (доставка, ПРРО, банк, ЕДО, KSeF…): показуй нормалізований статус і сирий код провайдера; адреси, ставки й ліміти — дані з датою дії, не константи.
 - **Компоненти з реєстру** не переписуй мовчки. Якщо змінюєш — позначка `// erp-ui: local override — <причина>` і пропозиція перенести зміну в реєстр.
 

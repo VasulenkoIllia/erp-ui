@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { contrastRatio } from "./lib/color.mjs"
+import { contrastRatio, mixOklab } from "./lib/color.mjs"
 
 const designDir = path.dirname(fileURLToPath(import.meta.url))
 const TOKENS = path.join(designDir, "palette-tokens.json")
@@ -30,8 +30,9 @@ export const PAIRS = [
   ["mutedForeground", "accent", 4.5],
   ["secondaryForeground", "secondary", 4.5],
   ["accentForeground", "accent", 4.5],
-  // Основний колір: кнопка й текст-посилання
+  // Основний колір: кнопка (зокрема під курсором) і текст-посилання
   ["primaryForeground", "primary", 4.5],
+  ["primaryForeground", "primaryHover", 4.5],
   ["primary", "card", 4.5],
   ["primary", "background", 4.5],
   // Межі полів і фокус (WCAG 1.4.11, 2.4.13)
@@ -76,7 +77,13 @@ export const ADVISORY = [
   ["chart5", "card", 3],
 ]
 
+/** Похідні токени: так само, як --color-primary-hover у generate-themes.mjs. */
+const DERIVED = {
+  primaryHover: (mode) => mixOklab(mode.primary.css, mode.foreground.css, 0.15),
+}
+
 function color(mode, key) {
+  if (DERIVED[key]) return DERIVED[key](mode)
   const chart = /^chart(\d)$/.exec(key)
   if (chart) return mode.charts[Number(chart[1]) - 1]
   const token = mode[key]

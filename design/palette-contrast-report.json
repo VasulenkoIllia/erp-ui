@@ -98,6 +98,14 @@
   {
     "palette": "sapphire",
     "mode": "light",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 6.6,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
     "pair": "primary / card",
     "ratio": 5.49,
     "min": 4.5,
@@ -388,6 +396,14 @@
     "mode": "dark",
     "pair": "primaryForeground / primary",
     "ratio": 7.31,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 8.36,
     "min": 4.5,
     "pass": true
   },
@@ -690,6 +706,14 @@
   {
     "palette": "indigo",
     "mode": "light",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 7.36,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
     "pair": "primary / card",
     "ratio": 6.26,
     "min": 4.5,
@@ -980,6 +1004,14 @@
     "mode": "dark",
     "pair": "primaryForeground / primary",
     "ratio": 7.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 8.48,
     "min": 4.5,
     "pass": true
   },
@@ -1282,6 +1314,14 @@
   {
     "palette": "graphite",
     "mode": "light",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 16.76,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
     "pair": "primary / card",
     "ratio": 17.32,
     "min": 4.5,
@@ -1572,6 +1612,14 @@
     "mode": "dark",
     "pair": "primaryForeground / primary",
     "ratio": 15.18,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 15.35,
     "min": 4.5,
     "pass": true
   },
@@ -1874,6 +1922,14 @@
   {
     "palette": "teal",
     "mode": "light",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 6.84,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
     "pair": "primary / card",
     "ratio": 5.69,
     "min": 4.5,
@@ -2164,6 +2220,14 @@
     "mode": "dark",
     "pair": "primaryForeground / primary",
     "ratio": 8.42,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 9.36,
     "min": 4.5,
     "pass": true
   },
@@ -2466,6 +2530,14 @@
   {
     "palette": "terracotta",
     "mode": "light",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
     "pair": "primary / card",
     "ratio": 5.24,
     "min": 4.5,
@@ -2756,6 +2828,14 @@
     "mode": "dark",
     "pair": "primaryForeground / primary",
     "ratio": 7.89,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "primaryForeground / primaryHover",
+    "ratio": 8.91,
     "min": 4.5,
     "pass": true
   },

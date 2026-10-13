@@ -106,6 +106,66 @@ export const en = {
     },
     loading: "Loading data",
   },
+  ra: {
+    notification: {
+      updated: "Changes saved",
+      created: "Record created",
+      deleted: "Record deleted",
+      item_doesnt_exist: "The record does not exist",
+      http_error: "Server communication error",
+      logged_out: "Your session has ended, please sign in again",
+      not_authorized: "You are not allowed to do this",
+      canceled: "Action cancelled",
+    },
+    auth: {
+      auth_check_error: "Please sign in to continue",
+      sign_in_error: "Sign-in failed",
+    },
+    message: {
+      invalid_form: "The form has errors — check the fields",
+    },
+  },
+  devPanel: {
+    open: "Mocks: {{name}}",
+    title: "Developer panel",
+    description:
+      "MSW mocks: how the server behaves. The choice is kept in this browser.",
+    all: "All resources",
+    inherit: "Same as all",
+    reset: "Reset scenarios",
+    scenarios: {
+      success: "Success",
+      error: "Server error",
+      empty: "Empty",
+      slow: "Slow (3 s)",
+      conflict: "Save conflict",
+      forbidden: "Forbidden",
+      offline: "Offline",
+    },
+  },
+  conflict: {
+    title: "Someone else changed this record",
+    description:
+      "While you were editing, someone saved different values. Compare and choose what to keep.",
+    field: "Field",
+    mine: "Your changes",
+    theirs: "Saved now",
+    overwrite: "Save my changes",
+    reload: "Use saved version",
+  },
+  apiErrors: {
+    validation: "Check the highlighted fields",
+    unauthenticated: "Your session has ended — please sign in again",
+    forbidden: "You don't have permission to do this",
+    not_found: "Record not found — it may have been deleted",
+    conflict: "Someone else changed this record",
+    rate_limited: "Too many requests — try again in a minute",
+    server: "Server error — please try again",
+    offline: "Can't reach the server",
+    two_factor_required: "Verification code required",
+    unknown: "Something went wrong — please try again",
+    provider: "{{message}} (service response: {{provider}})",
+  },
   modules: {
     A1: "Company, branches, localisation",
     A2: "Users, roles, permissions",
@@ -217,6 +277,7 @@ export const en = {
     otherCountries: "Other countries",
   },
   validation: {
+    required: "Fill in this field",
     edrpou: {
       length: "EDRPOU code must have 8 digits",
       checksum: "EDRPOU code is invalid: the check digit does not match",
