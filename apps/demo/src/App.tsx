@@ -6,6 +6,7 @@ import {
   LayoutTemplate,
   Palette,
   Shapes,
+  ShieldCheck,
 } from "lucide-react"
 import { useLogout } from "ra-core"
 import {
@@ -34,6 +35,8 @@ import {
 } from "@/registry/erp/command-palette"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { DevPanel } from "@/registry/erp/dev-panel"
+import { useAuthMethods } from "@/registry/erp/login-screen"
+import { SessionGuard } from "@/registry/erp/session-guard"
 import { NotificationBell } from "@/registry/erp/notification-bell"
 import { UserMenu } from "@/registry/erp/user-menu"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
@@ -46,6 +49,7 @@ import {
 } from "@/registry/lib/appearance"
 import { LANGUAGES, useErpUiT } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
+import { subscribeMockMessages } from "@/registry/lib/mocks"
 import { syncPreferences } from "@/registry/lib/preferences"
 import {
   ACTION_ICONS,
@@ -72,9 +76,10 @@ import { MOCK_RESOURCES } from "@/mocks/handlers"
 import { AppearancePage } from "@/pages/AppearancePage"
 import { DataPage } from "@/pages/DataPage"
 import { IconsPage } from "@/pages/IconsPage"
-import { LoginPage } from "@/pages/LoginPage"
+import { AuthPage } from "@/pages/AuthPage"
 import { ModulePage } from "@/pages/ModulePage"
 import { PrimitivesPage } from "@/pages/PrimitivesPage"
+import { SecurityPage } from "@/pages/SecurityPage"
 import { StatesPage } from "@/pages/StatesPage"
 import {
   LOGIN_PATH,
@@ -97,6 +102,7 @@ const PAGES: Record<Route, React.ComponentType> = {
   icons: IconsPage,
   states: StatesPage,
   data: DataPage,
+  security: SecurityPage,
 }
 
 const PAGE_ICONS: Record<Route, typeof Palette> = {
@@ -106,6 +112,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   icons: Shapes,
   states: LayoutTemplate,
   data: Database,
+  security: ShieldCheck,
 }
 
 /** Розділи в нижній панелі телефона. */
@@ -147,10 +154,11 @@ export function App() {
   usePreferencesSync(me?.id)
   const queryClient = useQueryClient()
   const breakpoint = useBreakpoint()
+  useMockMessages()
   const devPanel = (
     <DevPanel
       resources={MOCK_RESOURCES}
-      compact={location.route !== "login" && breakpoint !== "desktop"}
+      compact={location.route !== "auth" && breakpoint !== "desktop"}
       onChange={() => {
         void queryClient.invalidateQueries()
       }}
@@ -160,11 +168,8 @@ export function App() {
   return (
     <IconProvider>
       <TooltipProvider>
-        {location.route === "login" ? (
-          <>
-            <LoginPage />
-            <div className="fixed top-4 right-4">{devPanel}</div>
-          </>
+        {location.route === "auth" ? (
+          <AuthPage screen={location.screen} devPanel={devPanel} />
         ) : (
           <Shell location={location} devPanel={devPanel} />
         )}
@@ -174,11 +179,53 @@ export function App() {
   )
 }
 
+/** «Надіслані» мок-сервером SMS і листи — як сповіщення телефона чи пошти (лише демо). */
+function useMockMessages() {
+  const { t } = useTranslation("demo", { keyPrefix: "authDemo" })
+  useEffect(
+    () =>
+      subscribeMockMessages((message) => {
+        const options = { duration: 15_000 }
+        if (message.channel === "sms") {
+          toast(
+            t("smsToast", { to: message.to, code: message.code ?? "" }),
+            options,
+          )
+          return
+        }
+        if (message.kind === "notice") {
+          toast(t("noticeToast", { to: message.to }), options)
+          return
+        }
+        if (message.kind === "export") {
+          toast(t("exportToast", { to: message.to }), options)
+          return
+        }
+        const link = message.link
+        toast(t("emailToast", { to: message.to }), {
+          ...options,
+          description: message.code
+            ? t("emailCode", { code: message.code })
+            : undefined,
+          action: link
+            ? {
+                label: t("openLink"),
+                onClick: () => {
+                  window.location.assign(link)
+                },
+              }
+            : undefined,
+        })
+      }),
+    [t],
+  )
+}
+
 function Shell({
   location,
   devPanel,
 }: {
-  location: Exclude<Location, { route: "login" }>
+  location: Exclude<Location, { route: "auth" }>
   devPanel: React.ReactNode
 }) {
   const { t } = useTranslation()
@@ -187,6 +234,7 @@ function Shell({
   const logout = useLogout()
   const breakpoint = useBreakpoint()
   const { data: me } = useMe()
+  const methods = useAuthMethods()
   const [company, setCompany] = useCompany()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const openPalette = useCallback(() => {
@@ -347,9 +395,13 @@ function Shell({
                     <SHELL_ICONS.user aria-hidden />
                     {t("user.profile")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      void navigate(ROUTES.security)
+                    }}
+                  >
                     <ACTION_ICONS.settings aria-hidden />
-                    {t("user.settings")}
+                    {t("app.pages.security")}
                   </DropdownMenuItem>
                 </UserMenu>
               </>
@@ -375,6 +427,9 @@ function Shell({
           )}
         </Suspense>
       </AppShell>
+      {me ? (
+        <SessionGuard idleMinutes={methods.data?.idleTimeoutMinutes} />
+      ) : null}
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}

@@ -104,6 +104,14 @@ function build() {
       problems.push(`Немає опису для ${f.name} у registry/registry.config.mjs`)
   for (const name of Object.keys(CODE_ITEMS))
     if (!byName.has(name)) problems.push(`Опис ${name} є, а файлу немає`)
+  // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` на `@/components/x` — ламає збірку в проекті.
+  for (const f of files) {
+    const src = readFileSync(path.join(root, f.file), "utf8")
+    if (/^export\s[^;]*?\sfrom\s+["']@\/registry\//m.test(src))
+      problems.push(
+        `${f.file}: реекспорт \`export … from "@/registry/…"\` — замініть на import + export`,
+      )
+  }
 
   /** Замикання внутрішніх імпортів + зовнішні пакети. */
   function closure(start) {

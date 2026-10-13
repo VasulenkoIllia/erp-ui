@@ -27,7 +27,8 @@ const users: MockUser[] = [
     permissions: ["invoices:*"],
     companies: [{ id: "a", name: "ТОВ «А»" }],
     companyId: "a",
-    twoFactorEnabled: true,
+    phone: "+380671234545",
+    factors: ["totp", "sms"],
   },
 ]
 

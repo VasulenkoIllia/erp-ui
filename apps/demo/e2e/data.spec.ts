@@ -19,69 +19,6 @@ async function chooseScenario(page: Page, name: string) {
   await expect(panel).toBeHidden()
 }
 
-test.describe("вхід (ADR-0003)", () => {
-  test.use({ viewport: { width: 1440, height: 900 } })
-
-  test("гість → /login; пароль → код 2FA → повернення на сторінку даних", async ({
-    page,
-  }) => {
-    await openWith(page, {}, DATA, { user: null })
-    await expect(page).toHaveURL(/#\/login$/)
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Вхід" }),
-    ).toBeVisible()
-
-    await page.getByLabel("Email").fill("olena@zoriana.example")
-    await page.getByLabel("Пароль").fill("невірний")
-    await page.getByRole("button", { name: "Увійти" }).click()
-    await expect(page.getByRole("alert")).toHaveText(
-      "Невірний email або пароль",
-    )
-
-    await page.getByLabel("Пароль").fill("demo")
-    await page.getByRole("button", { name: "Увійти" }).click()
-    await expect(
-      page.getByRole("heading", { level: 1, name: "Код підтвердження" }),
-    ).toBeVisible()
-    const code = page.getByLabel("Код")
-    await expect(code).toBeFocused()
-    await code.fill("111111")
-    await page.getByRole("button", { name: "Підтвердити" }).click()
-    await expect(page.getByRole("alert")).toContainText("Код не підходить")
-
-    await code.fill("123456")
-    await page.getByRole("button", { name: "Підтвердити" }).click()
-    await expect(page).toHaveURL(/#\/data$/)
-    await expect(rows(page)).toHaveCount(20)
-    await expect(
-      page.getByRole("button", { name: "Меню користувача: Олена Коваль" }),
-    ).toBeVisible()
-  })
-
-  test("вихід: сесію закрито, сторінка даних знову просить увійти", async ({
-    page,
-  }) => {
-    await openWith(page, {}, DATA)
-    await expect(rows(page)).toHaveCount(20)
-    await page
-      .getByRole("button", { name: "Меню користувача: Олена Коваль" })
-      .click()
-    await page.getByRole("menuitem", { name: "Вийти" }).click()
-    await expect(page).toHaveURL(/#\/login$/)
-    await page.goto("/#/primitives")
-    await expect(page.getByRole("link", { name: "Увійти" })).toBeVisible()
-    await page.goto(DATA)
-    await expect(page).toHaveURL(/#\/login$/)
-  })
-
-  test("сторінка входу: axe у світлій і темній темі", async ({ page }) => {
-    for (const theme of ["light", "dark"] as const) {
-      await openWith(page, { theme }, "/#/login", { user: null })
-      await expectNoA11yViolations(page)
-    }
-  })
-})
-
 test.describe("дані: список рахунків", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 

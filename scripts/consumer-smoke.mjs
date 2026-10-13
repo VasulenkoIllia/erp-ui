@@ -6,7 +6,7 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add <REPO>/base, пакунки data і mocks та всі елементи ui/* і erp/* на одному ref → tsc → vite build.
+ * shadcn add <REPO>/base, пакунки data, mocks і auth та всі елементи ui/* і erp/* на одному ref → tsc → vite build.
  * --diff-from: спершу ставить усе зі старого ref, потім показує `add --diff` для нового (оновлення).
  * Приватний репозиторій: потрібен `gh auth login` або GH_TOKEN з правом читання.
  */
@@ -37,7 +37,7 @@ const shadcnVersion = JSON.parse(
   readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
 ).version
 /** Пакунки, які ставить проект: основа, шар даних, моки. */
-const BUNDLES = ["base", "data", "mocks"]
+const BUNDLES = ["base", "data", "mocks", "auth"]
 const uiItems = registry.items
   .filter((it) => /^(ui|erp)\//.test(it.name))
   .map((it) => it.name)

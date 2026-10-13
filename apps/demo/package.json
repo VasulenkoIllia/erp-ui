@@ -20,6 +20,7 @@
     "cn": "^0.4.0",
     "google-libphonenumber": "^3.2.47",
     "i18next": "^26.4.4",
+    "input-otp": "^1.5.0",
     "lucide-react": "^1.55.0",
     "msw": "^3.0.3",
     "ra-core": "^5.15.4",

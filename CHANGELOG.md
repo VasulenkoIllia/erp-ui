@@ -4,6 +4,40 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5b (вхід і акаунт, ADR-0010)
+
+- `lib/auth`:
+  - `GET /auth/methods`;
+  - універсальний виклик підтвердження (TOTP, резервний код, SMS/Viber, email, ключ доступу);
+  - вхід без пароля, посилання з листа, SSO-повернення;
+  - відновлення пароля, запрошення, реєстрація, тимчасовий пароль;
+  - повторне підтвердження, зміна email, експорт і видалення акаунта;
+  - `refreshMe`, вихід `{ remote: true }`.
+- `lib/session` (термін сесії з `X-Session-Expires-At`, активність по вкладках, події між вкладками), `lib/passkey` (WebAuthn JSON, WebOTP), `lib/password` (надійність без словників), `lib/brand-icons` (Google, Apple).
+- Екрани (пакунок `auth`):
+  - вхід: `erp/login-screen`, `erp/challenge-form`;
+  - відновлення: `erp/account-recovery`, `erp/sign-up-screen`;
+  - сесія й безпека: `erp/session-guard`, `erp/reauth-dialog`, `erp/account-security`;
+  - поля й кнопки: `erp/password-input`, `erp/sso-buttons`, `erp/captcha` (Turnstile).
+- `ui/input-otp` (input-otp 1.5, MIT) і анімація курсора в токенах.
+- Мок: `lib/mock-auth` (усі способи входу, «не бот», довірений пристрій, GDPR) і `lib/mock-server` (ковзна сесія, «надіслані» SMS і листи).
+- Демо:
+  - усі екрани входу;
+  - демо-провайдер Google/Apple;
+  - сторінка «Безпека акаунта»;
+  - SMS і листи як сповіщення;
+  - попередження про кінець сесії.
+- e2e:
+  - вхід: пароль і код, SMS, резервний код, тимчасовий пароль, «не бот», без пароля, Google/Apple, ключ доступу (віртуальний автентифікатор);
+  - відновлення, запрошення, реєстрація;
+  - сесія: кінець сесії (контрольований годинник), вихід у двох вкладках, зміна email, видалення акаунта;
+  - axe.
+- Аудит проектів студії (`docs/audit/`), SPEC 1.6–1.7: PF15–PF20, UI39–UI47, A7.
+
+### Змінено — крок 0.5b
+
+- Контракт входу: `two_factor_required` → `challenge`, `twoFactorEnabled` → `factors`; `lib/mocks` розділено на `mock-server`, `mock-auth` і ресурси.
+
 ### Додано — крок 0.5 (контракти, моки й дані)
 
 - `lib/api` — конвенції REST (ADR-0002) і HTTP-клієнт:

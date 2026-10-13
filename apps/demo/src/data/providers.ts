@@ -56,6 +56,9 @@ export const queryClient = new QueryClient({
 })
 export const apiClient = createApiClient({ getCompanyId })
 export const authProvider = createAuthProvider(apiClient, {
+  // Демо без справжніх Google і Apple: «провайдер» — сторінка демо з вибором акаунта.
+  ssoUrl: (provider, returnTo) =>
+    `#/mock-sso?provider=${encodeURIComponent(provider)}&returnTo=${encodeURIComponent(returnTo)}`,
   // Компанія — до перших запитів даних; профіль у кеші useMe — з кожним входом і виходом.
   onMe: (me) => {
     if (me) ensureCompany(me)

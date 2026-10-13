@@ -4,8 +4,13 @@ import i18next from "i18next"
 import { CoreAdminContext, useGetList, useUpdate } from "ra-core"
 import { useState } from "react"
 
+import { AccountDataSection, ChangeEmailForm, ChangePasswordForm } from "@/components/erp/account-security"
+import { AcceptInviteScreen, ForgotPasswordScreen } from "@/components/erp/account-recovery"
 import { ConflictDialog } from "@/components/erp/conflict-dialog"
 import { DevPanel } from "@/components/erp/dev-panel"
+import { LoginScreen } from "@/components/erp/login-screen"
+import { SessionGuard } from "@/components/erp/session-guard"
+import { SignUpScreen } from "@/components/erp/sign-up-screen"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useHasPermission, useMe } from "@/hooks/use-me"
 import { createApiClient, isApiError } from "@/lib/api"
@@ -86,6 +91,14 @@ export function Data() {
       queryClient={queryClient}
     >
       <Invoices />
+      <LoginScreen afterLogin="/invoices" />
+      <ForgotPasswordScreen />
+      <AcceptInviteScreen token="t" />
+      <SignUpScreen />
+      <SessionGuard idleMinutes={30} />
+      <ChangePasswordForm />
+      <ChangeEmailForm />
+      <AccountDataSection />
     </CoreAdminContext>
   )
 }
