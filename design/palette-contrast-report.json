@@ -1,0 +1,1442 @@
+[
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "foreground / background",
+    "ratio": 17.2,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "foreground / card",
+    "ratio": 18.48,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "mutedForeground / background",
+    "ratio": 5.6,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "mutedForeground / muted",
+    "ratio": 5.39,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "mutedForeground / card",
+    "ratio": 6.02,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "primaryForeground / primary",
+    "ratio": 5.35,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "primary / card",
+    "ratio": 5.49,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "input / card",
+    "ratio": 3.16,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "ring / card",
+    "ratio": 5.49,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "successForeground / successSoft",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 6.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 6.57,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "destructive / card",
+    "ratio": 5.41,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "success / card",
+    "ratio": 4.33,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.37,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.71,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "light",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "foreground / background",
+    "ratio": 17.76,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "foreground / card",
+    "ratio": 16.61,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "mutedForeground / background",
+    "ratio": 7.92,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "mutedForeground / muted",
+    "ratio": 6.71,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "mutedForeground / card",
+    "ratio": 7.41,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "primaryForeground / primary",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "primary / card",
+    "ratio": 7.39,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "input / card",
+    "ratio": 3.05,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "ring / card",
+    "ratio": 7.39,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "successForeground / successSoft",
+    "ratio": 8.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 8.66,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 7.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 8.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "destructive / card",
+    "ratio": 4.99,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "success / card",
+    "ratio": 6.74,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 11.94,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.94,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "sapphire",
+    "mode": "dark",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "foreground / background",
+    "ratio": 17.11,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "foreground / card",
+    "ratio": 18.46,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "mutedForeground / background",
+    "ratio": 5.56,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "mutedForeground / muted",
+    "ratio": 5.37,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "mutedForeground / card",
+    "ratio": 6,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "primaryForeground / primary",
+    "ratio": 6.07,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "primary / card",
+    "ratio": 6.27,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "input / card",
+    "ratio": 3.19,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "ring / card",
+    "ratio": 6.27,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "successForeground / successSoft",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 6.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 6.57,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "destructive / card",
+    "ratio": 5.41,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "success / card",
+    "ratio": 4.33,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.3,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.71,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "light",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.44,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "foreground / background",
+    "ratio": 17.62,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "foreground / card",
+    "ratio": 16.56,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "mutedForeground / background",
+    "ratio": 7.83,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "mutedForeground / muted",
+    "ratio": 6.72,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "mutedForeground / card",
+    "ratio": 7.36,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "primaryForeground / primary",
+    "ratio": 7.44,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "primary / card",
+    "ratio": 7.5,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "input / card",
+    "ratio": 3.05,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "ring / card",
+    "ratio": 7.5,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "successForeground / successSoft",
+    "ratio": 8.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 8.66,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 7.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 8.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "destructive / card",
+    "ratio": 5,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "success / card",
+    "ratio": 6.75,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 11.99,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.99,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "indigo",
+    "mode": "dark",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.44,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "foreground / background",
+    "ratio": 17.17,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "foreground / card",
+    "ratio": 18.43,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "mutedForeground / background",
+    "ratio": 5.59,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "mutedForeground / muted",
+    "ratio": 5.36,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "mutedForeground / card",
+    "ratio": 6,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "primaryForeground / primary",
+    "ratio": 16.67,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "primary / card",
+    "ratio": 17.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "input / card",
+    "ratio": 3.19,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "ring / card",
+    "ratio": 4.87,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "successForeground / successSoft",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 6.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 6.57,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "destructive / card",
+    "ratio": 5.41,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "success / card",
+    "ratio": 4.33,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.26,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.74,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "light",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 15.18,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "foreground / background",
+    "ratio": 17.63,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "foreground / card",
+    "ratio": 16.48,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "mutedForeground / background",
+    "ratio": 7.85,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "mutedForeground / muted",
+    "ratio": 6.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "mutedForeground / card",
+    "ratio": 7.34,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "primaryForeground / primary",
+    "ratio": 15.18,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "primary / card",
+    "ratio": 15.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "input / card",
+    "ratio": 3.04,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "ring / card",
+    "ratio": 6.83,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "successForeground / successSoft",
+    "ratio": 8.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 8.66,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 7.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 8.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "destructive / card",
+    "ratio": 4.98,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "success / card",
+    "ratio": 6.72,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.06,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 12.06,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "graphite",
+    "mode": "dark",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 15.18,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "foreground / background",
+    "ratio": 17.1,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "foreground / card",
+    "ratio": 18.41,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "mutedForeground / background",
+    "ratio": 5.53,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "mutedForeground / muted",
+    "ratio": 5.31,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "mutedForeground / card",
+    "ratio": 5.95,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "primaryForeground / primary",
+    "ratio": 5.55,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "primary / card",
+    "ratio": 5.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "input / card",
+    "ratio": 3.15,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "ring / card",
+    "ratio": 5.7,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "successForeground / successSoft",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 6.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 6.57,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "destructive / card",
+    "ratio": 5.41,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "success / card",
+    "ratio": 4.33,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.16,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.69,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "light",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 8.41,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "foreground / background",
+    "ratio": 17.61,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "foreground / card",
+    "ratio": 16.45,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "mutedForeground / background",
+    "ratio": 7.9,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "mutedForeground / muted",
+    "ratio": 6.73,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "mutedForeground / card",
+    "ratio": 7.38,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "primaryForeground / primary",
+    "ratio": 8.41,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "primary / card",
+    "ratio": 8.54,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "input / card",
+    "ratio": 3.05,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "ring / card",
+    "ratio": 8.54,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "successForeground / successSoft",
+    "ratio": 8.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 8.66,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 7.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 8.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "destructive / card",
+    "ratio": 4.95,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "success / card",
+    "ratio": 6.69,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 11.96,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.96,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "teal",
+    "mode": "dark",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 8.41,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "foreground / background",
+    "ratio": 17.18,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "foreground / card",
+    "ratio": 18.49,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "mutedForeground / background",
+    "ratio": 5.64,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "mutedForeground / muted",
+    "ratio": 5.44,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "mutedForeground / card",
+    "ratio": 6.07,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "primaryForeground / primary",
+    "ratio": 5.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "primary / card",
+    "ratio": 5.22,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "input / card",
+    "ratio": 3.2,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "ring / card",
+    "ratio": 5.22,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "successForeground / successSoft",
+    "ratio": 7.32,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 6.43,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 6.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 6.57,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "destructive / card",
+    "ratio": 5.41,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "success / card",
+    "ratio": 4.33,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 12.35,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.78,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "light",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.87,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "foreground / background",
+    "ratio": 17.68,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "foreground / card",
+    "ratio": 16.52,
+    "min": 7,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "mutedForeground / background",
+    "ratio": 7.84,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "mutedForeground / muted",
+    "ratio": 6.67,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "mutedForeground / card",
+    "ratio": 7.33,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "primaryForeground / primary",
+    "ratio": 7.87,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "primary / card",
+    "ratio": 7.88,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "input / card",
+    "ratio": 3.03,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "ring / card",
+    "ratio": 7.88,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "successForeground / successSoft",
+    "ratio": 8.08,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "warningForeground / warningSoft",
+    "ratio": 8.66,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "destructiveForeground / destructiveSoft",
+    "ratio": 7.7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "infoForeground / infoSoft",
+    "ratio": 8.4,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "destructive / card",
+    "ratio": 4.98,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "success / card",
+    "ratio": 6.73,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "sidebarForeground / sidebar",
+    "ratio": 11.98,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "sidebarDarkForeground / sidebarDark",
+    "ratio": 11.98,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "palette": "terracotta",
+    "mode": "dark",
+    "pair": "sidebarDarkPrimaryForeground / sidebarDarkPrimary",
+    "ratio": 7.87,
+    "min": 4.5,
+    "pass": true
+  }
+]
