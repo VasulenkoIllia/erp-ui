@@ -12,11 +12,13 @@
     "dev": "pnpm --filter @erp-ui/demo dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "eslint . && prettier --check . && node scripts/check-tokens.mjs",
+    "lint": "eslint . && prettier --check . && node scripts/check-tokens.mjs && pnpm check:contrast",
     "format": "prettier --write .",
-    "test": "node --test \"scripts/*.test.mjs\" && pnpm -r test",
+    "test": "node --test \"scripts/*.test.mjs\" \"design/*.test.mjs\" && pnpm -r test",
     "e2e": "pnpm --filter @erp-ui/demo e2e",
-    "screenshots": "pnpm --filter @erp-ui/demo screenshots"
+    "screenshots": "pnpm --filter @erp-ui/demo screenshots",
+    "themes": "node design/generate-themes.mjs && node design/check-contrast.mjs",
+    "check:contrast": "node design/generate-themes.mjs --check && node design/check-contrast.mjs --check"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -51,17 +51,47 @@ test.describe("axe: контрольні ширини", () => {
       })
 })
 
+// Сторінки для скриншотів; SCREENSHOT_PAGES=primitives,… обмежує набір (для звіту кроку).
+const SHOT_PAGES = { appearance: "/", primitives: "/#/primitives" } as const
+const selected = (
+  process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
+)
+  .split(",")
+  .filter((p): p is keyof typeof SHOT_PAGES => p in SHOT_PAGES)
+
 test.describe("скриншоти @screenshots", () => {
-  for (const palette of SHOT_PALETTES)
-    for (const theme of THEMES)
-      for (const width of SHOT_WIDTHS)
-        test(`${palette} ${theme} ${width}`, async ({ page }) => {
-          await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
-          await openWith(page, { palette, theme })
-          await expectNoA11yViolations(page)
-          await page.screenshot({
-            path: path.join(shotsDir, `${palette}-${theme}-${width}.png`),
-            fullPage: true,
+  for (const pageId of selected) {
+    for (const palette of SHOT_PALETTES)
+      for (const theme of THEMES)
+        for (const width of SHOT_WIDTHS)
+          test(`${pageId} ${palette} ${theme} ${width}`, async ({ page }) => {
+            await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+            await openWith(page, { palette, theme }, SHOT_PAGES[pageId])
+            await expectNoA11yViolations(page)
+            await page.screenshot({
+              path: path.join(
+                shotsDir,
+                `${pageId}-${palette}-${theme}-${width}.png`,
+              ),
+              fullPage: true,
+            })
           })
+    // Компактна щільність — для порівняння на десктопі.
+    for (const palette of SHOT_PALETTES)
+      test(`${pageId} ${palette} light 1440 compact`, async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await openWith(
+          page,
+          { palette, theme: "light", density: "compact" },
+          SHOT_PAGES[pageId],
+        )
+        await page.screenshot({
+          path: path.join(
+            shotsDir,
+            `${pageId}-${palette}-light-1440-compact.png`,
+          ),
+          fullPage: true,
         })
+      })
+  }
 })

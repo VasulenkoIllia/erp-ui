@@ -2,7 +2,8 @@
 /**
  * Зводить скриншоти кроку в аркуші «2 палітри × 2 теми» для кожної ширини — зручно дивитися з телефона.
  * Використання: node scripts/contact-sheet.mjs <тека зі скриншотами від кореня репозиторію>
- * Очікує файли <palette>-<theme>-<width>.png і пише sheet-<width>.png у ту саму теку.
+ * Очікує файли [<сторінка>-]<palette>-<theme>-<width>[-compact].png і пише
+ * sheet-[<сторінка>-]<width>[-compact].png у ту саму теку.
  */
 import { chromium } from "@playwright/test"
 import { readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -10,12 +11,24 @@ import path from "node:path"
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..")
 const dir = path.resolve(repoRoot, process.argv[2] ?? "")
-const files = readdirSync(dir).filter((f) =>
-  /^[a-z]+-(light|dark)-\d+\.png$/.test(f),
+const SHOT = /^(?:([a-z]+)-)?[a-z]+-(?:light|dark)-(\d+)(-compact)?\.png$/
+const files = readdirSync(dir).filter(
+  (f) => SHOT.test(f) && !f.startsWith("sheet-"),
 )
-const widths = [
-  ...new Set(files.map((f) => Number(f.match(/-(\d+)\.png$/)[1]))),
-].sort((a, b) => a - b)
+/** Група аркуша: сторінка + ширина + щільність. */
+const groupOf = (f) => {
+  const [, pageId, width, compact] = SHOT.exec(f)
+  return {
+    key: `${pageId ? `${pageId}-` : ""}${width}${compact ?? ""}`,
+    width: Number(width),
+  }
+}
+const groups = new Map()
+for (const f of files) {
+  const { key, width } = groupOf(f)
+  if (!groups.has(key)) groups.set(key, { width, shots: [] })
+  groups.get(key).shots.push(f)
+}
 
 const browser = await chromium.launch(
   process.env.PW_CHROMIUM_PATH
@@ -24,8 +37,8 @@ const browser = await chromium.launch(
 )
 const page = await browser.newPage({ deviceScaleFactor: 1 })
 
-for (const width of widths) {
-  const shots = files.filter((f) => f.endsWith(`-${width}.png`)).sort()
+for (const [key, { width, shots }] of groups) {
+  shots.sort()
   const scale = width > 800 ? 0.5 : 1
   const cells = shots
     .map((f) => {
@@ -38,7 +51,7 @@ for (const width of widths) {
      figure{margin:0}figcaption{margin-bottom:6px;color:#111}img{display:block;border:1px solid #444}</style>${cells}`,
   )
   await page.waitForLoadState("load")
-  const out = path.join(dir, `sheet-${width}.png`)
+  const out = path.join(dir, `sheet-${key}.png`)
   writeFileSync(out, await page.screenshot({ fullPage: true }))
   console.log(path.relative(repoRoot, out))
 }
