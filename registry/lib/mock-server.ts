@@ -3,7 +3,8 @@
  * сесія з ковзним терміном, користувачі й «надіслані» SMS та листи.
  *
  * - Сесія живе в localStorage (як cookie браузера): переживає перезавантаження сторінки.
- * - Кожна відповідь авторизованому користувачу несе `X-Session-Expires-At`; запит продовжує сесію.
+ * - Кожна відповідь авторизованому користувачу несе `X-Session-Expires-At`; запит продовжує сесію,
+ *   крім фонового (`X-Background-Request: 1`).
  * - Мок не надсилає SMS і листи — він повідомляє про них підписників (`subscribeMockMessages`),
  *   а демо показує їх як сповіщення телефона чи пошти.
  */
@@ -14,7 +15,10 @@ import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
 import type { ApiErrorBody } from "@/registry/lib/api"
 import type { AuthFactor, LocalizedText, Me } from "@/registry/lib/auth"
 import { SLOW_DELAY_MS, type Scenario } from "@/registry/lib/mock-scenarios"
-import { SESSION_EXPIRES_HEADER } from "@/registry/lib/session"
+import {
+  BACKGROUND_HEADER,
+  SESSION_EXPIRES_HEADER,
+} from "@/registry/lib/session"
 
 /* --------------------------------- Відповіді --------------------------------- */
 
@@ -226,15 +230,19 @@ function sessionHeaders(): Record<string, string> {
     : {}
 }
 
-/** Користувач поточної сесії; запит продовжує сесію, прострочена — закривається. */
-export function currentMockUser(): MockUser | null {
+/**
+ * Користувач поточної сесії; запит продовжує сесію, прострочена — закривається.
+ * `request` із `X-Background-Request: 1` (опитування) сесію не продовжує.
+ */
+export function currentMockUser(request?: Request): MockUser | null {
   const session = readSession()
   if (session?.stage !== "authenticated") return null
   if (session.expiresAt <= Date.now()) {
     writeMockSession(null)
     return null
   }
-  writeMockSession({ ...session, expiresAt: newExpiry() })
+  if (request?.headers.get(BACKGROUND_HEADER) !== "1")
+    writeMockSession({ ...session, expiresAt: newExpiry() })
   return mockUsers.find((u) => u.id === session.userId) ?? null
 }
 

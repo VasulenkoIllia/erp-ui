@@ -4,6 +4,7 @@ import { recordBaseSchema } from "@/registry/lib/api"
 import {
   createPlatformHandlers,
   createResourceHandlers,
+  subscribeMockEvents,
 } from "@/registry/lib/mocks"
 
 import { invoiceSchema, makeInvoices } from "@/data/invoices"
@@ -17,6 +18,12 @@ import {
   WEBHOOK_SEEDS,
 } from "./admin"
 import { currentBranding } from "./brands"
+import {
+  COMPANY_PROFILES,
+  INBOX_SEEDS,
+  PERMISSION_RESOURCES,
+  ROLES,
+} from "./team"
 import { MOCK_INVITES, MOCK_USERS } from "./users"
 
 /** Ресурси мок-сервера демо: їх показує панель розробника (журнал і вебхуки — теж зі сценаріями). */
@@ -63,17 +70,37 @@ export const users = createResourceHandlers({
   label: { uk: "Користувачі", en: "Users" },
 })
 
+// Ролі змінив адміністратор, колега прийняв запрошення — список користувачів теж змінюється.
+subscribeMockEvents((event) => {
+  const data = event.data as Partial<UserRecord>
+  if (event.type === "users.roles_changed" && data.id && data.roles) {
+    const record = users.db.all().find((user) => user.id === data.id)
+    if (record) {
+      record.roles = data.roles
+      record.version += 1
+    }
+  }
+  if (event.type === "users.joined" && data.id && data.name && data.email)
+    users.db.all().push({
+      id: data.id,
+      version: 1,
+      name: data.name,
+      email: data.email,
+      roles: data.roles ?? [],
+      companyId: data.companyId ?? null,
+    })
+})
+
 export const handlers = [
   ...createPlatformHandlers({
     users: MOCK_USERS,
     invites: MOCK_INVITES,
     branding: currentBranding,
     accountSeeds: ACCOUNT_SEEDS,
-    roles: [
-      { id: "accountant", name: { uk: "Бухгалтер", en: "Accountant" } },
-      { id: "admin", name: { uk: "Адміністратор", en: "Administrator" } },
-      { id: "sales", name: { uk: "Менеджер з продажу", en: "Sales manager" } },
-    ],
+    roles: ROLES,
+    permissionResources: PERMISSION_RESOURCES,
+    inboxSeeds: INBOX_SEEDS,
+    companyProfiles: COMPANY_PROFILES,
     apiResources: {
       invoices: { uk: "Рахунки", en: "Invoices" },
       users: { uk: "Користувачі", en: "Users" },

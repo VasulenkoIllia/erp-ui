@@ -21,6 +21,8 @@ export const MOCK_USERS: MockUser[] = [
       "security:*",
       "audit:read",
       "webhooks:*",
+      "roles:*",
+      "company:*",
     ],
     companies: COMPANIES,
     companyId: "zoriana",

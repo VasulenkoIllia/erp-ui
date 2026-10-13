@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 
 import { useImpersonation } from "@/registry/erp/impersonation"
+import { InvitationsSection } from "@/registry/erp/invitations-section"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { RecoveryRequestsSection } from "@/registry/erp/reset-factors"
+import { useRoles } from "@/registry/erp/roles-editor"
 import {
   ActiveSessionsSection,
   UserBlockedBadge,
@@ -32,9 +34,9 @@ const initials = (name: string) =>
     .join("")
 
 /**
- * Користувачі компанії: «Увійти як…» (ADR-0011), доступ — сесії, скидання другого кроку,
- * блокування (ADR-0013), запити на відновлення й активні сесії. Повний модуль користувачів і
- * ролей — A2 у хвилі 1; тут — простий список.
+ * Користувачі компанії: «Увійти як…» (ADR-0011), доступ — ролі, сесії, скидання другого кроку,
+ * блокування (ADR-0013/0014), запрошення, запити на відновлення й активні сесії. Повний модуль
+ * користувачів і ролей — A2 у хвилі 1; тут — простий список.
  */
 export function UsersPage() {
   const { t } = useTranslation("demo", { keyPrefix: "usersPage" })
@@ -51,7 +53,11 @@ export function UsersPage() {
       void navigate(ROUTES.data)
     },
   })
-  const access = useUserAccessSheet()
+  const access = useUserAccessSheet({
+    onChange: () => {
+      void refetch()
+    },
+  })
   const canImpersonate = me
     ? hasPermission(me.permissions, "users", "impersonate")
     : false
@@ -59,6 +65,17 @@ export function UsersPage() {
     me && !me.impersonator
       ? hasPermission(me.permissions, "users", "update")
       : false
+  const canInvite =
+    me && !me.impersonator
+      ? hasPermission(me.permissions, "users", "create")
+      : false
+  // Назви ролей — із каталогу ролей (ADR-0014), якщо є право їх бачити.
+  const roles = useRoles(
+    me ? hasPermission(me.permissions, "roles", "read") : false,
+  )
+  const roleName = (id: string) =>
+    roles.data?.roles.find((role) => role.id === id)?.name ??
+    dataT(`roles.${id}`, { defaultValue: id })
 
   let body: React.ReactNode
   if (isPending) body = <PageSkeleton rows={3} />
@@ -94,14 +111,9 @@ export function UsersPage() {
                       {canManage ? <UserBlockedBadge userId={user.id} /> : null}
                     </p>
                     <p className="truncate text-sm text-muted-foreground">
-                      {[
-                        user.email,
-                        user.roles
-                          .map((role) =>
-                            dataT(`roles.${role}`, { defaultValue: role }),
-                          )
-                          .join(", "),
-                      ].join(" · ")}
+                      {[user.email, user.roles.map(roleName).join(", ")].join(
+                        " · ",
+                      )}
                     </p>
                   </div>
                 </div>
@@ -161,6 +173,14 @@ export function UsersPage() {
           </Section>
         ) : null}
         {body}
+        {canInvite ? (
+          <Section
+            title={t("invitationsTitle")}
+            description={t("invitationsDescription")}
+          >
+            <InvitationsSection />
+          </Section>
+        ) : null}
         {canManage ? (
           <Section
             title={t("sessionsTitle")}

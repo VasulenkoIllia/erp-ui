@@ -24,6 +24,7 @@ import {
   setMockBlocked,
 } from "@/registry/lib/mock-account"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
+import { pushMockNotification } from "@/registry/lib/mock-inbox"
 import {
   CURRENT_IP,
   currentMockUser,
@@ -307,6 +308,24 @@ export function createAdminHandlers({
         ...readRequests().filter((r) => r.userId !== user.id),
       ])
       sendMockMessage({ channel: "email", to: user.email, kind: "recovery" })
+      // Адміністраторам — у центр сповіщень (ADR-0014).
+      for (const admin of mockUsersList().filter(
+        (u) =>
+          u.id !== user.id && hasPermission(u.permissions, "users", "update"),
+      ))
+        pushMockNotification(admin.id, {
+          type: "security.recovery_requested",
+          title: {
+            uk: `Запит на відновлення доступу: ${user.name}`,
+            en: `Access recovery request: ${user.name}`,
+          },
+          ...(entry.comment
+            ? { body: { uk: entry.comment, en: entry.comment } }
+            : {}),
+          severity: "warning",
+          actor: { name: user.name },
+          link: "/settings/users",
+        })
       recordAudit({
         action: "auth.recovery_requested",
         category: "auth",
@@ -377,6 +396,7 @@ export function createAdminHandlers({
         userId: target.id,
         status: blocked ? "blocked" : "active",
         blocked,
+        roles: target.roles,
         ...mockAccessSummary(target),
         sessions: mockUserSessions(target, language).map((session) => ({
           ...session,

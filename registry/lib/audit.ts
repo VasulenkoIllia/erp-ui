@@ -9,7 +9,7 @@
  * - `GET /audit-events/export` з тими самими фільтрами → CSV (UTF-8 з BOM), усі події без сторінок.
  * - Подія:
  *   - `action` — `<розділ>.<дія>`: `auth.sign_in`, `security.factors_reset`, `invoices.updated`;
- *   - `category` — `auth`, `security`, `users`, `integrations`, `data` або своя;
+ *   - `category` — `auth`, `security`, `users`, `company`, `integrations`, `data` або своя;
  *   - `actor` — користувач, токен API чи система; `impersonatedBy` — адміністратор «Увійти як…»;
  *   - `target` — над чим; `changes` — що змінилося (було → стало); `reason` — причина від людини;
  *   - `actionLabel` / `changes[].label` — назви мовою з `Accept-Language` для дій і полів проекту.
@@ -26,6 +26,7 @@ export const AUDIT_CATEGORIES = [
   "auth",
   "security",
   "users",
+  "company",
   "integrations",
   "data",
 ] as const

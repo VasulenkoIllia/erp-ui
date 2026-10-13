@@ -214,6 +214,7 @@ export const WEBHOOK_SEEDS: MockWebhookSeed[] = [
 
 const SECURITY: LocalizedText = { uk: "Безпека", en: "Security" }
 const TASKS: LocalizedText = { uk: "Завдання й згадки", en: "Tasks & mentions" }
+const TEAM: LocalizedText = { uk: "Команда", en: "Team" }
 
 export const NOTIFICATION_CHANNELS = [
   { id: "in_app" },
@@ -274,5 +275,26 @@ export const NOTIFICATION_EVENTS: MockNotificationEvent[] = [
     channels: ["in_app", "email"],
     required: ["email"],
     defaults: ["email"],
+  },
+  {
+    id: "security.recovery_requested",
+    group: TEAM,
+    label: {
+      uk: "Колега просить відновити доступ",
+      en: "A colleague asks to restore access",
+    },
+    description: {
+      uk: "Для адміністраторів: втратив телефон і резервні коди",
+      en: "For administrators: lost phone and backup codes",
+    },
+    channels: ["in_app", "email"],
+    defaults: ["in_app", "email"],
+  },
+  {
+    id: "team.invitation_accepted",
+    group: TEAM,
+    label: { uk: "Запрошення прийнято", en: "Invitation accepted" },
+    channels: ["in_app", "email"],
+    defaults: ["in_app"],
   },
 ]

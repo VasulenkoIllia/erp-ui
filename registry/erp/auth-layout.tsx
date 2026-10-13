@@ -6,7 +6,7 @@ import { useAuthProvider, useLocation, useNavigate } from "ra-core"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { isApiError } from "@/registry/lib/api"
-import { setBrandAppearance } from "@/registry/lib/appearance"
+import { setBrandAppearance, type Palette } from "@/registry/lib/appearance"
 import {
   localizedText,
   type Branding,
@@ -65,10 +65,12 @@ export function useBranding(): Branding | undefined {
 
 /**
  * Палітра бренду — типова для всього застосунку (де користувач не обрав свою). Викликати один раз
- * у корені; AuthLayout робить це сам.
+ * у корені; AuthLayout робить це сам. `override` — палітра компанії (erp/company-settings).
  */
-export function useBrandAppearance(): void {
-  const palette = useBranding()?.palette
+export function useBrandAppearance(override?: Palette | null): void {
+  const brand = useBranding()?.palette
+  // Палітра компанії (налаштування компанії, SPEC §6.2) важливіша за бренд сторінки входу.
+  const palette = override ?? brand
   React.useEffect(() => {
     setBrandAppearance(palette ? { palette } : null)
   }, [palette])

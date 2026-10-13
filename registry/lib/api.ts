@@ -10,11 +10,13 @@
  * - Сесія — httpOnly cookie (ADR-0003), тож клієнт завжди шле `credentials: "include"`.
  * - Компанія — заголовок `X-Company-Id` (PF02).
  * - Термін сесії — заголовок `X-Session-Expires-At` у відповідях (ADR-0010): клієнт передає його
- *   в lib/session, щоб попередити про завершення сесії.
+ *   в lib/session, щоб попередити про завершення сесії. Фонові запити (`background`) позначаються
+ *   `X-Background-Request: 1` і сесію не продовжують.
  */
 import { z } from "zod"
 
 import {
+  BACKGROUND_HEADER,
   SESSION_EXPIRES_HEADER,
   setSessionExpiresAt,
 } from "@/registry/lib/session"
@@ -200,6 +202,8 @@ export interface RequestOptions<T> {
   signal?: AbortSignal
   /** "blob" — файл (експорт CSV тощо) замість JSON; помилки однаково приходять JSON. */
   responseType?: "json" | "blob"
+  /** Фоновий запит (опитування): `X-Background-Request: 1`, сесію не продовжує (ADR-0014). */
+  background?: boolean
 }
 
 export interface ApiClientOptions {
@@ -223,7 +227,14 @@ export function createApiClient({
   async function request<T = unknown>(
     method: string,
     path: string,
-    { query, body, schema, signal, responseType }: RequestOptions<T> = {},
+    {
+      query,
+      body,
+      schema,
+      signal,
+      responseType,
+      background,
+    }: RequestOptions<T> = {},
   ): Promise<T> {
     const search =
       query instanceof URLSearchParams
@@ -245,6 +256,7 @@ export function createApiClient({
     if (companyId) headers.set(COMPANY_HEADER, companyId)
     const language = getLanguage?.()
     if (language) headers.set("Accept-Language", language)
+    if (background) headers.set(BACKGROUND_HEADER, "1")
 
     let response: Response
     try {

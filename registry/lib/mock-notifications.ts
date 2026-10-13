@@ -68,31 +68,49 @@ const DEFAULT_QUIET: QuietHours = { enabled: false, from: "22:00", to: "08:00" }
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
+/** Події проекту — і для обробників, і для інших моків (центр сповіщень). */
+let configured: MockNotificationEvent[] = DEFAULT_MOCK_NOTIFICATION_EVENTS
+
+function readSettings(userId: string): StoredSettings {
+  const base: StoredSettings = {
+    settings: Object.fromEntries(
+      configured.map((e) => [e.id, [...e.defaults]]),
+    ),
+    quietHours: DEFAULT_QUIET,
+  }
+  try {
+    const raw = globalThis.localStorage?.getItem(KEY(userId))
+    if (!raw) return base
+    const stored = JSON.parse(raw) as Partial<StoredSettings>
+    return {
+      // Нові події проекту — з типовими каналами.
+      settings: { ...base.settings, ...stored.settings },
+      quietHours: stored.quietHours ?? base.quietHours,
+    }
+  } catch {
+    return base
+  }
+}
+
+/** Чи хоче користувач цей канал для події (невідома подія — так; обов'язкові — завжди). */
+export function mockChannelEnabled(
+  userId: string,
+  eventId: string,
+  channel: string,
+): boolean {
+  const event = configured.find((e) => e.id === eventId)
+  if (!event) return true
+  if (event.required?.includes(channel)) return true
+  return readSettings(userId).settings[eventId]?.includes(channel) ?? false
+}
+
 export function createNotificationHandlers({
   baseUrl = API_PREFIX,
   channels = [{ id: "in_app" }, { id: "email" }, { id: "push" }],
   events = DEFAULT_MOCK_NOTIFICATION_EVENTS,
 }: NotificationsMockOptions = {}): HttpHandler[] {
-  const defaults = (): StoredSettings => ({
-    settings: Object.fromEntries(events.map((e) => [e.id, [...e.defaults]])),
-    quietHours: DEFAULT_QUIET,
-  })
-
-  const read = (user: MockUser): StoredSettings => {
-    const base = defaults()
-    try {
-      const raw = globalThis.localStorage?.getItem(KEY(user.id))
-      if (!raw) return base
-      const stored = JSON.parse(raw) as Partial<StoredSettings>
-      return {
-        // Нові події проекту — з типовими каналами.
-        settings: { ...base.settings, ...stored.settings },
-        quietHours: stored.quietHours ?? base.quietHours,
-      }
-    } catch {
-      return base
-    }
-  }
+  configured = events
+  const read = (user: MockUser) => readSettings(user.id)
 
   const response = (user: MockUser, language: string) => {
     const stored = read(user)

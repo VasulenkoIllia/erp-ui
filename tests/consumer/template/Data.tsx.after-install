@@ -16,6 +16,11 @@ import { AuditLog } from "@/components/erp/audit-log"
 import { NotificationSettingsForm } from "@/components/erp/notification-settings-form"
 import { ActiveSessionsSection, UserBlockedBadge, useUserAccessSheet } from "@/components/erp/user-access"
 import { WebhooksSection } from "@/components/erp/webhooks-section"
+import { CompanyBranchesSection, CompanyImages, CompanyProfileForm } from "@/components/erp/company-settings"
+import { InvitationsSection } from "@/components/erp/invitations-section"
+import { InboxBell, NotificationInbox, useUnreadNotifications } from "@/components/erp/notification-inbox"
+import { PermissionGate } from "@/components/erp/permission-gate"
+import { RolePicker, RolesEditor, useRoles } from "@/components/erp/roles-editor"
 import { AvatarEditor } from "@/components/erp/avatar-editor"
 import { BackupCodesDialog, FactorSetupStep } from "@/components/erp/factor-setup"
 import { ProfileForm, ProfilePhoto } from "@/components/erp/profile-form"
@@ -34,6 +39,7 @@ import { LoginScreen } from "@/components/erp/login-screen"
 import { SessionGuard } from "@/components/erp/session-guard"
 import { SignUpScreen } from "@/components/erp/sign-up-screen"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
+import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { useHasPermission, useMe } from "@/hooks/use-me"
 import { createApiClient, isApiError } from "@/lib/api"
 import { getAppearance } from "@/lib/appearance"
@@ -41,6 +47,7 @@ import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
 import { auditToCsv } from "@/lib/audit"
 import { ipAllowed, isValidCidr } from "@/lib/security-policy"
 import { webhookUrlIssue } from "@/lib/webhooks"
+import { countGranted, grants } from "@/lib/roles"
 import { createDataProvider } from "@/lib/data-provider"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
@@ -173,6 +180,31 @@ function Account() {
   )
 }
 
+function Team() {
+  const roles = useRoles()
+  const unread = useUnreadNotifications()
+  const company = useCompanyProfile()
+  const [picked, setPicked] = useState<string[]>([])
+  useBrandAppearance(company.data?.palette)
+  return (
+    <>
+      <InboxBell onNavigate={() => undefined} onShowAll={() => undefined} />
+      <NotificationInbox onNavigate={() => undefined} perPage={10} />
+      <RolesEditor />
+      <InvitationsSection />
+      <PermissionGate resource="invoices" action="delete" fallback={<span>—</span>}>
+        <span>{grants(["invoices:*"], "invoices", "delete") ? unread.data : countGranted([], [])}</span>
+      </PermissionGate>
+      {roles.data ? (
+        <RolePicker roles={roles.data.roles} value={picked} onChange={setPicked} legend="Ролі" />
+      ) : null}
+      <CompanyProfileForm />
+      <CompanyImages />
+      <CompanyBranchesSection />
+    </>
+  )
+}
+
 export function Data() {
   return (
     <CoreAdminContext
@@ -193,6 +225,7 @@ export function Data() {
       <Account />
       <Admin />
       <Operations />
+      <Team />
     </CoreAdminContext>
   )
 }

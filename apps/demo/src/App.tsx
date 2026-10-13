@@ -2,7 +2,10 @@ import { useQueryClient } from "@tanstack/react-query"
 import {
   Bell,
   Blocks,
+  Building2,
   Database,
+  Inbox,
+  KeySquare,
   Languages,
   LayoutTemplate,
   Palette,
@@ -44,9 +47,10 @@ import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { DevPanel } from "@/registry/erp/dev-panel"
 import { ImpersonationBanner } from "@/registry/erp/impersonation"
 import { SessionGuard } from "@/registry/erp/session-guard"
-import { NotificationBell } from "@/registry/erp/notification-bell"
+import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
+import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useMe } from "@/registry/hooks/use-me"
 import {
   DENSITIES,
@@ -127,6 +131,17 @@ const IntegrationsPage = lazy(() =>
   })),
 )
 
+const RolesPage = lazy(() =>
+  import("@/pages/RolesPage").then((m) => ({ default: m.RolesPage })),
+)
+// Реквізити — теж: поле телефону.
+const CompanyPage = lazy(() =>
+  import("@/pages/CompanyPage").then((m) => ({ default: m.CompanyPage })),
+)
+const InboxPage = lazy(() =>
+  import("@/pages/InboxPage").then((m) => ({ default: m.InboxPage })),
+)
+
 const PAGES: Record<Route, React.ComponentType> = {
   appearance: AppearancePage,
   primitives: PrimitivesPage,
@@ -134,8 +149,11 @@ const PAGES: Record<Route, React.ComponentType> = {
   icons: IconsPage,
   states: StatesPage,
   data: DataPage,
+  inbox: InboxPage,
   security: SecurityPage,
   users: UsersPage,
+  roles: RolesPage,
+  company: CompanyPage,
   profile: ProfilePage,
   notifications: NotificationsPage,
   securityPolicy: SecurityPolicyPage,
@@ -150,8 +168,11 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   icons: Shapes,
   states: LayoutTemplate,
   data: Database,
+  inbox: Inbox,
   security: ShieldCheck,
   users: Users,
+  roles: KeySquare,
+  company: Building2,
   profile: UserRound,
   notifications: Bell,
   securityPolicy: ShieldEllipsis,
@@ -197,7 +218,9 @@ export function App() {
   const { data: me } = useMe()
   usePreferencesSync(me?.id)
   // Палітра бренду (white-label) — типова, поки користувач не обрав свою.
-  useBrandAppearance()
+  // Палітра компанії (налаштування компанії) — типова, поки користувач не обрав свою.
+  const company = useCompanyProfile(Boolean(me))
+  useBrandAppearance(company.data?.palette)
   const queryClient = useQueryClient()
   const breakpoint = useBreakpoint()
   useMockMessages()
@@ -449,7 +472,14 @@ function Shell({
             {devPanel}
             {me ? (
               <>
-                <NotificationBell count={3} />
+                <InboxBell
+                  onNavigate={(link) => {
+                    void navigate(link)
+                  }}
+                  onShowAll={() => {
+                    void navigate(ROUTES.inbox)
+                  }}
+                />
                 <UserMenu
                   user={{
                     name: me.name,

@@ -45,6 +45,7 @@ import {
   json,
   noContent,
   signInMock,
+  subscribeMockEvents,
   subscribeMockMessages,
   type MockMessage,
   type MockUser,
@@ -57,6 +58,7 @@ export {
   DEFAULT_MOCK_METHODS,
   errorResponse,
   signInMock,
+  subscribeMockEvents,
   subscribeMockMessages,
 }
 export type {

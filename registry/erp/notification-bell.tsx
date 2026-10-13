@@ -20,20 +20,25 @@ import {
 } from "@/registry/ui/popover"
 
 /**
- * Дзвіник сповіщень у топбарі — заглушка до PF10 (NotificationBell, UI02).
- * `count` — кількість нових; `children` — вміст панелі (поки — «Нових сповіщень немає»).
+ * Дзвіник сповіщень у топбарі (UI02). `count` — кількість нових; `children` — вміст панелі
+ * (без нього — «Нових сповіщень немає»); `open` / `onOpenChange` — керована панель.
+ * Підключений до центру сповіщень — `InboxBell` (erp/notification-inbox, ADR-0014).
  */
 export function NotificationBell({
   count = 0,
+  open,
+  onOpenChange,
   children,
 }: {
   count?: number
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   children?: React.ReactNode
 }) {
   const t = useErpUiT()
   const Bell = SHELL_ICONS.notifications
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
         render={
           <Button
@@ -57,7 +62,7 @@ export function NotificationBell({
           </span>
         ) : null}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent align="end" className="w-80 sm:w-96">
         <PopoverHeader>
           <PopoverTitle>{t("notifications.title")}</PopoverTitle>
         </PopoverHeader>

@@ -40,6 +40,22 @@ import {
   type MockAccountSeed,
 } from "@/registry/lib/mock-account"
 import {
+  createCompanyHandlers,
+  type MockCompanyProfile,
+} from "@/registry/lib/mock-company"
+import {
+  createInboxHandlers,
+  setMockInboxSeeds,
+  type MockInboxItem,
+} from "@/registry/lib/mock-inbox"
+import {
+  acceptMockInvitation,
+  createTeamHandlers,
+  findMockInvitation,
+  type MockPermissionResource,
+  type MockRole,
+} from "@/registry/lib/mock-team"
+import {
   createAuditHandlers,
   setMockAuditSeeds,
   type MockAuditEvent,
@@ -136,8 +152,13 @@ export interface PlatformMockOptions {
   twoFactorRequired?: (user: MockUser) => boolean
   /** Типова політика безпеки (ADR-0012); адміністратор змінює її в `PUT /security-policy`. */
   securityPolicy?: Partial<SecurityPolicy>
-  /** Назви ролей для політики безпеки. */
-  roles?: { id: string; name: LocalizedText }[]
+  /**
+   * Ролі проекту: назви мовами, права, вбудовані (ADR-0014). Без прав — лише назви (для політики
+   * безпеки), а права користувачів беруться з `MockUser`.
+   */
+  roles?: MockRole[]
+  /** Каталог прав для матриці ролей; без нього — `apiResources` з діями CRUD. */
+  permissionResources?: Record<string, MockPermissionResource>
   /** Назви ресурсів для прав токенів API: { invoices: { uk: "Рахунки", en: "Invoices" } }. */
   apiResources?: Record<string, LocalizedText>
   /** Початкові події журналу аудиту (ADR-0013). */
@@ -149,6 +170,10 @@ export interface PlatformMockOptions {
   /** Канали й події сповіщень проекту. */
   notificationChannels?: { id: string; label?: LocalizedText }[]
   notificationEvents?: MockNotificationEvent[]
+  /** Початкові сповіщення в застосунку (ключ — id користувача). */
+  inboxSeeds?: Record<string, MockInboxItem[]>
+  /** Початкові профілі компаній (реквізити, філії). */
+  companyProfiles?: Record<string, MockCompanyProfile>
 }
 
 const RESEND_SECONDS = 30
@@ -208,7 +233,11 @@ export function createPlatformHandlers({
   webhookSeeds = [],
   notificationChannels,
   notificationEvents,
+  permissionResources,
+  inboxSeeds = {},
+  companyProfiles,
 }: PlatformMockOptions): HttpHandler[] {
+  setMockInboxSeeds(inboxSeeds)
   setMockUsers(users)
   setMockAccountSeeds(accountSeeds)
   setMockAuditSeeds(auditSeeds)
@@ -716,7 +745,9 @@ export function createPlatformHandlers({
 
     http.get(`${baseUrl}/auth/invite`, ({ request }) => {
       const value = new URL(request.url).searchParams.get("token")
-      const invite = invites.find((i) => i.token === value)
+      const invite =
+        invites.find((i) => i.token === value) ??
+        (value ? findMockInvitation(value) : undefined)
       if (!invite || usedInvites.has(invite.token))
         return errorResponse(410, {
           code: "token_expired",
@@ -736,7 +767,9 @@ export function createPlatformHandlers({
         name?: string
         password?: string
       }
-      const invite = invites.find((i) => i.token === body.token)
+      const invite =
+        invites.find((i) => i.token === body.token) ??
+        (body.token ? findMockInvitation(body.token) : undefined)
       if (!invite || usedInvites.has(invite.token))
         return errorResponse(410, {
           code: "token_expired",
@@ -755,6 +788,7 @@ export function createPlatformHandlers({
         ...invite.user,
       }
       addMockUser(user)
+      acceptMockInvitation(invite.token, user)
       authenticate(user.id)
       recordSignIn(user, { result: "success", method: "link" })
       return json({ status: "authenticated" })
@@ -1006,6 +1040,25 @@ export function createPlatformHandlers({
     }),
 
     ...createAuditHandlers({ baseUrl }),
+
+    ...createTeamHandlers({
+      baseUrl,
+      roles,
+      resources:
+        permissionResources ??
+        Object.fromEntries(
+          Object.entries(apiResources ?? {}).map(([id, label]) => [
+            id,
+            { label },
+          ]),
+        ),
+      inviteLink: (value) => linkUrl("invite", value),
+      reauthRequired,
+    }),
+
+    ...createInboxHandlers({ baseUrl }),
+
+    ...createCompanyHandlers({ baseUrl, profiles: companyProfiles }),
 
     ...createWebhookHandlers({
       baseUrl,

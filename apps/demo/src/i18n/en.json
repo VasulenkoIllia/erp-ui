@@ -11,10 +11,13 @@
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
-      "notifications": "Notifications",
+      "notifications": "Notification settings",
       "securityPolicy": "Security policies",
       "audit": "Audit log",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "inbox": "Notifications",
+      "roles": "Roles & permissions",
+      "company": "Company"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -358,7 +361,9 @@
     "lead": "Company users. An administrator manages access (sessions, two-step verification, blocking) and can sign in as a user to look into a request — everything goes to the audit log.",
     "listLabel": "Company users",
     "sessionsTitle": "Active sessions",
-    "sessionsDescription": "Where company users are signed in right now; end any suspicious session."
+    "sessionsDescription": "Where company users are signed in right now; end any suspicious session.",
+    "invitationsTitle": "Invitations",
+    "invitationsDescription": "Your colleague gets an email with a link and sets their own name and password. The link is valid for 7 days."
   },
   "profilePage": {
     "title": "Profile",
@@ -369,7 +374,7 @@
     "lead": "What to require from every user: two-step verification, sign-in methods, password, session, allowed addresses. Changes ask you to confirm it's you."
   },
   "notificationsPage": {
-    "title": "Notifications",
+    "title": "Notification settings",
     "lead": "Which events to notify you about and where: in the app, by email, push, Telegram. Quiet hours follow your time zone."
   },
   "auditPage": {
@@ -381,5 +386,23 @@
     "lead": "Webhooks notify external systems about events. API tokens for incoming requests live in “Account security”.",
     "webhooksTitle": "Webhooks",
     "webhooksDescription": "Event subscriptions: URL, events, signing secret, delivery log."
+  },
+  "rolesPage": {
+    "title": "Roles & permissions",
+    "lead": "What each role can do: permissions by resource and action. A person gets the sum of all their roles; assign roles to a user in “Users” → “Access”. Every change goes to the audit log."
+  },
+  "companyPage": {
+    "title": "Company",
+    "lead": "Details of the current company for invoices, acts and emails; logo and stamp; branches. An administrator edits them, everyone else can view.",
+    "profileTitle": "Details",
+    "profileDescription": "EDRPOU, RNOKPP, VAT IPN and IBAN are checked by checksum, just like on the server.",
+    "imagesTitle": "Logo and stamp",
+    "imagesDescription": "Placed in the header and signature area of documents.",
+    "branchesTitle": "Branches",
+    "branchesDescription": "Separate divisions: name, code and address appear in documents."
+  },
+  "inboxPage": {
+    "title": "Notifications",
+    "lead": "Everything the app told you: overdue invoices, mentions, tasks, security events. Which events and channels — in “Notification settings”."
   }
 }

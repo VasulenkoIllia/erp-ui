@@ -167,6 +167,11 @@
           "target": "@lib/audit.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -182,14 +187,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -243,7 +263,7 @@
       "name": "auth",
       "type": "registry:item",
       "title": "Вхід і акаунт",
-      "description": "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0013): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів.",
+      "description": "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0014): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів, ролі й права, запрошення, центр сповіщень, налаштування компанії.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -350,6 +370,11 @@
           "target": "@lib/brand-icons.tsx"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -365,9 +390,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -378,6 +413,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -615,6 +655,11 @@
           "target": "@components/erp/user-access.tsx"
         },
         {
+          "path": "registry/erp/roles-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/roles-editor.tsx"
+        },
+        {
           "path": "registry/ui/sheet.tsx",
           "type": "registry:ui",
           "target": "@ui/sheet.tsx"
@@ -633,9 +678,54 @@
           "path": "registry/erp/notification-settings-form.tsx",
           "type": "registry:component",
           "target": "@components/erp/notification-settings-form.tsx"
+        },
+        {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/erp/invitations-section.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/invitations-section.tsx"
+        },
+        {
+          "path": "registry/erp/notification-inbox.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-inbox.tsx"
+        },
+        {
+          "path": "registry/erp/notification-bell.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-bell.tsx"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/erp/company-settings.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/company-settings.tsx"
+        },
+        {
+          "path": "registry/erp/ua-id-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/ua-id-input.tsx"
+        },
+        {
+          "path": "registry/hooks/use-company-profile.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company-profile.ts"
         }
       ],
-      "docs": "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).\n1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).\n2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.\n3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).\n4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.\n5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.\n6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).\n7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).\n8) Сповіщення: NotificationSettingsForm (erp/notification-settings-form). Адміністратор (ADR-0013): useUserAccessSheet і ActiveSessionsSection (erp/user-access), AuditLog (erp/audit-log), WebhooksSection (erp/webhooks-section).",
+      "docs": "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).\n1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).\n2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.\n3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).\n4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.\n5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.\n6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).\n7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).\n8) Сповіщення: NotificationSettingsForm (erp/notification-settings-form). Адміністратор (ADR-0013): useUserAccessSheet і ActiveSessionsSection (erp/user-access), AuditLog (erp/audit-log), WebhooksSection (erp/webhooks-section).\n9) Команда й компанія (ADR-0014): RolesEditor (erp/roles-editor), InvitationsSection (erp/invitations-section), PermissionGate (erp/permission-gate); у топбарі — <InboxBell onNavigate onShowAll />, сторінка — NotificationInbox (erp/notification-inbox); CompanyProfileForm, CompanyImages, CompanyBranchesSection (erp/company-settings).",
       "meta": {
         "layer": "auth",
         "status": "beta",
@@ -700,6 +790,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -713,6 +808,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-account.ts",
@@ -735,6 +835,16 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -743,6 +853,11 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/mock-webhooks.ts",
@@ -755,6 +870,11 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -765,6 +885,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
@@ -773,6 +898,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
         },
         {
           "path": "registry/lib/webhooks.ts",
@@ -2218,6 +2348,11 @@
           "target": "@lib/audit.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2233,14 +2368,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -2288,6 +2438,63 @@
         "spec": [
           "PF01",
           "§20"
+        ]
+      }
+    },
+    {
+      "name": "lib/company",
+      "type": "registry:lib",
+      "title": "Налаштування компанії",
+      "description": "Контракт реквізитів (юрособа чи ФОП, ЄДРПОУ / РНОКПП, ПДВ, IBAN, контакти, підписанти), логотип і печатка, філії — provider.company.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "A1",
+          "LC12"
         ]
       }
     },
@@ -2476,6 +2683,41 @@
       }
     },
     {
+      "name": "lib/invitations",
+      "type": "registry:lib",
+      "title": "Запрошення колег",
+      "description": "Контракт: запросити за email із ролями, надіслати ще раз (не частіше ніж раз на хвилину), відкликати; прийняття — AcceptInviteScreen — provider.invitations.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "users",
+        "spec": [
+          "PF01",
+          "A2"
+        ]
+      }
+    },
+    {
       "name": "lib/language-names",
       "type": "registry:lib",
       "title": "Назви мов",
@@ -2561,6 +2803,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2574,6 +2821,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-audit.ts",
@@ -2596,9 +2848,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -2672,6 +2934,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2687,6 +2954,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/mock-account.ts",
           "type": "registry:lib",
           "target": "@lib/mock-account.ts"
@@ -2695,6 +2967,16 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -2712,9 +2994,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -2788,6 +3080,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2801,6 +3098,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -2818,9 +3120,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -2894,6 +3206,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -2907,6 +3224,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-account.ts",
@@ -2924,6 +3246,16 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -2939,6 +3271,11 @@
           "target": "@lib/mock-server.ts"
         },
         {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
           "path": "registry/lib/mock-webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/mock-webhooks.ts"
@@ -2949,6 +3286,11 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -2957,6 +3299,283 @@
           "path": "registry/lib/preferences.ts",
           "type": "registry:lib",
           "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "login",
+        "spec": [
+          "PF01",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-company",
+      "type": "registry:lib",
+      "title": "Мок налаштувань компанії",
+      "description": "Профіль кожної компанії в localStorage, перевірка реквізитів контрольними сумами LC12, логотип, печатка й філії.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "A1",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-inbox",
+      "type": "registry:lib",
+      "title": "Мок центру сповіщень",
+      "description": "Сповіщення кожного користувача в localStorage, мовами; pushMockNotification поважає налаштування «У застосунку».",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -2977,9 +3596,9 @@
       "meta": {
         "layer": "lib",
         "status": "beta",
-        "demo": "login",
+        "demo": "inbox",
         "spec": [
-          "PF01",
+          "PF10",
           "§17"
         ]
       }
@@ -3030,6 +3649,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3043,6 +3667,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -3060,9 +3689,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -3158,6 +3797,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3173,6 +3817,11 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
@@ -3183,9 +3832,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -3208,6 +3867,147 @@
         "status": "beta",
         "demo": "data",
         "spec": [
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-team",
+      "type": "registry:lib",
+      "title": "Мок ролей і запрошень",
+      "description": "Ролі й призначення в localStorage, права користувача — сума прав його ролей; запрошення з листом-посиланням і прийняттям через мок входу.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
           "§17"
         ]
       }
@@ -3258,6 +4058,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3271,6 +4076,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-audit.ts",
@@ -3293,9 +4103,19 @@
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -3369,6 +4189,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3382,6 +4207,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
         },
         {
           "path": "registry/lib/mock-account.ts",
@@ -3404,6 +4234,16 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -3419,6 +4259,11 @@
           "target": "@lib/mock-server.ts"
         },
         {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
           "path": "registry/lib/mock-webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/mock-webhooks.ts"
@@ -3427,6 +4272,11 @@
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -3439,6 +4289,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
@@ -3447,6 +4302,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
         },
         {
           "path": "registry/lib/webhooks.ts",
@@ -3484,6 +4344,41 @@
         "demo": "notifications",
         "spec": [
           "PF10"
+        ]
+      }
+    },
+    {
+      "name": "lib/notifications",
+      "type": "registry:lib",
+      "title": "Центр сповіщень",
+      "description": "Контракт сповіщень у застосунку: список із фільтром непрочитаних, лічильник для дзвіника, позначки прочитаного, «Прочитати все» — provider.inbox.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "inbox",
+        "spec": [
+          "PF10",
+          "UI02"
         ]
       }
     },
@@ -3658,6 +4553,41 @@
         "demo": "data",
         "spec": [
           "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/roles",
+      "type": "registry:lib",
+      "title": "Ролі й права",
+      "description": "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці — provider.roles.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
+          "PF01"
         ]
       }
     },
@@ -3932,6 +4862,120 @@
       }
     },
     {
+      "name": "hooks/use-company-profile",
+      "type": "registry:hook",
+      "title": "useCompanyProfile",
+      "description": "Профіль поточної компанії (реквізити, зображення, філії, палітра) зі спільного кешу; у корені — палітра компанії типовою.",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-company-profile.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "A1",
+          "§6.2"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-me",
       "type": "registry:hook",
       "title": "useMe",
@@ -3975,6 +5019,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3990,14 +5039,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -4110,6 +5174,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -4130,14 +5199,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -4330,6 +5414,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -4350,9 +5439,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -4368,6 +5467,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -4589,6 +5693,11 @@
           "target": "@lib/brand-icons.tsx"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -4604,9 +5713,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -4617,6 +5736,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -4798,6 +5922,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -4813,9 +5942,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -4826,6 +5965,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -5002,6 +6146,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -5022,9 +6171,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -5035,6 +6194,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -5312,6 +6476,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -5332,14 +6501,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -5487,6 +6671,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -5502,14 +6691,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -5737,6 +6941,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -5752,14 +6961,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -5908,6 +7132,245 @@
         "spec": [
           "UI15",
           "PF06"
+        ]
+      }
+    },
+    {
+      "name": "erp/company-settings",
+      "type": "registry:component",
+      "title": "Налаштування компанії",
+      "description": "CompanyProfileForm (реквізити з перевіркою LC12; без права — лише перегляд), CompanyImages (логотип і печатка), CompanyBranchesSection (філії).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "google-libphonenumber@^3.2.47",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "@types/google-libphonenumber@^7.4.31"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/company-settings.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/company-settings.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/phone-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/phone-input.tsx"
+        },
+        {
+          "path": "registry/erp/ua-id-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/ua-id-input.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company-profile.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/phone.ts",
+          "type": "registry:lib",
+          "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "A1",
+          "LC12"
         ]
       }
     },
@@ -6278,6 +7741,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -6293,14 +7761,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -6457,6 +7940,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -6472,9 +7960,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6485,6 +7983,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -6575,6 +8078,230 @@
           "PF01",
           "A2",
           "A5"
+        ]
+      }
+    },
+    {
+      "name": "erp/invitations-section",
+      "type": "registry:component",
+      "title": "Запрошення",
+      "description": "InvitationsSection: хто чекає, «Запросити колегу» з ролями й повідомленням, надіслати ще раз, відкликати.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/invitations-section.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/invitations-section.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/roles-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/roles-editor.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "users",
+        "spec": [
+          "PF01",
+          "A2"
         ]
       }
     },
@@ -6683,6 +8410,11 @@
           "target": "@lib/brand-icons.tsx"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -6698,9 +8430,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -6711,6 +8453,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -6821,7 +8568,7 @@
       "name": "erp/notification-bell",
       "type": "registry:component",
       "title": "Дзвіник сповіщень",
-      "description": "Кнопка з лічильником у підписі й панель; заглушка до PF10.",
+      "description": "Кнопка з лічильником у підписі й панель (керована чи ні); підключений до центру сповіщень — InboxBell з erp/notification-inbox.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -6879,11 +8626,200 @@
       ],
       "meta": {
         "layer": "erp",
-        "status": "draft",
-        "demo": "appearance",
+        "status": "beta",
+        "demo": "inbox",
         "spec": [
           "UI02",
           "PF10"
+        ]
+      }
+    },
+    {
+      "name": "erp/notification-inbox",
+      "type": "registry:component",
+      "title": "Центр сповіщень",
+      "description": "InboxBell (лічильник і останні сповіщення), NotificationInbox (усі / непрочитані, позначки, «Прочитати все», ще), useUnreadNotifications.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/notification-inbox.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-inbox.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/notification-bell.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/notification-bell.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "inbox",
+        "spec": [
+          "PF10",
+          "UI02"
         ]
       }
     },
@@ -6951,6 +8887,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -6966,14 +8907,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -7188,6 +9144,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7203,9 +9164,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7216,6 +9187,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -7270,6 +9246,125 @@
         "spec": [
           "PF01",
           "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/permission-gate",
+      "type": "registry:component",
+      "title": "Перевірка права",
+      "description": "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться.",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
+          "PF01"
         ]
       }
     },
@@ -7426,6 +9521,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7441,9 +9541,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7454,6 +9564,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -7661,6 +9776,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7676,9 +9796,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7689,6 +9819,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -7860,6 +9995,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -7880,9 +10020,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7893,6 +10043,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -7997,6 +10152,220 @@
       }
     },
     {
+      "name": "erp/roles-editor",
+      "type": "registry:component",
+      "title": "Ролі й матриця прав",
+      "description": "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія, видалення, незбережені зміни; RolePicker і useRoles.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/roles-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/roles-editor.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
+          "PF01"
+        ]
+      }
+    },
+    {
       "name": "erp/security-policy-form",
       "type": "registry:component",
       "title": "Політики безпеки",
@@ -8076,6 +10445,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8091,9 +10465,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -8104,6 +10488,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -8273,6 +10662,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8288,14 +10682,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -8416,6 +10825,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8431,9 +10845,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -8444,6 +10868,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -8593,6 +11022,11 @@
           "target": "@lib/brand-icons.tsx"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8608,14 +11042,29 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -8789,7 +11238,7 @@
       "name": "erp/user-access",
       "type": "registry:component",
       "title": "Доступ користувачів",
-      "description": "Панель доступу (стан, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
+      "description": "Панель доступу (стан, ролі, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -8840,6 +11289,11 @@
           "target": "@components/erp/reset-factors.tsx"
         },
         {
+          "path": "registry/erp/roles-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/roles-editor.tsx"
+        },
+        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
@@ -8875,6 +11329,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -8895,9 +11354,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -8908,6 +11377,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -8948,6 +11422,11 @@
           "path": "registry/ui/card.tsx",
           "type": "registry:ui",
           "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
         },
         {
           "path": "registry/ui/dialog.tsx",
@@ -9195,6 +11674,11 @@
           "target": "@lib/auth.ts"
         },
         {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -9215,9 +11699,19 @@
           "target": "@lib/i18n-uk.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -9228,6 +11722,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",

@@ -318,6 +318,12 @@ test.describe("втрачений другий крок (ADR-0012)", () => {
     // Через about:blank — щоб сторінка завантажилась заново й увійшла (зміна лише хеша не перезавантажує).
     await page.goto("about:blank")
     await openWith(page, {}, USERS_PAGE)
+    // Запит прийшов і в центр сповіщень (ADR-0014).
+    await page.getByRole("button", { name: "Сповіщення: 4 нові" }).click()
+    await expect(
+      page.getByText("Запит на відновлення доступу: Іван Петренко"),
+    ).toBeVisible()
+    await page.keyboard.press("Escape")
     const requests = page.getByRole("list", {
       name: "Запити на відновлення доступу",
     })

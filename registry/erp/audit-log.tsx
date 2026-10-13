@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import {
+  Building2Icon,
   ChevronDownIcon,
   DatabaseIcon,
   DownloadIcon,
@@ -63,6 +64,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   auth: LogInIcon,
   security: ShieldIcon,
   users: UsersIcon,
+  company: Building2Icon,
   integrations: PlugIcon,
   data: DatabaseIcon,
 }

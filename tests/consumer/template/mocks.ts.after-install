@@ -65,7 +65,24 @@ export async function startMocks() {
       branding: { name: "ТОВ «А»", palette: "teal" },
       twoFactorRequired: () => true,
       securityPolicy: { twoFactor: "roles", twoFactorRoles: ["accountant"], ipAllowlist: [] },
-      roles: [{ id: "accountant", name: { uk: "Бухгалтер", en: "Accountant" } }],
+      roles: [{ id: "accountant", name: { uk: "Бухгалтер", en: "Accountant" }, permissions: ["invoices:*"] }],
+      permissionResources: {
+        invoices: { label: { uk: "Рахунки", en: "Invoices" }, group: { uk: "Продажі", en: "Sales" }, actions: ["read", "create", "update", "delete", "export"] },
+      },
+      inboxSeeds: {
+        u1: [
+          {
+            id: "n1",
+            type: "invoices.overdue",
+            title: { uk: "Рахунок прострочено", en: "Invoice overdue" },
+            createdAt: "2026-10-13T08:00:00.000Z",
+            readAt: null,
+            severity: "warning",
+            link: "/invoices/1",
+          },
+        ],
+      },
+      companyProfiles: { a: { legalName: "ТОВ «А»", edrpou: "32855961", palette: "teal" } },
       apiResources: { invoices: { uk: "Рахунки", en: "Invoices" } },
       webhookEvents: { "invoices.created": { label: { uk: "Рахунок створено", en: "Invoice created" } } },
       notificationEvents: [

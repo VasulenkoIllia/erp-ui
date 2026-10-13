@@ -17,10 +17,12 @@ import {
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useResetFactors } from "@/registry/erp/reset-factors"
-import { useMe } from "@/registry/hooks/use-me"
+import { RolePicker, useRoles } from "@/registry/erp/roles-editor"
+import { useHasPermission, useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
 import {
   ADMIN_QUERY_KEYS,
   type AdminSession,
@@ -102,7 +104,13 @@ function useRefreshAccess() {
     ])
 }
 
-export function useUserAccessSheet() {
+/**
+ * Панель доступу користувача. `onChange` — після змін ролей чи блокування, щоб проект оновив
+ * свій список користувачів.
+ */
+export function useUserAccessSheet({
+  onChange,
+}: { onChange?: () => void } = {}) {
   const [target, setTarget] = React.useState<AccessTarget | null>(null)
   const open = React.useCallback((user: AccessTarget) => {
     setTarget(user)
@@ -115,7 +123,9 @@ export function useUserAccessSheet() {
       }}
     >
       <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-lg">
-        {target ? <AccessPanel key={target.id} target={target} /> : null}
+        {target ? (
+          <AccessPanel key={target.id} target={target} onChange={onChange} />
+        ) : null}
       </SheetContent>
     </Sheet>
   )
@@ -124,7 +134,13 @@ export function useUserAccessSheet() {
 
 type Confirm = "signOut" | "block" | "unblock" | null
 
-function AccessPanel({ target }: { target: AccessTarget }) {
+function AccessPanel({
+  target,
+  onChange,
+}: {
+  target: AccessTarget
+  onChange?: () => void
+}) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
@@ -203,6 +219,14 @@ function AccessPanel({ target }: { target: AccessTarget }) {
             </dd>
           </dl>
         </div>
+
+        <UserRolesSection
+          key={access.roles.join()}
+          userId={target.id}
+          current={access.roles}
+          self={self}
+          onChange={onChange}
+        />
 
         <section className="space-y-2">
           <h3 className="text-sm font-medium">
@@ -306,6 +330,7 @@ function AccessPanel({ target }: { target: AccessTarget }) {
           onDone={() => {
             setConfirm(null)
             void refresh(target.id)
+            onChange?.()
           }}
         />
       ) : confirm ? (
@@ -318,10 +343,109 @@ function AccessPanel({ target }: { target: AccessTarget }) {
           onDone={() => {
             setConfirm(null)
             void refresh(target.id)
+            onChange?.()
           }}
         />
       ) : null}
     </>
+  )
+}
+
+/**
+ * Ролі користувача (ADR-0014): позначки ролей і «Зберегти ролі» з повторним підтвердженням.
+ * Свої ролі — лише перегляд (щоб не втратити доступ); без права `roles:read` — назви з відповіді.
+ */
+function UserRolesSection({
+  userId,
+  current,
+  self,
+  onChange,
+}: {
+  userId: string
+  current: string[]
+  self: boolean
+  onChange?: () => void
+}) {
+  const t = useErpUiT()
+  const provider = useErpAuthProvider()
+  const errorText = useAuthErrorText()
+  const queryClient = useQueryClient()
+  const refresh = useRefreshAccess()
+  const { guard, dialog: reauthDialog } = useReauth()
+  const canRead = useHasPermission("roles", "read")
+  const query = useRoles(canRead)
+  const [value, setValue] = React.useState(current)
+  const [error, setError] = React.useState<string>()
+  const [busy, setBusy] = React.useState(false)
+  const dirty =
+    value.length !== current.length || value.some((r) => !current.includes(r))
+
+  if (!query.data)
+    return (
+      <section className="space-y-2">
+        <h3 className="text-sm font-medium">{t("roles.userRolesTitle")}</h3>
+        {canRead && query.isPending ? (
+          <SectionSkeleton rows={2} />
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {current.map((role) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </section>
+    )
+
+  return (
+    <section className="space-y-3">
+      <RolePicker
+        roles={query.data.roles}
+        value={value}
+        legend={t("roles.userRolesTitle")}
+        error={error}
+        disabled={self || busy}
+        onChange={(next) => {
+          setValue(next)
+          setError(undefined)
+        }}
+      />
+      {self ? null : (
+        <Button
+          variant="outline"
+          disabled={!dirty || busy}
+          onClick={() => {
+            if (!value.length) {
+              setError(t("roles.userRolesRequired"))
+              return
+            }
+            setBusy(true)
+            guard(() => provider.roles.setUserRoles(userId, value))
+              .then(async () => {
+                toast.success(t("roles.userRolesSaved"))
+                onChange?.()
+                await Promise.all([
+                  refresh(userId),
+                  queryClient.invalidateQueries({
+                    queryKey: ROLES_QUERY_KEYS.list,
+                  }),
+                ])
+              })
+              .catch((failure: unknown) => {
+                toast.error(errorText(failure))
+              })
+              .finally(() => {
+                setBusy(false)
+              })
+          }}
+        >
+          {busy ? <Spinner aria-hidden /> : null}
+          {t("roles.userRolesSave")}
+        </Button>
+      )}
+      {reauthDialog}
+    </section>
   )
 }
 

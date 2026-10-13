@@ -181,7 +181,7 @@ test.describe("оболонка: десктоп", () => {
   }) => {
     await openWith(page, {}, "/")
     await page.getByRole("button", { name: "Сповіщення: 3 нові" }).click()
-    await expect(page.getByText("Нових сповіщень немає")).toBeVisible()
+    await expect(page.getByText("Рахунок 2026-0012 прострочено")).toBeVisible()
   })
 })
 

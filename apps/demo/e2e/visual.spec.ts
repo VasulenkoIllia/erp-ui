@@ -69,6 +69,9 @@ const SHOT_PAGES = {
   notifications: "/#/settings/notifications",
   audit: "/#/settings/audit",
   integrations: "/#/settings/integrations",
+  roles: "/#/settings/roles",
+  company: "/#/settings/company",
+  inbox: "/#/notifications",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
@@ -600,6 +603,76 @@ test.describe("скриншоти кроків 0.5b4 @screenshots", () => {
       await expectNoA11yViolations(page)
       await page.screenshot({
         path: path.join(shotsDir, `block-${palette}-${theme}-${width}.png`),
+      })
+    })
+  }
+})
+
+test.describe("скриншоти кроків 0.5b5 @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "light", width: 1440 },
+  ] as const
+  /** Дочекатися кінця анімацій появи (діалоги, панелі). */
+  const settled = (page: Page) =>
+    page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+    )
+
+  for (const { palette, theme, width } of cases) {
+    test(`invite ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("invite"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/users")
+      await page.getByRole("button", { name: "Запросити колегу" }).click()
+      const dialog = page.getByRole("dialog", { name: "Запросити колегу" })
+      await dialog.getByLabel("Email").fill("olha@zoriana.example")
+      await dialog.getByLabel("Ім'я (необов'язково)").fill("Ольга Коваленко")
+      await dialog.getByRole("checkbox", { name: "Менеджер з продажу" }).check()
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `invite-${palette}-${theme}-${width}.png`),
+      })
+    })
+
+    test(`bell ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("bell"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/roles")
+      await page.getByRole("button", { name: "Сповіщення: 3 нові" }).click()
+      await page.getByRole("button", { name: "Усі сповіщення" }).waitFor()
+      await settled(page)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `bell-${palette}-${theme}-${width}.png`),
+      })
+    })
+
+    test(`company-readonly ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("company-readonly"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/company", {
+        user: USERS.sales,
+      })
+      await page
+        .getByText("Змінювати реквізити може адміністратор компанії.")
+        .waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `company-readonly-${palette}-${theme}-${width}.png`,
+        ),
       })
     })
   }

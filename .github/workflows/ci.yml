@@ -13,10 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checks:
-    name: typecheck · lint · test · e2e
+  static:
+    name: typecheck · lint · test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -33,16 +33,38 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
+  # e2e росте з кожним кроком (скриншоти × палітри × теми × ширини), а раннер приватного
+  # репозиторію має 2 ядра (1 потік Playwright) — тому частинами паралельно.
+  e2e:
+    name: e2e (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
       - name: Install Playwright Chromium
         run: pnpm --filter @erp-ui/demo exec playwright install --with-deps chromium
 
-      - run: pnpm e2e
+      - run: pnpm e2e --shard=${{ matrix.shard }}/3
 
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: apps/demo/playwright-report
           retention-days: 7
 
@@ -50,10 +72,22 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.shard }}
           path: apps/demo/test-results/screenshots
           retention-days: 7
           if-no-files-found: ignore
+
+  # Підсумок під старою назвою: правило «перевірки мають пройти» дивиться на неї.
+  checks:
+    name: typecheck · lint · test · e2e
+    needs: [static, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: |
+          test "${{ needs.static.result }}" = success
+          test "${{ needs.e2e.result }}" = success
 
   consumer:
     name: доставка в тестовий проект

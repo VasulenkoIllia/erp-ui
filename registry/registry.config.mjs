@@ -153,6 +153,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["PF01", "A2"],
   },
+  "hooks/use-company-profile": {
+    title: "useCompanyProfile",
+    description:
+      "Профіль поточної компанії (реквізити, зображення, філії, палітра) зі спільного кешу; у корені — палітра компанії типовою.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "§6.2"],
+  },
   "hooks/use-api-error-message": {
     title: "useApiErrorMessage",
     description:
@@ -281,6 +289,62 @@ export const CODE_ITEMS = {
     demo: "notifications",
     spec: ["PF10", "§17"],
   },
+  "lib/roles": {
+    title: "Ролі й права",
+    description:
+      "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці — provider.roles.",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "lib/invitations": {
+    title: "Запрошення колег",
+    description:
+      "Контракт: запросити за email із ролями, надіслати ще раз (не частіше ніж раз на хвилину), відкликати; прийняття — AcceptInviteScreen — provider.invitations.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "lib/notifications": {
+    title: "Центр сповіщень",
+    description:
+      "Контракт сповіщень у застосунку: список із фільтром непрочитаних, лічильник для дзвіника, позначки прочитаного, «Прочитати все» — provider.inbox.",
+    status: "beta",
+    demo: "inbox",
+    spec: ["PF10", "UI02"],
+  },
+  "lib/company": {
+    title: "Налаштування компанії",
+    description:
+      "Контракт реквізитів (юрособа чи ФОП, ЄДРПОУ / РНОКПП, ПДВ, IBAN, контакти, підписанти), логотип і печатка, філії — provider.company.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "LC12"],
+  },
+  "lib/mock-team": {
+    title: "Мок ролей і запрошень",
+    description:
+      "Ролі й призначення в localStorage, права користувача — сума прав його ролей; запрошення з листом-посиланням і прийняттям через мок входу.",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "§17"],
+  },
+  "lib/mock-inbox": {
+    title: "Мок центру сповіщень",
+    description:
+      "Сповіщення кожного користувача в localStorage, мовами; pushMockNotification поважає налаштування «У застосунку».",
+    status: "beta",
+    demo: "inbox",
+    spec: ["PF10", "§17"],
+  },
+  "lib/mock-company": {
+    title: "Мок налаштувань компанії",
+    description:
+      "Профіль кожної компанії в localStorage, перевірка реквізитів контрольними сумами LC12, логотип, печатка й філії.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "§17"],
+  },
   "lib/mock-account": {
     title: "Мок безпеки акаунта",
     description:
@@ -346,9 +410,10 @@ export const CODE_ITEMS = {
   },
   "erp/notification-bell": {
     title: "Дзвіник сповіщень",
-    description: "Кнопка з лічильником у підписі й панель; заглушка до PF10.",
-    status: "draft",
-    demo: "appearance",
+    description:
+      "Кнопка з лічильником у підписі й панель (керована чи ні); підключений до центру сповіщень — InboxBell з erp/notification-inbox.",
+    status: "beta",
+    demo: "inbox",
     spec: ["UI02", "PF10"],
   },
   "erp/page-state": {
@@ -567,10 +632,50 @@ export const CODE_ITEMS = {
     demo: "notifications",
     spec: ["PF10"],
   },
+  "erp/permission-gate": {
+    title: "Перевірка права",
+    description:
+      "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться.",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "erp/roles-editor": {
+    title: "Ролі й матриця прав",
+    description:
+      "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія, видалення, незбережені зміни; RolePicker і useRoles.",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "erp/invitations-section": {
+    title: "Запрошення",
+    description:
+      "InvitationsSection: хто чекає, «Запросити колегу» з ролями й повідомленням, надіслати ще раз, відкликати.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/notification-inbox": {
+    title: "Центр сповіщень",
+    description:
+      "InboxBell (лічильник і останні сповіщення), NotificationInbox (усі / непрочитані, позначки, «Прочитати все», ще), useUnreadNotifications.",
+    status: "beta",
+    demo: "inbox",
+    spec: ["PF10", "UI02"],
+  },
+  "erp/company-settings": {
+    title: "Налаштування компанії",
+    description:
+      "CompanyProfileForm (реквізити з перевіркою LC12; без права — лише перегляд), CompanyImages (логотип і печатка), CompanyBranchesSection (філії).",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "LC12"],
+  },
   "erp/user-access": {
     title: "Доступ користувачів",
     description:
-      "Панель доступу (стан, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
+      "Панель доступу (стан, ролі, двоетапна перевірка, сесії, вийти всюди, скинути другий крок, блокування з причиною) і активні сесії компанії.",
     status: "beta",
     demo: "users",
     spec: ["PF01", "A2"],
@@ -907,7 +1012,7 @@ export const BUNDLE_ITEMS = {
   auth: {
     title: "Вхід і акаунт",
     description:
-      "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0013): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів.",
+      "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0014): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів, ролі й права, запрошення, центр сповіщень, налаштування компанії.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
@@ -930,6 +1035,11 @@ export const BUNDLE_ITEMS = {
       "erp/audit-log",
       "erp/webhooks-section",
       "erp/notification-settings-form",
+      "erp/permission-gate",
+      "erp/roles-editor",
+      "erp/invitations-section",
+      "erp/notification-inbox",
+      "erp/company-settings",
     ],
     docs: [
       "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
@@ -941,6 +1051,7 @@ export const BUNDLE_ITEMS = {
       "6) Профіль: ProfilePhoto і ProfileForm (erp/profile-form); токени API: ApiTokensSection (erp/api-tokens).",
       "7) Адміністратор (ADR-0012): SecurityPolicyForm (erp/security-policy-form); у списку користувачів — useResetFactors і RecoveryRequestsSection (erp/reset-factors).",
       "8) Сповіщення: NotificationSettingsForm (erp/notification-settings-form). Адміністратор (ADR-0013): useUserAccessSheet і ActiveSessionsSection (erp/user-access), AuditLog (erp/audit-log), WebhooksSection (erp/webhooks-section).",
+      "9) Команда й компанія (ADR-0014): RolesEditor (erp/roles-editor), InvitationsSection (erp/invitations-section), PermissionGate (erp/permission-gate); у топбарі — <InboxBell onNavigate onShowAll />, сторінка — NotificationInbox (erp/notification-inbox); CompanyProfileForm, CompanyImages, CompanyBranchesSection (erp/company-settings).",
     ].join("\n"),
   },
   mocks: {

@@ -109,6 +109,8 @@ export const userAccessSchema = z.object({
   blocked: z
     .object({ at: z.string(), by: z.string(), reason: z.string() })
     .nullable(),
+  /** Ролі користувача (ADR-0014). */
+  roles: z.array(z.string()),
   /** Налаштовані способи другого кроку. */
   factors: z.array(z.enum(SETUP_FACTORS)),
   lastSignInAt: z.string().nullable(),

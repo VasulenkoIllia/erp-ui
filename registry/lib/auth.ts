@@ -58,7 +58,14 @@ import {
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
 import { createAuditApi, type AuditApi } from "@/registry/lib/audit"
+import { createCompanyApi, type CompanyApi } from "@/registry/lib/company"
+import {
+  createInvitationsApi,
+  type InvitationsApi,
+} from "@/registry/lib/invitations"
+import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
+import { createRolesApi, type RolesApi } from "@/registry/lib/roles"
 import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
 import { createWebhooksApi, type WebhooksApi } from "@/registry/lib/webhooks"
@@ -423,6 +430,14 @@ export interface ErpAuthProvider extends AuthProvider {
   audit: AuditApi
   /** Вебхуки (lib/webhooks, ADR-0013). */
   webhooks: WebhooksApi
+  /** Ролі, права й призначення ролей (lib/roles, ADR-0014). */
+  roles: RolesApi
+  /** Запрошення колег (lib/invitations, ADR-0014). */
+  invitations: InvitationsApi
+  /** Центр сповіщень (lib/notifications, ADR-0014). */
+  inbox: InboxApi
+  /** Налаштування поточної компанії (lib/company, ADR-0014). */
+  company: CompanyApi
   /** Обов'язковий другий крок налаштовано — завершити вхід. */
   completeFactorSetup: () => Promise<void>
   /** Немає доступу до жодного фактора: попросити адміністратора відновити (на кроці коду). */
@@ -619,6 +634,14 @@ export function createAuthProvider(
     audit: createAuditApi(client),
 
     webhooks: createWebhooksApi(client),
+
+    roles: createRolesApi(client),
+
+    invitations: createInvitationsApi(client),
+
+    inbox: createInboxApi(client),
+
+    company: createCompanyApi(client),
 
     completeFactorSetup: () => post("/auth/factor-setup/complete"),
 

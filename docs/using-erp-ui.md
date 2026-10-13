@@ -210,14 +210,20 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
 - Адміністратору (ADR-0013):
   - `AuditLog` з `erp/audit-log` (право `audit:read`); `<AuditLog filter={{ targetType: "invoices", targetId }} />` — історія запису;
   - `WebhooksSection` з `erp/webhooks-section` (права `webhooks:*`);
-  - у списку користувачів — `useUserAccessSheet()` і `UserBlockedBadge`, на сторінці — `ActiveSessionsSection` з `erp/user-access`.
+  - у списку користувачів — `useUserAccessSheet({ onChange })` і `UserBlockedBadge`, на сторінці — `ActiveSessionsSection` з `erp/user-access`; у панелі доступу — і ролі людини.
+- Команда й компанія (ADR-0014):
+  - `RolesEditor` з `erp/roles-editor` (права `roles:*`) — ролі й матриця прав; каталог ресурсів і дій віддає бекенд;
+  - `InvitationsSection` з `erp/invitations-section` (право `users:create`) — запрошення колег; прийняття — `AcceptInviteScreen`;
+  - `<PermissionGate resource="invoices" action="delete">…</PermissionGate>` з `erp/permission-gate` — показати лише з правом (бекенд однаково перевіряє);
+  - у топбарі — `<InboxBell onNavigate={navigate} onShowAll={() => navigate("/notifications")} />`, сторінка — `<NotificationInbox onNavigate={navigate} />` з `erp/notification-inbox`;
+  - `CompanyProfileForm`, `CompanyImages`, `CompanyBranchesSection` з `erp/company-settings` (змінювати — `company:update`, решта бачить).
 - Політику виконує вхід сам: налаштування другого кроку під час входу (`FactorSetupStep`), новий пароль після терміну, 403 `ip_not_allowed`. Для SMS у `FactorSetupStep`/`useFactorSetup` можна передати `phone={{ Input: PhoneInput, validate: validatePhone }}` — на сторінці входу без нього легше пакунок.
 - Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
 - «Увійти як…»: у списку користувачів — `useImpersonation({ onStarted })`, в оболонці — `<AppShell banner={<ImpersonationBanner onStopped={…} />}>`.
-- Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance()`, щоб палітра бренду була типовою й після входу.
+- Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance(useCompanyProfile(Boolean(me)).data?.palette)` (`hooks/use-company-profile`), щоб палітра компанії чи бренду була типовою й після входу.
 - Клієнт API: `createApiClient({ getCompanyId, getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
-- Моки: `createPlatformHandlers({ …, securityPolicy, roles, apiResources, auditSeeds, webhookEvents, webhookSeeds, notificationChannels, notificationEvents })`; `createResourceHandlers({ …, label, fieldLabels })` — зміни записів ідуть у журнал аудиту й на вебхуки.
-- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» і скидання другого кроку пишуться в аудит із причиною; токени API зберігаються лише хешем; політика (другий крок, пароль, адреси) перевіряється на сервері; журнал аудиту пише сервер; вебхуки — з підписом HMAC і повторами (ADR-0013); заблокований не входить жодним способом.
+- Моки: `createPlatformHandlers({ …, securityPolicy, roles, permissionResources, apiResources, auditSeeds, webhookEvents, webhookSeeds, notificationChannels, notificationEvents, inboxSeeds, companyProfiles })`; `subscribeMockEvents` — `users.roles_changed` і `users.joined`, щоб оновити свій список людей; `createResourceHandlers({ …, label, fieldLabels })` — зміни записів ідуть у журнал аудиту й на вебхуки.
+- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» і скидання другого кроку пишуться в аудит із причиною; токени API зберігаються лише хешем; політика (другий крок, пароль, адреси) перевіряється на сервері; журнал аудиту пише сервер; вебхуки — з підписом HMAC і повторами (ADR-0013); заблокований не входить жодним способом; права перевіряються з ролей на кожному запиті, вбудовані й свої ролі не змінюються, токен запрошення зберігається хешем, реквізити перевіряються як на клієнті (ADR-0014).
 
 ## 7. Вигляд
 

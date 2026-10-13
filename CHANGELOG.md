@@ -4,6 +4,50 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5b5 (ролі й права, запрошення, центр сповіщень, компанія, ADR-0014)
+
+- `lib/roles` (`provider.roles`):
+  - ролі: `list` (ролі й каталог прав), `create`, `update`, `remove`;
+  - ролі користувача: `setUserRoles` (з повторним підтвердженням);
+  - матриця: `grants`, `togglePermission`, `countGranted`.
+- `lib/invitations` (`provider.invitations`): `list`, `create`, `resend`, `revoke`.
+- `lib/notifications` (`provider.inbox`): `list`, `unreadCount`, `markRead`, `markAllRead`.
+- `lib/company` (`provider.company`):
+  - профіль: `get`, `update` (реквізити, підписанти, палітра компанії);
+  - зображення: `uploadImage`, `removeImage` (логотип, печатка);
+  - філії: `createBranch`, `updateBranch`, `removeBranch`.
+- Екрани:
+  - `erp/roles-editor` — `RolesEditor`, `RolePicker`, `useRoles`;
+  - `erp/permission-gate` — `PermissionGate`;
+  - `erp/invitations-section` — `InvitationsSection`;
+  - `erp/notification-inbox` — `InboxBell`, `NotificationInbox`, `NotificationPreview`, `useUnreadNotifications`;
+  - `erp/company-settings` — `CompanyProfileForm`, `CompanyImages`, `CompanyBranchesSection`;
+  - `hooks/use-company-profile` — `useCompanyProfile`.
+- Панель доступу користувача — ролі; `useUserAccessSheet({ onChange })`.
+- `ui/checkbox` — стан «частково» (`indeterminate`).
+- `useBrandAppearance(palette)` — палітра компанії важливіша за бренд.
+- `lib/api`: `background: true` — заголовок `X-Background-Request: 1`, фоновий запит не продовжує сесію (мок теж); `BACKGROUND_HEADER` у `lib/session`.
+- Мок:
+  - `lib/mock-team`: ролі й призначення, права людей із ролей, запрошення з листом і прийняттям; події `users.roles_changed`, `users.joined`;
+  - `lib/mock-inbox`: сповіщення кожного користувача; `pushMockNotification` поважає налаштування «У застосунку»;
+  - `lib/mock-company`: профіль кожної компанії з перевіркою LC12, зображення, філії;
+  - `createPlatformHandlers` — `roles` з правами, `permissionResources`, `inboxSeeds`, `companyProfiles`;
+  - запит на відновлення доступу й прийняте запрошення надсилають сповіщення;
+  - `subscribeMockEvents` — і з `lib/mocks`.
+- Аудит: зміни ролей, ролі користувача, запрошення, реквізити компанії; розділ «Компанія».
+- Демо:
+  - сторінки «Ролі й права», «Компанія», «Сповіщення»;
+  - на «Користувачах» — запрошення, ролі в панелі доступу, назви ролей із каталогу;
+  - дзвіник у топбарі показує справжні сповіщення.
+- Тести: 13 модульних (`team.test.ts`), 8 e2e (`team.spec.ts`) з axe.
+
+### Змінено — крок 0.5b5
+
+- `NotificationBell` — керована панель (`open`, `onOpenChange`), ширша на великих екранах; статус beta.
+- Сторінка демо «Сповіщення» (налаштування) тепер «Налаштування сповіщень»; «Сповіщення» — центр сповіщень.
+- Запит на відновлення доступу не сповіщає самого автора, навіть якщо він адміністратор.
+- CI: e2e трьома частинами паралельно (раннер приватного репозиторію має 2 ядра, і повний набір зі скриншотами перевищив 20 хвилин); підсумкова перевірка лишилась «typecheck · lint · test · e2e».
+
 ### Додано — крок 0.5b4 (журнал аудиту, вебхуки, сповіщення, доступ користувачів, ADR-0013)
 
 - `lib/audit` (`provider.audit`):
