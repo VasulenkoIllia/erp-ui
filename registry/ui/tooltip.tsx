@@ -1,8 +1,9 @@
-// erp-ui: основа — shadcn base-nova/tooltip (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 "use client"
 
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/tooltip (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function TooltipProvider({
   delay = 0,

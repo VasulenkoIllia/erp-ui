@@ -12,13 +12,16 @@
     "dev": "pnpm --filter @erp-ui/demo dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "eslint . && prettier --check . && node scripts/check-tokens.mjs && pnpm check:contrast",
+    "lint": "eslint . && prettier --check . && node scripts/check-tokens.mjs && pnpm check:contrast && pnpm check:registry",
     "format": "prettier --write .",
     "test": "node --test \"scripts/*.test.mjs\" \"design/*.test.mjs\" && pnpm -r test",
     "e2e": "pnpm --filter @erp-ui/demo e2e",
     "screenshots": "pnpm --filter @erp-ui/demo screenshots",
     "themes": "node design/generate-themes.mjs && node design/check-contrast.mjs",
-    "check:contrast": "node design/generate-themes.mjs --check && node design/check-contrast.mjs --check"
+    "check:contrast": "node design/generate-themes.mjs --check && node design/check-contrast.mjs --check",
+    "registry": "node scripts/build-registry.mjs",
+    "check:registry": "node scripts/build-registry.mjs --check",
+    "consumer-smoke": "node scripts/consumer-smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -31,6 +34,7 @@
     "globals": "^17.13.0",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "shadcn": "^4.21.4",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.1"
   }

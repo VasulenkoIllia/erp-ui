@@ -1,10 +1,11 @@
-// erp-ui: основа — shadcn base-nova/field (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import { useMemo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/registry/lib/utils"
 
 import { Label } from "@/registry/ui/label"
 import { Separator } from "@/registry/ui/separator"
+
+// erp-ui: основа — shadcn base-nova/field (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (

@@ -1,10 +1,11 @@
-// erp-ui: основа — shadcn base-nova/sheet (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 import { cn } from "@/registry/lib/utils"
 
 import { Button } from "@/registry/ui/button"
 import { XIcon } from "lucide-react"
+
+// erp-ui: основа — shadcn base-nova/sheet (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />

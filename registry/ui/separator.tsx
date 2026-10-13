@@ -1,6 +1,7 @@
-// erp-ui: основа — shadcn base-nova/separator (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/separator (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Separator({
   className,

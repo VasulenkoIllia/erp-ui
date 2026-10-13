@@ -1,4 +1,3 @@
-// erp-ui: основа — shadcn base-nova/dialog (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 "use client"
 
 import * as React from "react"
@@ -7,6 +6,8 @@ import { cn } from "@/registry/lib/utils"
 
 import { Button } from "@/registry/ui/button"
 import { XIcon } from "lucide-react"
+
+// erp-ui: основа — shadcn base-nova/dialog (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />

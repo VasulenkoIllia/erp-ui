@@ -1,0 +1,110 @@
+// Підставляється після `shadcn add`: перевіряє, що встановлені елементи компілюються разом.
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Toaster } from "@/components/ui/sonner"
+import { Spinner } from "@/components/ui/spinner"
+import { Switch } from "@/components/ui/switch"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { useResolvedTheme } from "@/hooks/use-resolved-theme"
+import { cn } from "@/lib/utils"
+
+export function App() {
+  const theme = useResolvedTheme()
+  return (
+    <TooltipProvider>
+      <main className={cn("p-6", "space-y-4")} data-theme={theme}>
+        <Card>
+          <CardHeader>
+            <CardTitle>erp-ui</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Badge variant="success">Оплачено</Badge>
+            <Field data-invalid>
+              <FieldLabel htmlFor="edrpou">ЄДРПОУ</FieldLabel>
+              <Input id="edrpou" aria-invalid defaultValue="1234567" />
+              <FieldError>ЄДРПОУ має містити 8 цифр</FieldError>
+            </Field>
+            <InputGroup>
+              <InputGroupInput aria-label="Пошук" />
+            </InputGroup>
+            <Textarea aria-label="Примітка" />
+            <Select items={[{ value: "UAH", label: "Гривня" }]} defaultValue="UAH">
+              <SelectTrigger aria-label="Валюта">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="UAH">Гривня</SelectItem>
+              </SelectContent>
+            </Select>
+            <Checkbox aria-label="Платник ПДВ" />
+            <Switch aria-label="Нагадування" />
+            <Separator />
+            <Skeleton className="h-row" />
+            <Spinner />
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">Усі</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Table label="Рахунки">
+              <TableBody>
+                <TableRow>
+                  <TableCell>2026-0142</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <Dialog>
+              <DialogTrigger render={<Button variant="destructive" />}>Видалити…</DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Видалити рахунок?</DialogTitle>
+              </DialogContent>
+            </Dialog>
+            <Sheet>
+              <SheetTrigger render={<Button variant="outline" />}>Фільтри</SheetTrigger>
+              <SheetContent>Фільтри</SheetContent>
+            </Sheet>
+            <Tooltip>
+              <TooltipTrigger render={<Button size="icon" aria-label="Довідка" />}>?</TooltipTrigger>
+              <TooltipContent>Довідка</TooltipContent>
+            </Tooltip>
+          </CardContent>
+        </Card>
+      </main>
+      <Toaster />
+    </TooltipProvider>
+  )
+}
