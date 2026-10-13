@@ -1,4 +1,3 @@
-// erp-ui: основа — shadcn base-nova/input-group (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 "use client"
 
 import * as React from "react"
@@ -8,6 +7,8 @@ import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Input } from "@/registry/ui/input"
 import { Textarea } from "@/registry/ui/textarea"
+
+// erp-ui: основа — shadcn base-nova/input-group (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 // erp-ui: висота з токена щільності; read-only поле всередині — тло muted, як в Input.
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {

@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.2b (реєстр і доставка)
+
+- `registry.json` — 25 елементів (`base`, `tokens`, `claude`, `lib/utils`, `hooks/use-resolved-theme`, 20 × `ui/*`), генерується `pnpm registry` з `registry/registry.config.mjs`; `docs/CATALOG.md` — каталог.
+- Встановлення в проект: `npx shadcn add VasulenkoIllia/erp-ui/<елемент>[#vX.Y.Z]`; `base` ставить токени, стилі, `cn`, хук, скіл і правила для Claude Code однією командою.
+- `pnpm consumer-smoke` і CI-задача «доставка в тестовий проект»: чистий Vite-проект ставить кіт із коміту PR і збирається.
+- ADR-0004, посібник `docs/using-erp-ui.md`.
+- Демо: textarea, skeleton, separator на сторінці «Примітиви».
+
+### Змінено — крок 0.2b
+
+- Шапка походження в компонентах — після імпортів (CLI shadcn вирізає коментар у першому рядку).
+- Блок CLAUDE.md і скіл для проектів: GitHub-адреса реєстру, `docs/erp-ui/CATALOG.md`, оновлення через `--diff`.
+
 ### Додано — крок 0.2 (примітиви й стиль)
 
 - Примітиви shadcn/ui на Base UI в `registry/ui` (стиль Nova, ADR-0001), перебудовані за ADR-0006: button, badge, card, checkbox, dialog, field, input, input-group, label, select, separator, sheet, skeleton, sonner, spinner, switch, table, tabs, textarea, tooltip.

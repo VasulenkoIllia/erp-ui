@@ -1,6 +1,7 @@
-// erp-ui: основа — shadcn base-nova/label (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import * as React from "react"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/label (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (

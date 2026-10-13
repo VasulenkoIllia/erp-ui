@@ -1,7 +1,8 @@
-// erp-ui: основа — shadcn base-nova/input (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/input (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 // erp-ui: висота з токена щільності; read-only — тло muted (SPEC §8.3: відрізняється від disabled і лишається у фокусі).
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {

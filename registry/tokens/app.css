@@ -1,0 +1,10 @@
+/*
+ * erp-ui: точка входу стилів застосунку (ставиться як src/index.css).
+ * Порядок імпортів важливий. Власні стилі проекту — нижче, лише на токенах.
+ */
+@import "tailwindcss";
+@import "./styles/erp-ui/no-default-colors.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./styles/erp-ui/themes.css";
+@import "./styles/erp-ui/base.css";

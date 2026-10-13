@@ -1,7 +1,8 @@
-// erp-ui: основа — shadcn base-nova/checkbox (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox"
 import { cn } from "@/registry/lib/utils"
 import { CheckIcon } from "lucide-react"
+
+// erp-ui: основа — shadcn base-nova/checkbox (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
   return (

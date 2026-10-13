@@ -13,6 +13,7 @@ export default defineConfig(
     "**/playwright-report/",
     "**/test-results/",
     "docs/",
+    "tests/consumer/template/",
   ]),
   {
     files: ["**/*.{js,mjs}"],

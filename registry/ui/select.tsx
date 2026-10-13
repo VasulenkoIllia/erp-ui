@@ -1,10 +1,11 @@
-// erp-ui: основа — shadcn base-nova/select (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 "use client"
 
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/registry/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
+
+// erp-ui: основа — shadcn base-nova/select (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 const Select = SelectPrimitive.Root
 

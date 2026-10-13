@@ -1,7 +1,8 @@
-// erp-ui: основа — shadcn base-nova/button (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/button (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 // erp-ui: висота default/icon — з токенів щільності (h-control, size-control); lg — 40 px;
 // destructive — soft-токени статусу (контраст тексту ≥ 4.5:1); фокус — суцільне --ring;

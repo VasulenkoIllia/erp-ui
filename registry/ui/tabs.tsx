@@ -1,7 +1,8 @@
-// erp-ui: основа — shadcn base-nova/tabs (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/tabs (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 function Tabs({
   className,

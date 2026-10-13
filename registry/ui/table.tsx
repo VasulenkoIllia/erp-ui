@@ -1,8 +1,9 @@
-// erp-ui: основа — shadcn base-nova/table (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 "use client"
 
 import * as React from "react"
 import { cn } from "@/registry/lib/utils"
+
+// erp-ui: основа — shadcn base-nova/table (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 
 /** Чи прокручується контейнер по горизонталі (стежить за зміною розміру). */
 function useHorizontalOverflow(ref: React.RefObject<HTMLDivElement | null>) {
