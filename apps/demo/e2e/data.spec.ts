@@ -41,10 +41,10 @@ test.describe("дані: список рахунків", () => {
 
     await page.getByRole("combobox", { name: "Статус рахунків" }).click()
     await page.getByRole("option", { name: "Прострочено" }).click()
-    for (const status of await rows(page)
-      .locator("td:nth-child(5)")
-      .allTextContents())
-      expect(status).toBe("Прострочено")
+    // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
+    const statuses = rows(page).locator("td:nth-child(5)")
+    await expect(statuses.first()).toHaveText("Прострочено")
+    await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
     const amount = page.getByRole("columnheader", { name: "Сума" })
     await amount.getByRole("button").click()

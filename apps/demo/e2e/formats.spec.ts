@@ -133,7 +133,18 @@ test.describe("мови й формати: поведінка", () => {
     await expect(
       page.getByText("Помилка в ІПН: не збігається контрольна цифра"),
     ).toBeVisible()
-    await vat.press("End")
+    // End на macOS не переносить курсор у полі: ставимо його в кінець напряму, після таймерів
+    // маски, що виправляють курсор після фокуса (як для IBAN вище).
+    await vat.focus()
+    await page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => setTimeout(resolve, 0), 0)
+        }),
+    )
+    await vat.evaluate((input: HTMLInputElement) => {
+      input.setSelectionRange(input.value.length, input.value.length)
+    })
     await vat.press("Backspace")
     await vat.pressSequentially("1")
     await expect(vat).not.toHaveAttribute("aria-invalid", "true")

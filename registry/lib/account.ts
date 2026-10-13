@@ -286,7 +286,13 @@ export function createAccountApi(
 ): AccountApi {
   /** Після зміни оновити профіль, але повернути результат дії. */
   const changed = async <T>(result: T): Promise<T> => {
-    await onMeChange?.()
+    try {
+      await onMeChange?.()
+    } catch {
+      // Дія на сервері вже вдалася (нові резервні коди, фото): збій оновлення профілю не робить
+      // її помилкою. Ціна: useMe (staleTime Infinity) показує попередній профіль до наступного
+      // перечитування (useRefreshMe, перезавантаження), а 401 тут проявиться в наступному запиті.
+    }
     return result
   }
 

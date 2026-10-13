@@ -25,7 +25,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
 } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router"
@@ -50,6 +49,7 @@ import { SessionGuard } from "@/registry/erp/session-guard"
 import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
+import { useCompany } from "@/registry/hooks/use-company"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useMe } from "@/registry/hooks/use-me"
 import {
@@ -69,19 +69,13 @@ import {
   SHELL_ICONS,
 } from "@/registry/lib/icons"
 import { cn } from "@/registry/lib/utils"
-import { buttonVariants } from "@/registry/ui/button"
+import { Button, buttonVariants } from "@/registry/ui/button"
 import { DropdownMenuItem } from "@/registry/ui/dropdown-menu"
 import { Toaster } from "@/registry/ui/sonner"
 import { Spinner } from "@/registry/ui/spinner"
 import { TooltipProvider } from "@/registry/ui/tooltip"
 
-import {
-  apiClient,
-  getCompanyId,
-  queryClient as demoQueryClient,
-  setCompanyId,
-  subscribeCompany,
-} from "@/data/providers"
+import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
 import { MOCK_RESOURCES } from "@/mocks/handlers"
 import { AppearancePage } from "@/pages/AppearancePage"
@@ -184,17 +178,6 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
 const MOBILE_PAGES: Route[] = ["appearance", "primitives", "formats", "states"]
 
 const renderLink: RenderLink = (href) => <Link to={href} />
-
-/** Компанія для X-Company-Id (вибирається з профілю під час входу, див. data/providers). */
-function useCompany() {
-  const company = useSyncExternalStore(subscribeCompany, getCompanyId)
-  const change = useCallback((id: string) => {
-    setCompanyId(id)
-    // Інша компанія — інші дані: оновлюємо все, що вже завантажено.
-    void demoQueryClient.invalidateQueries()
-  }, [])
-  return [company, change] as const
-}
 
 /** Вподобання з сервера (PF11): після входу — застосувати, далі зберігати кожну зміну. */
 function usePreferencesSync(userId: string | undefined) {
@@ -320,7 +303,8 @@ function Shell({
   const navigate = useNavigate()
   const logout = useLogout()
   const breakpoint = useBreakpoint()
-  const { data: me } = useMe()
+  const meQuery = useMe()
+  const me = meQuery.data
   const methods = useAuthMethods()
   const [company, setCompany] = useCompany()
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -487,9 +471,15 @@ function Shell({
                     avatarUrl: me.avatarUrl,
                   }}
                   onSignOut={() => {
-                    void logout().then(() => {
-                      toast(t("app.signOut"))
-                    })
+                    // Збій виходу (офлайн, 5xx): сесія на сервері жива — кажемо про це, а не мовчимо.
+                    void logout().then(
+                      () => {
+                        toast(t("app.signOut"))
+                      },
+                      () => {
+                        toast.error(t("app.signOutFailed"))
+                      },
+                    )
                   }}
                 >
                   <DropdownMenuItem
@@ -510,6 +500,21 @@ function Shell({
                   </DropdownMenuItem>
                 </UserMenu>
               </>
+            ) : meQuery.isError ||
+              (meQuery.isFetching && meQuery.errorUpdateCount > 0) ? (
+              // Профіль не завантажився (мережа, 5xx): людина, можливо, увійшла — «Увійти» збило б її.
+              <Button
+                variant="outline"
+                size="sm"
+                title={t("app.meFailed")}
+                aria-busy={meQuery.isFetching || undefined}
+                onClick={() => {
+                  if (!meQuery.isFetching) void meQuery.refetch()
+                }}
+              >
+                <ACTION_ICONS.refresh aria-hidden />
+                {t("app.meRetry")}
+              </Button>
             ) : (
               <Link
                 to={LOGIN_PATH}

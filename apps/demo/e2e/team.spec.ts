@@ -215,7 +215,11 @@ test.describe("запрошення (ADR-0014)", () => {
     await toast(page, "Лист на petro@zoriana.example")
       .getByRole("button", { name: "Відкрити посилання з листа" })
       .click()
-    await expect(page.getByText(/Запрошення недійсне/)).toBeVisible()
+    // Заголовок — про запрошення, а не «Реєстрація» (аудит хвилі 0, №20).
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Запрошення недійсне",
+    )
+    await expect(page.getByText(/вже використане/)).toBeVisible()
   })
 })
 

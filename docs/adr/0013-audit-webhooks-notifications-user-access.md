@@ -20,7 +20,9 @@
    - `GET /audit-events` → { data, total }, новіші першими; право `audit:read`;
    - плоскі фільтри (ADR-0002): `q`, `category` (кілька), `action`, `actorId`, `targetType`, `targetId`,
      `at_gte` / `at_lte`;
-   - `GET /audit-events/export` → CSV (UTF-8 з BOM, для Excel) з тими самими фільтрами;
+   - `GET /audit-events/export` → CSV (UTF-8 з BOM, для Excel) з тими самими фільтрами; клітинка-рядок, що
+     починається з `= + - @`, табуляції чи CR, отримує префікс `'` — інакше ім'я з профілю виконається як
+     формула в таблиці адміністратора (`auditToCsv` у `lib/audit` так і робить; аудит хвилі 0, №31);
    - подія:
      - `action` — `<розділ>.<дія>`, `category`;
      - `actor` — користувач, токен API чи система; `impersonatedBy`;

@@ -18,6 +18,7 @@ import {
   recordBaseSchema,
   toSearchParams,
 } from "@/registry/lib/api"
+import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import {
@@ -89,8 +90,7 @@ const server = setupServer(
   ...invoices.handlers,
 )
 
-let companyId: string | null = null
-const client = createApiClient({ baseUrl: BASE, getCompanyId: () => companyId })
+const client = createApiClient({ baseUrl: BASE })
 const dataProvider = createDataProvider(client)
 
 beforeAll(() => {
@@ -102,7 +102,7 @@ afterAll(() => {
 beforeEach(() => {
   resetScenarios()
   invoices.db.reset()
-  companyId = null
+  setCompanyId(null)
   signInMock("u1")
 })
 afterEach(() => {
@@ -165,7 +165,7 @@ describe("dataProvider + мок ресурсу", () => {
   })
 
   it("X-Company-Id обмежує записи компанією", async () => {
-    companyId = "kovalenko"
+    setCompanyId("kovalenko")
     const { total } = await dataProvider.getList<Invoice>("invoices", {
       pagination: { page: 1, perPage: 100 },
       sort: { field: "id", order: "ASC" },

@@ -60,6 +60,11 @@ import { PALETTES } from "@/registry/lib/appearance"
 import { createAuditApi, type AuditApi } from "@/registry/lib/audit"
 import { createCompanyApi, type CompanyApi } from "@/registry/lib/company"
 import {
+  getCompanyId,
+  setCompanyId,
+  syncCompany,
+} from "@/registry/lib/company-scope"
+import {
   createInvitationsApi,
   type InvitationsApi,
 } from "@/registry/lib/invitations"
@@ -258,6 +263,9 @@ const passkeyOptionsSchema = z.object({
 /** Ключ кешу профілю в TanStack Query (hooks/use-me); `onMe` провайдера оновлює його. */
 export const ME_QUERY_KEY = ["erp-ui", "me"] as const
 
+/** Скільки чекати на `POST /auth/logout`, перш ніж вважати вихід невдалим. */
+const LOGOUT_TIMEOUT_MS = 10_000
+
 /** Дії ra-core (`useCanAccess`, вбудовані контролери) → дії прав erp-ui. */
 const RA_ACTIONS: Record<string, string> = {
   list: "read",
@@ -453,6 +461,30 @@ export interface AuthProviderOptions {
   ssoUrl?: (providerId: string, returnTo: string) => string
 }
 
+/** Умовне походження для перевірки шляху: справжня адреса застосунку тут не потрібна. */
+const REDIRECT_CHECK_ORIGIN = "http://erp-ui.invalid"
+
+/**
+ * Адреса для переходу з параметра (`next`): лише шлях цього застосунку. `https://…`, `//хост` чи
+ * `/\хост` вели б на чужий сайт (відкритий редирект). Повертаємо розібране парсером, як прочитає
+ * браузер (`/\t/хост` → `//хост`), і без `//` на початку (`/.//хост` після розбору — `//хост`).
+ */
+export function safeRedirectPath(
+  value: string | null | undefined,
+  fallback = "/",
+): string {
+  if (!value?.startsWith("/")) return fallback
+  try {
+    const url = new URL(value, REDIRECT_CHECK_ORIGIN)
+    const path = `${url.pathname}${url.search}${url.hash}`
+    return url.origin === REDIRECT_CHECK_ORIGIN && !path.startsWith("//")
+      ? path
+      : fallback
+  } catch {
+    return fallback
+  }
+}
+
 /** Параметр з адреси, зокрема з хеша (`#/auth/callback?next=…`). */
 export function urlParam(name: string): string | null {
   if (typeof window === "undefined") return null
@@ -469,21 +501,49 @@ export function createAuthProvider(
   { onMe, baseUrl = "/api/v1", ssoUrl }: AuthProviderOptions = {},
 ): ErpAuthProvider {
   let me: Promise<Me> | null = null
+  /** Сесії вже немає (401 чи вихід): наступний вихід не надсилає `POST /auth/logout`. */
+  let sessionEnded = false
 
-  const loadMe = () => {
-    me ??= client.get("/me", { schema: meSchema }).then(
-      (profile) => {
-        if (profile.sessionExpiresAt)
-          setSessionExpiresAt(profile.sessionExpiresAt)
-        onMe?.(profile)
-        return profile
-      },
-      (error: unknown) => {
-        me = null
-        throw error
-      },
-    )
-    return me
+  const fetchMe = () => client.get("/me", { schema: meSchema })
+
+  const loadMe = (): Promise<Me> => {
+    if (me) return me
+    const sentCompany = getCompanyId()
+    const request: Promise<Me> = fetchMe()
+      .catch((error: unknown) => {
+        // Збережену компанію закрили (чи на ПК увійшов інший): 403 навіть на профіль — без неї
+        // профіль дасть типову. Лише останній запит і та сама компанія: новіший вибір не стираємо.
+        if (
+          me !== request ||
+          !sentCompany ||
+          getCompanyId() !== sentCompany ||
+          !isApiError(error) ||
+          error.status !== 403
+        )
+          throw error
+        setCompanyId(null)
+        return fetchMe()
+      })
+      .then(
+        (profile) => {
+          // Поки летів запит, профіль уже запитали заново (швидке перемикання компаній): старіша
+          // відповідь не перезаписує новішу.
+          if (me !== request) return profile
+          sessionEnded = false
+          if (profile.sessionExpiresAt)
+            setSessionExpiresAt(profile.sessionExpiresAt)
+          // Компанія — до перших запитів даних, щоб вони вже йшли з правильним X-Company-Id.
+          syncCompany(profile)
+          onMe?.(profile)
+          return profile
+        },
+        (error: unknown) => {
+          if (me === request) me = null
+          throw error
+        },
+      )
+    me = request
+    return request
   }
 
   /** Результат кроку входу: профіль або виклик підтвердження. */
@@ -649,28 +709,55 @@ export function createAuthProvider(
       await client.post("/auth/recovery-request", { comment })
     },
 
-    /** `{ remote: true }` — вихід уже стався в іншій вкладці: лише очистити стан тут. */
+    /**
+     * `{ remote: true }` — сесії на сервері вже немає (вихід в іншій вкладці, 401): лише очистити
+     * стан тут. Інакше спершу `POST /auth/logout`; збій (офлайн, 5xx) кидається: сесія на сервері
+     * жива, і людина не повинна думати, що вийшла (чужий ПК) — інтерфейс покаже помилку.
+     */
     async logout(params?: { remote?: boolean }) {
+      // Після 401 (checkAuth, checkError) ra-core виходить сам і помилку не ловить: запит виходу
+      // зайвий, а без мережі він зупинив би перехід на сторінку входу.
+      if (!params?.remote && !sessionEnded) {
+        try {
+          // Мережа, що зависла, теж має закінчитись помилкою: автовихід тоді ховає дані сам.
+          await client.post("/auth/logout", undefined, {
+            signal: AbortSignal.timeout(LOGOUT_TIMEOUT_MS),
+          })
+        } catch (error) {
+          // Для інтерфейсу тайм-аут — той самий збій мережі.
+          if (error instanceof DOMException && error.name === "TimeoutError")
+            throw new ApiError(0, { code: "offline", message: "Timeout" })
+          // 401 — сесія вже закінчилась: вихід однаково успішний.
+          if (!isApiError(error) || error.status !== 401) throw error
+        }
+      }
+      if (!params?.remote) broadcastAuthEvent({ type: "logout" })
+      // Сесії вже немає: повторний вихід (ra-core і SessionGuard на той самий 401) — без запиту.
+      sessionEnded = true
       me = null
       onMe?.(null)
       setSessionExpiresAt(null)
-      if (params?.remote) return
-      broadcastAuthEvent({ type: "logout" })
-      try {
-        await client.post("/auth/logout")
-      } catch {
-        // Сесія могла вже закінчитися — вихід однаково успішний.
-      }
     },
 
     async checkAuth() {
-      await loadMe()
+      try {
+        await loadMe()
+      } catch (error) {
+        // 401 — кінець сесії, 403 на профіль — входу немає (блокування, IP поза списком): ra-core
+        // виходить в усіх вкладках. Збій сервера чи мережі — не привід виходити: стан помилки.
+        const status = isApiError(error) ? error.status : null
+        if (status === 401 || status === 403) {
+          sessionEnded = true
+          throw error
+        }
+      }
     },
 
     checkError(error: unknown) {
       // 403 — це «немає прав» на конкретну дію, а не кінець сесії.
       if (isApiError(error) && error.status === 401) {
         me = null
+        sessionEnded = true
         return Promise.reject(error)
       }
       return Promise.resolve()
@@ -684,7 +771,7 @@ export function createAuthProvider(
       me = null
       await loadMe()
       broadcastAuthEvent({ type: "login" })
-      return { redirectTo: urlParam("next") ?? "/" }
+      return { redirectTo: safeRedirectPath(urlParam("next")) }
     },
 
     async getIdentity() {

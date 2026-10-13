@@ -22,8 +22,12 @@ export function MockSsoPage() {
   const name = provider === "apple" ? "Apple" : "Google"
   const Icon = provider === "apple" ? AppleIcon : GoogleIcon
 
+  // returnTo приходить з адреси: як і справжній провайдер, повертаємо лише на свій домен.
   const back = (url: string) => {
-    window.location.assign(url)
+    const target = new URL(url, window.location.href)
+    window.location.assign(
+      target.origin === window.location.origin ? target.toString() : "#/",
+    )
   }
 
   return (

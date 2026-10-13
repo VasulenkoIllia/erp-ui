@@ -85,7 +85,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ```sh
 npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/erp/command-palette \
   VasulenkoIllia/erp-ui/erp/user-menu VasulenkoIllia/erp-ui/erp/company-switcher \
-  VasulenkoIllia/erp-ui/erp/notification-bell VasulenkoIllia/erp-ui/erp/page-state
+  VasulenkoIllia/erp-ui/erp/notification-inbox VasulenkoIllia/erp-ui/erp/page-state
 ```
 
 ```tsx
@@ -97,10 +97,10 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
       ] }]}
       activeId="K2"
       breadcrumbs={[{ label: t("nav.sales") }, { label: kitT("modules.K2") }]}
-      header={<CompanySwitcher companies={companies} value={companyId} onValueChange={setCompanyId} />}
+      header={<CompanySwitcher companies={me.companies} value={companyId ?? ""} onValueChange={switchCompany} />}
       actions={<>
         <CommandPaletteTrigger onClick={openPalette} />
-        <NotificationBell count={unread} />
+        <InboxBell onNavigate={navigate} onShowAll={() => navigate("/notifications")} />
         <UserMenu user={me} onSignOut={signOut} />
       </>}
       renderLink={(href) => <Link to={href} />} // React Router; без нього — <a href>
@@ -112,6 +112,9 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 </IconProvider>
 ```
 
+- Компанія: `const [companyId, switchCompany] = useCompany()` з `hooks/use-company` (пакунок `data`). Перемикання скасовує запити, скидає дані попередньої компанії й перечитує профіль; свої `useQuery` з даними компанії додають у кінець ключа `companyScope(useCompanyId())` з `lib/company-scope`. Компанія з іншого джерела (напр. з адреси сторінки) — через `setCompanyId` з `lib/company-scope`: `X-Company-Id` і ключі кешу беруться лише звідти.
+- Профіль: `useMe().isError` (мережа, 5xx) — показуйте повтор (`refetch`), а не «Увійти»: людина, можливо, увійшла.
+- Вихід: `logout()` з ra-core кидає помилку, якщо сервер не завершив сесію (офлайн, 5xx, 10 с без відповіді) — `.catch` і тост, щоб людина не думала, що вийшла.
 - Десктоп — сайдбар із групами, планшет — вузька панель з іконками, телефон — нижня панель (пункти з `mobile: true`, до 4) + «Ще».
 - Іконки модулів, статусів і дій — лише з `lib/icons` (`MODULE_ICONS`, `STATUS_ICONS`, `ACTION_ICONS`); гривня — `HryvniaIcon`.
 - Стани списків і сторінок — `PageState` і `PageSkeleton` з `erp/page-state`; порожній стан не підміняє помилку.
@@ -145,13 +148,13 @@ npx msw init public   # service worker для моків у браузері
 
 ```tsx
 // src/data/providers.ts
+// Повтори запитів, якщо потрібні, — не на 401: інакше SessionGuard побачить кінець сесії із запізненням.
+//   retry: (count, error) => !(isApiError(error) && error.status === 401) && count < 3
 export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-export const api = createApiClient({ getCompanyId }) // X-Company-Id, cookie-сесія
+// X-Company-Id — лише з lib/company-scope (компанію з профілю вибирає authProvider), cookie-сесія
+export const api = createApiClient()
 export const authProvider = createAuthProvider(api, {
-  onMe: (me) => {
-    if (me) ensureCompany(me) // компанія за замовчуванням — до перших запитів даних
-    queryClient.setQueryData(ME_QUERY_KEY, me)
-  },
+  onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me),
 })
 export const dataProvider = createDataProvider(api)
 
@@ -221,7 +224,8 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
 - Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
 - «Увійти як…»: у списку користувачів — `useImpersonation({ onStarted })`, в оболонці — `<AppShell banner={<ImpersonationBanner onStopped={…} />}>`.
 - Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance(useCompanyProfile(Boolean(me)).data?.palette)` (`hooks/use-company-profile`), щоб палітра компанії чи бренду була типовою й після входу.
-- Клієнт API: `createApiClient({ getCompanyId, getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
+- Клієнт API: `createApiClient({ getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
+- Після зміни власних ролей чи «Увійти як…» профіль перечитує `useRefreshMe()` з `hooks/use-me`: `invalidateQueries(ME_QUERY_KEY)` для цього не годиться, authProvider кешує профіль.
 - Моки: `createPlatformHandlers({ …, securityPolicy, roles, permissionResources, apiResources, auditSeeds, webhookEvents, webhookSeeds, notificationChannels, notificationEvents, inboxSeeds, companyProfiles })`; `subscribeMockEvents` — `users.roles_changed` і `users.joined`, щоб оновити свій список людей; `createResourceHandlers({ …, label, fieldLabels })` — зміни записів ідуть у журнал аудиту й на вебхуки.
 - Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» і скидання другого кроку пишуться в аудит із причиною; токени API зберігаються лише хешем; політика (другий крок, пароль, адреси) перевіряється на сервері; журнал аудиту пише сервер; вебхуки — з підписом HMAC і повторами (ADR-0013); заблокований не входить жодним способом; права перевіряються з ролей на кожному запиті, вбудовані й свої ролі не змінюються, токен запрошення зберігається хешем, реквізити перевіряються як на клієнті (ADR-0014).
 

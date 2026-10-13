@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v6
 
@@ -45,6 +47,8 @@ jobs:
         shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v6
 
@@ -80,7 +84,7 @@ jobs:
   # Підсумок під старою назвою: правило «перевірки мають пройти» дивиться на неї.
   checks:
     name: typecheck · lint · test · e2e
-    needs: [static, e2e]
+    needs: [static, e2e, consumer]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -88,25 +92,59 @@ jobs:
         run: |
           test "${{ needs.static.result }}" = success
           test "${{ needs.e2e.result }}" = success
+          test "${{ needs.consumer.result }}" = success
 
+  # Доставка в чистий проект (ADR-0004) на Node 22 (мінімум engines) і 24. Повний набір — з реєстру
+  # цього коміту, зібраного локально; з приватного GitHub — один елемент: повний набір з'їдав ліміт
+  # API (~1000 запитів на годину) і давав 403.
   consumer:
-    name: доставка в тестовий проект
+    name: доставка в тестовий проект (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["22", "24"]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # У PR — лише коли змінено те, що потрапляє в проекти; на main — завжди.
+      # Збій git diff валить крок, а не пропускає перевірку мовчки.
+      - name: Changed files
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != pull_request ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          if grep -qE '^(registry/|registry\.json|design/|scripts/consumer-smoke\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.relevant == 'true'
 
       - uses: actions/setup-node@v7
+        if: steps.changes.outputs.relevant == 'true'
         with:
-          node-version-file: .nvmrc
+          node-version: ${{ matrix.node }}
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.relevant == 'true'
 
-      # Чистий проект ставить base і всі ui/* з цього коміту приватного реєстру (ADR-0004).
       - name: Install erp-ui into a clean project
+        if: steps.changes.outputs.relevant == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: pnpm consumer-smoke --ref ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm consumer-smoke --local --ref ${{ github.event.pull_request.head.sha || github.sha }}

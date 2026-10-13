@@ -139,8 +139,9 @@ function BottomNav({
     .flatMap((group) => group.items)
     .filter((item) => item.mobile)
     .slice(0, MOBILE_ITEMS)
+  // min-w-0: довгий підпис (en, «Languages & formats») обрізається, а не виштовхує «Ще» за край.
   const itemClass =
-    "flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-primary [&_svg]:size-5"
+    "flex min-h-touch min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-primary [&_svg]:size-5"
   return (
     <nav
       aria-label={t("shell.bottomNav")}
@@ -152,7 +153,7 @@ function BottomNav({
           const active = item.id === activeId
           const link = renderLink(item.href)
           return (
-            <li key={item.id} className="flex flex-1">
+            <li key={item.id} className="flex min-w-0 flex-1">
               {React.cloneElement(
                 link,
                 {
@@ -165,7 +166,7 @@ function BottomNav({
             </li>
           )
         })}
-        <li className="flex flex-1">
+        <li className="flex min-w-0 flex-1">
           <button
             type="button"
             className={itemClass}
@@ -176,7 +177,7 @@ function BottomNav({
             }}
           >
             <EllipsisIcon aria-hidden />
-            <span>{t("shell.more")}</span>
+            <span className="max-w-full truncate">{t("shell.more")}</span>
           </button>
         </li>
       </ul>

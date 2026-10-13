@@ -40,7 +40,9 @@ import { SessionGuard } from "@/components/erp/session-guard"
 import { SignUpScreen } from "@/components/erp/sign-up-screen"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
-import { useHasPermission, useMe } from "@/hooks/use-me"
+import { useCompany } from "@/hooks/use-company"
+import { useHasPermission, useMe, useRefreshMe, useResetUserData } from "@/hooks/use-me"
+import { companyScope, setCompanyId } from "@/lib/company-scope"
 import { createApiClient, isApiError } from "@/lib/api"
 import { getAppearance } from "@/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
@@ -53,8 +55,9 @@ import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
 
 const queryClient = new QueryClient()
+// Компанія — лише з lib/company-scope (0.5b5-fix): заголовок і ключі кешу з одного джерела.
+setCompanyId("a")
 const api = createApiClient({
-  getCompanyId: () => "a",
   getLanguage: () => getAppearance().language,
 })
 const authProvider = createAuthProvider(api, {
@@ -184,10 +187,19 @@ function Team() {
   const roles = useRoles()
   const unread = useUnreadNotifications()
   const company = useCompanyProfile()
+  const [companyId, switchCompany] = useCompany()
   const [picked, setPicked] = useState<string[]>([])
+  const resetUserData = useResetUserData()
+  const refreshMe = useRefreshMe()
   useBrandAppearance(company.data?.palette)
   return (
     <>
+      <button type="button" data-scope={JSON.stringify(companyScope(companyId))} onClick={() => switchCompany("b")}>
+        b
+      </button>
+      <button type="button" onClick={() => void refreshMe().then(resetUserData)}>
+        refresh
+      </button>
       <InboxBell onNavigate={() => undefined} onShowAll={() => undefined} />
       <NotificationInbox onNavigate={() => undefined} perPage={10} />
       <RolesEditor />

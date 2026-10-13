@@ -62,7 +62,8 @@ export function NotificationSettingsForm() {
         }}
       />
     )
-  return <Editor key={query.dataUpdatedAt} data={query.data} />
+  // Без key за часом оновлення: фонове оновлення не стирає введене (SPEC §8.3).
+  return <Editor data={query.data} />
 }
 
 type Permission = NotificationPermission | "unsupported"

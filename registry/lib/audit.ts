@@ -168,9 +168,16 @@ function plain(value: unknown): string {
   return JSON.stringify(value)
 }
 
+/** Початок клітинки, який Excel і LibreOffice читають як формулу (OWASP CSV Injection). */
+const FORMULA_START = /^[=+\-@\t\r]/
+
 const csvCell = (value: unknown): string => {
-  const text = plain(value)
-  return /[",\n;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+  const raw = plain(value)
+  // Ім'я на кшталт `=HYPERLINK(…)` з профілю інакше виконається в таблиці адміністратора.
+  // Числа лишаються числами: від'ємна сума — не формула.
+  const text =
+    typeof value !== "number" && FORMULA_START.test(raw) ? `'${raw}` : raw
+  return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 
 /** Події → CSV (для серверів на TS і мока): BOM, щоб Excel відкрив UTF-8. */

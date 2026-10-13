@@ -11,7 +11,9 @@ import path from "node:path"
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..")
 const dir = path.resolve(repoRoot, process.argv[2] ?? "")
-const SHOT = /^(?:([a-z]+)-)?[a-z]+-(?:light|dark)-(\d+)(-compact|-en)?\.png$/
+// Сторінка — ключ SHOT_PAGES, зокрема camelCase (`securityPolicy`, `inviteInvalid`).
+const SHOT =
+  /^(?:([a-zA-Z]+)-)?[a-z]+-(?:light|dark)-(\d+)(-compact|-en)?\.png$/
 const files = readdirSync(dir).filter(
   (f) => SHOT.test(f) && !f.startsWith("sheet-"),
 )

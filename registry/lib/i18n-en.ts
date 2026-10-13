@@ -241,6 +241,7 @@ export const en = {
       restart: "Start again",
     },
     link: {
+      expiredTitle: "Link is not valid",
       verifying: "Checking the link…",
       expired: "This link has expired or has already been used.",
     },
@@ -257,6 +258,7 @@ export const en = {
       password: "New password",
       submit: "Save password",
       expired: "This reset link has expired. Request a new one.",
+      expiredTitle: "Link has expired",
       requestNew: "Request a new link",
     },
     forced: {
@@ -275,6 +277,8 @@ export const en = {
       submit: "Join",
       expired:
         "This invitation is invalid or has already been used. Ask for a new one.",
+      invalidTitle: "Invitation is not valid",
+      pendingTitle: "Invitation",
       loading: "Loading the invitation…",
     },
     signUpPage: {
@@ -313,6 +317,7 @@ export const en = {
     callback: {
       verifying: "Finishing sign-in…",
       failed: "Could not sign in with the provider",
+      failedTitle: "Sign-in not completed",
     },
     session: {
       title: "Your session is about to end",
@@ -320,6 +325,7 @@ export const en = {
       description: "We'll sign you out in {{time}} to protect your data.",
       extend: "Keep working",
       signOut: "Sign out",
+      signOutFailed: "Couldn't sign out. Check your connection and try again.",
     },
     reauth: {
       title: "Confirm it's you",

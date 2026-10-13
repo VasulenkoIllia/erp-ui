@@ -12,7 +12,9 @@ import {
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { RolePicker, useRoles } from "@/registry/erp/roles-editor"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
@@ -55,8 +57,9 @@ export function InvitationsSection() {
   const [inviting, setInviting] = React.useState(false)
   const [revoking, setRevoking] = React.useState<Invitation | null>(null)
   const [busy, setBusy] = React.useState<string | null>(null)
+  const companyId = useCompanyId()
   const query = useQuery({
-    queryKey: INVITATION_QUERY_KEYS.list,
+    queryKey: [...INVITATION_QUERY_KEYS.list, companyScope(companyId)],
     queryFn: () => provider.invitations.list(),
     // Запрошення приймають без участі адміністратора — свіжий список при кожному відкритті.
     refetchOnMount: "always",
@@ -307,7 +310,7 @@ function InviteDialog({
         if (!next) onClose()
       }}
     >
-      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+      <DialogContent>
         <form
           className="grid gap-4"
           noValidate

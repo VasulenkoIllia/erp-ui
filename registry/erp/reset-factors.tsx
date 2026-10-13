@@ -12,7 +12,9 @@ import {
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
@@ -192,8 +194,9 @@ export function RecoveryRequestsSection() {
   const format = useFormat()
   const { start, dialog } = useResetFactors()
   const [declining, setDeclining] = React.useState<string | null>(null)
+  const companyId = useCompanyId()
   const query = useQuery({
-    queryKey: ADMIN_QUERY_KEYS.recoveryRequests,
+    queryKey: [...ADMIN_QUERY_KEYS.recoveryRequests, companyScope(companyId)],
     queryFn: () => provider.admin.getRecoveryRequests(),
   })
 

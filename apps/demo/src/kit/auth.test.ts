@@ -1,3 +1,4 @@
+import { http, HttpResponse } from "msw"
 import { setupServer } from "msw/node"
 import {
   afterAll,
@@ -17,6 +18,7 @@ import {
   isChallengeRequired,
   isPasswordChangeRequired,
   isReauthRequired,
+  safeRedirectPath,
   type Challenge,
 } from "@/registry/lib/auth"
 import {
@@ -26,6 +28,8 @@ import {
   type MockMessage,
   type MockUser,
 } from "@/registry/lib/mocks"
+import { getCompanyId, setCompanyId } from "@/registry/lib/company-scope"
+import { mockUsersList, setMockUsers } from "@/registry/lib/mock-server"
 import { passwordStrength } from "@/registry/lib/password"
 import {
   getSessionExpiresAt,
@@ -124,6 +128,7 @@ afterAll(() => {
 beforeEach(() => {
   signInMock(null)
   localStorage.clear()
+  setCompanyId(null)
   messages.length = 0
   auth = createAuthProvider(client, { baseUrl: BASE })
 })
@@ -335,6 +340,61 @@ describe("відновлення, запрошення, реєстрація", (
     expect(me.companies[0]?.name).toBe("ФОП Тарас")
   })
 
+  it("новий користувач переживає перезавантаження: сесія й вхід після F5", async () => {
+    await challengeOf(
+      auth.signUp({
+        name: "Оксана",
+        email: "oksana@example.com",
+        password: "дуже-надійний-пароль",
+        company: { name: "ФОП Оксана" },
+      }),
+    )
+    await auth.login({ method: "email", code: "654321" })
+    // Перезавантаження: мок стартує з початковими користувачами, сесія — з localStorage.
+    setMockUsers(users())
+    auth = createAuthProvider(client, { baseUrl: BASE })
+    await expect(auth.getMe()).resolves.toMatchObject({
+      email: "oksana@example.com",
+    })
+    await auth.logout({})
+    await auth.login({
+      email: "oksana@example.com",
+      password: "дуже-надійний-пароль",
+    })
+    expect((await auth.getMe()).companies[0]?.name).toBe("ФОП Оксана")
+  })
+
+  it("зміни нового користувача (пароль) теж переживають перезавантаження", async () => {
+    await challengeOf(
+      auth.signUp({
+        name: "Марта",
+        email: "marta@example.com",
+        password: "дуже-надійний-пароль",
+        company: { name: "ФОП Марта" },
+      }),
+    )
+    await auth.login({ method: "email", code: "654321" })
+    await auth.changePassword("дуже-надійний-пароль", "інший-надійний-пароль")
+    window.dispatchEvent(new Event("pagehide"))
+    setMockUsers(users())
+    auth = createAuthProvider(client, { baseUrl: BASE })
+    await auth.logout({})
+    await auth.login({
+      email: "marta@example.com",
+      password: "інший-надійний-пароль",
+    })
+    expect((await auth.getMe()).email).toBe("marta@example.com")
+  })
+
+  it("зіпсоване сховище мок-користувачів не ламає старт", () => {
+    localStorage.setItem(
+      "erp-ui:mock-users:v1",
+      JSON.stringify([null, { id: 1 }, "x"]),
+    )
+    setMockUsers(users())
+    expect(mockUsersList().map((u) => u.id)).toEqual(["u1", "u2", "u3"])
+  })
+
   it("зміна пароля перевіряє поточний", async () => {
     signInMock("u1")
     await expect(
@@ -418,6 +478,84 @@ describe("сесія", () => {
     expect(isApiError(error)).toBe(true)
   })
 
+  it("checkAuth виходить на 401 і 403: збій сервера чи мережі — не кінець сесії", async () => {
+    signInMock("u2")
+    server.use(
+      http.get(`${BASE}/me`, () =>
+        HttpResponse.json(
+          { code: "forbidden", message: "IP not allowed" },
+          { status: 403 },
+        ),
+      ),
+    )
+    await expect(auth.checkAuth({})).rejects.toMatchObject({ status: 403 })
+    server.use(
+      http.get(`${BASE}/me`, () =>
+        HttpResponse.json(
+          { code: "server", message: "Bad gateway" },
+          { status: 502 },
+        ),
+      ),
+    )
+    await expect(auth.checkAuth({})).resolves.toBeUndefined()
+    server.use(http.get(`${BASE}/me`, () => HttpResponse.error()))
+    await expect(auth.checkAuth({})).resolves.toBeUndefined()
+    server.resetHandlers()
+    signInMock(null)
+    await expect(auth.checkAuth({})).rejects.toMatchObject({ status: 401 })
+  })
+
+  it("вихід: збій мережі кидається й лишає стан, 401 — успіх", async () => {
+    signInMock("u2")
+    await auth.getMe()
+    server.use(http.post(`${BASE}/auth/logout`, () => HttpResponse.error()))
+    await expect(auth.logout({})).rejects.toMatchObject({ code: "offline" })
+    await expect(auth.getMe()).resolves.toMatchObject({ id: "u2" })
+    server.use(
+      http.post(`${BASE}/auth/logout`, () =>
+        HttpResponse.json(
+          { code: "unauthenticated", message: "" },
+          { status: 401 },
+        ),
+      ),
+    )
+    await expect(auth.logout({})).resolves.toBeUndefined()
+  })
+
+  it("повторний вихід (ra-core і SessionGuard на той самий 401) не йде на сервер", async () => {
+    signInMock("u2")
+    await auth.getMe()
+    await auth.logout({})
+    server.use(http.post(`${BASE}/auth/logout`, () => HttpResponse.error()))
+    await expect(auth.logout({})).resolves.toBeUndefined()
+  })
+
+  it("збережена компанія без доступу не блокує вхід: профіль без неї", async () => {
+    // u1 видалив попередній тест (GDPR) — повертаємо початкових користувачів.
+    setMockUsers(users())
+    signInMock("u1")
+    setCompanyId("ghost")
+    await expect(auth.checkAuth({})).resolves.toBeUndefined()
+    expect(getCompanyId()).toBe("zoriana")
+  })
+
+  it("next після SSO — лише шлях цього застосунку", () => {
+    expect(safeRedirectPath("/data?tab=1")).toBe("/data?tab=1")
+    expect(safeRedirectPath("/da\tta?tab=1#x")).toBe("/data?tab=1#x")
+    expect(safeRedirectPath("https://evil.example")).toBe("/")
+    expect(safeRedirectPath("//evil.example")).toBe("/")
+    expect(safeRedirectPath("/\\evil.example")).toBe("/")
+    expect(safeRedirectPath("/\t/evil.example")).toBe("/")
+    expect(safeRedirectPath("/\n/evil.example")).toBe("/")
+    expect(safeRedirectPath("/\r\\evil.example")).toBe("/")
+    expect(safeRedirectPath("/.//evil.example")).toBe("/")
+    expect(safeRedirectPath("/a/..//evil.example")).toBe("/")
+    expect(safeRedirectPath("/%2e%2e//evil.example")).toBe("/")
+    expect(safeRedirectPath("/..\\/evil.example")).toBe("/")
+    expect(safeRedirectPath("javascript:alert(1)")).toBe("/")
+    expect(safeRedirectPath(null, "/home")).toBe("/home")
+  })
+
   it("SSO-повернення з помилкою провайдера", async () => {
     window.history.replaceState(
       null,
@@ -430,6 +568,12 @@ describe("сесія", () => {
     await expect(auth.handleCallback?.()).resolves.toEqual({
       redirectTo: "/data",
     })
+    window.history.replaceState(
+      null,
+      "",
+      "/#/auth/callback?next=%2F%2Fevil.example",
+    )
+    await expect(auth.handleCallback?.()).resolves.toEqual({ redirectTo: "/" })
   })
 })
 

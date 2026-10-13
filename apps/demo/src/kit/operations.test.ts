@@ -189,6 +189,28 @@ describe("журнал аудиту (ADR-0013)", () => {
     expect(csv).toContain("status: active → blocked")
   })
 
+  it("CSV: формули з даних користувача не виконуються в таблиці", () => {
+    const csv = auditToCsv([
+      {
+        id: "1",
+        at: "2026-10-13T08:00:00.000Z",
+        action: "users.updated",
+        category: "users",
+        actor: {
+          type: "user",
+          id: "a1",
+          name: '=HYPERLINK("https://evil.example")',
+        },
+        target: { type: "users", id: "u2", name: "@SUM(A1)" },
+        reason: "+380671234567",
+      },
+    ])
+    expect(csv).toContain('"\'=HYPERLINK(""https://evil.example"")"')
+    expect(csv).toContain(",'@SUM(A1)")
+    expect(csv).toContain(",'+380671234567")
+    expect(csv).not.toMatch(/,[=+@]/)
+  })
+
   it("назва дії: проект, кіт, сервер, дієслово запису, код", () => {
     const t = createI18n({ language: "uk" }).getFixedT(
       "uk",

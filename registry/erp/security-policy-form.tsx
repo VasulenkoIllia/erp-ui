@@ -10,8 +10,10 @@ import {
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
 import { SETUP_FACTORS } from "@/registry/lib/account"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   ADMIN_QUERY_KEYS,
@@ -60,8 +62,10 @@ const optionKey = (value: number | null) =>
 
 export function SecurityPolicyForm() {
   const provider = useErpAuthProvider()
+  const companyId = useCompanyId()
+  const queryKey = [...ADMIN_QUERY_KEYS.securityPolicy, companyScope(companyId)]
   const query = useQuery({
-    queryKey: ADMIN_QUERY_KEYS.securityPolicy,
+    queryKey,
     queryFn: () => provider.admin.getSecurityPolicy(),
   })
   if (query.isPending) return <SectionSkeleton rows={6} />
@@ -76,11 +80,17 @@ export function SecurityPolicyForm() {
         }}
       />
     )
-  // Нові дані з сервера — нова форма з ними.
-  return <PolicyForm key={query.dataUpdatedAt} data={query.data} />
+  // Форма живе, поки та сама компанія: фонове оновлення не стирає введене (SPEC §8.3).
+  return <PolicyForm key={companyId} data={query.data} queryKey={queryKey} />
 }
 
-function PolicyForm({ data }: { data: SecurityPolicyResponse }) {
+function PolicyForm({
+  data,
+  queryKey,
+}: {
+  data: SecurityPolicyResponse
+  queryKey: readonly unknown[]
+}) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
@@ -171,9 +181,8 @@ function PolicyForm({ data }: { data: SecurityPolicyResponse }) {
         const next = { ...policy, ipAllowlist: ipLines }
         guard(() => provider.admin.updateSecurityPolicy(next))
           .then((saved) => {
-            queryClient.setQueryData<SecurityPolicyResponse>(
-              ADMIN_QUERY_KEYS.securityPolicy,
-              (old) => (old ? { ...old, policy: saved } : old),
+            queryClient.setQueryData<SecurityPolicyResponse>(queryKey, (old) =>
+              old ? { ...old, policy: saved } : old,
             )
             // Сторінка входу бере довжину пароля, сесію й автовихід із `/auth/methods`.
             void queryClient.invalidateQueries({

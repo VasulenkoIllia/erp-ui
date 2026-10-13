@@ -15,8 +15,9 @@ import {
   type SetupFactor,
   type SignInMethod,
 } from "@/registry/lib/account"
-import { API_PREFIX } from "@/registry/lib/api"
+import { API_PREFIX, COMPANY_HEADER } from "@/registry/lib/api"
 import {
+  hasPermission,
   meSchema,
   type AuthFactor,
   type AuthMethods,
@@ -93,6 +94,7 @@ import {
   newExpiry,
   noContent,
   randomToken,
+  removeMockUser,
   sendMockMessage,
   setMockUsers,
   setSessionMinutes,
@@ -957,7 +959,7 @@ export function createPlatformHandlers({
       if (!user) return unauthenticated()
       const denied = impersonationForbidden() ?? reauthRequired()
       if (denied) return denied
-      setMockUsers(mockUsersList().filter((u) => u.id !== user.id))
+      removeMockUser(user.id)
       writeMockSession(null)
       return noContent()
     }),
@@ -967,9 +969,21 @@ export function createPlatformHandlers({
       return noContent()
     }),
 
-    http.get(`${baseUrl}/me`, () => {
+    http.get(`${baseUrl}/me`, ({ request }) => {
       const user = currentMockUser()
-      return user ? json(toMe(user)) : unauthenticated()
+      if (!user) return unauthenticated()
+      // Як сервер (ADR-0002 §5): з компанією, до якої доступу немає, — відмова навіть у профілі.
+      const companyId = request.headers.get(COMPANY_HEADER)
+      if (
+        companyId &&
+        !user.companies.some((c) => c.id === companyId) &&
+        !hasPermission(user.permissions, "*", "*")
+      )
+        return errorResponse(403, {
+          code: "forbidden",
+          message: "Not a member of this company",
+        })
+      return json(toMe(user))
     }),
 
     http.post(`${baseUrl}/me/password`, async ({ request }) => {

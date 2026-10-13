@@ -1,4 +1,4 @@
-import { test, type Page } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 import path from "node:path"
 
 import { expectNoA11yViolations, openWith, USERS } from "./helpers"
@@ -62,6 +62,8 @@ const SHOT_PAGES = {
   data: "/#/data",
   login: "/#/login",
   signup: "/#/signup",
+  inviteInvalid: "/#/login/invite?token=revoked",
+  resetExpired: "/#/login/reset",
   security: "/#/settings/security",
   users: "/#/settings/users",
   profile: "/#/settings/profile",
@@ -74,8 +76,14 @@ const SHOT_PAGES = {
   inbox: "/#/notifications",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
+const GUEST_PAGES: readonly (keyof typeof SHOT_PAGES)[] = [
+  "login",
+  "signup",
+  "inviteInvalid",
+  "resetExpired",
+]
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
-  pageId === "login" || pageId === "signup" ? { user: null } : {}
+  GUEST_PAGES.includes(pageId) ? { user: null } : {}
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
 )
@@ -266,6 +274,8 @@ test.describe("скриншоти кроків 0.5b2 @screenshots", () => {
             .getByRole("combobox", { name: "Бренд (white-label)" })
             .click()
           await page.getByRole("option", { name: brand }).click()
+          // Список закривається з анімацією: axe посеред неї бачить напівпрозорі пункти.
+          await expect(page.getByRole("listbox")).toBeHidden()
           await page.getByText(brand).first().waitFor()
           await page.evaluate(() => {
             window.scrollTo(0, 0)

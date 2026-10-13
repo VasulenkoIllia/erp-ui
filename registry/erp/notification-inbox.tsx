@@ -23,6 +23,8 @@ import {
 } from "@/registry/erp/auth-layout"
 import { NotificationBell } from "@/registry/erp/notification-bell"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
+import { useCompanyId } from "@/registry/hooks/use-company"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
@@ -76,8 +78,10 @@ const SEVERITY: Record<
 /** Кількість непрочитаних для дзвіника; опитування раз на хвилину. */
 export function useUnreadNotifications(enabled = true) {
   const provider = useErpAuthProvider()
+  // Сповіщення можуть бути свої в кожній компанії: лічильник іншої не показуємо.
+  const companyId = useCompanyId()
   return useQuery({
-    queryKey: INBOX_QUERY_KEYS.count,
+    queryKey: [...INBOX_QUERY_KEYS.count, companyScope(companyId)],
     queryFn: () => provider.inbox.unreadCount(),
     enabled,
     refetchInterval: 60_000,
@@ -247,8 +251,13 @@ export function NotificationInbox({
   const actions = useInboxActions()
   const [status, setStatus] = React.useState<Status>("all")
   const [markingAll, setMarkingAll] = React.useState(false)
+  const companyId = useCompanyId()
   const query = useInfiniteQuery({
-    queryKey: [...INBOX_QUERY_KEYS.list(status), perPage],
+    queryKey: [
+      ...INBOX_QUERY_KEYS.list(status),
+      perPage,
+      companyScope(companyId),
+    ],
     // Сповіщення приходять будь-коли — щоразу свіжий список.
     refetchOnMount: "always",
     queryFn: ({ pageParam }) => provider.inbox.list(status, pageParam, perPage),
@@ -389,8 +398,13 @@ export function NotificationPreview({
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const actions = useInboxActions()
+  const companyId = useCompanyId()
   const query = useQuery({
-    queryKey: [...INBOX_QUERY_KEYS.list("all"), "preview"],
+    queryKey: [
+      ...INBOX_QUERY_KEYS.list("all"),
+      "preview",
+      companyScope(companyId),
+    ],
     queryFn: () => provider.inbox.list("all", 1, PREVIEW),
     refetchOnMount: "always",
   })

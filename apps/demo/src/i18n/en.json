@@ -21,7 +21,10 @@
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
-    "signOut": "You have signed out"
+    "meFailed": "Couldn't load your profile. Check your connection.",
+    "meRetry": "Retry",
+    "signOut": "You have signed out",
+    "signOutFailed": "Couldn't sign out. Check your connection and try again."
   },
   "appearancePage": {
     "title": "Themes & appearance",

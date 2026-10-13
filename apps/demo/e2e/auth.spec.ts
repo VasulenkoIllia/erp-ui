@@ -245,6 +245,7 @@ test.describe("відновлення, запрошення, реєстраці�
     await expect(
       page.getByText("Посилання для відновлення застаріло"),
     ).toBeVisible()
+    await expect(heading(page)).toHaveText("Посилання застаріло")
     await expect(
       page.getByRole("link", { name: "Запросити нове посилання" }),
     ).toBeVisible()

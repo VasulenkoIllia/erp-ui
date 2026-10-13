@@ -283,7 +283,13 @@ export function ResetPasswordScreen({
   )
   return (
     <AuthLayout
-      title={stepTitle ? t(stepTitle) : t("auth.reset.title")}
+      title={
+        stepTitle
+          ? t(stepTitle)
+          : expired
+            ? t("auth.reset.expiredTitle")
+            : t("auth.reset.title")
+      }
       description={challengeForm || expired ? undefined : t("auth.reset.lead")}
       logo={logo}
       footer={footer}
@@ -335,10 +341,22 @@ export function AcceptInviteScreen({
   })
   const [name, setName] = React.useState("")
   const [nameError, setNameError] = React.useState<string | null>(null)
+  const errorText = useAuthErrorText()
+  // Недійсне — лише коли так відповів сервер (404, 410); мережа чи 5xx — помилка з повтором,
+  // щоб людина не просила нове запрошення без потреби.
+  const invalid =
+    !token ||
+    (isApiError(invite.error) &&
+      (invite.error.status === 404 || invite.error.status === 410))
+  // Повтор після помилки: react-query без даних повертає запит у pending, але блок із кнопкою
+  // лишається на місці — інакше фокус з кнопки губиться.
+  const retrying = invite.isFetching && invite.errorUpdateCount > 0
 
   const title = invite.data
     ? t("auth.invite.title", { company: invite.data.companyName })
-    : t("auth.signUpPage.title")
+    : invalid
+      ? t("auth.invite.invalidTitle")
+      : t("auth.invite.pendingTitle")
 
   return (
     <AuthLayout
@@ -361,8 +379,27 @@ export function AcceptInviteScreen({
       footer={footer}
     >
       {challengeForm ??
-        (!token || invite.isError ? (
+        (invalid ? (
           <Expired message={t("auth.invite.expired")} paths={paths} />
+        ) : invite.isError || retrying ? (
+          <div className="space-y-4">
+            {invite.isError ? (
+              <Alert variant="destructive">
+                <AlertDescription>{errorText(invite.error)}</AlertDescription>
+              </Alert>
+            ) : null}
+            <Button
+              className="w-full"
+              aria-busy={retrying || undefined}
+              onClick={() => {
+                if (!invite.isFetching) void invite.refetch()
+              }}
+            >
+              {retrying ? <Spinner aria-hidden /> : null}
+              {t("pageState.error.retry")}
+            </Button>
+            <BackToLogin paths={paths} />
+          </div>
         ) : invite.isPending ? (
           <p
             role="status"
@@ -443,7 +480,13 @@ export function EmailLinkScreen({
 
   return (
     <AuthLayout
-      title={stepTitle ? t(stepTitle) : t("auth.title")}
+      title={
+        stepTitle
+          ? t(stepTitle)
+          : failed
+            ? t("auth.link.expiredTitle")
+            : t("auth.title")
+      }
       logo={logo}
       footer={footer}
     >
@@ -473,7 +516,11 @@ export function SsoCallbackScreen({ logo, footer, paths }: ScreenProps) {
     },
   })
   return (
-    <AuthLayout title={t("auth.title")} logo={logo} footer={footer}>
+    <AuthLayout
+      title={failed ? t("auth.callback.failedTitle") : t("auth.title")}
+      logo={logo}
+      footer={footer}
+    >
       {failed ? (
         <Expired message={t("auth.callback.failed")} paths={paths} />
       ) : (

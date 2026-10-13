@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 125. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 127. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 
@@ -34,6 +34,7 @@
 | `lib/audit` | Журнал аудиту | Контракт журналу (хто, що, коли, звідки; «було → стало»; причина), плоскі фільтри, експорт CSV — provider.audit. | beta | `audit` | A5, PF01 |
 | `lib/auth` | Вхід і права | createAuthProvider (ADR-0003): httpOnly cookie + 2FA (TOTP), /me з ролями, правами й компаніями, hasPermission із діями ra-core. | beta | `data` | PF01, A2 |
 | `lib/brand-icons` | Логотипи провайдерів входу | Google «G» (офіційні кольори) і Apple (CC0, currentColor) — лише для кнопок «Увійти через …». | beta | `login` | PF01, §20 |
+| `lib/company-scope` | Поточна компанія | Вибрана компанія для X-Company-Id і ключів кешу: getCompanyId/setCompanyId/subscribeCompany, syncCompany з профілю, companyScope для ключів запитів. | beta | `company` | PF02 |
 | `lib/company` | Налаштування компанії | Контракт реквізитів (юрособа чи ФОП, ЄДРПОУ / РНОКПП, ПДВ, IBAN, контакти, підписанти), логотип і печатка, філії — provider.company. | beta | `company` | A1, LC12 |
 | `lib/data-provider` | dataProvider ra-core | createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version. | beta | `data` | §17 |
 | `lib/format` | Форматери Intl | Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat. | beta | `formats` | §11, §17 |
@@ -77,7 +78,8 @@
 | `hooks/use-appearance` | useAppearance | Поточні вподобання вигляду й функція зміни; перемальовує при будь-якій зміні. | beta | `appearance` | §6.2 |
 | `hooks/use-breakpoint` | useBreakpoint | Брейкпоінт оболонки: телефон < 768 px, планшет до 1279 px, десктоп ≥ 1280 px. | beta | `appearance` | §7, §9 |
 | `hooks/use-company-profile` | useCompanyProfile | Профіль поточної компанії (реквізити, зображення, філії, палітра) зі спільного кешу; у корені — палітра компанії типовою. | beta | `company` | A1, §6.2 |
-| `hooks/use-me` | useMe | Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission. | beta | `data` | PF01, A2 |
+| `hooks/use-company` | useCompany | Поточна компанія і перемикання для CompanySwitcher: скасовує запити, скидає дані попередньої компанії, перечитує профіль. | beta | `company` | PF02 |
+| `hooks/use-me` | useMe | Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission; useRefreshMe — перечитати профіль із сервера. | beta | `data` | PF01, A2 |
 | `hooks/use-resolved-theme` | useResolvedTheme | Поточна тема з класу dark на <html> — для компонентів, яким потрібна тема. | beta | — | §6.2 |
 
 ## Шар 2 · примітиви
@@ -108,7 +110,7 @@
 | `ui/sidebar` | Сайдбар | Основа оболонки: розгорнутий, вузька панель з іконками, шторка на телефоні; пункти з токенів щільності, Ctrl+B поза полями вводу. | beta | `appearance` | §7, §9 |
 | `ui/skeleton` | Скелетон | Заглушка контенту під час першого завантаження (лише в контейнерах). | beta | `primitives` | §8.1, §8.2 |
 | `ui/slider` | Повзунок | Base UI Slider: доріжка з контрастом 3:1, доступна назва й текст значення для скрінрідера. | beta | `profile` | — |
-| `ui/sonner` | Тости | Сповіщення sonner; тема з <html>; тости з «Скасувати» не зникають самі. | beta | `primitives` | §8.2, PF10 |
+| `ui/sonner` | Тости | Сповіщення sonner; тема з <html>; 8 с і кнопка закриття; тостам із «Скасувати» задавайте duration: Infinity, щоб не зникали самі. | beta | `primitives` | §8.2, PF10 |
 | `ui/spinner` | Спінер | Індикатор очікування з підписом для скрінрідера. | beta | `primitives` | §8.2 |
 | `ui/switch` | Перемикач | Switch на Base UI зі зоною натиску ≥ 24 px. | beta | `primitives` | — |
 | `ui/table` | Таблиця | Проста таблиця; рядки з токена щільності; прокрутка доступна з клавіатури. | beta | `primitives` | §9, §10 |

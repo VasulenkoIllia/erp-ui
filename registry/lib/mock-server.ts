@@ -13,7 +13,12 @@ import { delay } from "msw/utils/delay"
 
 import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
 import type { ApiErrorBody } from "@/registry/lib/api"
-import type { AuthFactor, LocalizedText, Me } from "@/registry/lib/auth"
+import {
+  meSchema,
+  type AuthFactor,
+  type LocalizedText,
+  type Me,
+} from "@/registry/lib/auth"
 import { SLOW_DELAY_MS, type Scenario } from "@/registry/lib/mock-scenarios"
 import {
   BACKGROUND_HEADER,
@@ -94,9 +99,56 @@ export interface MockUser extends Me {
 }
 
 let mockUsers: MockUser[] = []
+let seededIds = new Set<string>()
+let persistOnLeave = false
 
+/**
+ * Користувачі з реєстрації й запрошень переживають перезавантаження, як і сесія: інакше після F5
+ * сесія вказує на невідомого користувача, а дані нової компанії сиротіють. Лише демо: пароль і
+ * коди моку лежать у localStorage відкритим текстом. Версія в ключі — щоб змінити формат без
+ * міграції старих записів.
+ */
+const ADDED_USERS_KEY = "erp-ui:mock-users:v1"
+
+const isStoredUser = (value: unknown): value is MockUser =>
+  meSchema.safeParse(value).success &&
+  typeof (value as Partial<MockUser>).password === "string" &&
+  typeof (value as Partial<MockUser>).totpCode === "string"
+
+function readAddedUsers(): MockUser[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(ADDED_USERS_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.filter(isStoredUser) : []
+  } catch {
+    return []
+  }
+}
+
+/** Знімок доданих користувачів: мок змінює їх на місці (пароль, фактори), тож пишемо весь стан. */
+function persistAddedUsers(): void {
+  const added = mockUsers.filter((u) => !seededIds.has(u.id))
+  try {
+    if (added.length)
+      globalThis.localStorage?.setItem(ADDED_USERS_KEY, JSON.stringify(added))
+    else globalThis.localStorage?.removeItem(ADDED_USERS_KEY)
+  } catch {
+    // Без сховища нові користувачі живуть до перезавантаження.
+  }
+}
+
+/** Початкові користувачі; збережені з реєстрації й запрошень додаються до них. */
 export function setMockUsers(users: MockUser[]): void {
-  mockUsers = users
+  seededIds = new Set(users.map((u) => u.id))
+  mockUsers = [
+    ...users,
+    ...readAddedUsers().filter((u) => !seededIds.has(u.id)),
+  ]
+  if (!persistOnLeave && typeof window !== "undefined") {
+    persistOnLeave = true
+    // Зміни на місці (новий пароль, фактор) — у знімок перед виходом зі сторінки, зокрема F5.
+    window.addEventListener("pagehide", persistAddedUsers)
+  }
 }
 
 export function mockUsersList(): MockUser[] {
@@ -105,6 +157,12 @@ export function mockUsersList(): MockUser[] {
 
 export function addMockUser(user: MockUser): void {
   mockUsers = [...mockUsers, user]
+  persistAddedUsers()
+}
+
+export function removeMockUser(id: string): void {
+  mockUsers = mockUsers.filter((u) => u.id !== id)
+  persistAddedUsers()
 }
 
 /* ----------------------------------- Сесія ----------------------------------- */

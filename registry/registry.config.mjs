@@ -113,6 +113,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["PF01", "A2"],
   },
+  "lib/company-scope": {
+    title: "Поточна компанія",
+    description:
+      "Вибрана компанія для X-Company-Id і ключів кешу: getCompanyId/setCompanyId/subscribeCompany, syncCompany з профілю, companyScope для ключів запитів.",
+    status: "beta",
+    demo: "company",
+    spec: ["PF02"],
+  },
   "lib/preferences": {
     title: "Вподобання на сервері",
     description:
@@ -148,10 +156,18 @@ export const CODE_ITEMS = {
   "hooks/use-me": {
     title: "useMe",
     description:
-      "Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission.",
+      "Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission; useRefreshMe — перечитати профіль із сервера.",
     status: "beta",
     demo: "data",
     spec: ["PF01", "A2"],
+  },
+  "hooks/use-company": {
+    title: "useCompany",
+    description:
+      "Поточна компанія і перемикання для CompanySwitcher: скасовує запити, скидає дані попередньої компанії, перечитує профіль.",
+    status: "beta",
+    demo: "company",
+    spec: ["PF02"],
   },
   "hooks/use-company-profile": {
     title: "useCompanyProfile",
@@ -882,7 +898,7 @@ export const CODE_ITEMS = {
   "ui/sonner": {
     title: "Тости",
     description:
-      "Сповіщення sonner; тема з <html>; тости з «Скасувати» не зникають самі.",
+      "Сповіщення sonner; тема з <html>; 8 с і кнопка закриття; тостам із «Скасувати» задавайте duration: Infinity, щоб не зникали самі.",
     status: "beta",
     demo: "primitives",
     spec: ["§8.2", "PF10"],
@@ -985,25 +1001,27 @@ export const BUNDLE_ITEMS = {
   data: {
     title: "Шар даних",
     description:
-      "Клієнт API, dataProvider і authProvider для ra-core, вподобання на сервері, повідомлення ra-core, useMe, тексти помилок API.",
+      "Клієнт API, dataProvider і authProvider для ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
     status: "beta",
     demo: "data",
-    spec: ["§17", "PF01", "PF11"],
+    spec: ["§17", "PF01", "PF02", "PF11"],
     files: [],
     include: [
       "lib/api",
       "lib/data-provider",
       "lib/auth",
+      "lib/company-scope",
       "lib/preferences",
       "lib/ra-i18n",
       "hooks/use-me",
+      "hooks/use-company",
       "hooks/use-api-error-message",
     ],
     // ra-core бере маршрутизацію з React Router (peer-залежності).
     dependencies: ["react-router", "react-router-dom"],
     docs: [
       "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).",
-      "1) Створіть клієнт: createApiClient({ getCompanyId }) з @/lib/api.",
+      "1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.",
       "2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).",
       "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.",
       "4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",

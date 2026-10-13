@@ -22,6 +22,7 @@ import {
   useErpAuthProvider,
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
 import {
   AUDIT_CATEGORIES,
@@ -30,6 +31,7 @@ import {
   type AuditFilter,
   type AuditValue,
 } from "@/registry/lib/audit"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import {
   useErpUiT,
@@ -178,8 +180,14 @@ export function AuditLog({
   }
   const filtered = Boolean(q.trim()) || category !== "all" || period !== "all"
 
+  const companyId = useCompanyId()
   const query = useInfiniteQuery({
-    queryKey: [...AUDIT_QUERY_KEYS.events, filter, perPage],
+    queryKey: [
+      ...AUDIT_QUERY_KEYS.events,
+      filter,
+      perPage,
+      companyScope(companyId),
+    ],
     // Журнал — живі дані: щоразу свіжий, навіть якщо застосунок кешує запити довше.
     refetchOnMount: "always",
     queryFn: ({ pageParam }) =>

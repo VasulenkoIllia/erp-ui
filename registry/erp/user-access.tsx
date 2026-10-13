@@ -18,8 +18,10 @@ import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useResetFactors } from "@/registry/erp/reset-factors"
 import { RolePicker, useRoles } from "@/registry/erp/roles-editor"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { useHasPermission, useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
@@ -74,8 +76,9 @@ export interface AccessTarget {
 /** Стан доступу користувача (право `users:update`). */
 export function useUserAccess(userId: string, enabled = true) {
   const provider = useErpAuthProvider()
+  const companyId = useCompanyId()
   return useQuery({
-    queryKey: ADMIN_QUERY_KEYS.userAccess(userId),
+    queryKey: [...ADMIN_QUERY_KEYS.userAccess(userId), companyScope(companyId)],
     queryFn: () => provider.admin.getUserAccess(userId),
     enabled,
     // Сесії й стан змінюються будь-коли: панель відкривається зі свіжими даними.
@@ -740,8 +743,9 @@ export function ActiveSessionsSection() {
     }
   }, [search])
 
+  const companyId = useCompanyId()
   const query = useInfiniteQuery({
-    queryKey: [...ADMIN_QUERY_KEYS.sessions, q.trim()],
+    queryKey: [...ADMIN_QUERY_KEYS.sessions, q.trim(), companyScope(companyId)],
     queryFn: ({ pageParam }) =>
       provider.admin.getSessions(q, pageParam, PER_PAGE),
     refetchOnMount: "always",

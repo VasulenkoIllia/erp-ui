@@ -11,7 +11,8 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { useReauth } from "@/registry/erp/reauth-dialog"
-import { useMe } from "@/registry/hooks/use-me"
+import { useMe, useResetUserData } from "@/registry/hooks/use-me"
+import { ME_QUERY_KEY } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
@@ -51,6 +52,23 @@ export interface ImpersonationTarget {
   name: string
 }
 
+/**
+ * Особа змінилася: профіль — новий (authProvider завантажив його під час перемикання, getMe запиту
+ * не робить), решту кешу скинуто навіть тоді, коли профіль не вдалося покласти в кеш.
+ */
+function useIdentityReset() {
+  const provider = useErpAuthProvider()
+  const queryClient = useQueryClient()
+  const resetUserData = useResetUserData()
+  return React.useCallback(async () => {
+    try {
+      queryClient.setQueryData(ME_QUERY_KEY, await provider.getMe())
+    } finally {
+      resetUserData()
+    }
+  }, [provider, queryClient, resetUserData])
+}
+
 export function useImpersonation({
   onStarted,
 }: { onStarted?: () => void } = {}) {
@@ -85,7 +103,7 @@ function ImpersonateDialog({
 }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
-  const queryClient = useQueryClient()
+  const resetIdentity = useIdentityReset()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const { guard, dialog: reauthDialog } = useReauth()
@@ -116,9 +134,9 @@ function ImpersonateDialog({
             setError(null)
             setBusy(true)
             guard(() => provider.impersonate(target.id, reason.trim()))
-              .then(() => {
+              .then(async () => {
                 // Дані, права й налаштування — вже іншого користувача.
-                void queryClient.invalidateQueries()
+                await resetIdentity()
                 toast.success(
                   t("auth.impersonation.started", { name: target.name }),
                 )
@@ -198,7 +216,7 @@ export function ImpersonationBanner({
 }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
-  const queryClient = useQueryClient()
+  const resetIdentity = useIdentityReset()
   const errorText = useAuthErrorText()
   const { data: me } = useMe()
   const [busy, setBusy] = React.useState(false)
@@ -235,8 +253,8 @@ export function ImpersonationBanner({
             setBusy(true)
             provider
               .stopImpersonation()
-              .then(() => {
-                void queryClient.invalidateQueries()
+              .then(async () => {
+                await resetIdentity()
                 toast.success(t("auth.impersonation.stopped"))
                 onStopped?.()
               })

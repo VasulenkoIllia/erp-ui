@@ -11,9 +11,11 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
-import { useHasPermission } from "@/registry/hooks/use-me"
+import { useCompanyId } from "@/registry/hooks/use-company"
+import { useHasPermission, useRefreshMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { ME_QUERY_KEY } from "@/registry/lib/auth"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   countGranted,
@@ -53,19 +55,28 @@ import { Textarea } from "@/registry/ui/textarea"
  * нова роль і копія, видалення. Вбудовані ролі — лише перегляд. Каталог прав дає сервер.
  */
 export function RolesEditor() {
+  // Ролі — свої в кожній компанії: вибрана роль і незбережені права не переходять в іншу.
+  return <RolesEditorContent key={useCompanyId() ?? ""} />
+}
+
+function RolesEditorContent() {
   const t = useErpUiT()
   const queryClient = useQueryClient()
+  const refreshMe = useRefreshMe()
   const canEdit = useHasPermission("roles", "update")
   const query = useRoles()
   const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [dirty, setDirty] = React.useState(false)
   const [pending, setPending] = React.useState<string | null>(null)
   const [creating, setCreating] = React.useState<RoleInput | null>(null)
-  // Права поточного користувача — сума прав його ролей: зміна ролі може їх змінити.
+  // Права поточного користувача — сума прав його ролей: зміна ролі може їх змінити. Профіль
+  // перечитуємо з сервера (authProvider його кешує); не вдалося — useMe перезапитає сам.
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.list }),
-      queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY }),
+      refreshMe().catch(() =>
+        queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY }),
+      ),
     ])
 
   if (query.isPending) return <SectionSkeleton rows={4} />
@@ -684,8 +695,9 @@ function CreateRoleDialog({
 /** Ролі компанії й каталог прав (право `roles:read`); без права запит не йде. */
 export function useRoles(enabled = true) {
   const provider = useErpAuthProvider()
+  const companyId = useCompanyId()
   return useQuery({
-    queryKey: ROLES_QUERY_KEYS.list,
+    queryKey: [...ROLES_QUERY_KEYS.list, companyScope(companyId)],
     queryFn: () => provider.roles.list(),
     enabled,
   })

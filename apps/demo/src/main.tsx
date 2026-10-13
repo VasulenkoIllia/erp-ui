@@ -2,6 +2,7 @@ import { CoreAdminContext } from "ra-core"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
+import { isApiError } from "@/registry/lib/api"
 import { initAppearance, syncLanguage } from "@/registry/lib/appearance"
 import { ME_QUERY_KEY } from "@/registry/lib/auth"
 
@@ -25,8 +26,11 @@ async function bootstrap() {
   const { startMocks } = await import("@/mocks/browser")
   await startMocks()
   // Сесію перевіряємо до першого кадру — топбар одразу показує користувача або «Увійти».
-  await authProvider.getMe().catch(() => {
-    queryClient.setQueryData(ME_QUERY_KEY, null)
+  // Гість — 401 (немає сесії) чи 403 (входу немає, як у checkAuth); збій сервера чи мережі useMe
+  // покаже як помилку з повтором.
+  await authProvider.getMe().catch((error: unknown) => {
+    if (isApiError(error) && (error.status === 401 || error.status === 403))
+      queryClient.setQueryData(ME_QUERY_KEY, null)
   })
 
   const root = document.getElementById("root")

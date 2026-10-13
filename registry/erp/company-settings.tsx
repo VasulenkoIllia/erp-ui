@@ -169,7 +169,8 @@ export function CompanyProfileForm() {
   const query = useCompanyProfile()
   return (
     <ProfileState query={query} rows={6}>
-      {(profile) => <ProfileFields profile={profile} />}
+      {/* Інша компанія — нова форма: незбережені правки не переходять до неї. */}
+      {(profile) => <ProfileFields key={profile.id} profile={profile} />}
     </ProfileState>
   )
 }

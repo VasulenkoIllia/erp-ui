@@ -120,7 +120,7 @@
       "name": "data",
       "type": "registry:item",
       "title": "Шар даних",
-      "description": "Клієнт API, dataProvider і authProvider для ra-core, вподобання на сервері, повідомлення ra-core, useMe, тексти помилок API.",
+      "description": "Клієнт API, dataProvider і authProvider для ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "i18next@^26.4.4",
@@ -135,6 +135,11 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -242,12 +247,17 @@
           "target": "@hooks/use-me.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
         }
       ],
-      "docs": "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).\n1) Створіть клієнт: createApiClient({ getCompanyId }) з @/lib/api.\n2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).\n3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.\n4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
+      "docs": "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).\n1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.\n2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).\n3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.\n4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
       "meta": {
         "layer": "data",
         "status": "beta",
@@ -255,6 +265,7 @@
         "spec": [
           "§17",
           "PF01",
+          "PF02",
           "PF11"
         ]
       }
@@ -373,6 +384,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -645,6 +661,11 @@
           "target": "@components/erp/security-policy-form.tsx"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/erp/reset-factors.tsx",
           "type": "registry:component",
           "target": "@components/erp/reset-factors.tsx"
@@ -793,6 +814,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -1913,9 +1939,11 @@
       "name": "ui/sonner",
       "type": "registry:ui",
       "title": "Тости",
-      "description": "Сповіщення sonner; тема з <html>; тости з «Скасувати» не зникають самі.",
+      "description": "Сповіщення sonner; тема з <html>; 8 с і кнопка закриття; тостам із «Скасувати» задавайте duration: Infinity, щоб не зникали самі.",
       "dependencies": [
+        "i18next@^26.4.4",
         "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
         "sonner@^2.0.8"
       ],
       "files": [
@@ -1928,6 +1956,21 @@
           "path": "registry/hooks/use-resolved-theme.ts",
           "type": "registry:hook",
           "target": "@hooks/use-resolved-theme.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
         }
       ],
       "meta": {
@@ -2165,6 +2208,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -2202,6 +2250,11 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -2285,6 +2338,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -2351,6 +2409,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -2442,6 +2505,28 @@
       }
     },
     {
+      "name": "lib/company-scope",
+      "type": "registry:lib",
+      "title": "Поточна компанія",
+      "description": "Вибрана компанія для X-Company-Id і ключів кешу: getCompanyId/setCompanyId/subscribeCompany, syncCompany з профілю, companyScope для ключів запитів.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "PF02"
+        ]
+      }
+    },
+    {
       "name": "lib/company",
       "type": "registry:lib",
       "title": "Налаштування компанії",
@@ -2466,6 +2551,11 @@
           "path": "registry/lib/appearance.ts",
           "type": "registry:lib",
           "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -2517,6 +2607,11 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -2702,6 +2797,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -2806,6 +2906,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -2937,6 +3042,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -3085,6 +3195,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3209,6 +3324,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -3387,6 +3507,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3523,6 +3648,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3652,6 +3782,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -3802,6 +3937,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -3920,6 +4060,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -4063,6 +4208,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -4192,6 +4342,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -4367,6 +4522,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -4480,6 +4640,11 @@
           "target": "@lib/appearance.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -4576,6 +4741,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -4614,6 +4784,11 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -4727,6 +4902,11 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -4762,6 +4942,11 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -4880,6 +5065,16 @@
           "target": "@hooks/use-company-profile.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -4908,6 +5103,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -4976,10 +5176,133 @@
       }
     },
     {
+      "name": "hooks/use-company",
+      "type": "registry:hook",
+      "title": "useCompany",
+      "description": "Поточна компанія і перемикання для CompanySwitcher: скасовує запити, скидає дані попередньої компанії, перечитує профіль.",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "company",
+        "spec": [
+          "PF02"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-me",
       "type": "registry:hook",
       "title": "useMe",
-      "description": "Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission.",
+      "description": "Профіль поточного користувача з кешу TanStack Query: null — гість; useHasPermission; useRefreshMe — перечитати профіль із сервера.",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "i18next@^26.4.4",
@@ -5022,6 +5345,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -5177,6 +5505,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -5417,6 +5750,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -5698,6 +6036,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -5927,6 +6270,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -6149,6 +6497,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -6451,6 +6804,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -6479,6 +6842,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -6674,6 +7042,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -6946,6 +7319,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7189,6 +7567,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-company-profile.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company-profile.ts"
@@ -7227,6 +7610,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -7746,6 +8134,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7945,6 +8338,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8125,6 +8523,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -8158,6 +8561,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -8413,6 +8821,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -8678,6 +9091,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -8706,6 +9129,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -8890,6 +9318,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -9149,6 +9582,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -9301,6 +9739,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -9524,6 +9967,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -9781,6 +10229,11 @@
           "target": "@lib/company.ts"
         },
         {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -9965,6 +10418,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -9998,6 +10456,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -10190,6 +10653,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -10223,6 +10691,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -10415,6 +10888,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -10448,6 +10926,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -10618,6 +11101,7 @@
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
       "files": [
@@ -10635,6 +11119,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -10665,6 +11154,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -10828,6 +11322,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -11025,6 +11524,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -11299,6 +11803,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -11332,6 +11841,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -11644,6 +12158,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -11677,6 +12196,11 @@
           "path": "registry/lib/company.ts",
           "type": "registry:lib",
           "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/format.ts",

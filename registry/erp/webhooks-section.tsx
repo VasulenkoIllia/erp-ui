@@ -22,7 +22,9 @@ import {
 import { CopyButton } from "@/registry/erp/copy-button"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
+import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
@@ -94,8 +96,9 @@ export function WebhooksSection() {
   const { guard, dialog: reauthDialog } = useReauth()
   const [open, setOpen] = React.useState<Open | null>(null)
   const [busy, setBusy] = React.useState<string | null>(null)
+  const companyId = useCompanyId()
   const query = useQuery({
-    queryKey: WEBHOOK_QUERY_KEYS.list,
+    queryKey: [...WEBHOOK_QUERY_KEYS.list, companyScope(companyId)],
     queryFn: () => provider.webhooks.list(),
     // Остання доставка змінюється без участі користувача — свіжі дані при кожному відкритті.
     refetchOnMount: "always",
@@ -809,7 +812,11 @@ function DeliveriesList({
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
-  const queryKey = WEBHOOK_QUERY_KEYS.deliveries(webhook.id)
+  const companyId = useCompanyId()
+  const queryKey = [
+    ...WEBHOOK_QUERY_KEYS.deliveries(webhook.id),
+    companyScope(companyId),
+  ]
   const query = useInfiniteQuery({
     queryKey,
     queryFn: ({ pageParam }) =>

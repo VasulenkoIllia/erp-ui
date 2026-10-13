@@ -15,6 +15,7 @@
  */
 import { z } from "zod"
 
+import { getCompanyId } from "@/registry/lib/company-scope"
 import {
   BACKGROUND_HEADER,
   SESSION_EXPIRES_HEADER,
@@ -209,8 +210,6 @@ export interface RequestOptions<T> {
 export interface ApiClientOptions {
   /** Адреса API; за замовчуванням — `/api/v1` того ж походження. */
   baseUrl?: string
-  /** Поточна компанія для `X-Company-Id`; null — заголовок не надсилається. */
-  getCompanyId?: () => string | null | undefined
   /** Мова інтерфейсу для `Accept-Language`: сервер пише нею листи, місця входу, повідомлення. */
   getLanguage?: () => string | null | undefined
   fetch?: typeof fetch
@@ -220,7 +219,6 @@ export type ApiClient = ReturnType<typeof createApiClient>
 
 export function createApiClient({
   baseUrl = API_PREFIX,
-  getCompanyId,
   getLanguage,
   fetch: fetchImpl,
 }: ApiClientOptions = {}) {
@@ -252,7 +250,8 @@ export function createApiClient({
     const multipart = body instanceof FormData
     if (body !== undefined && !multipart)
       headers.set("Content-Type", "application/json")
-    const companyId = getCompanyId?.()
+    // Компанія — з lib/company-scope: від неї ж залежать ключі кешу компонентів кіта.
+    const companyId = getCompanyId()
     if (companyId) headers.set(COMPANY_HEADER, companyId)
     const language = getLanguage?.()
     if (language) headers.set("Accept-Language", language)

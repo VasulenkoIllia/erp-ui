@@ -11,6 +11,7 @@ import {
 
 import { createApiClient } from "@/registry/lib/api"
 import { createAuthProvider } from "@/registry/lib/auth"
+import { setCompanyId } from "@/registry/lib/company-scope"
 import { applyMockRoles } from "@/registry/lib/mock-team"
 import {
   createPlatformHandlers,
@@ -143,11 +144,9 @@ const server = setupServer(
 )
 
 let language = "uk"
-let companyId: string | null = null
 const client = createApiClient({
   baseUrl: BASE,
   getLanguage: () => language,
-  getCompanyId: () => companyId,
 })
 let auth = createAuthProvider(client, { baseUrl: BASE })
 
@@ -174,7 +173,7 @@ beforeEach(() => {
   // Ролі й призначення — у сховищі: після очищення права користувачів знову початкові.
   applyMockRoles()
   language = "uk"
-  companyId = null
+  setCompanyId(null)
   auth = createAuthProvider(client, { baseUrl: BASE })
 })
 afterEach(() => {
@@ -569,7 +568,7 @@ describe("налаштування компанії (ADR-0014)", () => {
       edrpou: "32855961",
       branches: [],
     })
-    companyId = "c2"
+    setCompanyId("c2")
     await expect(auth.company.get()).rejects.toMatchObject({ status: 403 })
     signInMock("a1")
     expect(await auth.company.get()).toMatchObject({
