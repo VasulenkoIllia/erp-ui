@@ -4,9 +4,14 @@ import {
   DEFAULT_APPEARANCE,
   APPEARANCE_STORAGE_KEY as STORAGE_KEY,
   applyAppearance,
+  getAppearance,
+  initAppearance,
   isDark,
   parseAppearance,
+  pickAppearance,
   readStoredAppearance,
+  setAppearance,
+  setBrandAppearance,
   storeAppearance,
 } from "@/registry/lib/appearance"
 
@@ -99,5 +104,42 @@ describe("сховище", () => {
   it("не падає на зіпсованому JSON", () => {
     localStorage.setItem(STORAGE_KEY, "{oops")
     expect(readStoredAppearance()).toEqual(DEFAULT_APPEARANCE)
+  })
+})
+
+describe("бренд (white-label, ADR-0011)", () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setBrandAppearance(null)
+    initAppearance()
+  })
+
+  it("pickAppearance лишає тільки коректні поля", () => {
+    expect(pickAppearance({ palette: "teal", theme: "neon", x: 1 })).toEqual({
+      palette: "teal",
+    })
+    expect(pickAppearance(null)).toEqual({})
+  })
+
+  it("палітра бренду — типова, доки користувач не обрав свою", () => {
+    setBrandAppearance({ palette: "teal" })
+    expect(getAppearance().palette).toBe("teal")
+    expect(document.documentElement.dataset.palette).toBe("teal")
+    // Інша мова не «заморожує» палітру бренду: зберігається лише обране.
+    setAppearance({ language: "en" })
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}")).toEqual({
+      language: "en",
+    })
+    setBrandAppearance({ palette: "terracotta" })
+    expect(getAppearance().palette).toBe("terracotta")
+    setAppearance({ palette: "graphite" })
+    setBrandAppearance({ palette: "indigo" })
+    expect(getAppearance().palette).toBe("graphite")
+  })
+
+  it("без бренду — типові значення компанії", () => {
+    setBrandAppearance({ palette: "teal" })
+    setBrandAppearance(null)
+    expect(getAppearance()).toEqual(DEFAULT_APPEARANCE)
   })
 })

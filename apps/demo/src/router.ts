@@ -12,6 +12,7 @@ export const ROUTES = {
   states: "/states",
   data: "/data",
   security: "/settings/security",
+  users: "/settings/users",
 } as const
 export type Route = keyof typeof ROUTES
 

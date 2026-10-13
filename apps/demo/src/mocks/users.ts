@@ -4,8 +4,8 @@ import { COMPANIES } from "@/fixtures"
 
 /**
  * Користувачі мок-сервера демо. Пароль — «demo»; код застосунку, SMS і email — 123456.
- * Олена — бухгалтер із другим кроком (застосунок, резервний код, SMS, ключ доступу);
- * Іван — менеджер без другого кроку; Марта — новенька з тимчасовим паролем.
+ * Олена — бухгалтер і адміністратор («Увійти як…») з другим кроком (застосунок, резервний код,
+ * SMS, ключ доступу); Іван — менеджер без другого кроку; Марта — новенька з тимчасовим паролем.
  */
 export const MOCK_USERS: MockUser[] = [
   {
@@ -14,8 +14,8 @@ export const MOCK_USERS: MockUser[] = [
     email: "olena@zoriana.example",
     password: "demo",
     totpCode: "123456",
-    roles: ["accountant"],
-    permissions: ["invoices:*"],
+    roles: ["accountant", "admin"],
+    permissions: ["invoices:*", "users:*"],
     companies: COMPANIES,
     companyId: "zoriana",
     phone: "+380671234545",

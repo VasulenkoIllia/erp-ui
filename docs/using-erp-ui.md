@@ -197,8 +197,15 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
 
 - Інші адреси — пропс `paths`. Після входу — туди, звідки ra-core перенаправив, або `afterLogin`.
 - У оболонці, коли користувач увійшов: `<SessionGuard idleMinutes={methods.idleTimeoutMinutes} />` (попередження перед кінцем сесії, вихід у всіх вкладках).
-- Налаштування: `ChangePasswordForm`, `ChangeEmailForm`, `AccountDataSection` з `erp/account-security`. Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
-- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері.
+- Налаштування безпеки (сторінка «Безпека акаунта», ADR-0011):
+  - `FactorsSection` — застосунок із QR, SMS, email, ключі доступу, резервні коди;
+  - `ChangePasswordForm`, `ChangeEmailForm`, `AccountDataSection` з `erp/account-security`;
+  - `SessionsSection`, `TrustedDevicesSection`, `SignInAlertsSwitch`, `SignInHistory` з `erp/account-devices`.
+- Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
+- «Увійти як…»: у списку користувачів — `useImpersonation({ onStarted })`, в оболонці — `<AppShell banner={<ImpersonationBanner onStopped={…} />}>`.
+- Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance()`, щоб палітра бренду була типовою й після входу.
+- Клієнт API: `createApiClient({ getCompanyId, getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
+- Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» пишеться в аудит із причиною.
 
 ## 7. Вигляд
 

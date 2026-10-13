@@ -1,7 +1,7 @@
 import { test } from "@playwright/test"
 import path from "node:path"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import { expectNoA11yViolations, openWith, USERS } from "./helpers"
 
 const PALETTES = [
   "sapphire",
@@ -63,6 +63,7 @@ const SHOT_PAGES = {
   login: "/#/login",
   signup: "/#/signup",
   security: "/#/settings/security",
+  users: "/#/settings/users",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
@@ -157,4 +158,114 @@ test.describe("скриншоти кроків @screenshots", () => {
         fullPage: true,
       })
     })
+})
+
+// Крок 0.5b2: налаштування застосунку, резервні коди, «Увійти як…», бренд сторінки входу.
+test.describe("скриншоти кроків 0.5b2 @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "light", width: 1440 },
+  ] as const
+
+  for (const { palette, theme, width } of cases) {
+    test(`totp ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("totp"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/security", {
+        user: USERS.sales,
+      })
+      await page.getByRole("button", { name: "Налаштувати застосунок" }).click()
+      const reauth = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+      await reauth.getByLabel("Пароль", { exact: true }).fill("demo")
+      await reauth
+        .getByRole("button", { name: "Підтвердити", exact: true })
+        .click()
+      await page
+        .getByRole("img", { name: "QR-код для застосунку-автентифікатора" })
+        .waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `totp-${palette}-${theme}-${width}.png`),
+      })
+      await page
+        .getByLabel("2. Введіть 6-значний код із застосунку")
+        .fill("123456")
+      await page
+        .getByRole("dialog", { name: "Збережіть резервні коди" })
+        .waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `backup-codes-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+
+    test(`impersonation ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("impersonation"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/settings/users")
+      await page
+        .getByRole("button", { name: "Увійти як Іван Петренко" })
+        .click()
+      const dialog = page.getByRole("dialog", {
+        name: "Увійти як Іван Петренко?",
+      })
+      await dialog.getByLabel("Причина").fill("Звернення № 4521")
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `impersonate-dialog-${palette}-${theme}-${width}.png`,
+        ),
+      })
+      await dialog
+        .getByRole("button", { name: "Увійти як Іван Петренко" })
+        .click()
+      const reauth = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+      await reauth.getByLabel("Пароль", { exact: true }).fill("demo")
+      await reauth
+        .getByRole("button", { name: "Підтвердити", exact: true })
+        .click()
+      await page.getByRole("region", { name: "Режим «Увійти як…»" }).waitFor()
+      await page.goto("/#/settings/security")
+      await page.getByRole("list", { name: "Де ви увійшли" }).waitFor()
+      await page
+        .locator("[data-sonner-toast]")
+        .first()
+        .waitFor({ state: "detached" })
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `impersonation-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+  }
+
+  for (const brand of ["Бухгалтерія Плюс", "Зоряна логістика"] as const)
+    for (const theme of THEMES)
+      for (const width of [390, 1440] as const)
+        test(`brand ${brand} ${theme} ${width}`, async ({ page }) => {
+          test.skip(only("brand"))
+          await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+          await openWith(page, { theme }, "/#/login", { user: null })
+          await page
+            .getByRole("combobox", { name: "Бренд (white-label)" })
+            .click()
+          await page.getByRole("option", { name: brand }).click()
+          await page.getByText(brand).first().waitFor()
+          await expectNoA11yViolations(page)
+          const slug = brand === "Бухгалтерія Плюс" ? "buh-plus" : "zoriana"
+          await page.screenshot({
+            path: path.join(
+              shotsDir,
+              `login-brand-${slug}-${theme}-${width}.png`,
+            ),
+          })
+        })
 })

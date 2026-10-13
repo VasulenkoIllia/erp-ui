@@ -6,28 +6,44 @@
  *
  * Коди SMS і email мок не надсилає — він передає їх `subscribeMockMessages` (демо показує як
  * сповіщення). Ключ доступу мок не перевіряє криптографічно: користувача визначає `userHandle`.
+ * Фактори, сесії, журнал входів і «Увійти як…» — lib/mock-account (ADR-0011).
  */
 import { http, type HttpHandler } from "msw/http"
 
+import type { SetupFactor, SignInMethod } from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
 import {
   meSchema,
   type AuthFactor,
   type AuthMethods,
+  type Branding,
   type Me,
 } from "@/registry/lib/auth"
+import {
+  consumeBackupCode,
+  createAccountHandlers,
+  isTrustedHere,
+  mockFactorTypes,
+  passwordChanged,
+  recordSignIn,
+  setMockAccountSeeds,
+  trustHere,
+  type MockAccountSeed,
+} from "@/registry/lib/mock-account"
 import {
   addMockUser,
   authenticate,
   currentMockUser,
   errorResponse,
   getMockSession,
+  impersonationForbidden,
   json,
   maskEmail,
   maskPhone,
   mockUsersList,
   newExpiry,
   noContent,
+  randomToken,
   sendMockMessage,
   setMockUsers,
   setSessionMinutes,
@@ -76,26 +92,35 @@ export interface PlatformMockOptions {
   sessionMinutes?: number
   /** Після скількох невдалих спроб просити перевірку «не бот». */
   captchaAfter?: number
+  /** Бренд сторінки входу; функція — щоб демо перемикало бренди (white-label). */
+  branding?: Branding | (() => Branding | undefined)
+  /** Початкові дані акаунтів: інші пристрої, журнал входів, назви факторів (ключ — id). */
+  accountSeeds?: Record<string, MockAccountSeed>
+  /** Які фактори можна додати в налаштуваннях. */
+  availableFactors?: SetupFactor[]
+  /** Компанія вимагає другий крок (останній фактор не видалити). */
+  twoFactorRequired?: (user: MockUser) => boolean
 }
 
 const RESEND_SECONDS = 30
 const MAX_ATTEMPTS = 5
 const PASSWORD_MIN = 10
 const PREFS_KEY = (userId: string) => `erp-ui:mock-preferences:${userId}`
-const TRUSTED_KEY = (userId: string) => `erp-ui:mock-trusted:${userId}`
 
-const toMe = (user: MockUser): Me =>
-  meSchema.parse({
+function toMe(user: MockUser): Me {
+  const session = getMockSession()
+  const admin = session?.impersonatorId
+    ? mockUsersList().find((u) => u.id === session.impersonatorId)
+    : undefined
+  return meSchema.parse({
     ...user,
-    sessionExpiresAt: new Date(
-      getMockSession()?.expiresAt ?? newExpiry(),
-    ).toISOString(),
+    factors: mockFactorTypes(user),
+    sessionExpiresAt: new Date(session?.expiresAt ?? newExpiry()).toISOString(),
+    ...(admin ? { impersonator: { id: admin.id, name: admin.name } } : {}),
   })
+}
 
-const token = () =>
-  Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("")
+const token = randomToken
 
 const digits = (value: string) => value.replace(/\D/g, "")
 
@@ -111,27 +136,6 @@ function base64UrlEncode(bytes: Uint8Array): string {
     .replace(/=+$/, "")
 }
 
-function isTrusted(userId: string): boolean {
-  try {
-    return (
-      Number(globalThis.localStorage?.getItem(TRUSTED_KEY(userId))) > Date.now()
-    )
-  } catch {
-    return false
-  }
-}
-
-function trust(userId: string, days: number) {
-  try {
-    globalThis.localStorage?.setItem(
-      TRUSTED_KEY(userId),
-      String(Date.now() + days * 86_400_000),
-    )
-  } catch {
-    // Без сховища пристрій не запам'ятовується.
-  }
-}
-
 export function createPlatformHandlers({
   users,
   baseUrl = API_PREFIX,
@@ -143,10 +147,17 @@ export function createPlatformHandlers({
   invites = [],
   sessionMinutes = 30,
   captchaAfter = 3,
+  branding,
+  accountSeeds = {},
+  availableFactors,
+  twoFactorRequired,
 }: PlatformMockOptions): HttpHandler[] {
   setMockUsers(users)
   setSessionMinutes(sessionMinutes)
+  setMockAccountSeeds(accountSeeds)
   const methods = { ...DEFAULT_MOCK_METHODS, ...methodsOverride }
+  const brandingNow = () =>
+    typeof branding === "function" ? branding() : branding
   /** Невдалі спроби за email — після captchaAfter потрібна перевірка «не бот». */
   const failures = new Map<string, number>()
   /** Одноразові токени листів: вхід, відновлення пароля. */
@@ -250,10 +261,15 @@ export function createPlatformHandlers({
     })
   }
 
-  const signedIn = (userId: string, trustDevice?: boolean, second = false) => {
-    if (trustDevice && second && methods.trustedDeviceDays > 0)
-      trust(userId, methods.trustedDeviceDays)
+  const signedIn = (
+    userId: string,
+    method: SignInMethod,
+    trustDevice?: boolean,
+    second = false,
+  ) => {
     const user = mockUsersList().find((u) => u.id === userId)
+    if (user && trustDevice && second && methods.trustedDeviceDays > 0)
+      trustHere(user, methods.trustedDeviceDays)
     if (user?.mustChangePassword) {
       writeMockSession({
         userId,
@@ -263,11 +279,12 @@ export function createPlatformHandlers({
       return json({ status: "password_change_required" })
     }
     authenticate(userId)
+    if (user) recordSignIn(user, { result: "success", method })
     return json({ status: "authenticated" })
   }
 
   /** Чутлива дія: потрібне свіже повторне підтвердження. */
-  const reauthRequired = () => {
+  const reauthRequired = (): Response | null => {
     const session = getMockSession()
     return !session?.reauthUntil || session.reauthUntil < Date.now()
       ? errorResponse(403, {
@@ -278,9 +295,9 @@ export function createPlatformHandlers({
   }
 
   /** Пароль чи токен підтверджено: другий фактор або вхід. */
-  const afterFirstFactor = (user: MockUser) => {
-    const factors = user.factors
-    if (factors.length && !isTrusted(user.id)) {
+  const afterFirstFactor = (user: MockUser, method: SignInMethod) => {
+    const factors = mockFactorTypes(user)
+    if (factors.length && !isTrustedHere(user)) {
       const preferred: AuthFactor = factors.includes("totp")
         ? "totp"
         : (factors.find((f) => f !== "backup_code") ?? "totp")
@@ -290,7 +307,7 @@ export function createPlatformHandlers({
         user,
       )
     }
-    return signedIn(user.id)
+    return signedIn(user.id, method)
   }
 
   const weakPassword = (password: unknown) =>
@@ -304,7 +321,10 @@ export function createPlatformHandlers({
     })
 
   return [
-    http.get(`${baseUrl}/auth/methods`, () => json(methods)),
+    http.get(`${baseUrl}/auth/methods`, () => {
+      const brand = brandingNow()
+      return json(brand ? { ...methods, branding: brand } : methods)
+    }),
 
     http.post(`${baseUrl}/auth/login`, async ({ request }) => {
       const body = (await request.json()) as {
@@ -319,13 +339,15 @@ export function createPlatformHandlers({
       )
       if (!user) {
         failures.set(key, (failures.get(key) ?? 0) + 1)
+        const known = findUser(key)
+        if (known) recordSignIn(known, { result: "failed", method: "password" })
         return errorResponse(401, {
           code: "unauthenticated",
           message: "Invalid email or password",
         })
       }
       failures.delete(key)
-      return afterFirstFactor(user)
+      return afterFirstFactor(user, "password")
     }),
 
     http.post(`${baseUrl}/auth/start`, async ({ request }) => {
@@ -401,6 +423,12 @@ export function createPlatformHandlers({
       const challenge = session?.challenge
       if (session?.stage !== "challenge" || !challenge) return unauthenticated()
       if (challenge.attempts >= MAX_ATTEMPTS) {
+        const blocked = mockUsersList().find((u) => u.id === session.userId)
+        if (blocked)
+          recordSignIn(blocked, {
+            result: "blocked",
+            method: body.method ?? challenge.method,
+          })
         writeMockSession(null)
         return errorResponse(429, {
           code: "rate_limited",
@@ -413,20 +441,23 @@ export function createPlatformHandlers({
       let ok = false
       if (user && challenge.methods.includes(method)) {
         if (method === "totp") ok = code === user.totpCode
-        else if (method === "backup_code") {
-          ok = user.backupCodes?.includes(code) ?? false
-          if (ok) user.backupCodes = user.backupCodes?.filter((c) => c !== code)
-        } else if (method === "sms" || method === "email")
-          ok = code === sentCode
+        else if (method === "backup_code") ok = consumeBackupCode(user, code)
+        else if (method === "sms" || method === "email") ok = code === sentCode
       }
       if (!ok) {
         writeMockSession({
           ...session,
           challenge: { ...challenge, attempts: challenge.attempts + 1 },
         })
+        if (user) recordSignIn(user, { result: "failed", method })
         return validation({ code: "invalid" })
       }
-      return signedIn(session.userId, body.trustDevice, challenge.secondFactor)
+      return signedIn(
+        session.userId,
+        method,
+        body.trustDevice,
+        challenge.secondFactor,
+      )
     }),
 
     http.post(`${baseUrl}/auth/link`, async ({ request }) => {
@@ -438,7 +469,7 @@ export function createPlatformHandlers({
           message: "Link expired",
         })
       tokens.delete(value)
-      return signedIn(entry.userId)
+      return signedIn(entry.userId, "link")
     }),
 
     http.post(`${baseUrl}/auth/passkey/options`, ({ request }) => {
@@ -469,7 +500,7 @@ export function createPlatformHandlers({
       const handle = credential?.response?.userHandle
       const userId = handle ? base64UrlDecode(handle) : ""
       const user = mockUsersList().find(
-        (u) => u.id === userId && u.factors.includes("passkey"),
+        (u) => u.id === userId && mockFactorTypes(u).includes("passkey"),
       )
       const session = getMockSession()
       const second = session?.stage === "challenge"
@@ -478,15 +509,23 @@ export function createPlatformHandlers({
           code: "unauthenticated",
           message: "Unknown passkey",
         })
-      return signedIn(user.id, trustDevice, second)
+      return signedIn(user.id, "passkey", trustDevice, second)
     }),
 
     /** Демо-провайдер SSO: справжній сервер робить це у своєму `/auth/sso/<id>/callback`. */
     http.post(`${baseUrl}/auth/sso/mock`, async ({ request }) => {
-      const { userId } = (await request.json()) as { userId?: string }
+      const { userId, provider } = (await request.json()) as {
+        userId?: string
+        provider?: string
+      }
       const user = mockUsersList().find((u) => u.id === userId)
       if (!user) return unauthenticated()
       authenticate(user.id)
+      recordSignIn(user, {
+        result: "success",
+        method: "sso",
+        provider: methods.providers.find((p) => p.id === provider)?.name,
+      })
       return noContent()
     }),
 
@@ -526,7 +565,8 @@ export function createPlatformHandlers({
       if (!user) return unauthenticated()
       tokens.delete(body.token)
       user.password = body.password as string
-      return afterFirstFactor(user)
+      passwordChanged(user)
+      return afterFirstFactor(user, "link")
     }),
 
     http.get(`${baseUrl}/auth/invite`, ({ request }) => {
@@ -571,6 +611,7 @@ export function createPlatformHandlers({
       }
       addMockUser(user)
       authenticate(user.id)
+      recordSignIn(user, { result: "success", method: "link" })
       return json({ status: "authenticated" })
     }),
 
@@ -643,7 +684,9 @@ export function createPlatformHandlers({
         if (password === user.password) return validation({ password: "same" })
         user.password = password as string
         user.mustChangePassword = false
+        passwordChanged(user)
         authenticate(user.id)
+        recordSignIn(user, { result: "success", method: "password" })
         return json({ status: "authenticated" })
       },
     ),
@@ -651,6 +694,9 @@ export function createPlatformHandlers({
     http.post(`${baseUrl}/auth/reauth`, async ({ request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
+      // Адміністратор не знає пароля користувача — і не повинен підтверджувати дії за нього.
+      const impersonating = impersonationForbidden()
+      if (impersonating) return impersonating
       const body = (await request.json()) as {
         password?: string
         method?: AuthFactor
@@ -678,7 +724,7 @@ export function createPlatformHandlers({
     http.post(`${baseUrl}/me/email`, async ({ request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
-      const denied = reauthRequired()
+      const denied = impersonationForbidden() ?? reauthRequired()
       if (denied) return denied
       const { email } = (await request.json()) as { email?: string }
       if (!email?.includes("@")) return validation({ email: "invalid" })
@@ -716,6 +762,8 @@ export function createPlatformHandlers({
     http.post(`${baseUrl}/me/export`, () => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
+      const denied = impersonationForbidden()
+      if (denied) return denied
       sendMockMessage({
         channel: "email",
         to: user.email,
@@ -728,7 +776,7 @@ export function createPlatformHandlers({
     http.delete(`${baseUrl}/me`, () => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
-      const denied = reauthRequired()
+      const denied = impersonationForbidden() ?? reauthRequired()
       if (denied) return denied
       setMockUsers(mockUsersList().filter((u) => u.id !== user.id))
       writeMockSession(null)
@@ -748,6 +796,8 @@ export function createPlatformHandlers({
     http.post(`${baseUrl}/me/password`, async ({ request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
+      const denied = impersonationForbidden()
+      if (denied) return denied
       const body = (await request.json()) as {
         currentPassword?: string
         newPassword?: string
@@ -757,6 +807,7 @@ export function createPlatformHandlers({
       if (weakPassword(body.newPassword))
         return validation({ newPassword: "weak" })
       user.password = body.newPassword as string
+      passwordChanged(user)
       return noContent()
     }),
 
@@ -786,6 +837,15 @@ export function createPlatformHandlers({
         // Не збереглося — мок однаково відповідає успіхом.
       }
       return json(prefs)
+    }),
+
+    ...createAccountHandlers({
+      baseUrl,
+      sentCode,
+      available: availableFactors,
+      twoFactorRequired,
+      issuer: () => brandingNow()?.name,
+      reauthRequired,
     }),
   ]
 }

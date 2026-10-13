@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useId, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -8,7 +9,10 @@ import {
   ResetPasswordScreen,
   SsoCallbackScreen,
 } from "@/registry/erp/account-recovery"
-import type { AuthPaths } from "@/registry/erp/auth-layout"
+import {
+  AUTH_METHODS_QUERY_KEY,
+  type AuthPaths,
+} from "@/registry/erp/auth-layout"
 import type { CaptchaRenderer } from "@/registry/erp/captcha"
 import { LoginScreen } from "@/registry/erp/login-screen"
 import { SignUpScreen } from "@/registry/erp/sign-up-screen"
@@ -27,6 +31,12 @@ import {
 } from "@/registry/ui/select"
 import { Spinner } from "@/registry/ui/spinner"
 
+import {
+  DEMO_BRAND_IDS,
+  getDemoBrand,
+  setDemoBrand,
+  type DemoBrand,
+} from "@/mocks/brands"
 import { MOCK_USERS } from "@/mocks/users"
 import { AUTH_ROUTES, ROUTES, useSearchParam, type AuthRoute } from "@/router"
 
@@ -105,6 +115,48 @@ function LanguageSelect() {
   )
 }
 
+/** Бренд «за доменом»: справжній сервер обирає сам, демо — цим перемикачем. */
+function BrandSelect() {
+  const { t } = useTranslation("demo", { keyPrefix: "authDemo" })
+  const ids = useId()
+  const queryClient = useQueryClient()
+  const [brand, setBrand] = useState<DemoBrand>(getDemoBrand)
+  const items = DEMO_BRAND_IDS.map((value) => ({
+    value,
+    label: t(`brands.${value}`),
+  }))
+  return (
+    <Field className="w-56">
+      <FieldLabel htmlFor={`${ids}-brand`} className="sr-only">
+        {t("brand")}
+      </FieldLabel>
+      <Select
+        items={items}
+        value={brand}
+        onValueChange={(value: DemoBrand | null) => {
+          if (!value) return
+          setDemoBrand(value)
+          setBrand(value)
+          void queryClient.invalidateQueries({
+            queryKey: AUTH_METHODS_QUERY_KEY,
+          })
+        }}
+      >
+        <SelectTrigger id={`${ids}-brand`} className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Field>
+  )
+}
+
 const HINTS: Record<string, "accountant" | "sales" | "temporary"> = {
   "u-olena": "accountant",
   "u-ivan": "sales",
@@ -136,6 +188,7 @@ export function AuthPage({
   const footer = (
     <div className="flex flex-wrap items-center justify-center gap-2">
       <LanguageSelect />
+      <BrandSelect />
       {devPanel}
     </div>
   )

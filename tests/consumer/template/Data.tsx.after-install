@@ -4,8 +4,19 @@ import i18next from "i18next"
 import { CoreAdminContext, useGetList, useUpdate } from "ra-core"
 import { useState } from "react"
 
+import {
+  SessionsSection,
+  SignInAlertsSwitch,
+  SignInHistory,
+  TrustedDevicesSection,
+} from "@/components/erp/account-devices"
+import { BackupCodesDialog, FactorsSection } from "@/components/erp/account-factors"
 import { AccountDataSection, ChangeEmailForm, ChangePasswordForm } from "@/components/erp/account-security"
 import { AcceptInviteScreen, ForgotPasswordScreen } from "@/components/erp/account-recovery"
+import { BrandLogo, useBrandAppearance, useBranding } from "@/components/erp/auth-layout"
+import { CopyButton } from "@/components/erp/copy-button"
+import { ImpersonationBanner, useImpersonation } from "@/components/erp/impersonation"
+import { QrCode } from "@/components/erp/qr-code"
 import { ConflictDialog } from "@/components/erp/conflict-dialog"
 import { DevPanel } from "@/components/erp/dev-panel"
 import { LoginScreen } from "@/components/erp/login-screen"
@@ -14,13 +25,17 @@ import { SignUpScreen } from "@/components/erp/sign-up-screen"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useHasPermission, useMe } from "@/hooks/use-me"
 import { createApiClient, isApiError } from "@/lib/api"
+import { getAppearance } from "@/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY } from "@/lib/auth"
 import { createDataProvider } from "@/lib/data-provider"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
 
 const queryClient = new QueryClient()
-const api = createApiClient({ getCompanyId: () => "a" })
+const api = createApiClient({
+  getCompanyId: () => "a",
+  getLanguage: () => getAppearance().language,
+})
 const authProvider = createAuthProvider(api, {
   onMe: (me) => {
     queryClient.setQueryData(ME_QUERY_KEY, me)
@@ -82,6 +97,30 @@ function Invoices() {
   )
 }
 
+function Account() {
+  useBrandAppearance()
+  const branding = useBranding()
+  const { start, dialog } = useImpersonation({ onStarted: () => undefined })
+  return (
+    <>
+      <ImpersonationBanner onStopped={() => undefined} />
+      {branding ? <BrandLogo branding={branding} /> : null}
+      <FactorsSection />
+      <BackupCodesDialog codes={null} onClose={() => undefined} />
+      <SessionsSection />
+      <TrustedDevicesSection />
+      <SignInAlertsSwitch />
+      <SignInHistory perPage={20} />
+      <QrCode value="otpauth://totp/a:b?secret=ABC" label="QR" />
+      <CopyButton value="ABC" label="Копіювати" />
+      <button type="button" onClick={() => start({ id: "u2", name: "Іван" })}>
+        Увійти як…
+      </button>
+      {dialog}
+    </>
+  )
+}
+
 export function Data() {
   return (
     <CoreAdminContext
@@ -99,6 +138,7 @@ export function Data() {
       <ChangePasswordForm />
       <ChangeEmailForm />
       <AccountDataSection />
+      <Account />
     </CoreAdminContext>
   )
 }

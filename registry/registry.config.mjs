@@ -169,6 +169,14 @@ export const CODE_ITEMS = {
     demo: "security",
     spec: ["PF01"],
   },
+  "lib/account": {
+    title: "Контракт безпеки акаунта",
+    description:
+      "Фактори (застосунок, SMS, email, ключі доступу), резервні коди, сесії, довірені пристрої, журнал входів, листи про новий вхід — provider.account.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
   "lib/passkey": {
     title: "Ключі доступу й WebOTP",
     description:
@@ -207,6 +215,14 @@ export const CODE_ITEMS = {
       "Усі способи входу з контракту lib/auth: коди, без пароля, ключ доступу, SSO, відновлення, запрошення, реєстрація, довірений пристрій, «не бот», GDPR.",
     status: "beta",
     demo: "login",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-account": {
+    title: "Мок безпеки акаунта",
+    description:
+      "Налаштування факторів, резервні коди, сесії, довірені пристрої, журнал входів, «Увійти як…»; стан акаунта в localStorage.",
+    status: "beta",
+    demo: "security",
     spec: ["PF01", "§17"],
   },
   "hooks/use-appearance": {
@@ -298,7 +314,7 @@ export const CODE_ITEMS = {
   "erp/auth-layout": {
     title: "Основа екранів входу",
     description:
-      "Картка екрана входу з фокусом на заголовку кроку, AUTH_PATHS, перехід після входу, тексти помилок полів.",
+      "Картка екрана входу з фокусом на заголовку кроку; бренд (логотип, палітра, бічна панель, документи); useAuthMethods, AUTH_PATHS, перехід після входу, тексти помилок полів.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
@@ -382,6 +398,46 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "security",
     spec: ["PF01"],
+  },
+  "erp/account-factors": {
+    title: "Способи підтвердження входу",
+    description:
+      "Список факторів, налаштування застосунку з QR, телефону, email і ключа доступу, перейменування й вимкнення, резервні коди (показ один раз, копіювання, файл).",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/account-devices": {
+    title: "Сесії й пристрої",
+    description:
+      "Де користувач увійшов і вихід на інших пристроях, довірені пристрої, журнал входів із довантаженням, лист про вхід з нового пристрою.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/impersonation": {
+    title: "«Увійти як…»",
+    description:
+      "Адміністратор працює від імені користувача: діалог із причиною для аудиту, повторне підтвердження, смуга з поверненням до свого акаунта.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2", "A5"],
+  },
+  "erp/copy-button": {
+    title: "Кнопка «Копіювати»",
+    description:
+      "Копіює значення в буфер, показує галочку й повідомляє скрінрідеру «Скопійовано».",
+    status: "beta",
+    demo: "security",
+    spec: ["UI43"],
+  },
+  "erp/qr-code": {
+    title: "QR-код",
+    description:
+      "QR у SVG (lean-qr): завжди темний на світлому (токени scan), тиха зона, підпис для скрінрідера.",
+    status: "beta",
+    demo: "security",
+    spec: ["UI32", "PF01"],
   },
   "erp/ua-id-input": {
     title: "Поле ідентифікатора UA",
@@ -685,7 +741,7 @@ export const BUNDLE_ITEMS = {
   auth: {
     title: "Вхід і акаунт",
     description:
-      "Усі екрани входу й безпеки акаунта (ADR-0010): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження.",
+      "Усі екрани входу й безпеки акаунта (ADR-0010, ADR-0011): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
@@ -696,12 +752,17 @@ export const BUNDLE_ITEMS = {
       "erp/sign-up-screen",
       "erp/session-guard",
       "erp/account-security",
+      "erp/account-factors",
+      "erp/account-devices",
+      "erp/impersonation",
     ],
     docs: [
       "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
       "1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).",
       "2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.",
-      "3) Налаштування: ChangePasswordForm, ChangeEmailForm, AccountDataSection з erp/account-security.",
+      "3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).",
+      "4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.",
+      "5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.",
     ].join("\n"),
   },
   mocks: {

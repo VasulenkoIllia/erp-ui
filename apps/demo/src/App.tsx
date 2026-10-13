@@ -7,6 +7,7 @@ import {
   Palette,
   Shapes,
   ShieldCheck,
+  Users,
 } from "lucide-react"
 import { useLogout } from "ra-core"
 import {
@@ -33,9 +34,10 @@ import {
   useCommandPaletteShortcut,
   type PaletteCommand,
 } from "@/registry/erp/command-palette"
+import { useAuthMethods, useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { DevPanel } from "@/registry/erp/dev-panel"
-import { useAuthMethods } from "@/registry/erp/login-screen"
+import { ImpersonationBanner } from "@/registry/erp/impersonation"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { NotificationBell } from "@/registry/erp/notification-bell"
 import { UserMenu } from "@/registry/erp/user-menu"
@@ -79,8 +81,8 @@ import { IconsPage } from "@/pages/IconsPage"
 import { AuthPage } from "@/pages/AuthPage"
 import { ModulePage } from "@/pages/ModulePage"
 import { PrimitivesPage } from "@/pages/PrimitivesPage"
-import { SecurityPage } from "@/pages/SecurityPage"
 import { StatesPage } from "@/pages/StatesPage"
+import { UsersPage } from "@/pages/UsersPage"
 import {
   LOGIN_PATH,
   moduleHref,
@@ -94,6 +96,10 @@ import {
 const FormatsPage = lazy(() =>
   import("@/pages/FormatsPage").then((m) => ({ default: m.FormatsPage })),
 )
+// Безпека акаунта — теж: поле телефону, QR-коди, діалоги налаштування факторів.
+const SecurityPage = lazy(() =>
+  import("@/pages/SecurityPage").then((m) => ({ default: m.SecurityPage })),
+)
 
 const PAGES: Record<Route, React.ComponentType> = {
   appearance: AppearancePage,
@@ -103,6 +109,7 @@ const PAGES: Record<Route, React.ComponentType> = {
   states: StatesPage,
   data: DataPage,
   security: SecurityPage,
+  users: UsersPage,
 }
 
 const PAGE_ICONS: Record<Route, typeof Palette> = {
@@ -113,6 +120,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   states: LayoutTemplate,
   data: Database,
   security: ShieldCheck,
+  users: Users,
 }
 
 /** Розділи в нижній панелі телефона. */
@@ -152,6 +160,8 @@ export function App() {
   const location = useLocation()
   const { data: me } = useMe()
   usePreferencesSync(me?.id)
+  // Палітра бренду (white-label) — типова, поки користувач не обрав свою.
+  useBrandAppearance()
   const queryClient = useQueryClient()
   const breakpoint = useBreakpoint()
   useMockMessages()
@@ -199,6 +209,13 @@ function useMockMessages() {
         }
         if (message.kind === "export") {
           toast(t("exportToast", { to: message.to }), options)
+          return
+        }
+        if (message.kind === "new_sign_in") {
+          toast(t("newSignInToast", { to: message.to }), {
+            ...options,
+            description: message.detail,
+          })
           return
         }
         const link = message.link
@@ -355,6 +372,13 @@ function Shell({
         nav={nav}
         activeId={activeId}
         renderLink={renderLink}
+        banner={
+          <ImpersonationBanner
+            onStopped={() => {
+              void navigate(ROUTES.users)
+            }}
+          />
+        }
         breadcrumbs={[
           { label: group?.label ?? "" },
           { label: current?.label ?? "" },

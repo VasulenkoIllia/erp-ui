@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useQuery } from "@tanstack/react-query"
 import { FingerprintIcon } from "lucide-react"
 import { LinkBase } from "ra-core"
 
@@ -11,6 +10,7 @@ import {
   AuthLayout,
   useAfterLogin,
   useAuthErrorText,
+  useAuthMethods,
   useErpAuthProvider,
   useFieldError,
   useLoginTarget,
@@ -44,17 +44,6 @@ import { Spinner } from "@/registry/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "@/registry/ui/tabs"
 
 /** Ключ кешу налаштувань входу (`GET /auth/methods`). */
-export const AUTH_METHODS_QUERY_KEY = ["erp-ui", "auth-methods"] as const
-
-export function useAuthMethods() {
-  const provider = useErpAuthProvider()
-  return useQuery({
-    queryKey: AUTH_METHODS_QUERY_KEY,
-    queryFn: () => provider.getMethods(),
-    staleTime: 5 * 60_000,
-  })
-}
-
 type StartMethod = "password" | "email" | "sms"
 
 type Step =

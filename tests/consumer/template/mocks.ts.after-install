@@ -7,6 +7,7 @@ import { setScenario } from "@/lib/mock-scenarios"
 import {
   createPlatformHandlers,
   createResourceHandlers,
+  type MockAccountSeed,
   type MockUser,
 } from "@/lib/mocks"
 
@@ -32,6 +33,20 @@ const users: MockUser[] = [
   },
 ]
 
+const accountSeeds: Record<string, MockAccountSeed> = {
+  u1: {
+    sessions: [
+      {
+        id: "s1",
+        device: { type: "mobile", browser: "Safari", os: "iOS" },
+        location: { uk: "Львів, Україна", en: "Lviv, Ukraine" },
+        createdAt: "2026-10-01T08:00:00.000Z",
+        lastActiveAt: "2026-10-13T08:00:00.000Z",
+      },
+    ],
+  },
+}
+
 const invoices = createResourceHandlers({
   resource: "invoices",
   schema: invoice,
@@ -42,7 +57,12 @@ const invoices = createResourceHandlers({
 export async function startMocks() {
   setScenario("success")
   await setupWorker(
-    ...createPlatformHandlers({ users }),
+    ...createPlatformHandlers({
+      users,
+      accountSeeds,
+      branding: { name: "ТОВ «А»", palette: "teal" },
+      twoFactorRequired: () => true,
+    }),
     ...invoices.handlers,
   ).start()
 }

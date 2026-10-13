@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="196" height="32" viewBox="0 0 196 32" role="img" aria-label="Бухгалтерія Плюс">
+  <rect width="32" height="32" rx="8" fill="#0f6b66"/>
+  <path d="M10 9h9v3h-6v3h3.5a4.5 4.5 0 0 1 0 9H10zm3 9v3h3.5a1.5 1.5 0 0 0 0-3zM21 16h2v-2h2v2h2v2h-2v2h-2v-2h-2z" fill="#ffffff"/>
+  <text x="40" y="21.5" font-family="Geist, system-ui, sans-serif" font-size="15" font-weight="600" fill="#0b2e2c">Бухгалтерія Плюс</text>
+</svg>

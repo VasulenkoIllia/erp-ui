@@ -189,3 +189,27 @@ export function PageSkeleton({
     </div>
   )
 }
+
+/** Завантаження блоку всередині сторінки (картка налаштувань, список у секції): лише рядки. */
+export function SectionSkeleton({
+  rows = 3,
+  className,
+}: {
+  rows?: number
+  className?: string
+}) {
+  const t = useErpUiT()
+  return (
+    <div
+      data-slot="section-skeleton"
+      role="status"
+      aria-label={t("pageState.loading")}
+      aria-busy
+      className={cn("space-y-2", className)}
+    >
+      {Array.from({ length: rows }, (_, i) => (
+        <Skeleton key={i} className="h-row w-full" />
+      ))}
+    </div>
+  )
+}

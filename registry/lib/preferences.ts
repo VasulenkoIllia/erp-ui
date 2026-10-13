@@ -13,7 +13,7 @@ import {
   DENSITIES,
   getAppearance,
   PALETTES,
-  parseAppearance,
+  pickAppearance,
   setAppearance,
   SIDEBARS,
   subscribeAppearance,
@@ -47,8 +47,10 @@ export async function syncPreferences(
     const remote = await client.get("/me/preferences", {
       schema: preferencesSchema.partial(),
     })
-    saved = parseAppearance(remote, getAppearance())
-    if (!same(saved, getAppearance())) setAppearance(saved)
+    // Лише те, що сервер знає: решта лишається типовою (компанії, бренду).
+    const patch = pickAppearance(remote)
+    saved = { ...getAppearance(), ...patch }
+    if (Object.keys(patch).length) setAppearance(patch)
   } catch {
     // Офлайн чи сервер недоступний — працюємо з кешем, збережемо при наступній зміні.
   }

@@ -127,6 +127,8 @@ export const API_ERROR_CODES = [
   "token_expired",
   "reauth_required",
   "password_change_required",
+  "factor_required",
+  "impersonation_forbidden",
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 
@@ -200,6 +202,8 @@ export interface ApiClientOptions {
   baseUrl?: string
   /** Поточна компанія для `X-Company-Id`; null — заголовок не надсилається. */
   getCompanyId?: () => string | null | undefined
+  /** Мова інтерфейсу для `Accept-Language`: сервер пише нею листи, місця входу, повідомлення. */
+  getLanguage?: () => string | null | undefined
   fetch?: typeof fetch
 }
 
@@ -208,6 +212,7 @@ export type ApiClient = ReturnType<typeof createApiClient>
 export function createApiClient({
   baseUrl = API_PREFIX,
   getCompanyId,
+  getLanguage,
   fetch: fetchImpl,
 }: ApiClientOptions = {}) {
   async function request<T = unknown>(
@@ -228,6 +233,8 @@ export function createApiClient({
     if (body !== undefined) headers.set("Content-Type", "application/json")
     const companyId = getCompanyId?.()
     if (companyId) headers.set(COMPANY_HEADER, companyId)
+    const language = getLanguage?.()
+    if (language) headers.set("Accept-Language", language)
 
     let response: Response
     try {

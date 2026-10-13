@@ -29,12 +29,12 @@ describe("AppearanceControls", () => {
     expect(root.dataset.density).toBe("compact")
     expect(root.dataset.sidebar).toBe("dark")
     expect(screen.getByRole("radio", { name: "Графіт" })).toBeChecked()
+    // Зберігається лише обране користувачем (мова лишилася типовою).
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}")).toEqual({
       palette: "graphite",
       theme: "dark",
       density: "compact",
       sidebar: "dark",
-      language: "uk",
     })
   })
 })
