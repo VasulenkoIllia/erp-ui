@@ -13,6 +13,7 @@ import {
 } from "@/registry/lib/appearance"
 import { LANGUAGES, useErpUiT, type Language } from "@/registry/lib/i18n"
 import { SHELL_ICONS } from "@/registry/lib/icons"
+import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/avatar"
 import { Button } from "@/registry/ui/button"
 import {
@@ -36,12 +37,6 @@ import {
  * Тема, палітра, щільність, сайдбар і мова змінюються через lib/appearance — одразу для всього застосунку.
  * `children` — пункти проекту (профіль, налаштування) між вподобаннями й виходом.
  */
-
-/** Назва мови її ж мовою: так її знайде людина, що не читає поточною мовою інтерфейсу. */
-export const LANGUAGE_NAMES: Record<Language, string> = {
-  uk: "Українська",
-  en: "English",
-}
 
 export interface MenuUser {
   name: string

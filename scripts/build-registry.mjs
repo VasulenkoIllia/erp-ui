@@ -9,7 +9,7 @@
  * - кожен елемент несе ВСІ потрібні йому файли реєстру (замикання імпортів @/registry/…), а не
  *   registryDependencies: так `add …#v0.3.0` ставить узгоджений набір з однієї версії;
  * - npm-залежності — з імпортів, версії — з registry/package.json; типи для пакетів без власних
- *   типів (TYPE_PACKAGES) — у devDependencies;
+ *   типів (TYPE_PACKAGES) і пакети для розробки (DEV_PACKAGES, напр. msw) — у devDependencies;
  * - метадані каталогу (назва, опис, статус, демо, SPEC) — у meta.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -43,6 +43,8 @@ const PEERS = new Set(["react", "react-dom"])
 const TYPE_PACKAGES = {
   "google-libphonenumber": "@types/google-libphonenumber",
 }
+/** Пакети лише для розробки й тестів (моки): у devDependencies, не в збірку застосунку. */
+const DEV_PACKAGES = new Set(["msw"])
 const LAYER_TITLES = {
   base: "Основа",
   tokens: "Шар 1 · токени й теми",
@@ -141,13 +143,20 @@ function build() {
     }
   }
 
-  /** devDependencies елемента: пакети типів для його npm-залежностей. */
-  const devDependencies = (packages) => {
-    const types = [...packages]
-      .map((name) => TYPE_PACKAGES[name])
-      .filter(Boolean)
+  /** dependencies елемента: усе, крім пакетів для розробки. */
+  const dependencies = (packages) =>
+    [...packages]
+      .filter((name) => !DEV_PACKAGES.has(name))
       .sort()
-    return types.length ? { devDependencies: types.map(dependency) } : {}
+      .map(dependency)
+
+  /** devDependencies елемента: пакети типів і пакети для розробки. */
+  const devDependencies = (packages) => {
+    const dev = [
+      ...[...packages].map((name) => TYPE_PACKAGES[name]).filter(Boolean),
+      ...[...packages].filter((name) => DEV_PACKAGES.has(name)),
+    ].sort()
+    return dev.length ? { devDependencies: dev.map(dependency) } : {}
   }
 
   const meta = (layer, cfg) => ({
@@ -179,7 +188,7 @@ function build() {
       type: "registry:item",
       title: cfg.title,
       description: cfg.description,
-      dependencies: [...packages].sort().map(dependency),
+      dependencies: dependencies(packages),
       ...devDependencies(packages),
       files: [
         ...cfg.files.map((f) => ({
@@ -202,7 +211,7 @@ function build() {
       type: KINDS[f.dir].type,
       title: cfg.title,
       description: cfg.description,
-      dependencies: [...packages].sort().map(dependency),
+      dependencies: dependencies(packages),
       ...devDependencies(packages),
       files: names.map(fileEntry),
       meta: meta(f.dir, cfg),
@@ -211,7 +220,7 @@ function build() {
 
   // Сторінки демо, на які посилаються елементи, мусять існувати.
   const routes = new Set(
-    [...readFileSync(ROUTER, "utf8").matchAll(/^\s+(\w+):\s*"#\//gm)].map(
+    [...readFileSync(ROUTER, "utf8").matchAll(/^\s+(\w+):\s*"#?\//gm)].map(
       (m) => m[1],
     ),
   )

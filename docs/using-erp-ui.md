@@ -134,7 +134,50 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 </script>
 ```
 
-## 5. Вигляд
+## 5. Дані, вхід і моки
+
+Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
+
+```sh
+npx shadcn@latest add VasulenkoIllia/erp-ui/data VasulenkoIllia/erp-ui/mocks
+npx msw init public   # service worker для моків у браузері
+```
+
+```tsx
+// src/data/providers.ts
+export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+export const api = createApiClient({ getCompanyId }) // X-Company-Id, cookie-сесія
+export const authProvider = createAuthProvider(api, {
+  onMe: (me) => {
+    if (me) ensureCompany(me) // компанія за замовчуванням — до перших запитів даних
+    queryClient.setQueryData(ME_QUERY_KEY, me)
+  },
+})
+export const dataProvider = createDataProvider(api)
+
+// src/main.tsx
+if (import.meta.env.DEV) {
+  const { setupWorker } = await import("msw/browser")
+  await setupWorker(...createPlatformHandlers({ users }), ...invoices.handlers).start()
+}
+createRoot(root).render(
+  <CoreAdminContext dataProvider={dataProvider} authProvider={authProvider}
+    i18nProvider={createRaI18nProvider(i18n)} queryClient={queryClient}>
+    <App />
+  </CoreAdminContext>,
+)
+```
+
+- Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`.
+- Профіль і права: `useMe()` (`null` — гість), `useCanAccess({ resource: "invoices", action: "edit" })`. Дія без права — неактивна кнопка у фокусі з підказкою-причиною.
+- Сторінка лише для користувачів — `useAuthenticated()`: без сесії перенаправить на `/login` і поверне назад після входу (`useLogin`).
+- Збереження: `useUpdate` у режимі `pessimistic` надсилає змінені поля + `version`; 409 → `ConflictDialog` з `error.current`.
+- Текст помилки — `useApiErrorMessage()(error)`; стани списку — `PageState` за `error.code` (`offline`, 403 → `forbidden`, інше → `error`).
+- Вподобання на сервері — `syncPreferences(api)` після входу (повертає функцію зупинки).
+- Моки: `createResourceHandlers({ resource, schema, data, searchFields })` дає CRUD із фільтрами, сортуванням, правами й версіями. `<DevPanel resources={["invoices"]} compact onChange={() => queryClient.invalidateQueries()} />` — у `actions` топбара, лише в розробці.
+- Повний приклад — `apps/demo` у репозиторії erp-ui: `src/data/providers.ts`, `src/mocks/`, `src/pages/DataPage.tsx`, `src/pages/LoginPage.tsx`.
+
+## 6. Вигляд
 
 Палітра, тема, щільність і сайдбар задаються атрибутами `<html>` (SPEC §6.2):
 
@@ -144,7 +187,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 
 Палітри: `sapphire`, `graphite` (основні), `indigo`, `teal`, `terracotta`. Без класу `dark` — світла тема.
 
-## 6. Оновлення
+## 7. Оновлення
 
 ```sh
 npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button --diff   # що зміниться, нічого не записує
@@ -155,7 +198,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button          # застосу�
 - Закріпити версію: `…/ui/button#v0.1.0` (git-тег; список — теги репозиторію й `CHANGELOG.md`). Без `#…` береться найновіше з `main`.
 - Якщо компонент довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`. При оновленні вона буде видна в `--diff`, а вдалу правку варто перенести в реєстр.
 
-## 7. Чого не робити
+## 8. Чого не робити
 
 - Не копіювати компоненти руками з репозиторію — лише через `shadcn add` (так працюють оновлення).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.

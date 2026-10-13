@@ -7,3 +7,4 @@ docs/
 **/playwright-report/
 **/test-results/
 registry.json
+apps/demo/public/mockServiceWorker.js

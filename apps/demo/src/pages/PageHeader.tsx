@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 
-import { useHash } from "@/router"
+import { useLocation } from "react-router"
 
 let firstRender = true
 
@@ -10,7 +10,7 @@ let firstRender = true
  */
 export function PageHeader({ title, lead }: { title: string; lead: string }) {
   const heading = useRef<HTMLHeadingElement>(null)
-  const hash = useHash()
+  const { pathname } = useLocation()
 
   useEffect(() => {
     document.title = `${title} · erp-ui`
@@ -22,7 +22,7 @@ export function PageHeader({ title, lead }: { title: string; lead: string }) {
       return
     }
     heading.current?.focus()
-  }, [hash])
+  }, [pathname])
 
   return (
     <div className="space-y-1">

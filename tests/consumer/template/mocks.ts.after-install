@@ -1,0 +1,47 @@
+// Підставляється після `shadcn add`: моки за контрактом (лише перевірка типів, у збірку не входить).
+import { setupWorker } from "msw/browser"
+import { z } from "zod"
+
+import { recordBaseSchema } from "@/lib/api"
+import { setScenario } from "@/lib/mock-scenarios"
+import {
+  createPlatformHandlers,
+  createResourceHandlers,
+  type MockUser,
+} from "@/lib/mocks"
+
+const invoice = recordBaseSchema.extend({
+  client: z.string().min(1),
+  amount: z.number().int(),
+  companyId: z.string().nullable(),
+})
+
+const users: MockUser[] = [
+  {
+    id: "u1",
+    name: "Олена Коваль",
+    email: "olena@example.com",
+    password: "demo",
+    totpCode: "123456",
+    roles: ["accountant"],
+    permissions: ["invoices:*"],
+    companies: [{ id: "a", name: "ТОВ «А»" }],
+    companyId: "a",
+    twoFactorEnabled: true,
+  },
+]
+
+const invoices = createResourceHandlers({
+  resource: "invoices",
+  schema: invoice,
+  data: [{ id: "1", version: 1, client: "ТОВ «А»", amount: 10000, companyId: "a" }],
+  searchFields: ["client"],
+})
+
+export async function startMocks() {
+  setScenario("success")
+  await setupWorker(
+    ...createPlatformHandlers({ users }),
+    ...invoices.handlers,
+  ).start()
+}

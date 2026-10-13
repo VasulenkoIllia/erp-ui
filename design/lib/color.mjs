@@ -64,3 +64,27 @@ export function contrastRatio(a, b) {
   )
   return (hi + 0.05) / (lo + 0.05)
 }
+
+/** OKLCH → OKLab [L, a, b]. */
+function oklchToOklab([L, C, H]) {
+  return [
+    L,
+    C * Math.cos((H * Math.PI) / 180),
+    C * Math.sin((H * Math.PI) / 180),
+  ]
+}
+
+/**
+ * Змішування як CSS `color-mix(in oklab, a (1−t), b t)`: результат — рядок OKLCH.
+ * Похідні токени (напр. hover основного кольору) рахуються так само, як у браузері.
+ */
+export function mixOklab(a, b, t) {
+  const [L1, a1, b1] = oklchToOklab(parseOklch(a))
+  const [L2, a2, b2] = oklchToOklab(parseOklch(b))
+  const L = L1 + (L2 - L1) * t
+  const A = a1 + (a2 - a1) * t
+  const B = b1 + (b2 - b1) * t
+  const C = Math.hypot(A, B)
+  const H = ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360
+  return `oklch(${L.toFixed(4)} ${C.toFixed(4)} ${H.toFixed(2)})`
+}

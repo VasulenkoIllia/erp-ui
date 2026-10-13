@@ -1,6 +1,8 @@
 // Підставляється після `shadcn add`: перевіряє, що встановлені елементи компілюються разом.
 import { useState } from "react"
 
+import { Data } from "./Data"
+
 import { AppShell } from "@/components/erp/app-shell"
 import {
   CommandPalette,
@@ -88,6 +90,7 @@ export function App() {
         }
       >
       <PageState kind="empty" icon={HryvniaIcon} />
+      <Data />
       <CommandPalette open={palette} onOpenChange={setPalette} commands={[{ id: "k2", label: t("modules.K2"), group: "Модулі", onSelect: () => undefined }]} />
       <div className={cn("p-6", "space-y-4")} data-theme={theme}>
         <Card>

@@ -40,7 +40,7 @@ test.describe("мови й формати: поведінка", () => {
   test("перемикач мови змінює тексти, формати й <html lang> і пам'ятає вибір", async ({
     page,
   }) => {
-    await page.goto(PATH)
+    await openWith(page, {}, PATH)
     const html = page.locator("html")
     await expect(html).toHaveAttribute("lang", "uk")
     await expect(

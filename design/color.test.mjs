@@ -4,7 +4,7 @@ import { test } from "node:test"
 
 import { checkContrast } from "./check-contrast.mjs"
 import { generateThemes } from "./generate-themes.mjs"
-import { contrastRatio, oklchToHex } from "./lib/color.mjs"
+import { contrastRatio, mixOklab, oklchToHex } from "./lib/color.mjs"
 
 const tokens = JSON.parse(
   readFileSync(new URL("./palette-tokens.json", import.meta.url), "utf8"),
@@ -45,4 +45,26 @@ test("themes.css згенеровано з актуальних токенів",
 test("усі обов'язкові пари контрасту проходять", () => {
   const failures = checkContrast(tokens).report.filter((r) => !r.pass)
   assert.deepEqual(failures, [])
+})
+
+test("color-mix в OKLab: краї дають вихідні кольори, середина — між ними", () => {
+  const a = "oklch(0.53 0.2 262)"
+  const b = "oklch(0.2 0.02 262)"
+  assert.equal(oklchToHex(mixOklab(a, b, 0)), oklchToHex(a))
+  assert.equal(oklchToHex(mixOklab(a, b, 1)), oklchToHex(b))
+  const mid = /^oklch\(([\d.]+) /.exec(mixOklab(a, b, 0.5))
+  assert.ok(mid && Math.abs(Number(mid[1]) - 0.365) < 1e-3)
+})
+
+test("hover основного кольору не знижує контраст тексту кнопки", () => {
+  for (const palette of Object.values(tokens)) {
+    for (const mode of [palette.light, palette.dark]) {
+      const base = contrastRatio(mode.primaryForeground.css, mode.primary.css)
+      const hover = contrastRatio(
+        mode.primaryForeground.css,
+        mixOklab(mode.primary.css, mode.foreground.css, 0.15),
+      )
+      assert.ok(hover >= base, `${palette.name}: ${hover} < ${base}`)
+    }
+  }
 })

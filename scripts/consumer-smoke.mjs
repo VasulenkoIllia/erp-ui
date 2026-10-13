@@ -6,7 +6,7 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add <REPO>/base і всі елементи ui/* та erp/* на одному ref → tsc → vite build.
+ * shadcn add <REPO>/base, пакунки data і mocks та всі елементи ui/* і erp/* на одному ref → tsc → vite build.
  * --diff-from: спершу ставить усе зі старого ref, потім показує `add --diff` для нового (оновлення).
  * Приватний репозиторій: потрібен `gh auth login` або GH_TOKEN з правом читання.
  */
@@ -36,6 +36,8 @@ const repo = new URL(registry.homepage).pathname.slice(1)
 const shadcnVersion = JSON.parse(
   readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
 ).version
+/** Пакунки, які ставить проект: основа, шар даних, моки. */
+const BUNDLES = ["base", "data", "mocks"]
 const uiItems = registry.items
   .filter((it) => /^(ui|erp)\//.test(it.name))
   .map((it) => it.name)
@@ -54,7 +56,7 @@ const shadcn = (...cmdArgs) =>
 const addAll = (atRef, extra = []) =>
   shadcn(
     "add",
-    ...["base", ...uiItems].map((name) => `${repo}/${name}#${atRef}`),
+    ...[...BUNDLES, ...uiItems].map((name) => `${repo}/${name}#${atRef}`),
     "-y",
     "--overwrite",
     ...extra,
@@ -74,10 +76,11 @@ try {
   }
   addAll(ref)
 
-  renameSync(
-    path.join(dir, "App.tsx.after-install"),
-    path.join(dir, "src/App.tsx"),
-  )
+  for (const file of ["App.tsx", "Data.tsx", "mocks.ts"])
+    renameSync(
+      path.join(dir, `${file}.after-install`),
+      path.join(dir, `src/${file}`),
+    )
   const css = readFileSync(path.join(dir, "src/index.css"), "utf8")
   if (!css.includes("./styles/erp-ui/themes.css"))
     throw new Error("src/index.css не замінено точкою входу erp-ui")
@@ -105,7 +108,7 @@ try {
   run("pnpm", ["typecheck"])
   run("pnpm", ["build"])
   console.log(
-    `\nOK: ${uiItems.length + 1} елементів із ${repo}#${ref} встановлено, проект компілюється.`,
+    `\nOK: ${uiItems.length + BUNDLES.length} елементів із ${repo}#${ref} встановлено, проект компілюється.`,
   )
 } finally {
   if (args.includes("--keep")) console.log(`Тестовий проект лишено: ${dir}`)

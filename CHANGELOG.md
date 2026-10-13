@@ -4,6 +4,35 @@
 
 ## [Unreleased]
 
+### Додано — крок 0.5 (контракти, моки й дані)
+
+- `lib/api` — конвенції REST (ADR-0002) і HTTP-клієнт:
+  - плоскі параметри списку, `{ data, total }`;
+  - `ApiError` в єдиному форматі, `offline` при мережевому збої;
+  - `X-Company-Id`, `credentials: "include"`, необов'язкова zod-схема відповіді.
+- `lib/data-provider` — dataProvider ra-core; update надсилає змінені поля + `version`.
+- `lib/auth` — authProvider ra-core (ADR-0003): cookie-сесія + 2FA, `/me`, права `<ресурс>:<дія>` з діями ra-core, `ME_QUERY_KEY`.
+- `lib/preferences` — вподобання на сервері (PF11); `lib/ra-i18n` — повідомлення ra-core з рядків кіта; `lib/language-names`.
+- `lib/mocks` і `lib/mock-scenarios` — MSW-обробники:
+  - вхід із 2FA, `/me`, вподобання;
+  - CRUD із фільтрами, сортуванням, пагінацією, правами, версіями й компаніями;
+  - сценарії `success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline`.
+- `hooks/use-me`, `hooks/use-api-error-message`; рядки кіта `apiErrors.*`, `devPanel.*`, `conflict.*`, `ra.*`, `validation.required`.
+- `erp/dev-panel` (кнопка для топбара з позначкою нестандартного сценарію), `erp/conflict-dialog`.
+- Пакунки `data` і `mocks`; `msw` ставиться в devDependencies.
+- Демо:
+  - React Router + ra-core, MSW у браузері;
+  - сторінки «Вхід» і «Дані й моки»;
+  - перемикач компанії й меню користувача з профілю;
+  - вподобання синхронізуються з сервером.
+- e2e: вхід і 2FA, вихід, пошук/статус/сортування/сторінки, компанія, права, редагування, усі сценарії, конфлікт, вподобання на чистому браузері, axe на 360/768/1440.
+- ADR-0002, ADR-0003; SPEC §17, журнал 1.5.
+
+### Змінено — крок 0.5
+
+- Button і Badge: hover основного варіанту — похідний токен `--color-primary-hover` замість `bg-primary/80` (було 3,74:1 — нижче AA). Перевірка контрасту — 380 пар.
+- `SHELL_ICONS.signIn`.
+
 ### Додано — крок 0.4 (оболонка застосунку)
 
 - `erp/app-shell`:

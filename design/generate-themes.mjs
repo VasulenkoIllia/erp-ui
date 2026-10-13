@@ -63,6 +63,9 @@ const FOOTER = `
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-soft: var(--destructive-soft);
   --color-overlay: var(--overlay);
+  /* Hover основної кнопки: зсув до --foreground, тобто завжди «від» тексту кнопки —
+   * контраст з primary-foreground лише зростає (перевіряє check-contrast, пара primaryHover). */
+  --color-primary-hover: color-mix(in oklab, var(--primary) 85%, var(--foreground));
 }
 `
 

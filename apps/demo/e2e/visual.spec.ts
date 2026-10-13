@@ -59,7 +59,12 @@ const SHOT_PAGES = {
   icons: "/#/icons",
   states: "/#/states",
   module: "/#/m/K2",
+  data: "/#/data",
+  login: "/#/login",
 } as const
+/** Сторінка входу — для гостя, решта — під бухгалтером. */
+const userFor = (pageId: keyof typeof SHOT_PAGES) =>
+  pageId === "login" ? { user: null } : {}
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
 )
@@ -73,7 +78,12 @@ test.describe("скриншоти @screenshots", () => {
         for (const width of SHOT_WIDTHS)
           test(`${pageId} ${palette} ${theme} ${width}`, async ({ page }) => {
             await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
-            await openWith(page, { palette, theme }, SHOT_PAGES[pageId])
+            await openWith(
+              page,
+              { palette, theme },
+              SHOT_PAGES[pageId],
+              userFor(pageId),
+            )
             await expectNoA11yViolations(page)
             await page.screenshot({
               path: path.join(
@@ -91,6 +101,7 @@ test.describe("скриншоти @screenshots", () => {
           page,
           { palette: "sapphire", theme: "light", language: "en" },
           SHOT_PAGES[pageId],
+          userFor(pageId),
         )
         await expectNoA11yViolations(page)
         await page.screenshot({
@@ -106,6 +117,7 @@ test.describe("скриншоти @screenshots", () => {
           page,
           { palette, theme: "light", density: "compact" },
           SHOT_PAGES[pageId],
+          userFor(pageId),
         )
         await page.screenshot({
           path: path.join(
