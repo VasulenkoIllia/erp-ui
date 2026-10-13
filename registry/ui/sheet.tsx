@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
+import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 
 import { Button } from "@/registry/ui/button"
@@ -36,19 +37,20 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   )
 }
 
-// erp-ui: підпис кнопки закриття — параметр (uk за замовчуванням; i18n — крок 0.3).
+// erp-ui: підпис кнопки закриття — параметр; за замовчуванням «Закрити» мовою інтерфейсу.
 function SheetContent({
   className,
   children,
   side = "right",
   showCloseButton = true,
-  closeLabel = "Закрити",
+  closeLabel,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
   closeLabel?: string
 }) {
+  const t = useErpUiT()
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -74,7 +76,7 @@ function SheetContent({
             }
           >
             <XIcon />
-            <span className="sr-only">{closeLabel}</span>
+            <span className="sr-only">{closeLabel ?? t("common.close")}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

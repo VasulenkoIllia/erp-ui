@@ -1,0 +1,219 @@
+{
+  "app": {
+    "eyebrow": "erp-ui · demo",
+    "nav": "Demo sections",
+    "pages": {
+      "appearance": "Appearance",
+      "primitives": "Primitives",
+      "formats": "Languages & formats"
+    },
+    "language": "Interface language"
+  },
+  "appearancePage": {
+    "title": "Themes & appearance",
+    "lead": "Palette, theme, density and sidebar switches on <html> (SPEC §6.2)."
+  },
+  "primitivesPage": {
+    "title": "Primitives",
+    "lead": "shadcn/ui on Base UI, Nova style, rebuilt on erp-ui tokens (ADR-0001, ADR-0006).",
+    "buttons": "Buttons",
+    "variants": {
+      "default": "Primary",
+      "secondary": "Secondary",
+      "outline": "Outline",
+      "ghost": "Ghost",
+      "destructive": "Delete 3 invoices",
+      "link": "Link"
+    },
+    "create": "Create invoice",
+    "saving": "Saving…",
+    "settings": "Settings",
+    "small": "Small",
+    "large": "Large",
+    "unavailable": "Unavailable",
+    "unavailableHint": "Available to the Accountant role",
+    "statuses": "Statuses & badges",
+    "badges": {
+      "new": "New",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "tabs": {
+      "all": "All",
+      "draft": "Drafts",
+      "sent": "Sent",
+      "paid": "Paid"
+    },
+    "tabsLabel": "Invoice status",
+    "fields": "Fields: states (SPEC §8.3)",
+    "field": {
+      "normal": { "label": "Company name", "hint": "Default state" },
+      "focus": { "label": "Contact person", "hint": "Focus" },
+      "error": { "label": "EDRPOU code" },
+      "async": {
+        "label": "Counterparty EDRPOU code",
+        "hint": "Checking the state register…"
+      },
+      "dirty": { "label": "IBAN", "mark": "changed", "hint": "Not saved" },
+      "saved": { "label": "Note", "hint": "Autosaved at {{time}}" },
+      "readOnly": {
+        "label": "VAT rate",
+        "hint": "Read-only: available to the Accountant role"
+      },
+      "locked": { "label": "Contract amount", "hint": "{{name}} is editing" },
+      "disabled": {
+        "label": "Document number",
+        "value": "Assigned automatically",
+        "hint": "Disabled"
+      }
+    },
+    "choice": "Choice",
+    "currency": "Currency",
+    "vatPayer": "VAT payer",
+    "remind": "Send payment reminders",
+    "note": "Invoice comment",
+    "notePlaceholder": "Payment terms, agreements…",
+    "overlays": "Dialogs, sheets, tooltips, toasts",
+    "dialog": {
+      "open": "Delete invoice…",
+      "title": "Delete invoice No. {{number}}?",
+      "description": "The invoice and its lines will be deleted. Payments stay in the bank journal.",
+      "cancel": "Cancel",
+      "confirm": "Delete invoice"
+    },
+    "sheet": {
+      "open": "Filters",
+      "title": "Filters",
+      "description": "Narrow down the invoice list.",
+      "client": "Client",
+      "apply": "Apply"
+    },
+    "tooltip": "Export to CSV",
+    "exportLabel": "Export",
+    "toast": {
+      "open": "Save",
+      "saved": "Invoice saved",
+      "undoOpen": "Archive",
+      "archived": "Invoice moved to archive",
+      "undo": "Undo"
+    },
+    "table": "Table"
+  },
+  "formatsPage": {
+    "title": "Languages & formats",
+    "lead": "Ukrainian and English; numbers, amounts and dates via Intl; LC12 identifiers with masks and checksums (SPEC §11).",
+    "plurals": {
+      "title": "Plurals",
+      "description": "Forms _one, _few, _many, _other; checked on 1, 2, 5, 11, 21, 22, 25, 101.",
+      "number": "Number",
+      "category": "Form",
+      "text": "Text",
+      "invoices_one": "{{count, number}} invoice",
+      "invoices_other": "{{count, number}} invoices"
+    },
+    "numbers": {
+      "title": "Numbers & amounts",
+      "description": "Money is integer minor units + currency code; hryvnia shows ₴, other currencies show their code.",
+      "number": "Number",
+      "percent": "Percent",
+      "uah": "Amount in hryvnias",
+      "negative": "Negative amount",
+      "usd": "Amount in dollars",
+      "eur": "Amount in euros",
+      "big": "Large amount without losing kopecks"
+    },
+    "dates": {
+      "title": "Dates & time",
+      "description": "Explicit formats only; 24-hour time; examples use the Europe/Kyiv time zone.",
+      "styles": {
+        "date": "Short date",
+        "medium": "Date in a table",
+        "long": "Full date",
+        "dayMonth": "Day and month",
+        "monthYear": "Calendar header",
+        "weekdayDayMonth": "With weekday",
+        "time": "Time",
+        "dateTime": "Date and time"
+      },
+      "isoWeek": "ISO week",
+      "isoWeekValue": "Week {{week}} of {{year}}",
+      "calendarDate": "Calendar date “{{value}}” does not shift with the time zone"
+    },
+    "relative": {
+      "title": "Relative time",
+      "description": "For timelines and “Updated…”; after a week, a date.",
+      "at": "Relative to {{now}}"
+    },
+    "ids": {
+      "title": "Identifiers & phone (LC12)",
+      "description": "Masks while typing; validation on leaving the field, then while correcting (SPEC §8.3).",
+      "edrpou": "EDRPOU code",
+      "rnokpp": "RNOKPP (individual tax number)",
+      "vatIpn": "VAT number",
+      "iban": "IBAN",
+      "phone": "Phone",
+      "stored": "Stored as: {{value}}",
+      "bank": "Bank code (MFO): {{code}}",
+      "valid": "Checksum matches"
+    }
+  },
+  "controls": {
+    "title": "Appearance",
+    "palette": "Palette",
+    "theme": "Theme",
+    "density": "Density",
+    "sidebar": "Sidebar",
+    "sidebarHint": "In the dark theme the sidebar is always dark."
+  },
+  "palettes": {
+    "sapphire": "Sapphire",
+    "graphite": "Graphite",
+    "indigo": "Indigo",
+    "teal": "Teal",
+    "terracotta": "Terracotta"
+  },
+  "themes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "densities": {
+    "comfortable": "Comfortable",
+    "compact": "Compact"
+  },
+  "sidebars": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "statuses": {
+    "success": "Paid",
+    "warning": "Partially paid",
+    "destructive": "Overdue",
+    "info": "Pending"
+  },
+  "preview": {
+    "title": "Token preview",
+    "nav": "Navigation example",
+    "navItems": {
+      "overview": "Overview",
+      "invoices": "Invoices",
+      "contacts": "Contacts",
+      "stock": "Stock",
+      "settings": "Settings"
+    },
+    "pageTitle": "Invoices",
+    "create": "Create invoice",
+    "export": "Export",
+    "search": "Search",
+    "searchPlaceholder": "Number, client or amount",
+    "tableCaption": "Sample invoice list",
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "charts": "Chart colours",
+    "series": "Series {{index}}"
+  }
+}

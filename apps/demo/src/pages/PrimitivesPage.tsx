@@ -12,12 +12,14 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react"
-import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+
+import { useFormat } from "@/registry/lib/format"
+import { useErpUiT } from "@/registry/lib/i18n"
 
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/registry/ui/card"
 import { Checkbox } from "@/registry/ui/checkbox"
 import {
   Dialog,
@@ -73,11 +75,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/registry/ui/tabs"
 import { Textarea } from "@/registry/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
-import { strings, type StatusKind } from "@/strings"
+import { CURRENCIES, INVOICES, SAMPLE, type StatusKind } from "@/fixtures"
 
 import { PageHeader } from "./PageHeader"
+import { Section } from "./Section"
 
-const s = strings.primitivesPage
+const usePageT = () => useTranslation("demo", { keyPrefix: "primitivesPage" }).t
 
 const STATUS_ICONS: Record<StatusKind, LucideIcon> = {
   success: CircleCheck,
@@ -89,67 +92,56 @@ const STATUS_ICONS: Record<StatusKind, LucideIcon> = {
 /** Статус: soft-тло + іконка + підпис (SPEC §6.3). Повний StatusBadge з'явиться в PF03. */
 function StatusBadge({ kind }: { kind: StatusKind }) {
   const Icon = STATUS_ICONS[kind]
+  const { t } = useTranslation()
   return (
     <Badge variant={kind}>
       <Icon aria-hidden />
-      {strings.preview.statuses[kind]}
+      {t(`statuses.${kind}`)}
     </Badge>
   )
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <h2>{title}</h2>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
-  )
-}
-
 function ButtonsSection() {
+  const t = usePageT()
   return (
-    <Section title={s.buttons}>
+    <Section title={t("buttons")}>
       <div className="flex flex-wrap gap-2">
-        <Button>{s.variants.default}</Button>
-        <Button variant="secondary">{s.variants.secondary}</Button>
-        <Button variant="outline">{s.variants.outline}</Button>
-        <Button variant="ghost">{s.variants.ghost}</Button>
+        <Button>{t("variants.default")}</Button>
+        <Button variant="secondary">{t("variants.secondary")}</Button>
+        <Button variant="outline">{t("variants.outline")}</Button>
+        <Button variant="ghost">{t("variants.ghost")}</Button>
         <Button variant="destructive">
           <Trash2 aria-hidden />
-          {s.variants.destructive}
+          {t("variants.destructive")}
         </Button>
-        <Button variant="link">{s.variants.link}</Button>
+        <Button variant="link">{t("variants.link")}</Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button>
           <Plus aria-hidden />
-          {s.create}
+          {t("create")}
         </Button>
         <Button disabled>
-          <Spinner label={s.saving} />
-          {s.saving}
+          <Spinner label={t("saving")} />
+          {t("saving")}
         </Button>
-        <Button variant="outline" size="icon" aria-label={s.settings}>
+        <Button variant="outline" size="icon" aria-label={t("settings")}>
           <Settings aria-hidden />
         </Button>
         <Button size="sm" variant="outline">
-          {s.small}
+          {t("small")}
         </Button>
         <Button size="lg" variant="outline">
-          {s.large}
+          {t("large")}
         </Button>
         {/* SPEC §8.4: дія без прав — неактивна, але у фокусі й з причиною в підказці. */}
         <Tooltip>
           <TooltipTrigger
             render={<Button variant="outline" disabled focusableWhenDisabled />}
           >
-            {s.unavailable}
+            {t("unavailable")}
           </TooltipTrigger>
-          <TooltipContent>{s.unavailableHint}</TooltipContent>
+          <TooltipContent>{t("unavailableHint")}</TooltipContent>
         </Tooltip>
       </div>
     </Section>
@@ -157,24 +149,25 @@ function ButtonsSection() {
 }
 
 function StatusesSection() {
+  const t = usePageT()
   return (
-    <Section title={s.statuses}>
+    <Section title={t("statuses")}>
       <div className="flex flex-wrap gap-2">
         {(Object.keys(STATUS_ICONS) as StatusKind[]).map((kind) => (
           <StatusBadge key={kind} kind={kind} />
         ))}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Badge>{s.badges.new}</Badge>
-        <Badge variant="secondary">{s.badges.draft}</Badge>
-        <Badge variant="outline">{s.badges.archived}</Badge>
+        <Badge>{t("badges.new")}</Badge>
+        <Badge variant="secondary">{t("badges.draft")}</Badge>
+        <Badge variant="outline">{t("badges.archived")}</Badge>
       </div>
       <Tabs defaultValue="all">
-        <TabsList aria-label={s.tabsLabel}>
-          <TabsTrigger value="all">{s.tabs.all}</TabsTrigger>
-          <TabsTrigger value="draft">{s.tabs.draft}</TabsTrigger>
-          <TabsTrigger value="sent">{s.tabs.sent}</TabsTrigger>
-          <TabsTrigger value="paid">{s.tabs.paid}</TabsTrigger>
+        <TabsList aria-label={t("tabsLabel")}>
+          <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
+          <TabsTrigger value="draft">{t("tabs.draft")}</TabsTrigger>
+          <TabsTrigger value="sent">{t("tabs.sent")}</TabsTrigger>
+          <TabsTrigger value="paid">{t("tabs.paid")}</TabsTrigger>
         </TabsList>
       </Tabs>
     </Section>
@@ -182,75 +175,85 @@ function StatusesSection() {
 }
 
 function FieldsSection() {
-  const f = s.field
+  const t = usePageT()
+  const kitT = useErpUiT()
+  const format = useFormat()
   return (
-    <Section title={s.fields}>
+    <Section title={t("fields")}>
       <div className="grid gap-4 @2xl:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="f-normal">{f.normal.label}</FieldLabel>
+          <FieldLabel htmlFor="f-normal">{t("field.normal.label")}</FieldLabel>
           <Input
             id="f-normal"
-            defaultValue={f.normal.value}
+            defaultValue={SAMPLE.company}
             aria-describedby="f-normal-hint"
           />
           <FieldDescription id="f-normal-hint">
-            {f.normal.hint}
+            {t("field.normal.hint")}
           </FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="f-focus">{f.focus.label}</FieldLabel>
+          <FieldLabel htmlFor="f-focus">{t("field.focus.label")}</FieldLabel>
           <Input
             id="f-focus"
-            defaultValue={f.focus.value}
+            defaultValue={SAMPLE.person}
             aria-describedby="f-focus-hint"
             data-testid="field-focus"
           />
-          <FieldDescription id="f-focus-hint">{f.focus.hint}</FieldDescription>
+          <FieldDescription id="f-focus-hint">
+            {t("field.focus.hint")}
+          </FieldDescription>
         </Field>
         <Field data-invalid>
-          <FieldLabel htmlFor="f-error">{f.error.label}</FieldLabel>
+          <FieldLabel htmlFor="f-error">{t("field.error.label")}</FieldLabel>
           <Input
             id="f-error"
-            defaultValue={f.error.value}
+            defaultValue={SAMPLE.edrpouShort}
             aria-invalid
             aria-describedby="f-error-msg"
           />
-          <FieldError id="f-error-msg">{f.error.hint}</FieldError>
+          <FieldError id="f-error-msg">
+            {kitT("validation.edrpou.length")}
+          </FieldError>
         </Field>
         <Field>
-          <FieldLabel htmlFor="f-async">{f.async.label}</FieldLabel>
+          <FieldLabel htmlFor="f-async">{t("field.async.label")}</FieldLabel>
           <InputGroup>
             <InputGroupInput
               id="f-async"
-              defaultValue={f.async.value}
+              defaultValue={SAMPLE.edrpou}
               aria-describedby="f-async-msg"
               aria-busy
             />
             <InputGroupAddon align="inline-end">
-              <Spinner label={f.async.hint} />
+              <Spinner label={t("field.async.hint")} />
             </InputGroupAddon>
           </InputGroup>
-          <FieldDescription id="f-async-msg">{f.async.hint}</FieldDescription>
+          <FieldDescription id="f-async-msg">
+            {t("field.async.hint")}
+          </FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="f-dirty">
-            {f.dirty.label}
+            {t("field.dirty.label")}
             <span className="font-normal text-info-foreground">
-              • {f.dirty.mark}
+              • {t("field.dirty.mark")}
             </span>
           </FieldLabel>
           <Input
             id="f-dirty"
-            defaultValue={f.dirty.value}
+            defaultValue={SAMPLE.iban}
             aria-describedby="f-dirty-hint"
           />
-          <FieldDescription id="f-dirty-hint">{f.dirty.hint}</FieldDescription>
+          <FieldDescription id="f-dirty-hint">
+            {t("field.dirty.hint")}
+          </FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="f-saved">{f.saved.label}</FieldLabel>
+          <FieldLabel htmlFor="f-saved">{t("field.saved.label")}</FieldLabel>
           <Input
             id="f-saved"
-            defaultValue={f.saved.value}
+            defaultValue={SAMPLE.note}
             aria-describedby="f-saved-hint"
           />
           <FieldDescription
@@ -258,27 +261,35 @@ function FieldsSection() {
             className="flex items-center gap-1"
           >
             <Check aria-hidden className="size-3.5 text-success-foreground" />
-            {f.saved.hint}
+            {t("field.saved.hint", {
+              time: format.date(SAMPLE.savedAt, "time", {
+                timeZone: "Europe/Kyiv",
+              }),
+            })}
           </FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="f-readonly">{f.readOnly.label}</FieldLabel>
+          <FieldLabel htmlFor="f-readonly">
+            {t("field.readOnly.label")}
+          </FieldLabel>
           <Input
             id="f-readonly"
-            defaultValue={f.readOnly.value}
+            defaultValue={format.percent(SAMPLE.vatRate)}
             readOnly
             aria-describedby="f-readonly-hint"
           />
           <FieldDescription id="f-readonly-hint">
-            {f.readOnly.hint}
+            {t("field.readOnly.hint")}
           </FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="f-locked">{f.locked.label}</FieldLabel>
+          <FieldLabel htmlFor="f-locked">{t("field.locked.label")}</FieldLabel>
           <InputGroup>
             <InputGroupInput
               id="f-locked"
-              defaultValue={f.locked.value}
+              defaultValue={format.number(120_000, {
+                minimumFractionDigits: 2,
+              })}
               readOnly
               aria-describedby="f-locked-hint"
             />
@@ -287,19 +298,21 @@ function FieldsSection() {
             </InputGroupAddon>
           </InputGroup>
           <FieldDescription id="f-locked-hint">
-            {f.locked.hint}
+            {t("field.locked.hint", { name: SAMPLE.person })}
           </FieldDescription>
         </Field>
         <Field data-disabled>
-          <FieldLabel htmlFor="f-disabled">{f.disabled.label}</FieldLabel>
+          <FieldLabel htmlFor="f-disabled">
+            {t("field.disabled.label")}
+          </FieldLabel>
           <Input
             id="f-disabled"
-            defaultValue={f.disabled.value}
+            defaultValue={t("field.disabled.value")}
             disabled
             aria-describedby="f-disabled-hint"
           />
           <FieldDescription id="f-disabled-hint">
-            {f.disabled.hint}
+            {t("field.disabled.hint")}
           </FieldDescription>
         </Field>
       </div>
@@ -308,16 +321,26 @@ function FieldsSection() {
 }
 
 function ChoiceSection() {
+  const t = usePageT()
+  const { locale } = useFormat()
+  const names = new Intl.DisplayNames([locale], { type: "currency" })
+  const currencyItems = CURRENCIES.map((code) => {
+    const name = names.of(code) ?? code
+    return {
+      value: code,
+      label: `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)} · ${code}`,
+    }
+  })
   return (
-    <Section title={s.choice}>
+    <Section title={t("choice")}>
       <Field>
-        <FieldLabel htmlFor="f-currency">{s.currency}</FieldLabel>
-        <Select items={s.currencies} defaultValue="UAH">
+        <FieldLabel htmlFor="f-currency">{t("currency")}</FieldLabel>
+        <Select items={currencyItems} defaultValue="UAH">
           <SelectTrigger id="f-currency" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {s.currencies.map((c) => (
+            {currencyItems.map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
               </SelectItem>
@@ -327,16 +350,16 @@ function ChoiceSection() {
       </Field>
       <Field orientation="horizontal">
         <Checkbox id="f-vat" defaultChecked />
-        <FieldLabel htmlFor="f-vat">{s.vatPayer}</FieldLabel>
+        <FieldLabel htmlFor="f-vat">{t("vatPayer")}</FieldLabel>
       </Field>
       <Field orientation="horizontal">
         <Switch id="f-remind" defaultChecked />
-        <FieldLabel htmlFor="f-remind">{s.remind}</FieldLabel>
+        <FieldLabel htmlFor="f-remind">{t("remind")}</FieldLabel>
       </Field>
       <Separator />
       <Field>
-        <FieldLabel htmlFor="f-note">{s.note}</FieldLabel>
-        <Textarea id="f-note" placeholder={s.notePlaceholder} />
+        <FieldLabel htmlFor="f-note">{t("note")}</FieldLabel>
+        <Textarea id="f-note" placeholder={t("notePlaceholder")} />
       </Field>
       {/* SPEC §8.2: скелетон — лише в контейнерах, у формі майбутнього контенту. */}
       <div className="space-y-2" aria-hidden>
@@ -348,28 +371,28 @@ function ChoiceSection() {
 }
 
 function OverlaysSection() {
-  const d = s.dialog
-  const sh = s.sheet
-  const t = s.toast
+  const t = usePageT()
   return (
-    <Section title={s.overlays}>
+    <Section title={t("overlays")}>
       <div className="flex flex-wrap items-center gap-2">
         <Dialog>
           <DialogTrigger render={<Button variant="destructive" />}>
             <Trash2 aria-hidden />
-            {d.open}
+            {t("dialog.open")}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{d.title}</DialogTitle>
-              <DialogDescription>{d.description}</DialogDescription>
+              <DialogTitle>
+                {t("dialog.title", { number: SAMPLE.invoiceNumber })}
+              </DialogTitle>
+              <DialogDescription>{t("dialog.description")}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <DialogClose render={<Button variant="outline" />}>
-                {d.cancel}
+                {t("dialog.cancel")}
               </DialogClose>
               <DialogClose render={<Button variant="destructive" />}>
-                {d.confirm}
+                {t("dialog.confirm")}
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -378,21 +401,23 @@ function OverlaysSection() {
         <Sheet>
           <SheetTrigger render={<Button variant="outline" />}>
             <SlidersHorizontal aria-hidden />
-            {sh.open}
+            {t("sheet.open")}
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>{sh.title}</SheetTitle>
-              <SheetDescription>{sh.description}</SheetDescription>
+              <SheetTitle>{t("sheet.title")}</SheetTitle>
+              <SheetDescription>{t("sheet.description")}</SheetDescription>
             </SheetHeader>
             <div className="px-4">
               <Field>
-                <FieldLabel htmlFor="f-sheet-client">{sh.client}</FieldLabel>
+                <FieldLabel htmlFor="f-sheet-client">
+                  {t("sheet.client")}
+                </FieldLabel>
                 <Input id="f-sheet-client" />
               </Field>
             </div>
             <SheetFooter>
-              <Button>{sh.apply}</Button>
+              <Button>{t("sheet.apply")}</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
@@ -403,37 +428,37 @@ function OverlaysSection() {
               <Button
                 variant="outline"
                 size="icon"
-                aria-label={s.exportLabel}
+                aria-label={t("exportLabel")}
               />
             }
           >
             <Download aria-hidden />
           </TooltipTrigger>
-          <TooltipContent>{s.tooltip}</TooltipContent>
+          <TooltipContent>{t("tooltip")}</TooltipContent>
         </Tooltip>
 
         <Button
           variant="secondary"
           onClick={() => {
-            toast.success(t.saved)
+            toast.success(t("toast.saved"))
           }}
         >
-          {t.open}
+          {t("toast.open")}
         </Button>
         {/* SPEC §8.2: тост із дією «Скасувати» не зникає сам. */}
         <Button
           variant="secondary"
           onClick={() => {
-            toast(t.archived, {
+            toast(t("toast.archived"), {
               duration: Infinity,
               action: {
-                label: t.undo,
+                label: t("toast.undo"),
                 onClick: () => undefined,
               },
             })
           }}
         >
-          {t.undoOpen}
+          {t("toast.undoOpen")}
         </Button>
       </div>
     </Section>
@@ -441,25 +466,27 @@ function OverlaysSection() {
 }
 
 function TableSection() {
-  const p = strings.preview
+  const t = usePageT()
+  const { t: tp } = useTranslation("demo", { keyPrefix: "preview" })
+  const format = useFormat()
   return (
-    <Section title={s.table}>
-      <Table label={p.tableCaption}>
+    <Section title={t("table")}>
+      <Table label={tp("tableCaption")}>
         <TableHeader>
           <TableRow>
-            <TableHead>{p.columns.number}</TableHead>
-            <TableHead>{p.columns.client}</TableHead>
-            <TableHead className="text-right">{p.columns.amount}</TableHead>
-            <TableHead>{p.columns.status}</TableHead>
+            <TableHead>{tp("columns.number")}</TableHead>
+            <TableHead>{tp("columns.client")}</TableHead>
+            <TableHead className="text-right">{tp("columns.amount")}</TableHead>
+            <TableHead>{tp("columns.status")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {p.rows.map((row) => (
+          {INVOICES.map((row) => (
             <TableRow key={row.number}>
               <TableCell className="tabular-nums">{row.number}</TableCell>
               <TableCell>{row.client}</TableCell>
               <TableCell className="text-right tabular-nums">
-                {row.amount}
+                {format.money(row.amount)}
               </TableCell>
               <TableCell>
                 <StatusBadge kind={row.status} />
@@ -473,9 +500,10 @@ function TableSection() {
 }
 
 export function PrimitivesPage() {
+  const t = usePageT()
   return (
     <div className="space-y-6">
-      <PageHeader title={s.title} lead={s.lead} />
+      <PageHeader title={t("title")} lead={t("lead")} />
       <div className="grid items-start gap-6 @4xl:grid-cols-2">
         <ButtonsSection />
         <StatusesSection />

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react"
 export const ROUTES = {
   appearance: "#/",
   primitives: "#/primitives",
+  formats: "#/formats",
 } as const
 export type Route = keyof typeof ROUTES
 

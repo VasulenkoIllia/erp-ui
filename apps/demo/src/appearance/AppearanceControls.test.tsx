@@ -34,6 +34,7 @@ describe("AppearanceControls", () => {
       theme: "dark",
       density: "compact",
       sidebar: "dark",
+      language: "uk",
     })
   })
 })

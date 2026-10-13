@@ -79,6 +79,16 @@ test.describe("примітиви: поведінка", () => {
     await expect(sheet).toBeHidden()
   })
 
+  test("англійською підпис «Закрити» береться з рядків кіта", async ({
+    page,
+  }) => {
+    await openWith(page, { language: "en" }, PATH)
+    await page.getByRole("button", { name: "Filters" }).click()
+    const sheet = page.getByRole("dialog", { name: "Filters" })
+    await sheet.getByRole("button", { name: "Close" }).click()
+    await expect(sheet).toBeHidden()
+  })
+
   test("недоступна дія — у фокусі й пояснює причину (SPEC §8.4)", async ({
     page,
   }) => {

@@ -52,7 +52,11 @@ test.describe("axe: контрольні ширини", () => {
 })
 
 // Сторінки для скриншотів; SCREENSHOT_PAGES=primitives,… обмежує набір (для звіту кроку).
-const SHOT_PAGES = { appearance: "/", primitives: "/#/primitives" } as const
+const SHOT_PAGES = {
+  appearance: "/",
+  primitives: "/#/primitives",
+  formats: "/#/formats",
+} as const
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
 )
@@ -76,6 +80,21 @@ test.describe("скриншоти @screenshots", () => {
               fullPage: true,
             })
           })
+    // Англійська версія: телефон і десктоп, Сапфір, світла тема.
+    for (const width of [390, 1440] as const)
+      test(`${pageId} sapphire light ${width} en`, async ({ page }) => {
+        await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+        await openWith(
+          page,
+          { palette: "sapphire", theme: "light", language: "en" },
+          SHOT_PAGES[pageId],
+        )
+        await expectNoA11yViolations(page)
+        await page.screenshot({
+          path: path.join(shotsDir, `${pageId}-sapphire-light-${width}-en.png`),
+          fullPage: true,
+        })
+      })
     // Компактна щільність — для порівняння на десктопі.
     for (const palette of SHOT_PALETTES)
       test(`${pageId} ${palette} light 1440 compact`, async ({ page }) => {

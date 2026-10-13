@@ -2,8 +2,8 @@
 /**
  * Зводить скриншоти кроку в аркуші «2 палітри × 2 теми» для кожної ширини — зручно дивитися з телефона.
  * Використання: node scripts/contact-sheet.mjs <тека зі скриншотами від кореня репозиторію>
- * Очікує файли [<сторінка>-]<palette>-<theme>-<width>[-compact].png і пише
- * sheet-[<сторінка>-]<width>[-compact].png у ту саму теку.
+ * Очікує файли [<сторінка>-]<palette>-<theme>-<width>[-compact|-en].png і пише
+ * sheet-[<сторінка>-]<width>[-compact|-en].png у ту саму теку.
  */
 import { chromium } from "@playwright/test"
 import { readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -11,7 +11,7 @@ import path from "node:path"
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..")
 const dir = path.resolve(repoRoot, process.argv[2] ?? "")
-const SHOT = /^(?:([a-z]+)-)?[a-z]+-(?:light|dark)-(\d+)(-compact)?\.png$/
+const SHOT = /^(?:([a-z]+)-)?[a-z]+-(?:light|dark)-(\d+)(-compact|-en)?\.png$/
 const files = readdirSync(dir).filter(
   (f) => SHOT.test(f) && !f.startsWith("sheet-"),
 )

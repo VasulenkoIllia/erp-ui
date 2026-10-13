@@ -1,19 +1,28 @@
 import { useEffect, useRef } from "react"
 
+import { useRoute } from "@/router"
+
 let firstRender = true
 
-/** Заголовок сторінки демо. Після переходу між сторінками переносить фокус на h1 (для скрінрідерів). */
+/**
+ * Заголовок сторінки демо. Після переходу між сторінками переносить фокус на h1 (для скрінрідерів);
+ * зміна мови фокус не чіпає — лише назву вкладки.
+ */
 export function PageHeader({ title, lead }: { title: string; lead: string }) {
   const heading = useRef<HTMLHeadingElement>(null)
+  const route = useRoute()
 
   useEffect(() => {
     document.title = `${title} · erp-ui`
+  }, [title])
+
+  useEffect(() => {
     if (firstRender) {
       firstRender = false
       return
     }
     heading.current?.focus()
-  }, [title])
+  }, [route])
 
   return (
     <div className="space-y-1">

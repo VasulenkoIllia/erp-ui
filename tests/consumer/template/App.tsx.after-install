@@ -1,4 +1,8 @@
 // Підставляється після `shadcn add`: перевіряє, що встановлені елементи компілюються разом.
+import { useState } from "react"
+
+import { PhoneInput } from "@/components/erp/phone-input"
+import { UaIdInput, uaIdIssueKey } from "@/components/erp/ua-id-input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,10 +44,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useResolvedTheme } from "@/hooks/use-resolved-theme"
+import { useFormat } from "@/lib/format"
+import { useErpUiT, useLanguage } from "@/lib/i18n"
+import { validatePhone } from "@/lib/phone"
+import { validateUaId } from "@/lib/ua-ids"
 import { cn } from "@/lib/utils"
 
 export function App() {
   const theme = useResolvedTheme()
+  const t = useErpUiT()
+  const format = useFormat()
+  const { language } = useLanguage()
+  const [iban, setIban] = useState("")
+  const [phone, setPhone] = useState("")
+  const ibanIssue = validateUaId("iban", iban)
   return (
     <TooltipProvider>
       <main className={cn("p-6", "space-y-4")} data-theme={theme}>
@@ -53,10 +67,24 @@ export function App() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Badge variant="success">Оплачено</Badge>
+            <p lang={language}>
+              {format.money({ amount: 4_860_000, currency: "UAH" })} ·{" "}
+              {format.date("2026-10-13", "long")}
+            </p>
             <Field data-invalid>
               <FieldLabel htmlFor="edrpou">ЄДРПОУ</FieldLabel>
               <Input id="edrpou" aria-invalid defaultValue="1234567" />
-              <FieldError>ЄДРПОУ має містити 8 цифр</FieldError>
+              <FieldError>{t("validation.edrpou.length")}</FieldError>
+            </Field>
+            <Field data-invalid={ibanIssue ? true : undefined}>
+              <FieldLabel htmlFor="iban">IBAN</FieldLabel>
+              <UaIdInput id="iban" kind="iban" value={iban} onValueChange={setIban} />
+              {ibanIssue ? <FieldError>{t(uaIdIssueKey("iban", ibanIssue))}</FieldError> : null}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="phone">Телефон</FieldLabel>
+              <PhoneInput id="phone" value={phone} onValueChange={setPhone} />
+              <p>{validatePhone(phone) ?? "ok"}</p>
             </Field>
             <InputGroup>
               <InputGroupInput aria-label="Пошук" />

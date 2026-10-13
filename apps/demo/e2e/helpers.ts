@@ -8,6 +8,7 @@ export interface AppearanceSeed {
   theme?: "light" | "dark" | "system"
   density?: "comfortable" | "compact"
   sidebar?: "light" | "dark"
+  language?: "uk" | "en"
 }
 
 /** Відкриває демо з наперед заданим виглядом (через localStorage до завантаження сторінки). */

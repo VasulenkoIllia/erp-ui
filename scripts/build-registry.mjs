@@ -5,10 +5,11 @@
  *   node scripts/build-registry.mjs --check  — перевірити, що вони актуальні (CI)
  *
  * Правила (ADR-0004):
- * - елемент із кодом = файл у registry/{ui,lib,hooks}; ім'я — `<тека>/<файл>` (ui/button);
+ * - елемент із кодом = файл у registry/{ui,erp,lib,hooks}; ім'я — `<тека>/<файл>` (ui/button);
  * - кожен елемент несе ВСІ потрібні йому файли реєстру (замикання імпортів @/registry/…), а не
  *   registryDependencies: так `add …#v0.3.0` ставить узгоджений набір з однієї версії;
- * - npm-залежності — з імпортів, версії — з registry/package.json;
+ * - npm-залежності — з імпортів, версії — з registry/package.json; типи для пакетів без власних
+ *   типів (TYPE_PACKAGES) — у devDependencies;
  * - метадані каталогу (назва, опис, статус, демо, SPEC) — у meta.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -35,8 +36,13 @@ const KINDS = {
   ui: { type: "registry:ui", target: "@ui" },
   lib: { type: "registry:lib", target: "@lib" },
   hooks: { type: "registry:hook", target: "@hooks" },
+  erp: { type: "registry:component", target: "@components/erp" },
 }
 const PEERS = new Set(["react", "react-dom"])
+/** Пакети без власних типів → пакет типів, який ставиться як devDependency. */
+const TYPE_PACKAGES = {
+  "google-libphonenumber": "@types/google-libphonenumber",
+}
 const LAYER_TITLES = {
   base: "Основа",
   tokens: "Шар 1 · токени й теми",
@@ -44,6 +50,7 @@ const LAYER_TITLES = {
   lib: "Утиліти",
   hooks: "Хуки",
   ui: "Шар 2 · примітиви",
+  erp: "Шар 3 · ERP-компоненти",
 }
 
 function codeFiles() {
@@ -134,6 +141,15 @@ function build() {
     }
   }
 
+  /** devDependencies елемента: пакети типів для його npm-залежностей. */
+  const devDependencies = (packages) => {
+    const types = [...packages]
+      .map((name) => TYPE_PACKAGES[name])
+      .filter(Boolean)
+      .sort()
+    return types.length ? { devDependencies: types.map(dependency) } : {}
+  }
+
   const meta = (layer, cfg) => ({
     layer,
     status: cfg.status,
@@ -164,6 +180,7 @@ function build() {
       title: cfg.title,
       description: cfg.description,
       dependencies: [...packages].sort().map(dependency),
+      ...devDependencies(packages),
       files: [
         ...cfg.files.map((f) => ({
           path: f.path,
@@ -186,6 +203,7 @@ function build() {
       title: cfg.title,
       description: cfg.description,
       dependencies: [...packages].sort().map(dependency),
+      ...devDependencies(packages),
       files: names.map(fileEntry),
       meta: meta(f.dir, cfg),
     })
@@ -245,7 +263,7 @@ function catalog(items) {
         const demo = it.meta.demo ? `\`${it.meta.demo}\`` : "—"
         return `| \`${it.name}\` | ${it.title} | ${it.description} | ${it.meta.status} | ${demo} | ${spec} |`
       })
-  const sections = ["base", "tokens", "claude", "lib", "hooks", "ui"]
+  const sections = ["base", "tokens", "claude", "lib", "hooks", "ui", "erp"]
     .map((layer) => {
       const r = rows(layer)
       if (r.length === 0) return ""
