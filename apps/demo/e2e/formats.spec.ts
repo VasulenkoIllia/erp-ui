@@ -107,6 +107,15 @@ test.describe("мови й формати: поведінка", () => {
     await expect(iban).toHaveAttribute("aria-invalid", "true")
     await expect(page.getByText("IBAN має містити UA і 27 цифр")).toBeVisible()
     // Далі — перевірка під час виправлення.
+    // react-number-format після фокуса виправляє курсор двома setTimeout(0); End до них курсор
+    // би повернули на початок. Людина так швидко не натисне — чекаємо, поки обидва відпрацюють.
+    await iban.focus()
+    await page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => setTimeout(resolve, 0), 0)
+        }),
+    )
     await iban.press("End")
     await iban.pressSequentially("01")
     await expect(iban).not.toHaveAttribute("aria-invalid", "true")
