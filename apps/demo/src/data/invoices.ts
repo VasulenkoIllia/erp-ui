@@ -15,12 +15,14 @@ export const INVOICE_STATUSES = [
 ] as const
 export type InvoiceStatus = (typeof INVOICE_STATUSES)[number]
 
+export const INVOICE_CURRENCIES = ["UAH", "USD", "EUR"] as const
+
 export const invoiceSchema = recordBaseSchema.extend({
   number: z.string().min(1),
   client: z.string().min(1),
   /** Сума в копійках (SPEC §17). */
   amount: z.number().int().min(0),
-  currency: z.enum(["UAH", "USD", "EUR"]),
+  currency: z.enum(INVOICE_CURRENCIES),
   status: z.enum(INVOICE_STATUSES),
   /** Календарні дати документа — без часу. */
   date: z.iso.date(),
@@ -29,7 +31,8 @@ export const invoiceSchema = recordBaseSchema.extend({
 })
 export type Invoice = z.infer<typeof invoiceSchema>
 
-const CLIENTS = [
+/** Клієнти фікстур: варіанти фільтра «Клієнт» на стрес-сторінці. */
+export const INVOICE_CLIENTS = [
   "ТОВ «Дніпро Трейд»",
   "ПП «Агросвіт»",
   "ФОП Коваленко О. В.",
@@ -79,7 +82,9 @@ export function makeInvoices(count: number): Invoice[] {
       id: `inv-${String(i + 1).padStart(5, "0")}`,
       version: 1,
       number: `2026-${String(i + 1).padStart(4, "0")}`,
-      client: CLIENTS[Math.floor(random() * CLIENTS.length)] ?? "ТОВ «Клієнт»",
+      client:
+        INVOICE_CLIENTS[Math.floor(random() * INVOICE_CLIENTS.length)] ??
+        "ТОВ «Клієнт»",
       amount: Math.round(500 + random() * 400_000) * 100,
       currency: random() < 0.9 ? "UAH" : random() < 0.5 ? "USD" : "EUR",
       status,

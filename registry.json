@@ -79,9 +79,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -197,9 +207,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -418,9 +438,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -873,9 +903,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -1256,9 +1296,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -1343,9 +1393,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -1457,9 +1517,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -1523,9 +1593,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -1914,9 +1994,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -1974,9 +2064,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -2109,9 +2209,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -2152,9 +2262,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -2225,9 +2345,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -2409,9 +2539,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -2510,9 +2650,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -2639,9 +2789,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -2781,9 +2941,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -2890,6 +3060,57 @@
       }
     },
     {
+      "name": "lib/filters",
+      "type": "registry:lib",
+      "title": "Фільтри панелі",
+      "description": "Без React: опис фільтра FilterBar (варіанти, період, діапазон суми) і перетворення між значенням у формі та плоскими параметрами API, активні фільтри для чипів (ADR-0017).",
+      "dependencies": [
+        "ra-core@^5.15.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "UI03"
+        ]
+      }
+    },
+    {
       "name": "lib/format",
       "type": "registry:lib",
       "title": "Форматери Intl",
@@ -2915,9 +3136,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -2936,6 +3167,38 @@
       }
     },
     {
+      "name": "lib/i18n-en-lists",
+      "type": "registry:lib",
+      "title": "Рядки списків en",
+      "description": "Ті самі рядки списків англійською; входять у lib/i18n-en, паритет ключів перевіряє тест.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "lib/i18n-en",
       "type": "registry:lib",
       "title": "Рядки кіта en",
@@ -2948,15 +3211,47 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
         "layer": "lib",
         "status": "beta",
         "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-uk-lists",
+      "type": "registry:lib",
+      "title": "Рядки списків uk",
+      "description": "Рядки кіта для вкладок-статусів, FilterBar і збережених видів українською; входять у простір імен erp-ui через lib/i18n-uk.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
         "spec": [
           "§11"
         ]
@@ -2973,6 +3268,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -3005,9 +3305,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -3109,9 +3419,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -3142,6 +3462,47 @@
         "demo": "appearance",
         "spec": [
           "§18.5"
+        ]
+      }
+    },
+    {
+      "name": "lib/list-state",
+      "type": "registry:lib",
+      "title": "Стан списку",
+      "description": "Без React: вкладка-статус, фільтри й сортування ⇄ параметри адреси тим самим синтаксисом, що й API (ADR-0002), порівняння станів, фільтр запиту з вкладкою (ADR-0017).",
+      "dependencies": [
+        "ra-core@^5.15.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "UI03"
         ]
       }
     },
@@ -3211,9 +3572,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -3347,9 +3718,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -3498,9 +3879,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -3629,9 +4020,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -3810,9 +4211,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -3951,9 +4362,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4087,9 +4508,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4240,9 +4671,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4365,9 +4806,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4446,6 +4897,152 @@
       }
     },
     {
+      "name": "lib/mock-views",
+      "type": "registry:lib",
+      "title": "Мок збережених видів",
+      "description": "createSavedViewHandlers: /me/views за контрактом lib/saved-views, види кожного користувача в localStorage, сценарії ресурсу views.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-views.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "PF11",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/mock-webhooks",
       "type": "registry:lib",
       "title": "Мок вебхуків",
@@ -4511,9 +5108,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4647,9 +5254,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -4943,9 +5560,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -4990,9 +5617,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/language-names.ts",
@@ -5046,6 +5683,48 @@
         "spec": [
           "A2",
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "lib/saved-views",
+      "type": "registry:lib",
+      "title": "Збережені види: контракт",
+      "description": "Особисті види списків (PF11): CRUD /me/views (ресурс ra-core me/views), схема виду, параметри списку рядком, вид за замовчуванням, унікальна назва (ADR-0017).",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "UI03",
+          "PF06",
+          "PF11",
+          "§17"
         ]
       }
     },
@@ -5269,9 +5948,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -5319,9 +6008,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         }
       ],
       "meta": {
@@ -5430,9 +6129,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -5559,9 +6268,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -5670,6 +6389,216 @@
       }
     },
     {
+      "name": "hooks/use-list-counts",
+      "type": "registry:hook",
+      "title": "Лічильники вкладок",
+      "description": "useListCounts: скільки записів у кожній вкладці-статусі з поточними фільтрами; запит getList з одним рядком на вкладку, ключі як у ra-core, тож лічильники оновлюються після збереження (ADR-0017).",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-list-counts.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-counts.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-list-state",
+      "type": "registry:hook",
+      "title": "Стан списку в адресі",
+      "description": "useListState: вкладка, фільтри, сортування й вид в адресі сторінки (роутер дає застосунок), вид за замовчуванням при відкритті без параметрів, «змінено», «Стандартний» (ADR-0017).",
+      "dependencies": [
+        "ra-core@^5.15.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-list-state.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-state.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "UI03",
+          "PF06"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-me",
       "type": "registry:hook",
       "title": "useMe",
@@ -5733,9 +6662,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -5811,6 +6750,52 @@
         "status": "beta",
         "spec": [
           "§6.2"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-saved-views",
+      "type": "registry:hook",
+      "title": "Збережені види: дані",
+      "description": "useSavedViews: особисті види ресурсу з /me/views і зміни в них; зміна одразу в кеші, далі перечитування; після помилки (409) список перечитується; запит видів без повторів, щоб список не чекав (PF11, ADR-0017).",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "ra-core@^5.15.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-saved-views.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-saved-views.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "PF11"
         ]
       }
     },
@@ -5925,9 +6910,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6085,9 +7080,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6350,9 +7355,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6639,9 +7654,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6878,9 +7903,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -7122,9 +8157,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -7312,9 +8357,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -7482,9 +8537,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -7682,9 +8747,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -7776,9 +8851,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -7853,9 +8938,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -7957,9 +9052,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8121,9 +9226,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -8225,9 +9340,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -8399,9 +9524,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8574,9 +9709,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8659,9 +9804,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8743,9 +9898,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8808,9 +9973,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8885,9 +10060,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -8972,9 +10157,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -9070,9 +10265,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -9240,9 +10445,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9375,9 +10590,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -9478,9 +10703,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -9578,9 +10813,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -9672,9 +10917,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -9812,9 +11067,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9927,6 +11192,422 @@
       }
     },
     {
+      "name": "erp/filter-bar",
+      "type": "registry:component",
+      "title": "Панель фільтрів",
+      "description": "FilterBar: пошук із паузою, «Фільтри» з лічильником (поповер на широкому контейнері, нижня шторка на телефоні), чипи активних фільтрів із «Прибрати» й «Скинути фільтри», місце для меню видів (UI03, ADR-0017).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-day-picker@^10.0.2",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/filter-bar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-bar.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/erp/date-range-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-range-input.tsx"
+        },
+        {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
+          "path": "registry/erp/filter-panel.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-panel.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "UI03",
+          "UI38",
+          "§7",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/filter-panel",
+      "type": "registry:component",
+      "title": "Форма фільтрів",
+      "description": "Частина erp/filter-bar: поля за описом фільтрів (варіанти, період, діапазон суми), «Застосувати» одним запитом, помилка діапазону біля поля. Ставиться разом з erp/filter-bar.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-day-picker@^10.0.2",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/filter-panel.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-panel.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/erp/date-range-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-range-input.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "UI03",
+          "§8.3"
+        ]
+      }
+    },
+    {
       "name": "erp/form",
       "type": "registry:component",
       "title": "Форми",
@@ -9964,9 +11645,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -10119,9 +11810,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10359,9 +12060,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10619,9 +12330,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10793,9 +12514,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -10942,9 +12673,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -11136,9 +12877,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11284,9 +13035,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -11370,9 +13131,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -11456,9 +13227,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -11574,9 +13355,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11733,9 +13524,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11827,9 +13628,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/phone.ts",
@@ -11978,9 +13789,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12248,9 +14069,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12492,9 +14323,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12732,9 +14573,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12868,6 +14719,374 @@
       }
     },
     {
+      "name": "erp/saved-view-dialog",
+      "type": "registry:component",
+      "title": "Діалог назви виду",
+      "description": "Частина erp/saved-views-menu: новий вид чи перейменування на react-hook-form + zod, «Відкривати за замовчуванням», назва, яка вже є, — помилка біля поля. Ставиться разом з erp/saved-views-menu.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/saved-view-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-view-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "UI03",
+          "§8.3"
+        ]
+      }
+    },
+    {
+      "name": "erp/saved-views-menu",
+      "type": "registry:component",
+      "title": "Збережені види",
+      "description": "SavedViewsMenu: особисті види списку (вкладка, фільтри, пошук, сортування), «змінено», зберегти, зберегти як новий, перейменувати, вид за замовчуванням, видалення зі «Скасувати» (UI03, PF11, ADR-0017).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/saved-views-menu.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-views-menu.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/saved-view-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-view-dialog.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-state.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-state.ts"
+        },
+        {
+          "path": "registry/hooks/use-saved-views.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-saved-views.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "UI03",
+          "PF06",
+          "PF11",
+          "§8.2"
+        ]
+      }
+    },
+    {
       "name": "erp/security-policy-form",
       "type": "registry:component",
       "title": "Політики безпеки",
@@ -12977,9 +15196,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13210,9 +15439,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13383,9 +15622,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13585,9 +15834,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13650,6 +15909,108 @@
       }
     },
     {
+      "name": "erp/status-tabs",
+      "type": "registry:component",
+      "title": "Вкладки-статуси",
+      "description": "Вкладки списку з лічильниками (List Report): вкладка — фільтр поверх фільтрів панелі, вибір Enter чи пробілом, прокрутка вбік на вузькому контейнері (ADR-0017).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/status-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-tabs.tsx"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/timezone-select",
       "type": "registry:component",
       "title": "Часовий пояс",
@@ -13679,9 +16040,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -13752,9 +16123,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/ua-ids.ts",
@@ -13917,9 +16298,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -14122,9 +16513,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -14292,9 +16693,19 @@
           "target": "@lib/i18n-en.ts"
         },
         {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
         },
         {
           "path": "registry/lib/invitations.ts",

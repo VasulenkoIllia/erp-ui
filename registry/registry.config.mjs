@@ -41,6 +41,22 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["§11"],
   },
+  "lib/i18n-uk-lists": {
+    title: "Рядки списків uk",
+    description:
+      "Рядки кіта для вкладок-статусів, FilterBar і збережених видів українською; входять у простір імен erp-ui через lib/i18n-uk.",
+    status: "beta",
+    demo: "data",
+    spec: ["§11"],
+  },
+  "lib/i18n-en-lists": {
+    title: "Рядки списків en",
+    description:
+      "Ті самі рядки списків англійською; входять у lib/i18n-en, паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "data",
+    spec: ["§11"],
+  },
   "lib/lazy": {
     title: "Ліниві компоненти",
     description:
@@ -64,6 +80,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§9", "§10"],
+  },
+  "lib/list-state": {
+    title: "Стан списку",
+    description:
+      "Без React: вкладка-статус, фільтри й сортування ⇄ параметри адреси тим самим синтаксисом, що й API (ADR-0002), порівняння станів, фільтр запиту з вкладкою (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "UI03"],
+  },
+  "lib/filters": {
+    title: "Фільтри панелі",
+    description:
+      "Без React: опис фільтра FilterBar (варіанти, період, діапазон суми) і перетворення між значенням у формі та плоскими параметрами API, активні фільтри для чипів (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "UI03"],
   },
   "lib/format": {
     title: "Форматери Intl",
@@ -224,6 +256,30 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§8.1", "§17", "§18.1"],
+  },
+  "hooks/use-list-state": {
+    title: "Стан списку в адресі",
+    description:
+      "useListState: вкладка, фільтри, сортування й вид в адресі сторінки (роутер дає застосунок), вид за замовчуванням при відкритті без параметрів, «змінено», «Стандартний» (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "UI03", "PF06"],
+  },
+  "hooks/use-list-counts": {
+    title: "Лічильники вкладок",
+    description:
+      "useListCounts: скільки записів у кожній вкладці-статусі з поточними фільтрами; запит getList з одним рядком на вкладку, ключі як у ra-core, тож лічильники оновлюються після збереження (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7"],
+  },
+  "hooks/use-saved-views": {
+    title: "Збережені види: дані",
+    description:
+      "useSavedViews: особисті види ресурсу з /me/views і зміни в них; зміна одразу в кеші, далі перечитування; після помилки (409) список перечитується; запит видів без повторів, щоб список не чекав (PF11, ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF11"],
   },
   "hooks/use-virtual-rows": {
     title: "useVirtualRows",
@@ -409,6 +465,14 @@ export const CODE_ITEMS = {
     demo: "inbox",
     spec: ["PF10", "UI02"],
   },
+  "lib/saved-views": {
+    title: "Збережені види: контракт",
+    description:
+      "Особисті види списків (PF11): CRUD /me/views (ресурс ra-core me/views), схема виду, параметри списку рядком, вид за замовчуванням, унікальна назва (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["UI03", "PF06", "PF11", "§17"],
+  },
   "lib/company": {
     title: "Налаштування компанії",
     description:
@@ -432,6 +496,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "inbox",
     spec: ["PF10", "§17"],
+  },
+  "lib/mock-views": {
+    title: "Мок збережених видів",
+    description:
+      "createSavedViewHandlers: /me/views за контрактом lib/saved-views, види кожного користувача в localStorage, сценарії ресурсу views.",
+    status: "beta",
+    demo: "data",
+    spec: ["PF11", "§17"],
   },
   "lib/mock-company": {
     title: "Мок налаштувань компанії",
@@ -559,6 +631,46 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§9", "§10"],
+  },
+  "erp/status-tabs": {
+    title: "Вкладки-статуси",
+    description:
+      "Вкладки списку з лічильниками (List Report): вкладка — фільтр поверх фільтрів панелі, вибір Enter чи пробілом, прокрутка вбік на вузькому контейнері (ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§9", "§10"],
+  },
+  "erp/filter-bar": {
+    title: "Панель фільтрів",
+    description:
+      "FilterBar: пошук із паузою, «Фільтри» з лічильником (поповер на широкому контейнері, нижня шторка на телефоні), чипи активних фільтрів із «Прибрати» й «Скинути фільтри», місце для меню видів (UI03, ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["UI03", "UI38", "§7", "§9", "§10"],
+  },
+  "erp/filter-panel": {
+    title: "Форма фільтрів",
+    description:
+      "Частина erp/filter-bar: поля за описом фільтрів (варіанти, період, діапазон суми), «Застосувати» одним запитом, помилка діапазону біля поля. Ставиться разом з erp/filter-bar.",
+    status: "beta",
+    demo: "data",
+    spec: ["UI03", "§8.3"],
+  },
+  "erp/saved-views-menu": {
+    title: "Збережені види",
+    description:
+      "SavedViewsMenu: особисті види списку (вкладка, фільтри, пошук, сортування), «змінено», зберегти, зберегти як новий, перейменувати, вид за замовчуванням, видалення зі «Скасувати» (UI03, PF11, ADR-0017).",
+    status: "beta",
+    demo: "data",
+    spec: ["UI03", "PF06", "PF11", "§8.2"],
+  },
+  "erp/saved-view-dialog": {
+    title: "Діалог назви виду",
+    description:
+      "Частина erp/saved-views-menu: новий вид чи перейменування на react-hook-form + zod, «Відкривати за замовчуванням», назва, яка вже є, — помилка біля поля. Ставиться разом з erp/saved-views-menu.",
+    status: "beta",
+    demo: "data",
+    spec: ["UI03", "§8.3"],
   },
   "erp/error-boundary": {
     title: "Межа помилок",

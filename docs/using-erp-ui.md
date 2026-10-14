@@ -223,6 +223,32 @@ createRoot(root).render(
   ```
 
   Стани (скелетон, оновлення, порожньо, нічого не знайдено, помилка, немає доступу, офлайн, збій частини рядків) таблиця показує сама; `useUpdate` оновлює рядок у кеші вікна. Повний приклад — `src/pages/DataPage.tsx` у демо.
+- Над таблицею (ADR-0017) — вкладки-статуси, панель фільтрів і особисті збережені види; стан списку живе в адресі сторінки тим самим синтаксисом, що й запит до API (`?tab=overdue&client=A&amount_gte=1000000&sort=-date`). Роутер дає застосунок:
+
+  ```tsx
+  const tabs: ListTab[] = [{ id: "all", label: t("all"), filter: {} }, { id: "overdue", label: t("overdue"), filter: { status: "overdue" } }]
+  const filters: FilterDefinition[] = [
+    { kind: "options", id: "client", field: "client", label: t("client"), options },
+    { kind: "date-range", id: "date", field: "date", label: t("date") },         // date_gte, date_lte
+    { kind: "money-range", id: "amount", field: "amount", label: t("amount"), currency: "UAH" }, // мінорні одиниці
+  ]
+  // tabs, filters і defaults — стабільні між рендерами (useMemo чи константа модуля).
+  const [params, setParams] = useSearchParams()                  // React Router
+  const views = useSavedViews("invoices")                          // hooks/use-saved-views
+  const list = useListState({ params, onParamsChange: setParams, tabs, filters, views: views.views, viewsFailed: Boolean(views.error),
+    defaults: { tab: "all", sort: { field: "date", order: "DESC" }, sortFields: ["number", "date", "amount"] } })
+  const counts = useListCounts("invoices", list.state.filter, tabs, { enabled: list.isReady })
+  <StatusTabs label={t("status")} tabs={tabs} value={list.state.tab} onValueChange={list.setTab} counts={counts} />
+  <FilterBar filters={filters} value={list.state.filter} onValueChange={list.setFilter} searchPlaceholder={t("search")}
+    actions={<SavedViewsMenu resource="invoices" views={views} list={list} />} />
+  {list.isReady ? (
+    // Усередині InvoiceTable: useWindowedList("invoices", { sort, filter }) і DataTable, як вище.
+    <InvoiceTable filter={list.queryFilter} sort={list.state.sort} onSortChange={list.setSort}
+      isFiltered={list.isFiltered} onResetFilters={() => list.applyView(null)} />
+  ) : <PageSkeleton rows={8} />}
+  ```
+
+  Адреса — ввід ззовні: з `filters` у запит ідуть лише описані фільтри й `q`, сортування — лише за `sortFields`. Поки види вантажаться, `isReady` — false: якщо сторінку відкрили без параметрів, спершу застосується вид за замовчуванням, і список не вантажиться двічі. Бекенд реалізує `/me/views` за контрактом `lib/saved-views`; у моках — `createSavedViewHandlers()` поруч з іншими обробниками, сценарій — ресурс `views` у панелі розробника.
 - Профіль і права: `useMe()` (`null` — гість), `useCanAccess({ resource: "invoices", action: "edit" })`. Дія без права — неактивна кнопка у фокусі з підказкою-причиною.
 - Сторінка лише для користувачів — `useAuthenticated()`: без сесії перенаправить на `/login` і поверне назад після входу (`useLogin`).
 - Збереження: `useUpdate` у режимі `pessimistic` надсилає змінені поля + `version`; 409 → `ConflictDialog` з `error.current`.

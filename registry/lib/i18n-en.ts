@@ -2,6 +2,7 @@
  * Рядки кіта erp-ui англійською — ті самі ключі, що в `i18n-uk.ts`.
  * Форми множини англійською — лише `_one/_other`.
  */
+import { enLists } from "@/registry/lib/i18n-en-lists"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
 export const en = {
@@ -1328,4 +1329,5 @@ export const en = {
       whole: "Whole numbers only",
     },
   },
+  ...enLists,
 } satisfies ErpUiTranslation

@@ -325,13 +325,26 @@
     "lead": "Stress page: 10,000 invoices from the MSW mock server through the ra-core dataProvider. Scrolling in windows of 100 rows or pages, server-side filters and sorting, permissions and version conflicts. Server scenarios live in the developer panel.",
     "search": "Search by number or client",
     "statusFilter": "Invoice status",
-    "all": "All",
     "statuses": {
       "draft": "Draft",
       "sent": "Sent",
       "partially_paid": "Partially paid",
       "paid": "Paid",
       "overdue": "Overdue"
+    },
+    "tabs": {
+      "all": "All",
+      "draft": "Drafts",
+      "sent": "Sent",
+      "partially_paid": "Partially paid",
+      "paid": "Paid",
+      "overdue": "Overdue"
+    },
+    "filters": {
+      "client": "Client",
+      "date": "Invoice date",
+      "amount": "Amount",
+      "currency": "Currency"
     },
     "columns": {
       "number": "Number",

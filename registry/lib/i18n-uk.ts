@@ -3,6 +3,8 @@
  * Англійський переклад — `i18n-en.ts` з тими самими ключами; паритет перевіряє тест.
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
+
 export const uk = {
   common: {
     close: "Закрити",
@@ -1342,6 +1344,7 @@ export const uk = {
       whole: "Лише ціле число",
     },
   },
+  ...ukLists,
 }
 
 export type ErpUiMessages = typeof uk

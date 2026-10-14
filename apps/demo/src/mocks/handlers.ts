@@ -6,6 +6,7 @@ import {
   createResourceHandlers,
   subscribeMockEvents,
 } from "@/registry/lib/mocks"
+import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 
 import { INVOICE_COUNT, invoiceSchema, makeInvoices } from "@/data/invoices"
 
@@ -109,6 +110,7 @@ export const handlers = [
     notificationChannels: NOTIFICATION_CHANNELS,
     notificationEvents: NOTIFICATION_EVENTS,
   }),
+  ...createSavedViewHandlers(),
   ...invoices.handlers,
   ...users.handlers,
 ]

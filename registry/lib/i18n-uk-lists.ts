@@ -1,0 +1,60 @@
+/**
+ * Рядки кіта для списків (вкладки-статуси, FilterBar, збережені види; ADR-0017) українською.
+ * Окремий модуль, щоб не роздувати `i18n-uk.ts`; підключається туди ж, у простір імен `erp-ui`.
+ * Англійська — `i18n-en-lists.ts`.
+ */
+export const ukLists = {
+  filterBar: {
+    filters: "Фільтри",
+    activeCount_one: "{{count}} активний",
+    activeCount_few: "{{count}} активні",
+    activeCount_many: "{{count}} активних",
+    activeCount_other: "{{count}} активного",
+    active: "Активні фільтри",
+    remove: "Прибрати фільтр «{{label}}»",
+    clearAll: "Скинути фільтри",
+    clearDraft: "Очистити",
+    apply: "Застосувати",
+    from: "Від",
+    to: "До",
+    fromValue: "від {{value}}",
+    toValue: "до {{value}}",
+    between: "від {{from}} до {{to}}",
+    rangeIssue: "Початок не може бути більшим за кінець",
+  },
+  savedViews: {
+    label: "Вид списку",
+    menu: "Види списку",
+    standard: "Стандартний",
+    modified: "змінено",
+    byDefault: "за замовчуванням",
+    save: "Зберегти зміни у виді",
+    saveAs: "Зберегти як новий вид…",
+    rename: "Перейменувати…",
+    makeDefault: "Відкривати за замовчуванням",
+    delete: "Видалити вид",
+    loading: "Завантажуємо види…",
+    loadFailed: "Не вдалося завантажити види",
+    retry: "Спробувати ще",
+    created: "Вид «{{name}}» збережено",
+    updated: "Зміни збережено у виді «{{name}}»",
+    renamed: "Вид перейменовано на «{{name}}»",
+    defaultSet: "«{{name}}» відкриватиметься за замовчуванням",
+    deleted: "Вид «{{name}}» видалено",
+    restored: "Вид «{{name}}» відновлено",
+    failed: "Не вдалося зберегти вид: {{message}}",
+    deleteFailed: "Не вдалося видалити вид: {{message}}",
+    dialog: {
+      createTitle: "Новий вид",
+      createDescription:
+        "Вид запам'ятає вкладку, фільтри, пошук і сортування. Його бачите лише ви.",
+      renameTitle: "Перейменувати вид",
+      name: "Назва",
+      isDefault: "Відкривати цей вид за замовчуванням",
+      submit: "Зберегти",
+      cancel: "Скасувати",
+      duplicate: "Вид із такою назвою вже є",
+      tooLong: "Не довше {{max}} символів",
+    },
+  },
+}

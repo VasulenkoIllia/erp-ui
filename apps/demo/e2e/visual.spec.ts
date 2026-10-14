@@ -811,3 +811,83 @@ test.describe("скриншоти кроку 0.6b @screenshots", () => {
       })
     })
 })
+
+// Крок 0.6c1 (ADR-0017): вкладки-статуси, FilterBar із чипами, панель фільтрів, збережені види.
+test.describe("скриншоти кроку 0.6c1 @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const shot = (page: Page, name: string, fullPage = false) =>
+    page.screenshot({ path: path.join(shotsDir, `${name}.png`), fullPage })
+  /** Вкладка «Прострочені» і клієнт «ПП «Агросвіт»» через адресу — як посилання від колеги. */
+  const FILTERED =
+    "/#/data?tab=overdue&client=%D0%9F%D0%9F+%C2%AB%D0%90%D0%B3%D1%80%D0%BE%D1%81%D0%B2%D1%96%D1%82%C2%BB"
+
+  for (const theme of THEMES)
+    test(`filters-views graphite ${theme} 1440`, async ({ page }) => {
+      test.skip(only("filters"))
+      await page.setViewportSize({ width: 1440, height: HEIGHTS[1440] ?? 900 })
+      await openWith(page, { palette: "graphite", theme }, FILTERED)
+      await settle(page, "data")
+      await page.getByRole("button", { name: /^Вид списку:/ }).click()
+      await page
+        .getByRole("menuitem", { name: "Зберегти як новий вид…" })
+        .click()
+      const dialog = page.getByRole("dialog", { name: "Новий вид" })
+      await dialog.getByLabel("Назва").fill("Прострочені Агросвіт")
+      await dialog.getByRole("button", { name: "Зберегти" }).click()
+      await expect(dialog).toBeHidden()
+      await page.getByRole("button", { name: /^Вид списку:/ }).click()
+      await expect(page.getByRole("menu")).toBeVisible()
+      await expectNoA11yViolations(page)
+      await shot(page, `filters-views-graphite-${theme}-1440`)
+    })
+
+  for (const theme of THEMES)
+    test(`filters-panel sapphire ${theme} 768`, async ({ page }) => {
+      test.skip(only("filters"))
+      await page.setViewportSize({ width: 768, height: HEIGHTS[768] ?? 900 })
+      await openWith(page, { palette: "sapphire", theme }, FILTERED)
+      await settle(page, "data")
+      await page.getByRole("button", { name: /^Фільтри/ }).click()
+      const panel = page.getByRole("dialog", { name: "Фільтри" })
+      await panel.getByLabel("Від", { exact: true }).fill("50000")
+      await expectNoA11yViolations(page)
+      await shot(page, `filters-panel-sapphire-${theme}-768`)
+    })
+
+  for (const theme of THEMES) {
+    test(`filters-sheet sapphire ${theme} 390`, async ({ page }) => {
+      test.skip(only("filters"))
+      await page.setViewportSize({ width: 390, height: HEIGHTS[390] ?? 844 })
+      await openWith(page, { palette: "sapphire", theme }, FILTERED)
+      await settle(page, "data")
+      await page.getByRole("button", { name: /^Фільтри/ }).click()
+      await expect(page.getByRole("dialog", { name: "Фільтри" })).toBeVisible()
+      await expectNoA11yViolations(page)
+      await shot(page, `filters-sheet-sapphire-${theme}-390`)
+    })
+
+    test(`filters-chips sapphire ${theme} 390`, async ({ page }) => {
+      test.skip(only("filters"))
+      await page.setViewportSize({ width: 390, height: HEIGHTS[390] ?? 844 })
+      await openWith(page, { palette: "sapphire", theme }, FILTERED)
+      await settle(page, "data")
+      await expectNoA11yViolations(page)
+      await shot(page, `filters-chips-sapphire-${theme}-390`)
+    })
+  }
+
+  test("filters-chips sapphire light 1440 en", async ({ page }) => {
+    test.skip(only("filters"))
+    await page.setViewportSize({ width: 1440, height: HEIGHTS[1440] ?? 900 })
+    await openWith(
+      page,
+      { palette: "sapphire", theme: "light", language: "en" },
+      FILTERED,
+    )
+    await expect(listStatus(page)).toHaveText(/\d invoice/)
+    await expectNoA11yViolations(page)
+    await shot(page, "filters-chips-sapphire-light-1440-en")
+  })
+})

@@ -47,8 +47,7 @@ test.describe("дані: список рахунків", () => {
       .allTextContents())
       expect(client).toContain("Агросвіт")
 
-    await page.getByRole("combobox", { name: "Статус рахунків" }).click()
-    await page.getByRole("option", { name: "Прострочено" }).click()
+    await page.getByRole("tab", { name: /^Прострочені/ }).click()
     // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
     const statuses = rows(page).locator('[aria-colindex="6"]')
     await expect(statuses.first()).toHaveText("Прострочено")

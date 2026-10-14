@@ -1,24 +1,18 @@
-import { Search } from "lucide-react"
-import {
-  useAuthenticated,
-  useCanAccess,
-  useUpdate,
-  type SortPayload,
-} from "ra-core"
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react"
+import { useAuthenticated, useCanAccess, useUpdate } from "ra-core"
+import { useId, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
+import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
 import { ConflictDialog } from "@/registry/erp/conflict-dialog"
+import { FilterBar } from "@/registry/erp/filter-bar"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
+import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
+import { StatusTabs } from "@/registry/erp/status-tabs"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
+import { useListCounts } from "@/registry/hooks/use-list-counts"
+import { useListState } from "@/registry/hooks/use-list-state"
+import { useSavedViews } from "@/registry/hooks/use-saved-views"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -35,11 +29,6 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/registry/ui/input-group"
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -54,6 +43,7 @@ import {
   type InvoiceStatus,
 } from "@/data/invoices"
 
+import { INVOICE_LIST_DEFAULTS, useInvoiceListSetup } from "./invoice-filters"
 import { InvoiceTable, type InvoiceTableProps } from "./invoice-table"
 import { PageHeader } from "./PageHeader"
 
@@ -61,26 +51,13 @@ const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 
 const RESOURCE = "invoices"
 
-type StatusFilter = InvoiceStatus | "all"
 type ViewMode = "scroll" | "pages"
 
-function useDebounced<T>(value: T, ms: number): T {
-  const [debounced, setDebounced] = useState(value)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounced(value)
-    }, ms)
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [value, ms])
-  return debounced
-}
-
 /**
- * Стрес-сторінка (SPEC §18.1, крок 0.6b): 10 000 рахунків з мок-сервера через ra-core у
+ * Стрес-сторінка (SPEC §18.1, кроки 0.6b і 0.6c): 10 000 рахунків з мок-сервера через ra-core у
  * erp/data-table. Прокрутка вікнами по 100 (useWindowedList) або звичайні сторінки (useGetList),
- * фільтри й сортування на сервері, права на редагування, збереження з версією й діалог конфлікту.
+ * вкладки-статуси з лічильниками, FilterBar із чипами, особисті збережені види, стан списку в
+ * адресі, права на редагування, збереження з версією й діалог конфлікту.
  */
 export function DataPage() {
   const t = usePageT()
@@ -96,14 +73,21 @@ export function DataPage() {
 
 function InvoiceList() {
   const t = usePageT()
-  const ids = useId()
   const { data: me } = useMe()
-  const [status, setStatus] = useState<StatusFilter>("all")
-  const [search, setSearch] = useState("")
-  const query = useDebounced(search.trim(), 300)
-  const [sort, setSort] = useState<SortPayload>({
-    field: "date",
-    order: "DESC",
+  const { tabs, filters } = useInvoiceListSetup()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const views = useSavedViews(RESOURCE)
+  const list = useListState({
+    params: searchParams,
+    onParamsChange: setSearchParams,
+    defaults: INVOICE_LIST_DEFAULTS,
+    tabs,
+    filters,
+    views: views.views,
+    viewsFailed: Boolean(views.error),
+  })
+  const counts = useListCounts(RESOURCE, list.state.filter, tabs, {
+    enabled: list.isReady,
   })
   const [view, setView] = useState<ViewMode>("scroll")
   const [editing, setEditing] = useState<Invoice | null>(null)
@@ -112,35 +96,17 @@ function InvoiceList() {
     action: "edit",
   })
 
-  const filter = useMemo(
-    () => ({
-      ...(status === "all" ? {} : { status }),
-      ...(query ? { q: query } : {}),
-    }),
-    [status, query],
-  )
-  const resetFilters = useCallback(() => {
-    setSearch("")
-    setStatus("all")
-  }, [])
-
-  const statusItems = [
-    { value: "all", label: t("all") },
-    ...INVOICE_STATUSES.map((value) => ({
-      value,
-      label: t(`statuses.${value}`),
-    })),
-  ]
-
   const listProps: InvoiceTableProps = {
     view,
     canEdit: canEdit === true,
     onEdit: setEditing,
-    filter,
-    sort,
-    onSortChange: setSort,
-    isFiltered: status !== "all" || query !== "",
-    onResetFilters: resetFilters,
+    filter: list.queryFilter,
+    sort: list.state.sort,
+    onSortChange: list.setSort,
+    isFiltered: list.isFiltered,
+    onResetFilters: () => {
+      list.applyView(null)
+    },
     empty: (
       <PageState
         kind="empty"
@@ -171,72 +137,30 @@ function InvoiceList() {
           })}
         </p>
       ) : null}
-      <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-end">
-        <Field className="@2xl:max-w-sm">
-          <FieldLabel htmlFor={`${ids}-search`} className="sr-only">
-            {t("search")}
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupAddon>
-              <Search aria-hidden />
-            </InputGroupAddon>
-            <InputGroupInput
-              id={`${ids}-search`}
-              type="search"
-              placeholder={t("search")}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value)
-              }}
-            />
-          </InputGroup>
-        </Field>
-        {/* На телефоні статус і подання — в одному рядку, щоб списку лишилось більше місця. */}
-        <div className="flex items-end gap-3 @2xl:contents">
-          <Field className="min-w-0 flex-1 @2xl:w-56 @2xl:flex-none">
-            <FieldLabel htmlFor={`${ids}-status`} className="sr-only">
-              {t("statusFilter")}
-            </FieldLabel>
-            <Select
-              items={statusItems}
-              value={status}
-              onValueChange={(value: StatusFilter | null) => {
-                setStatus(value ?? "all")
-              }}
-            >
-              <SelectTrigger id={`${ids}-status`} className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {statusItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <div
-            role="group"
-            aria-label={t("view.label")}
-            className="flex shrink-0 gap-1 @2xl:ms-auto"
-          >
-            {(["scroll", "pages"] as const).map((mode) => (
-              <Button
-                key={mode}
-                variant={view === mode ? "secondary" : "ghost"}
-                aria-pressed={view === mode}
-                onClick={() => {
-                  setView(mode)
-                }}
-              >
-                {t(`view.${mode}`)}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-      <InvoiceTable {...listProps} />
+      <StatusTabs
+        label={t("statusFilter")}
+        tabs={tabs}
+        value={list.state.tab}
+        onValueChange={list.setTab}
+        counts={counts}
+      />
+      <FilterBar
+        filters={filters}
+        value={list.state.filter}
+        onValueChange={list.setFilter}
+        searchPlaceholder={t("search")}
+        actions={
+          <>
+            <SavedViewsMenu resource={RESOURCE} views={views} list={list} />
+            <ViewModeToggle value={view} onValueChange={setView} />
+          </>
+        }
+      />
+      {list.isReady ? (
+        <InvoiceTable {...listProps} />
+      ) : (
+        <PageSkeleton rows={8} />
+      )}
       {editing ? (
         <EditInvoiceDialog
           key={`${editing.id}-${String(editing.version)}`}
@@ -247,6 +171,37 @@ function InvoiceList() {
           }}
         />
       ) : null}
+    </div>
+  )
+}
+
+/** Прокрутка вікнами (великий список) чи сторінки (малий) — для порівняння на стрес-сторінці. */
+function ViewModeToggle({
+  value,
+  onValueChange,
+}: {
+  value: ViewMode
+  onValueChange: (mode: ViewMode) => void
+}) {
+  const t = usePageT()
+  return (
+    <div
+      role="group"
+      aria-label={t("view.label")}
+      className="flex shrink-0 gap-1"
+    >
+      {(["scroll", "pages"] as const).map((mode) => (
+        <Button
+          key={mode}
+          variant={value === mode ? "secondary" : "ghost"}
+          aria-pressed={value === mode}
+          onClick={() => {
+            onValueChange(mode)
+          }}
+        >
+          {t(`view.${mode}`)}
+        </Button>
+      ))}
     </div>
   )
 }

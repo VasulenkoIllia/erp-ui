@@ -128,15 +128,20 @@ async function calibratedSlowdown(
   }
 }
 
-/** Дії, які людина робить зі списком: пошук, фільтр, сортування, палітра команд. */
+/** Дії, які людина робить зі списком: пошук, вкладка, фільтр, сортування, палітра команд. */
 async function interactWithList(page: Page) {
   const search = page.getByRole("searchbox", {
     name: "Пошук за номером чи клієнтом",
   })
   await search.click()
   await search.pressSequentially("Агро", { delay: 120 })
-  await page.getByRole("combobox", { name: "Статус рахунків" }).click()
-  await page.getByRole("option", { name: "Прострочено" }).click()
+  await page.getByRole("tab", { name: /^Прострочені/ }).click()
+  // Панель фільтрів на телефоні — шторка: відкрити, вибрати клієнта, застосувати.
+  await page.getByRole("button", { name: /^Фільтри/ }).click()
+  const filters = page.getByRole("dialog", { name: "Фільтри" })
+  await filters.getByRole("checkbox", { name: "ПП «Агросвіт»" }).click()
+  await filters.getByRole("button", { name: "Застосувати" }).click()
+  await expect(filters).toBeHidden()
   // На 390 px таблиця — картки: сортування з рядка стану, а не із заголовка колонки.
   await page.getByRole("combobox", { name: "Сортування" }).click()
   await page.getByRole("option", { name: "Сума, за спаданням" }).click()
