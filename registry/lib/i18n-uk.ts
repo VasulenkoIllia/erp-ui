@@ -1320,6 +1320,7 @@ export const uk = {
     number: {
       min: "Не менше {{min}}",
       max: "Не більше {{max}}",
+      whole: "Лише ціле число",
     },
   },
 }

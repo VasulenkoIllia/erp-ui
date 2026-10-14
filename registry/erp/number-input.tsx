@@ -3,6 +3,7 @@
 import * as React from "react"
 import { NumericFormat, type NumberFormatValues } from "react-number-format"
 
+import { NumberGroup, useWholeNumberGuard } from "@/registry/erp/number-group"
 import {
   currencyDigits,
   currencyLabel,
@@ -13,7 +14,6 @@ import {
 } from "@/registry/lib/format"
 import { useLanguage } from "@/registry/lib/i18n"
 import {
-  InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
@@ -25,6 +25,9 @@ import {
  * - Розряди й дріб — як у мові інтерфейсу: «48 600,50» (uk), «48,600.50» (en-GB). Кома й крапка з
  *   клавіатури — дробова частина, якщо символ не є роздільником розрядів (у en-GB кома — розряди);
  *   зайві знаки після коми не вводяться; цілих розрядів — не більше 15.
+ * - Поле без дробу (ціле число, валюта без копійок): кома, крапка й дріб не вводяться, під полем
+ *   спливає підказка «Лише ціле число» (розкладку не зсуває) і її озвучує скрінрідер
+ *   (`erp/number-group`).
  * - `MoneyInput` — сума в цілих мінорних одиницях (`Money`, SPEC §17): копійки без похибок float;
  *   знаків після коми стільки, скільки у валюти (UAH 2, JPY 0). Валюта — підписом у полі: «₴», «USD».
  * - `NumberInput` — кількість, відсоток, ціна за одиницю: `number | null`, одиниця — підписом (`unit`).
@@ -126,6 +129,11 @@ function MoneyInput({
   const code = currency.toUpperCase()
   const digits = currencyDigits(code)
   const numeric = useNumericProps(digits, allowNegative)
+  const { guard, hinted, hide } = useWholeNumberGuard(
+    digits === 0,
+    numeric.allowedDecimalSeparators,
+    props,
+  )
   const amountOf = (text: string) =>
     isIncomplete(text) ? null : decimalToMinor(text, digits)
   const [shown, setDraft] = useDraft(
@@ -136,10 +144,16 @@ function MoneyInput({
     (a, b) => (a === null || b === null ? a === b : BigInt(a) === BigInt(b)),
   )
   return (
-    <InputGroup className={className}>
+    <NumberGroup
+      isWhole={digits === 0}
+      hinted={hinted}
+      onDismiss={hide}
+      className={className}
+    >
       <NumericFormat
         {...numeric}
         {...props}
+        {...guard}
         // react-number-format перезаписує `ref` своїм — передаємо через getInputRef.
         getInputRef={ref}
         aria-describedby={describedBy(unitId, props["aria-describedby"])}
@@ -160,7 +174,7 @@ function MoneyInput({
           {currencyLabel(code, locale)}
         </InputGroupText>
       </InputGroupAddon>
-    </InputGroup>
+    </NumberGroup>
   )
 }
 
@@ -186,6 +200,11 @@ function NumberInput({
 }: NumberInputProps) {
   const unitId = React.useId()
   const numeric = useNumericProps(decimalScale, allowNegative)
+  const { guard, hinted, hide } = useWholeNumberGuard(
+    decimalScale === 0,
+    numeric.allowedDecimalSeparators,
+    props,
+  )
   const [shown, setDraft] = useDraft(
     value,
     (number) => (number === null ? "" : String(number)),
@@ -193,10 +212,16 @@ function NumberInput({
     (a, b) => a === b,
   )
   return (
-    <InputGroup className={className}>
+    <NumberGroup
+      isWhole={decimalScale === 0}
+      hinted={hinted}
+      onDismiss={hide}
+      className={className}
+    >
       <NumericFormat
         {...numeric}
         {...props}
+        {...guard}
         getInputRef={ref}
         aria-describedby={describedBy(
           unit ? unitId : undefined,
@@ -218,7 +243,7 @@ function NumberInput({
           <InputGroupText id={unitId}>{unit}</InputGroupText>
         </InputGroupAddon>
       ) : null}
-    </InputGroup>
+    </NumberGroup>
   )
 }
 

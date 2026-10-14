@@ -92,7 +92,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/d
 - Над полями — `FormErrorSummary` (`errors`, `submitCount`, `labels`); під формою — `UnsavedChangesGuard when={isDirty}` (і під час збереження: після успіху перехід відбудеться сам).
 - «Зберегти» не вимикайте: лише `disabled={isSubmitting} focusableWhenDisabled`. Помилки полів від сервера (422) — `form.setError(name, { type: "server", message })`.
 - Дата — `DateInput` зі значенням `"2026-10-13"` або `""`; неповне введення приходить текстом, текст помилки для схеми — `useDateIssueText()(value, { min, max })` (null — помилки немає). Період — `DateRangeInput` (`{ from, to }` або `null`), час — `TimeInput`.
-- Сума — `MoneyInput` зі значенням `Money` (цілі копійки й валюта) або `null`; число — `NumberInput`. Сума прописом для документів — `amountInWords(money, "uk")` з `lib/amount-in-words`.
+- Сума — `MoneyInput` зі значенням `Money` (цілі копійки й валюта) або `null`; число — `NumberInput` (за замовчуванням ціле: кома й дріб не вводяться, під полем спливає «Лише ціле число»; дріб — `decimalScale`). Сума прописом для документів — `amountInWords(money, "uk")` з `lib/amount-in-words`.
 - Підтвердження: зворотна дія — `useUndoToast()`; видалення — `ConfirmDialog` з кнопкою, що називає наслідок; критична дія — ще й `confirmWord`.
 - Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`React.lazy`).
 

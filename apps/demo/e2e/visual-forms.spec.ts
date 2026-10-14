@@ -59,6 +59,30 @@ test.describe("скриншоти кроку 0.5d @screenshots", () => {
       await shot(page, `range-${suffix}`)
     })
 
+    // Крок 0.5d-fix: кома в полі без дробу — підказка під полем.
+    test(`whole-number ${suffix}`, async ({ page }) => {
+      test.skip(only("whole-number"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme }, "/#/fields")
+      const input = page
+        .locator("[data-slot=field]")
+        .filter({ has: page.getByText("Кількість", { exact: true }) })
+        .getByRole("textbox")
+      await input.fill("")
+      // Поле посередині екрана: підказка під ним, як зазвичай (біля краю вона над полем).
+      await input.evaluate((el) => {
+        el.scrollIntoView({ block: "center" })
+      })
+      await input.pressSequentially("12,5")
+      const tooltip = page.locator("[data-slot=tooltip-content]")
+      await expect(tooltip).toHaveText("Лише ціле число")
+      await tooltip.evaluate((el) =>
+        Promise.all(el.getAnimations().map((animation) => animation.finished)),
+      )
+      await expectNoA11yViolations(page)
+      await shot(page, `whole-number-${suffix}`)
+    })
+
     test(`form-errors ${suffix}`, async ({ page }) => {
       test.skip(only("form-errors"))
       await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })

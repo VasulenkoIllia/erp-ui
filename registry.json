@@ -10184,10 +10184,85 @@
       }
     },
     {
+      "name": "erp/number-group",
+      "type": "registry:component",
+      "title": "Група поля числа",
+      "description": "Частина erp/number-input: група поля й захист поля без дробу (кома й дріб не вводяться, не зливають цифри); підказка «Лише ціле число» спливає під полем, не зсуваючи розкладку, і озвучується.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI21",
+          "§10",
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "erp/number-input",
       "type": "registry:component",
       "title": "Поля числа й суми",
-      "description": "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код) і NumberInput (кількість, відсоток, одиниця); розряди й кома — за мовою інтерфейсу.",
+      "description": "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код) і NumberInput (кількість, відсоток, одиниця); розряди й кома — за мовою інтерфейсу; у полі без дробу кома не вводиться, спливає підказка «Лише ціле число».",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -10201,6 +10276,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
         },
         {
           "path": "registry/lib/format.ts",
@@ -10251,6 +10331,11 @@
           "path": "registry/ui/textarea.tsx",
           "type": "registry:ui",
           "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
         }
       ],
       "meta": {

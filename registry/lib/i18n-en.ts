@@ -1308,6 +1308,7 @@ export const en = {
     number: {
       min: "At least {{min}}",
       max: "At most {{max}}",
+      whole: "Whole numbers only",
     },
   },
 } satisfies ErpUiTranslation

@@ -1,5 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { act, render, screen, waitFor, within } from "@testing-library/react"
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -10,9 +17,14 @@ import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { DateInput, TimeInput } from "@/registry/erp/date-input"
 import { DateRangeInput } from "@/registry/erp/date-range-input"
 import { FormErrorSummary, FormField } from "@/registry/erp/form"
-import { MoneyInput, NumberInput } from "@/registry/erp/number-input"
+import {
+  MoneyInput,
+  NumberInput,
+  type NumberInputProps,
+} from "@/registry/erp/number-input"
 import type { DateRange } from "@/registry/lib/dates"
 import type { Money } from "@/registry/lib/format"
+import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
 import { Input } from "@/registry/ui/input"
 
 import { createDemoI18n } from "@/i18n"
@@ -232,9 +244,16 @@ describe("MoneyInput і NumberInput", () => {
     expect(screen.getByText("USD")).toBeInTheDocument()
   })
 
-  it("ціле число не приймає дробу; одиниця — поруч", async () => {
-    const user = userEvent.setup()
-    function Quantity() {
+  describe("поле без дробу", () => {
+    const HINT = "Лише ціле число"
+
+    /** Live-регіон підказки всередині групи поля. */
+    const hintOf = (input: HTMLElement) =>
+      within(
+        input.closest<HTMLElement>("[data-slot=input-group]") ?? document.body,
+      ).getByRole("status")
+
+    function Quantity(props: Partial<NumberInputProps>) {
       const [value, setValue] = useState<number | null>(null)
       return (
         <>
@@ -243,15 +262,175 @@ describe("MoneyInput і NumberInput", () => {
             unit="шт."
             value={value}
             onValueChange={setValue}
+            {...props}
           />
-          <output>{String(value)}</output>
+          <output aria-label="Значення">{String(value)}</output>
         </>
       )
     }
-    render(<Quantity />)
-    await user.type(screen.getByRole("textbox", { name: "Кількість" }), "12,5")
-    expect(screen.getByRole("status")).toHaveTextContent("125")
-    expect(screen.getByText("шт.")).toBeInTheDocument()
+
+    it("кома й цифри дробу не вводяться (не 125), підказка; одиниця — поруч", async () => {
+      const user = userEvent.setup()
+      render(<Quantity />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "12,5")
+      expect(input).toHaveValue("12")
+      expect(
+        screen.getByRole("status", { name: "Значення" }),
+      ).toHaveTextContent(/^12$/)
+      expect(hintOf(input)).toHaveTextContent(HINT)
+      expect(screen.getByText("шт.")).toBeInTheDocument()
+
+      // Пробіл між комою й цифрою дробу не закінчує: «12, 5» — теж не 125.
+      await user.keyboard(", 5")
+      expect(input).toHaveValue("12")
+
+      // Стерли — цифри знову вводяться, підказка зникає (без кліку: перевіряємо саму клавішу).
+      await user.keyboard("{Backspace}3")
+      expect(input).toHaveValue("13")
+      expect(hintOf(input)).toBeEmptyDOMElement()
+    })
+
+    it("виділений текст після коми замінюється цифрою", async () => {
+      const user = userEvent.setup()
+      render(<Quantity />)
+      const input = screen.getByRole<HTMLInputElement>("textbox", {
+        name: "Кількість",
+      })
+      await user.type(input, "12,")
+      input.setSelectionRange(0, input.value.length)
+      await user.keyboard("7")
+      expect(input).toHaveValue("7")
+      expect(hintOf(input)).toBeEmptyDOMElement()
+    })
+
+    it("вставлений дріб не вводиться (ні 75, ні 7), ціле — вводиться", async () => {
+      const user = userEvent.setup()
+      render(<Quantity />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.click(input)
+      await user.paste("7.5")
+      expect(input).toHaveValue("")
+      expect(hintOf(input)).toHaveTextContent(HINT)
+      await user.paste("7")
+      expect(input).toHaveValue("7")
+    })
+
+    it("символ без keydown (Android, «Unidentified») теж перевіряється", () => {
+      render(<Quantity />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      // false — подію скасовано: символ не потрапить у поле.
+      const press = (char: string) => {
+        fireEvent.keyDown(input, { key: "Unidentified" })
+        return fireEvent.keyPress(input, {
+          key: char,
+          charCode: char.charCodeAt(0),
+          which: char.charCodeAt(0),
+        })
+      }
+      expect(press(",")).toBe(false)
+      expect(hintOf(input)).toHaveTextContent(HINT)
+      expect(press("5")).toBe(false)
+    })
+
+    it("перенесли каретку стрілками — цифри знову вводяться", async () => {
+      const user = userEvent.setup()
+      render(<Quantity />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "1,")
+      await user.keyboard("{ArrowLeft}{ArrowRight}2")
+      expect(input).toHaveValue("12")
+      expect(hintOf(input)).toBeEmptyDOMElement()
+    })
+
+    it("Escape ховає підказку, наступний — закриває діалог", async () => {
+      const user = userEvent.setup()
+      const onOpenChange = vi.fn()
+      render(
+        <Dialog open onOpenChange={onOpenChange}>
+          <DialogContent>
+            <DialogTitle>Позиція</DialogTitle>
+            <Quantity />
+          </DialogContent>
+        </Dialog>,
+      )
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "1,")
+      expect(hintOf(input)).toHaveTextContent(HINT)
+      await user.keyboard("{Escape}")
+      expect(hintOf(input)).toBeEmptyDOMElement()
+      expect(onOpenChange).not.toHaveBeenCalled()
+      await user.keyboard("{Escape}")
+      expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+    })
+
+    it("клавішу, яку вже обробив власник поля, не чіпає", async () => {
+      const user = userEvent.setup()
+      render(
+        <Quantity
+          onKeyDown={(event) => {
+            if (event.key === ",") event.preventDefault()
+          }}
+        />,
+      )
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "1,")
+      expect(input).toHaveValue("1")
+      expect(hintOf(input)).toBeEmptyDOMElement()
+    })
+
+    it("лише читання — без підказки; обробники власника поля викликаються", async () => {
+      const user = userEvent.setup()
+      const onKeyDown = vi.fn<(event: { key: string }) => void>()
+      const onBlur = vi.fn()
+      const { unmount } = render(<Quantity readOnly />)
+      const readOnly = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(readOnly, ",")
+      expect(hintOf(readOnly)).toBeEmptyDOMElement()
+      unmount()
+
+      render(<Quantity onKeyDown={onKeyDown} onBlur={onBlur} />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "1,")
+      await user.tab()
+      expect(onKeyDown.mock.calls.map(([event]) => event.key)).toEqual([
+        "1",
+        ",",
+        "Tab",
+      ])
+      expect(onBlur).toHaveBeenCalledTimes(1)
+      expect(hintOf(input)).toBeEmptyDOMElement()
+    })
+
+    it("поле з дробом приймає «12,5» і підказки не має", async () => {
+      const user = userEvent.setup()
+      render(<Quantity decimalScale={2} />)
+      const input = screen.getByRole("textbox", { name: "Кількість" })
+      await user.type(input, "12,5")
+      expect(input).toHaveValue("12,5")
+      expect(screen.getAllByRole("status")).toHaveLength(1)
+    })
+
+    it("валюта без копійок теж; en-GB: кома — розряди", async () => {
+      createDemoI18n("en")
+      const user = userEvent.setup()
+      function Amount() {
+        const [value, setValue] = useState<Money | null>(null)
+        return (
+          <MoneyInput
+            aria-label="Amount"
+            currency="JPY"
+            value={value}
+            onValueChange={setValue}
+          />
+        )
+      }
+      render(<Amount />)
+      const input = screen.getByRole("textbox", { name: "Amount" })
+      await user.type(input, "1,200.5")
+      expect(input).toHaveValue("1,200")
+      expect(hintOf(input)).toHaveTextContent("Whole numbers only")
+    })
   })
 })
 

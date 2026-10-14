@@ -210,6 +210,49 @@ test.describe("дати й числа: поведінка", () => {
     await expect(quantity.getByText("Не менше 1")).toBeHidden()
   })
 
+  test("ціле число: кома й дріб не вводяться (не 125), підказка під полем", async ({
+    page,
+  }) => {
+    await openWith(page, {}, PATH)
+    const quantity = field(page, "Кількість")
+    const input = quantity.getByRole("textbox")
+    await input.fill("")
+    await input.pressSequentially("12,5")
+    await expect(input).toHaveValue("12")
+    await expect(
+      quantity.getByText("Зберігається: 12", { exact: true }),
+    ).toBeVisible()
+    // Підказка спливає під полем (не зсуває розкладку) і є в live-регіоні групи.
+    const tooltip = page.locator("[data-slot=tooltip-content]")
+    await expect(tooltip).toHaveText("Лише ціле число")
+    await expect(quantity.getByRole("status")).toHaveText("Лише ціле число")
+    // Під полем, а біля краю вікна — над ним; поле не перекриває (після анімації появи).
+    const group = quantity.getByRole("group").first()
+    await expect
+      .poll(async () => {
+        const box = await group.boundingBox()
+        const bubble = await tooltip.boundingBox()
+        if (!box || !bubble) return false
+        return (
+          bubble.y >= box.y + box.height || bubble.y + bubble.height <= box.y
+        )
+      })
+      .toBe(true)
+    await expectNoA11yViolations(page)
+    // Вийшли з поля — підказка зникає, число лишається.
+    await input.press("Tab")
+    await expect(tooltip).toBeHidden()
+    await expect(quantity.getByRole("status")).toHaveText("")
+    await expect(input).toHaveValue("12")
+
+    // Поле з дробом приймає кому.
+    const discount = field(page, "Знижка").getByRole("textbox")
+    await discount.fill("")
+    await discount.pressSequentially("7,5")
+    await expect(discount).toHaveValue("7,5")
+    await expect(tooltip).toBeHidden()
+  })
+
   test("англійська: «dd/mm/yyyy», розряди комою", async ({ page }) => {
     await openWith(page, { language: "en" }, PATH)
     const input = field(page, "Document date").getByRole("textbox")
