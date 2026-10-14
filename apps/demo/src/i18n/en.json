@@ -17,7 +17,9 @@
       "integrations": "Integrations",
       "inbox": "Notifications",
       "roles": "Roles & permissions",
-      "company": "Company"
+      "company": "Company",
+      "fields": "Dates & numbers",
+      "forms": "Forms"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -172,7 +174,9 @@
       },
       "isoWeek": "ISO week",
       "isoWeekValue": "Week {{week}} of {{year}}",
-      "calendarDate": "Calendar date “{{value}}” does not shift with the time zone"
+      "calendarDate": "Calendar date “{{value}}” does not shift with the time zone",
+      "range": "Period",
+      "rangeYears": "Period across years"
     },
     "relative": {
       "title": "Relative time",
@@ -190,6 +194,22 @@
       "stored": "Stored as: {{value}}",
       "bank": "Bank code (MFO): {{code}}",
       "valid": "Checksum matches"
+    },
+    "words": {
+      "title": "Amount in words",
+      "description": "For invoices, certificates and contracts. The document language is set apart from the interface language; minor units are digits.",
+      "amount": "Amount",
+      "uk": "Ukrainian",
+      "en": "English"
+    },
+    "zones": {
+      "title": "Time zones",
+      "description": "Timestamps use the time zone from the user's profile; calendar dates are not shifted (SPEC §11).",
+      "yours": "Your time zone",
+      "device": "device time zone ({{zone}})",
+      "now": "Event in your time zone",
+      "kyiv": "In Kyiv",
+      "warsaw": "In Warsaw"
     }
   },
   "controls": {
@@ -407,5 +427,91 @@
   "inboxPage": {
     "title": "Notifications",
     "lead": "Everything the app told you: overdue invoices, mentions, tasks, security events. Which events and channels — in “Notification settings”."
+  },
+  "fieldsPage": {
+    "title": "Dates & numbers",
+    "lead": "Date field with keyboard entry and a calendar, period with presets, time, amounts and numbers in the interface language format (UI39, SPEC §11).",
+    "stored": "Stored: {{value}}",
+    "dates": {
+      "title": "Date field",
+      "description": "Type the digits, separators appear by themselves; the calendar opens with the button next to it. Checked when you leave the field.",
+      "empty": "Document date",
+      "filled": "Contract date",
+      "invalid": "Date that does not exist",
+      "bounded": "Due date: from today to +90 days",
+      "readOnly": "Read-only",
+      "disabled": "Disabled"
+    },
+    "time": {
+      "title": "Time",
+      "description": "24 hours, from 00:00 to 23:59.",
+      "start": "Meeting starts"
+    },
+    "range": {
+      "title": "Period",
+      "description": "A preset applies at once; the calendar and the From/To fields apply with Done.",
+      "any": "Any period",
+      "month": "This month",
+      "readOnly": "Read-only"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Weeks start on Monday, ISO week numbers, “today” in the user's time zone.",
+      "single": "Single day",
+      "range": "Range"
+    },
+    "numbers": {
+      "title": "Amounts & numbers",
+      "description": "Amounts are whole minor units plus a currency; grouping and decimals follow the interface language.",
+      "uah": "Amount in hryvnias",
+      "usd": "Amount in dollars",
+      "quantity": "Quantity",
+      "pieces": "pcs",
+      "discount": "Discount",
+      "readOnly": "Read-only",
+      "disabled": "Disabled"
+    }
+  },
+  "formsPage": {
+    "title": "Forms",
+    "lead": "react-hook-form + zod: checks when you leave a field, an error summary, server errors next to the field, unsaved changes protection; three levels of confirmation (ADR-0015, SPEC §8.2, §8.3).",
+    "form": {
+      "title": "Invoice",
+      "description": "Try saving an empty form, entering a taken number or leaving the page without saving.",
+      "number": "Invoice number",
+      "numberHint": "Number {{taken}} is already taken: the server returns an error next to the field.",
+      "counterparty": "Counterparty",
+      "issuedOn": "Invoice date",
+      "dueOn": "Due date",
+      "amount": "Amount",
+      "amountHint": "The amount in words will appear here",
+      "quantity": "Quantity",
+      "pieces": "pcs",
+      "company": "Company",
+      "companyValue": "Pivnichnyi Viter LLC",
+      "companyHint": "Only an administrator can change this, so the field is read-only.",
+      "comment": "Comment",
+      "save": "Save",
+      "saved": "Invoice saved",
+      "noChanges": "No changes to save",
+      "taken": "This number already exists. Choose another"
+    },
+    "confirm": {
+      "title": "Confirming actions",
+      "description": "Three levels (SPEC §8.2): a reversible action shows an Undo toast; deletion asks in a dialog with a button that names the result; a critical action needs a typed word.",
+      "archive": "Archive invoice",
+      "archived": "Invoice archived",
+      "restored": "Invoice restored from the archive",
+      "delete": "Delete 3 invoices",
+      "deleteTitle": "Delete 3 invoices?",
+      "deleteDescription": "Invoices РФ-0012, РФ-0013 and РФ-0014 will be deleted.",
+      "deleted": "3 invoices deleted",
+      "deleteCompany": "Delete company",
+      "deleteCompanyTitle": "Delete the company for good?",
+      "deleteCompanyDescription": "All documents, counterparties and users of the company will be gone. They cannot be restored.",
+      "deleteCompanyConfirm": "Delete the company for good",
+      "word": "DELETE",
+      "companyDeleted": "Company deleted (demo)"
+    }
   }
 }

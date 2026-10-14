@@ -3,6 +3,8 @@ import {
   Bell,
   Blocks,
   Building2,
+  CalendarDays,
+  ClipboardCheck,
   Database,
   Inbox,
   KeySquare,
@@ -99,6 +101,13 @@ import {
 const FormatsPage = lazy(() =>
   import("@/pages/FormatsPage").then((m) => ({ default: m.FormatsPage })),
 )
+// Дати й форми — окремі чанки: календар (react-day-picker, локалі date-fns) і react-hook-form.
+const FieldsPage = lazy(() =>
+  import("@/pages/FieldsPage").then((m) => ({ default: m.FieldsPage })),
+)
+const FormsPage = lazy(() =>
+  import("@/pages/FormsPage").then((m) => ({ default: m.FormsPage })),
+)
 // Безпека акаунта — теж: поле телефону, QR-коди, діалоги налаштування факторів.
 const SecurityPage = lazy(() =>
   import("@/pages/SecurityPage").then((m) => ({ default: m.SecurityPage })),
@@ -140,6 +149,8 @@ const PAGES: Record<Route, React.ComponentType> = {
   appearance: AppearancePage,
   primitives: PrimitivesPage,
   formats: FormatsPage,
+  fields: FieldsPage,
+  forms: FormsPage,
   icons: IconsPage,
   states: StatesPage,
   data: DataPage,
@@ -159,6 +170,8 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   appearance: Palette,
   primitives: Blocks,
   formats: Languages,
+  fields: CalendarDays,
+  forms: ClipboardCheck,
   icons: Shapes,
   states: LayoutTemplate,
   data: Database,

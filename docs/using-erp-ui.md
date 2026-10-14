@@ -80,6 +80,22 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 - Ідентифікатори й телефони: `npx shadcn@latest add VasulenkoIllia/erp-ui/erp/ua-id-input VasulenkoIllia/erp-ui/erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`React.lazy`).
 
+### Форми, дати, суми й підтвердження (ADR-0015)
+
+```sh
+npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/date-input VasulenkoIllia/erp-ui/erp/number-input VasulenkoIllia/erp-ui/erp/confirm-dialog
+```
+
+- Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
+- Пакети `zod` і `@hookform/resolvers` ставить `erp/profile-form`; для своїх форм без нього — `pnpm add zod @hookform/resolvers`.
+- Поле — `FormField` з `control` і `name`; у `render` віддайте `control`-пропси керуванню (`<Input {...control} {...field} />`). Для полів дати, суми й телефону — явно: `ref={field.ref} value={field.value} onValueChange={field.onChange} onBlur={field.onBlur}`. Поле без прав — `readOnly`, не `disabled`. Схема з `.transform`/`z.coerce` — `useForm<Вхід, unknown, Вихід>`.
+- Над полями — `FormErrorSummary` (`errors`, `submitCount`, `labels`); під формою — `UnsavedChangesGuard when={isDirty}` (і під час збереження: після успіху перехід відбудеться сам).
+- «Зберегти» не вимикайте: лише `disabled={isSubmitting} focusableWhenDisabled`. Помилки полів від сервера (422) — `form.setError(name, { type: "server", message })`.
+- Дата — `DateInput` зі значенням `"2026-10-13"` або `""`; неповне введення приходить текстом, текст помилки для схеми — `useDateIssueText()(value, { min, max })` (null — помилки немає). Період — `DateRangeInput` (`{ from, to }` або `null`), час — `TimeInput`.
+- Сума — `MoneyInput` зі значенням `Money` (цілі копійки й валюта) або `null`; число — `NumberInput`. Сума прописом для документів — `amountInWords(money, "uk")` з `lib/amount-in-words`.
+- Підтвердження: зворотна дія — `useUndoToast()`; видалення — `ConfirmDialog` з кнопкою, що називає наслідок; критична дія — ще й `confirmWord`.
+- Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`React.lazy`).
+
 ## 4. Оболонка застосунку
 
 ```sh

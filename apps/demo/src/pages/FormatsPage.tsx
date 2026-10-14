@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next"
 
 import { PhoneInput } from "@/registry/erp/phone-input"
 import { UaIdInput, uaIdIssueKey } from "@/registry/erp/ua-id-input"
+import { amountInWords } from "@/registry/lib/amount-in-words"
 import {
   DATE_STYLES,
   isoWeek,
   pluralCategory,
   useFormat,
   type DateStyle,
+  type Money,
 } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { validatePhone } from "@/registry/lib/phone"
@@ -164,6 +166,14 @@ function DatesSection() {
             label: t("dates.isoWeek"),
             value: t("dates.isoWeekValue", week),
           },
+          {
+            label: t("dates.range"),
+            value: format.dateRange("2026-10-01", "2026-10-13", "long"),
+          },
+          {
+            label: t("dates.rangeYears"),
+            value: format.dateRange("2026-12-29", "2027-01-04", "long"),
+          },
         ]}
       />
       <p className="text-muted-foreground">
@@ -198,6 +208,80 @@ function RelativeSection() {
             value: format.relative(moment, options),
           }
         })}
+      />
+    </Section>
+  )
+}
+
+const WORDS_SAMPLES: Money[] = [
+  { amount: 4_860_000, currency: "UAH" },
+  { amount: 2_105, currency: "UAH" },
+  { amount: 120_000, currency: "USD" },
+  { amount: 10_550, currency: "EUR" },
+]
+
+function AmountInWordsSection() {
+  const t = usePageT()
+  const format = useFormat()
+  return (
+    <Section title={t("words.title")} description={t("words.description")}>
+      <Table label={t("words.title")}>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-right">{t("words.amount")}</TableHead>
+            <TableHead>{t("words.uk")}</TableHead>
+            <TableHead>{t("words.en")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {WORDS_SAMPLES.map((money) => (
+            <TableRow key={`${String(money.amount)}${money.currency}`}>
+              <TableCell className="text-right whitespace-nowrap tabular-nums">
+                {format.money(money)}
+              </TableCell>
+              <TableCell className="whitespace-normal">
+                {amountInWords(money, "uk")}
+              </TableCell>
+              <TableCell className="whitespace-normal">
+                {amountInWords(money, "en")}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Section>
+  )
+}
+
+function TimeZonesSection() {
+  const t = usePageT()
+  const format = useFormat()
+  const device = Intl.DateTimeFormat().resolvedOptions().timeZone
+  return (
+    <Section title={t("zones.title")} description={t("zones.description")}>
+      <ValueList
+        rows={[
+          {
+            label: t("zones.yours"),
+            value: format.timeZone ?? t("zones.device", { zone: device }),
+          },
+          {
+            label: t("zones.now"),
+            value: format.date(SAMPLE_INSTANT, "dateTime"),
+          },
+          {
+            label: t("zones.kyiv"),
+            value: format.date(SAMPLE_INSTANT, "time", {
+              timeZone: "Europe/Kyiv",
+            }),
+          },
+          {
+            label: t("zones.warsaw"),
+            value: format.date(SAMPLE_INSTANT, "time", {
+              timeZone: "Europe/Warsaw",
+            }),
+          },
+        ]}
       />
     </Section>
   )
@@ -302,6 +386,10 @@ export function FormatsPage() {
         <NumbersSection />
         <DatesSection />
         <RelativeSection />
+        <div className="@4xl:col-span-2">
+          <AmountInWordsSection />
+        </div>
+        <TimeZonesSection />
       </div>
     </div>
   )

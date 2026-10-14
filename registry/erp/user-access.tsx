@@ -14,6 +14,7 @@ import {
   useErpAuthProvider,
   useFieldError,
 } from "@/registry/erp/auth-layout"
+import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useResetFactors } from "@/registry/erp/reset-factors"
@@ -656,66 +657,46 @@ function AccessConfirm({
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const { guard, dialog: reauthDialog } = useReauth()
-  const [busy, setBusy] = React.useState(false)
   const signOut = kind === "signOut"
 
   return (
-    <Dialog
+    <ConfirmDialog
       open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
+      title={
+        signOut
+          ? t("userAccess.signOutAllTitle", { name: target.name })
+          : t("userAccess.unblockTitle", { name: target.name })
+      }
+      description={
+        signOut
+          ? t("userAccess.signOutAllDescription")
+          : t("userAccess.unblockDescription")
+      }
+      confirmLabel={
+        signOut ? t("userAccess.signOutAll") : t("userAccess.unblock")
+      }
+      destructive={signOut}
+      onClose={onClose}
+      onConfirm={() =>
+        (signOut
+          ? provider.admin.signOutUser(target.id)
+          : guard(() => provider.admin.unblockUser(target.id))
+        )
+          .then(() => {
+            toast.success(
+              signOut
+                ? t("userAccess.signedOutAll")
+                : t("userAccess.unblocked"),
+            )
+            onDone()
+          })
+          .catch((failure: unknown) => {
+            toast.error(errorText(failure))
+          })
+      }
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {signOut
-              ? t("userAccess.signOutAllTitle", { name: target.name })
-              : t("userAccess.unblockTitle", { name: target.name })}
-          </DialogTitle>
-          <DialogDescription>
-            {signOut
-              ? t("userAccess.signOutAllDescription")
-              : t("userAccess.unblockDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("auth.account.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant={signOut ? "destructive" : "default"}
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              const action = signOut
-                ? provider.admin.signOutUser(target.id)
-                : guard(() => provider.admin.unblockUser(target.id))
-              action
-                .then(() => {
-                  toast.success(
-                    signOut
-                      ? t("userAccess.signedOutAll")
-                      : t("userAccess.unblocked"),
-                  )
-                  onDone()
-                })
-                .catch((failure: unknown) => {
-                  toast.error(errorText(failure))
-                })
-                .finally(() => {
-                  setBusy(false)
-                })
-            }}
-          >
-            {busy ? <Spinner aria-hidden /> : null}
-            {signOut ? t("userAccess.signOutAll") : t("userAccess.unblock")}
-          </Button>
-        </DialogFooter>
-        {reauthDialog}
-      </DialogContent>
-    </Dialog>
+      {reauthDialog}
+    </ConfirmDialog>
   )
 }
 

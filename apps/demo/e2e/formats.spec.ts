@@ -46,7 +46,10 @@ test.describe("мови й формати: поведінка", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Мови й формати" }),
     ).toBeVisible()
-    await expect(page.getByText("48 600,00 ₴")).toBeVisible()
+    // Сума у списку форматів (<dd>); та сама сума є й у таблиці «Сума прописом».
+    await expect(
+      page.getByRole("definition").filter({ hasText: "48 600,00 ₴" }),
+    ).toBeVisible()
 
     // Мова — у меню користувача.
     await page.getByRole("button", { name: /Меню користувача/ }).click()
@@ -56,7 +59,9 @@ test.describe("мови й формати: поведінка", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Languages & formats" }),
     ).toBeVisible()
-    await expect(page.getByText("₴48,600.00")).toBeVisible()
+    await expect(
+      page.getByRole("definition").filter({ hasText: "₴48,600.00" }),
+    ).toBeVisible()
     // Зміна мови не переносить фокус на заголовок сторінки.
     await expect(
       page.getByRole("heading", { level: 1, name: "Languages & formats" }),

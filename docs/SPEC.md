@@ -113,7 +113,7 @@ erp-ui/
 | Примітиви | shadcn/ui (CLI v4) на Base UI | MIT | Radix не використовуємо в нових компонентах |
 | CRUD | ra-core 5 + Shadcn Admin Kit | MIT | React Router; dataProvider під наш REST-контракт |
 | Дані | TanStack Query 5 | MIT | |
-| Форми | react-hook-form + zod 4 | MIT | Shadcn Admin Kit ще на zod 3 — вирівняти при підключенні |
+| Форми | react-hook-form + zod 4, @hookform/resolvers | MIT | шар форм кіта — ADR-0015; Shadcn Admin Kit ще на zod 3 — вирівняти при підключенні |
 | Таблиці | TanStack Table 9 + TanStack Virtual; ReUI Data Grid | MIT | на телефоні — рендерер карток |
 | Важкі гріди | AG Grid Community | MIT | тема через CSS-змінні `var(--token)`; Enterprise лише під клієнта |
 | Бізнес-компоненти | ReUI, Dice UI; Kibo UI як джерело коду | MIT | |
@@ -144,6 +144,7 @@ erp-ui/
 | Офлайн (UI30) | dexie + персистентність TanStack Query + Service Worker |
 | Штрихкоди й QR (UI32, LC01, LC04) | bwip-js, lean-qr (qrcode.react не проходить бар'єр 2 — ADR-0011) |
 | Друк чеків (UI36) | @point-of-sale/receipt-printer-encoder |
+| Дати й періоди (UI39) | react-day-picker 10 (shadcn Calendar) з date-fns 4 — ADR-0015 |
 | Поля вводу (LC12) | react-number-format, google-libphonenumber (телефони; react-phone-number-input не проходить бар'єр 4 — ADR-0007), input-otp |
 | OCR чеків | tesseract.js (серверний OCR кращий) |
 | Карта (UI22) | maplibre-gl + react-map-gl; постачальник тайлів — окреме рішення |

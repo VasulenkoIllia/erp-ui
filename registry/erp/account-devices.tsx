@@ -21,6 +21,7 @@ import {
   useAuthErrorText,
   useErpAuthProvider,
 } from "@/registry/erp/auth-layout"
+import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import {
   ACCOUNT_QUERY_KEYS,
@@ -33,14 +34,6 @@ import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/registry/ui/dialog"
 import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
 import { Switch } from "@/registry/ui/switch"
@@ -71,60 +64,6 @@ export function DeviceIcon({ device }: { device: Device }) {
     <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
       <Icon aria-hidden className="size-4" />
     </span>
-  )
-}
-
-/** Підтвердження з кнопкою, зайнятою на час дії. */
-function ConfirmAction({
-  open,
-  title,
-  description,
-  confirm,
-  onClose,
-  onConfirm,
-}: {
-  open: boolean
-  title: string
-  description: string
-  confirm: string
-  onClose: () => void
-  onConfirm: () => Promise<unknown>
-}) {
-  const t = useErpUiT()
-  const [busy, setBusy] = React.useState(false)
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("auth.account.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              void onConfirm().finally(() => {
-                setBusy(false)
-              })
-            }}
-          >
-            {busy ? <Spinner aria-hidden /> : null}
-            {confirm}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }
 
@@ -252,11 +191,12 @@ export function SessionsSection() {
           {t("auth.devices.noOthers")}
         </p>
       )}
-      <ConfirmAction
+      <ConfirmDialog
         open={confirmOthers}
         title={t("auth.devices.signOutOthersTitle")}
         description={t("auth.devices.signOutOthersDescription")}
-        confirm={t("auth.devices.signOutOthers")}
+        confirmLabel={t("auth.devices.signOutOthers")}
+        destructive
         onClose={() => {
           setConfirmOthers(false)
         }}

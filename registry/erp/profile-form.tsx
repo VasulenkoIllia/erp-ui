@@ -1,7 +1,10 @@
 "use client"
 
 import * as React from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { z } from "zod"
 
 import {
   useAuthErrorText,
@@ -9,6 +12,7 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { AvatarEditor } from "@/registry/erp/avatar-editor"
+import { FormField, UnsavedChangesGuard } from "@/registry/erp/form"
 import { PhoneInput } from "@/registry/erp/phone-input"
 import { browserTimezone, TimezoneSelect } from "@/registry/erp/timezone-select"
 import { useMe } from "@/registry/hooks/use-me"
@@ -17,13 +21,7 @@ import { useErpUiT } from "@/registry/lib/i18n"
 import { validatePhone } from "@/registry/lib/phone"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/registry/ui/field"
+import { FieldGroup } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
@@ -31,6 +29,7 @@ import { Textarea } from "@/registry/ui/textarea"
 /**
  * Профіль користувача (PF01, ADR-0012): фото, ім'я, посада, контактний телефон, часовий пояс і
  * підпис для листів. Email і вхід кодом у SMS — у «Безпеці акаунта».
+ * Форма — зразок форм кіта (ADR-0015): react-hook-form + zod, FormField, захист незбережених змін.
  */
 
 type Fields = Required<ProfileUpdate>
@@ -66,13 +65,36 @@ export function ProfilePhoto() {
   )
 }
 
+/** Схема з текстами мовою інтерфейсу: перевірка при виході з поля й під час відправки (SPEC §8.3). */
+function useProfileSchema() {
+  const t = useErpUiT()
+  return React.useMemo(
+    () =>
+      z.object({
+        name: z.string().trim().min(1, t("auth.fieldErrors.required")),
+        position: z.string(),
+        phone: z.string().superRefine((phone, ctx) => {
+          const issue = phone ? validatePhone(phone) : null
+          if (issue)
+            ctx.addIssue({
+              code: "custom",
+              message: t(`validation.phone.${issue}`),
+            })
+        }),
+        timezone: z.string(),
+        signature: z.string(),
+      }),
+    [t],
+  )
+}
+
 export function ProfileForm() {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const { data: me } = useMe()
-  const ids = React.useId()
+  const schema = useProfileSchema()
   const initial = React.useMemo<Fields>(
     () => ({
       name: me?.name ?? "",
@@ -83,69 +105,54 @@ export function ProfileForm() {
     }),
     [me],
   )
-  // Лише правки поверх профілю: оновлення з сервера (інша вкладка) видно одразу.
-  const [edits, setEdits] = React.useState<Partial<Fields>>({})
-  const values: Fields = { ...initial, ...edits }
-  const [fields, setFields] = React.useState<
-    Partial<Record<keyof Fields, string>>
-  >({})
+  // Оновлення профілю з сервера (інша вкладка) видно одразу, а введене користувачем лишається.
+  const form = useForm<Fields>({
+    mode: "onTouched",
+    resolver: zodResolver(schema),
+    values: initial,
+    resetOptions: { keepDirtyValues: true },
+  })
+  const { control, formState } = form
   const [error, setError] = React.useState<string | null>(null)
-  const [busy, setBusy] = React.useState(false)
-  const set = (key: keyof Fields) => (value: string) => {
-    setEdits((current) => ({ ...current, [key]: value }))
-    setFields((current) => ({ ...current, [key]: undefined }))
-  }
-  const changed = (Object.keys(values) as (keyof Fields)[]).filter(
-    (key) => values[key] !== initial[key],
-  )
 
-  const describedBy = (key: keyof Fields, hint?: boolean) =>
-    [hint ? `${ids}-${key}-hint` : "", fields[key] ? `${ids}-${key}-error` : ""]
-      .filter(Boolean)
-      .join(" ") || undefined
-
-  const errorOf = (key: keyof Fields) =>
-    fields[key] ? (
-      <FieldError id={`${ids}-${key}-error`}>{fields[key]}</FieldError>
-    ) : null
+  const submit = form.handleSubmit(async (values) => {
+    const changed = (Object.keys(values) as (keyof Fields)[]).filter(
+      (key) => formState.dirtyFields[key],
+    )
+    if (!changed.length) {
+      toast.info(t("forms.noChanges"))
+      return
+    }
+    setError(null)
+    const patch: ProfileUpdate = Object.fromEntries(
+      changed.map((key) => [key, values[key].trim()]),
+    )
+    try {
+      await provider.account.updateProfile(patch)
+      form.reset(values)
+      toast.success(t("profile.saved"))
+    } catch (failure: unknown) {
+      let onField = false
+      for (const key of changed) {
+        const message = fieldError(failure, key)
+        if (message) {
+          onField = true
+          form.setError(key, { type: "server", message })
+        }
+      }
+      if (!onField) setError(errorText(failure))
+    }
+  })
 
   return (
     <form
       className="space-y-4"
       noValidate
       onSubmit={(event) => {
-        event.preventDefault()
-        const local: Partial<Record<keyof Fields, string>> = {}
-        if (!values.name.trim()) local.name = t("auth.fieldErrors.required")
-        const phoneIssue = values.phone ? validatePhone(values.phone) : null
-        if (phoneIssue) local.phone = t(`validation.phone.${phoneIssue}`)
-        setFields(local)
-        if (Object.keys(local).length || !changed.length) return
-        setBusy(true)
-        setError(null)
-        const patch: ProfileUpdate = Object.fromEntries(
-          changed.map((key) => [key, values[key].trim()]),
-        )
-        provider.account
-          .updateProfile(patch)
-          .then(() => {
-            setEdits({})
-            toast.success(t("profile.saved"))
-          })
-          .catch((failure: unknown) => {
-            const server = Object.fromEntries(
-              changed
-                .map((key) => [key, fieldError(failure, key)] as const)
-                .filter(([, message]) => message !== null),
-            ) as Partial<Record<keyof Fields, string>>
-            if (Object.keys(server).length) setFields(server)
-            else setError(errorText(failure))
-          })
-          .finally(() => {
-            setBusy(false)
-          })
+        void submit(event)
       }}
     >
+      <UnsavedChangesGuard when={formState.isDirty} />
       {error ? (
         <Alert variant="destructive" role="alert">
           <AlertDescription>{error}</AlertDescription>
@@ -153,95 +160,74 @@ export function ProfileForm() {
       ) : null}
       <FieldGroup className="@container">
         <div className="grid gap-4 @lg:grid-cols-2">
-          <Field data-invalid={fields.name ? true : undefined}>
-            <FieldLabel htmlFor={`${ids}-name`}>{t("profile.name")}</FieldLabel>
-            <Input
-              id={`${ids}-name`}
-              autoComplete="name"
-              maxLength={100}
-              value={values.name}
-              aria-invalid={fields.name ? true : undefined}
-              aria-describedby={describedBy("name")}
-              onChange={(event) => {
-                set("name")(event.target.value)
-              }}
-            />
-            {errorOf("name")}
-          </Field>
-          <Field data-invalid={fields.position ? true : undefined}>
-            <FieldLabel htmlFor={`${ids}-position`}>
-              {t("profile.position")}
-            </FieldLabel>
-            <Input
-              id={`${ids}-position`}
-              autoComplete="organization-title"
-              maxLength={100}
-              value={values.position}
-              aria-invalid={fields.position ? true : undefined}
-              aria-describedby={describedBy("position")}
-              onChange={(event) => {
-                set("position")(event.target.value)
-              }}
-            />
-            {errorOf("position")}
-          </Field>
-          <Field data-invalid={fields.phone ? true : undefined}>
-            <FieldLabel htmlFor={`${ids}-phone`}>
-              {t("profile.phone")}
-            </FieldLabel>
-            <PhoneInput
-              id={`${ids}-phone`}
-              value={values.phone}
-              onValueChange={set("phone")}
-              aria-invalid={fields.phone ? true : undefined}
-              aria-describedby={describedBy("phone", true)}
-            />
-            <FieldDescription id={`${ids}-phone-hint`}>
-              {t("profile.phoneHint")}
-            </FieldDescription>
-            {errorOf("phone")}
-          </Field>
-          <Field data-invalid={fields.timezone ? true : undefined}>
-            <FieldLabel htmlFor={`${ids}-timezone`}>
-              {t("profile.timezone")}
-            </FieldLabel>
-            <TimezoneSelect
-              id={`${ids}-timezone`}
-              className="w-full"
-              value={values.timezone}
-              onValueChange={set("timezone")}
-              aria-invalid={fields.timezone ? true : undefined}
-              aria-describedby={describedBy("timezone", true)}
-            />
-            <FieldDescription id={`${ids}-timezone-hint`}>
-              {t("profile.timezoneHint")}
-            </FieldDescription>
-            {errorOf("timezone")}
-          </Field>
-        </div>
-        <Field data-invalid={fields.signature ? true : undefined}>
-          <FieldLabel htmlFor={`${ids}-signature`}>
-            {t("profile.signature")}
-          </FieldLabel>
-          <Textarea
-            id={`${ids}-signature`}
-            rows={3}
-            maxLength={1000}
-            value={values.signature}
-            aria-invalid={fields.signature ? true : undefined}
-            aria-describedby={describedBy("signature", true)}
-            onChange={(event) => {
-              set("signature")(event.target.value)
-            }}
+          <FormField
+            control={control}
+            name="name"
+            label={t("profile.name")}
+            render={({ field, control: aria }) => (
+              <Input {...aria} {...field} autoComplete="name" maxLength={100} />
+            )}
           />
-          <FieldDescription id={`${ids}-signature-hint`}>
-            {t("profile.signatureHint")}
-          </FieldDescription>
-          {errorOf("signature")}
-        </Field>
+          <FormField
+            control={control}
+            name="position"
+            label={t("profile.position")}
+            render={({ field, control: aria }) => (
+              <Input
+                {...aria}
+                {...field}
+                autoComplete="organization-title"
+                maxLength={100}
+              />
+            )}
+          />
+          <FormField
+            control={control}
+            name="phone"
+            label={t("profile.phone")}
+            description={t("profile.phoneHint")}
+            render={({ field, control: aria }) => (
+              <PhoneInput
+                {...aria}
+                ref={field.ref}
+                name={field.name}
+                value={field.value}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+          <FormField
+            control={control}
+            name="timezone"
+            label={t("profile.timezone")}
+            description={t("profile.timezoneHint")}
+            render={({ field, control: aria }) => (
+              <TimezoneSelect
+                {...aria}
+                className="w-full"
+                value={field.value}
+                onValueChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        <FormField
+          control={control}
+          name="signature"
+          label={t("profile.signature")}
+          description={t("profile.signatureHint")}
+          render={({ field, control: aria }) => (
+            <Textarea {...aria} {...field} rows={3} maxLength={1000} />
+          )}
+        />
       </FieldGroup>
-      <Button type="submit" disabled={busy || !changed.length}>
-        {busy ? <Spinner aria-hidden /> : null}
+      <Button
+        type="submit"
+        disabled={formState.isSubmitting}
+        focusableWhenDisabled
+      >
+        {formState.isSubmitting ? <Spinner aria-hidden /> : null}
         {t("profile.save")}
       </Button>
     </form>

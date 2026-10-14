@@ -56,6 +56,8 @@ const SHOT_PAGES = {
   appearance: "/",
   primitives: "/#/primitives",
   formats: "/#/formats",
+  fields: "/#/fields",
+  forms: "/#/forms",
   icons: "/#/icons",
   states: "/#/states",
   module: "/#/m/K2",

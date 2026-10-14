@@ -44,10 +44,34 @@ export const CODE_ITEMS = {
   "lib/format": {
     title: "Форматери Intl",
     description:
-      "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat.",
+      "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», періоди, відносний час, тиждень ISO, useFormat (мітки часу — у поясі користувача з lib/user-timezone).",
     status: "beta",
     demo: "formats",
     spec: ["§11", "§17"],
+  },
+  "lib/user-timezone": {
+    title: "Пояс користувача",
+    description:
+      "Часовий пояс із профілю для показу міток часу: setUserTimeZone (викликає useMe), useUserTimeZone, перевірка поясу IANA.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
+  },
+  "lib/dates": {
+    title: "Календарні дати й періоди",
+    description:
+      'Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» в поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.',
+    status: "beta",
+    demo: "fields",
+    spec: ["UI39", "§11"],
+  },
+  "lib/amount-in-words": {
+    title: "Сума прописом",
+    description:
+      "Сума словами для документів (uk, en-GB): гривня, долар США, євро у всіх формах числа, копійки цифрами чи словами, bigint без втрати копійок; інші валюти — словами з параметра.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
   },
   "lib/ua-ids": {
     title: "Ідентифікатори UA",
@@ -712,6 +736,46 @@ export const CODE_ITEMS = {
     demo: "security",
     spec: ["UI32", "PF01"],
   },
+  "erp/date-input": {
+    title: "Поле дати й часу",
+    description:
+      "DateInput: дата з клавіатури («13.10.2026», роздільники самі) і календар поруч, min/max, read-only; TimeInput: час 24 години. Значення — календарна дата або неповне введення як є для перевірки форми.",
+    status: "beta",
+    demo: "fields",
+    spec: ["UI39", "§8.3", "§11"],
+  },
+  "erp/date-range-input": {
+    title: "Період",
+    description:
+      "DateRangeInput: пресети («Цей місяць», «Минулий квартал»…), календар діапазону й поля «Від/До» з клавіатури; пресет застосовується одразу, решта — «Готово»; read-only.",
+    status: "beta",
+    demo: "fields",
+    spec: ["UI39", "§11"],
+  },
+  "erp/number-input": {
+    title: "Поля числа й суми",
+    description:
+      "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код) і NumberInput (кількість, відсоток, одиниця); розряди й кома — за мовою інтерфейсу.",
+    status: "beta",
+    demo: "fields",
+    spec: ["UI21", "§11", "§17"],
+  },
+  "erp/confirm-dialog": {
+    title: "Діалог підтвердження",
+    description:
+      "Три рівні видалення (SPEC §8.2): useUndoToast для зворотних дій, ConfirmDialog з кнопкою-наслідком, confirmWord для критичних дій; кнопка зайнята, поки триває дія.",
+    status: "beta",
+    demo: "forms",
+    spec: ["§8.2"],
+  },
+  "erp/form": {
+    title: "Форми",
+    description:
+      "Форми на react-hook-form + zod (ADR-0015): FormField (підпис, підказка, помилка, aria, read-only), FormErrorSummary для довгих форм, UnsavedChangesGuard (діалог у застосунку + beforeunload).",
+    status: "beta",
+    demo: "forms",
+    spec: ["§8.2", "§8.3"],
+  },
   "erp/ua-id-input": {
     title: "Поле ідентифікатора UA",
     description:
@@ -727,6 +791,13 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "formats",
     spec: ["LC12", "§8.3"],
+  },
+  "ui/alert-dialog": {
+    title: "Діалог-попередження",
+    description:
+      "Base UI AlertDialog: не закривається кліком поза ним; основа ConfirmDialog. Довгий вміст прокручується.",
+    status: "beta",
+    demo: "forms",
   },
   "ui/alert": {
     title: "Повідомлення",
@@ -764,6 +835,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "primitives",
     spec: ["§6.5", "§8.4"],
+  },
+  "ui/calendar": {
+    title: "Календар",
+    description:
+      "react-day-picker 10 на токенах erp-ui: локаль за мовою інтерфейсу, тиждень з понеділка й номери ISO, один день чи діапазон, вибір у forced-colors.",
+    status: "beta",
+    demo: "fields",
+    spec: ["UI39", "§11"],
   },
   "ui/card": {
     title: "Картка",

@@ -121,7 +121,7 @@ test.describe("способи підтвердження входу (ADR-0011)",
     await page.getByRole("button", { name: "Дії: Ноутбук" }).click()
     await page.getByRole("menuitem", { name: "Вимкнути" }).click()
     await page
-      .getByRole("dialog", { name: "Вимкнути «Ноутбук»?" })
+      .getByRole("alertdialog", { name: "Вимкнути «Ноутбук»?" })
       .getByRole("button", { name: "Вимкнути" })
       .click()
     await expect(toast(page, "Спосіб вимкнено")).toBeVisible()
@@ -137,7 +137,7 @@ test.describe("способи підтвердження входу (ADR-0011)",
     await expect(page.getByText("Лишилося 2 коди з 10")).toBeVisible()
     await page.getByRole("button", { name: "Створити нові коди" }).click()
     await page
-      .getByRole("dialog", { name: "Створити нові резервні коди?" })
+      .getByRole("alertdialog", { name: "Створити нові резервні коди?" })
       .getByRole("button", { name: "Створити нові коди" })
       .click()
     await confirmWithPassword(page)
@@ -169,7 +169,7 @@ test.describe("сесії, пристрої, журнал входів", () => {
     await expect(sessions.getByRole("listitem")).toHaveCount(2)
     await page.getByRole("button", { name: "Вийти на інших пристроях" }).click()
     await page
-      .getByRole("dialog", { name: "Вийти на всіх інших пристроях?" })
+      .getByRole("alertdialog", { name: "Вийти на всіх інших пристроях?" })
       .getByRole("button", { name: "Вийти на інших пристроях" })
       .click()
     await expect(page.getByText("Інших активних сесій немає.")).toBeVisible()

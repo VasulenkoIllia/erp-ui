@@ -152,3 +152,18 @@
     }
   }
 }
+
+/* Фокус у режимі примусових кольорів (Windows «Висока контрастність», SPEC §10, WCAG 2.4.7).
+ * Примітиви малюють фокус кільцем (box-shadow), а його в forced-colors не видно, і outline-none
+ * ховає запасний контур. Правило поза @layer, тож перемагає утиліти: контур системного кольору.
+ * Підсвічений пункт меню чи списку (data-highlighted, фокус лишається в полі) — так само. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  [data-highlighted] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

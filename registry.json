@@ -89,6 +89,11 @@
           "target": "@lib/format.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/appearance.ts",
           "type": "registry:lib",
           "target": "@lib/appearance.ts"
@@ -247,6 +252,11 @@
           "target": "@hooks/use-me.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
@@ -277,6 +287,7 @@
       "description": "Усі екрани входу, акаунта й адміністрування доступу (ADR-0010–0014): вхід, коди, ключі доступу, SSO, відновлення, запрошення, реєстрація, охорона сесії, повторне підтвердження, налаштування факторів, сесії й пристрої, журнал входів, «Увійти як…», бренд сторінки входу, профіль, політики, токени API, сповіщення, журнал аудиту, вебхуки, доступ користувачів, ролі й права, запрошення, центр сповіщень, налаштування компанії.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -286,6 +297,7 @@
         "lean-qr@^2.7.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
         "sonner@^2.0.8",
@@ -446,6 +458,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -566,6 +583,11 @@
           "target": "@components/erp/account-factors.tsx"
         },
         {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -584,6 +606,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/dropdown-menu.tsx",
@@ -629,6 +656,11 @@
           "path": "registry/erp/avatar-editor.tsx",
           "type": "registry:component",
           "target": "@components/erp/avatar-editor.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
         },
         {
           "path": "registry/erp/timezone-select.tsx",
@@ -1065,6 +1097,39 @@
       }
     },
     {
+      "name": "ui/alert-dialog",
+      "type": "registry:ui",
+      "title": "Діалог-попередження",
+      "description": "Base UI AlertDialog: не закривається кліком поза ним; основа ConfirmDialog. Довгий вміст прокручується.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "forms"
+      }
+    },
+    {
       "name": "ui/alert",
       "type": "registry:ui",
       "title": "Повідомлення",
@@ -1229,6 +1294,72 @@
         "spec": [
           "§6.5",
           "§8.4"
+        ]
+      }
+    },
+    {
+      "name": "ui/calendar",
+      "type": "registry:ui",
+      "title": "Календар",
+      "description": "react-day-picker 10 на токенах erp-ui: локаль за мовою інтерфейсу, тиждень з понеділка й номери ISO, один день чи діапазон, вибір у forced-colors.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-day-picker@^10.0.2",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "ui",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI39",
+          "§11"
         ]
       }
     },
@@ -2238,6 +2369,56 @@
       }
     },
     {
+      "name": "lib/amount-in-words",
+      "type": "registry:lib",
+      "title": "Сума прописом",
+      "description": "Сума словами для документів (uk, en-GB): гривня, долар США, євро у всіх формах числа, копійки цифрами чи словами, bigint без втрати копійок; інші валюти — словами з параметра.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/amount-in-words.ts",
+          "type": "registry:lib",
+          "target": "@lib/amount-in-words.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "lib/api",
       "type": "registry:lib",
       "title": "Конвенції API",
@@ -2629,10 +2810,33 @@
       }
     },
     {
+      "name": "lib/dates",
+      "type": "registry:lib",
+      "title": "Календарні дати й періоди",
+      "description": "Календарні дати \"YYYY-MM-DD\" без поясу: перевірка, арифметика, «сьогодні» в поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI39",
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "lib/format",
       "type": "registry:lib",
       "title": "Форматери Intl",
-      "description": "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat.",
+      "description": "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», періоди, відносний час, тиждень ISO, useFormat (мітки часу — у поясі користувача з lib/user-timezone).",
       "dependencies": [
         "i18next@^26.4.4",
         "react-i18next@^17.0.16"
@@ -2657,6 +2861,11 @@
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         }
       ],
       "meta": {
@@ -4860,6 +5069,28 @@
       }
     },
     {
+      "name": "lib/user-timezone",
+      "type": "registry:lib",
+      "title": "Пояс користувача",
+      "description": "Часовий пояс із профілю для показу міток часу: setUserTimeZone (викликає useMe), useUserTimeZone, перевірка поясу IANA.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "formats",
+        "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "lib/utils",
       "type": "registry:lib",
       "title": "cn",
@@ -5160,6 +5391,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -5284,6 +5520,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -5402,6 +5643,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -5465,6 +5711,11 @@
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -5567,6 +5818,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -5575,6 +5831,11 @@
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/badge.tsx",
@@ -5592,11 +5853,6 @@
           "target": "@ui/card.tsx"
         },
         {
-          "path": "registry/ui/dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dialog.tsx"
-        },
-        {
           "path": "registry/ui/empty.tsx",
           "type": "registry:ui",
           "target": "@ui/empty.tsx"
@@ -5605,6 +5861,11 @@
           "path": "registry/ui/field.tsx",
           "type": "registry:ui",
           "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
         },
         {
           "path": "registry/ui/label.tsx",
@@ -5675,6 +5936,11 @@
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
         },
         {
           "path": "registry/erp/copy-button.tsx",
@@ -5822,6 +6088,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -5835,6 +6106,11 @@
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -6096,6 +6372,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -6328,6 +6609,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -6564,6 +6850,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -6794,6 +7085,11 @@
           "target": "@components/erp/auth-layout.tsx"
         },
         {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -6904,6 +7200,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -6912,6 +7213,11 @@
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/badge.tsx",
@@ -6927,11 +7233,6 @@
           "path": "registry/ui/card.tsx",
           "type": "registry:ui",
           "target": "@ui/card.tsx"
-        },
-        {
-          "path": "registry/ui/dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dialog.tsx"
         },
         {
           "path": "registry/ui/empty.tsx",
@@ -7677,6 +7978,11 @@
           "target": "@lib/ua-ids.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -7852,6 +8158,91 @@
       }
     },
     {
+      "name": "erp/confirm-dialog",
+      "type": "registry:component",
+      "title": "Діалог підтвердження",
+      "description": "Три рівні видалення (SPEC §8.2): useUndoToast для зворотних дій, ConfirmDialog з кнопкою-наслідком, confirmWord для критичних дій; кнопка зайнята, поки триває дія.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "forms",
+        "spec": [
+          "§8.2"
+        ]
+      }
+    },
+    {
       "name": "erp/conflict-dialog",
       "type": "registry:component",
       "title": "Діалог конфлікту",
@@ -7967,6 +8358,221 @@
         "demo": "security",
         "spec": [
           "UI43"
+        ]
+      }
+    },
+    {
+      "name": "erp/date-input",
+      "type": "registry:component",
+      "title": "Поле дати й часу",
+      "description": "DateInput: дата з клавіатури («13.10.2026», роздільники самі) і календар поруч, min/max, read-only; TimeInput: час 24 години. Значення — календарна дата або неповне введення як є для перевірки форми.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-day-picker@^10.0.2",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI39",
+          "§8.3",
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "erp/date-range-input",
+      "type": "registry:component",
+      "title": "Період",
+      "description": "DateRangeInput: пресети («Цей місяць», «Минулий квартал»…), календар діапазону й поля «Від/До» з клавіатури; пресет застосовується одразу, решта — «Готово»; read-only.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-day-picker@^10.0.2",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/date-range-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-range-input.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI39",
+          "§11"
         ]
       }
     },
@@ -8189,6 +8795,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -8255,6 +8866,104 @@
         "demo": "security",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "erp/form",
+      "type": "registry:component",
+      "title": "Форми",
+      "description": "Форми на react-hook-form + zod (ADR-0015): FormField (підпис, підказка, помилка, aria, read-only), FormErrorSummary для довгих форм, UnsavedChangesGuard (діалог у застосунку + beforeunload).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "forms",
+        "spec": [
+          "§8.2",
+          "§8.3"
         ]
       }
     },
@@ -8396,6 +9105,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8621,6 +9335,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -8881,6 +9600,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -9196,6 +9920,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -9451,6 +10180,87 @@
         "demo": "notifications",
         "spec": [
           "PF10"
+        ]
+      }
+    },
+    {
+      "name": "erp/number-input",
+      "type": "registry:component",
+      "title": "Поля числа й суми",
+      "description": "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код) і NumberInput (кількість, відсоток, одиниця); розряди й кома — за мовою інтерфейсу.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "fields",
+        "spec": [
+          "UI21",
+          "§11",
+          "§17"
         ]
       }
     },
@@ -9796,6 +10606,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -9887,6 +10702,7 @@
       "description": "ProfilePhoto (фото з обрізанням) і ProfileForm: ім'я, посада, контактний телефон, часовий пояс, підпис для листів.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -9894,6 +10710,7 @@
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
         "sonner@^2.0.8",
@@ -9917,6 +10734,16 @@
           "path": "registry/erp/avatar-editor.tsx",
           "type": "registry:component",
           "target": "@components/erp/avatar-editor.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
         },
         {
           "path": "registry/erp/phone-input.tsx",
@@ -10029,6 +10856,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -10042,6 +10874,11 @@
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/avatar.tsx",
@@ -10289,6 +11126,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -10523,6 +11365,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -10746,6 +11593,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -10988,6 +11840,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -11209,6 +12066,11 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -11773,6 +12635,11 @@
           "target": "@components/erp/auth-layout.tsx"
         },
         {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -11908,6 +12775,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -11921,6 +12793,11 @@
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/badge.tsx",
@@ -12133,6 +13010,11 @@
           "target": "@components/erp/auth-layout.tsx"
         },
         {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
           "path": "registry/erp/copy-button.tsx",
           "type": "registry:component",
           "target": "@components/erp/copy-button.tsx"
@@ -12263,6 +13145,11 @@
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -12276,6 +13163,11 @@
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/badge.tsx",

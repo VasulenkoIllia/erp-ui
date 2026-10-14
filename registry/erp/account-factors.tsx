@@ -10,6 +10,7 @@ import {
   useErpAuthProvider,
   useFieldError,
 } from "@/registry/erp/auth-layout"
+import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import {
   BackupCodesDialog,
   FACTOR_ICONS,
@@ -33,7 +34,6 @@ import { Button } from "@/registry/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -290,13 +290,14 @@ export function FactorsSection() {
       ) : null}
       {open?.kind === "remove" ? (
         <ConfirmDialog
+          open
           title={t("auth.factors.removeTitle", { name: label(open.factor) })}
           description={
             open.last
               ? t("auth.factors.removeLast")
               : t("auth.factors.removeDescription")
           }
-          confirm={t("auth.factors.remove")}
+          confirmLabel={t("auth.factors.remove")}
           destructive
           onClose={() => {
             setOpen(null)
@@ -318,9 +319,10 @@ export function FactorsSection() {
       ) : null}
       {open?.kind === "regenerate" ? (
         <ConfirmDialog
+          open
           title={t("auth.factors.backup.regenerateTitle")}
           description={t("auth.factors.backup.regenerateDescription")}
-          confirm={t("auth.factors.backup.regenerate")}
+          confirmLabel={t("auth.factors.backup.regenerate")}
           onClose={() => {
             setOpen(null)
           }}
@@ -432,63 +434,6 @@ function RenameDialog({
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-/** Підтвердження дії; `onConfirm` повертає проміс — кнопка зайнята, поки він триває. */
-function ConfirmDialog({
-  title,
-  description,
-  confirm,
-  destructive = false,
-  onClose,
-  onConfirm,
-  children,
-}: {
-  title: string
-  description: string
-  confirm: string
-  destructive?: boolean
-  onClose: () => void
-  onConfirm: () => Promise<unknown>
-  children?: React.ReactNode
-}) {
-  const t = useErpUiT()
-  const [busy, setBusy] = React.useState(false)
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("auth.account.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant={destructive ? "destructive" : "default"}
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              void onConfirm().finally(() => {
-                setBusy(false)
-              })
-            }}
-          >
-            {busy ? <Spinner aria-hidden /> : null}
-            {confirm}
-          </Button>
-        </DialogFooter>
-        {children}
       </DialogContent>
     </Dialog>
   )

@@ -6,10 +6,11 @@
  * - Кеш живе під `ME_QUERY_KEY`; щоб він оновлювався після входу й виходу, передайте в
  *   `createAuthProvider` `onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me)`.
  * - Потребує `CoreAdminContext` (authProvider із lib/auth і QueryClient).
+ * - Часовий пояс профілю стає поясом показу міток часу (`setUserTimeZone`, SPEC §11); гість — пояс пристрою.
  */
 import { hashKey, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthProvider } from "ra-core"
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 
 import { isApiError } from "@/registry/lib/api"
 import {
@@ -18,10 +19,11 @@ import {
   type ErpAuthProvider,
   type Me,
 } from "@/registry/lib/auth"
+import { setUserTimeZone } from "@/registry/lib/user-timezone"
 
 export function useMe() {
   const authProvider = useAuthProvider<ErpAuthProvider>()
-  return useQuery<Me | null>({
+  const query = useQuery<Me | null>({
     queryKey: ME_QUERY_KEY,
     queryFn: async () => {
       if (!authProvider) return null
@@ -37,6 +39,12 @@ export function useMe() {
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   })
+  const loaded = query.data !== undefined
+  const timeZone = query.data?.timezone
+  useEffect(() => {
+    if (loaded) setUserTimeZone(timeZone)
+  }, [loaded, timeZone])
+  return query
 }
 
 /**

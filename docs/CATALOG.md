@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 127. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 137. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 
@@ -29,6 +29,7 @@
 | Елемент | Назва | Що це | Статус | Демо | SPEC |
 |---|---|---|---|---|---|
 | `lib/account` | Контракт безпеки акаунта | Фактори (застосунок, SMS, email, ключі доступу), резервні коди, сесії, довірені пристрої, журнал входів, листи про новий вхід — provider.account. | beta | `security` | PF01 |
+| `lib/amount-in-words` | Сума прописом | Сума словами для документів (uk, en-GB): гривня, долар США, євро у всіх формах числа, копійки цифрами чи словами, bigint без втрати копійок; інші валюти — словами з параметра. | beta | `formats` | §11 |
 | `lib/api` | Конвенції API | HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія. | beta | `data` | §17 |
 | `lib/appearance` | Вподобання вигляду | Палітра, тема, щільність, сайдбар і мова: атрибути <html>, кеш у localStorage, initAppearance, syncLanguage з i18next. | beta | `appearance` | §6.2, §11, PF11 |
 | `lib/audit` | Журнал аудиту | Контракт журналу (хто, що, коли, звідки; «було → стало»; причина), плоскі фільтри, експорт CSV — provider.audit. | beta | `audit` | A5, PF01 |
@@ -37,7 +38,8 @@
 | `lib/company-scope` | Поточна компанія | Вибрана компанія для X-Company-Id і ключів кешу: getCompanyId/setCompanyId/subscribeCompany, syncCompany з профілю, companyScope для ключів запитів. | beta | `company` | PF02 |
 | `lib/company` | Налаштування компанії | Контракт реквізитів (юрособа чи ФОП, ЄДРПОУ / РНОКПП, ПДВ, IBAN, контакти, підписанти), логотип і печатка, філії — provider.company. | beta | `company` | A1, LC12 |
 | `lib/data-provider` | dataProvider ra-core | createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version. | beta | `data` | §17 |
-| `lib/format` | Форматери Intl | Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», відносний час, тиждень ISO, useFormat. | beta | `formats` | §11, §17 |
+| `lib/dates` | Календарні дати й періоди | Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» в поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години. | beta | `fields` | UI39, §11 |
+| `lib/format` | Форматери Intl | Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», періоди, відносний час, тиждень ISO, useFormat (мітки часу — у поясі користувача з lib/user-timezone). | beta | `formats` | §11, §17 |
 | `lib/i18n-en` | Рядки кіта en | Ті самі рядки англійською; паритет ключів перевіряє тест. | beta | `formats` | §11 |
 | `lib/i18n-uk` | Рядки кіта uk | Рядки компонентів кіта українською (простір імен erp-ui): підписи, помилки валідації LC12. | beta | `formats` | §11 |
 | `lib/i18n` | Мови інтерфейсу | i18next + react-i18next: createI18n, українська за замовчуванням, англійська з британськими форматами, <html lang>, useLanguage, useErpUiT. | beta | `formats` | §11 |
@@ -67,6 +69,7 @@
 | `lib/security-policy` | Політики безпеки й відновлення доступу | Контракт політики організації (другий крок, способи входу, пароль, сесія, адреси), запити на відновлення, скидання факторів; перевірка IP/CIDR — provider.admin. | beta | `securityPolicy` | PF01 |
 | `lib/session` | Стан сесії | Термін сесії з заголовка X-Session-Expires-At, активність користувача по всіх вкладках, події входу й виходу між вкладками. | beta | `security` | PF01 |
 | `lib/ua-ids` | Ідентифікатори UA | ЄДРПОУ, РНОКПП, ІПН платника ПДВ, IBAN UA: нормалізація, контрольні суми, групування IBAN, МФО. | beta | `formats` | LC12 |
+| `lib/user-timezone` | Пояс користувача | Часовий пояс із профілю для показу міток часу: setUserTimeZone (викликає useMe), useUserTimeZone, перевірка поясу IANA. | beta | `formats` | §11 |
 | `lib/utils` | cn | Злиття класів Tailwind із підтримкою утиліт щільності erp-ui. | beta | — | §6.5 |
 | `lib/webhooks` | Вебхуки | Контракт підписок на події: адреса https, події, секрет підпису (HMAC), тестова подія, журнал доставок і повтор — provider.webhooks. | beta | `integrations` | PF11, PF17 |
 
@@ -86,11 +89,13 @@
 
 | Елемент | Назва | Що це | Статус | Демо | SPEC |
 |---|---|---|---|---|---|
+| `ui/alert-dialog` | Діалог-попередження | Base UI AlertDialog: не закривається кліком поза ним; основа ConfirmDialog. Довгий вміст прокручується. | beta | `forms` | — |
 | `ui/alert` | Повідомлення | Банер у потоці сторінки; варіанти статусів — soft-тло + *-foreground. | beta | `states` | §6.3 |
 | `ui/avatar` | Аватар | Фото або ініціали; групи аватарів. | beta | `appearance` | — |
 | `ui/badge` | Бейдж | Мітки й статуси: soft-тло + *-foreground (success, warning, info, destructive). | beta | `primitives` | §6.3 |
 | `ui/breadcrumb` | Хлібні крихти | Шлях до сторінки; підписи для скрінрідера мовою інтерфейсу. | beta | `appearance` | §7 |
 | `ui/button` | Кнопка | Усі варіанти; висота з токенів щільності; зона натиску ≥ 44 px; «недоступно з поясненням». | beta | `primitives` | §6.5, §8.4 |
+| `ui/calendar` | Календар | react-day-picker 10 на токенах erp-ui: локаль за мовою інтерфейсу, тиждень з понеділка й номери ISO, один день чи діапазон, вибір у forced-colors. | beta | `fields` | UI39, §11 |
 | `ui/card` | Картка | Контейнер секції з заголовком, описом, діями й підвалом. | beta | `primitives` | — |
 | `ui/checkbox` | Прапорець | Checkbox на Base UI зі зоною натиску ≥ 24 px. | beta | `primitives` | — |
 | `ui/combobox` | Комбобокс | Поле з пошуком по списку (Base UI Combobox): довідники, часові пояси; чипи для кількох значень. | beta | `profile` | — |
@@ -136,16 +141,21 @@
 | `erp/command-palette` | Палітра команд | Cmd/Ctrl+K: пошук розділів і дій за назвою й ключовими словами; на Base UI Autocomplete. | beta | `appearance` | UI15, PF06 |
 | `erp/company-settings` | Налаштування компанії | CompanyProfileForm (реквізити з перевіркою LC12; без права — лише перегляд), CompanyImages (логотип і печатка), CompanyBranchesSection (філії). | beta | `company` | A1, LC12 |
 | `erp/company-switcher` | Перемикач компанії | Компанія чи робочий простір у шапці сайдбара; одна компанія — без меню. | beta | `appearance` | PF02 |
+| `erp/confirm-dialog` | Діалог підтвердження | Три рівні видалення (SPEC §8.2): useUndoToast для зворотних дій, ConfirmDialog з кнопкою-наслідком, confirmWord для критичних дій; кнопка зайнята, поки триває дія. | beta | `forms` | §8.2 |
 | `erp/conflict-dialog` | Діалог конфлікту | «Запис змінив інший користувач»: порівняння ваших і збережених значень, «Зберегти мої зміни» або «Взяти збережене». | beta | `data` | §8.2, §17 |
 | `erp/copy-button` | Кнопка «Копіювати» | Копіює значення в буфер, показує галочку й повідомляє скрінрідеру «Скопійовано». | beta | `security` | UI43 |
+| `erp/date-input` | Поле дати й часу | DateInput: дата з клавіатури («13.10.2026», роздільники самі) і календар поруч, min/max, read-only; TimeInput: час 24 години. Значення — календарна дата або неповне введення як є для перевірки форми. | beta | `fields` | UI39, §8.3, §11 |
+| `erp/date-range-input` | Період | DateRangeInput: пресети («Цей місяць», «Минулий квартал»…), календар діапазону й поля «Від/До» з клавіатури; пресет застосовується одразу, решта — «Готово»; read-only. | beta | `fields` | UI39, §11 |
 | `erp/dev-panel` | Панель розробника | Перемикач сценаріїв моків для всіх ресурсів чи окремо; кнопка для топбара з позначкою нестандартного сценарію. | beta | `data` | §17 |
 | `erp/factor-setup` | Налаштування факторів | Діалоги застосунку з QR, SMS, email і ключа доступу, резервні коди, useFactorSetup; FactorSetupStep — крок входу, коли політика вимагає другий крок. | beta | `security` | PF01 |
+| `erp/form` | Форми | Форми на react-hook-form + zod (ADR-0015): FormField (підпис, підказка, помилка, aria, read-only), FormErrorSummary для довгих форм, UnsavedChangesGuard (діалог у застосунку + beforeunload). | beta | `forms` | §8.2, §8.3 |
 | `erp/impersonation` | «Увійти як…» | Адміністратор працює від імені користувача: діалог із причиною для аудиту, повторне підтвердження, смуга з поверненням до свого акаунта. | beta | `users` | PF01, A2, A5 |
 | `erp/invitations-section` | Запрошення | InvitationsSection: хто чекає, «Запросити колегу» з ролями й повідомленням, надіслати ще раз, відкликати. | beta | `users` | PF01, A2 |
 | `erp/login-screen` | Екран входу | Способи з конфігу сервера: пароль, код на email чи в SMS, ключ доступу, Google/Apple/OIDC; далі — код підтвердження або новий пароль замість тимчасового; «не бот». | beta | `login` | PF01 |
 | `erp/notification-bell` | Дзвіник сповіщень | Кнопка з лічильником у підписі й панель (керована чи ні); підключений до центру сповіщень — InboxBell з erp/notification-inbox. | beta | `inbox` | UI02, PF10 |
 | `erp/notification-inbox` | Центр сповіщень | InboxBell (лічильник і останні сповіщення), NotificationInbox (усі / непрочитані, позначки, «Прочитати все», ще), useUnreadNotifications. | beta | `inbox` | PF10, UI02 |
 | `erp/notification-settings-form` | Налаштування сповіщень | NotificationSettingsForm: матриця подій і каналів (на телефоні — картки), обов'язкові сповіщення безпеки, тихі години, дозвіл push у браузері. | beta | `notifications` | PF10 |
+| `erp/number-input` | Поля числа й суми | MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код) і NumberInput (кількість, відсоток, одиниця); розряди й кома — за мовою інтерфейсу. | beta | `fields` | UI21, §11, §17 |
 | `erp/page-state` | Стани сторінки | Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження. | beta | `states` | §8.1, §8.2 |
 | `erp/password-input` | Поле пароля | Кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7) і підказка надійності текстом. | beta | `login` | PF01, §10 |
 | `erp/permission-gate` | Перевірка права | PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться. | beta | `roles` | A2, PF01 |

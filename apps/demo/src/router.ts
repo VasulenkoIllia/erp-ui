@@ -8,6 +8,8 @@ export const ROUTES = {
   appearance: "/",
   primitives: "/primitives",
   formats: "/formats",
+  fields: "/fields",
+  forms: "/forms",
   icons: "/icons",
   states: "/states",
   data: "/data",

@@ -19,6 +19,7 @@ import {
   useErpAuthProvider,
   useFieldError,
 } from "@/registry/erp/auth-layout"
+import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { CopyButton } from "@/registry/erp/copy-button"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
@@ -338,6 +339,7 @@ export function WebhooksSection() {
         </WebhookDialog>
       ) : open?.kind === "rotate" || open?.kind === "remove" ? (
         <ConfirmDialog
+          open
           title={
             open.kind === "rotate"
               ? t("webhooks.rotateTitle")
@@ -348,7 +350,7 @@ export function WebhooksSection() {
               ? t("webhooks.rotateDescription")
               : t("webhooks.removeDescription", { url: open.webhook.url })
           }
-          confirm={
+          confirmLabel={
             open.kind === "rotate"
               ? t("webhooks.rotateConfirm")
               : t("webhooks.remove")
@@ -697,62 +699,6 @@ function SecretDialog({
             {t("webhooks.done")}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function ConfirmDialog({
-  title,
-  description,
-  confirm,
-  destructive,
-  onClose,
-  onConfirm,
-  children,
-}: {
-  title: string
-  description: string
-  confirm: string
-  destructive?: boolean
-  onClose: () => void
-  onConfirm: () => Promise<unknown>
-  children?: React.ReactNode
-}) {
-  const t = useErpUiT()
-  const [busy, setBusy] = React.useState(false)
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("auth.account.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant={destructive ? "destructive" : "default"}
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              void onConfirm().finally(() => {
-                setBusy(false)
-              })
-            }}
-          >
-            {busy ? <Spinner aria-hidden /> : null}
-            {confirm}
-          </Button>
-        </DialogFooter>
-        {children}
       </DialogContent>
     </Dialog>
   )

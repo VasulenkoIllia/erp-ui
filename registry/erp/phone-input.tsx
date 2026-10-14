@@ -55,11 +55,21 @@ function PhoneInput({
   className,
   disabled,
   readOnly,
+  ref,
   ...props
 }: PhoneInputProps) {
   const t = useErpUiT()
   const { locale } = useLanguage()
   const inputRef = React.useRef<HTMLInputElement>(null)
+  // `ref` ззовні (react-hook-form фокусує поле з помилкою) — на те саме поле, що й свій.
+  const setInputRef = React.useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node
+      if (typeof ref === "function") ref(node)
+      else if (ref) ref.current = node
+    },
+    [ref],
+  )
   const [inner, setInner] = React.useState(defaultValue)
   const current = value ?? inner
   const [chosen, setChosen] = React.useState<string | null>(null)
@@ -124,7 +134,7 @@ function PhoneInput({
       </Select>
       <NumberFormatBase
         customInput={Input}
-        getInputRef={inputRef}
+        getInputRef={setInputRef}
         value={current}
         valueIsNumericString
         format={formatPhoneAsYouType}

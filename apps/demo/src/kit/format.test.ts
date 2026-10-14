@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { renderHook } from "@testing-library/react"
+import { afterEach, describe, expect, it } from "vitest"
 
 import {
   currencyDigits,
+  decimalToMinor,
   formatDate,
+  formatDateRange,
   formatMoney,
   formatNumber,
   formatPercent,
@@ -10,8 +13,10 @@ import {
   isoWeek,
   minorToDecimal,
   pluralCategory,
+  useFormat,
 } from "@/registry/lib/format"
 import { LOCALES } from "@/registry/lib/i18n"
+import { getUserTimeZone, setUserTimeZone } from "@/registry/lib/user-timezone"
 
 const UK = LOCALES.uk
 const EN = LOCALES.en
@@ -151,5 +156,78 @@ describe("множина", () => {
     ]
     for (const [n, category] of cases)
       expect(pluralCategory(n, UK), String(n)).toBe(category)
+  })
+})
+
+describe("десятковий рядок → мінорні одиниці", () => {
+  it("точно, з неповним введенням і bigint", () => {
+    expect(decimalToMinor("48600.5", 2)).toBe(4_860_050)
+    expect(decimalToMinor("48600.", 2)).toBe(4_860_000)
+    expect(decimalToMinor(".5", 2)).toBe(50)
+    expect(decimalToMinor("-12.34", 2)).toBe(-1234)
+    expect(decimalToMinor("1200", 0)).toBe(1200)
+    expect(decimalToMinor("90071992547409.93", 2)).toBe(9_007_199_254_740_993n)
+    expect(() => decimalToMinor("1.005", 2)).toThrow(RangeError)
+    expect(() => decimalToMinor(".", 2)).toThrow(RangeError)
+    expect(() => decimalToMinor("1,5", 2)).toThrow(RangeError)
+  })
+})
+
+describe("періоди", () => {
+  it("однакові частини не повторюються, без «р.»/«рр.»", () => {
+    expect(formatDateRange("2026-10-01", "2026-10-13", "long", UK)).toBe(
+      "1–13 жовтня 2026",
+    )
+    expect(formatDateRange("2026-10-01", "2027-01-05", "long", UK)).toBe(
+      "1 жовтня 2026 – 5 січня 2027",
+    )
+    expect(formatDateRange("2026-10-01", "2026-10-13", "date", UK)).toBe(
+      "01.10.2026 – 13.10.2026",
+    )
+    // CLDR 48 (новіший Node 22 у CI) ставить в en-GB пробіли навколо тире, CLDR 47 — ні;
+    // перевіряємо суть: місяць і рік не повторюються.
+    expect(formatDateRange("2026-10-01", "2026-10-13", "medium", EN)).toMatch(
+      /^1\s?–\s?13\sOct\s2026$/,
+    )
+    expect(formatDateRange("2026-10-05", "2026-10-05", "long", UK)).toBe(
+      "5 жовтня 2026",
+    )
+  })
+})
+
+describe("пояс користувача (SPEC §11)", () => {
+  afterEach(() => {
+    setUserTimeZone(undefined)
+  })
+
+  it("useFormat показує мітки часу в поясі з профілю, календарні дати — без зсуву", () => {
+    const instant = "2026-10-11T22:30:00Z"
+    setUserTimeZone("Europe/Kyiv")
+    const { result, rerender } = renderHook(() => useFormat())
+    expect(result.current.timeZone).toBe("Europe/Kyiv")
+    expect(result.current.date(instant, "dateTime")).toBe("12.10.2026, 01:30")
+    setUserTimeZone("Europe/Warsaw")
+    rerender()
+    expect(result.current.date(instant, "dateTime")).toBe("12.10.2026, 00:30")
+    expect(result.current.date("2026-10-11", "date")).toBe("11.10.2026")
+    // Явний пояс у виклику важливіший за пояс профілю.
+    expect(
+      result.current.date(instant, "time", { timeZone: "America/New_York" }),
+    ).toBe("18:30")
+  })
+
+  it("відносна календарна дата — у своєму дні, навіть у поясі на захід від UTC", () => {
+    setUserTimeZone("America/New_York")
+    const { result } = renderHook(() => useFormat())
+    // 13.10 о 10:00 у Нью-Йорку: календарна дата 13.10 — «сьогодні», а не «учора».
+    const now = new Date("2026-10-13T14:00:00Z")
+    expect(result.current.relative("2026-10-13", { now })).toBe("сьогодні")
+    expect(result.current.relative("2026-10-12", { now })).toBe("учора")
+    expect(result.current.relative("2026-09-01", { now })).toBe("1 вересня")
+  })
+
+  it("невідомий пояс ігнорується", () => {
+    setUserTimeZone("Mars/Olympus")
+    expect(getUserTimeZone()).toBeUndefined()
   })
 })

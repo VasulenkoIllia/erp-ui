@@ -124,7 +124,7 @@ test.describe("вебхуки (ADR-0013)", () => {
     await actions.click()
     await page.getByRole("menuitem", { name: "Видалити" }).click()
     await page
-      .getByRole("dialog", { name: "Видалити вебхук?" })
+      .getByRole("alertdialog", { name: "Видалити вебхук?" })
       .getByRole("button", { name: "Видалити" })
       .click()
     await expect(toast(page, "Вебхук видалено")).toBeVisible()

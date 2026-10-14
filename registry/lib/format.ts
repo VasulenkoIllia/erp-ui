@@ -8,10 +8,13 @@
  * - Дати — лише явні стилі (`DATE_STYLES`); рядок "2026-10-13" — календарна дата без зсуву часового поясу.
  *   «р.» після року не пишемо: «13 жовтня 2026», «жовтень 2026» (SPEC §11).
  * - Час — 24-годинний; тиждень — з понеділка, номери тижнів — ISO 8601.
+ * - Мітки часу в `useFormat()` показуються в поясі користувача з профілю (`lib/user-timezone`);
+ *   чисті функції — у поясі з `options.timeZone`, без нього — пристрою. Календарні дати пояс не зсуває.
  */
 import { useMemo } from "react"
 
 import { useLanguage } from "@/registry/lib/i18n"
+import { useUserTimeZone } from "@/registry/lib/user-timezone"
 
 export interface Money {
   /** Ціле число мінорних одиниць (копійок, центів). */
@@ -125,13 +128,60 @@ export function minorToDecimal(
   return negative ? `-${decimal}` : decimal
 }
 
-export function formatMoney(money: Money, locale: string): string {
-  const currency = money.currency.toUpperCase()
-  const nf = numberFormat(locale, {
+/**
+ * Точний десятковий рядок → мінорні одиниці: "48600.5" → 4860050; понад 2⁵³ — bigint.
+ * Приймає й те, що буває під час введення: "48600." і ".5".
+ */
+export function decimalToMinor(
+  decimal: string,
+  digits: number,
+): number | bigint {
+  const m = /^(-?)(\d*)(?:\.(\d*))?$/.exec(decimal)
+  if (!m || !(m[2] || m[3]) || (m[3]?.length ?? 0) > digits)
+    throw new RangeError(
+      `Некоректна сума: ${decimal} (до ${digits} знаків після коми)`,
+    )
+  const minor = BigInt(
+    `${m[1]}${m[2] || "0"}${(m[3] ?? "").padEnd(digits, "0")}`,
+  )
+  const asNumber = Number(minor)
+  return Number.isSafeInteger(asNumber) ? asNumber : minor
+}
+
+/** Гривня — символом «₴», інші валюти — кодом (рішення власника 13.10.2026). */
+function moneyFormat(currency: string, locale: string): Intl.NumberFormat {
+  return numberFormat(locale, {
     style: "currency",
     currency,
     currencyDisplay: currency === "UAH" ? "narrowSymbol" : "code",
   })
+}
+
+/** Підпис валюти поруч із сумою, як у `formatMoney`: «₴», «USD». */
+export function currencyLabel(currency: string, locale: string): string {
+  const code = currency.toUpperCase()
+  return (
+    moneyFormat(code, locale)
+      .formatToParts(0)
+      .find((part) => part.type === "currency")?.value ?? code
+  )
+}
+
+/** Роздільники розрядів і дробу локалі: uk — нерозривний пробіл і кома, en-GB — кома й крапка. */
+export function numberSeparators(locale: string): {
+  group: string
+  decimal: string
+} {
+  const parts = numberFormat(locale, {}).formatToParts(12_345.6)
+  return {
+    group: parts.find((part) => part.type === "group")?.value ?? "",
+    decimal: parts.find((part) => part.type === "decimal")?.value ?? ".",
+  }
+}
+
+export function formatMoney(money: Money, locale: string): string {
+  const currency = money.currency.toUpperCase()
+  const nf = moneyFormat(currency, locale)
   // Рядок форматується точно (Intl.NumberFormat v3): копійки великих сум не губляться.
   return nf.format(
     minorToDecimal(
@@ -163,6 +213,10 @@ function resolveDate(
   return { date, timeZone }
 }
 
+/** Частина «р.»/«рр.» після року (uk) — не пишемо (SPEC §11). */
+const isYearSuffix = (part: Intl.DateTimeFormatPart) =>
+  part.type === "literal" && /^р{1,2}\.$/.test(part.value.trim())
+
 export function formatDate(
   value: DateValue,
   style: DateStyle,
@@ -174,7 +228,7 @@ export function formatDate(
   const options: Intl.DateTimeFormatOptions = DATE_STYLES[style]
   return dateFormat(locale, { ...options, ...zone })
     .formatToParts(resolved.date)
-    .filter((part) => !(part.type === "literal" && part.value.trim() === "р."))
+    .filter((part) => !isYearSuffix(part))
     .map((part) =>
       // Частина версій CLDR (зокрема в Chromium) ставить день тижня поруч із датою в знахідний
       // відмінок («неділю, 11 жовтня»); окремий день тижня завжди в називному — беремо його.
@@ -184,6 +238,29 @@ export function formatDate(
           )
         : part.value,
     )
+    .join("")
+    .trim()
+}
+
+/**
+ * Період: «1–13 жовтня 2026», «1 жовтня 2026 – 5 січня 2027», «01.10.2026 – 13.10.2026».
+ * Однакові частини Intl не повторює. Стилі — ті самі `DATE_STYLES` (без дня тижня).
+ */
+export function formatDateRange(
+  from: DateValue,
+  to: DateValue,
+  style: Exclude<DateStyle, "weekdayDayMonth">,
+  locale: string,
+  { timeZone }: DateOptions = {},
+): string {
+  const start = resolveDate(from, timeZone)
+  const end = resolveDate(to, timeZone)
+  // Календарні дати — в UTC; змішувати їх із мітками часу в одному періоді не можна.
+  const zone = start.timeZone ? { timeZone: start.timeZone } : {}
+  return dateFormat(locale, { ...DATE_STYLES[style], ...zone })
+    .formatRangeToParts(start.date, end.date)
+    .filter((part) => !isYearSuffix(part))
+    .map((part) => part.value)
     .join("")
     .trim()
 }
@@ -221,18 +298,24 @@ export function formatRelative(
   locale: string,
   { now = new Date(), timeZone }: RelativeOptions = {},
 ): string {
-  const { date } = resolveDate(value, timeZone)
+  // Календарна дата — у своєму дні (UTC), без зсуву поясом: «сьогодні», «учора», а не години.
+  const { date, timeZone: dateZone } = resolveDate(value, timeZone)
+  const isCalendar = typeof value === "string" && CALENDAR_DATE.test(value)
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
-  const seconds = (date.getTime() - now.getTime()) / 1000
-  const abs = Math.abs(seconds)
-  if (abs < 60) return rtf.format(0, "second")
-  if (abs < 3600) return rtf.format(Math.trunc(seconds / 60), "minute")
-  const days = dayNumber(date, timeZone) - dayNumber(now, timeZone)
-  if (days === 0) return rtf.format(Math.trunc(seconds / 3600), "hour")
+  const days = dayNumber(date, dateZone) - dayNumber(now, timeZone)
+  if (!isCalendar) {
+    const seconds = (date.getTime() - now.getTime()) / 1000
+    const abs = Math.abs(seconds)
+    if (abs < 60) return rtf.format(0, "second")
+    if (abs < 3600) return rtf.format(Math.trunc(seconds / 60), "minute")
+    if (days === 0) return rtf.format(Math.trunc(seconds / 3600), "hour")
+  }
   if (Math.abs(days) < 7) return rtf.format(days, "day")
   const sameYear =
-    calendarParts(date, timeZone).year === calendarParts(now, timeZone).year
-  return formatDate(date, sameYear ? "dayMonth" : "long", locale, { timeZone })
+    calendarParts(date, dateZone).year === calendarParts(now, timeZone).year
+  return formatDate(date, sameYear ? "dayMonth" : "long", locale, {
+    timeZone: dateZone,
+  })
 }
 
 /** Тиждень за ISO 8601 (понеділок — перший день; 1-й тиждень містить перший четвер року). */
@@ -264,22 +347,31 @@ export function pluralCategory(
   return new Intl.PluralRules(locale).select(count)
 }
 
-/** Форматери з локаллю поточної мови інтерфейсу. */
+/** Форматери з локаллю поточної мови інтерфейсу й поясом користувача. */
 export function useFormat() {
   const { locale } = useLanguage()
+  const timeZone = useUserTimeZone()
   return useMemo(
     () => ({
       locale,
+      /** Пояс, у якому показуються мітки часу; undefined — пояс пристрою. */
+      timeZone,
       number: (value: number | bigint, options?: Intl.NumberFormatOptions) =>
         formatNumber(value, locale, options),
       percent: (value: number, options?: Intl.NumberFormatOptions) =>
         formatPercent(value, locale, options),
       money: (money: Money) => formatMoney(money, locale),
       date: (value: DateValue, style: DateStyle, options?: DateOptions) =>
-        formatDate(value, style, locale, options),
+        formatDate(value, style, locale, { timeZone, ...options }),
+      dateRange: (
+        from: DateValue,
+        to: DateValue,
+        style: Exclude<DateStyle, "weekdayDayMonth">,
+        options?: DateOptions,
+      ) => formatDateRange(from, to, style, locale, { timeZone, ...options }),
       relative: (value: DateValue, options?: RelativeOptions) =>
-        formatRelative(value, locale, options),
+        formatRelative(value, locale, { timeZone, ...options }),
     }),
-    [locale],
+    [locale, timeZone],
   )
 }
