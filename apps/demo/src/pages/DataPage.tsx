@@ -1,5 +1,5 @@
 import { useAuthenticated, useCanAccess, useUpdate } from "ra-core"
-import { useId, useState, type FormEvent } from "react"
+import { useEffect, useId, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
@@ -10,13 +10,16 @@ import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
 import { StatusTabs } from "@/registry/erp/status-tabs"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
+import { useCompanyId } from "@/registry/hooks/use-company"
 import { useListCounts } from "@/registry/hooks/use-list-counts"
 import { useListState } from "@/registry/hooks/use-list-state"
+import { useRowSelection } from "@/registry/hooks/use-row-selection"
 import { useSavedViews } from "@/registry/hooks/use-saved-views"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS, MODULE_ICONS } from "@/registry/lib/icons"
+import { whenIdle } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
 import {
   Dialog,
@@ -43,6 +46,9 @@ import {
   type InvoiceStatus,
 } from "@/data/invoices"
 
+import { useApproveAction } from "./invoice-bulk"
+import { InlineConflictDialog, type InlineConflict } from "./invoice-cells"
+import { preloadInlineEditors } from "./inline-editors"
 import { INVOICE_LIST_DEFAULTS, useInvoiceListSetup } from "./invoice-filters"
 import { InvoiceTable, type InvoiceTableProps } from "./invoice-table"
 import { PageHeader } from "./PageHeader"
@@ -57,7 +63,8 @@ type ViewMode = "scroll" | "pages"
  * Стрес-сторінка (SPEC §18.1, кроки 0.6b і 0.6c): 10 000 рахунків з мок-сервера через ra-core у
  * erp/data-table. Прокрутка вікнами по 100 (useWindowedList) або звичайні сторінки (useGetList),
  * вкладки-статуси з лічильниками, FilterBar із чипами, особисті збережені види, стан списку в
- * адресі, права на редагування, збереження з версією й діалог конфлікту.
+ * адресі, вибір «сторінка / усе» й масове погодження фоновою задачею, редагування клієнта й суми в
+ * комірці, права на редагування, збереження з версією й діалог конфлікту.
  */
 export function DataPage() {
   const t = usePageT()
@@ -91,15 +98,30 @@ function InvoiceList() {
   })
   const [view, setView] = useState<ViewMode>("scroll")
   const [editing, setEditing] = useState<Invoice | null>(null)
+  const [conflict, setConflict] = useState<InlineConflict | null>(null)
+  useEffect(
+    () =>
+      whenIdle(() => {
+        void preloadInlineEditors()
+      }),
+    [],
+  )
   const { canAccess: canEdit } = useCanAccess({
     resource: RESOURCE,
     action: "edit",
   })
+  // Інший фільтр чи компанія — інші записи: вибір скидається (ADR-0018).
+  const companyId = useCompanyId()
+  const selection = useRowSelection([list.queryFilter, companyId])
+  const approve = useApproveAction(selection, list.queryFilter)
 
   const listProps: InvoiceTableProps = {
     view,
     canEdit: canEdit === true,
     onEdit: setEditing,
+    onConflict: setConflict,
+    selection,
+    bulkActions: approve.button,
     filter: list.queryFilter,
     sort: list.state.sort,
     onSortChange: list.setSort,
@@ -161,6 +183,13 @@ function InvoiceList() {
       ) : (
         <PageSkeleton rows={8} />
       )}
+      {approve.dialog}
+      <InlineConflictDialog
+        conflict={conflict}
+        onClose={() => {
+          setConflict(null)
+        }}
+      />
       {editing ? (
         <EditInvoiceDialog
           key={`${editing.id}-${String(editing.version)}`}

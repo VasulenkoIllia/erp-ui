@@ -6,7 +6,11 @@
  * - update надсилає лише змінені поля + `version`: з `data` (версія, яку відкрила форма), інакше з
  *   `previousData`. Конфлікт → ApiError 409 із `current`; «зберегти мої зміни» — повтор із
  *   `version: current.version`.
- * - updateMany/deleteMany — запит на кожен запис; масові операції з частковою невдачею — крок 0.6.
+ * - updateMany/deleteMany — запит на кожен запис.
+ * - Масові дії з частковою невдачею — фоновою задачею сервера (lib/jobs, ADR-0018): `startBulk`
+ *   → `POST /<ресурс>/bulk/<дія>`, `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
+ *   перевіряється схемою), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
+ *   `useDataProvider<ErpDataProvider>()`.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
 
@@ -16,6 +20,26 @@ import {
   type FilterValue,
   type SortField,
 } from "@/registry/lib/api"
+import {
+  JOBS_PATH,
+  jobSchema,
+  jobStartedSchema,
+  type BulkSelection,
+  type Job,
+  type JobStarted,
+} from "@/registry/lib/jobs"
+
+/** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
+export interface BulkDataProvider {
+  startBulk: (
+    resource: string,
+    action: string,
+    selection: BulkSelection,
+  ) => Promise<JobStarted>
+  getJob: (id: string, options?: { signal?: AbortSignal }) => Promise<Job>
+  retryJob: (id: string) => Promise<JobStarted>
+}
+export type ErpDataProvider = DataProvider & BulkDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -51,9 +75,10 @@ export function changedFields(
 export function createDataProvider(
   client: ApiClient,
   { resourcePath = (resource) => resource }: DataProviderOptions = {},
-): DataProvider {
+): ErpDataProvider {
   const path = (resource: string, id?: Identifier) =>
     `/${resourcePath(resource)}${id === undefined ? "" : `/${encodeURIComponent(String(id))}`}`
+  const jobPath = (id: string) => `/${JOBS_PATH}/${encodeURIComponent(id)}`
 
   const list = async (
     resource: string,
@@ -75,7 +100,7 @@ export function createDataProvider(
     })
   }
 
-  const provider: DataProvider = {
+  const provider: ErpDataProvider = {
     supportAbortSignal: true,
 
     getList: async (resource, params) => {
@@ -142,6 +167,21 @@ export function createDataProvider(
       await Promise.all(ids.map((id) => client.delete(path(resource, id))))
       return { data: ids }
     },
+
+    startBulk: (resource, action, selection) =>
+      client.post(
+        `${path(resource)}/bulk/${encodeURIComponent(action)}`,
+        selection,
+        { schema: jobStartedSchema },
+      ),
+
+    getJob: (id, { signal } = {}) =>
+      client.get(jobPath(id), { schema: jobSchema, signal, background: true }),
+
+    retryJob: (id) =>
+      client.post(`${jobPath(id)}/retry`, undefined, {
+        schema: jobStartedSchema,
+      }),
   }
   return provider
 }

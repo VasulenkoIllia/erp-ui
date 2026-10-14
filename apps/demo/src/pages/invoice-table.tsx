@@ -1,11 +1,13 @@
 import { keepPreviousData } from "@tanstack/react-query"
 import { type LucideIcon } from "lucide-react"
 import { useGetList, type SortPayload } from "ra-core"
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
 import { DataTable, type DataTableProps } from "@/registry/erp/data-table"
+import type { DataTableSelectionOptions } from "@/registry/erp/data-table-selection"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import { useWindowedList } from "@/registry/hooks/use-windowed-list"
 import { companyScope } from "@/registry/lib/company-scope"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
@@ -17,9 +19,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
 import { type Invoice, type InvoiceStatus } from "@/data/invoices"
 
+import {
+  InvoiceAmountCell,
+  InvoiceClientCell,
+  type InlineConflict,
+} from "./invoice-cells"
+
 /**
  * Список рахунків стрес-сторінки (DataPage, SPEC §18.1) на erp/data-table: колонки й два джерела —
- * прокрутка вікнами (useWindowedList) і сторінки (useGetList).
+ * прокрутка вікнами (useWindowedList) і сторінки (useGetList); вибір рядків для масового погодження,
+ * клієнт і сума редагуються в комірці (ADR-0018).
  */
 
 const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
@@ -36,6 +45,7 @@ const STATUS_BADGES: Record<
   }
 > = {
   draft: { variant: "secondary", icon: STATUS_ICONS.draft },
+  approved: { variant: "info", icon: ACTION_ICONS.approve },
   sent: { variant: "info", icon: STATUS_ICONS.info },
   partially_paid: { variant: "warning", icon: STATUS_ICONS.pending },
   paid: { variant: "success", icon: STATUS_ICONS.success },
@@ -59,6 +69,7 @@ const getInvoiceId = (invoice: Invoice) => invoice.id
 function useInvoiceColumns(
   canEdit: boolean,
   onEdit: (invoice: Invoice) => void,
+  onConflict: (conflict: InlineConflict) => void,
 ): DataTableColumn<Invoice>[] {
   const t = usePageT()
   const format = useFormat()
@@ -78,7 +89,13 @@ function useInvoiceColumns(
       {
         id: "client",
         header: t("columns.client"),
-        cell: (invoice) => <span className="truncate">{invoice.client}</span>,
+        cell: (invoice) => (
+          <InvoiceClientCell
+            invoice={invoice}
+            readOnly={!canEdit}
+            onConflict={onConflict}
+          />
+        ),
         sortField: "client",
         minWidth: 14,
         grow: 2,
@@ -117,12 +134,11 @@ function useInvoiceColumns(
         id: "amount",
         header: t("columns.amount"),
         cell: (invoice) => (
-          <span className="tabular-nums">
-            {format.money({
-              amount: invoice.amount,
-              currency: invoice.currency,
-            })}
-          </span>
+          <InvoiceAmountCell
+            invoice={invoice}
+            readOnly={!canEdit}
+            onConflict={onConflict}
+          />
         ),
         sortField: "amount",
         firstSortOrder: "DESC",
@@ -157,7 +173,7 @@ function useInvoiceColumns(
         card: "actions",
       },
     ],
-    [t, format, canEdit, onEdit],
+    [t, format, canEdit, onEdit, onConflict],
   )
 }
 
@@ -172,7 +188,11 @@ type ListProps = Pick<
   | "onResetFilters"
   | "empty"
   | "countLabel"
-> & { filter: Record<string, unknown>; sort: SortPayload }
+> &
+  DataTableSelectionOptions<Invoice> & {
+    filter: Record<string, unknown>
+    sort: SortPayload
+  }
 
 /** Великий список: віртуальна прокрутка, рядки вікнами по 100 з сервера. */
 function WindowedInvoices({ filter, sort, ...props }: ListProps) {
@@ -281,6 +301,10 @@ export type InvoiceTableProps = Pick<
   view: "scroll" | "pages"
   canEdit: boolean
   onEdit: (invoice: Invoice) => void
+  onConflict: (conflict: InlineConflict) => void
+  selection: RowSelection
+  /** Масові дії панелі вибраного. */
+  bulkActions: (count: number) => ReactNode
 }
 
 /** Рахунки на erp/data-table: прокрутка вікнами або сторінки. */
@@ -288,15 +312,19 @@ export function InvoiceTable({
   view,
   canEdit,
   onEdit,
+  onConflict,
   ...props
 }: InvoiceTableProps) {
   const t = usePageT()
   const listProps: ListProps = {
     ...props,
     label: t("tableLabel"),
-    columns: useInvoiceColumns(canEdit, onEdit),
+    columns: useInvoiceColumns(canEdit, onEdit, onConflict),
     getRowId: getInvoiceId,
     countLabel: (count, value) => t("count", { count, value }),
+    rowLabel: (invoice) => t("rowLabel", { number: invoice.number }),
+    selectionLabel: (count, value, all) =>
+      t(all ? "selectedAll" : "selected", { count, value }),
   }
   return view === "scroll" ? (
     <WindowedInvoices {...listProps} />

@@ -7,7 +7,8 @@
  *   користувачів (lib/mock-admin), журнал аудиту, вебхуки й сповіщення (ADR-0013).
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії (`X-Company-Id`); кожна зміна — у журнал аудиту
- *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks).
+ *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
+ *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018).
  * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
  * - Кожен обробник ресурсу поважає сценарій із lib/mock-scenarios.
  * - Мок сам перевіряє права, як справжній сервер (SPEC: приховування в UI — лише косметика).
@@ -222,10 +223,34 @@ export function createResourceHandlers<T extends MockRecord>({
     return null
   }
 
-  const inCompany = (request: Request) => {
-    const companyId = request.headers.get(COMPANY_HEADER)
-    return (record: T) =>
-      !companyId || record.companyId == null || record.companyId === companyId
+  const inCompany = (companyId: string | null) => (record: T) =>
+    !companyId || record.companyId == null || record.companyId === companyId
+
+  /** Записи списку: компанія, пошук `q` і плоскі фільтри ADR-0002, у порядку `sort`. */
+  const select = (
+    filter: Record<string, FilterValue>,
+    companyId: string | null,
+    sort: SortField[] = [],
+  ): T[] => {
+    const { q, ...rest } = filter
+    const query = typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
+    return sortedBy(sort)
+      .filter(inCompany(companyId))
+      .filter((record) => {
+        if (
+          query &&
+          !searchFields.some((field) =>
+            String(record[field] ?? "")
+              .toLocaleLowerCase("uk")
+              .includes(query),
+          )
+        )
+          return false
+        return Object.entries(rest).every(([key, value]) => {
+          const { field, op } = parseFilterKey(key)
+          return matches(record[field], op, value)
+        })
+      })
   }
 
   const notFound = () =>
@@ -271,6 +296,26 @@ export function createResourceHandlers<T extends MockRecord>({
     emitMockEvent(`${resource}.${verb}`, { ...record })
   }
 
+  /** Зміна запису без перевірки версії: схема, нова версія, журнал і подія; null — запису немає. */
+  const patch = (
+    id: string,
+    changes: Record<string, unknown>,
+  ): { record: T } | { fieldErrors: Record<string, string> } | null => {
+    const index = all().findIndex((r) => r.id === id)
+    const latest = all()[index]
+    if (!latest) return null
+    const parsed = schema.safeParse({
+      ...latest,
+      ...changes,
+      id: latest.id,
+      version: latest.version + 1,
+    })
+    if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
+    update(index, parsed.data)
+    changed("updated", parsed.data, latest)
+    return { record: parsed.data }
+  }
+
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {
       const denied = await guard("read")
@@ -279,26 +324,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const { page, perPage, sort, filter } = fromSearchParams(
         new URL(request.url).searchParams,
       )
-      const { q, ...rest } = filter
-      const query =
-        typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
-      const filtered = sortedBy(sort)
-        .filter(inCompany(request))
-        .filter((record) => {
-          if (
-            query &&
-            !searchFields.some((field) =>
-              String(record[field] ?? "")
-                .toLocaleLowerCase("uk")
-                .includes(query),
-            )
-          )
-            return false
-          return Object.entries(rest).every(([key, value]) => {
-            const { field, op } = parseFilterKey(key)
-            return matches(record[field], op, value)
-          })
-        })
+      const filtered = select(filter, request.headers.get(COMPANY_HEADER), sort)
       const start = (page - 1) * perPage
       return json({
         data: filtered.slice(start, start + perPage),
@@ -310,7 +336,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const denied = await guard("read")
       if (denied) return denied
       const record = all()
-        .filter(inCompany(request))
+        .filter(inCompany(request.headers.get(COMPANY_HEADER)))
         .find((r) => r.id === params.id)
       return record ? json(record) : notFound()
     }),
@@ -361,22 +387,16 @@ export function createResourceHandlers<T extends MockRecord>({
           current: latest,
         })
       }
-      const parsed = schema.safeParse({
-        ...latest,
-        ...changes,
-        id: latest.id,
-        version: latest.version + 1,
-      })
-      if (!parsed.success) {
+      const result = patch(latest.id, changes)
+      if (!result) return notFound()
+      if ("fieldErrors" in result) {
         return errorResponse(422, {
           code: "validation",
           message: "Validation failed",
-          fieldErrors: fieldErrors(parsed.error),
+          fieldErrors: result.fieldErrors,
         })
       }
-      update(index, parsed.data)
-      changed("updated", parsed.data, latest)
-      return json(parsed.data)
+      return json(result.record)
     }),
 
     http.delete(`${url}/:id`, async ({ params }) => {
@@ -398,6 +418,11 @@ export function createResourceHandlers<T extends MockRecord>({
         sorted.clear()
         return all()
       },
+      /** Записи за фільтром списку в компанії — для масових дій (lib/mock-jobs). */
+      select: (filter: Record<string, FilterValue>, companyId: string | null) =>
+        select(filter, companyId),
+      /** Зміна запису з новою версією, журналом і подією — як PATCH, але без перевірки версії. */
+      patch,
       reset: () => {
         stored = null
         sorted.clear()
@@ -406,3 +431,8 @@ export function createResourceHandlers<T extends MockRecord>({
     },
   }
 }
+
+/** Доступ до записів мок-ресурсу (`createResourceHandlers(...).db`). */
+export type MockResourceDb<T extends MockRecord> = ReturnType<
+  typeof createResourceHandlers<T>
+>["db"]

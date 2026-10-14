@@ -28,8 +28,11 @@ const TEXT_ENTRY =
   "input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable=''], [contenteditable='true'], [role=combobox], [role=textbox], [aria-expanded=true]"
 
 function widgetsIn(cell: HTMLElement): HTMLElement[] {
+  // Прихований <input> поруч із прапорцем Base UI (aria-hidden) — не елемент клітинки.
   return [...cell.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-    (el) => el.closest("[data-cell]") === cell,
+    (el) =>
+      el.closest("[data-cell]") === cell &&
+      el.getAttribute("aria-hidden") !== "true",
   )
 }
 

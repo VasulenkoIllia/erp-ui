@@ -6,6 +6,14 @@ import type { SortPayload } from "ra-core"
 
 import { CardSortSelect, DataTableCards } from "@/registry/erp/data-table-cards"
 import { DataTableGrid } from "@/registry/erp/data-table-grid"
+import {
+  SelectionBar,
+  SelectionProvider,
+  tableTabStop,
+  useTableSelection,
+  type DataTableSelectionProps,
+  type SelectionScope,
+} from "@/registry/erp/data-table-selection"
 import { PageState } from "@/registry/erp/page-state"
 import {
   remPx,
@@ -40,8 +48,10 @@ import { Spinner } from "@/registry/ui/spinner"
  *   у клітинку з кількома елементами, Esc — назад; `aria-sort` у заголовках.
  * - Стани SPEC §8.1: скелетон (2), оновлення з видимими даними (3), дозавантаження (4), порожньо (5),
  *   нічого не знайдено (6), помилка (7), збій частини рядків із повтором (8), немає доступу (9),
- *   офлайн (10), «Оновлено о…» з кнопкою (11). Рядок стану — постійний live-регіон: скрінрідер чує
- *   «Завантаження даних», «Оновлюємо…» і кількість після зміни фільтра (WCAG 4.1.3).
+ *   офлайн (10), «Оновлено о…» з кнопкою (11), вибір «сторінка / усе» (12). Рядок стану — постійний
+ *   live-регіон: скрінрідер чує «Завантаження даних», «Оновлюємо…» і кількість після зміни фільтра
+ *   (WCAG 4.1.3).
+ * - Вибір рядків і масові дії (`selection` з `useRowSelection`, ADR-0018) — erp/data-table-selection.
  */
 
 export interface DataTablePagination {
@@ -68,32 +78,34 @@ export type DataTableRows<T> =
       pagination?: DataTablePagination
     }
 
-export type DataTableProps<T> = DataTableRows<T> & {
-  /** Назва таблиці для скрінрідера: «Рахунки клієнтам». */
-  label: string
-  columns: readonly DataTableColumn<T>[]
-  getRowId: (row: T) => string
-  sort?: SortPayload
-  /** Без нього заголовки й картки не пропонують сортування. */
-  onSortChange?: (sort: SortPayload) => void
-  isPending?: boolean
-  isRefreshing?: boolean
-  error?: unknown
-  onRetry?: () => void
-  /** Чи задано фільтри: порожній результат — «нічого не знайдено», а не «порожньо вперше». */
-  isFiltered?: boolean
-  onResetFilters?: () => void
-  /** Стан «порожньо вперше» з дією «Створити»; за замовчуванням — PageState `empty`. */
-  empty?: React.ReactNode
-  /** Лічильник у рядку стану: (10000) => «10 000 рахунків»; за замовчуванням — «10 000 записів». */
-  countLabel?: (count: number, formatted: string) => string
-  /** Коли отримано дані, мс: мітка «Оновлено о…» (SPEC §8.1, стан 11). */
-  updatedAt?: number
-  onRefresh?: () => void
-  /** Нижче цієї ширини контейнера, rem, — картки замість таблиці. */
-  cardsBelow?: number
-  className?: string
-}
+export type DataTableProps<T> = DataTableRows<T> &
+  /** Вибір рядків (`useRowSelection`) з `rowLabel`: колонка прапорців і панель вибраного. */
+  DataTableSelectionProps<T> & {
+    /** Назва таблиці для скрінрідера: «Рахунки клієнтам». */
+    label: string
+    columns: readonly DataTableColumn<T>[]
+    getRowId: (row: T) => string
+    sort?: SortPayload
+    /** Без нього заголовки й картки не пропонують сортування. */
+    onSortChange?: (sort: SortPayload) => void
+    isPending?: boolean
+    isRefreshing?: boolean
+    error?: unknown
+    onRetry?: () => void
+    /** Чи задано фільтри: порожній результат — «нічого не знайдено», а не «порожньо вперше». */
+    isFiltered?: boolean
+    onResetFilters?: () => void
+    /** Стан «порожньо вперше» з дією «Створити»; за замовчуванням — PageState `empty`. */
+    empty?: React.ReactNode
+    /** Лічильник у рядку стану: (10000) => «10 000 рахунків»; за замовчуванням — «10 000 записів». */
+    countLabel?: (count: number, formatted: string) => string
+    /** Коли отримано дані, мс: мітка «Оновлено о…» (SPEC §8.1, стан 11). */
+    updatedAt?: number
+    onRefresh?: () => void
+    /** Нижче цієї ширини контейнера, rem, — картки замість таблиці. */
+    cardsBelow?: number
+    className?: string
+  }
 
 const CARDS_BELOW_REM = 40
 
@@ -151,6 +163,10 @@ export function DataTable<T extends object>({
   updatedAt = list?.updatedAt,
   onRefresh = list?.refetch,
   cardsBelow = CARDS_BELOW_REM,
+  selection,
+  rowLabel,
+  bulkActions,
+  selectionLabel,
   className,
 }: DataTableProps<T>) {
   const t = useErpUiT()
@@ -162,10 +178,26 @@ export function DataTable<T extends object>({
     [width],
   )
   const cards = rem !== null && rem < cardsBelow
+  const source = toSource(list, rows, pagination)
+  const count = pagination?.total ?? source.rowCount
+  const {
+    options: selectionOptions,
+    shown,
+    isSelected,
+  } = useTableSelection(
+    { selection, rowLabel, bulkActions, selectionLabel },
+    columns,
+    getRowId,
+  )
+  const scope: SelectionScope = {
+    kind: list ? "all" : "page",
+    pageIds: list ? [] : (rows ?? []).map(getRowId),
+    total: count,
+  }
   const layout = React.useMemo(
     () =>
       layoutColumns(
-        columns.map((column, index) => ({
+        shown.map((column, index) => ({
           id: column.id,
           minWidth: column.minWidth ?? DEFAULT_MIN_WIDTH,
           priority: column.priority ?? index + 1,
@@ -173,10 +205,9 @@ export function DataTable<T extends object>({
         })),
         rem ?? Infinity,
       ),
-    [columns, rem],
+    [shown, rem],
   )
 
-  const source = toSource(list, rows, pagination)
   const bodyRef = React.useRef<HTMLDivElement>(null)
   const fillHeight = useFillHeight(bodyRef, source.virtual)
   const showsError = Boolean(error) && !isPending
@@ -184,7 +215,6 @@ export function DataTable<T extends object>({
   useClampPage(pagination, isPending || isRefreshing || showsError)
 
   const busy = isPending || isRefreshing || Boolean(list?.isLoadingRows)
-  const count = pagination?.total ?? source.rowCount
   const formattedCount = format.number(count)
   let announcement = ""
   if (isPending) announcement = t("pageState.loading")
@@ -215,18 +245,19 @@ export function DataTable<T extends object>({
     body = (
       <DataTableCards
         label={label}
-        columns={columns}
+        columns={shown}
         getRowId={getRowId}
         source={source}
         height={fillHeight}
         busy={busy}
+        isSelected={isSelected}
       />
     )
   } else {
     body = (
       <DataTableGrid
         label={label}
-        columns={columns}
+        columns={shown}
         getRowId={getRowId}
         sort={sort}
         onSortChange={onSortChange}
@@ -235,56 +266,75 @@ export function DataTable<T extends object>({
         height={fillHeight}
         busy={busy}
         overflowing={rem !== null && layout.minWidth > rem}
+        isSelected={isSelected}
       />
     )
   }
 
   return (
-    <div
-      ref={container}
-      data-slot="data-table"
-      className={cn("@container min-w-0 space-y-2", className)}
+    <SelectionProvider
+      options={selectionOptions}
+      getRowId={getRowId}
+      scope={scope}
     >
-      <div className="flex min-h-control flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-        <p
-          role="status"
-          data-slot="data-table-status"
-          className="flex items-center gap-2 tabular-nums"
-        >
-          {isPending || isRefreshing ? <Spinner aria-hidden /> : null}
-          {announcement}
-        </p>
-        {updatedAt && !isPending && !error ? (
-          <span className="tabular-nums">
-            {t("dataTable.updatedAt", { time: format.date(updatedAt, "time") })}
-          </span>
-        ) : null}
-        {onRefresh && !isPending && !error ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-mx-1"
-            onClick={onRefresh}
+      <div
+        ref={container}
+        data-slot="data-table"
+        className={cn("@container min-w-0 space-y-2", className)}
+      >
+        <div className="flex min-h-control flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <p
+            role="status"
+            data-slot="data-table-status"
+            className="flex items-center gap-2 tabular-nums"
           >
-            <RefreshCwIcon aria-hidden />
-            {t("dataTable.refresh")}
-          </Button>
-        ) : null}
-        {cards && sort && onSortChange && !showsError ? (
-          <CardSortSelect
-            columns={columns}
-            sort={sort}
-            onSortChange={onSortChange}
+            {isPending || isRefreshing ? <Spinner aria-hidden /> : null}
+            {announcement}
+          </p>
+          {updatedAt && !isPending && !error ? (
+            <span className="tabular-nums">
+              {t("dataTable.updatedAt", {
+                time: format.date(updatedAt, "time"),
+              })}
+            </span>
+          ) : null}
+          {onRefresh && !isPending && !error ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-mx-1"
+              onClick={onRefresh}
+            >
+              <RefreshCwIcon aria-hidden />
+              {t("dataTable.refresh")}
+            </Button>
+          ) : null}
+          {cards && sort && onSortChange && !showsError ? (
+            <CardSortSelect
+              columns={columns}
+              sort={sort}
+              onSortChange={onSortChange}
+            />
+          ) : null}
+          <SelectionBar
+            cards={cards && count > 0 && !showsError}
+            onCleared={() => {
+              tableTabStop(container.current)?.focus()
+            }}
+          />
+        </div>
+        <div ref={bodyRef} data-slot="data-table-body" {...focusOnRetry}>
+          {body}
+        </div>
+        {pagination && count > 0 && !error && !isPending ? (
+          <Pager
+            pagination={pagination}
+            label={label}
+            shown={source.rowCount}
           />
         ) : null}
       </div>
-      <div ref={bodyRef} {...focusOnRetry}>
-        {body}
-      </div>
-      {pagination && count > 0 && !error && !isPending ? (
-        <Pager pagination={pagination} label={label} shown={source.rowCount} />
-      ) : null}
-    </div>
+    </SelectionProvider>
   )
 }
 

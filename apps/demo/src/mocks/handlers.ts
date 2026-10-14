@@ -6,9 +6,16 @@ import {
   createResourceHandlers,
   subscribeMockEvents,
 } from "@/registry/lib/mocks"
+import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 
-import { INVOICE_COUNT, invoiceSchema, makeInvoices } from "@/data/invoices"
+import {
+  INVOICE_APPROVAL_LIMIT,
+  INVOICE_COUNT,
+  invoiceSchema,
+  makeInvoices,
+  type Invoice,
+} from "@/data/invoices"
 
 import { ACCOUNT_SEEDS } from "./account"
 import {
@@ -42,6 +49,49 @@ export const invoices = createResourceHandlers({
     status: { uk: "Статус", en: "Status" },
     date: { uk: "Дата", en: "Date" },
     dueDate: { uk: "Сплатити до", en: "Due date" },
+  },
+})
+
+/** Рахунки, які «саме редагує інший користувач» — один раз: повтор погодження проходить. */
+const lockedOnce = new Set<string>()
+/**
+ * Кожен 24-й рахунок за номером зайнятий при першій спробі погодження. Не кратне 5: кожен п'ятий
+ * рахунок належить другій компанії (data/invoices).
+ */
+const LOCKED_EVERY = 24
+
+/**
+ * Масове погодження (ADR-0018): лише чернетки; сума в гривнях понад ліміт — до директора;
+ * кожен 24-й рахунок зайнятий іншим користувачем — повтор пройде.
+ */
+const invoiceBulk = createBulkHandlers<Invoice>({
+  resource: "invoices",
+  db: invoices.db,
+  titleField: "number",
+  actions: {
+    approve: {
+      apply: (invoice) => {
+        if (invoice.status !== "draft")
+          return { code: "invalid_status", message: "Only drafts" }
+        if (
+          invoice.currency === "UAH" &&
+          invoice.amount > INVOICE_APPROVAL_LIMIT
+        )
+          return { code: "approval_limit", message: "Over approval limit" }
+        if (
+          Number(invoice.id.replace(/\D/g, "")) % LOCKED_EVERY === 0 &&
+          !lockedOnce.has(invoice.id)
+        ) {
+          lockedOnce.add(invoice.id)
+          return {
+            code: "locked",
+            message: "Edited by someone",
+            retryable: true,
+          }
+        }
+        return { changes: { status: "approved" } }
+      },
+    },
   },
 })
 
@@ -111,6 +161,8 @@ export const handlers = [
     notificationEvents: NOTIFICATION_EVENTS,
   }),
   ...createSavedViewHandlers(),
+  ...createJobHandlers(),
+  ...invoiceBulk,
   ...invoices.handlers,
   ...users.handlers,
 ]

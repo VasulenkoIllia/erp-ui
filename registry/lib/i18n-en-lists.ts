@@ -1,5 +1,5 @@
 /**
- * Рядки кіта для списків (ADR-0017) англійською — ті самі ключі, що в `i18n-uk-lists.ts`.
+ * Рядки кіта для списків (ADR-0017, ADR-0018) англійською — ті самі ключі, що в `i18n-uk-lists.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 import type { ukLists } from "@/registry/lib/i18n-uk-lists"
@@ -55,5 +55,42 @@ export const enLists = {
       duplicate: "A view with this name already exists",
       tooLong: "{{max}} characters at most",
     },
+  },
+  selection: {
+    column: "Selection",
+    selectPage: "Select rows on this page",
+    selectAll: "Select all matching the filter",
+    row: "Select {{label}}",
+    selected: "{{value}} selected",
+    selectedAll: "All {{value}} matching the filter selected",
+    selectAllMatching: "Select all {{value}}",
+    clear: "Clear selection",
+  },
+  jobs: {
+    queued: "Queued…",
+    progress: "{{done}} of {{total}}",
+    done: "Done: {{value}}",
+    partial: "Done {{done}} of {{total}}, failed: {{failed}}",
+    failed: "Could not run: {{message}}",
+    pollFailed: "No connection to the server, checking again",
+    statusLost:
+      "Couldn't get the job status: {{message}}. The job may have finished, refresh the list.",
+    details: "Details",
+    retry: "Retry ({{value}})",
+    retryFailed: "Could not retry: {{message}}",
+    failuresTitle: "Failed: {{value}}",
+    failuresDescription:
+      "The action did not change these records. Those you can retry were busy or changed while the job ran.",
+    canRetry: "can be retried",
+    andMore: "and {{value}} more",
+    unknownReason: "Other reason ({{code}})",
+    close: "Close",
+  },
+  editableCell: {
+    edit: "edit",
+    saving: "Saving…",
+    failed:
+      "Could not save “{{field}}”: {{message}}. The previous value is back.",
+    retry: "Retry",
   },
 } satisfies ErpUiTranslation<typeof ukLists>

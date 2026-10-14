@@ -531,8 +531,9 @@ erp-ui/
 - Конкурентне редагування — через версію запису (`version`): розбіжність → 409 `conflict` з `current` і діалог із розділу 8.2.
 - Компанія — заголовок `X-Company-Id`; сесія — httpOnly cookie + 2FA; профіль, ролі й права — `GET /me`.
 - Вподобання користувача (палітра, тема, щільність, мова) — окремий контракт PF11 (`/me/preferences`), на сервері; особисті збережені види списків — ресурс `/me/views` того ж PF11 (ADR-0017).
+- Масова дія — фонова задача сервера: `POST /<ресурс>/bulk/<дія>` з `{ ids }` або `{ filter, exclude? }` (плоскі фільтри списку) → 202 `{ jobId }`; стан — `GET /jobs/:id` (прогрес, невдачі групами за кодом причини з першими 20 записами), повтор невдач, які можна повторити, — `POST /jobs/:id/retry` → 202 `{ jobId }` нової задачі (ADR-0018).
 - Перемикач сценаріїв моків доступний у демо-застосунку (панель розробника) і в тестах.
-- Реалізація в кіті: `lib/api`, `lib/data-provider`, `lib/auth`, `lib/preferences`, `lib/mocks`, `lib/mock-scenarios`, `erp/dev-panel`, `erp/conflict-dialog`.
+- Реалізація в кіті: `lib/api`, `lib/data-provider`, `lib/auth`, `lib/preferences`, `lib/mocks`, `lib/mock-scenarios`, `lib/jobs`, `lib/mock-jobs`, `erp/dev-panel`, `erp/conflict-dialog`.
 
 ## 18. Якість і приймання
 

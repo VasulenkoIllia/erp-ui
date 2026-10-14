@@ -28,6 +28,28 @@ import { Skeleton } from "@/registry/ui/skeleton"
 export const cellClass =
   "flex min-w-0 items-center px-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
 
+/** Липкі колонки рядка: зсув кожної від початку, rem (`stickyColumns` з lib/data-table-core). */
+export type StickyOffsets = readonly number[]
+
+/** Клас і зсув липкої клітинки; остання липка при горизонтальній прокрутці — з рамкою. */
+function stickyCell(
+  sticky: StickyOffsets,
+  pos: number,
+  overflowing: boolean,
+  background: string,
+): { className?: string; style?: React.CSSProperties } {
+  const offset = sticky[pos]
+  if (offset === undefined) return {}
+  return {
+    className: cn(
+      "sticky z-10",
+      background,
+      overflowing && pos === sticky.length - 1 && "border-e",
+    ),
+    style: { insetInlineStart: `${String(offset)}rem` },
+  }
+}
+
 export function HeaderCell<T>({
   column,
   sorted,
@@ -40,7 +62,7 @@ export function HeaderCell<T>({
   sorted: false | "asc" | "desc"
   onSort: ((event: unknown) => void) | undefined
   pos: number
-  sticky: boolean
+  sticky: StickyOffsets
   overflowing: boolean
 }) {
   const Icon = !sorted
@@ -48,6 +70,7 @@ export function HeaderCell<T>({
     : sorted === "asc"
       ? ArrowUpIcon
       : ArrowDownIcon
+  const stick = stickyCell(sticky, pos, overflowing, "bg-background")
   return (
     <div
       role="columnheader"
@@ -62,11 +85,13 @@ export function HeaderCell<T>({
         cellClass,
         "font-medium whitespace-nowrap text-foreground",
         column.align === "end" && "justify-end text-end",
-        sticky && "sticky start-0 z-10 bg-background",
-        sticky && overflowing && "border-e",
+        stick.className,
       )}
+      style={stick.style}
     >
-      {column.sortField && onSort ? (
+      {column.renderHeader ? (
+        column.renderHeader()
+      ) : column.sortField && onSort ? (
         <Button
           variant="ghost"
           size="sm"
@@ -227,7 +252,7 @@ export function GridHeader<T extends object>({
   layout: GridLayout
   byId: Map<string, DataTableColumn<T>>
   template: string
-  sticky: boolean
+  sticky: StickyOffsets
   overflowing: boolean
 }) {
   return (
@@ -252,7 +277,7 @@ export function GridHeader<T extends object>({
                 : undefined
             }
             pos={pos}
-            sticky={pos === 0 && sticky}
+            sticky={sticky}
             overflowing={overflowing}
           />
         )
@@ -279,8 +304,10 @@ export interface GridRowProps<T extends object> {
   layout: GridLayout
   byId: Map<string, DataTableColumn<T>>
   template: string
-  sticky: boolean
+  sticky: StickyOffsets
   overflowing: boolean
+  /** Рядок вибрано (масові дії); undefined — таблиця без вибору. */
+  selected?: boolean
   /** Позиція віртуального рядка, px; undefined — звичайний потік (сторінка). */
   top: number | undefined
   measureRef: ((el: HTMLDivElement | null) => void) | undefined
@@ -305,6 +332,7 @@ export function GridRow<T extends object>({
   template,
   sticky,
   overflowing,
+  selected,
   top,
   measureRef,
   windowState,
@@ -320,6 +348,7 @@ export function GridRow<T extends object>({
       data-index={item.index}
       aria-rowindex={rowIndex}
       aria-busy={row ? undefined : true}
+      aria-selected={row ? selected : undefined}
       ref={measureRef}
       style={{
         ...(top === undefined
@@ -329,7 +358,7 @@ export function GridRow<T extends object>({
         gridTemplateColumns: template,
       }}
       className={cn(
-        "grid min-h-row border-b bg-background hover:bg-muted",
+        "grid min-h-row border-b bg-background hover:bg-muted aria-selected:bg-accent",
         // У віртуальному списку останній вузол міняється з прокруткою: без рамки він «стрибав» би на 1 px.
         top === undefined && "last:border-b-0",
       )}
@@ -338,6 +367,7 @@ export function GridRow<T extends object>({
         ? inline.map((id, pos) => {
             const cell = cells.find((c) => c.column.id === id)
             const column = byId.get(id)
+            const stick = stickyCell(sticky, pos, overflowing, "bg-inherit")
             return cell && column ? (
               <div
                 key={id}
@@ -349,9 +379,9 @@ export function GridRow<T extends object>({
                 className={cn(
                   cellClass,
                   column.align === "end" && "justify-end text-end",
-                  pos === 0 && sticky && "sticky start-0 z-10 bg-inherit",
-                  pos === 0 && sticky && overflowing && "border-e",
+                  stick.className,
                 )}
+                style={stick.style}
               >
                 <React.Fragment key={row.id}>{render(cell)}</React.Fragment>
               </div>

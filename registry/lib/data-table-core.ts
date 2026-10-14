@@ -41,15 +41,19 @@ export interface DataTableColumn<T> {
   priority?: number
   /** Коли не влазить: лишити (горизонтальна прокрутка), перенести під рядок, сховати. */
   overflow?: ColumnOverflow
-  /** Липка колонка-ідентифікатор: лишається зліва при горизонтальній прокрутці. Лише перша колонка. */
+  /** Липка колонка-ідентифікатор: лишається зліва при горизонтальній прокрутці. Лише перші колонки підряд (прапорець вибору, номер). */
   sticky?: boolean
   /**
-   * Місце в картці на телефоні: назва, рядок під назвою, позначка поруч із назвою, поле, дії;
-   * `none` — не показувати. За замовчуванням перша колонка — назва, решта — поля.
+   * Місце в картці на телефоні: назва, рядок під назвою, позначка поруч із назвою, поле, дії,
+   * прапорець вибору перед назвою; `none` — не показувати. За замовчуванням перша колонка — назва,
+   * решта — поля.
    */
-  card?: "title" | "subtitle" | "badge" | "field" | "actions" | "none"
+  card?:
+    "title" | "subtitle" | "badge" | "field" | "actions" | "select" | "none"
   /** Заголовок лише для скрінрідера (колонка дій). */
   headerHidden?: boolean
+  /** Свій вміст заголовка замість назви (прапорець «вибрати все»); `header` — назва колонки. */
+  renderHeader?: () => ReactNode
 }
 
 export const DEFAULT_MIN_WIDTH = 8
@@ -197,6 +201,28 @@ export function layoutColumns(
     hidden: ordered(hidden),
     minWidth: width(),
   }
+}
+
+/**
+ * Липкі колонки — перші підряд колонки рядка з `sticky` (прапорець вибору й номер): зсув кожної від
+ * початку рядка й загальна ширина під `scroll-padding`, rem. Коли колонки ширші за контейнер, кожна
+ * має мінімальну ширину, тож зсуви точні.
+ */
+export function stickyColumns(
+  inline: readonly string[],
+  columnOf: (
+    id: string,
+  ) => Pick<DataTableColumn<never>, "sticky" | "minWidth"> | undefined,
+): { offsets: number[]; width: number } {
+  const offsets: number[] = []
+  let width = 0
+  for (const id of inline) {
+    const column = columnOf(id)
+    if (!column?.sticky) break
+    offsets.push(width)
+    width += column.minWidth ?? DEFAULT_MIN_WIDTH
+  }
+  return { offsets, width }
 }
 
 /* ------------------------------ Навігація гріда ------------------------------ */

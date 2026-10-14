@@ -138,6 +138,12 @@ export const API_ERROR_CODES = [
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 
+/** Код, який кіт знає й показує людині своїм текстом (`apiErrors.<код>`). */
+export const isKnownApiErrorCode = (
+  code: string,
+): code is (typeof API_ERROR_CODES)[number] =>
+  (API_ERROR_CODES as readonly string[]).includes(code)
+
 export const apiErrorSchema = z.object({
   code: z.string(),
   message: z.string(),

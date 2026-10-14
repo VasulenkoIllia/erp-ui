@@ -51,7 +51,7 @@ test.describe("списки: вкладки, фільтри, збережені 
     await expect(overdue).toHaveAttribute("aria-selected", "true")
     await expect(count(page)).toHaveText(/^[\d\s]+ рахунк/)
     expect(digits(await count(page).textContent())).toBe(expected)
-    const statuses = rows(page).locator('[aria-colindex="6"]')
+    const statuses = rows(page).locator('[aria-colindex="7"]')
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
@@ -90,7 +90,7 @@ test.describe("списки: вкладки, фільтри, збережені 
     // Лічильник «Усі» тепер рахує лише цих клієнтів.
     await expect(all).not.toHaveText(/10\s000/)
     for (const client of await rows(page)
-      .locator('[aria-colindex="2"]')
+      .locator('[aria-colindex="3"]')
       .allTextContents())
       expect(client).toMatch(/Агросвіт|Шевчук/)
 

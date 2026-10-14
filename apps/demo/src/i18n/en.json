@@ -322,11 +322,12 @@
   },
   "dataPage": {
     "title": "Data & mocks",
-    "lead": "Stress page: 10,000 invoices from the MSW mock server through the ra-core dataProvider. Scrolling in windows of 100 rows or pages, server-side filters and sorting, permissions and version conflicts. Server scenarios live in the developer panel.",
+    "lead": "Stress page: 10,000 invoices from the MSW mock server through the ra-core dataProvider. Scrolling in windows of 100 rows or pages, server-side filters and sorting, “page / all” selection, bulk approval as a background job, editing the client and the amount in a cell, permissions and version conflicts. Server scenarios are in the developer panel.",
     "search": "Search by number or client",
     "statusFilter": "Invoice status",
     "statuses": {
       "draft": "Draft",
+      "approved": "Approved",
       "sent": "Sent",
       "partially_paid": "Partially paid",
       "paid": "Paid",
@@ -335,6 +336,7 @@
     "tabs": {
       "all": "All",
       "draft": "Drafts",
+      "approved": "Approved",
       "sent": "Sent",
       "partially_paid": "Partially paid",
       "paid": "Paid",
@@ -379,6 +381,32 @@
       "label": "List view",
       "scroll": "Scrolling",
       "pages": "Pages"
+    },
+    "rowLabel": "invoice {{number}}",
+    "selected_one": "{{value}} invoice selected",
+    "selected_other": "{{value}} invoices selected",
+    "selectedAll_one": "{{value}} invoice selected (all matching the filter)",
+    "selectedAll_other": "{{value}} invoices selected (all matching the filter)",
+    "approve": {
+      "button": "Approve",
+      "hint": "Approving invoices is available to the Accountant role",
+      "title_one": "Approve {{value}} invoice?",
+      "title_other": "Approve {{value}} invoices?",
+      "description": "Only drafts up to 350,000.00 UAH can be approved. Other invoices stay as they are, and the summary shows why. The job runs on the server: you can leave the page.",
+      "confirm_one": "Approve {{value}} invoice",
+      "confirm_other": "Approve {{value}} invoices",
+      "progress": "Approving invoices",
+      "done": "Invoices approved: {{value}}",
+      "partial": "Approved {{done}} of {{total}}, not approved: {{failed}}",
+      "startFailed": "Could not start the approval: {{message}}",
+      "reasons": {
+        "invalid_status": "Not a draft: only drafts can be approved",
+        "approval_limit": "Over 350,000.00 UAH: the director approves",
+        "locked": "Someone else is editing this invoice right now"
+      }
+    },
+    "inline": {
+      "amountRequired": "Enter an amount"
     }
   },
   "authDemo": {

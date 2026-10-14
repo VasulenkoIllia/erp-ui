@@ -43,13 +43,13 @@ test.describe("дані: список рахунків", () => {
     // Новий пошук — знову перша сторінка.
     await expect(range(page)).toHaveText(/^1-20 з [\d\s]+$/)
     for (const client of await rows(page)
-      .locator('[aria-colindex="2"]')
+      .locator('[aria-colindex="3"]')
       .allTextContents())
       expect(client).toContain("Агросвіт")
 
     await page.getByRole("tab", { name: /^Прострочені/ }).click()
     // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
-    const statuses = rows(page).locator('[aria-colindex="6"]')
+    const statuses = rows(page).locator('[aria-colindex="7"]')
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
@@ -199,7 +199,10 @@ test.describe("дані: сценарії моків", () => {
     await openWith(page, {}, DATA)
     await chooseScenario(page, "Конфлікт збереження")
     const first = rows(page).first()
-    const original = await first.locator('[aria-colindex="2"]').textContent()
+    // Клієнт у комірці — кнопка редагування з прихованим «, змінити».
+    const original = (
+      await first.locator('[aria-colindex="3"]').textContent()
+    )?.replace(/, змінити$/, "")
     await first.getByRole("button", { name: /^Редагувати/ }).click()
     const dialog = page.getByRole("dialog", { name: /^Рахунок №/ })
     await dialog.getByLabel("Клієнт").fill("ТОВ «Чернетка»")

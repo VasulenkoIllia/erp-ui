@@ -81,6 +81,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§9", "§10"],
   },
+  "lib/row-selection": {
+    title: "Вибір рядків: логіка",
+    description:
+      "Без React: вибрані записи (переживають сторінки й прокрутку) або «усі за фільтром, крім знятих», лічильник, вибір для запиту масової дії ({ ids } чи { filter, exclude }) (ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.1"],
+  },
   "lib/list-state": {
     title: "Стан списку",
     description:
@@ -180,7 +188,7 @@ export const CODE_ITEMS = {
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
-      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version.",
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -228,7 +236,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API.",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -264,6 +272,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§7", "UI03", "PF06"],
+  },
+  "hooks/use-row-selection": {
+    title: "Вибір рядків",
+    description:
+      "useRowSelection(scope): вибір для DataTable і масових дій — окремі записи чи всі за фільтром; інший фільтр чи компанія скидають вибір, сортування й сторінка — ні (ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.1"],
+  },
+  "hooks/use-job": {
+    title: "Стан фонової задачі",
+    description:
+      "useJob(id): опитування GET /jobs/:id раз на секунду, поки задача йде (і у фоновій вкладці); збій опитування не зупиняє його; після завершення перечитує дані ресурсу (ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF15", "§8.1"],
   },
   "hooks/use-list-counts": {
     title: "Лічильники вкладок",
@@ -473,6 +497,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["UI03", "PF06", "PF11", "§17"],
   },
+  "lib/jobs": {
+    title: "Масові дії й фонові задачі: контракт",
+    description:
+      "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду (основа PF15, ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF15", "§8.1", "§17"],
+  },
   "lib/company": {
     title: "Налаштування компанії",
     description:
@@ -504,6 +536,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["PF11", "§17"],
+  },
+  "lib/mock-jobs": {
+    title: "Мок масових дій і задач",
+    description:
+      "createBulkHandlers (дії ресурсу над записами: зміни чи відмова з кодом, повтор) і createJobHandlers (GET /jobs/:id, повтор): задача обробляє записи з часом, зміни йдуть через db.patch; сценарії ресурсу й jobs (ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF15", "§17"],
   },
   "lib/mock-company": {
     title: "Мок налаштувань компанії",
@@ -603,7 +643,7 @@ export const CODE_ITEMS = {
   "erp/data-table": {
     title: "Таблиця даних",
     description:
-      "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016).",
+      "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016); вибір рядків «сторінка / усе» з масовими діями (ADR-0018).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
@@ -671,6 +711,38 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["UI03", "§8.3"],
+  },
+  "erp/data-table-selection": {
+    title: "Вибір рядків у таблиці",
+    description:
+      "Частина erp/data-table: липка колонка прапорців (у картках — перед назвою), «вибрати все» — сторінку чи всі за фільтром, панель вибраного в рядку стану з лічильником, «Вибрати всі N», масовими діями й «Зняти вибір» (SPEC §7 BulkActionBar, ADR-0018). Ставиться разом з erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§8.1", "§10"],
+  },
+  "erp/job-progress": {
+    title: "Прогрес масової дії",
+    description:
+      "showJobProgress: сповіщення з прогрес-баром, що живе поза сторінкою; підсумок, «Подробиці» з причинами невдач групами й «Повторити (N)»; число прогресу не звучить щосекунди (ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF15", "§8.1", "§8.2"],
+  },
+  "erp/job-failures": {
+    title: "Невдачі масової дії",
+    description:
+      "Частина erp/job-progress: діалог «Подробиці» з причинами невдач групами, кількістю й першими записами та «Повторити (N)»; невдачі повтору й попередніх задач — одна група на причину (ADR-0018). Ставиться разом з erp/job-progress.",
+    status: "beta",
+    demo: "data",
+    spec: ["PF15", "§8.1"],
+  },
+  "erp/editable-cell": {
+    title: "Редагування в комірці",
+    description:
+      "EditableCell: значення-кнопка, Enter/F2/клік — поле в комірці, Enter зберігає, Escape скасовує; помилка під полем; оптимістично через useOptimistic, відкат із поясненням і «Повторити», конфлікт — своїм обробником (SPEC §8.1 стан 16, ADR-0018).",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.1", "§8.2", "§10"],
   },
   "erp/error-boundary": {
     title: "Межа помилок",
@@ -1129,6 +1201,14 @@ export const CODE_ITEMS = {
       "Base UI Slider: доріжка з контрастом 3:1, доступна назва й текст значення для скрінрідера.",
     status: "beta",
     demo: "profile",
+  },
+  "ui/progress": {
+    title: "Прогрес",
+    description:
+      "Base UI Progress: доріжка й індикатор із плавною шириною (токени руху), невизначений стан (value=null), текст значення для скрінрідера.",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.2"],
   },
   "ui/input-otp": {
     title: "Поле коду",

@@ -34,15 +34,18 @@ test.describe("таблиця даних: десктоп", () => {
       page.getByRole("columnheader", { name: "Дата" }),
     ).toHaveAttribute("aria-sort", "descending")
 
-    // Tab з «Оновити» в рядку стану — у грід, на кнопку сортування першої колонки.
+    // Tab з «Оновити» в рядку стану — у грід, на прапорець першої колонки (вибір усіх).
+    const selectAll = page.getByRole("checkbox", {
+      name: "Вибрати всі за фільтром",
+    })
     await page.getByRole("button", { name: "Оновити" }).focus()
     await page.keyboard.press("Tab")
-    await expect(page.getByRole("button", { name: "Номер" })).toBeFocused()
+    await expect(selectAll).toBeFocused()
     // Ще один Tab виходить із гріда: усередині — лише одна зупинка.
     await page.keyboard.press("Tab")
     expect(await focusedCell(page)).toBeNull()
     await page.keyboard.press("Shift+Tab")
-    await expect(page.getByRole("button", { name: "Номер" })).toBeFocused()
+    await expect(selectAll).toBeFocused()
 
     await page.keyboard.press("ArrowDown")
     await page.keyboard.press("ArrowDown")
@@ -57,16 +60,16 @@ test.describe("таблиця даних: десктоп", () => {
     expect(await focusedCell(page)).toEqual({ row: 1, col: 0 })
 
     await page.keyboard.press("Control+End")
-    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 6 })
+    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 7 })
     const last = grid(page).locator('[aria-rowindex="10001"]')
     // Останнє вікно довантажується, фокус лишається в рядку 10 000.
     await expect(last).toContainText(/2026-\d+/)
-    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 6 })
+    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 7 })
     await page.keyboard.press("PageUp")
     expect((await focusedCell(page))?.row).toBeLessThan(9_999)
 
     await page.keyboard.press("Control+Home")
-    await expect(page.getByRole("button", { name: "Номер" })).toBeFocused()
+    await expect(selectAll).toBeFocused()
   })
 
   test("сортування з клавіатури: нові дані — з першого рядка", async ({
@@ -82,7 +85,7 @@ test.describe("таблиця даних: десктоп", () => {
     await page.keyboard.press("Enter")
     await expect(amount).toHaveAttribute("aria-sort", "ascending")
     await expect(
-      grid(page).locator('[aria-rowindex="2"] [aria-colindex="5"]'),
+      grid(page).locator('[aria-rowindex="2"] [aria-colindex="6"]'),
     ).toHaveText(/^[\d\s]+,\d\d/)
   })
 
@@ -97,7 +100,7 @@ test.describe("таблиця даних: десктоп", () => {
 test.describe("таблиця даних: планшет", () => {
   test.use({ viewport: { width: 768, height: 1024 } })
 
-  test("колонки: «Сплатити до» сховано, «Дата» під рядком, «Номер» липкий", async ({
+  test("колонки: «Сплатити до» сховано, «Дата» під рядком, прапорець і «Номер» липкі", async ({
     page,
   }) => {
     await openWith(page, {}, DATA)
@@ -107,7 +110,11 @@ test.describe("таблиця даних: планшет", () => {
     ).toHaveCount(0)
     const first = grid(page).locator('[aria-rowindex="2"]')
     await expect(first.getByText("Дата:")).toBeVisible()
-    const number = first.locator('[aria-colindex="1"]')
+    await expect(first.locator('[aria-colindex="1"]')).toHaveCSS(
+      "position",
+      "sticky",
+    )
+    const number = first.locator('[aria-colindex="2"]')
     await expect(number).toHaveCSS("position", "sticky")
     // Прокрутка вбік: номер лишається на місці.
     const before = await number.boundingBox()

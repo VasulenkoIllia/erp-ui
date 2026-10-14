@@ -15,6 +15,7 @@ import { useVirtualRows } from "@/registry/hooks/use-virtual-rows"
 import {
   DATA_TABLE_FEATURES,
   DEFAULT_MIN_WIDTH,
+  stickyColumns,
   type ColumnLayout,
   type DataTableColumn,
   type DataTableFeatures,
@@ -45,6 +46,8 @@ export interface DataTableGridProps<T> {
   busy: boolean
   /** Колонки ширші за контейнер: горизонтальна прокрутка з липкою колонкою. */
   overflowing: boolean
+  /** Вибір рядків (масові дії): `aria-selected` на рядках. */
+  isSelected?: (row: T) => boolean
 }
 
 const OVERSCAN = 8
@@ -74,7 +77,6 @@ function useColumnDefs<T extends object>(
         id: column.id,
         header: column.header,
         accessorFn: (row) => row,
-        cell: ({ row }) => column.cell(row.original),
         enableSorting: sortable && Boolean(column.sortField),
         sortDescFirst: column.firstSortOrder === "DESC",
       })),
@@ -106,6 +108,7 @@ export function DataTableGrid<T extends object>({
   height,
   busy,
   overflowing,
+  isSelected,
 }: DataTableGridProps<T>) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const headerRef = React.useRef<HTMLDivElement>(null)
@@ -117,7 +120,7 @@ export function DataTableGrid<T extends object>({
     [columns],
   )
   const { inline, wrapped } = layout
-  const sticky = byId.get(inline[0] ?? "")?.sticky === true
+  const sticky = stickyColumns(inline, (id) => byId.get(id))
 
   const focus = useGridKeyboard({
     gridRef: scrollRef,
@@ -189,7 +192,6 @@ export function DataTableGrid<T extends object>({
     },
   })
   const rowsById = new Map(table.getRowModel().rows.map((row) => [row.id, row]))
-  const stickyWidth = byId.get(inline[0] ?? "")?.minWidth ?? DEFAULT_MIN_WIDTH
   const template = gridTemplate(inline, byId)
 
   return (
@@ -202,6 +204,7 @@ export function DataTableGrid<T extends object>({
       aria-rowcount={source.totalCount + 1}
       aria-colcount={inline.length + wrapped.length}
       aria-busy={busy || undefined}
+      aria-multiselectable={isSelected ? true : undefined}
       onKeyDown={focus.onKeyDown}
       onFocus={focus.onFocus}
       onBlur={focus.onBlur}
@@ -209,8 +212,8 @@ export function DataTableGrid<T extends object>({
       style={{
         height,
         scrollPaddingTop: headerHeight,
-        ...(overflowing && sticky
-          ? { scrollPaddingInlineStart: `${String(stickyWidth)}rem` }
+        ...(overflowing && sticky.width
+          ? { scrollPaddingInlineStart: `${String(sticky.width)}rem` }
           : {}),
       }}
     >
@@ -225,7 +228,7 @@ export function DataTableGrid<T extends object>({
             layout={layout}
             byId={byId}
             template={template}
-            sticky={sticky}
+            sticky={sticky.offsets}
             overflowing={overflowing}
           />
         </div>
@@ -247,8 +250,9 @@ export function DataTableGrid<T extends object>({
                 layout={layout}
                 byId={byId}
                 template={template}
-                sticky={sticky}
+                sticky={sticky.offsets}
                 overflowing={overflowing}
+                selected={original && isSelected?.(original)}
                 top={source.virtual ? item.start - headerHeight : undefined}
                 measureRef={
                   source.virtual ? virtualizer.measureElement : undefined
@@ -256,7 +260,11 @@ export function DataTableGrid<T extends object>({
                 windowState={original ? undefined : source.windowAt(item.index)}
                 showError={failedRows.has(item.index)}
                 placeholderHeight={rowEstimate}
-                render={(cell) => <table.FlexRender cell={cell} />}
+                // Виклик, а не FlexRender: той рендерить `cell` як компонент, і нова функція після
+                // зміни колонок перемонтувала б комірки (відкритий редактор, фокус).
+                render={(cell) =>
+                  byId.get(cell.column.id)?.cell(cell.row.original)
+                }
               />
             )
           })}

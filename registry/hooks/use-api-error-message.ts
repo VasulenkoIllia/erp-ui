@@ -5,20 +5,15 @@
  */
 import { useCallback } from "react"
 
-import { API_ERROR_CODES, isApiError } from "@/registry/lib/api"
+import { isApiError, isKnownApiErrorCode } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
-
-type KnownCode = (typeof API_ERROR_CODES)[number]
-
-const isKnown = (code: string): code is KnownCode =>
-  (API_ERROR_CODES as readonly string[]).includes(code)
 
 export function useApiErrorMessage(): (error: unknown) => string {
   const t = useErpUiT()
   return useCallback(
     (error: unknown) => {
       if (!isApiError(error)) return t("apiErrors.unknown")
-      const message = isKnown(error.code)
+      const message = isKnownApiErrorCode(error.code)
         ? t(`apiErrors.${error.code}`)
         : t("apiErrors.unknown")
       return error.providerMessage

@@ -29,8 +29,8 @@ import { Skeleton } from "@/registry/ui/skeleton"
  * - W3C APG Feed: `role="feed"`, картки — `article` з `aria-posinset`/`aria-setsize` на весь список;
  *   PageDown/PageUp (і стрілки на самій картці) переводять фокус між картками, Tab — у дії картки.
  * - Вміст картки — з тих самих колонок: `card: "title"` — назва (нею названо картку), `subtitle` —
- *   рядок під назвою, `badge` — позначка поруч, `actions` — дії праворуч угорі, `field` — пари
- *   «підпис і значення» у дві колонки.
+ *   рядок під назвою, `badge` — позначка поруч, `actions` — дії праворуч угорі, `select` — прапорець
+ *   вибору перед назвою, `field` — пари «підпис і значення» у дві колонки.
  * - Великий список — віртуальний, у власній області на висоту екрана (вікторина 14.10.2026).
  */
 
@@ -41,10 +41,17 @@ export interface DataTableCardsProps<T> {
   source: DataTableSource<T>
   height?: string
   busy: boolean
+  /** Вибір рядків: вибрана картка підсвічена (стан передає ще й прапорець). */
+  isSelected?: (row: T) => boolean
 }
 
 const CARD_ESTIMATE_PX = 120
 const GAP_PX = 8
+/**
+ * Обрізання з трикрапкою, але з запасом 12 px убік і 6 px угору й униз (текст на місці): кнопка
+ * erp/editable-cell і її кільце фокуса виходять за текст і не мають обрізатись.
+ */
+const CLIP = "-mx-3 -my-1.5 truncate px-3 py-1.5"
 const OVERSCAN = 4
 const FEED_KEYS: Record<string, -1 | 1> = {
   PageDown: 1,
@@ -66,6 +73,7 @@ export function DataTableCards<T>({
   source,
   height,
   busy,
+  isSelected,
 }: DataTableCardsProps<T>) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const id = React.useId()
@@ -86,14 +94,17 @@ export function DataTableCards<T>({
     gap: GAP_PX,
   })
 
+  // Колонка прапорців не рахується: «перша колонка — назва» — серед колонок даних.
+  const dataColumns = columns.filter((column) => column.card !== "select")
   const byRole = (role: CardRole) =>
-    columns.filter((column, index) => roleOf(column, index) === role)
+    dataColumns.filter((column, index) => roleOf(column, index) === role)
   const roles: CardRoles<T> = {
     title: byRole("title"),
     subtitle: byRole("subtitle"),
     badge: byRole("badge"),
     field: byRole("field"),
     actions: byRole("actions"),
+    select: columns.filter((column) => column.card === "select"),
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -157,8 +168,9 @@ export function DataTableCards<T>({
               aria-setsize={source.totalCount}
               aria-labelledby={row ? titleId : undefined}
               aria-busy={row ? undefined : true}
+              data-selected={row && isSelected?.(row) ? "" : undefined}
               tabIndex={item.index === activeIndex ? 0 : -1}
-              className="rounded-lg border bg-card p-3 text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-lg border bg-card p-3 text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring data-selected:bg-accent"
               style={
                 source.virtual
                   ? { position: "absolute", insetInline: 0, top: item.start }
@@ -205,12 +217,18 @@ function CardBody<T>({
   return (
     <>
       <div className="flex items-start gap-2">
+        {roles.select.length ? (
+          // 24 px під прапорець 16 px: до сусідніх цілей ≥ 24 px (WCAG 2.5.8).
+          <div className="flex size-6 shrink-0 items-center justify-center">
+            {cellsOf(roles.select, row)}
+          </div>
+        ) : null}
         <div className="min-w-0 flex-1">
           <div id={titleId} className="font-medium">
             {cellsOf(roles.title, row)}
           </div>
           {roles.subtitle.length ? (
-            <div className="truncate text-sm text-muted-foreground">
+            <div className={cn(CLIP, "text-sm text-muted-foreground")}>
               {cellsOf(roles.subtitle, row)}
             </div>
           ) : null}
@@ -230,7 +248,7 @@ function CardBody<T>({
               className={cn("min-w-0", column.align === "end" && "text-end")}
             >
               <dt className="text-xs text-muted-foreground">{column.header}</dt>
-              <dd className="truncate">{column.cell(row)}</dd>
+              <dd className={CLIP}>{column.cell(row)}</dd>
             </div>
           ))}
         </dl>

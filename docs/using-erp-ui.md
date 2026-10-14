@@ -249,6 +249,25 @@ createRoot(root).render(
   ```
 
   Адреса — ввід ззовні: з `filters` у запит ідуть лише описані фільтри й `q`, сортування — лише за `sortFields`. Поки види вантажаться, `isReady` — false: якщо сторінку відкрили без параметрів, спершу застосується вид за замовчуванням, і список не вантажиться двічі. Бекенд реалізує `/me/views` за контрактом `lib/saved-views`; у моках — `createSavedViewHandlers()` поруч з іншими обробниками, сценарій — ресурс `views` у панелі розробника.
+- Вибір рядків і масові дії (ADR-0018). Вибір живе на сторінці й скидається зі зміною фільтра; таблиця сама додає колонку прапорців і панель вибраного. Дія — фонова задача сервера, прогрес і підсумок — у сповіщенні, що живе поза сторінкою:
+
+  ```tsx
+  const selection = useRowSelection([list.queryFilter, companyId])   // hooks/use-row-selection
+  const dataProvider = useDataProvider<ErpDataProvider>()
+  const approve = async () => {
+    // У try — лише запуск: задачу прийнято, далі тільки показ (повторне «Погодити» не дублює її).
+    const started = await dataProvider.startBulk("invoices", "approve", toBulkSelection(selection.state, list.queryFilter))
+      .catch((error: unknown) => { toast.error(errorMessage(error)); return null })
+    if (!started) return
+    selection.clear()
+    showJobProgress({ jobId: started.jobId, title: t("approving"), failureLabel: (code) => t(`reasons.${code}`, { defaultValue: "" }) || undefined })
+  }
+  <DataTable … selection={selection} rowLabel={(row) => t("rowLabel", { number: row.number })}
+    bulkActions={(count) => <Button onClick={() => setConfirm(count)}>{t("approve")}</Button>} />
+  ```
+
+  `selection` передається лише разом із `rowLabel` (це перевіряє тип). У «Прокрутці» прапорець у шапці вибирає всі записи за фільтром (зняті — винятки, запит `{ filter, exclude }`), на сторінках — сторінку, далі панель пропонує «Вибрати всі N»; у картках цей прапорець із підписом стоїть у рядку стану. Підтвердження з кількістю — `ConfirmDialog` на сторінці (не в панелі: панель зникає разом із вибором), `returnFocus={() => tableTabStop(table)}`. Бекенд реалізує `POST /<ресурс>/bulk/<дія>` і `/jobs/:id` за контрактом `lib/jobs`; у моках — `createBulkHandlers({ resource, db, actions })` і `createJobHandlers()` перед обробниками ресурсу, сценарій опитування — ресурс `jobs`.
+- Редагування в комірці — `EditableCell` з `erp/editable-cell` у `cell` колонки: значення одразу (`useOptimistic`), відмова сервера — відкат і сповіщення з «Повторити», помилка перевірки — під полем. Зберігай через `useUpdate` у режимі `pessimistic` з `returnPromise: true` і `version` рядка; збереження одного запису з різних комірок став у чергу з версією попереднього (приклад — `invoice-cells.tsx` демо), інакше друга комірка отримає 409 на власну зміну людини. Конфлікт (409) обробляй в `onError` діалогом `ConflictDialog` сторінки, перевіривши `error.current` схемою (без запису — поверни false, і кіт покаже сповіщення). Важкий редактор (поле суми) — лінивим у `ErrorBoundary` + `Suspense`: `ref` з `inputProps` фокусує поле, щойно воно змонтувалось.
 - Профіль і права: `useMe()` (`null` — гість), `useCanAccess({ resource: "invoices", action: "edit" })`. Дія без права — неактивна кнопка у фокусі з підказкою-причиною.
 - Сторінка лише для користувачів — `useAuthenticated()`: без сесії перенаправить на `/login` і поверне назад після входу (`useLogin`).
 - Збереження: `useUpdate` у режимі `pessimistic` надсилає змінені поля + `version`; 409 → `ConflictDialog` з `error.current`.

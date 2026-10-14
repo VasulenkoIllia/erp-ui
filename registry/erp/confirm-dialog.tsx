@@ -32,7 +32,8 @@ import { Spinner } from "@/registry/ui/spinner"
  *   (кнопка, Enter у полі слова) дію не повторює. Закриття після успіху й показ помилки — справа
  *   виклику (як і до цього в кіті): `onConfirm` ловить свої помилки сам; відхилений проміс діалог
  *   не ковтає, він дійде до `unhandledrejection` (моніторинг помилок).
- * - Після закриття фокус повертається на елемент, з якого діалог відкрили.
+ * - Після закриття фокус повертається на елемент, з якого діалог відкрили; якщо дія його прибрала
+ *   (масова дія зняла вибір разом із панеллю) — на `returnFocus`.
  * - `children` — вміст під кнопками, напр. вкладений діалог повторного підтвердження (`useReauth`).
  */
 
@@ -50,6 +51,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   onClose: () => void
   onConfirm: () => Promise<unknown> | void
+  /** Куди повернути фокус, якщо елемента, з якого відкрили, уже немає. */
+  returnFocus?: () => HTMLElement | null
   children?: React.ReactNode
 }
 
@@ -73,6 +76,7 @@ function ConfirmDialog({
   cancelLabel,
   onClose,
   onConfirm,
+  returnFocus,
   children,
 }: ConfirmDialogProps) {
   const t = useErpUiT()
@@ -125,8 +129,10 @@ function ConfirmDialog({
       }}
     >
       <AlertDialogContent
-        // Пункт меню, з якого відкрили, уже зник — тоді фокус за правилом Base UI.
-        finalFocus={() => (opener?.isConnected ? opener : true)}
+        // Пункт меню, з якого відкрили, уже зник — тоді `returnFocus` чи правило Base UI.
+        finalFocus={() =>
+          opener?.isConnected ? opener : (returnFocus?.() ?? true)
+        }
       >
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

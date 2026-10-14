@@ -4,6 +4,7 @@ import {
   clampWindows,
   layoutColumns,
   moveInGrid,
+  stickyColumns,
   windowOf,
   windowsForRange,
   withActiveRow,
@@ -135,5 +136,29 @@ describe("навігація гріда (W3C APG)", () => {
 
   it("інші клавіші — не навігація", () => {
     expect(moveInGrid(at(0, 0), "Enter", false, bounds)).toBeNull()
+  })
+})
+
+describe("липкі колонки", () => {
+  const columns = new Map([
+    ["select", { sticky: true, minWidth: 2.75 }],
+    ["number", { sticky: true, minWidth: 8 }],
+    ["client", { minWidth: 12 }],
+    ["status", { sticky: true }],
+  ])
+  const columnOf = (id: string) => columns.get(id)
+
+  it("перші підряд липкі: зсуви від початку рядка й ширина", () => {
+    expect(
+      stickyColumns(["select", "number", "client", "status"], columnOf),
+    ).toEqual({ offsets: [0, 2.75], width: 10.75 })
+  })
+
+  it("перша не липка — липких немає; без мінімуму — типова ширина", () => {
+    expect(stickyColumns(["client", "select"], columnOf)).toEqual({
+      offsets: [],
+      width: 0,
+    })
+    expect(stickyColumns(["status"], columnOf).offsets).toEqual([0])
   })
 })
