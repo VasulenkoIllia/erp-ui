@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 
 import { AppearanceControls } from "@/appearance/AppearanceControls"
+import { MotionPreview } from "@/preview/MotionPreview"
 import { TokenPreview } from "@/preview/TokenPreview"
 
 import { PageHeader } from "./PageHeader"
@@ -15,8 +16,9 @@ export function AppearancePage() {
       />
       <div className="grid grid-cols-1 items-start gap-6 @5xl:grid-cols-3">
         <AppearanceControls />
-        <div className="@5xl:col-span-2">
+        <div className="space-y-6 @5xl:col-span-2">
           <TokenPreview />
+          <MotionPreview />
         </div>
       </div>
     </div>

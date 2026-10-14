@@ -24,6 +24,7 @@ import {
 } from "@/registry/erp/number-input"
 import type { DateRange } from "@/registry/lib/dates"
 import type { Money } from "@/registry/lib/format"
+import { whenI18nReady } from "@/registry/lib/i18n"
 import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
 import { Input } from "@/registry/ui/input"
 
@@ -73,8 +74,8 @@ describe("DateInput", () => {
     expect(input).toHaveValue("")
   })
 
-  it("en-GB: «13/10/2026»", () => {
-    createDemoI18n("en")
+  it("en-GB: «13/10/2026»", async () => {
+    await whenI18nReady(createDemoI18n("en"))
     render(<ControlledDate initial="2026-10-13" />)
     expect(screen.getByRole("textbox", { name: "Дата" })).toHaveValue(
       "13/10/2026",
@@ -151,7 +152,7 @@ describe("MoneyInput і NumberInput", () => {
   })
 
   it("en-GB: кома — роздільник розрядів, а не дріб", async () => {
-    createDemoI18n("en")
+    await whenI18nReady(createDemoI18n("en"))
     const user = userEvent.setup()
     const changes: (Money | null)[] = []
     function Amount() {
@@ -412,7 +413,7 @@ describe("MoneyInput і NumberInput", () => {
     })
 
     it("валюта без копійок теж; en-GB: кома — розряди", async () => {
-      createDemoI18n("en")
+      await whenI18nReady(createDemoI18n("en"))
       const user = userEvent.setup()
       function Amount() {
         const [value, setValue] = useState<Money | null>(null)

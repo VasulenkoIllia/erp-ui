@@ -5,7 +5,8 @@
  *   - hex-кольори (#fff, #1a2b3c);
  *   - колірні функції (rgb(), hsl(), oklch() …) поза design/;
  *   - стандартну палітру Tailwind (bg-red-500, text-white …) — у демо її вимкнено, клас нічого не дасть;
- *   - довільні значення розмірів у класах (p-[13px], rounded-[10px], text-[15px]).
+ *   - довільні значення розмірів у класах (p-[13px], rounded-[10px], text-[15px]);
+ *   - рух поза токенами (ADR-0009): transition-all, duration-200, ease-linear тощо.
  * Виняток для окремого рядка: коментар `erp-ui: allow-raw-value — <причина>`.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs"
@@ -50,6 +51,13 @@ export const RULES = [
       `(?<![\\w-])-?(?:${SIZE_UTILITIES})-\\[(?!var\\()[^\\]\\s]*\\d(?:px|rem|em)[^\\]\\s]*\\]`,
       "g",
     ),
+  },
+  {
+    id: "motion",
+    message:
+      "рух поза токенами — duration-fast|base|slow, ease-standard|enter|exit; замість transition-all — конкретні властивості",
+    pattern:
+      /(?<![\w-])(?:[\w-]+:)*(?:transition-all|duration-(?:\d+|\[[^\]\s]+\])|ease-(?:linear|in|out|in-out|\[[^\]\s]+\]))(?![\w-])/g,
   },
 ]
 

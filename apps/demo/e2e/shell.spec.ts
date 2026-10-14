@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import {
+  chooseInSubmenu,
+  expectNoA11yViolations,
+  openWith,
+  waitForMenuFocus,
+} from "./helpers"
 
 const PAGES = [
   "/",
@@ -137,13 +142,11 @@ test.describe("оболонка: десктоп", () => {
     await expect(html).toHaveClass(/\bdark\b/)
 
     await open()
-    await page.getByRole("menuitem", { name: /Палітра/ }).click()
-    await page.getByRole("menuitemradio", { name: "Графіт" }).click()
+    await chooseInSubmenu(page, /Палітра/, "Графіт")
     await expect(html).toHaveAttribute("data-palette", "graphite")
 
     await open()
-    await page.getByRole("menuitem", { name: /Щільність/ }).click()
-    await page.getByRole("menuitemradio", { name: "Компактна" }).click()
+    await chooseInSubmenu(page, /Щільність/, "Компактна")
     await expect(html).toHaveAttribute("data-density", "compact")
 
     await open()
@@ -160,6 +163,7 @@ test.describe("оболонка: десктоп", () => {
     })
     await switcher.focus()
     await page.keyboard.press("Enter")
+    await waitForMenuFocus(page)
     await page.keyboard.press("ArrowDown")
     await page.keyboard.press("Enter")
     await expect(
@@ -171,6 +175,7 @@ test.describe("оболонка: десктоп", () => {
     await page.keyboard.press("Enter")
     const dark = page.getByRole("menuitemradio", { name: "Темна" })
     await expect(dark).toBeVisible()
+    await waitForMenuFocus(page)
     await page.keyboard.press("Escape")
     await expect(dark).toBeHidden()
     await expect(menu).toBeFocused()

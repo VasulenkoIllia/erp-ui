@@ -92,6 +92,7 @@ export const en = {
       description:
         "Something went wrong on the server or in the network. Your data is safe.",
       retry: "Try again",
+      reload: "Reload page",
     },
     forbidden: {
       title: "No access",

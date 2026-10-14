@@ -30,6 +30,21 @@ test("ловить довільні розміри", () => {
   ])
 })
 
+test("ловить рух поза токенами", () => {
+  assert.deepEqual(
+    rules(
+      'className="transition-all duration-200 ease-linear data-open:duration-[120ms] ease-in-out"',
+    ),
+    ["motion", "motion", "motion", "motion", "motion"],
+  )
+  assert.deepEqual(
+    rules(
+      'className="transition-colors duration-fast ease-standard data-open:ease-enter transition-[width] animate-in"',
+    ),
+    [],
+  )
+})
+
 test("пропускає токени й допустимі значення", () => {
   assert.deepEqual(
     rules(

@@ -689,3 +689,53 @@ test.describe("скриншоти кроків 0.5b5 @screenshots", () => {
     })
   }
 })
+
+// Крок 0.6a (ADR-0009): сторінка чи мова не завантажились — стан помилки й сповіщення з повтором.
+test.describe("скриншоти кроку 0.6a @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const cases = [
+    { palette: "sapphire", theme: "light", width: 390 },
+    { palette: "sapphire", theme: "dark", width: 768 },
+    { palette: "graphite", theme: "light", width: 1440 },
+  ] as const
+  // Чанки йдуть через service worker MSW — блокуємо на рівні контексту.
+  const block = (page: Page, chunks: RegExp) =>
+    page.context().route(chunks, (route) => route.abort("internetdisconnected"))
+
+  for (const { palette, theme, width } of cases) {
+    test(`chunk-failed ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("chunk-failed"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await openWith(page, { palette, theme })
+      await block(page, /\/DataPage-[\w-]+\.js$/)
+      await page.goto("/#/data")
+      await expect(page.getByRole("alert")).toContainText(
+        "Не вдалося завантажити дані",
+      )
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `chunk-failed-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+
+    test(`language-failed ${palette} ${theme} ${width}`, async ({ page }) => {
+      test.skip(only("language-failed"))
+      await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+      await block(page, /\/(i18n-en|en)-[\w-]+\.js$/)
+      await openWith(page, { palette, theme, language: "en" }, "/#/")
+      await page.getByText(/Не вдалося завантажити мову інтерфейсу/).waitFor()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `language-failed-${palette}-${theme}-${width}.png`,
+        ),
+      })
+    })
+  }
+})

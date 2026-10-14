@@ -7,7 +7,10 @@
  *   - фокус: суцільне кільце 2 px кольору --ring замість напівпрозорого 3 px (контраст ≥ 3:1);
  *   - текст помилок: text-destructive → text-destructive-foreground (≥ 4.5:1 для тексту);
  *   - підкладка модалок: bg-black/10 → bg-overlay (токен), без розмиття (SPEC §6.5: без «скла»);
- *   - довільні розміри й кольори upstream → шкала Tailwind або токени (check-tokens без винятків).
+ *   - довільні розміри й кольори upstream → шкала Tailwind або токени (check-tokens без винятків);
+ *   - рух (ADR-0009): transition-all → transition (без властивостей розкладки), тривалості й криві →
+ *     токени duration-fast|base|slow і ease-standard|enter|exit; поява й зникнення попапів
+ *     (tw-animate-css) — з кривими ease-enter і ease-exit.
  * Специфічні правки (висоти з токенів щільності, варіанти статусів тощо) робляться вручну
  * й позначаються коментарем «erp-ui:».
  */
@@ -48,6 +51,22 @@ export const RULES = [
   [
     /\bhover:bg-\[color-mix\(in_oklch,var\(--secondary\),var\(--foreground\)_5%\)\]/g,
     "hover:bg-accent hover:text-accent-foreground",
+  ],
+  // Рух (ADR-0009). transition-all анімує й ширину, висоту, відступи — це ривки розкладки.
+  [/(?<![\w-])transition-all(?![\w-])/g, "transition"],
+  [/(?<![\w-])duration-(?:75|100|150)(?![\w-])/g, "duration-fast"],
+  [/(?<![\w-])duration-200(?![\w-])/g, "duration-base"],
+  [/(?<![\w-])duration-(?:300|500|700|1000)(?![\w-])/g, "duration-slow"],
+  [/(?<![\w-])ease-(?:linear|in-out)(?![\w-])/g, "ease-standard"],
+  [/(?<![\w-])ease-out(?![\w-])/g, "ease-enter"],
+  [/(?<![\w-])ease-in(?![\w-])/g, "ease-exit"],
+  [
+    /(?<![\w-])data-open:animate-in(?![\w-])(?! data-open:ease-enter)/g,
+    "data-open:animate-in data-open:ease-enter",
+  ],
+  [
+    /(?<![\w-])data-closed:animate-out(?![\w-])(?! data-closed:ease-exit)/g,
+    "data-closed:animate-out data-closed:ease-exit",
   ],
 ]
 

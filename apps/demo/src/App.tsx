@@ -20,14 +20,8 @@ import {
   Webhook,
 } from "lucide-react"
 import { useLogout } from "ra-core"
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react"
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
+import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router"
 import { toast } from "sonner"
@@ -45,8 +39,7 @@ import {
 } from "@/registry/erp/command-palette"
 import { useAuthMethods, useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
-import { DevPanel } from "@/registry/erp/dev-panel"
-import { ImpersonationBanner } from "@/registry/erp/impersonation"
+import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
@@ -62,13 +55,15 @@ import {
 } from "@/registry/lib/appearance"
 import { LANGUAGES, useErpUiT } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
-import { subscribeMockMessages } from "@/registry/lib/mocks"
+import { whenIdle } from "@/registry/lib/lazy"
+import type { MockMessage } from "@/registry/lib/mock-server"
 import { syncPreferences } from "@/registry/lib/preferences"
 import {
   ACTION_ICONS,
   IconProvider,
   MODULE_ICONS,
   SHELL_ICONS,
+  STATUS_ICONS,
 } from "@/registry/lib/icons"
 import { cn } from "@/registry/lib/utils"
 import { Button, buttonVariants } from "@/registry/ui/button"
@@ -79,15 +74,16 @@ import { TooltipProvider } from "@/registry/ui/tooltip"
 
 import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
-import { MOCK_RESOURCES } from "@/mocks/handlers"
-import { AppearancePage } from "@/pages/AppearancePage"
-import { DataPage } from "@/pages/DataPage"
-import { IconsPage } from "@/pages/IconsPage"
-import { AuthPage } from "@/pages/AuthPage"
-import { ModulePage } from "@/pages/ModulePage"
-import { PrimitivesPage } from "@/pages/PrimitivesPage"
-import { StatesPage } from "@/pages/StatesPage"
-import { UsersPage } from "@/pages/UsersPage"
+import { MOCK_RESOURCES } from "@/mocks/resources"
+import { useLanguageFallbackNotice } from "@/i18n/fallback-notice"
+import {
+  AuthPage,
+  DevPanel,
+  ImpersonationBanner,
+  ModulePage,
+  PAGES,
+  preloadPage,
+} from "@/pages/lazy-pages"
 import {
   LOGIN_PATH,
   moduleHref,
@@ -96,75 +92,6 @@ import {
   type Location,
   type Route,
 } from "@/router"
-
-// Сторінка з полем телефону тягне дані libphonenumber (~120 КБ gzip) — вантажимо її окремим чанком.
-const FormatsPage = lazy(() =>
-  import("@/pages/FormatsPage").then((m) => ({ default: m.FormatsPage })),
-)
-// Дати й форми — окремі чанки: календар (react-day-picker, локалі date-fns) і react-hook-form.
-const FieldsPage = lazy(() =>
-  import("@/pages/FieldsPage").then((m) => ({ default: m.FieldsPage })),
-)
-const FormsPage = lazy(() =>
-  import("@/pages/FormsPage").then((m) => ({ default: m.FormsPage })),
-)
-// Безпека акаунта — теж: поле телефону, QR-коди, діалоги налаштування факторів.
-const SecurityPage = lazy(() =>
-  import("@/pages/SecurityPage").then((m) => ({ default: m.SecurityPage })),
-)
-const ProfilePage = lazy(() =>
-  import("@/pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
-)
-const SecurityPolicyPage = lazy(() =>
-  import("@/pages/SecurityPolicyPage").then((m) => ({
-    default: m.SecurityPolicyPage,
-  })),
-)
-const NotificationsPage = lazy(() =>
-  import("@/pages/NotificationsPage").then((m) => ({
-    default: m.NotificationsPage,
-  })),
-)
-const AuditPage = lazy(() =>
-  import("@/pages/AuditPage").then((m) => ({ default: m.AuditPage })),
-)
-const IntegrationsPage = lazy(() =>
-  import("@/pages/IntegrationsPage").then((m) => ({
-    default: m.IntegrationsPage,
-  })),
-)
-
-const RolesPage = lazy(() =>
-  import("@/pages/RolesPage").then((m) => ({ default: m.RolesPage })),
-)
-// Реквізити — теж: поле телефону.
-const CompanyPage = lazy(() =>
-  import("@/pages/CompanyPage").then((m) => ({ default: m.CompanyPage })),
-)
-const InboxPage = lazy(() =>
-  import("@/pages/InboxPage").then((m) => ({ default: m.InboxPage })),
-)
-
-const PAGES: Record<Route, React.ComponentType> = {
-  appearance: AppearancePage,
-  primitives: PrimitivesPage,
-  formats: FormatsPage,
-  fields: FieldsPage,
-  forms: FormsPage,
-  icons: IconsPage,
-  states: StatesPage,
-  data: DataPage,
-  inbox: InboxPage,
-  security: SecurityPage,
-  users: UsersPage,
-  roles: RolesPage,
-  company: CompanyPage,
-  profile: ProfilePage,
-  notifications: NotificationsPage,
-  securityPolicy: SecurityPolicyPage,
-  audit: AuditPage,
-  integrations: IntegrationsPage,
-}
 
 const PAGE_ICONS: Record<Route, typeof Palette> = {
   appearance: Palette,
@@ -190,7 +117,18 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
 /** Розділи в нижній панелі телефона. */
 const MOBILE_PAGES: Route[] = ["appearance", "primitives", "formats", "states"]
 
-const renderLink: RenderLink = (href) => <Link to={href} />
+// Чанк сторінки вантажимо, щойно на посилання навели чи сфокусувались (ADR-0009).
+const renderLink: RenderLink = (href) => (
+  <Link
+    to={href}
+    onPointerEnter={() => {
+      preloadPage(href)
+    }}
+    onFocus={() => {
+      preloadPage(href)
+    }}
+  />
+)
 
 /** Вподобання з сервера (PF11): після входу — застосувати, далі зберігати кожну зміну. */
 function usePreferencesSync(userId: string | undefined) {
@@ -210,6 +148,7 @@ function usePreferencesSync(userId: string | undefined) {
 }
 
 export function App() {
+  const { t } = useTranslation()
   const location = useLocation()
   const { data: me } = useMe()
   usePreferencesSync(me?.id)
@@ -220,21 +159,42 @@ export function App() {
   const queryClient = useQueryClient()
   const breakpoint = useBreakpoint()
   useMockMessages()
+  useLanguageFallbackNotice()
   const devPanel = (
-    <DevPanel
-      resources={MOCK_RESOURCES}
-      compact={location.route !== "auth" && breakpoint !== "desktop"}
-      onChange={() => {
-        void queryClient.invalidateQueries()
-      }}
-    />
+    <ErrorBoundary
+      fallback={(retry) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("app.devPanelFailed")}
+          title={t("app.devPanelFailed")}
+          onClick={retry}
+        >
+          <STATUS_ICONS.warning aria-hidden />
+        </Button>
+      )}
+    >
+      <Suspense fallback={null}>
+        <DevPanel
+          resources={MOCK_RESOURCES}
+          compact={location.route !== "auth" && breakpoint !== "desktop"}
+          onChange={() => {
+            void queryClient.invalidateQueries()
+          }}
+        />
+      </Suspense>
+    </ErrorBoundary>
   )
 
   return (
     <IconProvider>
       <TooltipProvider>
         {location.route === "auth" ? (
-          <AuthPage screen={location.screen} devPanel={devPanel} />
+          <ErrorBoundary className="m-4">
+            <Suspense fallback={<Spinner className="mx-auto mt-24 size-6" />}>
+              <AuthPage screen={location.screen} devPanel={devPanel} />
+            </Suspense>
+          </ErrorBoundary>
         ) : (
           <Shell location={location} devPanel={devPanel} />
         )}
@@ -247,61 +207,77 @@ export function App() {
 /** «Надіслані» мок-сервером SMS і листи — як сповіщення телефона чи пошти (лише демо). */
 function useMockMessages() {
   const { t } = useTranslation("demo", { keyPrefix: "authDemo" })
-  useEffect(
-    () =>
-      subscribeMockMessages((message) => {
-        const options = { duration: 15_000 }
-        if (message.channel === "sms") {
-          toast(
-            t("smsToast", { to: message.to, code: message.code ?? "" }),
-            options,
-          )
-          return
-        }
-        if (message.kind === "notice") {
-          toast(t("noticeToast", { to: message.to }), options)
-          return
-        }
-        if (message.kind === "export") {
-          toast(t("exportToast", { to: message.to }), options)
-          return
-        }
-        if (message.kind === "recovery") {
-          toast(t("recoveryToast", { to: message.to }), options)
-          return
-        }
-        if (message.kind === "factors_reset") {
-          toast(t("factorsResetToast", { to: message.to }), {
-            ...options,
-            description: message.detail,
-          })
-          return
-        }
-        if (message.kind === "new_sign_in") {
-          toast(t("newSignInToast", { to: message.to }), {
-            ...options,
-            description: message.detail,
-          })
-          return
-        }
-        const link = message.link
-        toast(t("emailToast", { to: message.to }), {
-          ...options,
-          description: message.code
-            ? t("emailCode", { code: message.code })
-            : undefined,
-          action: link
-            ? {
-                label: t("openLink"),
-                onClick: () => {
-                  window.location.assign(link)
-                },
-              }
-            : undefined,
+  useEffect(() => {
+    let stop: (() => void) | undefined
+    let active = true
+    // Мок-сервер — окремий чанк поза бюджетом першого екрана; на старті його вже завантажено.
+    import("@/registry/lib/mock-server")
+      .then(({ subscribeMockMessages }) => {
+        if (!active) return
+        stop = subscribeMockMessages((message) => {
+          showMockMessage(message, t)
         })
-      }),
-    [t],
-  )
+      })
+      .catch((error: unknown) => {
+        console.error("demo: mock messages unavailable", error)
+      })
+    return () => {
+      active = false
+      stop?.()
+    }
+  }, [t])
+}
+
+function showMockMessage(
+  message: MockMessage,
+  t: TFunction<"demo", "authDemo">,
+) {
+  const options = { duration: 15_000 }
+  if (message.channel === "sms") {
+    toast(t("smsToast", { to: message.to, code: message.code ?? "" }), options)
+    return
+  }
+  if (message.kind === "notice") {
+    toast(t("noticeToast", { to: message.to }), options)
+    return
+  }
+  if (message.kind === "export") {
+    toast(t("exportToast", { to: message.to }), options)
+    return
+  }
+  if (message.kind === "recovery") {
+    toast(t("recoveryToast", { to: message.to }), options)
+    return
+  }
+  if (message.kind === "factors_reset") {
+    toast(t("factorsResetToast", { to: message.to }), {
+      ...options,
+      description: message.detail,
+    })
+    return
+  }
+  if (message.kind === "new_sign_in") {
+    toast(t("newSignInToast", { to: message.to }), {
+      ...options,
+      description: message.detail,
+    })
+    return
+  }
+  const link = message.link
+  toast(t("emailToast", { to: message.to }), {
+    ...options,
+    description: message.code
+      ? t("emailCode", { code: message.code })
+      : undefined,
+    action: link
+      ? {
+          label: t("openLink"),
+          onClick: () => {
+            window.location.assign(link)
+          },
+        }
+      : undefined,
+  })
 }
 
 function Shell({
@@ -325,6 +301,14 @@ function Shell({
     setPaletteOpen(true)
   }, [])
   useCommandPaletteShortcut(openPalette)
+  // Екран входу — заздалегідь: вихід чи кінець сесії не показують спінер на весь екран.
+  useEffect(
+    () =>
+      whenIdle(() => {
+        void AuthPage.preload()
+      }),
+    [],
+  )
 
   const nav = useMemo<NavGroup[]>(
     () => [
@@ -440,11 +424,32 @@ function Shell({
         activeId={activeId}
         renderLink={renderLink}
         banner={
-          <ImpersonationBanner
-            onStopped={() => {
-              void navigate(ROUTES.users)
-            }}
-          />
+          me?.impersonator ? (
+            <ErrorBoundary
+              fallback={(retry) => (
+                // Без чанка смуги — хоча б від чийого імені робота (ADR-0011).
+                <div
+                  role="alert"
+                  className="flex items-center gap-3 bg-warning-soft px-4 py-2 text-sm font-medium text-warning-foreground"
+                >
+                  <p className="min-w-0 flex-1">
+                    {kitT("auth.impersonation.banner", { name: me.name })}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={retry}>
+                    {kitT("pageState.error.retry")}
+                  </Button>
+                </div>
+              )}
+            >
+              <Suspense fallback={null}>
+                <ImpersonationBanner
+                  onStopped={() => {
+                    void navigate(ROUTES.users)
+                  }}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          ) : null
         }
         breadcrumbs={[
           { label: group?.label ?? "" },
@@ -531,6 +536,12 @@ function Shell({
             ) : (
               <Link
                 to={LOGIN_PATH}
+                onPointerEnter={() => {
+                  preloadPage(LOGIN_PATH)
+                }}
+                onFocus={() => {
+                  preloadPage(LOGIN_PATH)
+                }}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "sm" }),
                 )}
@@ -542,13 +553,16 @@ function Shell({
           </>
         }
       >
-        <Suspense fallback={<Spinner className="mx-auto size-6" />}>
-          {location.route === "module" ? (
-            <ModulePage moduleId={location.moduleId} />
-          ) : (
-            <Page />
-          )}
-        </Suspense>
+        {/* Ключ — адреса: перехід на іншу сторінку скидає помилку попередньої. */}
+        <ErrorBoundary key={activeId}>
+          <Suspense fallback={<Spinner className="mx-auto size-6" />}>
+            {location.route === "module" ? (
+              <ModulePage moduleId={location.moduleId} />
+            ) : (
+              <Page />
+            )}
+          </Suspense>
+        </ErrorBoundary>
       </AppShell>
       {me ? (
         <SessionGuard idleMinutes={methods.data?.idleTimeoutMinutes} />

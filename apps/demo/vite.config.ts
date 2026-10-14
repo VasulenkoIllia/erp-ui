@@ -6,6 +6,8 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Маніфест чанків — для перевірки бюджету першого екрана (scripts/check-bundle.mjs, ADR-0009).
+  build: { manifest: true },
   resolve: {
     alias: {
       "@/registry": fileURLToPath(new URL("../../registry", import.meta.url)),

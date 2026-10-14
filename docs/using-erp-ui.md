@@ -50,21 +50,26 @@ npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 У `src/main.tsx` до рендеру застосуйте вподобання вигляду й створіть i18next із рядками проекту (ADR-0007, ADR-0008):
 
 ```tsx
-import { initAppearance, syncLanguage } from "@/lib/appearance"
-import { createI18n } from "@/lib/i18n"
-import en from "@/i18n/en.json"
+import { getAppearance, initAppearance, syncLanguage } from "@/lib/appearance"
+import { createI18n, whenI18nReady } from "@/lib/i18n"
 import uk from "@/i18n/uk.json"
 
 initAppearance() // палітра, тема, щільність, сайдбар і мова з кешу (на сервері — PF11)
-syncLanguage(
-  createI18n({
-    resources: { uk: { app: uk }, en: { app: en } },
-    defaultNamespace: "app",
-  }),
-)
+const i18n = createI18n({
+  language: getAppearance().language,
+  resources: {
+    uk: { app: uk },
+    // Інші мови — окремим чанком: у пам'яті лише мова інтерфейсу (ADR-0009).
+    en: () => import("@/i18n/en.json").then((m) => ({ app: m.default })),
+  },
+  defaultNamespace: "app",
+})
+syncLanguage(i18n)
+await whenI18nReady(i18n) // перший кадр — уже потрібною мовою, без проблиску української
 ```
 
-- Рядки компонентів кіта (простір імен `erp-ui`) підключаються самі. Перевизначити рядок: `i18n.addResourceBundle("uk", "erp-ui", { common: { close: "Закрити вікно" } }, true, true)`.
+- Рядки компонентів кіта (простір імен `erp-ui`) підключаються самі: українські — у бандлі, англійські довантажуються, коли потрібні. `changeLanguage` чекає на рядки, тож мова перемикається вже з перекладами. Перевизначити рядок: `i18n.addResourceBundle("uk", "erp-ui", { common: { close: "Закрити вікно" } }, true, true)`. Для інших мов — лише після того, як мову завантажено (`await i18n.loadLanguages("en")`): раніше доданий бандл позначить простір імен готовим, і кіт свої рядки цієї мови не довантажить.
+- Мова не довантажилась (офлайн): два повтори, далі запасна українська й `<html lang="uk">`; наступний `changeLanguage` пробує знову. Скажіть про це людині, поки `toLanguage(i18n.language) !== toLanguage(i18n.resolvedLanguage)`: сповіщення з «Повторити» (`i18n.changeLanguage(i18n.language)`), зразок — `apps/demo/src/i18n/fallback-notice.ts` у репозиторії erp-ui.
 - Множина — ключі `_one/_few/_many/_other` для uk і `_one/_other` для en: `t("invoices", { count })`.
 - Типізовані ключі — оголошення `CustomTypeOptions` у проекті (приклад — `apps/demo/src/i18n/i18next.d.ts` у репозиторії erp-ui).
 - Числа, суми й дати — лише через `useFormat()` з `@/lib/format`. Не пишіть шаблони на кшталт `DD.MM.YYYY` і не викликайте `toLocaleString` напряму:
@@ -78,7 +83,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 
 - Мова даних (назви компаній, документи) — окремо від мови інтерфейсу: форматери з `lib/format` приймають локаль явно.
 - Ідентифікатори й телефони: `npx shadcn@latest add VasulenkoIllia/erp-ui/erp/ua-id-input VasulenkoIllia/erp-ui/erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
-- Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`React.lazy`).
+- Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 
 ### Форми, дати, суми й підтвердження (ADR-0015)
 
@@ -94,7 +99,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/d
 - Дата — `DateInput` зі значенням `"2026-10-13"` або `""`; неповне введення приходить текстом, текст помилки для схеми — `useDateIssueText()(value, { min, max })` (null — помилки немає). Період — `DateRangeInput` (`{ from, to }` або `null`), час — `TimeInput`.
 - Сума — `MoneyInput` зі значенням `Money` (цілі копійки й валюта) або `null`; число — `NumberInput` (за замовчуванням ціле: кома й дріб не вводяться, під полем спливає «Лише ціле число»; дріб — `decimalScale`). Сума прописом для документів — `amountInWords(money, "uk")` з `lib/amount-in-words`.
 - Підтвердження: зворотна дія — `useUndoToast()`; видалення — `ConfirmDialog` з кнопкою, що називає наслідок; критична дія — ще й `confirmWord`.
-- Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`React.lazy`).
+- Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 
 ## 4. Оболонка застосунку
 
@@ -135,6 +140,19 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 - Іконки модулів, статусів і дій — лише з `lib/icons` (`MODULE_ICONS`, `STATUS_ICONS`, `ACTION_ICONS`); гривня — `HryvniaIcon`.
 - Стани списків і сторінок — `PageState` і `PageSkeleton` з `erp/page-state`; порожній стан не підміняє помилку.
 - Сітки сторінок — з `grid-cols-1` (`minmax(0, 1fr)`), інакше широка таблиця розпирає сторінку на телефоні.
+- Сторінки — лінивими чанками через `lazyWithPreload` з `@/lib/lazy`, не `React.lazy`: той запам'ятовує невдале завантаження назавжди. Сторінку обгорніть у межу помилок із ключем-адресою, тоді чанк, що не завантажився (офлайн, застарілий після деплою), покаже «Спробувати ще» (а після невдалого повтору — й «Оновити сторінку»), а не білий екран. Помилки в моніторинг — `onError` межі:
+
+  ```tsx
+  const InvoicesPage = lazyWithPreload(() => import("@/pages/InvoicesPage").then((m) => m.InvoicesPage))
+
+  <ErrorBoundary key={pathname}>
+    <Suspense fallback={<PageSkeleton />}>
+      <InvoicesPage />
+    </Suspense>
+  </ErrorBoundary>
+  ```
+
+  Чанк вантажте заздалегідь, коли на посилання навели чи сфокусувались: `renderLink={(href) => <Link to={href} onPointerEnter={() => preloadPage(href)} onFocus={() => preloadPage(href)} />}`, де `preloadPage` викликає `.preload()` сторінки за адресою (зразок — `apps/demo/src/pages/lazy-pages.ts` у репозиторії erp-ui). Палітра команд сама вантажить пошук, коли браузер вільний (ADR-0009).
 
 Щоб тема не блимала до завантаження JS, додайте в `<head>` `index.html` (логіка — як у `lib/appearance`):
 
@@ -254,6 +272,14 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
 ```
 
 Палітри: `sapphire`, `graphite` (основні), `indigo`, `teal`, `terracotta`. Без класу `dark` — світла тема.
+
+Рух (SPEC §6.6, ADR-0009) — лише функціональний і лише з токенів:
+
+- тривалості `duration-fast` (150 мс: кольори, меню, підказки), `duration-base` (200 мс: панелі, розгортання), `duration-slow` (250 мс: шторки); криві `ease-standard`, `ease-enter` (поява), `ease-exit` (зникнення);
+- не `transition-all` (анімує й розкладку), а конкретні властивості: `transition-colors`, `transition-opacity`, `transition-[width]`;
+- `prefers-reduced-motion` вимикає рух сам, окремо нічого робити не треба.
+
+Швидкість (SPEC §18.5): відгук на дії ≤ 200 мс і перший екран ≤ 2,5 с на телефоні середнього класу. Тримають її ліниві сторінки, одна мова в пам'яті й важкі частини, що вантажаться при відкритті.
 
 ## 8. Оновлення
 

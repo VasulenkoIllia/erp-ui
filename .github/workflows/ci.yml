@@ -1,5 +1,8 @@
 name: CI
 
+# Повний набір — у PR. PR мерджимо, лише коли гілка містить свіжий main (docs/dev-setup.md, «CI»),
+# тож у main потрапляє рівно перевірене дерево: після мерджу — лише статичні перевірки й збірка,
+# без повтору e2e, швидкості й доставки (ліміт хвилин приватного репозиторію).
 on:
   pull_request:
   push:
@@ -35,10 +38,15 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
+      # Бюджет JS першого екрана (ADR-0009): межі маршрутів — apps/demo/bundle-budget.json.
+      - run: pnpm --filter @erp-ui/demo build
+      - run: pnpm check:bundle
+
   # e2e росте з кожним кроком (скриншоти × палітри × теми × ширини), а раннер приватного
   # репозиторію має 2 ядра (1 потік Playwright) — тому частинами паралельно.
   e2e:
     name: e2e (${{ matrix.shard }}/3)
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -81,17 +89,52 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  # Бюджети швидкості (ADR-0009): LCP і INP під CPU ×4 і мережею 4G, в один потік, окремо від e2e,
+  # щоб паралельні тести не спотворювали заміри.
+  perf:
+    name: швидкість (LCP, INP)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @erp-ui/demo exec playwright install --with-deps chromium
+
+      - run: pnpm perf
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-perf
+          path: apps/demo/playwright-report
+          retention-days: 7
+
   # Підсумок під старою назвою: правило «перевірки мають пройти» дивиться на неї.
   checks:
     name: typecheck · lint · test · e2e
-    needs: [static, e2e, consumer]
-    if: always()
+    needs: [static, e2e, perf, consumer]
+    if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
         run: |
           test "${{ needs.static.result }}" = success
           test "${{ needs.e2e.result }}" = success
+          test "${{ needs.perf.result }}" = success
           test "${{ needs.consumer.result }}" = success
 
   # Доставка в чистий проект (ADR-0004) на Node 22 (мінімум engines) і 24. Повний набір — з реєстру
@@ -99,6 +142,7 @@ jobs:
   # API (~1000 запитів на годину) і давав 403.
   consumer:
     name: доставка в тестовий проект (Node ${{ matrix.node }})
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -111,19 +155,14 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      # У PR — лише коли змінено те, що потрапляє в проекти; на main — завжди.
+      # Лише коли змінено те, що потрапляє в проекти.
       # Збій git diff валить крок, а не пропускає перевірку мовчки.
       - name: Changed files
         id: changes
         env:
-          EVENT: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          if [ "$EVENT" != pull_request ]; then
-            echo "relevant=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           changed=$(git diff --name-only "$BASE_SHA" HEAD)
           if grep -qE '^(registry/|registry\.json|design/|scripts/consumer-smoke\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
@@ -147,4 +186,4 @@ jobs:
         if: steps.changes.outputs.relevant == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: pnpm consumer-smoke --local --ref ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm consumer-smoke --local --ref ${{ github.event.pull_request.head.sha }}

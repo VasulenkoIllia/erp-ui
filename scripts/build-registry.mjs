@@ -74,9 +74,12 @@ function codeFiles() {
 
 function importsOf(file) {
   const src = readFileSync(path.join(root, file), "utf8")
-  return [...src.matchAll(/(?:from|import)\s+["']([^"']+)["']/g)].map(
-    (m) => m[1],
-  )
+  // І статичні імпорти, і динамічні `import("…")` (мова за запитом у lib/i18n): файл має їхати з елементом.
+  return [
+    ...src.matchAll(
+      /(?:from|import)\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g,
+    ),
+  ].map((m) => m[1] ?? m[2])
 }
 
 /** Ім'я npm-пакета з шляху імпорту: @base-ui/react/dialog → @base-ui/react, cn/config → cn. */
@@ -116,12 +119,17 @@ function build() {
       )
     else byBase.set(base, f)
   }
-  // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` на `@/components/x` — ламає збірку в проекті.
+  // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` і в `import("@/registry/lib/x")`
+  // на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
     const src = readFileSync(path.join(root, f.file), "utf8")
     if (/^export\s[^;]*?\sfrom\s+["']@\/registry\//m.test(src))
       problems.push(
         `${f.file}: реекспорт \`export … from "@/registry/…"\` — замініть на import + export`,
+      )
+    if (/import\(\s*["']@\/registry\//.test(src))
+      problems.push(
+        `${f.file}: динамічний \`import("@/registry/…")\` — у межах шару пишіть \`import("./файл")\` (файли шару лягають в одну теку проекту)`,
       )
   }
 
@@ -142,14 +150,25 @@ function build() {
       for (const spec of importsOf(entry.file)) {
         if (spec.startsWith("@/registry/"))
           stack.push(spec.slice("@/registry/".length))
-        else if (!spec.startsWith(".") && !spec.startsWith("@/")) {
+        // Відносний шлях — лише в межах шару (динамічний import, див. перевірку вище).
+        else if (/^\.\/[\w-]+$/.test(spec))
+          stack.push(`${entry.dir}/${spec.slice(2)}`)
+        else if (spec.startsWith("."))
+          problems.push(
+            `${entry.file}: імпорт «${spec}» — поза шаром лише через @/registry/<шар>/<файл>`,
+          )
+        else if (!spec.startsWith("@/")) {
           const pkgName = packageName(spec)
           if (!PEERS.has(pkgName)) packages.add(pkgName)
         }
       }
     }
     return {
-      names: [start, ...[...seen].filter((n) => n !== start).sort()],
+      // Ненайдені імпорти вже в `problems` — без них, щоб дійти до звіту, а не впасти.
+      names: [
+        start,
+        ...[...seen].filter((n) => n !== start && byName.has(n)).sort(),
+      ],
       packages,
     }
   }

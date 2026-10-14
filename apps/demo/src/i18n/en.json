@@ -26,11 +26,29 @@
     "meFailed": "Couldn't load your profile. Check your connection.",
     "meRetry": "Retry",
     "signOut": "You have signed out",
-    "signOutFailed": "Couldn't sign out. Check your connection and try again."
+    "signOutFailed": "Couldn't sign out. Check your connection and try again.",
+    "languageFailed": "Couldn't load the interface language, so everything is in Ukrainian. Check your connection.",
+    "languageRetry": "Retry",
+    "devPanelFailed": "Mock panel didn't load. Click to try again"
   },
   "appearancePage": {
     "title": "Themes & appearance",
-    "lead": "Palette, theme, density and sidebar switches on <html> (SPEC §6.2)."
+    "lead": "Palette, theme, density and sidebar switches on <html> (SPEC §6.2).",
+    "motion": {
+      "title": "Motion",
+      "lead": "Functional animation only: enter and exit, expanding, highlighting changes, progress. Durations and easing come from tokens; prefers-reduced-motion turns motion off (ADR-0009).",
+      "ms": "{{value}} ms",
+      "uses": {
+        "duration-fast": "hover colours, menus, tooltips, popovers",
+        "duration-base": "panels, sidebar, expanding rows and groups",
+        "duration-slow": "sheets and large surfaces",
+        "ease-standard": "change in place",
+        "ease-enter": "enter: quick start, soft stop",
+        "ease-exit": "exit"
+      },
+      "run": "Show durations",
+      "reset": "Reset"
+    }
   },
   "primitivesPage": {
     "title": "Primitives",

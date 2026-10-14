@@ -57,7 +57,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Мигаючий курсор у полі коду (ui/input-otp); prefers-reduced-motion вимикає нижче. */
-  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+  --animate-caret-blink: caret-blink 1.25s var(--ease-enter) infinite;
   @keyframes caret-blink {
     0%,
     70%,
@@ -69,6 +69,26 @@
       opacity: 0;
     }
   }
+}
+
+/* Рух (ADR-0009, SPEC §6.6): лише функціональні анімації — те, що пояснює зміну, 150–250 мс.
+ * Тривалості — у просторі Tailwind --transition-duration-* (утиліти duration-fast|base|slow), їх
+ * читають і переходи, і animate-in/out з tw-animate-css. Криві: ease-standard — зміна на місці,
+ * ease-enter — поява, ease-exit — зникнення. prefers-reduced-motion вимикає все (@layer base нижче).
+ * Змінні лежать на :root, тож доступні й у JS (getComputedStyle). */
+@theme {
+  /* Дрібне: кольори при наведенні, меню, підказки, поповери. */
+  --transition-duration-fast: 150ms;
+  /* Панелі, розгортання рядків і груп, сайдбар. */
+  --transition-duration-base: 200ms;
+  /* Великі поверхні: шторки, діалоги на весь екран телефона. */
+  --transition-duration-slow: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* transition-colors і подібні без duration-* і ease-* — теж на токенах. */
+  --default-transition-duration: var(--transition-duration-fast);
+  --default-transition-timing-function: var(--ease-standard);
 }
 
 /* Щільність (SPEC §6.5): розміри з токенів --control-h, --row-h, --touch-min. */

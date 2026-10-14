@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import { chooseLanguage, expectNoA11yViolations, openWith } from "./helpers"
 
 const PATH = "/#/formats"
 const PALETTES = [
@@ -51,10 +51,7 @@ test.describe("мови й формати: поведінка", () => {
       page.getByRole("definition").filter({ hasText: "48 600,00 ₴" }),
     ).toBeVisible()
 
-    // Мова — у меню користувача.
-    await page.getByRole("button", { name: /Меню користувача/ }).click()
-    await page.getByRole("menuitem", { name: /Мова/ }).click()
-    await page.getByRole("menuitemradio", { name: "English" }).click()
+    await chooseLanguage(page, "English")
     await expect(html).toHaveAttribute("lang", "en")
     await expect(
       page.getByRole("heading", { level: 1, name: "Languages & formats" }),

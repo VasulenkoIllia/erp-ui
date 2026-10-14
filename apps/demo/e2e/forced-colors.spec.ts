@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { openWith } from "./helpers"
+import { openWith, waitForMenuFocus } from "./helpers"
 
 /**
  * Режим високої контрастності Windows (forced-colors) і зменшений рух (SPEC §10, крок 0.5d).
@@ -90,6 +90,7 @@ test.describe("forced-colors і зменшений рух", () => {
     await menu.focus()
     await page.keyboard.press("Enter")
     // Перший пункт підсвічено, фокус — на ньому; стрілка переводить підсвічування далі.
+    await waitForMenuFocus(page)
     await page.keyboard.press("ArrowDown")
     const item = page.getByRole("menu").locator("[data-highlighted]")
     await expect(item).toHaveCount(1)

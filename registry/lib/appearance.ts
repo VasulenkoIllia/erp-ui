@@ -217,12 +217,27 @@ export function initAppearance(
   }
 }
 
-/** Мова з вподобань → i18next: зміна в меню користувача одразу перемикає інтерфейс. */
+/**
+ * Мова з вподобань → i18next: зміна в меню користувача одразу перемикає інтерфейс. Рядки мови
+ * можуть довантажуватись (lib/i18n), тому звіряємо з останньою запитаною мовою, а не з поточною:
+ * швидке «English → Українська» не лишить англійську, коли її рядки прийдуть пізніше.
+ */
 export function syncLanguage(instance: i18n): () => void {
+  let requested = instance.language
+  // Мову змінили повз вподобання (напр. ra-core changeLocale) — наступна зміна вподобань її виправить.
+  const onChanged = (lng: string) => {
+    requested = lng
+  }
+  instance.on("languageChanged", onChanged)
   const update = () => {
-    if (instance.language !== current.language)
-      void instance.changeLanguage(current.language)
+    if (requested === current.language) return
+    requested = current.language
+    void instance.changeLanguage(requested)
   }
   update()
-  return subscribeAppearance(update)
+  const unsubscribe = subscribeAppearance(update)
+  return () => {
+    unsubscribe()
+    instance.off("languageChanged", onChanged)
+  }
 }

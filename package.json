@@ -16,11 +16,14 @@
     "format": "prettier --write .",
     "test": "node --test \"scripts/*.test.mjs\" \"design/*.test.mjs\" && pnpm -r test",
     "e2e": "pnpm --filter @erp-ui/demo e2e",
+    "e2e:repeat": "pnpm --filter @erp-ui/demo e2e:repeat",
+    "perf": "pnpm --filter @erp-ui/demo perf",
     "screenshots": "pnpm --filter @erp-ui/demo screenshots",
     "themes": "node design/generate-themes.mjs && node design/check-contrast.mjs",
     "check:contrast": "node design/generate-themes.mjs --check && node design/check-contrast.mjs --check",
     "registry": "node scripts/build-registry.mjs",
     "check:registry": "node scripts/build-registry.mjs --check",
+    "check:bundle": "node scripts/check-bundle.mjs",
     "consumer-smoke": "node scripts/consumer-smoke.mjs"
   },
   "devDependencies": {

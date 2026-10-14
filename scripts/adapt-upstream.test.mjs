@@ -46,9 +46,32 @@ test("cn з налаштуванням erp-ui", () => {
   )
 })
 
+test("рух: лише токени, без transition-all", () => {
+  assert.equal(
+    adapt("transition-all after:transition-all transition-[width]"),
+    "transition after:transition transition-[width]",
+  )
+  assert.equal(
+    adapt("duration-100 duration-200 ease-linear data-open:duration-300"),
+    "duration-fast duration-base ease-standard data-open:duration-slow",
+  )
+  assert.equal(
+    adapt("ease-in-out ease-out ease-in"),
+    "ease-standard ease-enter ease-exit",
+  )
+  assert.equal(
+    adapt("data-open:animate-in data-closed:animate-out"),
+    "data-open:animate-in data-open:ease-enter data-closed:animate-out data-closed:ease-exit",
+  )
+  assert.equal(
+    adapt("animate-in-custom duration-1000ms"),
+    "animate-in-custom duration-1000ms",
+  )
+})
+
 test("ідемпотентність", () => {
   const once = adapt(
-    "focus-visible:ring-3 focus-visible:ring-ring/50 text-destructive bg-black/10",
+    "focus-visible:ring-3 focus-visible:ring-ring/50 text-destructive bg-black/10 transition-all duration-100 ease-in-out data-open:animate-in data-closed:animate-out",
   )
   assert.equal(adapt(once), once)
 })

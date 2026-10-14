@@ -26,9 +26,6 @@ import {
 } from "./team"
 import { MOCK_INVITES, MOCK_USERS } from "./users"
 
-/** Ресурси мок-сервера демо: їх показує панель розробника (журнал і вебхуки — теж зі сценаріями). */
-export const MOCK_RESOURCES = ["invoices", "users", "audit", "webhooks"]
-
 export const invoices = createResourceHandlers({
   resource: "invoices",
   schema: invoiceSchema,

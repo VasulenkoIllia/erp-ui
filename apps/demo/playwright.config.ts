@@ -24,6 +24,17 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: /perf\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: executablePath ? { executablePath } : {},
+      },
+    },
+    // Бюджети швидкості (ADR-0009): окремо й в один потік — `pnpm perf`.
+    {
+      name: "perf",
+      testMatch: /perf\.spec\.ts/,
+      fullyParallel: false,
       use: {
         ...devices["Desktop Chrome"],
         launchOptions: executablePath ? { executablePath } : {},

@@ -1,0 +1,26 @@
+{
+  "targetKb": 250,
+  "limitsKb": {
+    "вхід": 351,
+    "ProfilePage.tsx": 546.9,
+    "SecurityPage.tsx": 536.8,
+    "CompanyPage.tsx": 510.5,
+    "FormatsPage.tsx": 506.1,
+    "FormsPage.tsx": 415.6,
+    "AuthPage.tsx": 401.5,
+    "FieldsPage.tsx": 396.5,
+    "UsersPage.tsx": 390.3,
+    "SecurityPolicyPage.tsx": 385.8,
+    "DataPage.tsx": 381.2,
+    "AuditPage.tsx": 380.9,
+    "IntegrationsPage.tsx": 380.8,
+    "PrimitivesPage.tsx": 380.1,
+    "RolesPage.tsx": 366.1,
+    "NotificationsPage.tsx": 365.4,
+    "AppearancePage.tsx": 357.2,
+    "IconsPage.tsx": 353,
+    "InboxPage.tsx": 352.7,
+    "StatesPage.tsx": 352.2,
+    "ModulePage.tsx": 351.9
+  }
+}

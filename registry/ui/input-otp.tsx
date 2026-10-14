@@ -63,7 +63,7 @@ function InputOTPSlot({
       className={cn(
         // erp-ui: висота з токена щільності, ширша клітинка й більший шрифт — код читається з телефона;
         // активна клітинка — суцільне кільце --ring 2 px (контраст ≥ 3:1).
-        "relative flex h-control w-10 items-center justify-center border-y border-r border-input text-base tabular-nums transition-all outline-none first:rounded-l-lg first:border-l last:rounded-r-lg aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-2 data-[active=true]:ring-ring data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
+        "relative flex h-control w-10 items-center justify-center border-y border-r border-input text-base tabular-nums transition outline-none first:rounded-l-lg first:border-l last:rounded-r-lg aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-2 data-[active=true]:ring-ring data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
         className,
       )}
       {...props}

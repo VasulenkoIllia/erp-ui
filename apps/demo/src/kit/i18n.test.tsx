@@ -1,12 +1,25 @@
 import { act, render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import type { i18n as I18n } from "i18next"
+import { describe, expect, it, vi } from "vitest"
 
-import { createI18n, LANGUAGES, type Language } from "@/registry/lib/i18n"
+import {
+  initAppearance,
+  setAppearance,
+  syncLanguage,
+} from "@/registry/lib/appearance"
+import {
+  createI18n,
+  LANGUAGES,
+  whenI18nReady,
+  type Language,
+} from "@/registry/lib/i18n"
 import { en as kitEn } from "@/registry/lib/i18n-en"
 import { uk as kitUk } from "@/registry/lib/i18n-uk"
 import { Spinner } from "@/registry/ui/spinner"
 
-import { createDemoI18n, demoResources, DEMO_NAMESPACE } from "@/i18n"
+import { createDemoI18n } from "@/i18n"
+import demoEn from "@/i18n/en.json"
+import demoUk from "@/i18n/uk.json"
 
 type Tree = { [key: string]: string | Tree }
 
@@ -64,12 +77,7 @@ describe("паритет рядків uk/en", () => {
   })
 
   it("рядки демо", () => {
-    expect(
-      checkParity({
-        uk: demoResources.uk[DEMO_NAMESPACE],
-        en: demoResources.en[DEMO_NAMESPACE],
-      }),
-    ).toEqual([])
+    expect(checkParity({ uk: demoUk, en: demoEn })).toEqual([])
   })
 
   it("перевірка ловить пропущену форму множини", () => {
@@ -107,8 +115,9 @@ describe("множина через i18next (SPEC §11)", () => {
     ],
   }
   for (const lng of LANGUAGES) {
-    it(lng, () => {
+    it(lng, async () => {
       const i18n = createDemoI18n(lng)
+      await whenI18nReady(i18n)
       for (const [count, text] of cases[lng]) {
         expect(i18n.t("formatsPage.plurals.invoices", { count })).toBe(text)
       }
@@ -138,5 +147,119 @@ describe("мова інтерфейсу", () => {
       await i18n.changeLanguage("en")
     })
     expect(screen.getByRole("status", { name: "Loading" })).toBeVisible()
+  })
+})
+
+describe("довантаження мови (ADR-0009)", () => {
+  const english = { app: { hello: "Hello" } }
+  const ukrainian = { app: { hello: "Привіт" } }
+  // Простір імен `app` тестовий — його немає в типах рядків демо.
+  const hello = (i18n: I18n) => (i18n.t as (key: string) => string)("hello")
+
+  /** Рядки проекту англійською, що спершу не вантажаться `failures` разів (офлайн). */
+  function flakyEnglish(failures: number) {
+    let attempts = 0
+    return vi.fn(() => {
+      attempts += 1
+      return attempts <= failures
+        ? Promise.reject(new Error("offline"))
+        : Promise.resolve(english)
+    })
+  }
+
+  it("рядки інших мов не в пам'яті, доки мову не обрали", async () => {
+    const load = flakyEnglish(0)
+    const i18n = createI18n({
+      resources: { uk: ukrainian, en: load },
+      defaultNamespace: "app",
+    })
+    expect(load).not.toHaveBeenCalled()
+    expect(i18n.hasResourceBundle("en", "erp-ui")).toBe(false)
+    await i18n.changeLanguage("en")
+    expect(hello(i18n)).toBe("Hello")
+    expect(i18n.t("common.close", { ns: "erp-ui" })).toBe("Close")
+  })
+
+  it("збій повторюється сам, і мова приходить", async () => {
+    const load = flakyEnglish(1)
+    const i18n = createI18n({
+      resources: { uk: ukrainian, en: load },
+      defaultNamespace: "app",
+    })
+    await i18n.changeLanguage("en")
+    expect(load).toHaveBeenCalledTimes(2)
+    expect(hello(i18n)).toBe("Hello")
+  })
+
+  it("після всіх повторів — запасна українська, а наступна зміна мови вантажить знову", async () => {
+    const load = flakyEnglish(3)
+    const i18n = createI18n({
+      resources: { uk: ukrainian, en: load },
+      defaultNamespace: "app",
+    })
+    await i18n.changeLanguage("en")
+    expect(load).toHaveBeenCalledTimes(3)
+    expect(hello(i18n)).toBe("Привіт")
+
+    await i18n.changeLanguage("en")
+    expect(load).toHaveBeenCalledTimes(4)
+    expect(hello(i18n)).toBe("Hello")
+  })
+
+  it("зависла мережа не тримає перший кадр довше за таймаут", async () => {
+    const i18n = createI18n({
+      language: "en",
+      resources: {
+        uk: ukrainian,
+        en: () => new Promise<never>(() => undefined),
+      },
+      defaultNamespace: "app",
+    })
+    await expect(whenI18nReady(i18n, 50)).resolves.toBeUndefined()
+    // Рядки ще в дорозі: рендер іде запасною українською, без призупинення useTranslation.
+    expect(i18n.isInitialized).toBe(true)
+    expect(i18n.language).toBe("uk")
+    expect(hello(i18n)).toBe("Привіт")
+  })
+
+  it("не прийшла частина мови — уся мова запасна, і <html lang> теж", async () => {
+    const i18n = createI18n({
+      resources: { uk: ukrainian, en: flakyEnglish(3) },
+      defaultNamespace: "app",
+    })
+    await i18n.changeLanguage("en")
+    expect(i18n.resolvedLanguage).toBe("uk")
+    expect(document.documentElement.lang).toBe("uk")
+    // Рядки кіта прийшли б, але без рядків проекту мова не показується наполовину.
+    expect(i18n.t("common.close", { ns: "erp-ui" })).toBe("Закрити")
+  })
+
+  it("швидке «English → Українська» лишає українську, хоч англійська прийшла пізніше", async () => {
+    initAppearance()
+    let release: ((bundle: typeof english) => void) | undefined
+    const i18n = createI18n({
+      resources: {
+        uk: ukrainian,
+        en: () =>
+          new Promise((resolve) => {
+            release = resolve
+          }),
+      },
+      defaultNamespace: "app",
+    })
+    const stop = syncLanguage(i18n)
+    setAppearance({ language: "en" })
+    setAppearance({ language: "uk" })
+    await vi.waitFor(() => {
+      expect(release).toBeDefined()
+    })
+    release?.(english)
+    await vi.waitFor(() => {
+      expect(i18n.hasResourceBundle("en", "app")).toBe(true)
+    })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(i18n.language).toBe("uk")
+    expect(document.documentElement.lang).toBe("uk")
+    stop()
   })
 })

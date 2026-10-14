@@ -56,6 +56,43 @@ export async function openWith(
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
 }
 
+/**
+ * Base UI переносить фокус у щойно відкрите меню в наступному кадрі: клавіша, натиснута раніше,
+ * піде на кнопку, а фокус, поставлений раніше, меню забере собі.
+ */
+export async function waitForMenuFocus(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.activeElement?.closest("[role=menu]") != null,
+      ),
+    )
+    .toBe(true)
+}
+
+/**
+ * Пункт підменю (Мова, Палітра…) клавіатурою; меню вже відкрите. `click()` Playwright «стрибає»
+ * на пункт без руху вказівника, і на завантаженій машині (CI) підменю, що ще з'являється, закривається.
+ * Неперервний рух миші, як у людини, працює й під навантаженням; клавіатура від таймінгу не залежить.
+ */
+export async function chooseInSubmenu(
+  page: Page,
+  submenu: RegExp,
+  item: string,
+): Promise<void> {
+  await waitForMenuFocus(page)
+  await page.getByRole("menuitem", { name: submenu }).focus()
+  await page.keyboard.press("ArrowRight")
+  await page.getByRole("menuitemradio", { name: item }).focus()
+  await page.keyboard.press("Enter")
+}
+
+/** Мова з меню користувача. */
+export async function chooseLanguage(page: Page, name: string): Promise<void> {
+  await page.getByRole("button", { name: /Меню користувача/ }).click()
+  await chooseInSubmenu(page, /Мова/, name)
+}
+
 /** axe за WCAG 2.2 AA (SPEC §10). */
 export async function expectNoA11yViolations(page: Page): Promise<void> {
   // Напівпрозорі кадри анімації (діалог, що з'являється) дають хибний контраст.

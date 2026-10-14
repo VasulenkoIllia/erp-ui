@@ -21,7 +21,7 @@ export const CODE_ITEMS = {
   "lib/i18n": {
     title: "Мови інтерфейсу",
     description:
-      "i18next + react-i18next: createI18n, українська за замовчуванням, англійська з британськими форматами, <html lang>, useLanguage, useErpUiT.",
+      "i18next + react-i18next: createI18n, українська за замовчуванням, англійська з британськими форматами, <html lang>, useLanguage, useErpUiT; у пам'яті лише мова інтерфейсу, інші довантажуються (whenI18nReady, ADR-0009).",
     status: "beta",
     demo: "formats",
     spec: ["§11"],
@@ -40,6 +40,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "formats",
     spec: ["§11"],
+  },
+  "lib/lazy": {
+    title: "Ліниві компоненти",
+    description:
+      "lazyWithPreload: сторінка чи важка частина окремим чанком із preload (наведення, старт, вільний браузер); збій завантаження — ChunkLoadError з повтором для erp/error-boundary; whenIdle (ADR-0009).",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§18.5"],
   },
   "lib/format": {
     title: "Форматери Intl",
@@ -427,10 +435,18 @@ export const CODE_ITEMS = {
   "erp/command-palette": {
     title: "Палітра команд",
     description:
-      "Cmd/Ctrl+K: пошук розділів і дій за назвою й ключовими словами; на Base UI Autocomplete.",
+      "Cmd/Ctrl+K: пошук розділів і дій за назвою й ключовими словами; на Base UI Autocomplete. Список вантажиться при першому відкритті (ADR-0009).",
     status: "beta",
     demo: "appearance",
     spec: ["UI15", "PF06"],
+  },
+  "erp/command-palette-list": {
+    title: "Список палітри команд",
+    description:
+      "Пошук і групи команд на Base UI Autocomplete; окремий файл, щоб палітра вантажила його лише при відкритті. Ставиться разом з erp/command-palette.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["UI15"],
   },
   "erp/user-menu": {
     title: "Меню користувача",
@@ -463,6 +479,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "states",
     spec: ["§8.1", "§8.2"],
+  },
+  "erp/error-boundary": {
+    title: "Межа помилок",
+    description:
+      "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць.",
+    status: "beta",
+    demo: "states",
+    spec: ["§8.1", "§18.5"],
   },
   "erp/conflict-dialog": {
     title: "Діалог конфлікту",
@@ -1070,6 +1094,7 @@ export const BUNDLE_ITEMS = {
       "lib/utils",
       "hooks/use-resolved-theme",
       "lib/i18n",
+      "lib/lazy",
       "lib/format",
       "lib/appearance",
       "hooks/use-appearance",
@@ -1080,7 +1105,7 @@ export const BUNDLE_ITEMS = {
       "erp-ui встановлено.",
       "1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.",
       "2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md",
-      "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance і syncLanguage(createI18n({ resources })) з @/lib/i18n.",
+      "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).",
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
     ].join("\n"),
