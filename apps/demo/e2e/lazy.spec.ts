@@ -34,7 +34,9 @@ test.describe("збій лінивого завантаження", () => {
 
     await page.context().unroute(DATA_CHUNK)
     await failure.getByRole("button", { name: "Спробувати ще" }).click()
-    await expect(page.getByRole("table")).toBeVisible()
+    await expect(
+      page.getByRole("grid", { name: "Рахунки клієнтам" }),
+    ).toBeVisible()
   })
 
   test("мова не завантажилась — українська, <html lang> чесний, повтор у сповіщенні", async ({

@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { announce } from "@/registry/lib/announce"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -24,6 +25,7 @@ import {
   EmptyTitle,
 } from "@/registry/ui/empty"
 import { Skeleton } from "@/registry/ui/skeleton"
+import { Spinner } from "@/registry/ui/spinner"
 
 /**
  * Стани сторінки й колекції (SPEC §8.1): порожньо вперше, нічого не знайдено, помилка з повтором,
@@ -210,6 +212,45 @@ export function SectionSkeleton({
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} className="h-row w-full" />
       ))}
+    </div>
+  )
+}
+
+/** SPEC §8.2: до 1 с — без індикатора для скрінрідера. */
+const LOADING_ANNOUNCE_DELAY_MS = 1000
+
+/**
+ * Частина, що ще вантажиться (лінивий чанк сторінки, вміст палітри): спінер з `aria-busy`, а якщо
+ * вантаження триває понад 1 с, — «Завантаження» через постійний live-регіон (lib/announce):
+ * новий `role="status"` у fallback скрінрідер часто не озвучує.
+ */
+export function LoadingFallback({
+  label,
+  className,
+}: {
+  /** Текст оголошення; за замовчуванням «Завантаження». */
+  label?: string
+  className?: string
+}) {
+  const t = useErpUiT()
+  const message = label ?? t("common.loading")
+  React.useEffect(() => {
+    let cancel: (() => void) | undefined
+    const timer = setTimeout(() => {
+      cancel = announce(message)
+    }, LOADING_ANNOUNCE_DELAY_MS)
+    return () => {
+      clearTimeout(timer)
+      cancel?.()
+    }
+  }, [message])
+  return (
+    <div
+      data-slot="loading-fallback"
+      aria-busy
+      className={cn("flex items-center justify-center", className)}
+    >
+      <Spinner aria-hidden className="size-6" />
     </div>
   )
 }

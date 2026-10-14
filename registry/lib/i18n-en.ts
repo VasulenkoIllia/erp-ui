@@ -111,6 +111,22 @@ export const en = {
     },
     loading: "Loading data",
   },
+  dataTable: {
+    rows_one: "{{value}} record",
+    rows_other: "{{value}} records",
+    refreshing: "Refreshing…",
+    updatedAt: "Updated at {{time}}",
+    refresh: "Refresh",
+    loadingRow: "Loading row",
+    windowFailed: "Couldn't load rows {{from}} to {{to}}.",
+    range: "{{from}}-{{to}} of {{total}}",
+    previous: "Previous page",
+    next: "Next page",
+    pagination: "Pages: {{label}}",
+    sortBy: "Sort by",
+    ascending: "{{column}}, ascending",
+    descending: "{{column}}, descending",
+  },
   ra: {
     notification: {
       updated: "Changes saved",

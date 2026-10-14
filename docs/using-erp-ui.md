@@ -140,13 +140,13 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 - Іконки модулів, статусів і дій — лише з `lib/icons` (`MODULE_ICONS`, `STATUS_ICONS`, `ACTION_ICONS`); гривня — `HryvniaIcon`.
 - Стани списків і сторінок — `PageState` і `PageSkeleton` з `erp/page-state`; порожній стан не підміняє помилку.
 - Сітки сторінок — з `grid-cols-1` (`minmax(0, 1fr)`), інакше широка таблиця розпирає сторінку на телефоні.
-- Сторінки — лінивими чанками через `lazyWithPreload` з `@/lib/lazy`, не `React.lazy`: той запам'ятовує невдале завантаження назавжди. Сторінку обгорніть у межу помилок із ключем-адресою, тоді чанк, що не завантажився (офлайн, застарілий після деплою), покаже «Спробувати ще» (а після невдалого повтору — й «Оновити сторінку»), а не білий екран. Помилки в моніторинг — `onError` межі:
+- Сторінки — лінивими чанками через `lazyWithPreload` з `@/lib/lazy`, не `React.lazy`: той запам'ятовує невдале завантаження назавжди. Сторінку обгорніть у межу помилок із ключем-адресою, тоді чанк, що не завантажився (офлайн, застарілий після деплою), покаже «Спробувати ще» (а після невдалого повтору — й «Оновити сторінку»), а не білий екран. Помилки в моніторинг — `onError` межі. `LoadingFallback` з `erp/page-state` оголошує скрінрідеру «Завантаження», якщо чанк вантажиться понад секунду (новий `role="status"` у fallback скрінрідер часто не озвучує):
 
   ```tsx
   const InvoicesPage = lazyWithPreload(() => import("@/pages/InvoicesPage").then((m) => m.InvoicesPage))
 
   <ErrorBoundary key={pathname}>
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={<LoadingFallback />}>
       <InvoicesPage />
     </Suspense>
   </ErrorBoundary>
@@ -206,6 +206,23 @@ createRoot(root).render(
 ```
 
 - Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`.
+- Таблиця (ADR-0016) — `DataTable` з `erp/data-table`: колонки описуються один раз для гріда й карток (на контейнері вужчому за 40 rem — картки), сортування й фільтри — на сервері.
+
+  ```tsx
+  const columns: DataTableColumn<Invoice>[] = [
+    { id: "number", header: t("number"), cell: (r) => r.number, sortField: "number", sticky: true, card: "title" },
+    { id: "client", header: t("client"), cell: (r) => r.client, priority: 2, overflow: "wrap", card: "subtitle" },
+    { id: "amount", header: t("amount"), cell: (r) => format.money(r.amount, r.currency), sortField: "amount", align: "end", firstSortOrder: "DESC" },
+    { id: "dueDate", header: t("dueDate"), cell: (r) => format.date(r.dueDate), priority: 3, overflow: "hide" },
+  ]
+  // Великий список: вікна по 100 з сервера, прокрутка на висоту екрана.
+  const list = useWindowedList<Invoice>("invoices", { sort, filter })
+  <DataTable label={t("tableLabel")} columns={columns} getRowId={(r) => r.id} list={list} sort={sort} onSortChange={setSort}
+    isFiltered={Boolean(filter.q)} onResetFilters={reset} countLabel={(count, value) => t("count", { count, value })} />
+  // Малий список: rows={data} pagination={{ page, perPage, total, onPageChange }} і стани з useGetList.
+  ```
+
+  Стани (скелетон, оновлення, порожньо, нічого не знайдено, помилка, немає доступу, офлайн, збій частини рядків) таблиця показує сама; `useUpdate` оновлює рядок у кеші вікна. Повний приклад — `src/pages/DataPage.tsx` у демо.
 - Профіль і права: `useMe()` (`null` — гість), `useCanAccess({ resource: "invoices", action: "edit" })`. Дія без права — неактивна кнопка у фокусі з підказкою-причиною.
 - Сторінка лише для користувачів — `useAuthenticated()`: без сесії перенаправить на `/login` і поверне назад після входу (`useLogin`).
 - Збереження: `useUpdate` у режимі `pessimistic` надсилає змінені поля + `version`; 409 → `ConflictDialog` з `error.current`.

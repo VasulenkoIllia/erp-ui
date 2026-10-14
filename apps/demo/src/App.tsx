@@ -40,6 +40,7 @@ import {
 import { useAuthMethods, useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
+import { LoadingFallback } from "@/registry/erp/page-state"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
@@ -69,7 +70,6 @@ import { cn } from "@/registry/lib/utils"
 import { Button, buttonVariants } from "@/registry/ui/button"
 import { DropdownMenuItem } from "@/registry/ui/dropdown-menu"
 import { Toaster } from "@/registry/ui/sonner"
-import { Spinner } from "@/registry/ui/spinner"
 import { TooltipProvider } from "@/registry/ui/tooltip"
 
 import { apiClient } from "@/data/providers"
@@ -191,7 +191,7 @@ export function App() {
       <TooltipProvider>
         {location.route === "auth" ? (
           <ErrorBoundary className="m-4">
-            <Suspense fallback={<Spinner className="mx-auto mt-24 size-6" />}>
+            <Suspense fallback={<LoadingFallback className="mt-24" />}>
               <AuthPage screen={location.screen} devPanel={devPanel} />
             </Suspense>
           </ErrorBoundary>
@@ -555,7 +555,7 @@ function Shell({
       >
         {/* Ключ — адреса: перехід на іншу сторінку скидає помилку попередньої. */}
         <ErrorBoundary key={activeId}>
-          <Suspense fallback={<Spinner className="mx-auto size-6" />}>
+          <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />
             ) : (

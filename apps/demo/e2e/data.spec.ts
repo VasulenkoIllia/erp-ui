@@ -5,9 +5,14 @@ import { expectNoA11yViolations, openWith, USERS } from "./helpers"
 const DATA = "/#/data"
 const PREFS_KEY = "erp-ui:mock-preferences:u-olena"
 
-const table = (page: Page) => page.getByRole("table")
-const rows = (page: Page) => table(page).locator("tbody tr")
-const range = (page: Page) => page.getByText(/^\d+–\d+ з \d+$/)
+const grid = (page: Page) =>
+  page.getByRole("grid", { name: "Рахунки клієнтам" })
+const rows = (page: Page) => grid(page).locator('[role="row"][data-index]')
+/** Рядок стану таблиці: кількість, «Оновлюємо…» (live-регіон). */
+const count = (page: Page) => page.locator('[data-slot="data-table-status"]')
+const range = (page: Page) => page.getByText(/^[\d\s]+-[\d\s]+ з [\d\s]+$/)
+const showPages = (page: Page) =>
+  page.getByRole("button", { name: "Сторінки", exact: true }).click()
 
 /** Сценарій моків через панель розробника. */
 async function chooseScenario(page: Page, name: string) {
@@ -24,25 +29,28 @@ test.describe("дані: список рахунків", () => {
 
   test("пошук, статус, сортування й сторінки", async ({ page }) => {
     await openWith(page, {}, DATA)
-    await expect(range(page)).toHaveText("1–20 з 180")
+    await expect(count(page)).toHaveText("10 000 рахунків")
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "10001")
 
+    await showPages(page)
+    await expect(range(page)).toHaveText("1-20 з 10 000")
     await page.getByRole("button", { name: "Наступна сторінка" }).click()
-    await expect(range(page)).toHaveText("21–40 з 180")
+    await expect(range(page)).toHaveText("21-40 з 10 000")
 
     await page
       .getByRole("searchbox", { name: "Пошук за номером чи клієнтом" })
       .fill("Агросвіт")
     // Новий пошук — знову перша сторінка.
-    await expect(range(page)).toHaveText(/^1–\d+ з \d+$/)
+    await expect(range(page)).toHaveText(/^1-20 з [\d\s]+$/)
     for (const client of await rows(page)
-      .locator("td:nth-child(2)")
+      .locator('[aria-colindex="2"]')
       .allTextContents())
       expect(client).toContain("Агросвіт")
 
     await page.getByRole("combobox", { name: "Статус рахунків" }).click()
     await page.getByRole("option", { name: "Прострочено" }).click()
     // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
-    const statuses = rows(page).locator("td:nth-child(5)")
+    const statuses = rows(page).locator('[aria-colindex="6"]')
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
@@ -57,10 +65,10 @@ test.describe("дані: список рахунків", () => {
     page,
   }) => {
     await openWith(page, {}, DATA)
-    await expect(range(page)).toHaveText("1–20 з 180")
+    await expect(count(page)).toHaveText("10 000 рахунків")
     await page.getByRole("button", { name: /^Змінити компанію/ }).click()
     await page.getByRole("menuitemradio", { name: /Коваленко/ }).click()
-    await expect(range(page)).toHaveText("1–20 з 60")
+    await expect(count(page)).toHaveText("2 500 рахунків")
   })
 
   test("менеджер без права редагування: кнопка неактивна, але в фокусі з причиною", async ({
@@ -119,7 +127,7 @@ test.describe("дані: сценарії моків", () => {
     page,
   }) => {
     await openWith(page, {}, DATA)
-    await expect(rows(page)).toHaveCount(20)
+    await expect(count(page)).toHaveText("10 000 рахунків")
 
     await chooseScenario(page, "Порожньо")
     await expect(
@@ -142,7 +150,7 @@ test.describe("дані: сценарії моків", () => {
     ).toBeVisible()
 
     await chooseScenario(page, "Успіх")
-    await expect(rows(page)).toHaveCount(20)
+    await expect(count(page)).toHaveText("10 000 рахунків")
     await expect(page.locator('[data-slot="dev-panel-indicator"]')).toBeHidden()
   })
 
@@ -150,14 +158,14 @@ test.describe("дані: сценарії моків", () => {
     page,
   }) => {
     await openWith(page, {}, DATA)
+    await showPages(page)
     await expect(rows(page)).toHaveCount(20)
     await chooseScenario(page, "Повільно (3 с)")
     await page.getByRole("button", { name: "Наступна сторінка" }).click()
-    await expect(
-      page.getByRole("status").filter({ hasText: "Оновлюємо…" }),
-    ).toBeVisible()
+    await expect(count(page)).toHaveText("Оновлюємо…")
     await expect(rows(page)).toHaveCount(20)
-    await expect(range(page)).toHaveText("21–40 з 180", { timeout: 10_000 })
+    await expect(range(page)).toHaveText("21-40 з 10 000", { timeout: 10_000 })
+    await expect(count(page)).toHaveText("10 000 рахунків")
   })
 
   test("конфлікт: порівняння, «Зберегти мої зміни» перезаписує", async ({
@@ -192,7 +200,7 @@ test.describe("дані: сценарії моків", () => {
     await openWith(page, {}, DATA)
     await chooseScenario(page, "Конфлікт збереження")
     const first = rows(page).first()
-    const original = await first.locator("td:nth-child(2)").textContent()
+    const original = await first.locator('[aria-colindex="2"]').textContent()
     await first.getByRole("button", { name: /^Редагувати/ }).click()
     const dialog = page.getByRole("dialog", { name: /^Рахунок №/ })
     await dialog.getByLabel("Клієнт").fill("ТОВ «Чернетка»")
@@ -236,7 +244,10 @@ test.describe("дані: axe і ширини", () => {
       test(`${width}px ${theme}`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 })
         await openWith(page, { theme }, DATA)
-        await expect(rows(page)).toHaveCount(20)
+        await expect(count(page)).toHaveText("10 000 рахунків")
+        await expect(
+          page.locator('[data-slot="data-table"] [data-index="0"]'),
+        ).toBeVisible()
         await expectNoA11yViolations(page)
         const scrollWidth = await page.evaluate(
           () => document.documentElement.scrollWidth,

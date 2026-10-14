@@ -6,7 +6,11 @@ import { expectNoA11yViolations, openWith, USERS } from "./helpers"
 const DATA = "/#/data"
 const LOGIN = "/#/login"
 
-const rows = (page: Page) => page.getByRole("table").locator("tbody tr")
+/** Рядок стану таблиці рахунків: «10 000 рахунків», коли список завантажився. */
+const listLoaded = (page: Page) =>
+  expect(page.locator('[data-slot="data-table-status"]')).toHaveText(
+    /\d рахунк/,
+  )
 const heading = (page: Page) => page.getByRole("heading", { level: 1 })
 
 /** Ввести код у клітинки (одне справжнє поле під ними). */
@@ -47,7 +51,7 @@ test.describe("вхід: пароль і другий крок (ADR-0010)", () =
       .check()
     await typeCode(page, "123456")
     await expect(page).toHaveURL(/#\/data$/)
-    await expect(rows(page)).toHaveCount(20)
+    await listLoaded(page)
 
     // Довірений пристрій: наступний вхід без коду.
     await page
@@ -58,7 +62,7 @@ test.describe("вхід: пароль і другий крок (ADR-0010)", () =
     await page.getByLabel("Email").fill("olena@zoriana.example")
     await page.getByLabel("Пароль", { exact: true }).fill("demo")
     await page.getByRole("button", { name: "Увійти", exact: true }).click()
-    await expect(rows(page)).toHaveCount(20)
+    await listLoaded(page)
   })
 
   test("інший спосіб: SMS із відліком повтору, резервний код", async ({
@@ -139,7 +143,7 @@ test.describe("вхід без пароля й SSO", () => {
       .getByRole("button", { name: "Відкрити посилання з листа" })
       .click()
     await expect(page).toHaveURL(/#\/data$/)
-    await expect(rows(page)).toHaveCount(20)
+    await listLoaded(page)
   })
 
   test("код у SMS", async ({ page }) => {
@@ -171,7 +175,7 @@ test.describe("вхід без пароля й SSO", () => {
       .getByRole("button", { name: /Продовжити як Іван Петренко/ })
       .click()
     await expect(page).toHaveURL(/#\/data$/)
-    await expect(rows(page)).toHaveCount(20)
+    await listLoaded(page)
   })
 
   test("ключ доступу (віртуальний автентифікатор)", async ({ page }) => {

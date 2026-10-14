@@ -7,7 +7,7 @@ import {
   subscribeMockEvents,
 } from "@/registry/lib/mocks"
 
-import { invoiceSchema, makeInvoices } from "@/data/invoices"
+import { INVOICE_COUNT, invoiceSchema, makeInvoices } from "@/data/invoices"
 
 import { ACCOUNT_SEEDS } from "./account"
 import {
@@ -29,7 +29,8 @@ import { MOCK_INVITES, MOCK_USERS } from "./users"
 export const invoices = createResourceHandlers({
   resource: "invoices",
   schema: invoiceSchema,
-  data: makeInvoices(240),
+  // 12 500 записів створюються при першому запиті, а не під час старту моків.
+  data: () => makeInvoices(INVOICE_COUNT),
   searchFields: ["number", "client"],
   label: { uk: "Рахунки", en: "Invoices" },
   fieldLabels: {

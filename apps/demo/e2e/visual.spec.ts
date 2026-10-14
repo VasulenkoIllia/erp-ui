@@ -86,6 +86,13 @@ const GUEST_PAGES: readonly (keyof typeof SHOT_PAGES)[] = [
 ]
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
   GUEST_PAGES.includes(pageId) ? { user: null } : {}
+/** Стрес-сторінка: знімок — коли рахунки вже прийшли, а не скелетон. */
+const listStatus = (page: Page) =>
+  page.locator('[data-slot="data-table-status"]')
+const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
+  if (pageId === "data")
+    await expect(listStatus(page)).toHaveText(/\d (рахунк|invoice)/)
+}
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")
 )
@@ -105,6 +112,7 @@ test.describe("скриншоти @screenshots", () => {
               SHOT_PAGES[pageId],
               userFor(pageId),
             )
+            await settle(page, pageId)
             await expectNoA11yViolations(page)
             await page.screenshot({
               path: path.join(
@@ -124,6 +132,7 @@ test.describe("скриншоти @screenshots", () => {
           SHOT_PAGES[pageId],
           userFor(pageId),
         )
+        await settle(page, pageId)
         await expectNoA11yViolations(page)
         await page.screenshot({
           path: path.join(shotsDir, `${pageId}-sapphire-light-${width}-en.png`),
@@ -140,6 +149,7 @@ test.describe("скриншоти @screenshots", () => {
           SHOT_PAGES[pageId],
           userFor(pageId),
         )
+        await settle(page, pageId)
         await page.screenshot({
           path: path.join(
             shotsDir,
@@ -738,4 +748,66 @@ test.describe("скриншоти кроку 0.6a @screenshots", () => {
       })
     })
   }
+})
+
+// Крок 0.6b (ADR-0016): клавіатура в гріді на рядку 10 000, картки на телефоні, сторінки.
+test.describe("скриншоти кроку 0.6b @screenshots", () => {
+  const only = (key: string) =>
+    Boolean(process.env.SCREENSHOT_PAGES) &&
+    !process.env.SCREENSHOT_PAGES?.split(",").includes(key)
+  const grid = (page: Page) =>
+    page.getByRole("grid", { name: "Рахунки клієнтам" })
+
+  for (const theme of THEMES)
+    test(`data-keyboard graphite ${theme} 1440`, async ({ page }) => {
+      test.skip(only("data"))
+      await page.setViewportSize({ width: 1440, height: HEIGHTS[1440] ?? 900 })
+      await openWith(page, { palette: "graphite", theme }, "/#/data")
+      await settle(page, "data")
+      await page.getByRole("button", { name: "Оновити" }).focus()
+      await page.keyboard.press("Tab")
+      await page.keyboard.press("Control+End")
+      await expect(grid(page).locator('[aria-rowindex="10001"]')).toContainText(
+        /2026-\d+/,
+      )
+      await page.keyboard.press("ArrowUp")
+      await page.keyboard.press("ArrowLeft")
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `data-keyboard-graphite-${theme}-1440.png`),
+      })
+    })
+
+  for (const theme of THEMES)
+    test(`data-pages sapphire ${theme} 768`, async ({ page }) => {
+      test.skip(only("data"))
+      await page.setViewportSize({ width: 768, height: HEIGHTS[768] ?? 900 })
+      await openWith(page, { palette: "sapphire", theme }, "/#/data")
+      await settle(page, "data")
+      await page.getByRole("button", { name: "Сторінки" }).click()
+      await expect(page.getByText(/^1-20 з /)).toBeVisible()
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(shotsDir, `data-pages-sapphire-${theme}-768.png`),
+        fullPage: true,
+      })
+    })
+
+  for (const theme of THEMES)
+    test(`data-cards-sorted sapphire ${theme} 390`, async ({ page }) => {
+      test.skip(only("data"))
+      await page.setViewportSize({ width: 390, height: HEIGHTS[390] ?? 844 })
+      await openWith(page, { palette: "sapphire", theme }, "/#/data")
+      await settle(page, "data")
+      await page.getByRole("combobox", { name: "Сортування" }).click()
+      await page.getByRole("option", { name: "Сума, за спаданням" }).click()
+      await expect(listStatus(page)).toHaveText(/\d рахунк/)
+      await expectNoA11yViolations(page)
+      await page.screenshot({
+        path: path.join(
+          shotsDir,
+          `data-cards-sorted-sapphire-${theme}-390.png`,
+        ),
+      })
+    })
 })

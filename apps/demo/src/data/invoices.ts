@@ -51,6 +51,12 @@ function seeded(seed: number) {
   }
 }
 
+/**
+ * Стрес-сторінка (SPEC §18.1): 10 000 рахунків у основної компанії, ще 2 500 — у другої
+ * (кожен п'ятий), щоб перемикач компанії показував інший список.
+ */
+export const INVOICE_COUNT = 12_500
+
 export function makeInvoices(count: number): Invoice[] {
   const random = seeded(42)
   const start = Date.UTC(2026, 0, 5)
@@ -79,7 +85,7 @@ export function makeInvoices(count: number): Invoice[] {
       status,
       date: date.toISOString().slice(0, 10),
       dueDate: due.toISOString().slice(0, 10),
-      companyId: i % 4 === 3 ? "kovalenko" : "zoriana",
+      companyId: i % 5 === 4 ? "kovalenko" : "zoriana",
     }
   })
 }

@@ -84,8 +84,8 @@ export interface MockResourceOptions<T extends MockRecord> {
   resource: string
   /** Схема повного запису: перевіряє створення й зміни (422 з fieldErrors). */
   schema: z.ZodType<T>
-  /** Початкові дані (fixtures). */
-  data: T[]
+  /** Початкові дані (fixtures) або функція, що їх створює: тоді — при першому запиті, без копії. */
+  data: T[] | (() => T[])
   /** Поля для `q`. */
   searchFields?: (keyof T & string)[]
   baseUrl?: string
@@ -172,7 +172,32 @@ export function createResourceHandlers<T extends MockRecord>({
   titleField = searchFields[0],
   fieldLabels = {},
 }: MockResourceOptions<T>) {
-  let records: T[] = structuredClone(data)
+  const seed = () =>
+    typeof data === "function" ? data() : structuredClone(data)
+  let stored: T[] | null = null
+  const all = () => (stored ??= seed())
+  const replace = (next: T[]) => {
+    stored = next
+    sorted.clear()
+  }
+  /**
+   * Відсортовані копії за сортуванням, доки дані не змінились: на 10 000 записів сортування —
+   * найдорожче в запиті, а таблиця просить те саме сортування вікнами по 100 (ADR-0016).
+   */
+  const sorted = new Map<string, T[]>()
+  const sortedBy = (sort: SortField[]) => {
+    const key = JSON.stringify(sort)
+    let result = sorted.get(key)
+    if (!result) {
+      result = sortRecords(all(), sort)
+      sorted.set(key, result)
+    }
+    return result
+  }
+  const update = (index: number, record: T) => {
+    all()[index] = record
+    sorted.clear()
+  }
   /** Записи, для яких сценарій conflict уже імітував чуже збереження. */
   const bumped = new Set<string>()
   const url = `${baseUrl}/${resource}`
@@ -257,33 +282,34 @@ export function createResourceHandlers<T extends MockRecord>({
       const { q, ...rest } = filter
       const query =
         typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
-      const filtered = records.filter(inCompany(request)).filter((record) => {
-        if (
-          query &&
-          !searchFields.some((field) =>
-            String(record[field] ?? "")
-              .toLocaleLowerCase("uk")
-              .includes(query),
+      const filtered = sortedBy(sort)
+        .filter(inCompany(request))
+        .filter((record) => {
+          if (
+            query &&
+            !searchFields.some((field) =>
+              String(record[field] ?? "")
+                .toLocaleLowerCase("uk")
+                .includes(query),
+            )
           )
-        )
-          return false
-        return Object.entries(rest).every(([key, value]) => {
-          const { field, op } = parseFilterKey(key)
-          return matches(record[field], op, value)
+            return false
+          return Object.entries(rest).every(([key, value]) => {
+            const { field, op } = parseFilterKey(key)
+            return matches(record[field], op, value)
+          })
         })
-      })
-      const sorted = sortRecords(filtered, sort)
       const start = (page - 1) * perPage
       return json({
-        data: sorted.slice(start, start + perPage),
-        total: sorted.length,
+        data: filtered.slice(start, start + perPage),
+        total: filtered.length,
       })
     }),
 
     http.get(`${url}/:id`, async ({ params, request }) => {
       const denied = await guard("read")
       if (denied) return denied
-      const record = records
+      const record = all()
         .filter(inCompany(request))
         .find((r) => r.id === params.id)
       return record ? json(record) : notFound()
@@ -306,7 +332,7 @@ export function createResourceHandlers<T extends MockRecord>({
           fieldErrors: fieldErrors(parsed.error),
         })
       }
-      records = [parsed.data, ...records]
+      replace([parsed.data, ...all()])
       changed("created", parsed.data)
       return json(parsed.data, { status: 201 })
     }),
@@ -314,8 +340,8 @@ export function createResourceHandlers<T extends MockRecord>({
     http.patch(`${url}/:id`, async ({ params, request }) => {
       const denied = await guard("update")
       if (denied) return denied
-      const index = records.findIndex((r) => r.id === params.id)
-      const current = records[index]
+      const index = all().findIndex((r) => r.id === params.id)
+      const current = all()[index]
       if (!current) return notFound()
       const { version, ...changes } = (await request.json()) as Record<
         string,
@@ -325,9 +351,9 @@ export function createResourceHandlers<T extends MockRecord>({
       // на запис, тож «Зберегти мої зміни» з новою версією після цього проходить.
       if (scenarioFor(resource) === "conflict" && !bumped.delete(current.id)) {
         bumped.add(current.id)
-        records[index] = { ...current, version: current.version + 1 }
+        update(index, { ...current, version: current.version + 1 })
       }
-      const latest = records[index] ?? current
+      const latest = all()[index] ?? current
       if (version !== latest.version) {
         return errorResponse(409, {
           code: "conflict",
@@ -348,7 +374,7 @@ export function createResourceHandlers<T extends MockRecord>({
           fieldErrors: fieldErrors(parsed.error),
         })
       }
-      records[index] = parsed.data
+      update(index, parsed.data)
       changed("updated", parsed.data, latest)
       return json(parsed.data)
     }),
@@ -356,9 +382,9 @@ export function createResourceHandlers<T extends MockRecord>({
     http.delete(`${url}/:id`, async ({ params }) => {
       const denied = await guard("delete")
       if (denied) return denied
-      const removed = records.find((r) => r.id === params.id)
+      const removed = all().find((r) => r.id === params.id)
       if (!removed) return notFound()
-      records = records.filter((r) => r.id !== params.id)
+      replace(all().filter((r) => r.id !== params.id))
       changed("deleted", removed)
       return noContent()
     }),
@@ -367,9 +393,14 @@ export function createResourceHandlers<T extends MockRecord>({
   return {
     handlers,
     db: {
-      all: () => records,
+      /** Записи для прямих змін (події моку): кеш сортування скидається, зміна видна в списках. */
+      all: () => {
+        sorted.clear()
+        return all()
+      },
       reset: () => {
-        records = structuredClone(data)
+        stored = null
+        sorted.clear()
         bumped.clear()
       },
     },

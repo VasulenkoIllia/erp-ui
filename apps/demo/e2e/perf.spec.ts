@@ -137,17 +137,16 @@ async function interactWithList(page: Page) {
   await search.pressSequentially("Агро", { delay: 120 })
   await page.getByRole("combobox", { name: "Статус рахунків" }).click()
   await page.getByRole("option", { name: "Прострочено" }).click()
-  await page
-    .getByRole("columnheader", { name: "Сума" })
-    .getByRole("button")
-    .click()
+  // На 390 px таблиця — картки: сортування з рядка стану, а не із заголовка колонки.
+  await page.getByRole("combobox", { name: "Сортування" }).click()
+  await page.getByRole("option", { name: "Сума, за спаданням" }).click()
   await page.keyboard.press("Control+k")
   await expect(page.getByRole("dialog")).toBeVisible()
   await page.keyboard.press("Escape")
 }
 
 test.describe("швидкість @perf", () => {
-  test("список рахунків: перший екран і відгук на дії", async ({ browser }) => {
+  test("стрес-сторінка: перший екран і відгук на дії", async ({ browser }) => {
     test.setTimeout(180_000)
     const lcp: number[] = []
     const inp: number[] = []
@@ -156,7 +155,12 @@ test.describe("швидкість @perf", () => {
     for (let run = 0; run < RUNS; run++) {
       const page = await openThrottled(browser, cpu.rate)
       await page.goto(DATA)
-      await expect(page.getByRole("table")).toBeVisible({ timeout: 30_000 })
+      // Стрес-сторінка (SPEC §18.1): 10 000 рахунків, на 390 px — картки.
+      await expect(
+        page.getByRole("feed").getByRole("article").first(),
+      ).toBeVisible({
+        timeout: 30_000,
+      })
       // LCP фіксується до першої взаємодії — даємо сторінці домалюватись.
       await page.waitForTimeout(500)
       lcp.push(await page.evaluate(() => window.__perf.lcp))

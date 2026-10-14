@@ -4,13 +4,13 @@ import * as React from "react"
 import { SearchIcon, type LucideIcon } from "lucide-react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
+import { LoadingFallback } from "@/registry/erp/page-state"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { lazyWithPreload, whenIdle } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
 import { Kbd } from "@/registry/ui/kbd"
-import { Spinner } from "@/registry/ui/spinner"
 
 /**
  * Палітра команд UI15 (SPEC §7, PF06): Cmd/Ctrl+K з будь-якого місця, пошук розділів і дій.
@@ -156,13 +156,7 @@ export function CommandPalette({
           {t("commandPalette.label")}
         </DialogTitle>
         <ErrorBoundary className="min-h-0 border-0">
-          <React.Suspense
-            fallback={
-              <div className="flex h-24 items-center justify-center">
-                <Spinner className="size-5" />
-              </div>
-            }
-          >
+          <React.Suspense fallback={<LoadingFallback className="h-24" />}>
             <CommandPaletteList commands={commands} onRun={run} />
           </React.Suspense>
         </ErrorBoundary>

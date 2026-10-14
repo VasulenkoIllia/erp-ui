@@ -603,6 +603,11 @@
           "target": "@components/erp/phone-input.tsx"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -2424,6 +2429,28 @@
       }
     },
     {
+      "name": "lib/announce",
+      "type": "registry:lib",
+      "title": "Оголошення для скрінрідера",
+      "description": "announce: текст у постійному прихованому live-регіоні (WCAG 4.1.3), бо новий role=\"status\" скрінрідер часто не озвучує; для fallback — LoadingFallback з erp/page-state.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "lib/api",
       "type": "registry:lib",
       "title": "Конвенції API",
@@ -2811,6 +2838,31 @@
         "demo": "data",
         "spec": [
           "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/data-table-core",
+      "type": "registry:lib",
+      "title": "Логіка таблиці даних",
+      "description": "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§9",
+          "§10"
         ]
       }
     },
@@ -5567,6 +5619,57 @@
       }
     },
     {
+      "name": "hooks/use-element-size",
+      "type": "registry:hook",
+      "title": "useElementSize",
+      "description": "Ширина чи висота елемента за ResizeObserver і висота області прокрутки «до низу екрана» (100dvh мінус відступ) для erp/data-table.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§9"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-grid-keyboard",
+      "type": "registry:hook",
+      "title": "useGridKeyboard",
+      "description": "Клавіатура гріда за W3C APG: одна зупинка Tab, стрілки, Home/End, Ctrl+Home/End, PageUp/PageDown, Enter/F2 у клітинку з кількома елементами (Tab між ними) і Esc назад; клітинки фокусуються кліком; рядок у фокусі рендериться одразу. Для erp/data-table.",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-grid-keyboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-grid-keyboard.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-me",
       "type": "registry:hook",
       "title": "useMe",
@@ -5712,6 +5815,178 @@
       }
     },
     {
+      "name": "hooks/use-virtual-rows",
+      "type": "registry:hook",
+      "title": "useVirtualRows",
+      "description": "Віртуальні рядки erp/data-table на TanStack Virtual (грід і картки): рядок у фокусі лишається в DOM на своєму місці й на екрані, коли рядки над ним змінюють висоту; видимі рядки → вікна джерела, новий список — з початку; повтор невдалого вікна в першому його рядку (ADR-0016).",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§10",
+          "§18.1"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-windowed-list",
+      "type": "registry:hook",
+      "title": "useWindowedList",
+      "description": "Великий список із сервера вікнами по 100 через dataProvider ra-core: лише видимі вікна плюс запас, ключі як у useGetList (збереження оновлює рядки), компанія в ключі, попередні рядки під час нового фільтра, повтор вікна, що не завантажилось (ADR-0016).",
+      "dependencies": [
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-windowed-list.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-windowed-list.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§8.1",
+          "§17",
+          "§18.1"
+        ]
+      }
+    },
+    {
       "name": "erp/account-devices",
       "type": "registry:component",
       "title": "Сесії й пристрої",
@@ -5758,6 +6033,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -6018,6 +6298,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -6787,6 +7072,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -7140,6 +7430,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -7811,6 +8106,11 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -7908,6 +8208,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -8047,6 +8352,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -8523,6 +8833,507 @@
       }
     },
     {
+      "name": "erp/data-table-cards",
+      "type": "registry:component",
+      "title": "Картки таблиці",
+      "description": "Частина erp/data-table: на вузькому контейнері — картки за W3C APG Feed (PageUp/PageDown, aria-setsize на весь список), назва, позначка, дії й поля з тих самих колонок. Ставиться разом з erp/data-table.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/data-table-cards.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cards.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/data-table-cells",
+      "type": "registry:component",
+      "title": "Клітинки таблиці",
+      "description": "Частина erp/data-table: заголовок із сортуванням і aria-sort, перенесені під рядок колонки, рядок вікна, що вантажиться чи не завантажилось (повтор). Ставиться разом з erp/data-table.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§8.1",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/data-table-grid",
+      "type": "registry:component",
+      "title": "Табличний вигляд",
+      "description": "Частина erp/data-table: грід на рядках CSS Grid, віртуальні рядки у власній області прокрутки, сортування на сервері через TanStack Table, scroll-padding під липкі шапку й колонку. Ставиться разом з erp/data-table.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/data-table-grid.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-grid.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-grid-keyboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-grid-keyboard.ts"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/data-table",
+      "type": "registry:component",
+      "title": "Таблиця даних",
+      "description": "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/data-table.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cards.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cards.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-grid.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-grid.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-grid-keyboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-grid-keyboard.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/hooks/use-windowed-list.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-windowed-list.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "§8.1",
+          "§9",
+          "§10",
+          "§18.1"
+        ]
+      }
+    },
+    {
       "name": "erp/date-input",
       "type": "registry:component",
       "title": "Поле дати й часу",
@@ -8846,6 +9657,11 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -8884,6 +9700,11 @@
           "path": "registry/ui/skeleton.tsx",
           "type": "registry:ui",
           "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
         }
       ],
       "meta": {
@@ -9488,6 +10309,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -10066,6 +10892,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -10258,6 +11089,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -10589,7 +11425,7 @@
       "name": "erp/page-state",
       "type": "registry:component",
       "title": "Стани сторінки",
-      "description": "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження.",
+      "description": "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -10603,6 +11439,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -10638,6 +11479,11 @@
           "path": "registry/ui/skeleton.tsx",
           "type": "registry:ui",
           "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
         }
       ],
       "meta": {
@@ -11596,6 +12442,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -11836,6 +12687,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -12074,6 +12930,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -13006,6 +13867,11 @@
           "target": "@lib/account.ts"
         },
         {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
@@ -13374,6 +14240,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",

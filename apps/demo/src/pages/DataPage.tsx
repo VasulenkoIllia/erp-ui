@@ -1,21 +1,18 @@
-import { keepPreviousData } from "@tanstack/react-query"
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  type LucideIcon,
-} from "lucide-react"
+import { Search } from "lucide-react"
 import {
   useAuthenticated,
   useCanAccess,
-  useGetList,
   useUpdate,
   type SortPayload,
 } from "ra-core"
-import { useEffect, useId, useMemo, useState, type FormEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -24,10 +21,8 @@ import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
-import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
-import { ACTION_ICONS, MODULE_ICONS, STATUS_ICONS } from "@/registry/lib/icons"
-import { Badge } from "@/registry/ui/badge"
+import { ACTION_ICONS, MODULE_ICONS } from "@/registry/lib/icons"
 import { Button } from "@/registry/ui/button"
 import {
   Dialog,
@@ -52,15 +47,6 @@ import {
   SelectValue,
 } from "@/registry/ui/select"
 import { Spinner } from "@/registry/ui/spinner"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/registry/ui/table"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
 import {
   INVOICE_STATUSES,
@@ -68,40 +54,15 @@ import {
   type InvoiceStatus,
 } from "@/data/invoices"
 
+import { InvoiceTable, type InvoiceTableProps } from "./invoice-table"
 import { PageHeader } from "./PageHeader"
 
 const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 
-const PER_PAGE = 20
 const RESOURCE = "invoices"
 
 type StatusFilter = InvoiceStatus | "all"
-type SortableField = "number" | "client" | "date" | "amount"
-
-const STATUS_BADGES: Record<
-  InvoiceStatus,
-  {
-    variant: "secondary" | "info" | "warning" | "success" | "destructive"
-    icon: LucideIcon
-  }
-> = {
-  draft: { variant: "secondary", icon: STATUS_ICONS.draft },
-  sent: { variant: "info", icon: STATUS_ICONS.info },
-  partially_paid: { variant: "warning", icon: STATUS_ICONS.pending },
-  paid: { variant: "success", icon: STATUS_ICONS.success },
-  overdue: { variant: "destructive", icon: STATUS_ICONS.destructive },
-}
-
-function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
-  const t = usePageT()
-  const { variant, icon: Icon } = STATUS_BADGES[status]
-  return (
-    <Badge variant={variant}>
-      <Icon aria-hidden />
-      {t(`statuses.${status}`)}
-    </Badge>
-  )
-}
+type ViewMode = "scroll" | "pages"
 
 function useDebounced<T>(value: T, ms: number): T {
   const [debounced, setDebounced] = useState(value)
@@ -117,8 +78,9 @@ function useDebounced<T>(value: T, ms: number): T {
 }
 
 /**
- * Рахунки з мок-сервера через ra-core: перевірка сесії, список із фільтрами й сортуванням,
- * права на редагування, збереження з версією й діалог конфлікту.
+ * Стрес-сторінка (SPEC §18.1, крок 0.6b): 10 000 рахунків з мок-сервера через ra-core у
+ * erp/data-table. Прокрутка вікнами по 100 (useWindowedList) або звичайні сторінки (useGetList),
+ * фільтри й сортування на сервері, права на редагування, збереження з версією й діалог конфлікту.
  */
 export function DataPage() {
   const t = usePageT()
@@ -132,52 +94,8 @@ export function DataPage() {
   )
 }
 
-function SortHeader({
-  field,
-  sort,
-  onSort,
-  className,
-}: {
-  field: SortableField
-  sort: SortPayload
-  onSort: (field: SortableField) => void
-  className?: string
-}) {
-  const t = usePageT()
-  const active = sort.field === field
-  const Icon = !active
-    ? ArrowUpDown
-    : sort.order === "ASC"
-      ? ArrowUp
-      : ArrowDown
-  return (
-    <TableHead
-      className={className}
-      aria-sort={
-        active ? (sort.order === "ASC" ? "ascending" : "descending") : undefined
-      }
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2"
-        onClick={() => {
-          onSort(field)
-        }}
-      >
-        {t(`columns.${field}`)}
-        <Icon
-          aria-hidden
-          className={active ? undefined : "text-muted-foreground"}
-        />
-      </Button>
-    </TableHead>
-  )
-}
-
 function InvoiceList() {
   const t = usePageT()
-  const format = useFormat()
   const ids = useId()
   const { data: me } = useMe()
   const [status, setStatus] = useState<StatusFilter>("all")
@@ -187,7 +105,12 @@ function InvoiceList() {
     field: "date",
     order: "DESC",
   })
+  const [view, setView] = useState<ViewMode>("scroll")
   const [editing, setEditing] = useState<Invoice | null>(null)
+  const { canAccess: canEdit } = useCanAccess({
+    resource: RESOURCE,
+    action: "edit",
+  })
 
   const filter = useMemo(
     () => ({
@@ -196,26 +119,10 @@ function InvoiceList() {
     }),
     [status, query],
   )
-  const filtered = status !== "all" || query !== ""
-
-  // Інший фільтр чи сортування — знову з першої сторінки.
-  const listKey = JSON.stringify([filter, sort])
-  const [paging, setPaging] = useState({ page: 1, listKey })
-  const page = paging.listKey === listKey ? paging.page : 1
-  const setPage = (next: number) => {
-    setPaging({ page: next, listKey })
-  }
-
-  const { data, total, isPending, isFetching, error, refetch } =
-    useGetList<Invoice>(
-      RESOURCE,
-      { pagination: { page, perPage: PER_PAGE }, sort, filter },
-      { placeholderData: keepPreviousData },
-    )
-  const { canAccess: canEdit } = useCanAccess({
-    resource: RESOURCE,
-    action: "edit",
-  })
+  const resetFilters = useCallback(() => {
+    setSearch("")
+    setStatus("all")
+  }, [])
 
   const statusItems = [
     { value: "all", label: t("all") },
@@ -225,89 +132,16 @@ function InvoiceList() {
     })),
   ]
 
-  const toolbar = (
-    <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-end">
-      <Field className="@2xl:max-w-sm">
-        <FieldLabel htmlFor={`${ids}-search`} className="sr-only">
-          {t("search")}
-        </FieldLabel>
-        <InputGroup>
-          <InputGroupAddon>
-            <Search aria-hidden />
-          </InputGroupAddon>
-          <InputGroupInput
-            id={`${ids}-search`}
-            type="search"
-            placeholder={t("search")}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-            }}
-          />
-        </InputGroup>
-      </Field>
-      <Field className="@2xl:w-56">
-        <FieldLabel htmlFor={`${ids}-status`} className="sr-only">
-          {t("statusFilter")}
-        </FieldLabel>
-        <Select
-          items={statusItems}
-          value={status}
-          onValueChange={(value: StatusFilter | null) => {
-            setStatus(value ?? "all")
-          }}
-        >
-          <SelectTrigger id={`${ids}-status`} className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {statusItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
-      <div
-        role="status"
-        className="flex min-h-5 items-center gap-2 text-sm text-muted-foreground @2xl:ms-auto @2xl:min-h-control"
-      >
-        {isFetching && !isPending ? (
-          <>
-            <Spinner aria-hidden />
-            {t("refreshing")}
-          </>
-        ) : null}
-      </div>
-    </div>
-  )
-
-  let body: React.ReactNode
-  if (isPending) {
-    body = <PageSkeleton rows={8} />
-  } else if (error) {
-    const retry = () => {
-      void refetch()
-    }
-    body =
-      isApiError(error) && error.code === "offline" ? (
-        <PageState kind="offline" onRetry={retry} />
-      ) : isApiError(error) && error.status === 403 ? (
-        <PageState kind="forbidden" />
-      ) : (
-        <PageState kind="error" onRetry={retry} />
-      )
-  } else if (!data?.length) {
-    body = filtered ? (
-      <PageState
-        kind="no-results"
-        onReset={() => {
-          setSearch("")
-          setStatus("all")
-        }}
-      />
-    ) : (
+  const listProps: InvoiceTableProps = {
+    view,
+    canEdit: canEdit === true,
+    onEdit: setEditing,
+    filter,
+    sort,
+    onSortChange: setSort,
+    isFiltered: status !== "all" || query !== "",
+    onResetFilters: resetFilters,
+    empty: (
       <PageState
         kind="empty"
         icon={MODULE_ICONS.K2}
@@ -322,107 +156,7 @@ function InvoiceList() {
           </Button>
         }
       />
-    )
-  } else {
-    const count = total ?? data.length
-    const from = (page - 1) * PER_PAGE + 1
-    const to = from + data.length - 1
-    const onSort = (field: SortableField) => {
-      setSort((current) =>
-        current.field === field
-          ? { field, order: current.order === "ASC" ? "DESC" : "ASC" }
-          : {
-              field,
-              order: field === "date" || field === "amount" ? "DESC" : "ASC",
-            },
-      )
-    }
-    body = (
-      <div className="space-y-3">
-        <Table label={t("tableLabel")}>
-          <TableHeader>
-            <TableRow>
-              <SortHeader field="number" sort={sort} onSort={onSort} />
-              <SortHeader field="client" sort={sort} onSort={onSort} />
-              <SortHeader field="date" sort={sort} onSort={onSort} />
-              <SortHeader
-                field="amount"
-                sort={sort}
-                onSort={onSort}
-                className="text-right"
-              />
-              <TableHead>{t("columns.status")}</TableHead>
-              <TableHead>
-                <span className="sr-only">{t("columns.actions")}</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell className="tabular-nums">{invoice.number}</TableCell>
-                <TableCell>{invoice.client}</TableCell>
-                <TableCell className="tabular-nums">
-                  {format.date(invoice.date, "date")}
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {format.money({
-                    amount: invoice.amount,
-                    currency: invoice.currency,
-                  })}
-                </TableCell>
-                <TableCell>
-                  <InvoiceStatusBadge status={invoice.status} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <EditButton
-                    label={t("edit", { number: invoice.number })}
-                    canEdit={canEdit === true}
-                    onEdit={() => {
-                      setEditing(invoice)
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <nav
-          aria-label={t("tableLabel")}
-          className="flex items-center justify-end gap-2"
-        >
-          <span className="me-2 text-sm text-muted-foreground tabular-nums">
-            {t("range", {
-              from: format.number(from),
-              to: format.number(to),
-              total: format.number(count),
-            })}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label={t("previous")}
-            disabled={page <= 1}
-            onClick={() => {
-              setPage(page - 1)
-            }}
-          >
-            <ChevronLeft aria-hidden />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label={t("next")}
-            disabled={to >= count}
-            onClick={() => {
-              setPage(page + 1)
-            }}
-          >
-            <ChevronRight aria-hidden />
-          </Button>
-        </nav>
-      </div>
-    )
+    ),
   }
 
   return (
@@ -437,8 +171,72 @@ function InvoiceList() {
           })}
         </p>
       ) : null}
-      {toolbar}
-      {body}
+      <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-end">
+        <Field className="@2xl:max-w-sm">
+          <FieldLabel htmlFor={`${ids}-search`} className="sr-only">
+            {t("search")}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupAddon>
+              <Search aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
+              id={`${ids}-search`}
+              type="search"
+              placeholder={t("search")}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+              }}
+            />
+          </InputGroup>
+        </Field>
+        {/* На телефоні статус і подання — в одному рядку, щоб списку лишилось більше місця. */}
+        <div className="flex items-end gap-3 @2xl:contents">
+          <Field className="min-w-0 flex-1 @2xl:w-56 @2xl:flex-none">
+            <FieldLabel htmlFor={`${ids}-status`} className="sr-only">
+              {t("statusFilter")}
+            </FieldLabel>
+            <Select
+              items={statusItems}
+              value={status}
+              onValueChange={(value: StatusFilter | null) => {
+                setStatus(value ?? "all")
+              }}
+            >
+              <SelectTrigger id={`${ids}-status`} className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <div
+            role="group"
+            aria-label={t("view.label")}
+            className="flex shrink-0 gap-1 @2xl:ms-auto"
+          >
+            {(["scroll", "pages"] as const).map((mode) => (
+              <Button
+                key={mode}
+                variant={view === mode ? "secondary" : "ghost"}
+                aria-pressed={view === mode}
+                onClick={() => {
+                  setView(mode)
+                }}
+              >
+                {t(`view.${mode}`)}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <InvoiceTable {...listProps} />
       {editing ? (
         <EditInvoiceDialog
           key={`${editing.id}-${String(editing.version)}`}
@@ -450,45 +248,6 @@ function InvoiceList() {
         />
       ) : null}
     </div>
-  )
-}
-
-/** SPEC §8.4: без права дія неактивна, але у фокусі й пояснює причину. */
-function EditButton({
-  label,
-  canEdit,
-  onEdit,
-}: {
-  label: string
-  canEdit: boolean
-  onEdit: () => void
-}) {
-  const t = usePageT()
-  const Edit = ACTION_ICONS.edit
-  if (canEdit) {
-    return (
-      <Button variant="ghost" size="icon" aria-label={label} onClick={onEdit}>
-        <Edit aria-hidden />
-      </Button>
-    )
-  }
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={label}
-            disabled
-            focusableWhenDisabled
-          />
-        }
-      >
-        <Edit aria-hidden />
-      </TooltipTrigger>
-      <TooltipContent>{t("readOnlyHint")}</TooltipContent>
-    </Tooltip>
   )
 }
 

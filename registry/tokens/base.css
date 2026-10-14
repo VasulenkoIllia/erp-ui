@@ -105,6 +105,9 @@
 @utility h-row {
   height: var(--row-h);
 }
+@utility min-h-row {
+  min-height: var(--row-h);
+}
 /* Ціль дотику: не менша за контрол і за мінімум щільності (44 px звичайна, 24 px компактна). */
 @utility min-h-touch {
   min-height: max(var(--control-h), var(--touch-min));

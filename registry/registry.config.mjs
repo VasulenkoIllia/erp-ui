@@ -49,6 +49,22 @@ export const CODE_ITEMS = {
     demo: "appearance",
     spec: ["§18.5"],
   },
+  "lib/announce": {
+    title: "Оголошення для скрінрідера",
+    description:
+      'announce: текст у постійному прихованому live-регіоні (WCAG 4.1.3), бо новий role="status" скрінрідер часто не озвучує; для fallback — LoadingFallback з erp/page-state.',
+    status: "beta",
+    demo: "data",
+    spec: ["§10"],
+  },
+  "lib/data-table-core": {
+    title: "Логіка таблиці даних",
+    description:
+      "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
+    status: "beta",
+    demo: "data",
+    spec: ["§9", "§10"],
+  },
   "lib/format": {
     title: "Форматери Intl",
     description:
@@ -200,6 +216,38 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "company",
     spec: ["PF02"],
+  },
+  "hooks/use-windowed-list": {
+    title: "useWindowedList",
+    description:
+      "Великий список із сервера вікнами по 100 через dataProvider ra-core: лише видимі вікна плюс запас, ключі як у useGetList (збереження оновлює рядки), компанія в ключі, попередні рядки під час нового фільтра, повтор вікна, що не завантажилось (ADR-0016).",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.1", "§17", "§18.1"],
+  },
+  "hooks/use-virtual-rows": {
+    title: "useVirtualRows",
+    description:
+      "Віртуальні рядки erp/data-table на TanStack Virtual (грід і картки): рядок у фокусі лишається в DOM на своєму місці й на екрані, коли рядки над ним змінюють висоту; видимі рядки → вікна джерела, новий список — з початку; повтор невдалого вікна в першому його рядку (ADR-0016).",
+    status: "beta",
+    demo: "data",
+    spec: ["§10", "§18.1"],
+  },
+  "hooks/use-element-size": {
+    title: "useElementSize",
+    description:
+      "Ширина чи висота елемента за ResizeObserver і висота області прокрутки «до низу екрана» (100dvh мінус відступ) для erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§9"],
+  },
+  "hooks/use-grid-keyboard": {
+    title: "useGridKeyboard",
+    description:
+      "Клавіатура гріда за W3C APG: одна зупинка Tab, стрілки, Home/End, Ctrl+Home/End, PageUp/PageDown, Enter/F2 у клітинку з кількома елементами (Tab між ними) і Esc назад; клітинки фокусуються кліком; рядок у фокусі рендериться одразу. Для erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§10"],
   },
   "hooks/use-company-profile": {
     title: "useCompanyProfile",
@@ -475,10 +523,42 @@ export const CODE_ITEMS = {
   "erp/page-state": {
     title: "Стани сторінки",
     description:
-      "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження.",
+      "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
     status: "beta",
     demo: "states",
     spec: ["§8.1", "§8.2"],
+  },
+  "erp/data-table": {
+    title: "Таблиця даних",
+    description:
+      "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
+  },
+  "erp/data-table-grid": {
+    title: "Табличний вигляд",
+    description:
+      "Частина erp/data-table: грід на рядках CSS Grid, віртуальні рядки у власній області прокрутки, сортування на сервері через TanStack Table, scroll-padding під липкі шапку й колонку. Ставиться разом з erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§9", "§10"],
+  },
+  "erp/data-table-cells": {
+    title: "Клітинки таблиці",
+    description:
+      "Частина erp/data-table: заголовок із сортуванням і aria-sort, перенесені під рядок колонки, рядок вікна, що вантажиться чи не завантажилось (повтор). Ставиться разом з erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§8.1", "§10"],
+  },
+  "erp/data-table-cards": {
+    title: "Картки таблиці",
+    description:
+      "Частина erp/data-table: на вузькому контейнері — картки за W3C APG Feed (PageUp/PageDown, aria-setsize на весь список), назва, позначка, дії й поля з тих самих колонок. Ставиться разом з erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§9", "§10"],
   },
   "erp/error-boundary": {
     title: "Межа помилок",
