@@ -42,3 +42,16 @@ export function useFocusHeadingOnNavigation(
     heading.current?.focus()
   }, [heading, pathname, ready])
 }
+
+/**
+ * h1 сторінки демо: фокус після переходу (`useFocusHeadingOnNavigation`) і назва вкладки браузера.
+ * Зміна мови фокус не чіпає — лише назву вкладки.
+ */
+export function usePageHeading(title: string, ready = true) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  useFocusHeadingOnNavigation(heading, ready)
+  useEffect(() => {
+    document.title = `${title} · erp-ui`
+  }, [title])
+  return heading
+}

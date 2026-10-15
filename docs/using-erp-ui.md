@@ -222,8 +222,8 @@ createRoot(root).render(
   // Малий список: rows={data} pagination={{ page, perPage, total, onPageChange }} і стани з useGetList.
   ```
 
-  Стани (скелетон, оновлення, порожньо, нічого не знайдено, помилка, немає доступу, офлайн, збій частини рядків) таблиця показує сама; `useUpdate` оновлює рядок у кеші вікна. Повний приклад — `src/pages/DataPage.tsx` у демо.
-- Над таблицею (ADR-0017) — вкладки-статуси, панель фільтрів і особисті збережені види; стан списку живе в адресі сторінки тим самим синтаксисом, що й запит до API (`?tab=overdue&client=A&amount_gte=1000000&sort=-date`). Роутер дає застосунок:
+  Стани (скелетон, оновлення, порожньо, нічого не знайдено, помилка, немає доступу, офлайн, збій частини рядків) таблиця показує сама; `useUpdate` оновлює рядок у кеші вікна. Сторінку списку цілком збирає шаблон List Report (нижче); колонки рахунків у демо — `src/pages/invoice-columns.tsx`.
+- Сторінка списку (ADR-0022) — шаблон List Report з `templates/list-report`: заголовок і дії, вкладки-статуси, панель фільтрів, особисті збережені види (ADR-0017), панель масових дій і таблиця. Стан списку живе в адресі сторінки тим самим синтаксисом, що й запит до API (`?tab=overdue&client=A&amount_gte=1000000&sort=-date`); роутер дає застосунок:
 
   ```tsx
   const tabs: ListTab[] = [{ id: "all", label: t("all"), filter: {} }, { id: "overdue", label: t("overdue"), filter: { status: "overdue" } }]
@@ -232,21 +232,17 @@ createRoot(root).render(
     { kind: "date-range", id: "date", field: "date", label: t("date") },         // date_gte, date_lte
     { kind: "money-range", id: "amount", field: "amount", label: t("amount"), currency: "UAH" }, // мінорні одиниці
   ]
-  // tabs, filters і defaults — стабільні між рендерами (useMemo чи константа модуля).
+  // tabs, filters, defaults і columns — стабільні між рендерами (useMemo чи константа модуля).
   const [params, setParams] = useSearchParams()                  // React Router
-  const views = useSavedViews("invoices")                          // hooks/use-saved-views
-  const list = useListState({ params, onParamsChange: setParams, tabs, filters, views: views.views, viewsFailed: Boolean(views.error),
+  const report = useListReport({ resource: "invoices", params, onParamsChange: setParams, tabs, filters,
     defaults: { tab: "all", sort: { field: "date", order: "DESC" }, sortFields: ["number", "date", "amount"] } })
-  const counts = useListCounts("invoices", list.state.filter, tabs, { enabled: list.isReady })
-  <StatusTabs label={t("status")} tabs={tabs} value={list.state.tab} onValueChange={list.setTab} counts={counts} />
-  <FilterBar filters={filters} value={list.state.filter} onValueChange={list.setFilter} searchPlaceholder={t("search")}
-    actions={<SavedViewsMenu resource="invoices" views={views} list={list} />} />
-  {list.isReady ? (
-    // Усередині InvoiceTable: useWindowedList("invoices", { sort, filter }) і DataTable, як вище.
-    <InvoiceTable filter={list.queryFilter} sort={list.state.sort} onSortChange={list.setSort}
-      isFiltered={list.isFiltered} onResetFilters={() => list.applyView(null)} />
-  ) : <PageSkeleton rows={8} />}
+  <ListReport report={report} title={t("title")} tableLabel={t("tableLabel")} columns={columns}
+    tabsLabel={t("status")} searchPlaceholder={t("search")} countLabel={(count, value) => t("count", { count, value })}
+    actions={[{ id: "create", node: <Button onClick={create}>{t("create")}</Button> }]}
+    mode="scroll" />                                             // малий список — mode="pages"
   ```
+
+  Колонки, фільтри, вкладки й дії — списки з ключами, порядок на екрані — порядок у списку: розширення модуля додає, ховає чи переставляє елемент за ключем (ADR-0020). Поки види вантажаться, таблиця — скелетон: дані не вантажаться двічі. Без `title` шапки в шаблоні немає: її ставить сторінка (`ListReportHeader`), напр. над перевіркою сесії, щоб шапка не з'являлась заново. Збирати список вручну з `StatusTabs`, `FilterBar`, `SavedViewsMenu`, `useListState` і `DataTable` не треба; повний приклад — `src/pages/DataPage.tsx` у демо.
 
   Адреса — ввід ззовні: з `filters` у запит ідуть лише описані фільтри й `q`, сортування — лише за `sortFields`. Поки види вантажаться, `isReady` — false: якщо сторінку відкрили без параметрів, спершу застосується вид за замовчуванням, і список не вантажиться двічі. Бекенд реалізує `/me/views` за контрактом `lib/saved-views`; у моках — `createSavedViewHandlers()` поруч з іншими обробниками, сценарій — ресурс `views` у панелі розробника.
 - Вибір рядків і масові дії (ADR-0018). Вибір живе на сторінці й скидається зі зміною фільтра; таблиця сама додає колонку прапорців і панель вибраного. Дія — фонова задача сервера, прогрес і підсумок — у сповіщенні, що живе поза сторінкою:
@@ -266,7 +262,7 @@ createRoot(root).render(
     bulkActions={(count) => <Button onClick={() => setConfirm(count)}>{t("approve")}</Button>} />
   ```
 
-  `selection` передається лише разом із `rowLabel` (це перевіряє тип). У «Прокрутці» прапорець у шапці вибирає всі записи за фільтром (зняті — винятки, запит `{ filter, exclude }`), на сторінках — сторінку, далі панель пропонує «Вибрати всі N»; у картках цей прапорець із підписом стоїть у рядку стану. Підтвердження з кількістю — `ConfirmDialog` на сторінці (не в панелі: панель зникає разом із вибором), `returnFocus={() => tableTabStop(table)}`. Бекенд реалізує `POST /<ресурс>/bulk/<дія>` і `/jobs/:id` за контрактом `lib/jobs`; у моках — `createBulkHandlers({ resource, db, actions })` і `createJobHandlers()` перед обробниками ресурсу, сценарій опитування — ресурс `jobs`.
+  У шаблоні List Report вибір — `report.selection`, фільтр — `report.list.queryFilter`, а кнопки — `bulk={{ actions: [{ id: "approve", render: (count) => … }], rowLabel }}`; без `bulk` прапорців немає. `selection` передається лише разом із `rowLabel` (це перевіряє тип). У «Прокрутці» прапорець у шапці вибирає всі записи за фільтром (зняті — винятки, запит `{ filter, exclude }`), на сторінках — сторінку, далі панель пропонує «Вибрати всі N»; у картках цей прапорець із підписом стоїть у рядку стану. Підтвердження з кількістю — `ConfirmDialog` на сторінці (не в панелі: панель зникає разом із вибором), `returnFocus={() => tableTabStop(table)}`. Бекенд реалізує `POST /<ресурс>/bulk/<дія>` і `/jobs/:id` за контрактом `lib/jobs`; у моках — `createBulkHandlers({ resource, db, actions })` і `createJobHandlers()` перед обробниками ресурсу, сценарій опитування — ресурс `jobs`.
 - Редагування в комірці — `EditableCell` з `erp/editable-cell` у `cell` колонки: значення одразу (`useOptimistic`), відмова сервера — відкат і сповіщення з «Повторити», помилка перевірки — під полем. Зберігай через `useUpdate` у режимі `pessimistic` з `returnPromise: true` і `version` рядка; збереження одного запису з різних комірок став у чергу з версією попереднього (приклад — `invoice-cells.tsx` демо), інакше друга комірка отримає 409 на власну зміну людини. Конфлікт (409) обробляй в `onError` діалогом `ConflictDialog` сторінки, перевіривши `error.current` схемою (без запису — поверни false, і кіт покаже сповіщення). Важкий редактор (поле суми) — лінивим у `ErrorBoundary` + `Suspense`: `ref` з `inputProps` фокусує поле, щойно воно змонтувалось.
 - Профіль і права: `useMe()` (`null` — гість), `useCanAccess({ resource: "invoices", action: "edit" })`. Дія без права — неактивна кнопка у фокусі з підказкою-причиною.
 - Сторінка лише для користувачів — `useAuthenticated()`: без сесії перенаправить на `/login` і поверне назад після входу (`useLogin`).

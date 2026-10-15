@@ -18,7 +18,7 @@ import {
 export const INVOICE_LIST_DEFAULTS: ListDefaults = {
   tab: "all",
   sort: { field: "date", order: "DESC" },
-  // Колонки з sortField у invoice-table.tsx.
+  // Колонки з sortField у invoice-columns.tsx.
   sortFields: ["number", "client", "date", "dueDate", "amount"],
 }
 

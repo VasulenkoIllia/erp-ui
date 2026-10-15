@@ -49,7 +49,8 @@ import {
  * - `value` — фільтри списку з пошуком `q` (ListState.filter); зміни йдуть одним `onValueChange`.
  * - Пошук застосовується через 300 мс після введення, з `{ replace: true }`: кожна літера не стає
  *   записом в історії.
- * - Фільтри редагуються в панелі: поповер на широкому контейнері, нижня шторка на вузькому (UI38).
+ * - Фільтри редагуються в панелі: поповер на широкому контейнері, нижня шторка на вузькому (UI38);
+ *   без `filters` кнопки «Фільтри» немає.
  * - Чип — назва й значення фільтра та кнопка «Прибрати»; після неї фокус іде на сусідній чип або
  *   на «Фільтри» (WCAG 2.4.3). «Скинути фільтри» прибирає всі, пошук лишає.
  */
@@ -111,16 +112,19 @@ export function FilterBar({
             className={narrow ? "w-full" : "max-w-sm min-w-48 flex-1"}
           />
         ) : null}
-        <FilterPanelButton
-          ref={trigger}
-          narrow={narrow}
-          filters={filters}
-          value={value}
-          activeCount={active.length}
-          onApply={(next) => {
-            onValueChange(next)
-          }}
-        />
+        {/* Без опису фільтрів панель була б порожня: лише пошук і дії. */}
+        {filters.length > 0 ? (
+          <FilterPanelButton
+            ref={trigger}
+            narrow={narrow}
+            filters={filters}
+            value={value}
+            activeCount={active.length}
+            onApply={(next) => {
+              onValueChange(next)
+            }}
+          />
+        ) : null}
         {actions ? (
           // На вузькому контейнері дії переносяться в рядку разом із «Фільтри».
           <div

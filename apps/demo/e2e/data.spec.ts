@@ -85,6 +85,21 @@ test.describe("дані: список рахунків", () => {
     )
   })
 
+  test("перехід на сторінку: фокус на заголовку списку, назва вкладки", async ({
+    page,
+  }) => {
+    await openWith(page, {})
+    await page.getByRole("link", { name: "Дані й моки" }).click()
+    const heading = page.getByRole("heading", {
+      level: 1,
+      name: "Дані й моки",
+    })
+    // Заголовок шаблону List Report після перевірки сесії, а не заголовок на час перевірки.
+    await expect(count(page)).toHaveText("10 000 рахунків")
+    await expect(heading).toBeFocused()
+    await expect(page).toHaveTitle("Дані й моки · erp-ui")
+  })
+
   test("редагування зберігає з версією", async ({ page }) => {
     await openWith(page, {}, DATA)
     await rows(page)

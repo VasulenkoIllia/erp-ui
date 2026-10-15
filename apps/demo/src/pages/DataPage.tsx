@@ -4,29 +4,26 @@ import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
-import { FilterBar } from "@/registry/erp/filter-bar"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
-import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
-import { StatusTabs } from "@/registry/erp/status-tabs"
-import { useCompanyId } from "@/registry/hooks/use-company"
-import { useListCounts } from "@/registry/hooks/use-list-counts"
-import { useListState } from "@/registry/hooks/use-list-state"
-import { useRowSelection } from "@/registry/hooks/use-row-selection"
-import { useSavedViews } from "@/registry/hooks/use-saved-views"
 import { useMe } from "@/registry/hooks/use-me"
 import { ACTION_ICONS, MODULE_ICONS } from "@/registry/lib/icons"
 import { whenIdle } from "@/registry/lib/lazy"
+import {
+  ListReport,
+  ListReportHeader,
+  useListReport,
+} from "@/registry/templates/list-report"
 import { Button } from "@/registry/ui/button"
 
 import type { Invoice } from "@/data/invoices"
 
+import { usePageHeading } from "./heading-focus"
 import { useApproveAction } from "./invoice-bulk"
 import { InlineConflictDialog, type InlineConflict } from "./invoice-cells"
 import { EditInvoiceDialog } from "./invoice-edit-dialog"
 import { preloadInlineEditors } from "./inline-editors"
 import { INVOICE_LIST_DEFAULTS, useInvoiceListSetup } from "./invoice-filters"
-import { InvoiceTable, type InvoiceTableProps } from "./invoice-table"
-import { PageHeader } from "./PageHeader"
+import { getInvoiceId, useInvoiceColumns } from "./invoice-columns"
 
 const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 
@@ -35,8 +32,8 @@ const RESOURCE = "invoices"
 type ViewMode = "scroll" | "pages"
 
 /**
- * Стрес-сторінка (SPEC §18.1, кроки 0.6b і 0.6c): 10 000 рахунків з мок-сервера через ra-core у
- * erp/data-table. Прокрутка вікнами по 100 (useWindowedList) або звичайні сторінки (useGetList),
+ * Стрес-сторінка (SPEC §18.1, кроки 0.6b і 0.6c) на шаблоні List Report (крок 1.1, ADR-0022):
+ * 10 000 рахунків з мок-сервера через ra-core. Прокрутка вікнами по 100 або звичайні сторінки,
  * вкладки-статуси з лічильниками, FilterBar із чипами, особисті збережені види, стан списку в
  * адресі, вибір «сторінка / усе» й масове погодження фоновою задачею, редагування клієнта й суми в
  * комірці, права на редагування, збереження з версією й діалог конфлікту.
@@ -45,11 +42,35 @@ export function DataPage() {
   const t = usePageT()
   // Без сесії ra-core перенаправить на /login і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
+  const heading = usePageHeading(t("title"))
+  // Шапка — над перевіркою сесії: той самий вузол від першого кадру (перший екран і фокус на h1 не
+  // чекають на сесію), тож список нижче — без власної шапки.
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} lead={t("lead")} />
+      <ListReportHeader
+        title={t("title")}
+        description={t("lead")}
+        headingRef={heading}
+        actions={[{ id: "create", node: <CreateInvoiceButton /> }]}
+      />
       {isPending ? <PageSkeleton rows={8} /> : <InvoiceList />}
     </div>
+  )
+}
+
+/** Створення рахунку в демо — лише сповіщення: у шапці й у стані «порожньо вперше». */
+function CreateInvoiceButton() {
+  const t = usePageT()
+  const CreateIcon = ACTION_ICONS.create
+  return (
+    <Button
+      onClick={() => {
+        toast(t("createInvoice"))
+      }}
+    >
+      <CreateIcon aria-hidden />
+      {t("createInvoice")}
+    </Button>
   )
 }
 
@@ -58,18 +79,13 @@ function InvoiceList() {
   const { data: me } = useMe()
   const { tabs, filters } = useInvoiceListSetup()
   const [searchParams, setSearchParams] = useSearchParams()
-  const views = useSavedViews(RESOURCE)
-  const list = useListState({
+  const report = useListReport({
+    resource: RESOURCE,
     params: searchParams,
     onParamsChange: setSearchParams,
     defaults: INVOICE_LIST_DEFAULTS,
     tabs,
     filters,
-    views: views.views,
-    viewsFailed: Boolean(views.error),
-  })
-  const counts = useListCounts(RESOURCE, list.state.filter, tabs, {
-    enabled: list.isReady,
   })
   const [view, setView] = useState<ViewMode>("scroll")
   const [editing, setEditing] = useState<Invoice | null>(null)
@@ -85,42 +101,8 @@ function InvoiceList() {
     resource: RESOURCE,
     action: "edit",
   })
-  // Інший фільтр чи компанія — інші записи: вибір скидається (ADR-0018).
-  const companyId = useCompanyId()
-  const selection = useRowSelection([list.queryFilter, companyId])
-  const approve = useApproveAction(selection, list.queryFilter)
-
-  const listProps: InvoiceTableProps = {
-    view,
-    canEdit: canEdit === true,
-    onEdit: setEditing,
-    onConflict: setConflict,
-    selection,
-    bulkActions: approve.button,
-    filter: list.queryFilter,
-    sort: list.state.sort,
-    onSortChange: list.setSort,
-    isFiltered: list.isFiltered,
-    onResetFilters: () => {
-      list.applyView(null)
-    },
-    empty: (
-      <PageState
-        kind="empty"
-        icon={MODULE_ICONS.K2}
-        action={
-          <Button
-            onClick={() => {
-              toast(t("createInvoice"))
-            }}
-          >
-            <ACTION_ICONS.create aria-hidden />
-            {t("createInvoice")}
-          </Button>
-        }
-      />
-    ),
-  }
+  const approve = useApproveAction(report.selection, report.list.queryFilter)
+  const columns = useInvoiceColumns(canEdit === true, setEditing, setConflict)
 
   return (
     <div className="space-y-4">
@@ -134,30 +116,35 @@ function InvoiceList() {
           })}
         </p>
       ) : null}
-      <StatusTabs
-        label={t("statusFilter")}
-        tabs={tabs}
-        value={list.state.tab}
-        onValueChange={list.setTab}
-        counts={counts}
-      />
-      <FilterBar
-        filters={filters}
-        value={list.state.filter}
-        onValueChange={list.setFilter}
+      <ListReport
+        report={report}
+        toolbar={[
+          {
+            id: "view-mode",
+            node: <ViewModeToggle value={view} onValueChange={setView} />,
+          },
+        ]}
+        tabsLabel={t("statusFilter")}
         searchPlaceholder={t("search")}
-        actions={
-          <>
-            <SavedViewsMenu resource={RESOURCE} views={views} list={list} />
-            <ViewModeToggle value={view} onValueChange={setView} />
-          </>
+        tableLabel={t("tableLabel")}
+        columns={columns}
+        getRowId={getInvoiceId}
+        countLabel={(count, value) => t("count", { count, value })}
+        bulk={{
+          actions: [{ id: "approve", render: approve.button }],
+          rowLabel: (invoice) => t("rowLabel", { number: invoice.number }),
+          selectionLabel: (count, value, all) =>
+            t(all ? "selectedAll" : "selected", { count, value }),
+        }}
+        mode={view}
+        empty={
+          <PageState
+            kind="empty"
+            icon={MODULE_ICONS.K2}
+            action={<CreateInvoiceButton />}
+          />
         }
       />
-      {list.isReady ? (
-        <InvoiceTable {...listProps} />
-      ) : (
-        <PageSkeleton rows={8} />
-      )}
       {approve.dialog}
       <InlineConflictDialog
         conflict={conflict}
