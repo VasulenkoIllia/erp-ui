@@ -9,7 +9,7 @@
  * - updateMany/deleteMany — запит на кожен запис.
  * - Масові дії з частковою невдачею — фоновою задачею сервера (lib/jobs, ADR-0018): `startBulk`
  *   → `POST /<ресурс>/bulk/<дія>`, `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
- *   перевіряється схемою), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
+ *   перевіряється схемою, чекає до `JOB_POLL_TIMEOUT_MS`), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
  *   `useDataProvider<ErpDataProvider>()`.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
@@ -21,6 +21,7 @@ import {
   type SortField,
 } from "@/registry/lib/api"
 import {
+  JOB_POLL_TIMEOUT_MS,
   JOBS_PATH,
   jobSchema,
   jobStartedSchema,
@@ -176,7 +177,12 @@ export function createDataProvider(
       ),
 
     getJob: (id, { signal } = {}) =>
-      client.get(jobPath(id), { schema: jobSchema, signal, background: true }),
+      client.get(jobPath(id), {
+        schema: jobSchema,
+        signal,
+        background: true,
+        timeoutMs: JOB_POLL_TIMEOUT_MS,
+      }),
 
     retryJob: (id) =>
       client.post(`${jobPath(id)}/retry`, undefined, {

@@ -2634,7 +2634,7 @@
       "name": "lib/api",
       "type": "registry:lib",
       "title": "Конвенції API",
-      "description": "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія.",
+      "description": "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія; межа часу запиту timeoutMs (сервер мовчить — ApiError offline).",
       "dependencies": [
         "zod@^4.6.6"
       ],
@@ -3620,7 +3620,7 @@
       "name": "lib/jobs",
       "type": "registry:lib",
       "title": "Масові дії й фонові задачі: контракт",
-      "description": "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду (основа PF15, ADR-0018).",
+      "description": "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду з межею часу відповіді 10 с (основа PF15, ADR-0018).",
       "dependencies": [
         "zod@^4.6.6"
       ],
@@ -6928,7 +6928,7 @@
       "name": "hooks/use-job",
       "type": "registry:hook",
       "title": "Стан фонової задачі",
-      "description": "useJob(id): опитування GET /jobs/:id раз на секунду, поки задача йде (і у фоновій вкладці); збій опитування не зупиняє його; після завершення перечитує дані ресурсу (ADR-0018).",
+      "description": "useJob(id): опитування GET /jobs/:id раз на секунду, поки задача йде (і у фоновій вкладці); збій опитування (зокрема немає відповіді за 10 с) не зупиняє його, isJobPollFailing — чи показувати «перевіряємо знову»; після завершення перечитує дані ресурсу (ADR-0018).",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "ra-core@^5.15.4",

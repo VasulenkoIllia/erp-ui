@@ -7,7 +7,11 @@ import { toast } from "sonner"
 
 import { JobFailuresDialog, mergeFailures } from "@/registry/erp/job-failures"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
-import { isJobStatusLost, useJob } from "@/registry/hooks/use-job"
+import {
+  isJobPollFailing,
+  isJobStatusLost,
+  useJob,
+} from "@/registry/hooks/use-job"
 import { isKnownApiErrorCode } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
@@ -35,8 +39,9 @@ import { Spinner } from "@/registry/ui/spinner"
  *   live-регіоні сповіщень.
  * - Без невдач — підсумок, сповіщення зникає само. З невдачами — «Подробиці» (причини групами з
  *   кількістю й першими записами) і «Повторити (N)» для тих, що можна повторити; сповіщення чекає.
- * - Опитування не вдалося (офлайн) — «перевіряємо знову», опитування триває (hooks/use-job). Стан не
- *   дізнатись (задачі немає, сесія скінчилась) — причина, і сповіщення можна закрити.
+ * - Опитування не вдалося (офлайн, сервер мовчить) — «перевіряємо знову», опитування триває
+ *   (hooks/use-job, `isJobPollFailing`). Стан не дізнатись (задачі немає, сесія скінчилась) —
+ *   причина, і сповіщення можна закрити.
  * - Повтор показує нову задачу в тому самому сповіщенні, і фокус лишається в ньому: кнопка, з якої
  *   повторили, зникає (WCAG 2.4.3). Невдачі, яких повтор не бере, лишаються в «Подробицях».
  */
@@ -124,7 +129,8 @@ function JobToast({
   carried: JobFailureGroup[]
 }) {
   const { jobId, title } = options
-  const { data: job, error } = useJob(jobId)
+  const query = useJob(jobId)
+  const { data: job, error } = query
   const finished = job && !isJobActive(job) ? job : null
   const lost = error && isJobStatusLost(error) ? error : null
   const isSettled = finished !== null || lost !== null
@@ -183,7 +189,11 @@ function JobToast({
           {...options}
         />
       ) : (
-        <JobRunning job={job} title={title} pollFailed={Boolean(error)} />
+        <JobRunning
+          job={job}
+          title={title}
+          pollFailed={isJobPollFailing(query)}
+        />
       )}
     </div>
   )

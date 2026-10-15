@@ -220,6 +220,12 @@ export interface RequestOptions<T> {
   responseType?: "json" | "blob"
   /** Фоновий запит (опитування): `X-Background-Request: 1`, сесію не продовжує (ADR-0014). */
   background?: boolean
+  /**
+   * Межа часу до кінця відповіді (з тілом): далі — `ApiError` 0 `offline`, як обрив мережі.
+   * Без неї запит чекає, скільки триматиме з'єднання браузер. Для запиту, що змінює дані, тайм-аут
+   * не означає «не виконано»: сервер міг зберегти зміни, тож повтор має бути ідемпотентним.
+   */
+  timeoutMs?: number
 }
 
 export interface ApiClientOptions {
@@ -232,12 +238,72 @@ export interface ApiClientOptions {
 
 export type ApiClient = ReturnType<typeof createApiClient>
 
+/**
+ * Запит із межею часу (`timeoutMs`): сервер чи проксі, що прийняв запит і мовчить, дає `ApiError`
+ * 0 `offline`, а не чекання без кінця. Відповідь сервера (`ApiError`) і скасування викликачем
+ * (`signal`: зміна ключа запиту, розмонтування) лишаються як є: скасування — не помилка.
+ * Таймер свій, а не `AbortSignal.timeout`: знімається з відповіддю, і тест веде його фальшивим
+ * годинником. Скасування викликача передається вручну, без `AbortSignal.any`: його немає в Safari
+ * до 17.4 і Chrome до 116, і `TypeError` там зупинив би опитування задачі (`isJobStatusLost`).
+ * Межа не покладається на `fetch`: обгортка (адаптер бекенду, ADR-0021), що загубила `signal`,
+ * не тримає запит без кінця.
+ */
+async function withTimeout<T>(
+  timeoutMs: number,
+  signal: AbortSignal | undefined,
+  run: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  const controller = new AbortController()
+  const cancel = () => {
+    controller.abort(signal?.reason)
+  }
+  if (signal?.aborted) cancel()
+  else signal?.addEventListener("abort", cancel, { once: true })
+  const aborted = new Promise<never>((_, reject) => {
+    const fail = () => {
+      const reason: unknown = controller.signal.reason
+      reject(
+        reason instanceof Error
+          ? reason
+          : new DOMException("The operation was aborted.", "AbortError"),
+      )
+    }
+    if (controller.signal.aborted) fail()
+    else controller.signal.addEventListener("abort", fail, { once: true })
+  })
+  const timeoutId = setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
+  try {
+    return await Promise.race([run(controller.signal), aborted])
+  } catch (error) {
+    // Перервано, а викликач не скасовував, — отже, минула межа часу.
+    if (controller.signal.aborted && !signal?.aborted && !isApiError(error))
+      throw new ApiError(0, { code: "offline", message: "Timeout" })
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+    signal?.removeEventListener("abort", cancel)
+  }
+}
+
 export function createApiClient({
   baseUrl = API_PREFIX,
   getLanguage,
   fetch: fetchImpl,
 }: ApiClientOptions = {}) {
   async function request<T = unknown>(
+    method: string,
+    path: string,
+    { timeoutMs, ...options }: RequestOptions<T> = {},
+  ): Promise<T> {
+    if (timeoutMs === undefined) return send(method, path, options)
+    return withTimeout(timeoutMs, options.signal, (signal) =>
+      send(method, path, { ...options, signal }),
+    )
+  }
+
+  async function send<T>(
     method: string,
     path: string,
     {
@@ -247,7 +313,7 @@ export function createApiClient({
       signal,
       responseType,
       background,
-    }: RequestOptions<T> = {},
+    }: Omit<RequestOptions<T>, "timeoutMs">,
   ): Promise<T> {
     const search =
       query instanceof URLSearchParams

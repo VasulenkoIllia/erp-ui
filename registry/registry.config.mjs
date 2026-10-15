@@ -196,7 +196,7 @@ export const CODE_ITEMS = {
   "lib/api": {
     title: "Конвенції API",
     description:
-      "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія.",
+      "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія; межа часу запиту timeoutMs (сервер мовчить — ApiError offline).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -300,7 +300,7 @@ export const CODE_ITEMS = {
   "hooks/use-job": {
     title: "Стан фонової задачі",
     description:
-      "useJob(id): опитування GET /jobs/:id раз на секунду, поки задача йде (і у фоновій вкладці); збій опитування не зупиняє його; після завершення перечитує дані ресурсу (ADR-0018).",
+      "useJob(id): опитування GET /jobs/:id раз на секунду, поки задача йде (і у фоновій вкладці); збій опитування (зокрема немає відповіді за 10 с) не зупиняє його, isJobPollFailing — чи показувати «перевіряємо знову»; після завершення перечитує дані ресурсу (ADR-0018).",
     status: "beta",
     demo: "data",
     spec: ["PF15", "§8.1"],
@@ -524,7 +524,7 @@ export const CODE_ITEMS = {
   "lib/jobs": {
     title: "Масові дії й фонові задачі: контракт",
     description:
-      "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду (основа PF15, ADR-0018).",
+      "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду з межею часу відповіді 10 с (основа PF15, ADR-0018).",
     status: "beta",
     demo: "data",
     spec: ["PF15", "§8.1", "§17"],

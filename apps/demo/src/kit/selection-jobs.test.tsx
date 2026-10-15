@@ -1,12 +1,38 @@
+import { QueryClient } from "@tanstack/react-query"
 import { act, renderHook } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { delay, http, HttpResponse } from "msw"
+import { setupServer } from "msw/node"
+import { CoreAdminContext } from "ra-core"
+import type { ReactNode } from "react"
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest"
 import { ZodError } from "zod"
 
 import { mergeFailures } from "@/registry/erp/job-failures"
-import { isJobStatusLost } from "@/registry/hooks/use-job"
+import {
+  isJobPollFailing,
+  isJobStatusLost,
+  jobQueryKey,
+  useJob,
+} from "@/registry/hooks/use-job"
 import { useRowSelection } from "@/registry/hooks/use-row-selection"
-import { ApiError } from "@/registry/lib/api"
-import { JOB_FAILURE_SAMPLE, jobSchema } from "@/registry/lib/jobs"
+import { ApiError, createApiClient, isApiError } from "@/registry/lib/api"
+import { createDataProvider } from "@/registry/lib/data-provider"
+import {
+  JOB_FAILURE_SAMPLE,
+  JOB_POLL_MS,
+  JOB_POLL_TIMEOUT_MS,
+  jobSchema,
+  type JobStatus,
+} from "@/registry/lib/jobs"
 
 const apiError = (status: number, code: string) =>
   new ApiError(status, { code, message: code })
@@ -87,5 +113,199 @@ describe("стан задачі (hooks/use-job, lib/jobs)", () => {
     ])
     expect(merged[0]?.items).toHaveLength(JOB_FAILURE_SAMPLE)
     expect(merged[0]?.items[0]).toEqual({ id: "a-0" })
+  })
+})
+
+const BASE = "http://erp.test/api/v1"
+const TOTAL = 10
+
+/** Відповіді `GET /jobs/:id` по черзі: стан задачі або `hang` — сервер прийняв запит і мовчить. */
+const replies: (JobStatus | "hang")[] = []
+let requests = 0
+const server = setupServer(
+  http.get(`${BASE}/jobs/:id`, async ({ params }) => {
+    requests++
+    const reply = replies.shift() ?? "done"
+    if (reply === "hang") await delay("infinite")
+    const processed = reply === "done" ? TOTAL : reply === "running" ? 4 : 0
+    return HttpResponse.json({
+      id: String(params.id),
+      resource: "invoices",
+      action: "approve",
+      status: reply,
+      total: TOTAL,
+      processed,
+      succeeded: processed,
+      failed: 0,
+      failures: [],
+    })
+  }),
+)
+const dataProvider = createDataProvider(createApiClient({ baseUrl: BASE }))
+
+function renderJob(id: string) {
+  const queryClient = new QueryClient()
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <CoreAdminContext dataProvider={dataProvider} queryClient={queryClient}>
+      {children}
+    </CoreAdminContext>
+  )
+  const view = renderHook((props: { id: string }) => useJob(props.id), {
+    initialProps: { id },
+    wrapper,
+  })
+  return { ...view, queryClient }
+}
+
+/** Фальшивий годинник: таймери опитування й межі часу; проміси й відповіді MSW — справжні. */
+const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms))
+
+describe("опитування задачі, коли сервер мовчить (hooks/use-job, lib/api)", () => {
+  beforeAll(() => {
+    server.listen({ onUnhandledFrame: "error" })
+  })
+  afterAll(() => {
+    server.close()
+  })
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+    })
+    replies.length = 0
+    requests = 0
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("без відповіді за JOB_POLL_TIMEOUT_MS — тимчасовий збій, опитування йде далі до підсумку", async () => {
+    replies.push("running", "hang", "done")
+    const { result } = renderJob("job-1")
+    await vi.waitFor(() => {
+      expect(result.current.data?.status).toBe("running")
+    })
+
+    await advance(JOB_POLL_MS)
+    expect(requests).toBe(2)
+    // Запит висить: інтервал нових не шле, і без межі часу так тривало б без кінця. Запас у секунду:
+    // vi.waitFor під фальшивим годинником просуває його на 50 мс за кожну перевірку.
+    await advance(JOB_POLL_TIMEOUT_MS - 1000)
+    expect(requests).toBe(2)
+    expect(result.current.error).toBeNull()
+
+    await advance(1000)
+    expect(result.current.error).toMatchObject({ status: 0, code: "offline" })
+    expect(isJobStatusLost(result.current.error)).toBe(false)
+    // Попередній прогрес лишається на місці, поки триває перевірка.
+    expect(result.current.data?.processed).toBe(4)
+
+    await advance(JOB_POLL_MS)
+    await vi.waitFor(() => {
+      expect(result.current.data?.status).toBe("done")
+    })
+    expect(requests).toBe(3)
+    expect(result.current.error).toBeNull()
+  })
+
+  it("сервер мовчить із першого запиту: попередження не зникає між спробами", async () => {
+    replies.push("hang", "hang", "running")
+    const { result } = renderJob("job-1")
+    await vi.waitFor(() => {
+      expect(requests).toBe(1)
+    })
+    await advance(JOB_POLL_TIMEOUT_MS)
+    expect(result.current.error).toMatchObject({ code: "offline" })
+    expect(isJobPollFailing(result.current)).toBe(true)
+
+    await advance(JOB_POLL_MS)
+    expect(requests).toBe(2)
+    // Даних ще немає: TanStack Query скинув `error` на новий запит, а попередження лишається.
+    expect(result.current.error).toBeNull()
+    expect(isJobPollFailing(result.current)).toBe(true)
+
+    await advance(JOB_POLL_TIMEOUT_MS + JOB_POLL_MS)
+    await vi.waitFor(() => {
+      expect(result.current.data?.status).toBe("running")
+    })
+    expect(requests).toBe(3)
+    expect(isJobPollFailing(result.current)).toBe(false)
+  })
+
+  it("інша задача в компоненті, розмонтування: запит, що висів, скасовано без помилки в стані", async () => {
+    replies.push("hang", "running", "hang")
+    const { result, rerender, unmount, queryClient } = renderJob("job-1")
+    await vi.waitFor(() => {
+      expect(requests).toBe(1)
+    })
+
+    rerender({ id: "job-2" })
+    await vi.waitFor(() => {
+      expect(result.current.data?.id).toBe("job-2")
+    })
+    expect(result.current.error).toBeNull()
+    await advance(JOB_POLL_TIMEOUT_MS)
+    expect(queryClient.getQueryState(jobQueryKey("job-1"))).toMatchObject({
+      error: null,
+      fetchStatus: "idle",
+    })
+
+    await vi.waitFor(() => {
+      expect(requests).toBe(3)
+    })
+    unmount()
+    await advance(JOB_POLL_TIMEOUT_MS)
+    expect(queryClient.getQueryState(jobQueryKey("job-2"))).toMatchObject({
+      error: null,
+      fetchStatus: "idle",
+    })
+  })
+
+  it("getJob: скасування викликачем лишається скасуванням, а не ApiError", async () => {
+    replies.push("hang")
+    const controller = new AbortController()
+    const pending = dataProvider
+      .getJob("job-1", { signal: controller.signal })
+      .catch((error: unknown) => error)
+    await vi.waitFor(() => {
+      expect(requests).toBe(1)
+    })
+    controller.abort()
+    const error = await pending
+    expect(isApiError(error)).toBe(false)
+    expect(error).toMatchObject({ name: "AbortError" })
+
+    const early = await dataProvider
+      .getJob("job-1", { signal: AbortSignal.abort() })
+      .catch((reason: unknown) => reason)
+    expect(isApiError(early)).toBe(false)
+    expect(early).toMatchObject({ name: "AbortError" })
+  })
+
+  it("lib/api timeoutMs: межа діє, навіть коли fetch не слухає signal; таймер знімається з відповіддю", async () => {
+    // Обгортка fetch (адаптер бекенду), що загубила signal і чекає без кінця.
+    const deaf = createApiClient({
+      baseUrl: BASE,
+      fetch: () => new Promise<Response>(() => undefined),
+    })
+    const pending = deaf
+      .get("/jobs/job-1", { timeoutMs: JOB_POLL_TIMEOUT_MS })
+      .catch((error: unknown) => error)
+    await vi.advanceTimersByTimeAsync(JOB_POLL_TIMEOUT_MS)
+    expect(await pending).toMatchObject({ status: 0, code: "offline" })
+
+    const timers = vi.getTimerCount()
+    const quick = createApiClient({
+      baseUrl: BASE,
+      fetch: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ok: true }), {
+            headers: { "Content-Type": "application/json" },
+          }),
+        ),
+    })
+    await expect(
+      quick.get("/ping", { timeoutMs: JOB_POLL_TIMEOUT_MS }),
+    ).resolves.toEqual({ ok: true })
+    expect(vi.getTimerCount()).toBe(timers)
   })
 })
