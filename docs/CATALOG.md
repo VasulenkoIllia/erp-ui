@@ -65,7 +65,7 @@
 | `lib/mock-jobs` | Мок масових дій і задач | createBulkHandlers (дії ресурсу над записами: зміни чи відмова з кодом, повтор) і createJobHandlers (GET /jobs/:id, повтор): задача обробляє записи з часом, зміни йдуть через db.patch; сценарії ресурсу й jobs (ADR-0018). | beta | `data` | PF15, §17 |
 | `lib/mock-notifications` | Мок налаштувань сповіщень | Події й канали проекту мовами, вибір користувача й тихі години в localStorage, перевірка обов'язкових каналів. | beta | `notifications` | PF10, §17 |
 | `lib/mock-scenarios` | Сценарії моків | success, error, empty, slow, conflict, forbidden, offline — для всіх ресурсів або окремо; вибір у localStorage. | beta | `data` | §17 |
-| `lib/mock-server` | Основа мок-сервера | Відповіді з терміном сесії, сценарії, ковзна сесія, користувачі моків, «надіслані» SMS і листи, маскування адрес. | beta | `data` | §17 |
+| `lib/mock-server` | Основа мок-сервера | Відповіді з терміном сесії, сценарії, ковзна сесія, користувачі моків, «надіслані» SMS і листи, маскування адрес, пачка змін (стан у localStorage — раз на партію масової дії). | beta | `data` | §17 |
 | `lib/mock-team` | Мок ролей і запрошень | Ролі й призначення в localStorage, права користувача — сума прав його ролей; запрошення з листом-посиланням і прийняттям через мок входу. | beta | `roles` | A2, §17 |
 | `lib/mock-views` | Мок збережених видів | createSavedViewHandlers: /me/views за контрактом lib/saved-views, види кожного користувача в localStorage, сценарії ресурсу views. | beta | `data` | PF11, §17 |
 | `lib/mock-webhooks` | Мок вебхуків | Підписки й доставки в localStorage; події записів із шини мок-сервера; результат доставки за адресою (*.invalid, /fail). | beta | `integrations` | PF17, §17 |

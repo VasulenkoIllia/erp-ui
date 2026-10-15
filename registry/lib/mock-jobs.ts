@@ -5,7 +5,8 @@
  * - Задача обробляє записи з часом (`perSecond`, за замовчуванням 400 на секунду): кожен запит
  *   стану доробляє записи, яким уже настав час, тож зміни видно в списку ще до кінця задачі.
  * - Дія над записом (`apply`) повертає зміни або відмову з кодом; зміни йдуть через `db.patch`
- *   (нова версія, журнал аудиту, подія для вебхуків).
+ *   (нова версія, журнал аудиту, подія для вебхуків). Партія — одна пачка змін (`mockBatch`):
+ *   журнал і доставки вебхуків пишуться в localStorage раз на партію, а не на кожен запис.
  * - Сценарій запуску — ресурсу (`invoices`), опитування й повтору — ресурсу `jobs` (панель
  *   розробника): так видно і відмову запуску, і збій зв'язку посеред задачі.
  * - Задачі живуть у пам'яті до перезавантаження сторінки; бачить лише той, хто запустив.
@@ -31,6 +32,7 @@ import {
   currentMockUser,
   errorResponse,
   json,
+  mockBatch,
   randomToken,
   unauthenticated,
 } from "@/registry/lib/mock-server"
@@ -113,7 +115,7 @@ function advance(job: MockJob, at: number) {
     Math.floor((elapsed * job.perSecond) / 1000),
   )
   const batch = job.ids.slice(job.processed, due)
-  const outcomes = job.process(batch)
+  const outcomes = mockBatch(() => job.process(batch))
   if (outcomes.length !== batch.length)
     throw new Error("Mock job: one outcome per record expected")
   job.processed = Math.max(job.processed, due)

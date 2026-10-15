@@ -3,6 +3,7 @@
  * користувачів, інтеграції й зміни записів (`createResourceHandlers`).
  *
  * - Журнал живе в localStorage (`erp-ui:mock-audit`), як дані сервера; початкові події — `seeds`.
+ *   У пачці змін (`mockBatch`, масова дія) журнал читається й пишеться в сховище раз.
  * - Назви дій проекту й полів — мовами (`LocalizedText`); мок віддає їх мовою `Accept-Language`.
  * - Хто й звідки — із сесії (зокрема «Увійти як…»), якщо не передано явно.
  */
@@ -22,6 +23,7 @@ import {
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
+  batchedMockState,
   CURRENT_IP,
   CURRENT_LOCATION,
   currentDevice,
@@ -62,7 +64,7 @@ export function setMockAuditSeeds(value: MockAuditEvent[]): void {
   seeds = value
 }
 
-function readEvents(): MockAuditEvent[] {
+function loadEvents(): MockAuditEvent[] {
   try {
     const raw = globalThis.localStorage?.getItem(AUDIT_KEY)
     return raw ? (JSON.parse(raw) as MockAuditEvent[]) : [...seeds]
@@ -71,7 +73,7 @@ function readEvents(): MockAuditEvent[] {
   }
 }
 
-function writeEvents(events: MockAuditEvent[]): void {
+function saveEvents(events: MockAuditEvent[]): void {
   try {
     globalThis.localStorage?.setItem(
       AUDIT_KEY,
@@ -80,6 +82,13 @@ function writeEvents(events: MockAuditEvent[]): void {
   } catch {
     // Без сховища журнал живе до перезавантаження.
   }
+}
+
+const auditStore = batchedMockState(loadEvents, saveEvents)
+const readEvents = () => auditStore.read()
+// Ліміт і в пам'яті: у пачці змін журнал не росте з кожним записом.
+const writeEvents = (events: MockAuditEvent[]) => {
+  auditStore.write(events.slice(0, AUDIT_LIMIT))
 }
 
 /** Значення для «було → стало»: прості як є, решта — JSON. */

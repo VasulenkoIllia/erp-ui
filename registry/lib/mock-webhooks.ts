@@ -1,7 +1,8 @@
 /**
  * Мок вебхуків (ADR-0013): підписки, секрет підпису, тестова подія й журнал доставок.
  *
- * - Підписки й доставки живуть у localStorage (`erp-ui:mock-webhooks`), як дані сервера.
+ * - Підписки й доставки живуть у localStorage (`erp-ui:mock-webhooks`), як дані сервера. У пачці
+ *   змін (`mockBatch`, масова дія) стан читається й пишеться в сховище раз.
  * - Події — із шини мок-сервера (`emitMockEvent`): зміни записів (`invoices.updated`) потрапляють
  *   до підписок, що на них чекають.
  * - Мок не ходить у мережу: хост `*.invalid` — помилка DNS, шлях із `/fail` — відповідь 500,
@@ -19,6 +20,7 @@ import { recordAudit } from "@/registry/lib/mock-audit"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
+  batchedMockState,
   currentMockUser,
   errorResponse,
   impersonationForbidden,
@@ -109,7 +111,7 @@ export function setMockWebhookSeeds(value: MockWebhookSeed[]): void {
   seeds = value
 }
 
-function readState(): MockWebhooksState {
+function loadState(): MockWebhooksState {
   try {
     const raw = globalThis.localStorage?.getItem(STATE_KEY)
     if (raw) return JSON.parse(raw) as MockWebhooksState
@@ -117,11 +119,11 @@ function readState(): MockWebhooksState {
     // Пошкоджений стан — з початкового.
   }
   const state = seedState()
-  writeState(state)
+  saveState(state)
   return state
 }
 
-function writeState(state: MockWebhooksState): void {
+function saveState(state: MockWebhooksState): void {
   try {
     globalThis.localStorage?.setItem(
       STATE_KEY,
@@ -133,6 +135,16 @@ function writeState(state: MockWebhooksState): void {
   } catch {
     // Без сховища — до перезавантаження.
   }
+}
+
+const webhooksStore = batchedMockState(loadState, saveState)
+const readState = () => webhooksStore.read()
+// Ліміт і в пам'яті: у пачці змін доставки не ростуть з кожною подією.
+const writeState = (state: MockWebhooksState) => {
+  webhooksStore.write({
+    ...state,
+    deliveries: state.deliveries.slice(0, DELIVERY_LIMIT),
+  })
 }
 
 function requestOf(

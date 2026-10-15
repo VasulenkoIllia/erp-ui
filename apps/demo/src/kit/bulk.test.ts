@@ -7,6 +7,8 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
+  vi,
 } from "vitest"
 import { z } from "zod"
 
@@ -20,6 +22,7 @@ import {
   resetMockJobs,
 } from "@/registry/lib/mock-jobs"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
+import { setMockWebhookSeeds } from "@/registry/lib/mock-webhooks"
 import {
   createPlatformHandlers,
   createResourceHandlers,
@@ -263,6 +266,75 @@ describe("масова дія фоновою задачею (lib/mock-jobs)", ()
     expect(await statusOf("inv-1")).toBe("draft")
     setCompanyId(null)
     expect(await statusOf("inv-22")).toBe("draft")
+  })
+
+  it("партія — одна пачка змін: журнал аудиту й доставки вебхуків пишуться в сховище раз", async () => {
+    const AUDIT_KEY = "erp-ui:mock-audit"
+    const WEBHOOKS_KEY = "erp-ui:mock-webhooks"
+    const forget = () => {
+      localStorage.removeItem(AUDIT_KEY)
+      localStorage.removeItem(WEBHOOKS_KEY)
+    }
+    forget()
+    setMockWebhookSeeds([
+      {
+        id: "wh-1c",
+        url: "https://1c.example/hooks",
+        events: ["invoices.updated"],
+        active: true,
+        createdAt: "2026-10-01T09:00:00.000Z",
+      },
+    ])
+    onTestFinished(() => {
+      setMockWebhookSeeds([])
+      forget()
+    })
+    const ids = ["inv-1", "inv-2", "inv-5", "inv-8", "inv-10", "inv-11"]
+    const { jobId } = await dataProvider.startBulk("invoices", "approve", {
+      ids,
+    })
+    // Перший запис — окремо: стан вебхуків засівається в сховище до заміру.
+    const perRecordMs = 1000 / RATE
+    tick(QUEUE_MS + perRecordMs)
+    expect(await dataProvider.getJob(jobId)).toMatchObject({ processed: 1 })
+
+    const writes = vi.spyOn(Storage.prototype, "setItem")
+    onTestFinished(() => {
+      writes.mockRestore()
+    })
+    // Решті записів настав час — вони йдуть однією партією.
+    tick(ids.length * perRecordMs)
+    expect(await dataProvider.getJob(jobId)).toMatchObject({
+      status: "done",
+      succeeded: 6,
+    })
+    // Решта п'ять записів — одним записом у сховище, а не п'ятьма: інакше 1 200 записів —
+    // 1 200 разів розібрати й записати по пів мегабайта JSON у головному потоці сторінки.
+    const keys = writes.mock.calls.map(([key]) => key)
+    expect(keys.filter((key) => key === AUDIT_KEY)).toHaveLength(1)
+    expect(keys.filter((key) => key === WEBHOOKS_KEY)).toHaveLength(1)
+
+    // Вміст той самий, що й при записі по одному: найновіші — першими.
+    const newestFirst = [...ids].reverse()
+    const audit = JSON.parse(localStorage.getItem(AUDIT_KEY) ?? "[]") as {
+      action: string
+      target?: { id: string }
+    }[]
+    expect(
+      audit
+        .filter((event) => event.action === "invoices.updated")
+        .map((event) => event.target?.id),
+    ).toEqual(newestFirst)
+    const webhooks = JSON.parse(localStorage.getItem(WEBHOOKS_KEY) ?? "{}") as {
+      deliveries: { request: { body: string } }[]
+    }
+    expect(
+      webhooks.deliveries.map(
+        (delivery) =>
+          (JSON.parse(delivery.request.body) as { data: { id: string } }).data
+            .id,
+      ),
+    ).toEqual(newestFirst)
   })
 
   it("повтор бере лише невдачі, які можна повторити", async () => {

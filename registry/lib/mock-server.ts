@@ -7,6 +7,8 @@
  *   крім фонового (`X-Background-Request: 1`).
  * - Мок не надсилає SMS і листи — він повідомляє про них підписників (`subscribeMockMessages`),
  *   а демо показує їх як сповіщення телефона чи пошти.
+ * - Пачка змін (`mockBatch`): стан моків у localStorage читається й пишеться раз на пачку, а не
+ *   на кожен запис (партія масової дії, lib/mock-jobs).
  */
 import { HttpResponse } from "msw/http"
 import { delay } from "msw/utils/delay"
@@ -396,4 +398,84 @@ export function emitMockEvent(type: string, data: Record<string, unknown>) {
   eventListeners.forEach((listener) => {
     listener(event)
   })
+}
+
+/* --------------------------------- Пачка змін --------------------------------- */
+
+interface BatchEntry {
+  state: unknown
+  /** Записати стан у сховище наприкінці пачки; немає — стан лише прочитано. */
+  flush?: () => void
+}
+
+/** Стан моків, прочитаний чи змінений у поточній пачці змін; поза пачкою — null. */
+let activeBatch: Map<symbol, BatchEntry> | null = null
+
+/**
+ * Пачка змін (партія масової дії, lib/mock-jobs): стан моків у localStorage (журнал аудиту,
+ * доставки вебхуків) читається раз і пишеться раз наприкінці, а не на кожен запис. MSW виконує
+ * обробники в головному потоці сторінки: 1 200 записів, і на кожен — розібрати й записати пів
+ * мегабайта JSON, блокували сторінку на секунди.
+ *
+ * - `run` — синхронний: після першого `await` пачку вже закрито, тож тип не приймає проміс.
+ * - Вкладена пачка — частина зовнішньої. Помилка в `run` не скасовує вже зроблених змін: вони
+ *   пишуться в сховище, як і без пачки.
+ */
+export function mockBatch<T>(
+  run: () => T extends PromiseLike<unknown> ? never : T,
+): T {
+  if (activeBatch) return run()
+  const entries = new Map<symbol, BatchEntry>()
+  activeBatch = entries
+  try {
+    return run()
+  } finally {
+    activeBatch = null
+    for (const { flush } of entries.values()) flush?.()
+  }
+}
+
+/** Стан моку в localStorage (`batchedMockState`). */
+export interface BatchedMockState<S> {
+  /**
+   * Поза пачкою — щоразу з `load`. У пачці — `load` раз, далі той самий об'єкт: змінювати його
+   * лише через `write`, інакше зміна до сховища не дійде.
+   */
+  read(): S
+  /** Замінює весь стан: поза пачкою — одразу `save`, у пачці — `save` наприкінці. */
+  write(state: S): void
+}
+
+/**
+ * Стан моку в localStorage: поза пачкою змін `load` і `save` — щоразу, у пачці — по разу.
+ * `save` не кидає (повне чи недоступне сховище обробляє сам): інакше решта стану пачки не
+ * запишеться.
+ */
+export function batchedMockState<S>(
+  load: () => S,
+  save: (state: S) => void,
+): BatchedMockState<S> {
+  const key = Symbol("mock-state")
+  return {
+    read() {
+      const entry = activeBatch?.get(key)
+      // Ключ належить лише цьому стану, тож і стан під ним — S.
+      if (entry) return entry.state as S
+      const state = load()
+      activeBatch?.set(key, { state })
+      return state
+    },
+    write(state) {
+      if (!activeBatch) {
+        save(state)
+        return
+      }
+      activeBatch.set(key, {
+        state,
+        flush: () => {
+          save(state)
+        },
+      })
+    },
+  }
 }
