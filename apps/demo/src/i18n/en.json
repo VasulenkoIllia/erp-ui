@@ -440,6 +440,16 @@
     "approveDescription": "Only a draft up to 350,000.00 UAH can be approved. The job runs on the server; the result appears in a notification.",
     "approveConfirm": "Approve invoice"
   },
+  "invoiceExtension": {
+    "delay": "Payment term",
+    "days_one": "{{value}} day",
+    "days_other": "{{value}} days",
+    "dueDate": "Due date",
+    "contact": "Reminds the client",
+    "noManager": "No manager assigned",
+    "remind": "Remind the client",
+    "reminded": "Reminder for “{{client}}” sent (demo)"
+  },
   "authDemo": {
     "accountsTitle": "Demo accounts",
     "signInAs": "Fill in {{email}}",

@@ -60,11 +60,11 @@ test.describe("таблиця даних: десктоп", () => {
     expect(await focusedCell(page)).toEqual({ row: 1, col: 0 })
 
     await page.keyboard.press("Control+End")
-    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 7 })
+    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 8 })
     const last = grid(page).locator('[aria-rowindex="10001"]')
     // Останнє вікно довантажується, фокус лишається в рядку 10 000.
     await expect(last).toContainText(/2026-\d+/)
-    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 7 })
+    expect(await focusedCell(page)).toEqual({ row: 9_999, col: 8 })
     await page.keyboard.press("PageUp")
     expect((await focusedCell(page))?.row).toBeLessThan(9_999)
 
@@ -85,7 +85,7 @@ test.describe("таблиця даних: десктоп", () => {
     await page.keyboard.press("Enter")
     await expect(amount).toHaveAttribute("aria-sort", "ascending")
     await expect(
-      grid(page).locator('[aria-rowindex="2"] [aria-colindex="6"]'),
+      grid(page).locator('[aria-rowindex="2"] [aria-colindex="7"]'),
     ).toHaveText(/^[\d\s]+,\d\d/)
   })
 

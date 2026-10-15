@@ -2,10 +2,15 @@
 
 import * as React from "react"
 
+import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { PageState, useLoadingAnnouncement } from "@/registry/erp/page-state"
+import { PermissionGate } from "@/registry/erp/permission-gate"
+import { RecordHeader, type RecordField } from "@/registry/erp/record-header"
 import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
-import { useErpUiT } from "@/registry/lib/i18n"
+import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import { mapKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
+import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Skeleton } from "@/registry/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
@@ -13,8 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
 /**
  * Шаблон Object Page — картка запису (SPEC §7, §8.1, §9; ADR-0019).
  *
- * - Склад: «Назад до списку» (`back`), шапка (`RecordHeader` з erp/record-header), смуга етапів
- *   (`RecordStatusBar`), секції (`ObjectPageSection`) і стрічка запису (`aside`, UI01).
+ * - Склад: «Назад до списку» (`back`), шапка (`RecordHeader` з erp/record-header з даних `header`),
+ *   смуга етапів (`RecordStatusBar`), секції з h2 (`sections`) і стрічка запису (`aside`, UI01).
+ * - Ключові поля й дії шапки, секції — списки з ключами (`id`), порядок на екрані — порядок у списку:
+ *   розширення модуля додає, ховає чи переставляє елемент за ключем (ADR-0020, lib/extensions).
  * - Стрічка — праворуч, коли контейнер ширший за `asideBelow` rem; вужчий — вкладки «Подробиці» і
  *   стрічка (`@container`, а не вікно: та сама картка на весь екран і в колонці FCL). Тіло з'являється
  *   після виміру ширини (до першого кадру): інакше на телефоні спершу змонтувалась би широка розкладка
@@ -35,20 +42,47 @@ export interface ObjectPageAside {
   content: React.ReactNode
 }
 
+/** Дія в шапці запису. */
+export interface ObjectPageAction {
+  id: string
+  node: React.ReactNode
+}
+
+/** Шапка запису: є лише разом із записом. */
+export interface ObjectPageHeader {
+  /** Назва запису: «Рахунок 2026-0001» (h1). */
+  title: string
+  /** Статус (Badge) поруч із назвою. */
+  status?: React.ReactNode
+  /** Ключові поля під назвою. */
+  fields?: readonly RecordField[]
+  /** Дії запису, основна — першою. */
+  actions?: readonly ObjectPageAction[]
+}
+
+/** Секція картки: заголовок h2, дії біля нього й вміст. */
+export interface ObjectPageSectionItem {
+  id: string
+  title: string
+  actions?: React.ReactNode
+  content: React.ReactNode
+}
+
 export interface ObjectPageProps {
   /**
    * Назва сторінки, поки запису немає (вантажиться, помилка, не знайдено): прихований h1, щоб
    * сторінка мала заголовок і фокус після переходу мав куди стати. Далі h1 — у `RecordHeader`.
    */
   title: string
-  /** Той самий ref, що й `headingRef` шапки: заголовок сторінки в будь-якому стані. */
+  /** Заголовок сторінки в будь-якому стані: прихований `title` чи назва запису в шапці. */
   headingRef?: React.Ref<HTMLHeadingElement>
   /** Посилання «Назад до списку». */
   back?: React.ReactNode
-  header: React.ReactNode
+  /** Шапка запису; поки запису немає — не передається (тоді h1 — прихований `title`). */
+  header?: ObjectPageHeader
   statusBar?: React.ReactNode
-  /** Секції запису (`ObjectPageSection`). */
-  children: React.ReactNode
+  /** Секції запису. */
+  sections: readonly ObjectPageSectionItem[]
   /** Стрічка запису (UI01): праворуч чи вкладкою. */
   aside?: ObjectPageAside
   /** Нижче цієї ширини контейнера, rem, стрічка — вкладкою. */
@@ -66,7 +100,7 @@ export function ObjectPage({
   back,
   header,
   statusBar,
-  children,
+  sections,
   aside,
   asideBelow = ASIDE_BELOW_REM,
   isPending = false,
@@ -82,6 +116,7 @@ export function ObjectPage({
     [width, asideBelow],
   )
 
+  const showsRecord = !error && !isPending && header !== undefined
   let content: React.ReactNode
   if (error) {
     // Запису немає (видалили, інша компанія) — «не знайдено», а не повтор.
@@ -98,24 +133,48 @@ export function ObjectPage({
   } else if (isPending) {
     content = <ObjectPageSkeleton />
   } else {
+    const body = sections.map((section) => (
+      <ObjectPageSection
+        key={section.id}
+        title={section.title}
+        actions={section.actions}
+      >
+        {section.content}
+      </ObjectPageSection>
+    ))
     content = (
       <>
-        {header}
+        {header ? (
+          <RecordHeader
+            title={header.title}
+            headingRef={headingRef}
+            status={header.status}
+            fields={header.fields}
+            actions={
+              header.actions?.length
+                ? header.actions.map((action) => (
+                    <React.Fragment key={action.id}>
+                      {action.node}
+                    </React.Fragment>
+                  ))
+                : undefined
+            }
+          />
+        ) : null}
         {statusBar}
         {aside ? (
           narrow === null ? null : (
             <ObjectPageBody aside={aside} narrow={narrow}>
-              {children}
+              {body}
             </ObjectPageBody>
           )
         ) : (
-          <div className="space-y-8">{children}</div>
+          <div className="space-y-8">{body}</div>
         )}
       </>
     )
   }
 
-  const showsRecord = !error && !isPending
   return (
     <div
       ref={container}
@@ -177,8 +236,97 @@ function ObjectPageBody({
   )
 }
 
+/**
+ * Що отримує компонент проекту в слоті картки: запис модуля й ресурс API (`invoices`). Права — з
+ * `useCanAccess`, мова — з `useLanguage`, поля розширення — `extensionValue(record, id)`.
+ */
+export interface RecordSlotProps<T> {
+  readonly record: T
+  readonly resource: string
+}
+
+/** Секція картки з компонентом проекту (ADR-0020, п. 2): заголовок h2 і вміст. */
+export interface ExtensionSection<T> {
+  readonly id: string
+  readonly title: LocalizedText
+  readonly component: React.ComponentType<RecordSlotProps<T>>
+}
+
+/** Дія в шапці картки з компонентом проекту. */
+export interface ExtensionAction<T> {
+  readonly id: string
+  readonly component: React.ComponentType<RecordSlotProps<T>>
+  /**
+   * Дія ресурсу модуля, на яку потрібне право: `edit` (не `invoices:edit`). Без права дії не видно;
+   * щоб показати її неактивною з причиною (SPEC §8.4), компонент перевіряє право сам і ставить
+   * `DeniedAction`.
+   */
+  readonly access?: string
+}
+
+/**
+ * Секції й дії розширення для картки (ADR-0020): компонент проекту в слоті отримує запис і ресурс,
+ * кожен — у власній межі помилок: збій слота проекту не валить картку модуля (секція показує помилку
+ * з повтором, дія зникає). Дія з `access` видна лише з правом (`PermissionGate`). Поки запису немає,
+ * змін немає. Результат модуль зливає зі своїми секціями й діями (`applyKeyedChanges`).
+ */
+export function useRecordSlots<
+  T,
+  S extends string = string,
+  A extends string = string,
+>({
+  record,
+  resource,
+  sections,
+  actions,
+}: {
+  record: T | undefined
+  resource: string
+  sections?: KeyedChanges<ExtensionSection<T>, S>
+  actions?: KeyedChanges<ExtensionAction<T>, A>
+}): {
+  sections?: KeyedChanges<ObjectPageSectionItem, S>
+  actions?: KeyedChanges<ObjectPageAction, A>
+} {
+  const { language } = useLanguage()
+  return React.useMemo(() => {
+    if (record === undefined) return {}
+    return {
+      sections: mapKeyedChanges(sections, ({ id, title, component: Slot }) => ({
+        id,
+        title: localizedText(title, language) ?? id,
+        content: (
+          <ErrorBoundary>
+            <Slot record={record} resource={resource} />
+          </ErrorBoundary>
+        ),
+      })),
+      actions: mapKeyedChanges(actions, ({ id, access, component: Slot }) => {
+        const node = (
+          <ErrorBoundary fallback={hideFailedAction}>
+            <Slot record={record} resource={resource} />
+          </ErrorBoundary>
+        )
+        return {
+          id,
+          node: access ? (
+            <PermissionGate resource={resource} action={access}>
+              {node}
+            </PermissionGate>
+          ) : (
+            node
+          ),
+        }
+      }),
+    }
+  }, [record, resource, sections, actions, language])
+}
+
+/** Дія проекту, що впала, зникає з шапки (React пише помилку в консоль, `onError` — немає). */
+const hideFailedAction = () => null
+
 /** Секція картки з заголовком h2 і діями. */
-export function ObjectPageSection({
+function ObjectPageSection({
   title,
   actions,
   children,

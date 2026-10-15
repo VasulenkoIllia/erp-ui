@@ -16,18 +16,22 @@ import { AuditLog } from "@/registry/erp/audit-log"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { DeniedAction } from "@/registry/erp/permission-gate"
-import {
-  RecordHeader,
-  RecordStatusBar,
-  type RecordField,
-} from "@/registry/erp/record-header"
+import { RecordStatusBar, type RecordField } from "@/registry/erp/record-header"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
 import { ApiError, isApiError } from "@/registry/lib/api"
 import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
+import { applyKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
 import { ACTION_ICONS } from "@/registry/lib/icons"
-import { ObjectPage, ObjectPageSection } from "@/registry/templates/object-page"
+import {
+  ObjectPage,
+  useRecordSlots,
+  type ObjectPageAction,
+  type ObjectPageHeader,
+  type ObjectPageSectionItem,
+} from "@/registry/templates/object-page"
 import { Button, buttonVariants } from "@/registry/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
@@ -40,16 +44,25 @@ import {
 } from "@/data/invoices"
 import { listSearchOf, ROUTES } from "@/router"
 
-import { useFocusHeadingOnNavigation } from "./heading-focus"
 import { preloadJobProgress, useStartApproval } from "./invoice-bulk"
 import { EditInvoiceDialog } from "./invoice-edit-dialog"
+import {
+  NO_INVOICES_EXTENSION,
+  useExtendedRecordFields,
+  useInvoiceSchema,
+  type InvoiceActionId,
+  type InvoiceFieldId,
+  type InvoiceSectionId,
+  type InvoicesExtension,
+} from "./invoice-extension"
 import { InvoiceLines } from "./invoice-lines"
 import { InvoiceStatusBadge } from "./invoice-status"
 
 /**
  * Картка рахунку стрес-сторінки (SPEC §7 Object Page, §18.1; ADR-0019): шапка з ключовими полями й
  * діями, етапи, рядки документа, історія змін із журналу аудиту на місці стрічки запису (UI01 —
- * хвиля 1). Шапка — одразу з кешу списку, рядки — з `GET /invoices/:id`.
+ * хвиля 1). Шапка — одразу з кешу списку, рядки — з `GET /invoices/:id`. `extension` — розширення
+ * проекту (ADR-0020): поля в шапці, секції й дії.
  */
 
 const RESOURCE = "invoices"
@@ -76,18 +89,30 @@ const OFFLINE = new ApiError(0, {
   message: "Network is unavailable",
 })
 
-export function InvoicePage({ id }: { id: string }) {
+export function InvoicePage({
+  id,
+  extension = NO_INVOICES_EXTENSION,
+}: {
+  id: string
+  extension?: InvoicesExtension
+}) {
   // Без сесії ra-core перенаправить на /login і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   // Інший рахунок — інша картка: діалог, історія й фокус не переходять від попереднього.
   return isPending ? (
     <PageSkeleton rows={4} />
   ) : (
-    <InvoiceCard key={id} id={id} />
+    <InvoiceCard key={id} id={id} extension={extension} />
   )
 }
 
-function InvoiceCard({ id }: { id: string }) {
+function InvoiceCard({
+  id,
+  extension,
+}: {
+  id: string
+  extension: InvoicesExtension
+}) {
   const t = useCardT()
   const pageT = usePageT()
   const companyId = useCompanyId()
@@ -100,11 +125,12 @@ function InvoiceCard({ id }: { id: string }) {
       { id, meta: companyScope(companyId) },
       { refetchOnMount: "always" },
     )
+  const schema = useInvoiceSchema(extension)
   const {
     invoice,
     lines,
     error: invalid,
-  } = useMemo(() => parseInvoiceDetail(data), [data])
+  } = useMemo(() => parseInvoiceDetail(data, schema), [data, schema])
   useEffect(() => {
     if (invalid) console.error("demo: invoice response", invalid)
   }, [invalid])
@@ -132,7 +158,41 @@ function InvoiceCard({ id }: { id: string }) {
   const linesError =
     lines || isFetching ? undefined : (invalid ?? failure ?? MISSING_LINES)
   // Заголовок є: запис чи стан сторінки (прихований h1 «Рахунок»).
-  useFocusHeadingOnNavigation(heading, !isPending || pageError !== undefined)
+  useFocusHeadingOnNavigation(
+    heading,
+    useRouterLocation().pathname,
+    !isPending || pageError !== undefined,
+  )
+  const slots = useRecordSlots({
+    record: invoice,
+    resource: RESOURCE,
+    sections: extension.sections,
+    actions: extension.actions,
+  })
+  const header = useInvoiceHeader(
+    invoice,
+    heading,
+    setEditing,
+    extension,
+    slots.actions,
+  )
+  const sections: (ObjectPageSectionItem & { id: InvoiceSectionId })[] = invoice
+    ? [
+        {
+          id: "lines",
+          title: t("lines"),
+          content: (
+            <InvoiceLines
+              invoice={invoice}
+              lines={lines}
+              isPending={!lines && isFetching}
+              error={linesError}
+              onRetry={retry}
+            />
+          ),
+        },
+      ]
+    : []
 
   return (
     <>
@@ -143,15 +203,7 @@ function InvoiceCard({ id }: { id: string }) {
         isPending={isPending}
         error={pageError}
         onRetry={retry}
-        header={
-          invoice ? (
-            <InvoiceHeader
-              invoice={invoice}
-              heading={heading}
-              onEdit={setEditing}
-            />
-          ) : null
-        }
+        header={header}
         statusBar={
           invoice ? (
             <RecordStatusBar
@@ -168,19 +220,8 @@ function InvoiceCard({ id }: { id: string }) {
           label: t("history"),
           content: <InvoiceHistory id={id} version={invoice?.version} />,
         }}
-      >
-        {invoice ? (
-          <ObjectPageSection title={t("lines")}>
-            <InvoiceLines
-              invoice={invoice}
-              lines={lines}
-              isPending={!lines && isFetching}
-              error={linesError}
-              onRetry={retry}
-            />
-          </ObjectPageSection>
-        ) : null}
-      </ObjectPage>
+        sections={applyKeyedChanges(sections, slots.sections)}
+      />
       {editing ? (
         <EditInvoiceDialog
           key={`${editing.id}-${String(editing.version)}`}
@@ -195,50 +236,59 @@ function InvoiceCard({ id }: { id: string }) {
   )
 }
 
-function InvoiceHeader({
-  invoice,
-  heading,
-  onEdit,
-}: {
-  invoice: Invoice
-  heading: RefObject<HTMLHeadingElement | null>
-  onEdit: (invoice: Invoice) => void
-}) {
+/** Шапка картки: ключові поля й дії модуля разом із розширенням проекту; без запису — немає. */
+function useInvoiceHeader(
+  invoice: Invoice | undefined,
+  heading: RefObject<HTMLHeadingElement | null>,
+  onEdit: (invoice: Invoice) => void,
+  extension: InvoicesExtension,
+  extensionActions: KeyedChanges<ObjectPageAction, InvoiceActionId> | undefined,
+): ObjectPageHeader | undefined {
   const t = useCardT()
   const pageT = usePageT()
   const format = useFormat()
-  const fields: RecordField[] = [
-    { id: "client", label: pageT("columns.client"), value: invoice.client },
-    {
-      id: "date",
-      label: pageT("columns.date"),
-      value: format.date(invoice.date, "date"),
-    },
-    {
-      id: "dueDate",
-      label: pageT("columns.dueDate"),
-      value: format.date(invoice.dueDate, "date"),
-    },
-    {
-      id: "amount",
-      label: pageT("columns.amount"),
-      value: format.money({
-        amount: invoice.amount,
-        currency: invoice.currency,
-      }),
-    },
+  const fields: (RecordField & { id: InvoiceFieldId })[] = invoice
+    ? [
+        { id: "client", label: pageT("columns.client"), value: invoice.client },
+        {
+          id: "date",
+          label: pageT("columns.date"),
+          value: format.date(invoice.date, "date"),
+        },
+        {
+          id: "dueDate",
+          label: pageT("columns.dueDate"),
+          value: format.date(invoice.dueDate, "date"),
+        },
+        {
+          id: "amount",
+          label: pageT("columns.amount"),
+          value: format.money({
+            amount: invoice.amount,
+            currency: invoice.currency,
+          }),
+        },
+      ]
+    : []
+  const recordFields = useExtendedRecordFields(fields, invoice, extension)
+  if (!invoice) return undefined
+  const actions: (ObjectPageAction & { id: InvoiceActionId })[] = [
+    ...(invoice.status === "draft"
+      ? [
+          {
+            id: "approve" as const,
+            node: <ApproveAction invoice={invoice} heading={heading} />,
+          },
+        ]
+      : []),
+    { id: "edit", node: <EditAction invoice={invoice} onEdit={onEdit} /> },
   ]
-  return (
-    <RecordHeader
-      title={t("title", { number: invoice.number })}
-      headingRef={heading}
-      status={<InvoiceStatusBadge status={invoice.status} />}
-      fields={fields}
-      actions={
-        <InvoiceActions invoice={invoice} heading={heading} onEdit={onEdit} />
-      }
-    />
-  )
+  return {
+    title: t("title", { number: invoice.number }),
+    status: <InvoiceStatusBadge status={invoice.status} />,
+    fields: recordFields,
+    actions: applyKeyedChanges(actions, extensionActions),
+  }
 }
 
 /** «До списку рахунків»: з фільтрами, видом і вкладкою, з якими список відкрив картку. */
@@ -256,14 +306,11 @@ function BackLink() {
   )
 }
 
-function InvoiceActions({
+function EditAction({
   invoice,
-  heading,
   onEdit,
 }: {
   invoice: Invoice
-  /** Куди перенести фокус, коли кнопка в фокусі зникла (чернетку погоджено). */
-  heading: RefObject<HTMLHeadingElement | null>
   onEdit: (invoice: Invoice) => void
 }) {
   const t = useCardT()
@@ -273,27 +320,20 @@ function InvoiceActions({
     action: "edit",
   })
   const Edit = ACTION_ICONS.edit
-  // Поки права невідомі — дій немає, а не «немає доступу», що за мить стане кнопкою.
+  // Поки права невідомі — дії немає, а не «немає доступу», що за мить стане кнопкою.
   if (isPending) return null
-  return (
-    <>
-      {invoice.status === "draft" ? (
-        <ApproveAction invoice={invoice} heading={heading} />
-      ) : null}
-      {canEdit === true ? (
-        <Button
-          variant="outline"
-          onClick={() => {
-            onEdit(invoice)
-          }}
-        >
-          <Edit aria-hidden />
-          {t("edit")}
-        </Button>
-      ) : (
-        <DeniedAction reason={pageT("readOnlyHint")}>{t("edit")}</DeniedAction>
-      )}
-    </>
+  return canEdit === true ? (
+    <Button
+      variant="outline"
+      onClick={() => {
+        onEdit(invoice)
+      }}
+    >
+      <Edit aria-hidden />
+      {t("edit")}
+    </Button>
+  ) : (
+    <DeniedAction reason={pageT("readOnlyHint")}>{t("edit")}</DeniedAction>
   )
 }
 

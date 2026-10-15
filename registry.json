@@ -3105,6 +3105,184 @@
       }
     },
     {
+      "name": "lib/extension-fields",
+      "type": "registry:lib",
+      "title": "Поля розширення",
+      "description": "Нові поля запису даними (текст, число, дата, так/ні, список; підписи uk/en): схема контракту з ними (extendSchema), значення для моків (withMockValues), значення з запису модуля (extensionValue), текст мовою інтерфейсу, колонка списку й поле шапки картки (useExtensionFields) (ADR-0020).",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/extension-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§11",
+          "§17",
+          "PF09"
+        ]
+      }
+    },
+    {
+      "name": "lib/extensions",
+      "type": "registry:lib",
+      "title": "Точки розширення модуля",
+      "description": "Без React: зміни списку елементів модуля за ключем — додати з місцем (`place`) чи замінити, сховати й замінити (крім закріплених), переставити (applyKeyedChanges); ключі модуля в змінах і місцях перевіряє TypeScript; перетворення доданих даних на елементи шаблону (mapKeyedChanges) (ADR-0020).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§17",
+          "PF09"
+        ]
+      }
+    },
+    {
       "name": "lib/filters",
       "type": "registry:lib",
       "title": "Фільтри панелі",
@@ -6692,6 +6870,28 @@
         "demo": "data",
         "spec": [
           "§9"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-focus-heading",
+      "type": "registry:hook",
+      "title": "Фокус на h1 після переходу",
+      "description": "useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§10"
         ]
       }
     },
@@ -18413,13 +18613,15 @@
       "name": "templates/object-page",
       "type": "registry:component",
       "title": "Картка запису (Object Page)",
-      "description": "Шаблон картки: «Назад до списку», шапка, етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено (SPEC §7, ADR-0019).",
+      "description": "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції й дії розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом (SPEC §7, ADR-0019, ADR-0020).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
         "zod@^4.6.6"
       ],
@@ -18430,14 +18632,39 @@
           "target": "@components/templates/object-page.tsx"
         },
         {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/erp/record-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-header.tsx"
+        },
+        {
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -18450,9 +18677,34 @@
           "target": "@lib/api.ts"
         },
         {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -18480,14 +18732,59 @@
           "target": "@lib/i18n-uk-lists.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -18513,6 +18810,11 @@
           "path": "registry/ui/tabs.tsx",
           "type": "registry:ui",
           "target": "@ui/tabs.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
         }
       ],
       "meta": {

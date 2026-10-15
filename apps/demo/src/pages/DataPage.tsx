@@ -24,6 +24,11 @@ import { EditInvoiceDialog } from "./invoice-edit-dialog"
 import { preloadInlineEditors } from "./inline-editors"
 import { INVOICE_LIST_DEFAULTS, useInvoiceListSetup } from "./invoice-filters"
 import { getInvoiceId, useInvoiceColumns } from "./invoice-columns"
+import {
+  NO_INVOICES_EXTENSION,
+  useExtendedInvoiceColumns,
+  type InvoicesExtension,
+} from "./invoice-extension"
 
 const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 
@@ -36,9 +41,14 @@ type ViewMode = "scroll" | "pages"
  * 10 000 рахунків з мок-сервера через ra-core. Прокрутка вікнами по 100 або звичайні сторінки,
  * вкладки-статуси з лічильниками, FilterBar із чипами, особисті збережені види, стан списку в
  * адресі, вибір «сторінка / усе» й масове погодження фоновою задачею, редагування клієнта й суми в
- * комірці, права на редагування, збереження з версією й діалог конфлікту.
+ * комірці, права на редагування, збереження з версією й діалог конфлікту. `extension` — розширення
+ * проекту (ADR-0020): колонки з нових полів рахунку.
  */
-export function DataPage() {
+export function DataPage({
+  extension = NO_INVOICES_EXTENSION,
+}: {
+  extension?: InvoicesExtension
+}) {
   const t = usePageT()
   // Без сесії ra-core перенаправить на /login і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
@@ -53,7 +63,11 @@ export function DataPage() {
         headingRef={heading}
         actions={[{ id: "create", node: <CreateInvoiceButton /> }]}
       />
-      {isPending ? <PageSkeleton rows={8} /> : <InvoiceList />}
+      {isPending ? (
+        <PageSkeleton rows={8} />
+      ) : (
+        <InvoiceList extension={extension} />
+      )}
     </div>
   )
 }
@@ -74,7 +88,7 @@ function CreateInvoiceButton() {
   )
 }
 
-function InvoiceList() {
+function InvoiceList({ extension }: { extension: InvoicesExtension }) {
   const t = usePageT()
   const { data: me } = useMe()
   const { tabs, filters } = useInvoiceListSetup()
@@ -102,7 +116,10 @@ function InvoiceList() {
     action: "edit",
   })
   const approve = useApproveAction(report.selection, report.list.queryFilter)
-  const columns = useInvoiceColumns(canEdit === true, setEditing, setConflict)
+  const columns = useExtendedInvoiceColumns(
+    useInvoiceColumns(canEdit === true, setEditing, setConflict),
+    extension,
+  )
 
   return (
     <div className="space-y-4">

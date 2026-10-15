@@ -98,6 +98,22 @@ test.describe("скриншоти кроку 0.6d @screenshots", () => {
       await shot(page, `card-history-sapphire-${theme}-390`)
     })
 
+  // Крок 1.2 (ADR-0020): секція «Умови оплати» з файлу розширення проекту під рядками.
+  for (const theme of THEMES)
+    for (const width of [390, 768, 1440])
+      test(`card extension sapphire ${theme} ${String(width)}`, async ({
+        page,
+      }) => {
+        test.skip(only("card"))
+        await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
+        await openWith(page, { palette: "sapphire", theme }, DRAFT_CARD)
+        await ready(page)
+        const terms = page.getByRole("region", { name: "Умови оплати" })
+        await terms.scrollIntoViewIfNeeded()
+        await expect(terms).toContainText("14 днів")
+        await shot(page, `card-extension-sapphire-${theme}-${String(width)}`)
+      })
+
   test("card en compact sapphire light 1440", async ({ page }) => {
     test.skip(only("card"))
     await openCard(

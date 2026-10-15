@@ -1,4 +1,8 @@
+import { createElement } from "react"
+
 import { lazyWithPreload } from "@/registry/lib/lazy"
+
+import { invoicesExtension } from "@/extensions/K2-invoices"
 import { parsePath, type Route } from "@/router"
 
 /**
@@ -6,6 +10,9 @@ import { parsePath, type Route } from "@/router"
  * `lazyWithPreload` з lib/lazy. `preload` вантажить чанк заздалегідь — при наведенні чи фокусі на
  * посиланні й одразу на старті для поточної адреси, паралельно з мок-сервером. Збій завантаження
  * ловить ErrorBoundary в App.tsx: «Спробувати ще» вантажить чанк заново.
+ *
+ * Тут же рахунки отримують розширення проекту (ADR-0020): модуль не імпортує файлів проекту, а місце,
+ * де його підключають, передає `invoicesExtension` (src/extensions/K2-invoices.ts).
  */
 export const PAGES = {
   appearance: lazyWithPreload(() =>
@@ -27,7 +34,14 @@ export const PAGES = {
   states: lazyWithPreload(() =>
     import("./StatesPage").then((m) => m.StatesPage),
   ),
-  data: lazyWithPreload(() => import("./DataPage").then((m) => m.DataPage)),
+  data: lazyWithPreload(() =>
+    import("./DataPage").then(
+      ({ DataPage }) =>
+        function DataWithExtension() {
+          return createElement(DataPage, { extension: invoicesExtension })
+        },
+    ),
+  ),
   inbox: lazyWithPreload(() => import("./InboxPage").then((m) => m.InboxPage)),
   security: lazyWithPreload(() =>
     import("./SecurityPage").then((m) => m.SecurityPage),
@@ -60,7 +74,12 @@ export const ModulePage = lazyWithPreload(() =>
 )
 // Картка рахунку (шаблон Object Page): журнал аудиту й діалог зміни — у її чанку, не в списку.
 export const InvoicePage = lazyWithPreload(() =>
-  import("./InvoicePage").then((m) => m.InvoicePage),
+  import("./InvoicePage").then(
+    ({ InvoicePage }) =>
+      function InvoiceWithExtension({ id }: { id: string }) {
+        return createElement(InvoicePage, { id, extension: invoicesExtension })
+      },
+  ),
 )
 
 // Панель розробника — частина шару моків, поза бюджетом першого екрана (ADR-0009).

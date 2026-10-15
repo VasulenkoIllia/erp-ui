@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RecordHeader, RecordStatusBar } from "@/registry/erp/record-header"
 import { ApiError, errorStateKind } from "@/registry/lib/api"
-import { ObjectPage, ObjectPageSection } from "@/registry/templates/object-page"
+import { ObjectPage } from "@/registry/templates/object-page"
 
 import {
   makeInvoiceLines,
@@ -27,14 +27,13 @@ function Page(props: Partial<Parameters<typeof ObjectPage>[0]>) {
   return (
     <ObjectPage
       title="Рахунок"
-      header={<RecordHeader title="Рахунок № 2026-0001" />}
+      header={{ title: "Рахунок № 2026-0001" }}
       aside={{ label: "Історія", content: <p>Подій ще немає.</p> }}
+      sections={[
+        { id: "lines", title: "Рядки", content: <p>Рядки рахунку</p> },
+      ]}
       {...props}
-    >
-      <ObjectPageSection title="Рядки">
-        <p>Рядки рахунку</p>
-      </ObjectPageSection>
-    </ObjectPage>
+    />
   )
 }
 

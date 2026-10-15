@@ -170,7 +170,7 @@ async function interactWithGrid(page: Page) {
   await all.click()
   await all.click()
   // Клієнт і сума: кнопка значення відкриває поле, Escape повертає кнопку.
-  for (const column of ["3", "6"]) {
+  for (const column of ["3", "7"]) {
     await rows
       .first()
       .locator(`[aria-colindex="${column}"]`)

@@ -97,6 +97,22 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§7", "UI03"],
   },
+  "lib/extensions": {
+    title: "Точки розширення модуля",
+    description:
+      "Без React: зміни списку елементів модуля за ключем — додати з місцем (`place`) чи замінити, сховати й замінити (крім закріплених), переставити (applyKeyedChanges); ключі модуля в змінах і місцях перевіряє TypeScript; перетворення доданих даних на елементи шаблону (mapKeyedChanges) (ADR-0020).",
+    status: "beta",
+    demo: "data",
+    spec: ["§17", "PF09"],
+  },
+  "lib/extension-fields": {
+    title: "Поля розширення",
+    description:
+      "Нові поля запису даними (текст, число, дата, так/ні, список; підписи uk/en): схема контракту з ними (extendSchema), значення для моків (withMockValues), значення з запису модуля (extensionValue), текст мовою інтерфейсу, колонка списку й поле шапки картки (useExtensionFields) (ADR-0020).",
+    status: "beta",
+    demo: "data",
+    spec: ["§11", "§17", "PF09"],
+  },
   "lib/filters": {
     title: "Фільтри панелі",
     description:
@@ -320,6 +336,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§9"],
+  },
+  "hooks/use-focus-heading": {
+    title: "Фокус на h1 після переходу",
+    description:
+      "useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page.",
+    status: "beta",
+    demo: "data",
+    spec: ["§10"],
   },
   "hooks/use-grid-keyboard": {
     title: "useGridKeyboard",
@@ -691,7 +715,7 @@ export const CODE_ITEMS = {
   "templates/object-page": {
     title: "Картка запису (Object Page)",
     description:
-      "Шаблон картки: «Назад до списку», шапка, етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено (SPEC §7, ADR-0019).",
+      "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції й дії розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом (SPEC §7, ADR-0019, ADR-0020).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],

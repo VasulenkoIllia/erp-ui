@@ -12,6 +12,7 @@ import {
   InvoiceClientCell,
   type InlineConflict,
 } from "./invoice-cells"
+import type { InvoiceColumnId } from "./invoice-extension"
 import { InvoiceEditButton, InvoiceNumberLink } from "./invoice-row"
 import { InvoiceStatusBadge } from "./invoice-status"
 
@@ -24,12 +25,15 @@ const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 
 export const getInvoiceId = (invoice: Invoice) => invoice.id
 
-/** Колонки: пріоритет і поведінка на вузькому контейнері (SPEC §9), місце в картці. */
+/**
+ * Колонки: пріоритет і поведінка на вузькому контейнері (SPEC §9), місце в картці. Ключі — точки
+ * розширення (`InvoiceColumnId`, invoice-extension.ts).
+ */
 export function useInvoiceColumns(
   canEdit: boolean,
   onEdit: (invoice: Invoice) => void,
   onConflict: (conflict: InlineConflict) => void,
-): DataTableColumn<Invoice>[] {
+): (DataTableColumn<Invoice> & { id: InvoiceColumnId })[] {
   const t = usePageT()
   const format = useFormat()
   // Адреса списку (вкладка, фільтри, вид) — для «До списку» на картці; одна на всі комірки.

@@ -454,6 +454,18 @@
     "approveDescription": "Погодити можна чернетку із сумою до 350 000,00 ₴. Задача йде на сервері, підсумок з'явиться в сповіщенні.",
     "approveConfirm": "Погодити рахунок"
   },
+  "invoiceExtension": {
+    "delay": "Відстрочка платежу",
+    "days_one": "{{value}} день",
+    "days_few": "{{value}} дні",
+    "days_many": "{{value}} днів",
+    "days_other": "{{value}} дня",
+    "dueDate": "Сплатити до",
+    "contact": "Нагадує клієнту",
+    "noManager": "Менеджера не призначено",
+    "remind": "Нагадати клієнту",
+    "reminded": "Нагадування для «{{client}}» надіслано (демо)"
+  },
   "authDemo": {
     "accountsTitle": "Облікові записи демо",
     "signInAs": "Підставити {{email}}",

@@ -262,7 +262,7 @@ test.describe("масові дії: десктоп", () => {
   }) => {
     await openDrafts(page)
     await chooseScenario(page, "Конфлікт збереження")
-    const cell = rows(page).first().locator('[aria-colindex="6"]')
+    const cell = rows(page).first().locator('[aria-colindex="7"]')
     // Суми форматує Intl: між розрядами нерозривний пробіл.
     await cell
       .getByRole("button", { name: valueButton("75\\s049,00\\s₴") })

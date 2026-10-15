@@ -15,6 +15,8 @@ export const en = {
     copyFailed: "Couldn't copy — select and copy it manually",
     showOptions: "Show options",
     clear: "Clear",
+    yes: "Yes",
+    no: "No",
   },
   nav: {
     title: "Navigation",

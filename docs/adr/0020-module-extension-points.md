@@ -1,6 +1,6 @@
 # 0020. Точки розширення модуля: зміни під клієнта поза файлами модуля
 
-- Статус: прийнято (принцип; точна форма типів — на кроках 1.2 і 1.4 хвилі 1, дописується сюди). Доповнює ADR-0004; для модулів змінює SPEC §3.3
+- Статус: прийнято (принцип; форма типів спільного шару — крок 1.2, розділ «Форма типів»; фабрика модуля й решта точок — крок 1.4, дописується сюди). Доповнює ADR-0004; для модулів змінює SPEC §3.3
 - Дата: 15.10.2026
 - Хто ухвалив: власник (обговорення й вікторина 15.10.2026)
 
@@ -54,7 +54,9 @@
      перевірку і у формі, і у відповідях бекенду (SPEC §18.4).
    - Елементи (поля, колонки, фільтри, статуси, секції, дії) мають ключі: розширення додає, ховає
      чи переставляє елемент за ключем, не знаючи, як модуль його будує.
-   - Компонент у слоті отримує запис, права й мову, а не внутрішній стан модуля.
+   - Компонент у слоті отримує запис і ресурс (`RecordSlotProps`), права бере з `useCanAccess`, мову —
+     з `useLanguage`, тобто з публічного API кіта, а не з внутрішнього стану модуля (уточнено на
+     кроці 1.2).
 5. **Модуль тонкий, складне — у спільних шарах.**
    - Модуль — це контракт, моки, фікстури, рядки й налаштування шаблонів SPEC §7: сторінки модуля
      збирають List Report, Object Page та інші з `templates`, `erp` і `lib`, а не мають власної
@@ -92,19 +94,108 @@
    сервера як дані. Тому все, крім компонентів у слотах, описується даними (тип поля, підпис,
    обов'язковість, тон статусу), без функцій.
 
+## Форма типів (крок 1.2)
+
+Спільний шар — `lib/extensions`, `lib/extension-fields`, `templates/object-page`
+(`useRecordSlots`):
+
+```ts
+// lib/extensions — без React і без інших файлів кіта
+interface Keyed { readonly id: string }
+type Placement<K extends string = string> =
+  "start" | "end" | { readonly before: K } | { readonly after: K }  // одне з двох
+type Placed<T, K> = T & { readonly place?: Placement<K> }
+interface KeyedChanges<T extends Keyed, K extends string = string> {
+  readonly add?: readonly Placed<T, K>[]                        // ключ модуля — заміна елемента
+  readonly hide?: readonly K[]                                  // крім закріплених (`locked`)
+  readonly move?: readonly { readonly id: K; readonly place: Placement<K> }[]
+}
+applyKeyedChanges<T, A = T>(items: T[], changes?: KeyedChanges<A, T["id"]>, { locked? }): (T | A)[]
+mapKeyedChanges(changes, (item) => element)                    // дані розширення → елементи шаблону
+
+// lib/extension-fields
+type ExtensionField = { id: string; label: LocalizedText; required?: boolean; mockValues?: ExtensionFieldValue[] }
+  & ({ type: "text" | "number" | "date" | "boolean" } | { type: "options"; options: { value: string; label: LocalizedText }[] })
+interface ExtensionColumn extends Keyed,
+  Pick<DataTableColumn, "minWidth" | "grow" | "priority" | "overflow" | "align" | "card"> { header?: LocalizedText }
+extendSchema(contractSchema, fields)  // schema.extend: нові поля проходять перевірку
+withMockValues(records, fields)       // фікстури: запис № i — mockValues[i % n]
+extensionValue(record, id): unknown   // поле розширення з запису модуля
+useExtensionFields(fields)            // { text, column, entry } мовою інтерфейсу
+
+// templates/object-page
+interface RecordSlotProps<T> { record: T; resource: string }
+interface ExtensionSection<T> { id: string; title: LocalizedText; component: ComponentType<RecordSlotProps<T>> }
+interface ExtensionAction<T> { id: string; component: ComponentType<RecordSlotProps<T>>; access?: string }
+useRecordSlots({ record, resource, sections, actions })  // → { sections, actions } для злиття
+```
+
+Правила злиття:
+- порядок — `hide`, далі `add`, далі `move`; кілька нових на одному місці стають у порядку `add`;
+  орієнтира немає (сховано, невідомий ключ) — новий елемент стає в кінець, переставлений і
+  замінений лишаються на місці;
+- ключі модуля в `hide`, `move` і орієнтирах `place` — об'єднання `K` у типі розширення:
+  `applyKeyedChanges` звіряє його з ключами списку модуля (`T["id"]`), тож перейменований чи
+  видалений ключ TypeScript показує у файлі розширення; під час роботи невідомий ключ (дані від
+  сервера) пропускається;
+- ключ модуля в `add` — заміна елемента модуля (на його місці чи за `place`): ключі в списку не
+  повторюються, навіть коли оновлений модуль додав елемент із ключем, який проект уже додав сам.
+  Заміна — для секцій і дій; колонку чи поле шапки модуля не замінити, бо поле розширення не може
+  мати ключ поля модуля (зміна властивостей елемента без заміни — крок 1.4);
+- `locked` — ключі, які розширення не ховає й не замінює (переставити можна): обов'язкові поля
+  контракту, номер-посилання на картку;
+- помилка розробника — виняток під час збирання, а не тихий пропуск: поле розширення з ключем поля
+  модуля, два поля з одним ключем, колонка чи поле шапки без опису поля, невідомий тип поля;
+- значення полів розширення в записі — `unknown` (`ExtensionValues`), читаються через
+  `extensionValue`: тип запису модуля їх не знає, а модуль із масивами й вкладеними об'єктами не
+  мусить узгоджувати з ними свій тип;
+- компонент слота — у своїй межі помилок (`ErrorBoundary`): збій компонента проекту не валить
+  картку модуля, секція показує помилку з повтором, дія зникає;
+- `access` дії — дія ресурсу модуля (`edit`, не `invoices:edit`): без права дії не видно
+  (`PermissionGate`); показати її неактивною з причиною (SPEC §8.4) компонент може сам
+  (`useCanAccess` і `DeniedAction`).
+
+Модуль (зразок — рахунки демо, `apps/demo/src/pages/invoice-extension.ts`; розширення проекту —
+`apps/demo/src/extensions/K2-invoices.ts`, поля в `K2-invoices-fields.ts`, компоненти слотів у
+`K2-invoices-slots.tsx`):
+- тип розширення модуля — поля й набори змін із ключами модуля: `{ fields?, columns?:
+  KeyedChanges<ExtensionColumn, ColumnId>, recordFields?: KeyedChanges<Keyed, FieldId>, sections?:
+  KeyedChanges<ExtensionSection<Record>, SectionId>, actions?: KeyedChanges<ExtensionAction<Record>,
+  ActionId> }`, де `Record` — тип запису контракту модуля;
+- модуль перетворює дані на елементи шаблону (`useExtensionFields().column` і `.entry`,
+  `useRecordSlots`), зливає їх зі своїми (`applyKeyedChanges`) і розбирає запис схемою
+  `extendSchema(contractSchema, extension.fields)`; моки — `extendSchema` і `withMockValues`;
+- шаблони отримують уже злиті списки: List Report — колонки, фільтри, вкладки й дії (ADR-0022),
+  Object Page — `header: { title, status, fields, actions }` і `sections: { id, title, content }[]`
+  (ADR-0019);
+- файл розширення експортує дані, а компоненти слотів лежать поруч окремим `.tsx` (правило Fast
+  Refresh: файл із компонентами експортує лише компоненти); поля — теж окремим файлом без
+  компонентів, бо моки беруть лише їх: шар моків, що імпортує компоненти слотів, тягне інтерфейс, і
+  збирач дробить вхідний чанк (у демо +6 КБ gzip першого екрана).
+
+Ще не в коді — крок 1.4 (B1): фабрика `create<Модуль>Module(extension?)` з ресурсами, маршрутами й
+навігацією; фільтри й вкладки з полів розширення; статуси (додати, перейменувати, тон); перевизначення
+рядків модуля; поля розширення у формі; зміна властивості елемента модуля (пріоритет колонки, назва)
+без його заміни; схема розширення там, де модуль розбирає запис для показу порівняння при конфлікті
+(`invoice-cells`, `invoice-edit-dialog` у демо). Демо поки передає розширення у двох місцях
+проекту: маршрути (`lazy-pages.ts`) і моки (`mocks/handlers.ts`). Розширення підключається
+статично, тож у демо воно у вхідному чанку (+1,3 КБ gzip, у межах бюджету ADR-0009): так бюджет
+рахує його чесно. Важкий вміст слота проект вантажить ліниво всередині свого компонента (`lazy` і
+власний `Suspense`): слот обгорнуто лише межею помилок, і без `Suspense` очікування чанка
+підніметься до сторінки.
+
 ## Наслідки
 
 - B1 «Контакти й компанії» (крок 1.4) — перший модуль із розширенням. Тестовий проект пілота
   (кроки 1.5–1.7) перевіряє, що підлаштування під клієнта й оновлення модуля обходяться
   без правки файлів модуля (`docs/WAVE-1.md`).
 - Шаблони приймають колонки, фільтри, вкладки, секції й дії списками з ключами й порядком:
-  `templates/list-report` (крок 1.1) одразу, `templates/object-page` (ADR-0019) — на кроці 1.2.
-  Спільні помічники розширень — у `lib` (крок 1.2).
+  `templates/list-report` (крок 1.1) одразу, `templates/object-page` (ADR-0019) — з кроку 1.2.
+  Спільні помічники розширень — у `lib` (крок 1.2, розділ «Форма типів»).
 - Генератор реєстру (`scripts/build-registry.mjs`) і `consumer-smoke` мають знати шар `modules`
   (крок 1.4).
-- Скіл `erp-ui` і `docs/using-erp-ui.md` дістануть правило «модуль не правимо, зміни — у файлі
-  розширення», щойно механізм з'явиться в коді (крок 1.2): раніше правило описувало б те, чого ще
-  немає.
+- Скіл `erp-ui` і `docs/using-erp-ui.md` мають правило «модуль не правимо, зміни — у файлі
+  розширення» з кроку 1.2, коли механізм з'явився в коді.
 - Ціна: модуль складніше написати — кожну типову зміну треба передбачити як точку розширення.
   Натомість оновлення в усіх проектах ставиться без ручної роботи.
 

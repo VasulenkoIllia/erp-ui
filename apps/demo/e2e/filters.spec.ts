@@ -51,7 +51,7 @@ test.describe("списки: вкладки, фільтри, збережені 
     await expect(overdue).toHaveAttribute("aria-selected", "true")
     await expect(count(page)).toHaveText(/^[\d\s]+ рахунк/)
     expect(digits(await count(page).textContent())).toBe(expected)
-    const statuses = rows(page).locator('[aria-colindex="7"]')
+    const statuses = rows(page).locator('[aria-colindex="8"]')
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 

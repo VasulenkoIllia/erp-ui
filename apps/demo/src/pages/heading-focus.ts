@@ -1,55 +1,15 @@
-import { useEffect, useRef, type RefObject } from "react"
+import { useEffect, useRef } from "react"
 import { useLocation } from "react-router"
 
-/** Перший екран сесії вже показано: на першому відкритті застосунку фокус не чіпаємо. */
-let started = false
+import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
 
 /**
- * Після переходу між сторінками — фокус на h1 (скрінрідер чує, куди прийшов, WCAG 2.4.3).
- * `ready` — заголовок уже є (картка показує його після даних).
- *
- * - Один раз на перехід: повторне `ready` (перемикання компанії, «Спробувати ще») фокус не забирає;
- *   StrictMode, що запускає ефект двічі, — теж.
- * - Не забирає фокус у людини, яка, поки дані вантажились, пішла деінде («До списку»): лише коли
- *   фокус на тому ж, що й у мить переходу, чи загубився на body.
- */
-export function useFocusHeadingOnNavigation(
-  heading: RefObject<HTMLHeadingElement | null>,
-  ready = true,
-) {
-  const { pathname } = useLocation()
-  const handled = useRef<string | null>(null)
-  const activeAtNavigation = useRef<Element | null>(null)
-
-  useEffect(() => {
-    activeAtNavigation.current = document.activeElement
-  }, [pathname])
-
-  useEffect(() => {
-    if (!ready || handled.current === pathname) return
-    handled.current = pathname
-    if (!started) {
-      started = true
-      return
-    }
-    const active = document.activeElement
-    if (
-      active &&
-      active !== document.body &&
-      active !== activeAtNavigation.current
-    )
-      return
-    heading.current?.focus()
-  }, [heading, pathname, ready])
-}
-
-/**
- * h1 сторінки демо: фокус після переходу (`useFocusHeadingOnNavigation`) і назва вкладки браузера.
- * Зміна мови фокус не чіпає — лише назву вкладки.
+ * h1 сторінки демо: фокус після переходу (`useFocusHeadingOnNavigation` з hooks/use-focus-heading)
+ * і назва вкладки браузера. Зміна мови фокус не чіпає — лише назву вкладки.
  */
 export function usePageHeading(title: string, ready = true) {
   const heading = useRef<HTMLHeadingElement>(null)
-  useFocusHeadingOnNavigation(heading, ready)
+  useFocusHeadingOnNavigation(heading, useLocation().pathname, ready)
   useEffect(() => {
     document.title = `${title} · erp-ui`
   }, [title])

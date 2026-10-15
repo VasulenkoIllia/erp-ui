@@ -44,7 +44,7 @@ test.describe("дані: список рахунків", () => {
 
     await page.getByRole("tab", { name: /^Прострочені/ }).click()
     // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
-    const statuses = rows(page).locator('[aria-colindex="7"]')
+    const statuses = rows(page).locator('[aria-colindex="8"]')
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 

@@ -245,6 +245,23 @@ createRoot(root).render(
   Колонки, фільтри, вкладки й дії — списки з ключами, порядок на екрані — порядок у списку: розширення модуля додає, ховає чи переставляє елемент за ключем (ADR-0020). Поки види вантажаться, таблиця — скелетон: дані не вантажаться двічі. Без `title` шапки в шаблоні немає: її ставить сторінка (`ListReportHeader`), напр. над перевіркою сесії, щоб шапка не з'являлась заново. Збирати список вручну з `StatusTabs`, `FilterBar`, `SavedViewsMenu`, `useListState` і `DataTable` не треба; повний приклад — `src/pages/DataPage.tsx` у демо.
 
   Адреса — ввід ззовні: з `filters` у запит ідуть лише описані фільтри й `q`, сортування — лише за `sortFields`. Поки види вантажаться, `isReady` — false: якщо сторінку відкрили без параметрів, спершу застосується вид за замовчуванням, і список не вантажиться двічі. Бекенд реалізує `/me/views` за контрактом `lib/saved-views`; у моках — `createSavedViewHandlers()` поруч з іншими обробниками, сценарій — ресурс `views` у панелі розробника.
+- Картка запису (ADR-0019) — шаблон Object Page з `templates/object-page`: «Назад до списку», шапка з даних (назва — h1, статус, ключові поля, дії), смуга етапів, секції й стрічка запису праворуч чи вкладкою (за шириною контейнера):
+
+  ```tsx
+  const heading = useRef<HTMLHeadingElement>(null)
+  // Фокус на h1 після переходу (WCAG 2.4.3), той самий хук — для списку; адресу дає роутер.
+  useFocusHeadingOnNavigation(heading, useLocation().pathname, !isPending || pageError !== undefined)
+  <ObjectPage title={t("invoice")} headingRef={heading} back={<BackLink />}
+    isPending={isPending} error={pageError} onRetry={retry}
+    header={invoice && { title: t("title", { number: invoice.number }), status: <StatusBadge status={invoice.status} />,
+      fields: [{ id: "client", label: t("client"), value: invoice.client }],
+      actions: [{ id: "edit", node: <EditButton invoice={invoice} /> }] }}
+    statusBar={invoice && <RecordStatusBar label={t("steps")} steps={steps} current={invoice.status} />}
+    sections={invoice ? [{ id: "lines", title: t("lines"), content: <InvoiceLines invoice={invoice} /> }] : []}
+    aside={{ label: t("history"), content: <AuditLog filter={{ targetType: "invoices", targetId: id }} /> }} />
+  ```
+
+  Ключові поля, дії й секції — списки з ключами, як у List Report. Поки запису немає, `header` не передається: h1 — прихований `title`. Дані — `useGetOne` з `meta` компанії: шапка одразу з кешу списку, детальний запис (рядки документа) — з `GET /<ресурс>/:id` (у моках — опція `detail`); помилку запису передавай лише коли запису немає, інакше це стан секції. Повний приклад — `src/pages/InvoicePage.tsx` у демо.
 - Вибір рядків і масові дії (ADR-0018). Вибір живе на сторінці й скидається зі зміною фільтра; таблиця сама додає колонку прапорців і панель вибраного. Дія — фонова задача сервера, прогрес і підсумок — у сповіщенні, що живе поза сторінкою:
 
   ```tsx
@@ -271,6 +288,32 @@ createRoot(root).render(
 - Вподобання на сервері — `syncPreferences(api)` після входу (повертає функцію зупинки).
 - Моки: `createResourceHandlers({ resource, schema, data, searchFields })` дає CRUD із фільтрами, сортуванням, правами й версіями. `<DevPanel resources={["invoices"]} compact onChange={() => queryClient.invalidateQueries()} />` — у `actions` топбара, лише в розробці.
 - Повний приклад — `apps/demo` у репозиторії erp-ui: `src/data/providers.ts`, `src/mocks/`, `src/pages/DataPage.tsx`, `src/pages/LoginPage.tsx`.
+
+### Модуль під клієнта: файл розширення (ADR-0020)
+
+Файли модуля в проекті не правляться. Усе, чим клієнт відрізняється, — поля, колонки, ключові поля картки, секції й дії — лежить в окремому файлі проекту `src/extensions/<ID>-<назва>.ts`, який `shadcn add` не створює й не перезаписує. Модуль отримує розширення там, де його підключають (маршрути, моки), і зливає зі своїми елементами за ключем:
+
+```ts
+// src/extensions/K2-invoices-fields.ts — поля без компонентів: їх беруть і моки
+export const invoiceFields: InvoicesExtension["fields"] = [{ id: "manager", type: "text",
+  label: { uk: "Менеджер", en: "Manager" }, mockValues: ["Ірина Бондар", "Олег Мельник", null] }]
+
+// src/extensions/K2-invoices.ts — дані; компоненти слотів — поруч у K2-invoices-slots.tsx
+export const invoicesExtension: InvoicesExtension = {
+  fields: invoiceFields,
+  columns: { add: [{ id: "manager", place: { after: "client" }, priority: 7, overflow: "hide" }] },
+  recordFields: { add: [{ id: "manager", place: { after: "client" } }] },
+  sections: { add: [{ id: "paymentTerms", title: { uk: "Умови оплати", en: "Payment terms" },
+    component: PaymentTerms, place: { after: "lines" } }] },
+  actions: { add: [{ id: "remind", component: RemindAction, access: "edit" }] },
+}
+```
+
+- Зміни списку (`lib/extensions`): `add` — новий елемент на місці `place` (`"start"`, `"end"`, `{ before: "…" }`, `{ after: "…" }`; без нього — у кінець), `hide` — сховати, `move` — переставити. Ключі модуля в `hide`, `move` і `place` типізовані: модуль перейменував ключ — TypeScript покаже місце у файлі розширення. Ключ модуля в `add` — заміна його секції чи дії; номер-посилання й обов'язкові поля модуль закріплює (`locked`): їх не сховати й не замінити.
+- Розширення — дані (тип поля, підпис `{ uk, en }`, обов'язковість, значення для моків), крім компонентів у слотах: секція й дія отримують `{ record, resource }` (тип з `templates/object-page`), поле розширення беруть через `extensionValue(record, "manager")`, права — з `useCanAccess`, мову — з `useLanguage`; дія з `access` (`"edit"`, не `"invoices:edit"`) видна лише з правом. Компонент, що впав, не валить картку: секція покаже помилку з повтором, дія зникне. Так ті самі зміни зможе прислати сервер (PF09).
+- Нові поля проходять перевірку: модуль розбирає відповіді схемою `extendSchema(контракт, fields)`, моки — теж, а фікстури отримують значення з `withMockValues` (`lib/extension-fields`). Моки імпортують лише файл полів: компоненти слотів у шарі моків роздувають перший екран.
+- Бракує точки розширення — її додають у кіт (PR в erp-ui), проект оновлює модуль. Аварійний вихід — «від'єднати» модуль: скопіювати під іншою назвою й більше не оновлювати з кіта (рішення — у README проекту).
+- Приклад — `src/extensions/K2-invoices.ts` у демо: рахунки «Даних і моків» з колонкою й полем «Менеджер», секцією «Умови оплати» і дією «Нагадати клієнту»; точки розширення модуля-прикладу — `src/pages/invoice-extension.ts`.
 
 ## 6. Вхід і акаунт
 
@@ -348,11 +391,13 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/ui/button          # застосу�
 
 - Що змінилося між версіями — `CHANGELOG.md` у репозиторії erp-ui. Мажорна версія — лише при зміні токенів чи публічного API.
 - Закріпити версію: `…/ui/button#v0.1.0` (git-тег; список — теги репозиторію й `CHANGELOG.md`). Без `#…` береться найновіше з `main`.
-- Якщо компонент довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`. При оновленні вона буде видна в `--diff`, а вдалу правку варто перенести в реєстр.
+- Якщо компонент спільного шару (`ui`, `erp`, `templates`, `lib`, `hooks`) довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`. При оновленні вона буде видна в `--diff`, а вдалу правку варто перенести в реєстр.
+- Модуль оновлюється так само (`…/modules/<ID>-<назва>#vX.Y.Z --diff`, далі `add`): його файли в проекті не правляться, тож `--diff` показує лише зміни кіта, а відмінності клієнта лишаються у файлі розширення (§5, ADR-0020). Несумісна зміна типу розширення — мажорна версія, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`.
 
 ## 9. Чого не робити
 
 - Не копіювати компоненти руками з репозиторію — лише через `shadcn add` (так працюють оновлення).
+- Не правити файли модуля під клієнта — лише файл розширення проекту (ADR-0020).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.
 - Не писати тексти інтерфейсу в коді й не форматувати числа чи дати вручну — лише i18n і `lib/format`.
 - Не ставити поверх стилів erp-ui інші shadcn-стилі чи компоненти з інших реєстрів напряму. Вони спершу перебудовуються в реєстрі (ADR-0006).

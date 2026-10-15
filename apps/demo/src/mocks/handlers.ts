@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { recordBaseSchema } from "@/registry/lib/api"
+import { extendSchema, withMockValues } from "@/registry/lib/extension-fields"
 import {
   createPlatformHandlers,
   createResourceHandlers,
@@ -17,6 +18,7 @@ import {
   makeInvoices,
   type Invoice,
 } from "@/data/invoices"
+import { invoiceFields } from "@/extensions/K2-invoices-fields"
 
 import { ACCOUNT_SEEDS } from "./account"
 import {
@@ -35,11 +37,12 @@ import {
 } from "./team"
 import { MOCK_INVITES, MOCK_USERS } from "./users"
 
+// Рахунки з полями розширення проекту (ADR-0020): схема їх пропускає, фікстури їх мають.
 export const invoices = createResourceHandlers({
   resource: "invoices",
-  schema: invoiceSchema,
+  schema: extendSchema(invoiceSchema, invoiceFields),
   // 12 500 записів створюються при першому запиті, а не під час старту моків.
-  data: () => makeInvoices(INVOICE_COUNT),
+  data: () => withMockValues(makeInvoices(INVOICE_COUNT), invoiceFields),
   searchFields: ["number", "client"],
   label: { uk: "Рахунки", en: "Invoices" },
   fieldLabels: {

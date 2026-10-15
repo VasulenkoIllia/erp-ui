@@ -66,11 +66,15 @@ export interface ParsedInvoice {
 
 /**
  * Запис і рядки окремо: шапку видно й тоді, коли рядків ще немає чи вони зіпсовані, а невідомий
- * статус чи поле не валять сторінку.
+ * статус чи поле не валять сторінку. `schema` — схема запису з полями розширення проекту
+ * (`extendSchema` з lib/extension-fields): без них zod відкинув би нові поля.
  */
-export function parseInvoiceDetail(data: unknown): ParsedInvoice {
+export function parseInvoiceDetail(
+  data: unknown,
+  schema: z.ZodType<Invoice> = invoiceSchema,
+): ParsedInvoice {
   if (data === undefined) return {}
-  const record = invoiceSchema.safeParse(data)
+  const record = schema.safeParse(data)
   if (!record.success) return { error: invalidResponse("record", record.error) }
   const detail = invoiceLinesSchema.safeParse(data)
   if (!detail.success)
