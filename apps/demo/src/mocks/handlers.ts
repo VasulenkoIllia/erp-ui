@@ -13,6 +13,7 @@ import {
   INVOICE_APPROVAL_LIMIT,
   INVOICE_COUNT,
   invoiceSchema,
+  makeInvoiceLines,
   makeInvoices,
   type Invoice,
 } from "@/data/invoices"
@@ -50,6 +51,8 @@ export const invoices = createResourceHandlers({
     date: { uk: "Дата", en: "Date" },
     dueDate: { uk: "Сплатити до", en: "Due date" },
   },
+  // Картка рахунку: рядки документа з поточної суми (ADR-0019).
+  detail: (invoice) => ({ lines: makeInvoiceLines(invoice) }),
 })
 
 /** Рахунки, які «саме редагує інший користувач» — один раз: повтор погодження проходить. */

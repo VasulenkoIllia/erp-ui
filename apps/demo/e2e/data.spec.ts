@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  chooseScenario,
+  expectNoA11yViolations,
+  openWith,
+  USERS,
+} from "./helpers"
 
 const DATA = "/#/data"
 const PREFS_KEY = "erp-ui:mock-preferences:u-olena"
@@ -13,16 +18,6 @@ const count = (page: Page) => page.locator('[data-slot="data-table-status"]')
 const range = (page: Page) => page.getByText(/^[\d\s]+-[\d\s]+ з [\d\s]+$/)
 const showPages = (page: Page) =>
   page.getByRole("button", { name: "Сторінки", exact: true }).click()
-
-/** Сценарій моків через панель розробника. */
-async function chooseScenario(page: Page, name: string) {
-  await page.getByRole("button", { name: /^Моки:/ }).click()
-  const panel = page.getByRole("dialog", { name: "Панель розробника" })
-  await panel.getByRole("combobox", { name: "Усі ресурси" }).click()
-  await page.getByRole("option", { name }).click()
-  await panel.getByRole("button", { name: "Закрити" }).click()
-  await expect(panel).toBeHidden()
-}
 
 test.describe("дані: список рахунків", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -81,11 +76,13 @@ test.describe("дані: список рахунків", () => {
     await expect(edit).toHaveAttribute("aria-disabled", "true")
     await edit.focus()
     await expect(edit).toBeFocused()
-    await expect(
-      page.getByText("Редагування доступне для ролі «Бухгалтер»", {
-        exact: true,
-      }),
-    ).toBeVisible()
+    // Причина — у підказці й в описі кнопки для скрінрідера (DeniedAction).
+    await expect(page.locator('[data-slot="tooltip-content"]')).toHaveText(
+      "Редагування доступне для ролі «Бухгалтер»",
+    )
+    await expect(edit).toHaveAccessibleDescription(
+      "Редагування доступне для ролі «Бухгалтер»",
+    )
   })
 
   test("редагування зберігає з версією", async ({ page }) => {

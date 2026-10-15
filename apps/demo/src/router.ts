@@ -42,19 +42,52 @@ export type AuthRoute = keyof typeof AUTH_ROUTES
 
 export const LOGIN_PATH = AUTH_ROUTES.login
 
-/** Сторінка демо, екран входу або заглушка модуля прикладу ERP (/m/K2). */
+/** Сторінка демо, екран входу, картка рахунку (/data/inv-00001) або заглушка модуля ERP (/m/K2). */
 export type Location =
   | { route: Route }
   | { route: "auth"; screen: AuthRoute }
+  | { route: "invoice"; id: string }
   | { route: "module"; moduleId: ModuleId }
 
 export const moduleHref = (id: ModuleId) => `/m/${id}`
+
+/** Картка рахунку стрес-сторінки (шаблон Object Page, ADR-0019): `/data/<id>`. */
+const INVOICE_PREFIX = `${ROUTES.data}/`
+export const invoiceHref = (id: string) =>
+  `${INVOICE_PREFIX}${encodeURIComponent(id)}`
+
+/** Стан переходу зі списку на картку: з ним «До списку рахунків» повертає фільтри, вид і вкладку. */
+export const invoiceLinkState = (listSearch: string) => ({ listSearch })
+
+/** Рядок запиту списку зі стану переходу; чужий чи зіпсований стан — список без параметрів. */
+export function listSearchOf(state: unknown): string {
+  if (typeof state !== "object" || state === null || !("listSearch" in state))
+    return ""
+  const { listSearch } = state
+  return typeof listSearch === "string" && listSearch.startsWith("?")
+    ? listSearch
+    : ""
+}
+
+/** Зіпсований `%` в адресі — id як є: картка покаже «не знайдено», а не впаде. */
+function decodeSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
 
 export function parsePath(pathname: string): Location {
   const auth = (Object.keys(AUTH_ROUTES) as AuthRoute[]).find(
     (r) => AUTH_ROUTES[r] === pathname,
   )
   if (auth) return { route: "auth", screen: auth }
+  const invoice = pathname.startsWith(INVOICE_PREFIX)
+    ? pathname.slice(INVOICE_PREFIX.length)
+    : ""
+  if (invoice && !invoice.includes("/"))
+    return { route: "invoice", id: decodeSegment(invoice) }
   const m = /^\/m\/([A-Z]+\d+)$/.exec(pathname)
   if (m && MODULE_IDS.includes(m[1] as ModuleId))
     return { route: "module", moduleId: m[1] as ModuleId }

@@ -93,6 +93,16 @@ export async function chooseLanguage(page: Page, name: string): Promise<void> {
   await chooseInSubmenu(page, /Мова/, name)
 }
 
+/** Сценарій моків для всіх ресурсів через панель розробника. */
+export async function chooseScenario(page: Page, name: string): Promise<void> {
+  await page.getByRole("button", { name: /^Моки:/ }).click()
+  const panel = page.getByRole("dialog", { name: "Панель розробника" })
+  await panel.getByRole("combobox", { name: "Усі ресурси" }).click()
+  await page.getByRole("option", { name }).click()
+  await panel.getByRole("button", { name: "Закрити" }).click()
+  await expect(panel).toBeHidden()
+}
+
 /** axe за WCAG 2.2 AA (SPEC §10). */
 export async function expectNoA11yViolations(page: Page): Promise<void> {
   // Напівпрозорі кадри анімації (діалог, що з'являється) дають хибний контраст.

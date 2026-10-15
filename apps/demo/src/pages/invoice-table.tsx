@@ -1,10 +1,11 @@
 import { keepPreviousData } from "@tanstack/react-query"
-import { type LucideIcon } from "lucide-react"
 import { useGetList, type SortPayload } from "ra-core"
 import { useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { Link, useLocation } from "react-router"
 
 import { DataTable, type DataTableProps } from "@/registry/erp/data-table"
+import { DeniedAction } from "@/registry/erp/permission-gate"
 import type { DataTableSelectionOptions } from "@/registry/erp/data-table-selection"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import type { RowSelection } from "@/registry/hooks/use-row-selection"
@@ -12,18 +13,19 @@ import { useWindowedList } from "@/registry/hooks/use-windowed-list"
 import { companyScope } from "@/registry/lib/company-scope"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
-import { ACTION_ICONS, STATUS_ICONS } from "@/registry/lib/icons"
-import { Badge } from "@/registry/ui/badge"
+import { ACTION_ICONS } from "@/registry/lib/icons"
 import { Button } from "@/registry/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
-import { type Invoice, type InvoiceStatus } from "@/data/invoices"
+import type { Invoice } from "@/data/invoices"
+import { invoiceHref, invoiceLinkState } from "@/router"
 
 import {
   InvoiceAmountCell,
   InvoiceClientCell,
   type InlineConflict,
 } from "./invoice-cells"
+import { InvoiceStatusBadge } from "./invoice-status"
+import { preloadPage } from "./lazy-pages"
 
 /**
  * Список рахунків стрес-сторінки (DataPage, SPEC §18.1) на erp/data-table: колонки й два джерела —
@@ -37,32 +39,6 @@ const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
 const PER_PAGE = 20
 const RESOURCE = "invoices"
 
-const STATUS_BADGES: Record<
-  InvoiceStatus,
-  {
-    variant: "secondary" | "info" | "warning" | "success" | "destructive"
-    icon: LucideIcon
-  }
-> = {
-  draft: { variant: "secondary", icon: STATUS_ICONS.draft },
-  approved: { variant: "info", icon: ACTION_ICONS.approve },
-  sent: { variant: "info", icon: STATUS_ICONS.info },
-  partially_paid: { variant: "warning", icon: STATUS_ICONS.pending },
-  paid: { variant: "success", icon: STATUS_ICONS.success },
-  overdue: { variant: "destructive", icon: STATUS_ICONS.destructive },
-}
-
-function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
-  const t = usePageT()
-  const { variant, icon: Icon } = STATUS_BADGES[status]
-  return (
-    <Badge variant={variant}>
-      <Icon aria-hidden />
-      {t(`statuses.${status}`)}
-    </Badge>
-  )
-}
-
 const getInvoiceId = (invoice: Invoice) => invoice.id
 
 /** Колонки: пріоритет і поведінка на вузькому контейнері (SPEC §9), місце в картці. */
@@ -73,13 +49,15 @@ function useInvoiceColumns(
 ): DataTableColumn<Invoice>[] {
   const t = usePageT()
   const format = useFormat()
+  // Адреса списку (вкладка, фільтри, вид) — для «До списку» на картці; одна на всі комірки.
+  const { search } = useLocation()
   return useMemo(
     () => [
       {
         id: "number",
         header: t("columns.number"),
         cell: (invoice) => (
-          <span className="tabular-nums">{invoice.number}</span>
+          <InvoiceNumberLink invoice={invoice} listSearch={search} />
         ),
         sortField: "number",
         minWidth: 7,
@@ -173,7 +151,7 @@ function useInvoiceColumns(
         card: "actions",
       },
     ],
-    [t, format, canEdit, onEdit, onConflict],
+    [t, format, canEdit, onEdit, onConflict, search],
   )
 }
 
@@ -255,6 +233,32 @@ function PagedInvoices({ filter, sort, ...props }: ListProps) {
   )
 }
 
+/** Номер — посилання на картку; адреса списку їде зі станом переходу для «До списку». */
+function InvoiceNumberLink({
+  invoice,
+  listSearch,
+}: {
+  invoice: Invoice
+  listSearch: string
+}) {
+  const href = invoiceHref(invoice.id)
+  const preload = () => {
+    preloadPage(href)
+  }
+  return (
+    <Link
+      to={href}
+      state={invoiceLinkState(listSearch)}
+      onPointerEnter={preload}
+      onFocus={preload}
+      // Ціль дотику ≥ 24 px (WCAG 2.5.8): кнопка клієнта під номером у картці заходить на 4 px угору.
+      className="touch-target relative inline-flex min-h-7 items-center font-medium tabular-nums underline underline-offset-4"
+    >
+      {invoice.number}
+    </Link>
+  )
+}
+
 /** SPEC §8.4: без права дія неактивна, але у фокусі й пояснює причину. */
 function EditButton({
   label,
@@ -275,22 +279,14 @@ function EditButton({
     )
   }
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={label}
-            disabled
-            focusableWhenDisabled
-          />
-        }
-      >
-        <Edit aria-hidden />
-      </TooltipTrigger>
-      <TooltipContent>{t("readOnlyHint")}</TooltipContent>
-    </Tooltip>
+    <DeniedAction
+      variant="ghost"
+      size="icon"
+      aria-label={label}
+      reason={t("readOnlyHint")}
+    >
+      <Edit aria-hidden />
+    </DeniedAction>
   )
 }
 

@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "react"
 
-import { useLocation } from "react-router"
-
-let firstRender = true
+import { useFocusHeadingOnNavigation } from "./heading-focus"
 
 /**
  * Заголовок сторінки демо. Після переходу між сторінками переносить фокус на h1 (для скрінрідерів);
@@ -10,19 +8,11 @@ let firstRender = true
  */
 export function PageHeader({ title, lead }: { title: string; lead: string }) {
   const heading = useRef<HTMLHeadingElement>(null)
-  const { pathname } = useLocation()
+  useFocusHeadingOnNavigation(heading)
 
   useEffect(() => {
     document.title = `${title} · erp-ui`
   }, [title])
-
-  useEffect(() => {
-    if (firstRender) {
-      firstRender = false
-      return
-    }
-    heading.current?.focus()
-  }, [pathname])
 
   return (
     <div className="space-y-1">

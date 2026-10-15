@@ -48,6 +48,11 @@ export interface JobProgressOptions {
   summary?: (job: Job) => string
   /** Причина невдачі за кодом модуля (`invalid_status`); загальні коди API кіт знає сам. */
   failureLabel?: (code: string) => string | undefined
+  /**
+   * Задача завершилась (зокрема з невдачами) чи її стан не дізнатись; після повтору — знову. Напр.,
+   * щоб знову ввімкнути дію, яку вимкнули на час задачі.
+   */
+  onSettled?: () => void
 }
 
 /** Сповіщення без невдач зникає само, як і будь-яке без дій (SPEC §8.2). */
@@ -136,6 +141,7 @@ function JobToast({
         Boolean(finished && (finished.failed || finished.status === "failed")),
       carried,
     })
+    options.onSettled?.()
   })
   React.useEffect(() => {
     if (isSettled) settle()

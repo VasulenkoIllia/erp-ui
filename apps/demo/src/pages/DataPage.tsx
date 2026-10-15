@@ -1,53 +1,28 @@
-import { useAuthenticated, useCanAccess, useUpdate } from "ra-core"
-import { useEffect, useId, useState, type FormEvent } from "react"
+import { useAuthenticated, useCanAccess } from "ra-core"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
-import { ConflictDialog } from "@/registry/erp/conflict-dialog"
 import { FilterBar } from "@/registry/erp/filter-bar"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
 import { StatusTabs } from "@/registry/erp/status-tabs"
-import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useListCounts } from "@/registry/hooks/use-list-counts"
 import { useListState } from "@/registry/hooks/use-list-state"
 import { useRowSelection } from "@/registry/hooks/use-row-selection"
 import { useSavedViews } from "@/registry/hooks/use-saved-views"
 import { useMe } from "@/registry/hooks/use-me"
-import { isApiError } from "@/registry/lib/api"
-import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS, MODULE_ICONS } from "@/registry/lib/icons"
 import { whenIdle } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/registry/ui/dialog"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/registry/ui/field"
-import { Input } from "@/registry/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/registry/ui/select"
-import { Spinner } from "@/registry/ui/spinner"
 
-import {
-  INVOICE_STATUSES,
-  type Invoice,
-  type InvoiceStatus,
-} from "@/data/invoices"
+import type { Invoice } from "@/data/invoices"
 
 import { useApproveAction } from "./invoice-bulk"
 import { InlineConflictDialog, type InlineConflict } from "./invoice-cells"
+import { EditInvoiceDialog } from "./invoice-edit-dialog"
 import { preloadInlineEditors } from "./inline-editors"
 import { INVOICE_LIST_DEFAULTS, useInvoiceListSetup } from "./invoice-filters"
 import { InvoiceTable, type InvoiceTableProps } from "./invoice-table"
@@ -232,181 +207,5 @@ function ViewModeToggle({
         </Button>
       ))}
     </div>
-  )
-}
-
-type EditValues = Pick<Invoice, "client" | "status">
-
-function EditInvoiceDialog({
-  invoice,
-  onReplace,
-  onClose,
-}: {
-  invoice: Invoice
-  /** Показати в формі іншу версію запису (після «Взяти збережене»). */
-  onReplace: (invoice: Invoice) => void
-  onClose: () => void
-}) {
-  const t = usePageT()
-  const kitT = useErpUiT()
-  const errorMessage = useApiErrorMessage()
-  const ids = useId()
-  const [values, setValues] = useState<EditValues>({
-    client: invoice.client,
-    status: invoice.status,
-  })
-  const [clientError, setClientError] = useState<string | null>(null)
-  const [conflict, setConflict] = useState<Invoice | null>(null)
-  const [update, { isPending: saving }] = useUpdate<Invoice>()
-
-  const statusItems = INVOICE_STATUSES.map((value) => ({
-    value,
-    label: t(`statuses.${value}`),
-  }))
-
-  const save = (version: number) => {
-    void update(
-      RESOURCE,
-      {
-        id: invoice.id,
-        data: { ...values, version },
-        previousData: invoice,
-      },
-      {
-        mutationMode: "pessimistic",
-        onSuccess: () => {
-          toast.success(t("saved"))
-          onClose()
-        },
-        onError: (error) => {
-          if (isApiError(error) && error.code === "conflict") {
-            setConflict(error.current as Invoice)
-            return
-          }
-          if (isApiError(error) && error.fieldErrors?.client) {
-            setClientError(errorMessage(error))
-            return
-          }
-          toast.error(t("saveFailed", { message: errorMessage(error) }))
-        },
-      },
-    )
-  }
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
-    if (!values.client.trim()) {
-      setClientError(kitT("validation.required"))
-      return
-    }
-    setClientError(null)
-    save(invoice.version)
-  }
-
-  const statusLabel = (status: InvoiceStatus) => t(`statuses.${status}`)
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
-    >
-      <DialogContent>
-        <form onSubmit={submit} className="grid gap-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>
-              {t("editTitle", { number: invoice.number })}
-            </DialogTitle>
-            <DialogDescription>{t("editDescription")}</DialogDescription>
-          </DialogHeader>
-          <FieldGroup>
-            <Field data-invalid={clientError ? true : undefined}>
-              <FieldLabel htmlFor={`${ids}-client`}>{t("client")}</FieldLabel>
-              <Input
-                id={`${ids}-client`}
-                value={values.client}
-                required
-                aria-invalid={clientError ? true : undefined}
-                onChange={(event) => {
-                  setValues((v) => ({ ...v, client: event.target.value }))
-                }}
-              />
-              {clientError ? <FieldError>{clientError}</FieldError> : null}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor={`${ids}-status`}>
-                {t("columns.status")}
-              </FieldLabel>
-              <Select
-                items={statusItems}
-                value={values.status}
-                onValueChange={(value: InvoiceStatus | null) => {
-                  if (value) setValues((v) => ({ ...v, status: value }))
-                }}
-              >
-                <SelectTrigger id={`${ids}-status`} className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusItems.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </FieldGroup>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? <Spinner aria-hidden /> : null}
-              {t("save")}
-            </Button>
-          </DialogFooter>
-        </form>
-        {/* Вкладений діалог: Base UI тримає фокус у ньому й повертає у форму. */}
-        <ConflictDialog
-          open={conflict !== null}
-          onOpenChange={(open) => {
-            if (!open) setConflict(null)
-          }}
-          fields={
-            conflict
-              ? [
-                  {
-                    key: "client",
-                    label: t("client"),
-                    mine: values.client,
-                    theirs: conflict.client,
-                  },
-                  {
-                    key: "status",
-                    label: t("columns.status"),
-                    mine: statusLabel(values.status),
-                    theirs: statusLabel(conflict.status),
-                  },
-                ]
-              : []
-          }
-          onOverwrite={() => {
-            const latest = conflict
-            setConflict(null)
-            if (latest) save(latest.version)
-          }}
-          onReload={() => {
-            const latest = conflict
-            setConflict(null)
-            if (latest) {
-              onReplace(latest)
-              toast(t("reloaded"))
-            }
-          }}
-        />
-      </DialogContent>
-    </Dialog>
   )
 }

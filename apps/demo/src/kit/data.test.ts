@@ -57,7 +57,7 @@ const USERS: MockUser[] = [
     password: "demo",
     totpCode: "123456",
     roles: ["accountant"],
-    permissions: ["invoices:*"],
+    permissions: ["invoices:*", "orders:*"],
     companies: [{ id: "zoriana", name: "ТОВ «Зоряна логістика»" }],
     companyId: "zoriana",
     factors: ["totp", "backup_code", "sms"],
@@ -85,9 +85,18 @@ const invoices = createResourceHandlers({
   searchFields: ["number", "client"],
   baseUrl: BASE,
 })
+/** Детальний запис (ADR-0019): рядки — лише в записі, а не в списку; `id` деталі не перекривають. */
+const orders = createResourceHandlers({
+  resource: "orders",
+  schema: invoiceSchema,
+  data: INVOICES.slice(0, 3),
+  baseUrl: BASE,
+  detail: (order) => ({ id: "overridden", lines: [{ id: `${order.id}-1` }] }),
+})
 const server = setupServer(
   ...createPlatformHandlers({ users: USERS, baseUrl: BASE }),
   ...invoices.handlers,
+  ...orders.handlers,
 )
 
 const client = createApiClient({ baseUrl: BASE })
@@ -102,6 +111,7 @@ afterAll(() => {
 beforeEach(() => {
   resetScenarios()
   invoices.db.reset()
+  orders.db.reset()
   setCompanyId(null)
   signInMock("u1")
 })
@@ -287,5 +297,39 @@ describe("сценарії моків", () => {
       .catch((e: unknown) => e)
     expect(offline).toBeInstanceOf(ApiError)
     expect(offline).toMatchObject({ status: 0, code: "offline" })
+  })
+})
+
+describe("детальний запис (опція detail, ADR-0019)", () => {
+  it("список без рядків; запис, збереження й конфлікт — з рядками; id — запису", async () => {
+    const list = await dataProvider.getList<Invoice>("orders", {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "number", order: "ASC" },
+      filter: {},
+    })
+    expect(list.data[0]).not.toHaveProperty("lines")
+
+    const { data: one } = await dataProvider.getOne<Invoice>("orders", {
+      id: "inv-1",
+    })
+    expect(one).toMatchObject({ id: "inv-1", lines: [{ id: "inv-1-1" }] })
+
+    const { data: saved } = await dataProvider.update<Invoice>("orders", {
+      id: "inv-1",
+      data: { ...one, client: "ТОВ «Нова назва»" },
+      previousData: one,
+    })
+    expect(saved).toMatchObject({ id: "inv-1", version: 2, lines: [{}] })
+
+    await expect(
+      dataProvider.update<Invoice>("orders", {
+        id: "inv-1",
+        data: { ...one, amount: 1 },
+        previousData: one,
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      current: { id: "inv-1", version: 2, lines: [{ id: "inv-1-1" }] },
+    })
   })
 })

@@ -10,7 +10,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { useWindowedList } from "@/registry/hooks/use-windowed-list"
-import { setCompanyId } from "@/registry/lib/company-scope"
+import { companyScope, setCompanyId } from "@/registry/lib/company-scope"
 
 interface Row {
   id: string
@@ -97,6 +97,38 @@ afterEach(() => {
 })
 
 describe("useWindowedList", () => {
+  it("рядки вікна — у кеші getOne для картки, якщо там ще нічого немає (ADR-0019)", async () => {
+    const server = fakeServer()
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const key = (id: string) => [
+      "rows",
+      "getOne",
+      { id, meta: companyScope(null) },
+    ]
+    const detailed = { id: "r-1", n: 1, lines: [] }
+    queryClient.setQueryData(key("r-1"), detailed)
+    const { result } = renderHook(
+      () => useWindowedList<Row>("rows", { sort: SORT }),
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <CoreAdminContext
+            dataProvider={server.provider}
+            queryClient={queryClient}
+          >
+            {children}
+          </CoreAdminContext>
+        ),
+      },
+    )
+    await waitFor(() => {
+      expect(result.current.rowCount).toBe(TOTAL)
+    })
+    expect(queryClient.getQueryData(key("r-0"))).toEqual({ id: "r-0", n: 0 })
+    expect(queryClient.getQueryData(key("r-1"))).toBe(detailed)
+  })
+
   it("спершу — перше вікно; рядки за ним — у стані «вантажиться»", async () => {
     const server = fakeServer()
     const { result } = renderList(server)

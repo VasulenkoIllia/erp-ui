@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  chooseScenario,
+  expectNoA11yViolations,
+  openWith,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок 0.6c2 (ADR-0018): вибір «сторінка / усе», масове погодження фоновою задачею з прогресом,
@@ -32,15 +37,6 @@ const rowCheckbox = (page: Page, number: string) =>
 const valueButton = (value: string) => new RegExp(`^${value}\\s?, змінити$`)
 const focusInGrid = (page: Page) =>
   page.evaluate(() => Boolean(document.activeElement?.closest('[role="grid"]')))
-
-async function chooseScenario(page: Page, name: string) {
-  await page.getByRole("button", { name: /^Моки:/ }).click()
-  const panel = page.getByRole("dialog", { name: "Панель розробника" })
-  await panel.getByRole("combobox", { name: "Усі ресурси" }).click()
-  await page.getByRole("option", { name }).click()
-  await panel.getByRole("button", { name: "Закрити" }).click()
-  await expect(panel).toBeHidden()
-}
 
 async function openDrafts(page: Page, user?: string) {
   await openWith(page, {}, DRAFTS, user ? { user } : undefined)
@@ -301,11 +297,13 @@ test.describe("масові дії: десктоп", () => {
     await page.getByRole("button", { name: "Зняти вибір" }).focus()
     await page.keyboard.press("Shift+Tab")
     await expect(approve).toBeFocused()
-    await expect(
-      page.getByText("Погоджувати рахунки може роль «Бухгалтер»", {
-        exact: true,
-      }),
-    ).toBeVisible()
+    // Причина — у підказці й в описі кнопки для скрінрідера (DeniedAction).
+    await expect(page.locator('[data-slot="tooltip-content"]')).toHaveText(
+      "Погоджувати рахунки може роль «Бухгалтер»",
+    )
+    await expect(approve).toHaveAccessibleDescription(
+      "Погоджувати рахунки може роль «Бухгалтер»",
+    )
   })
 })
 

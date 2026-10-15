@@ -5,16 +5,16 @@ import { toast } from "sonner"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { tableTabStop } from "@/registry/erp/data-table-selection"
+import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import type { FilterValue } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
 import { ACTION_ICONS } from "@/registry/lib/icons"
-import type { Job } from "@/registry/lib/jobs"
+import type { BulkSelection, Job } from "@/registry/lib/jobs"
 import { toBulkSelection } from "@/registry/lib/row-selection"
 import { Button } from "@/registry/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
 /**
  * Масове погодження рахунків стрес-сторінки (SPEC §8.1 стани 12–14, ADR-0018): підтвердження з
@@ -35,46 +35,33 @@ const useApproveT = () =>
   useTranslation("demo", { keyPrefix: "dataPage.approve" }).t
 
 /**
- * Кнопка «Погодити» для панелі вибраного й діалог підтвердження. Діалог — на сторінці, а не в
- * панелі: після запуску вибір знімається, панель зникає, а діалог має закритись і повернути фокус
- * на таблицю.
+ * Запуск задачі погодження й сповіщення з прогресом — для панелі вибраного й картки рахунку.
+ * Повертає, чи задачу прийнято: тоді повторне «Погодити» її не дублює.
  */
-export function useApproveAction(
-  selection: RowSelection,
-  /** Фільтр списку: для вибору «усі за фільтром». */
-  filter: Record<string, FilterValue>,
-) {
+export function useStartApproval() {
   const t = useApproveT()
   const format = useFormat()
   const errorMessage = useApiErrorMessage()
   const dataProvider = useDataProvider<ErpDataProvider>()
-  const { canAccess } = useCanAccess({ resource: RESOURCE, action: "approve" })
-  const [open, setOpen] = useState(false)
-  // Кількість лишається в заголовку, поки діалог зникає після запуску.
-  const [count, setCount] = useState(0)
-  const table = useRef<Element | null>(null)
 
-  const start = async () => {
+  const start = async (target: BulkSelection) => {
     // Спершу чанк: якщо він не завантажився, задачу не запущено й видно чому.
     const { showJobProgress } = await loadJobProgress()
-    const { jobId } = await dataProvider.startBulk(
-      RESOURCE,
-      "approve",
-      toBulkSelection(selection.state, filter),
-    )
+    const { jobId } = await dataProvider.startBulk(RESOURCE, "approve", target)
     return { showJobProgress, jobId }
   }
 
-  const approve = async () => {
-    const started = await start().catch((error: unknown) => {
+  /** `onSettled` — задача завершилась (дію, вимкнену на час задачі, можна ввімкнути). */
+  return async (
+    target: BulkSelection,
+    { onSettled }: { onSettled?: () => void } = {},
+  ): Promise<boolean> => {
+    const started = await start(target).catch((error: unknown) => {
       toast.error(t("startFailed", { message: errorMessage(error) }))
       return null
     })
-    if (!started) return
-    // Задачу прийнято: далі лише показ, тож повторне «Погодити» її не дублює.
+    if (!started) return false
     const { showJobProgress, jobId } = started
-    setOpen(false)
-    selection.clear()
     showJobProgress({
       jobId,
       title: t("progress"),
@@ -88,7 +75,43 @@ export function useApproveAction(
           : t("done", { value: format.number(job.succeeded) }),
       failureLabel: (code) =>
         isReason(code) ? t(`reasons.${code}`) : undefined,
+      onSettled,
     })
+    return true
+  }
+}
+
+/** Прогрів чанка прогресу при відкритті підтвердження; збій покаже запуск задачі. */
+export function preloadJobProgress() {
+  loadJobProgress().catch(() => undefined)
+}
+
+/**
+ * Кнопка «Погодити» для панелі вибраного й діалог підтвердження. Діалог — на сторінці, а не в
+ * панелі: після запуску вибір знімається, панель зникає, а діалог має закритись і повернути фокус
+ * на таблицю.
+ */
+export function useApproveAction(
+  selection: RowSelection,
+  /** Фільтр списку: для вибору «усі за фільтром». */
+  filter: Record<string, FilterValue>,
+) {
+  const t = useApproveT()
+  const format = useFormat()
+  const startApproval = useStartApproval()
+  const { canAccess } = useCanAccess({ resource: RESOURCE, action: "approve" })
+  const [open, setOpen] = useState(false)
+  // Кількість лишається в заголовку, поки діалог зникає після запуску.
+  const [count, setCount] = useState(0)
+  const table = useRef<Element | null>(null)
+
+  const approve = async () => {
+    const started = await startApproval(
+      toBulkSelection(selection.state, filter),
+    )
+    if (!started) return
+    setOpen(false)
+    selection.clear()
   }
 
   const Icon = ACTION_ICONS.approve
@@ -97,8 +120,7 @@ export function useApproveAction(
       <Button
         size="sm"
         onClick={(event) => {
-          // Прогрів; збій покаже запуск задачі.
-          loadJobProgress().catch(() => undefined)
+          preloadJobProgress()
           table.current = event.currentTarget.closest(
             '[data-slot="data-table"]',
           )
@@ -110,16 +132,10 @@ export function useApproveAction(
         {t("button")}
       </Button>
     ) : (
-      // SPEC §8.4: дія без права — неактивна, але у фокусі й пояснює причину.
-      <Tooltip>
-        <TooltipTrigger
-          render={<Button size="sm" disabled focusableWhenDisabled />}
-        >
-          <Icon aria-hidden />
-          {t("button")}
-        </TooltipTrigger>
-        <TooltipContent>{t("hint")}</TooltipContent>
-      </Tooltip>
+      <DeniedAction variant="default" size="sm" reason={t("hint")}>
+        <Icon aria-hidden />
+        {t("button")}
+      </DeniedAction>
     )
 
   const value = format.number(count)

@@ -220,6 +220,23 @@ export function SectionSkeleton({
 const LOADING_ANNOUNCE_DELAY_MS = 1000
 
 /**
+ * Оголосити завантаження, якщо воно триває понад 1 с (SPEC §8.2), — через постійний live-регіон
+ * (lib/announce): новий `role="status"` скрінрідер часто не озвучує. Для скелетонів і fallback.
+ */
+export function useLoadingAnnouncement(message: string): void {
+  React.useEffect(() => {
+    let cancel: (() => void) | undefined
+    const timer = setTimeout(() => {
+      cancel = announce(message)
+    }, LOADING_ANNOUNCE_DELAY_MS)
+    return () => {
+      clearTimeout(timer)
+      cancel?.()
+    }
+  }, [message])
+}
+
+/**
  * Частина, що ще вантажиться (лінивий чанк сторінки, вміст палітри): спінер з `aria-busy`, а якщо
  * вантаження триває понад 1 с, — «Завантаження» через постійний live-регіон (lib/announce):
  * новий `role="status"` у fallback скрінрідер часто не озвучує.
@@ -233,17 +250,7 @@ export function LoadingFallback({
   className?: string
 }) {
   const t = useErpUiT()
-  const message = label ?? t("common.loading")
-  React.useEffect(() => {
-    let cancel: (() => void) | undefined
-    const timer = setTimeout(() => {
-      cancel = announce(message)
-    }, LOADING_ANNOUNCE_DELAY_MS)
-    return () => {
-      clearTimeout(timer)
-      cancel?.()
-    }
-  }, [message])
+  useLoadingAnnouncement(label ?? t("common.loading"))
   return (
     <div
       data-slot="loading-fallback"

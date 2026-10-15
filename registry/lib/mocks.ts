@@ -98,6 +98,11 @@ export interface MockResourceOptions<T extends MockRecord> {
   titleField?: keyof T & string
   /** Назви полів для «було → стало» в журналі. */
   fieldLabels?: Partial<Record<keyof T & string, LocalizedText>>
+  /**
+   * Поля картки понад рядок списку (рядки документа): `GET /<ресурс>/:id`, POST, PATCH і `current`
+   * конфлікту 409 віддають запис із ними, список — ні (ADR-0019).
+   */
+  detail?: (record: T) => Record<string, unknown>
 }
 
 function matches(value: unknown, op: string, raw: FilterValue): boolean {
@@ -172,6 +177,7 @@ export function createResourceHandlers<T extends MockRecord>({
   label,
   titleField = searchFields[0],
   fieldLabels = {},
+  detail,
 }: MockResourceOptions<T>) {
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
@@ -256,6 +262,11 @@ export function createResourceHandlers<T extends MockRecord>({
   const notFound = () =>
     errorResponse(404, { code: "not_found", message: `${resource}: not found` })
 
+  /** Запис, яким його бачить картка. */
+  // Поля самого запису (id, version) — головніші: деталі лише додають вкладене.
+  const full = (record: T) =>
+    detail ? { ...detail(record), ...record } : record
+
   /** Зміна запису → журнал аудиту й шина подій (вебхуки, далі реальний час). */
   const changed = (
     verb: "created" | "updated" | "deleted",
@@ -338,7 +349,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const record = all()
         .filter(inCompany(request.headers.get(COMPANY_HEADER)))
         .find((r) => r.id === params.id)
-      return record ? json(record) : notFound()
+      return record ? json(full(record)) : notFound()
     }),
 
     http.post(url, async ({ request }) => {
@@ -360,7 +371,7 @@ export function createResourceHandlers<T extends MockRecord>({
       }
       replace([parsed.data, ...all()])
       changed("created", parsed.data)
-      return json(parsed.data, { status: 201 })
+      return json(full(parsed.data), { status: 201 })
     }),
 
     http.patch(`${url}/:id`, async ({ params, request }) => {
@@ -384,7 +395,7 @@ export function createResourceHandlers<T extends MockRecord>({
         return errorResponse(409, {
           code: "conflict",
           message: "Record was changed by someone else",
-          current: latest,
+          current: full(latest),
         })
       }
       const result = patch(latest.id, changes)
@@ -396,7 +407,7 @@ export function createResourceHandlers<T extends MockRecord>({
           fieldErrors: result.fieldErrors,
         })
       }
-      return json(result.record)
+      return json(full(result.record))
     }),
 
     http.delete(`${url}/:id`, async ({ params }) => {

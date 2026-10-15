@@ -132,6 +132,13 @@ export const uk = {
     ascending: "{{column}}, за зростанням",
     descending: "{{column}}, за спаданням",
   },
+  objectPage: {
+    details: "Подробиці",
+  },
+  recordHeader: {
+    stepOf: "{{step}} з {{total}}",
+    stepDone: "виконано",
+  },
   ra: {
     notification: {
       updated: "Зміни збережено",

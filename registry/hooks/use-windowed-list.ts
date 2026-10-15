@@ -11,6 +11,8 @@
  * - Ключ вікна такий самий, як у `useGetList` ra-core: `[resource, "getList", { pagination, sort,
  *   filter, meta }]`. Тож `useUpdate` ra-core оновлює рядки у вікнах після збереження.
  * - Компанія — у `meta` (`companyScope`): дані іншої компанії не потрапляють у цей ключ.
+ * - Як і `useGetList`, вікно кладе свої рядки в кеш `getOne` (`[resource, "getOne", { id, meta }]`),
+ *   якщо там ще нічого немає: картка запису показує шапку одразу, поки вантажить деталі (ADR-0019).
  * - Новий фільтр чи сортування: поки перше вікно летить, показуються попередні рядки
  *   (`isRefreshing`), а не скелетон (SPEC §8.1, стан 3). Після перемикання компанії — лише скелетон.
  *   «Оновити» (`refetch`) теж показує `isRefreshing`; тихе фонове оновлення вікон — ні, щоб
@@ -169,6 +171,7 @@ function useWindowQueries<T extends RaRecord>(
   windowSize: number,
 ): WindowResult<T>[] {
   const dataProvider = useDataProvider()
+  const queryClient = useQueryClient()
   return useQueries({
     queries: pages.map((page) => ({
       queryKey: windowKey(resource, base, page, windowSize),
@@ -185,6 +188,11 @@ function useWindowQueries<T extends RaRecord>(
         if (typeof total !== "number")
           throw new Error(
             `useWindowedList: getList("${resource}") must return total`,
+          )
+        for (const record of data)
+          queryClient.setQueryData<T>(
+            [resource, "getOne", { id: String(record.id), meta: base.meta }],
+            (cached) => cached ?? record,
           )
         return { data, total }
       },

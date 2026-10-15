@@ -58,6 +58,10 @@ export const AuthPage = lazyWithPreload(() =>
 export const ModulePage = lazyWithPreload(() =>
   import("./ModulePage").then((m) => m.ModulePage),
 )
+// Картка рахунку (шаблон Object Page): журнал аудиту й діалог зміни — у її чанку, не в списку.
+export const InvoicePage = lazyWithPreload(() =>
+  import("./InvoicePage").then((m) => m.InvoicePage),
+)
 
 // Панель розробника — частина шару моків, поза бюджетом першого екрана (ADR-0009).
 export const DevPanel = lazyWithPreload(() =>
@@ -78,6 +82,8 @@ export function preloadPage(href: string): void {
       ? AuthPage
       : location.route === "module"
         ? ModulePage
-        : PAGES[location.route]
+        : location.route === "invoice"
+          ? InvoicePage
+          : PAGES[location.route]
   void page.preload()
 }

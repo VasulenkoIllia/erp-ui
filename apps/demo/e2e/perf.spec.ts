@@ -37,10 +37,17 @@ declare global {
   }
 }
 
+const PHONE = { width: 390, height: 844 }
+const DESKTOP = { width: 1440, height: 900 }
+
 /** Нова вкладка з холодним кешем, сповільненням і спостерігачами LCP та Event Timing. */
-async function openThrottled(browser: Browser, cpuRate: number): Promise<Page> {
+async function openThrottled(
+  browser: Browser,
+  cpuRate: number,
+  viewport = PHONE,
+): Promise<Page> {
   const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
+    viewport,
     locale: "uk-UA",
     timezoneId: "Europe/Kyiv",
   })
@@ -150,26 +157,52 @@ async function interactWithList(page: Page) {
   await page.keyboard.press("Escape")
 }
 
-test.describe("швидкість @perf", () => {
-  test("стрес-сторінка: перший екран і відгук на дії", async ({ browser }) => {
-    test.setTimeout(180_000)
-    const lcp: number[] = []
-    const inp: number[] = []
-    const slowest: string[] = []
-    const cpu = await calibratedSlowdown(browser)
-    for (let run = 0; run < RUNS; run++) {
-      const page = await openThrottled(browser, cpu.rate)
+/**
+ * Грід на десктопі (перевірка 0.6d): прапорці рядків, «вибрати всі за фільтром» і редактори клієнта
+ * й суми в комірці. Кожна комірка має свій `useUpdate`, а рядок гріда не мемоізований — чи не
+ * виходить клік по прапорцю за бюджет INP.
+ */
+async function interactWithGrid(page: Page) {
+  const grid = page.getByRole("grid", { name: "Рахунки клієнтам" })
+  const rows = grid.locator('[role="row"][data-index]')
+  for (let i = 0; i < 3; i++) await rows.nth(i).getByRole("checkbox").click()
+  const all = page.getByRole("checkbox", { name: "Вибрати всі за фільтром" })
+  await all.click()
+  await all.click()
+  // Клієнт і сума: кнопка значення відкриває поле, Escape повертає кнопку.
+  for (const column of ["3", "6"]) {
+    await rows
+      .first()
+      .locator(`[aria-colindex="${column}"]`)
+      .getByRole("button")
+      .click()
+    await expect(grid.getByRole("textbox")).toBeFocused()
+    await page.keyboard.press("Escape")
+    await expect(grid.getByRole("textbox")).toBeHidden()
+  }
+}
+
+/** Медіана LCP і INP за RUNS прогонів: відкрити сторінку й виконати дії. */
+async function measure(
+  browser: Browser,
+  rate: number,
+  viewport: typeof PHONE,
+  ready: (page: Page) => Promise<void>,
+  interact: (page: Page) => Promise<void>,
+) {
+  const lcp: number[] = []
+  const inp: number[] = []
+  const slowest: string[] = []
+  for (let run = 0; run < RUNS; run++) {
+    const page = await openThrottled(browser, rate, viewport)
+    // Збій заміру не лишає живий контекст із уповільненням: він спотворив би наступні.
+    try {
       await page.goto(DATA)
-      // Стрес-сторінка (SPEC §18.1): 10 000 рахунків, на 390 px — картки.
-      await expect(
-        page.getByRole("feed").getByRole("article").first(),
-      ).toBeVisible({
-        timeout: 30_000,
-      })
+      await ready(page)
       // LCP фіксується до першої взаємодії — даємо сторінці домалюватись.
       await page.waitForTimeout(500)
       lcp.push(await page.evaluate(() => window.__perf.lcp))
-      await interactWithList(page)
+      await interact(page)
       await page.waitForTimeout(500)
       inp.push(await page.evaluate(() => window.__perf.inp))
       slowest.push(await page.evaluate(() => window.__perf.slowest))
@@ -184,20 +217,66 @@ test.describe("швидкість @perf", () => {
       expect(interactions, "взаємодії враховано").toBeGreaterThanOrEqual(
         MIN_INTERACTIONS,
       )
+    } finally {
       await page.context().close()
     }
-    const result = {
-      lcp: median(lcp),
-      inp: median(inp),
-      cpu,
-      runs: { lcp, inp, slowest },
-    }
+  }
+  return { lcp: median(lcp), inp: median(inp), runs: { lcp, inp, slowest } }
+}
+
+test.describe("швидкість @perf", () => {
+  test("стрес-сторінка: перший екран і відгук на дії", async ({ browser }) => {
+    test.setTimeout(180_000)
+    const cpu = await calibratedSlowdown(browser)
+    const measured = await measure(
+      browser,
+      cpu.rate,
+      PHONE,
+      async (page) => {
+        // Стрес-сторінка (SPEC §18.1): 10 000 рахунків, на 390 px — картки.
+        await expect(
+          page.getByRole("feed").getByRole("article").first(),
+        ).toBeVisible({ timeout: 30_000 })
+      },
+      interactWithList,
+    )
+    const result = { ...measured, cpu }
     console.log(`perf ${DATA}: ${JSON.stringify(result)}`)
     test.info().annotations.push({
       type: "perf",
       description: JSON.stringify(result),
     })
     expect(result.lcp, "LCP, мс").toBeLessThanOrEqual(LCP_BUDGET_MS)
+    expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
+  })
+
+  test("стрес-сторінка на десктопі: прапорці й редагування в комірці", async ({
+    browser,
+  }) => {
+    test.setTimeout(180_000)
+    const cpu = await calibratedSlowdown(browser)
+    const result = {
+      ...(await measure(
+        browser,
+        cpu.rate,
+        DESKTOP,
+        async (page) => {
+          await expect(
+            page
+              .getByRole("grid", { name: "Рахунки клієнтам" })
+              .locator('[role="row"][data-index]')
+              .first(),
+          ).toBeVisible({ timeout: 30_000 })
+        },
+        interactWithGrid,
+      )),
+      cpu,
+    }
+    console.log(`perf ${DATA} 1440: ${JSON.stringify(result)}`)
+    test.info().annotations.push({
+      type: "perf",
+      description: JSON.stringify(result),
+    })
     expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
   })
 })

@@ -23,7 +23,11 @@ import { useLogout } from "ra-core"
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router"
+import {
+  Link,
+  useNavigate,
+  useLocation as useRouterLocation,
+} from "react-router"
 import { toast } from "sonner"
 
 import {
@@ -80,11 +84,13 @@ import {
   AuthPage,
   DevPanel,
   ImpersonationBanner,
+  InvoicePage,
   ModulePage,
   PAGES,
   preloadPage,
 } from "@/pages/lazy-pages"
 import {
+  listSearchOf,
   LOGIN_PATH,
   moduleHref,
   ROUTES,
@@ -290,6 +296,8 @@ function Shell({
   const { t } = useTranslation()
   const kitT = useErpUiT()
   const navigate = useNavigate()
+  // Крихта «Дані й моки» з картки веде до списку з тими ж фільтрами, що й «До списку».
+  const routerState: unknown = useRouterLocation().state
   const logout = useLogout()
   const breakpoint = useBreakpoint()
   const meQuery = useMe()
@@ -410,12 +418,21 @@ function Shell({
     return [...pages, ...actions, ...appearance]
   }, [nav, t, kitT, navigate])
 
+  // Картка рахунку — частина стрес-сторінки «Дані й моки»: та сама позначка в навігації.
   const activeId =
-    location.route === "module" ? location.moduleId : location.route
+    location.route === "module"
+      ? location.moduleId
+      : location.route === "invoice"
+        ? "data"
+        : location.route
   const group = nav.find((g) => g.items.some((item) => item.id === activeId))
   const current = group?.items.find((item) => item.id === activeId)
   const Page =
-    PAGES[location.route === "module" ? "appearance" : location.route]
+    PAGES[
+      location.route === "module" || location.route === "invoice"
+        ? "appearance"
+        : location.route
+    ]
 
   return (
     <>
@@ -453,7 +470,15 @@ function Shell({
         }
         breadcrumbs={[
           { label: group?.label ?? "" },
-          { label: current?.label ?? "" },
+          location.route === "invoice"
+            ? {
+                label: current?.label ?? "",
+                href: `${ROUTES.data}${listSearchOf(routerState)}`,
+              }
+            : { label: current?.label ?? "" },
+          ...(location.route === "invoice"
+            ? [{ label: t("app.pages.invoice") }]
+            : []),
         ]}
         header={
           me && company ? (
@@ -554,10 +579,18 @@ function Shell({
         }
       >
         {/* Ключ — адреса: перехід на іншу сторінку скидає помилку попередньої. */}
-        <ErrorBoundary key={activeId}>
+        <ErrorBoundary
+          key={
+            location.route === "invoice"
+              ? `${activeId}/${location.id}`
+              : activeId
+          }
+        >
           <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />
+            ) : location.route === "invoice" ? (
+              <InvoicePage id={location.id} />
             ) : (
               <Page />
             )}

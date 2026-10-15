@@ -111,10 +111,10 @@ erp-ui/
 | Збірка | React 19, Vite, TypeScript | MIT | |
 | Стилі | Tailwind CSS v4 | MIT | контейнерні запити для адаптиву |
 | Примітиви | shadcn/ui (CLI v4) на Base UI | MIT | Radix не використовуємо в нових компонентах |
-| CRUD | ra-core 5 + Shadcn Admin Kit | MIT | React Router; dataProvider під наш REST-контракт |
+| CRUD | ra-core 5 + Shadcn Admin Kit | MIT | React Router; dataProvider під наш REST-контракт; з ra-core беремо хуки й провайдери, Admin Kit — джерело коду для перебудови, не залежність (ADR-0005) |
 | Дані | TanStack Query 5 | MIT | |
 | Форми | react-hook-form + zod 4, @hookform/resolvers | MIT | шар форм кіта — ADR-0015; Shadcn Admin Kit ще на zod 3 — вирівняти при підключенні |
-| Таблиці | TanStack Table 9 + TanStack Virtual; ReUI Data Grid | MIT | на телефоні — рендерер карток |
+| Таблиці | TanStack Table 9 + TanStack Virtual; ReUI Data Grid | MIT | власна `erp/data-table` (ADR-0016), ReUI — довідка; на телефоні — рендерер карток |
 | Важкі гріди | AG Grid Community | MIT | тема через CSS-змінні `var(--token)`; Enterprise лише під клієнта |
 | Бізнес-компоненти | ReUI, Dice UI; Kibo UI як джерело коду | MIT | |
 | Канбан і DnD | dnd-kit (через ReUI/Dice) | MIT | меню «Перемістити в…» обов'язкове |
@@ -230,7 +230,7 @@ erp-ui/
 | Шаблон | Для чого | Склад | Джерело патерну |
 |---|---|---|---|
 | **List Report** | будь-який список сутностей | заголовок + дії; вкладки-статуси; FilterBar з чипами активних фільтрів; SavedViews; BulkActionBar; DataTable (картки на телефоні); пагінація | SAP Fiori |
-| **Object Page** | картка запису | RecordHeader (назва, статус, ключові поля, дії); StatusBar; секції/вкладки; редагування з чернеткою; стрічка запису (UI01) праворуч або вкладкою | SAP Fiori, Odoo chatter |
+| **Object Page** | картка запису | RecordHeader (назва, статус, ключові поля, дії); StatusBar; секції/вкладки; редагування з чернеткою; стрічка запису (UI01) праворуч або вкладкою (за шириною контейнера); у реєстрі — `templates/object-page` і `erp/record-header` (ADR-0019) | SAP Fiori, Odoo chatter |
 | **Worklist** | черги: погодження, задачі, звернення | список з пріоритетами й SLA; дія в рядку; масова обробка | SAP Fiori |
 | **Overview** | рольовий дашборд модуля | KPI-плитки, картки графіків, «потребує уваги»; 1→2→3→4 колонки | SAP Fiori OVP |
 | **Wizard** | рідкісні складні створення, імпорт, налаштування | кроки зі збереженням прогресу; фінальний огляд лише для читання | SAP Fiori, Cloudscape |
@@ -524,7 +524,7 @@ erp-ui/
 | `README.md` | призначення, ID, залежності від UI/PF, що реалізує бекенд |
 
 Конвенції (ADR-0002, ADR-0003):
-- Ресурси — `/api/v1/<ресурс>`: `GET` список і запис, `POST`, `PATCH` (лише змінені поля), `DELETE`.
+- Ресурси — `/api/v1/<ресурс>`: `GET` список і запис, `POST`, `PATCH` (лише змінені поля), `DELETE`. Запис (`GET /:id`, а також відповіді `POST` і `PATCH`) — детальний, з вкладеними колекціями (рядки документа); список їх не віддає (ADR-0019).
 - Список — плоскі параметри: `status=paid&status=sent&amount_gte=10000&q=…&sort=-date,number&page=2&perPage=50`; відповідь — `{ data, total }`.
 - Помилки мають єдиний формат: `{ code, message, fieldErrors?, providerCode?, providerMessage?, current? }`.
 - Гроші — цілі мінорні одиниці + код валюти; дати — ISO 8601 в UTC, форматування лише на клієнті.

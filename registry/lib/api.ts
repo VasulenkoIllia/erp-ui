@@ -189,6 +189,15 @@ export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }
 
+/** Стан сторінки для помилки запиту (erp/page-state): офлайн, немає доступу чи помилка з повтором. */
+export function errorStateKind(
+  error: unknown,
+): "offline" | "forbidden" | "error" {
+  if (isApiError(error) && error.code === "offline") return "offline"
+  if (isApiError(error) && error.status === 403) return "forbidden"
+  return "error"
+}
+
 /** Відповідь списку: `{ data, total }`. */
 export function listResultSchema<T extends z.ZodType>(item: T) {
   return z.object({ data: z.array(item), total: z.number().int().min(0) })

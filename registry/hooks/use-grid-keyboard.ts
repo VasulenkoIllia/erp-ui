@@ -21,8 +21,9 @@ import {
   type GridPosition,
 } from "@/registry/lib/data-table-core"
 
+/** `data-grid-skip` — фокусоване лише програмно (оболонка редактора), не зупинка Tab клітинки. */
 const FOCUSABLE =
-  "a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([data-cell])"
+  "a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([data-cell]):not([data-grid-skip])"
 /** Елементи, яким потрібні стрілки й Home/End самі: навігацію гріда тоді не перехоплюємо. */
 const TEXT_ENTRY =
   "input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable=''], [contenteditable='true'], [role=combobox], [role=textbox], [aria-expanded=true]"

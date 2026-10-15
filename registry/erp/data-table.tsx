@@ -1,11 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, RefreshCwIcon } from "lucide-react"
+import { RefreshCwIcon } from "lucide-react"
 import type { SortPayload } from "ra-core"
 
 import { CardSortSelect, DataTableCards } from "@/registry/erp/data-table-cards"
 import { DataTableGrid } from "@/registry/erp/data-table-grid"
+import {
+  DataTablePager,
+  useClampPage,
+  type DataTablePagination,
+} from "@/registry/erp/data-table-pager"
 import {
   SelectionBar,
   SelectionProvider,
@@ -21,7 +26,7 @@ import {
   useFillHeight,
 } from "@/registry/hooks/use-element-size"
 import type { WindowedList } from "@/registry/hooks/use-windowed-list"
-import { isApiError } from "@/registry/lib/api"
+import { errorStateKind } from "@/registry/lib/api"
 import {
   DEFAULT_MIN_WIDTH,
   layoutColumns,
@@ -54,14 +59,7 @@ import { Spinner } from "@/registry/ui/spinner"
  * - Вибір рядків і масові дії (`selection` з `useRowSelection`, ADR-0018) — erp/data-table-selection.
  */
 
-export interface DataTablePagination {
-  /** Сторінка, якій належать показані `rows` (поки летить наступна — ще попередня). */
-  page: number
-  perPage: number
-  total: number
-  /** Сторінка за межами списку (записи видалили) — таблиця сама попросить останню. */
-  onPageChange: (page: number) => void
-}
+export type { DataTablePagination }
 
 /** Джерело рядків: великий список вікнами або малий список (сторінка). */
 export type DataTableRows<T> =
@@ -108,12 +106,6 @@ export type DataTableProps<T> = DataTableRows<T> &
   }
 
 const CARDS_BELOW_REM = 40
-
-function errorKind(error: unknown): "error" | "offline" | "forbidden" {
-  if (isApiError(error) && error.code === "offline") return "offline"
-  if (isApiError(error) && error.status === 403) return "forbidden"
-  return "error"
-}
 
 function toSource<T>(
   list: WindowedList<T> | undefined,
@@ -226,7 +218,7 @@ export function DataTable<T extends object>({
 
   let body: React.ReactNode
   if (showsError) {
-    const kind = errorKind(error)
+    const kind = errorStateKind(error)
     body = (
       <PageState
         kind={kind}
@@ -327,7 +319,7 @@ export function DataTable<T extends object>({
           {body}
         </div>
         {pagination && count > 0 && !error && !isPending ? (
-          <Pager
+          <DataTablePager
             pagination={pagination}
             label={label}
             shown={source.rowCount}
@@ -348,57 +340,6 @@ function TableSkeleton() {
         <Skeleton key={i} className="h-row w-full" />
       ))}
     </div>
-  )
-}
-
-function Pager({
-  pagination: { page, perPage, total, onPageChange },
-  label,
-  shown,
-}: {
-  pagination: DataTablePagination
-  label: string
-  shown: number
-}) {
-  const t = useErpUiT()
-  const format = useFormat()
-  const to = Math.min((page - 1) * perPage + shown, total)
-  const from = Math.min((page - 1) * perPage + 1, Math.max(to, 1))
-  return (
-    <nav
-      aria-label={t("dataTable.pagination", { label })}
-      className="flex items-center justify-end gap-2"
-    >
-      <span className="me-2 text-sm text-muted-foreground tabular-nums">
-        {t("dataTable.range", {
-          from: format.number(from),
-          to: format.number(to),
-          total: format.number(total),
-        })}
-      </span>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label={t("dataTable.previous")}
-        disabled={page <= 1}
-        onClick={() => {
-          onPageChange(page - 1)
-        }}
-      >
-        <ChevronLeftIcon aria-hidden />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label={t("dataTable.next")}
-        disabled={to >= total}
-        onClick={() => {
-          onPageChange(page + 1)
-        }}
-      >
-        <ChevronRightIcon aria-hidden />
-      </Button>
-    </nav>
   )
 }
 
@@ -438,27 +379,4 @@ function useFocusAfterSwap(
       }, 0)
     },
   }
-}
-
-/** Сторінка за межами списку (записи видалили, інша компанія) — перейти на останню. */
-function useClampPage(
-  pagination: DataTablePagination | undefined,
-  waiting: boolean,
-) {
-  const lastPage = pagination
-    ? Math.max(Math.ceil(pagination.total / pagination.perPage), 1)
-    : 1
-  const page = pagination?.page ?? 1
-  const onPageChange = pagination?.onPageChange
-  // Одна й та сама сторінка — один запит, поки показані рядки не зміняться.
-  const requested = React.useRef<number | null>(null)
-  React.useEffect(() => {
-    if (waiting || page <= lastPage) {
-      requested.current = null
-      return
-    }
-    if (requested.current === lastPage) return
-    requested.current = lastPage
-    onPageChange?.(lastPage)
-  }, [waiting, page, lastPage, onPageChange])
 }

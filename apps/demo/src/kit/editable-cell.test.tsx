@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { useState } from "react"
+import { lazy, Suspense, useState, type ComponentProps } from "react"
 import { toast } from "sonner"
 import { beforeAll, describe, expect, it, vi } from "vitest"
 
@@ -173,6 +173,90 @@ describe("erp/editable-cell", () => {
     expect(screen.getByRole("textbox", { name: "Клієнт" })).toHaveValue(
       "ТОВ «Альфа»",
     )
+  })
+
+  it("лінивий редактор ще вантажиться: фокус на місці поля, Escape закриває, далі — поле у фокусі", async () => {
+    const user = userEvent.setup()
+    let loaded: (() => void) | undefined
+    const LazyInput = lazy(
+      () =>
+        new Promise<{ default: typeof Input }>((resolve) => {
+          loaded = () => {
+            resolve({ default: Input })
+          }
+        }),
+    )
+    render(
+      <EditableCell
+        value="ТОВ «Альфа»"
+        label="Клієнт"
+        display={(client) => client}
+        editor={({ value, onChange, inputProps }) => (
+          <Suspense fallback={<span>…</span>}>
+            <LazyInput
+              {...(inputProps as ComponentProps<typeof Input>)}
+              value={value}
+              onChange={(event) => {
+                onChange(event.target.value)
+              }}
+            />
+          </Suspense>
+        )}
+        onSave={vi.fn()}
+      />,
+    )
+    const cell = screen.getByRole("button", { name: /ТОВ «Альфа», змінити/ })
+    await user.click(cell)
+    // Поля ще немає: фокус не на body, а на місці поля — Escape працює.
+    expect(screen.getByRole("group", { name: "Клієнт" })).toHaveFocus()
+    await user.keyboard("{Escape}")
+    expect(
+      screen.getByRole("button", { name: /ТОВ «Альфа», змінити/ }),
+    ).toHaveFocus()
+
+    // Знову відкрити й дочекатись чанка: фокус переходить у поле.
+    await user.keyboard("{F2}")
+    loaded?.()
+    await waitFor(() => {
+      expect(screen.getByRole("textbox", { name: "Клієнт" })).toHaveFocus()
+    })
+  })
+
+  it("лінивий редактор ще вантажиться: фокус пішов з оболонки — закрито, пішло вікно — ні", async () => {
+    const user = userEvent.setup()
+    const NeverInput = lazy(
+      () => new Promise<{ default: typeof Input }>(() => undefined),
+    )
+    render(
+      <>
+        <EditableCell
+          value="ТОВ «Альфа»"
+          label="Клієнт"
+          display={(client) => client}
+          editor={({ inputProps }) => (
+            <Suspense fallback={<span>…</span>}>
+              <NeverInput {...(inputProps as ComponentProps<typeof Input>)} />
+            </Suspense>
+          )}
+          onSave={vi.fn()}
+        />
+        <button type="button">Інше</button>
+      </>,
+    )
+    await user.click(
+      screen.getByRole("button", { name: /ТОВ «Альфа», змінити/ }),
+    )
+    const shell = screen.getByRole("group", { name: "Клієнт" })
+    expect(shell).toHaveFocus()
+    // Інша програма: blur без нового елемента у фокусі, оболонка лишається активною.
+    fireEvent.blur(shell)
+    expect(shell).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Інше" }))
+    expect(
+      screen.getByRole("button", { name: /ТОВ «Альфа», змінити/ }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("group", { name: "Клієнт" })).toBeNull()
   })
 
   it("без права — лише значення", () => {

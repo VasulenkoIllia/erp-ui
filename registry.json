@@ -783,6 +783,11 @@
           "target": "@components/erp/permission-gate.tsx"
         },
         {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        },
+        {
           "path": "registry/erp/invitations-section.tsx",
           "type": "registry:component",
           "target": "@components/erp/invitations-section.tsx"
@@ -10744,6 +10749,81 @@
       }
     },
     {
+      "name": "erp/data-table-pager",
+      "type": "registry:component",
+      "title": "Пагінація таблиці",
+      "description": "Частина erp/data-table: сторінки малого списку — «1–50 з 240», попередня й наступна; сторінка за межами списку (записи видалили) — перехід на останню. Ставиться разом з erp/data-table.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/data-table-pager.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-pager.tsx"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "§8.1"
+        ]
+      }
+    },
+    {
       "name": "erp/data-table-selection",
       "type": "registry:component",
       "title": "Вибір рядків у таблиці",
@@ -10900,6 +10980,11 @@
           "path": "registry/erp/data-table-grid.tsx",
           "type": "registry:component",
           "target": "@components/erp/data-table-grid.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-pager.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-pager.tsx"
         },
         {
           "path": "registry/erp/data-table-selection.tsx",
@@ -14370,9 +14455,12 @@
       "name": "erp/permission-gate",
       "type": "registry:component",
       "title": "Перевірка права",
-      "description": "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться.",
+      "description": "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
       "dependencies": [
+        "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
@@ -14490,9 +14578,24 @@
           "target": "@lib/user-timezone.ts"
         },
         {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
         }
       ],
       "meta": {
@@ -15116,6 +15219,65 @@
         "demo": "security",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "erp/record-header",
+      "type": "registry:component",
+      "title": "Шапка запису",
+      "description": "RecordHeader: назва запису як заголовок сторінки, статус, ключові поля й дії (на вузькому контейнері дії під назвою, поля у дві колонки); RecordStatusBar — етапи життєвого циклу з поточним (SPEC §7 Object Page, ADR-0019).",
+      "dependencies": [
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/record-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-header.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "§9",
+          "§10"
         ]
       }
     },
@@ -17781,6 +17943,125 @@
         "spec": [
           "PF11",
           "PF17"
+        ]
+      }
+    },
+    {
+      "name": "templates/object-page",
+      "type": "registry:component",
+      "title": "Картка запису (Object Page)",
+      "description": "Шаблон картки: «Назад до списку», шапка, етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено (SPEC §7, ADR-0019).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/templates/object-page.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/object-page.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "templates",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§7",
+          "§8.1",
+          "§9",
+          "§10",
+          "§18.1"
         ]
       }
     }

@@ -19,7 +19,8 @@
       "roles": "Ролі й права",
       "company": "Компанія",
       "fields": "Дати й числа",
-      "forms": "Форми"
+      "forms": "Форми",
+      "invoice": "Рахунок"
     },
     "product": "erp-ui · демо",
     "signIn": "Увійти",
@@ -420,6 +421,38 @@
     "inline": {
       "amountRequired": "Вкажіть суму"
     }
+  },
+  "invoicePage": {
+    "title": "Рахунок № {{number}}",
+    "back": "До списку рахунків",
+    "steps": "Етапи рахунку",
+    "lines": "Рядки",
+    "linesLabel": "Рядки рахунку № {{number}}",
+    "lineCount_one": "{{value}} рядок",
+    "lineCount_few": "{{value}} рядки",
+    "lineCount_many": "{{value}} рядків",
+    "lineCount_other": "{{value}} рядка",
+    "columns": {
+      "name": "Найменування",
+      "quantity": "Кількість",
+      "price": "Ціна",
+      "total": "Сума"
+    },
+    "units": {
+      "pcs": "шт.",
+      "hour": "год",
+      "month": "міс.",
+      "service": "посл."
+    },
+    "total": "Разом",
+    "inWords": "Сума прописом",
+    "history": "Історія",
+    "comment": "Коментар",
+    "commentSoon": "Коментарі, файли й підписники з'являться в стрічці запису у хвилі 1.",
+    "edit": "Змінити",
+    "approveTitle": "Погодити рахунок № {{number}}?",
+    "approveDescription": "Погодити можна чернетку із сумою до 350 000,00 ₴. Задача йде на сервері, підсумок з'явиться в сповіщенні.",
+    "approveConfirm": "Погодити рахунок"
   },
   "authDemo": {
     "accountsTitle": "Облікові записи демо",

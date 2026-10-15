@@ -5,7 +5,7 @@
  *   node scripts/build-registry.mjs --check  — перевірити, що вони актуальні (CI)
  *
  * Правила (ADR-0004):
- * - елемент із кодом = файл у registry/{ui,erp,lib,hooks}; ім'я — `<тека>/<файл>` (ui/button);
+ * - елемент із кодом = файл у registry/{ui,erp,templates,lib,hooks}; ім'я — `<тека>/<файл>` (ui/button);
  * - кожен елемент несе ВСІ потрібні йому файли реєстру (замикання імпортів @/registry/…), а не
  *   registryDependencies: так `add …#v0.3.0` ставить узгоджений набір з однієї версії;
  * - npm-залежності — з імпортів, версії — з registry/package.json; типи для пакетів без власних
@@ -37,6 +37,7 @@ const KINDS = {
   lib: { type: "registry:lib", target: "@lib" },
   hooks: { type: "registry:hook", target: "@hooks" },
   erp: { type: "registry:component", target: "@components/erp" },
+  templates: { type: "registry:component", target: "@components/templates" },
 }
 const PEERS = new Set(["react", "react-dom"])
 /** Пакети без власних типів → пакет типів, який ставиться як devDependency. */
@@ -53,6 +54,7 @@ const LAYER_TITLES = {
   hooks: "Хуки",
   ui: "Шар 2 · примітиви",
   erp: "Шар 3 · ERP-компоненти",
+  templates: "Шар 4 · шаблони сторінок",
 }
 
 function codeFiles() {
@@ -311,7 +313,16 @@ function catalog(items) {
         const demo = it.meta.demo ? `\`${it.meta.demo}\`` : "—"
         return `| \`${it.name}\` | ${it.title} | ${it.description} | ${it.meta.status} | ${demo} | ${spec} |`
       })
-  const sections = ["base", "tokens", "claude", "lib", "hooks", "ui", "erp"]
+  const sections = [
+    "base",
+    "tokens",
+    "claude",
+    "lib",
+    "hooks",
+    "ui",
+    "erp",
+    "templates",
+  ]
     .map((layer) => {
       const r = rows(layer)
       if (r.length === 0) return ""

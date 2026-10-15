@@ -19,7 +19,8 @@
       "roles": "Roles & permissions",
       "company": "Company",
       "fields": "Dates & numbers",
-      "forms": "Forms"
+      "forms": "Forms",
+      "invoice": "Invoice"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -408,6 +409,36 @@
     "inline": {
       "amountRequired": "Enter an amount"
     }
+  },
+  "invoicePage": {
+    "title": "Invoice {{number}}",
+    "back": "Back to invoices",
+    "steps": "Invoice stages",
+    "lines": "Lines",
+    "linesLabel": "Lines of invoice {{number}}",
+    "lineCount_one": "{{value}} line",
+    "lineCount_other": "{{value}} lines",
+    "columns": {
+      "name": "Item",
+      "quantity": "Quantity",
+      "price": "Price",
+      "total": "Amount"
+    },
+    "units": {
+      "pcs": "pcs",
+      "hour": "hr",
+      "month": "mo",
+      "service": "svc"
+    },
+    "total": "Total",
+    "inWords": "Amount in words",
+    "history": "History",
+    "comment": "Comment",
+    "commentSoon": "Comments, files and followers will arrive with the record feed in wave 1.",
+    "edit": "Edit",
+    "approveTitle": "Approve invoice {{number}}?",
+    "approveDescription": "Only a draft up to 350,000.00 UAH can be approved. The job runs on the server; the result appears in a notification.",
+    "approveConfirm": "Approve invoice"
   },
   "authDemo": {
     "accountsTitle": "Demo accounts",

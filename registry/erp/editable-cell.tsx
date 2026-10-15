@@ -62,12 +62,19 @@ export interface EditableCellProps<V> {
 }
 
 /**
- * Поле редактора монтується лише на час редагування — фокус одразу. Лінивий редактор міг
- * з'явитись, коли людина вже перейшла деінде: тоді фокус не забираємо.
+ * Поле редактора монтується лише на час редагування — фокус одразу. Лінивий редактор з'являється,
+ * коли фокус на його оболонці (чекав на чанк), — фокус переходить у поле; людина вже перейшла
+ * деінде — фокус не забираємо.
  */
 const focusOnMount = (input: HTMLInputElement | null) => {
   const active = input?.ownerDocument.activeElement
-  if (input && (!active || active === input.ownerDocument.body)) input.focus()
+  if (
+    input &&
+    (!active ||
+      active === input.ownerDocument.body ||
+      (active !== input && active.contains(input)))
+  )
+    input.focus()
 }
 
 export function EditableCell<V>({
@@ -105,6 +112,15 @@ export function EditableCell<V>({
     if (editing || !refocus.current) return
     refocus.current = false
     buttonRef.current?.focus()
+  }, [editing])
+
+  // Лінивий редактор ще вантажиться: кнопки значення вже немає, поля ще немає — фокус на оболонку,
+  // щоб Escape і вихід фокуса працювали й тоді (інакше фокус падає на body).
+  const shellRef = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => {
+    const active = document.activeElement
+    if (editing && (!active || active === document.body))
+      shellRef.current?.focus()
   }, [editing])
 
   if (readOnly) return <>{display(value)}</>
@@ -155,7 +171,30 @@ export function EditableCell<V>({
 
   if (editing)
     return (
-      <EditorShell issue={issue} issueId={issueId}>
+      <EditorShell
+        ref={shellRef}
+        label={label}
+        issue={issue}
+        issueId={issueId}
+        onKeyDown={(event) => {
+          // Поле обробило Escape само; тут — поки поле вантажиться (фокус на оболонці).
+          if (event.key !== "Escape" || event.defaultPrevented) return
+          event.preventDefault()
+          close(true)
+        }}
+        onBlur={(event) => {
+          // Пішли з оболонки, не дочекавшись поля: нічого не змінено — просто закрити. Не закриваємо,
+          // коли редактор уже закривається (Escape) чи пішло все вікно (оболонка лишилась активною).
+          if (
+            closing.current ||
+            event.target !== event.currentTarget ||
+            event.currentTarget === document.activeElement ||
+            event.currentTarget.contains(event.relatedTarget)
+          )
+            return
+          close(false)
+        }}
+      >
         <CellEditor
           render={editor}
           value={draft}
@@ -232,14 +271,25 @@ function CellEditor<V>({
   return render(props)
 }
 
-/** Поле редактора й помилка під ним: спливає (не зсуває рядок) і звучить через live-регіон. */
+/**
+ * Поле редактора й помилка під ним: спливає (не зсуває рядок) і звучить через live-регіон.
+ * Оболонка фокусується сама, поки лінивий редактор вантажиться.
+ */
 function EditorShell({
+  ref,
+  label,
   issue,
   issueId,
+  onKeyDown,
+  onBlur,
   children,
 }: {
+  ref: React.Ref<HTMLDivElement>
+  label: string
   issue: string | null
   issueId: string
+  onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void
+  onBlur: (event: React.FocusEvent<HTMLDivElement>) => void
   children: React.ReactNode
 }) {
   return (
@@ -247,7 +297,20 @@ function EditorShell({
       <TooltipTrigger
         render={(props) => (
           <div {...props} className="w-full min-w-0">
-            {children}
+            {/* eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions -- місце поля, поки воно вантажиться: Escape і вихід фокуса */}
+            <div
+              ref={ref}
+              role="group"
+              aria-label={label}
+              tabIndex={-1}
+              // Не віджет комірки: грід не робить оболонку зупинкою Tab поруч із полем.
+              data-grid-skip=""
+              onKeyDown={onKeyDown}
+              onBlur={onBlur}
+              className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {children}
+            </div>
             <span id={issueId} role="status" className="sr-only">
               {issue}
             </span>

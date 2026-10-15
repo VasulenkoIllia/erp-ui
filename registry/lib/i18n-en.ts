@@ -128,6 +128,13 @@ export const en = {
     ascending: "{{column}}, ascending",
     descending: "{{column}}, descending",
   },
+  objectPage: {
+    details: "Details",
+  },
+  recordHeader: {
+    stepOf: "{{step}} of {{total}}",
+    stepDone: "done",
+  },
   ra: {
     notification: {
       updated: "Changes saved",

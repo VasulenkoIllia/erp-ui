@@ -6,7 +6,7 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--local] [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add base, пакунки data, mocks і auth та всі елементи ui/* і erp/* → tsc → vite build.
+ * shadcn add base, пакунки data, mocks і auth та всі елементи ui/*, erp/* і templates/* → tsc → vite build.
  *
  * --local (CI): повний набір — з реєстру, зібраного з робочої копії (`shadcn build` + локальний
  *   сервер); з GitHub на --ref — лише ui/button в окремий проект, щоб перевірити саму доставку з
@@ -56,7 +56,7 @@ const shadcnVersion = JSON.parse(
 /** Пакунки, які ставить проект: основа, шар даних, моки, вхід. */
 const BUNDLES = ["base", "data", "mocks", "auth"]
 const uiItems = registry.items
-  .filter((it) => /^(ui|erp)\//.test(it.name))
+  .filter((it) => /^(ui|erp|templates)\//.test(it.name))
   .map((it) => it.name)
 /** Елементи з реєстру робочої копії, що ставляться поодинці (--local): найбільше залежностей. */
 const ISOLATED = ["data", "erp/phone-input"]

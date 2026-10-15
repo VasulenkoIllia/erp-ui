@@ -1,6 +1,6 @@
 /**
  * Опис елементів реєстру erp-ui — джерело для registry.json і docs/CATALOG.md (scripts/build-registry.mjs).
- * Кожен файл у registry/{ui,erp,lib,hooks} мусить мати тут запис: так каталог завжди повний.
+ * Кожен файл у registry/{ui,erp,templates,lib,hooks} мусить мати тут запис: так каталог завжди повний.
  *
  * status: draft — у роботі; beta — є в демо й тестах, API може змінитися; stable — після стрес-сторінки (крок 0.6).
  * demo: сторінка демо-застосунку (ключ ROUTES в apps/demo/src/router.ts), де елемент показано в усіх станах.
@@ -672,6 +672,30 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§9", "§10"],
   },
+  "erp/data-table-pager": {
+    title: "Пагінація таблиці",
+    description:
+      "Частина erp/data-table: сторінки малого списку — «1–50 з 240», попередня й наступна; сторінка за межами списку (записи видалили) — перехід на останню. Ставиться разом з erp/data-table.",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§8.1"],
+  },
+  "erp/record-header": {
+    title: "Шапка запису",
+    description:
+      "RecordHeader: назва запису як заголовок сторінки, статус, ключові поля й дії (на вузькому контейнері дії під назвою, поля у дві колонки); RecordStatusBar — етапи життєвого циклу з поточним (SPEC §7 Object Page, ADR-0019).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§9", "§10"],
+  },
+  "templates/object-page": {
+    title: "Картка запису (Object Page)",
+    description:
+      "Шаблон картки: «Назад до списку», шапка, етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено (SPEC §7, ADR-0019).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
+  },
   "erp/status-tabs": {
     title: "Вкладки-статуси",
     description:
@@ -963,7 +987,7 @@ export const CODE_ITEMS = {
   "erp/permission-gate": {
     title: "Перевірка права",
     description:
-      "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться.",
+      "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
     status: "beta",
     demo: "roles",
     spec: ["A2", "PF01"],
