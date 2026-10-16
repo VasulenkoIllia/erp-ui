@@ -8,6 +8,7 @@
       "icons": "Icons",
       "states": "Page states",
       "data": "Data & mocks",
+      "organizations": "Organizations",
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
@@ -21,7 +22,8 @@
       "fields": "Dates & numbers",
       "forms": "Forms",
       "pickers": "Picker & details",
-      "invoice": "Invoice"
+      "invoice": "Invoice",
+      "organization": "Organization"
     },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
@@ -450,6 +452,57 @@
     "noManager": "No manager assigned",
     "remind": "Remind the client",
     "reminded": "Reminder for “{{client}}” sent (demo)"
+  },
+  "organizationsPage": {
+    "title": "Organizations",
+    "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs.",
+    "search": "Search by name or code",
+    "tabsLabel": "Organization type",
+    "tableLabel": "Organizations",
+    "tabs": {
+      "all": "All",
+      "legal": "Companies",
+      "fop": "Sole traders"
+    },
+    "types": {
+      "legal": "Company",
+      "fop": "Sole trader"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "code": "Code",
+      "city": "City"
+    },
+    "count_one": "{{value}} organization",
+    "count_other": "{{value}} organizations"
+  },
+  "organizationPage": {
+    "back": "Back to organizations",
+    "requisites": "Details",
+    "invoices": "Invoices",
+    "history": "History",
+    "edrpou": "EDRPOU",
+    "rnokpp": "RNOKPP",
+    "phone": "Phone",
+    "city": "City",
+    "types": {
+      "legal": "Company",
+      "fop": "Sole trader"
+    },
+    "invoicesLabel": "Invoices of {{name}}",
+    "invoiceCount_one": "{{value}} invoice",
+    "invoiceCount_other": "{{value}} invoices",
+    "invoiceColumns": {
+      "number": "Number",
+      "date": "Date",
+      "status": "Status",
+      "amount": "Amount"
+    },
+    "notes": {
+      "lead": "Notes about {{name}}: a project tab from the extension file.",
+      "hint": "Its code loads separately, only when the tab is opened; the module's record page files did not change for it."
+    }
   },
   "authDemo": {
     "accountsTitle": "Demo accounts",

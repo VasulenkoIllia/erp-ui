@@ -102,6 +102,11 @@ export type DataTableProps<T> = DataTableRows<T> &
     onRefresh?: () => void
     /** Нижче цієї ширини контейнера, rem, — картки замість таблиці. */
     cardsBelow?: number
+    /**
+     * Закріплений запис (ADR-0024): рядок і картка підсвічені, після останнього закріпленого — межа
+     * блоку. Порядок дає сервер: закріплені — першими.
+     */
+    isPinned?: (row: T) => boolean
     className?: string
   }
 
@@ -159,6 +164,7 @@ export function DataTable<T extends object>({
   rowLabel,
   bulkActions,
   selectionLabel,
+  isPinned,
   className,
 }: DataTableProps<T>) {
   const t = useErpUiT()
@@ -243,6 +249,7 @@ export function DataTable<T extends object>({
         height={fillHeight}
         busy={busy}
         isSelected={isSelected}
+        isPinned={isPinned}
       />
     )
   } else {
@@ -259,6 +266,7 @@ export function DataTable<T extends object>({
         busy={busy}
         overflowing={rem !== null && layout.minWidth > rem}
         isSelected={isSelected}
+        isPinned={isPinned}
       />
     )
   }

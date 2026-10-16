@@ -71,8 +71,10 @@ function fakeServer({ views = [] as SavedView[] } = {}) {
     const start = (page - 1) * perPage
     return { data: all.slice(start, start + perPage), total: all.length }
   })
+  // Розмір сторінки ще не запам'ятовували (ADR-0024).
+  const getListSettings = () => Promise.resolve({ perPage: null })
   return {
-    provider: { getList } as unknown as DataProvider,
+    provider: { getList, getListSettings } as unknown as DataProvider,
     getList,
     holdViews: () => {
       holdViews = true

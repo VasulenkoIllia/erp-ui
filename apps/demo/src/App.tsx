@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import {
   Bell,
   Blocks,
+  Building,
   Building2,
   CalendarDays,
   ClipboardCheck,
@@ -87,6 +88,7 @@ import {
   ImpersonationBanner,
   InvoicePage,
   ModulePage,
+  OrganizationPage,
   PAGES,
   preloadPage,
 } from "@/pages/lazy-pages"
@@ -110,6 +112,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   icons: Shapes,
   states: LayoutTemplate,
   data: Database,
+  organizations: Building,
   inbox: Inbox,
   security: ShieldCheck,
   users: Users,
@@ -121,6 +124,15 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   audit: ScrollText,
   integrations: Webhook,
 }
+
+/** Картки записів: сторінка-список, якій вони належать (позначка в навігації, крихти). */
+const RECORD_LISTS = {
+  invoice: "data",
+  organization: "organizations",
+} as const satisfies Record<string, Route>
+type RecordLocation = Extract<Location, { route: keyof typeof RECORD_LISTS }>
+const isRecord = (location: Location): location is RecordLocation =>
+  location.route in RECORD_LISTS
 
 /** Розділи в нижній панелі телефона. */
 const MOBILE_PAGES: Route[] = ["appearance", "primitives", "formats", "states"]
@@ -420,18 +432,20 @@ function Shell({
     return [...pages, ...actions, ...appearance]
   }, [nav, t, kitT, navigate])
 
-  // Картка рахунку — частина стрес-сторінки «Дані й моки»: та сама позначка в навігації.
+  // Картка запису — частина своєї сторінки-списку («Дані й моки», «Організації»): та сама
+  // позначка в навігації.
+  const record = isRecord(location) ? location : null
   const activeId =
     location.route === "module"
       ? location.moduleId
-      : location.route === "invoice"
-        ? "data"
+      : record
+        ? RECORD_LISTS[record.route]
         : location.route
   const group = nav.find((g) => g.items.some((item) => item.id === activeId))
   const current = group?.items.find((item) => item.id === activeId)
   const Page =
     PAGES[
-      location.route === "module" || location.route === "invoice"
+      location.route === "module" || isRecord(location)
         ? "appearance"
         : location.route
     ]
@@ -472,15 +486,13 @@ function Shell({
         }
         breadcrumbs={[
           { label: group?.label ?? "" },
-          location.route === "invoice"
+          record
             ? {
                 label: current?.label ?? "",
-                href: `${ROUTES.data}${listSearchOf(routerState)}`,
+                href: `${ROUTES[RECORD_LISTS[record.route]]}${listSearchOf(routerState)}`,
               }
             : { label: current?.label ?? "" },
-          ...(location.route === "invoice"
-            ? [{ label: t("app.pages.invoice") }]
-            : []),
+          ...(record ? [{ label: t(`app.pages.${record.route}`) }] : []),
         ]}
         header={
           me && company ? (
@@ -581,18 +593,14 @@ function Shell({
         }
       >
         {/* Ключ — адреса: перехід на іншу сторінку скидає помилку попередньої. */}
-        <ErrorBoundary
-          key={
-            location.route === "invoice"
-              ? `${activeId}/${location.id}`
-              : activeId
-          }
-        >
+        <ErrorBoundary key={record ? `${activeId}/${record.id}` : activeId}>
           <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />
             ) : location.route === "invoice" ? (
               <InvoicePage id={location.id} />
+            ) : location.route === "organization" ? (
+              <OrganizationPage id={location.id} />
             ) : (
               <Page />
             )}

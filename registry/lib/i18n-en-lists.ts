@@ -1,5 +1,5 @@
 /**
- * Рядки кіта для списків (ADR-0017, ADR-0018) англійською — ті самі ключі, що в `i18n-uk-lists.ts`.
+ * Рядки кіта для списків (ADR-0017, ADR-0018, ADR-0024) англійською — ті самі ключі, що в `i18n-uk-lists.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 import type { ukLists } from "@/registry/lib/i18n-uk-lists"
@@ -92,5 +92,18 @@ export const enLists = {
     failed:
       "Could not save “{{field}}”: {{message}}. The previous value is back.",
     retry: "Retry",
+  },
+  pins: {
+    column: "Pin",
+    pin: "Pin to top: {{name}}",
+    action: "Pin to top",
+    pinned: "{{name}}: pinned to the top of the list",
+    unpinned: "{{name}}: unpinned",
+    limit:
+      "You have pinned as many records as you can. Unpin one to pin another.",
+    failed: "Could not change the pin: {{message}}",
+  },
+  pageSize: {
+    label: "Rows per page",
   },
 } satisfies ErpUiTranslation<typeof ukLists>

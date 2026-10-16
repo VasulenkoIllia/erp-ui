@@ -14,6 +14,7 @@ export const ROUTES = {
   icons: "/icons",
   states: "/states",
   data: "/data",
+  organizations: "/organizations",
   inbox: "/notifications",
   security: "/settings/security",
   users: "/settings/users",
@@ -43,11 +44,15 @@ export type AuthRoute = keyof typeof AUTH_ROUTES
 
 export const LOGIN_PATH = AUTH_ROUTES.login
 
-/** Сторінка демо, екран входу, картка рахунку (/data/inv-00001) або заглушка модуля ERP (/m/K2). */
+/**
+ * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
+ * (/organizations/org-001) або заглушка модуля ERP (/m/K2).
+ */
 export type Location =
   | { route: Route }
   | { route: "auth"; screen: AuthRoute }
   | { route: "invoice"; id: string }
+  | { route: "organization"; id: string }
   | { route: "module"; moduleId: ModuleId }
 
 export const moduleHref = (id: ModuleId) => `/m/${id}`
@@ -56,6 +61,11 @@ export const moduleHref = (id: ModuleId) => `/m/${id}`
 const INVOICE_PREFIX = `${ROUTES.data}/`
 export const invoiceHref = (id: string) =>
   `${INVOICE_PREFIX}${encodeURIComponent(id)}`
+
+/** Картка організації (шаблон Object Page з вкладками, ADR-0024): `/organizations/<id>`. */
+const ORGANIZATION_PREFIX = `${ROUTES.organizations}/`
+export const organizationHref = (id: string) =>
+  `${ORGANIZATION_PREFIX}${encodeURIComponent(id)}`
 
 /** Стан переходу зі списку на картку: з ним «До списку рахунків» повертає фільтри, вид і вкладку. */
 export const invoiceLinkState = (listSearch: string) => ({ listSearch })
@@ -89,6 +99,11 @@ export function parsePath(pathname: string): Location {
     : ""
   if (invoice && !invoice.includes("/"))
     return { route: "invoice", id: decodeSegment(invoice) }
+  const organization = pathname.startsWith(ORGANIZATION_PREFIX)
+    ? pathname.slice(ORGANIZATION_PREFIX.length)
+    : ""
+  if (organization && !organization.includes("/"))
+    return { route: "organization", id: decodeSegment(organization) }
   const m = /^\/m\/([A-Z]+\d+)$/.exec(pathname)
   if (m && MODULE_IDS.includes(m[1] as ModuleId))
     return { route: "module", moduleId: m[1] as ModuleId }

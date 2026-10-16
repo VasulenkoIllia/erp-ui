@@ -1,10 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { keepPreviousData } from "@tanstack/react-query"
-import { useGetList, type RaRecord, type SortPayload } from "ra-core"
+import type { RaRecord } from "ra-core"
 
-import { DataTable, type DataTableProps } from "@/registry/erp/data-table"
+import type { DataTableProps } from "@/registry/erp/data-table"
 import type { DataTableSelectionProps } from "@/registry/erp/data-table-selection"
 import { FilterBar } from "@/registry/erp/filter-bar"
 import { PageSkeleton } from "@/registry/erp/page-state"
@@ -12,6 +11,7 @@ import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
 import { StatusTabs } from "@/registry/erp/status-tabs"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useListCounts } from "@/registry/hooks/use-list-counts"
+import { useRememberedPerPage } from "@/registry/hooks/use-list-settings"
 import {
   useListState,
   type ListStateApi,
@@ -25,11 +25,15 @@ import {
   useSavedViews,
   type SavedViewsApi,
 } from "@/registry/hooks/use-saved-views"
-import { useWindowedList } from "@/registry/hooks/use-windowed-list"
-import { companyScope } from "@/registry/lib/company-scope"
 import type { FilterDefinition } from "@/registry/lib/filters"
-import type { ListFilter, ListTab } from "@/registry/lib/list-state"
+import { LIST_PAGE_SIZES, withPageSize } from "@/registry/lib/list-settings"
+import type { ListTab } from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
+import {
+  PagedTable,
+  WindowedTable,
+  type ListTableProps,
+} from "@/registry/templates/list-report-tables"
 
 /**
  * Шаблон List Report — список сутностей (SPEC §7, §8.1, §9; ADR-0022).
@@ -43,8 +47,12 @@ import { cn } from "@/registry/lib/utils"
  * - Колонки, фільтри, вкладки й дії — списки з ключами (`id`), порядок — порядок у списку: розширення
  *   модуля додає, ховає чи переставляє елемент за ключем, не знаючи, як модуль його будує (ADR-0020).
  * - `mode`: `scroll` — великий список вікнами по 100 з сервера (useWindowedList), `pages` — малий
- *   список сторінками (`getList` ra-core).
- * - Поки не застосовано вид за замовчуванням, таблиця — скелетон: дані не вантажаться двічі.
+ *   список сторінками (`getList` ra-core) з вибором «Рядків на сторінці», який запам'ятовується для
+ *   ресурсу в особистих налаштуваннях (hooks/use-list-settings, ADR-0024).
+ * - Закріплення записів (ADR-0024): колонку з кнопкою модуль ставить сам (`usePinColumn` з
+ *   erp/pin-toggle), шаблон лише підсвічує закріплені рядки (`isPinned`); порядок дає сервер.
+ * - Поки не застосовано вид за замовчуванням (і не відомий збережений розмір сторінки), таблиця —
+ *   скелетон: дані не вантажаться двічі.
  */
 
 const LIST_REPORT_PER_PAGE = 20
@@ -130,7 +138,7 @@ export interface ListReportBulk<T> {
 
 type TableOptions<T> = Pick<
   DataTableProps<T>,
-  "columns" | "countLabel" | "empty" | "cardsBelow"
+  "columns" | "countLabel" | "empty" | "cardsBelow" | "isPinned"
 >
 
 export interface ListReportProps<T extends RaRecord> extends TableOptions<T> {
@@ -164,8 +172,13 @@ export interface ListReportProps<T extends RaRecord> extends TableOptions<T> {
   tableLabel: string
   bulk?: ListReportBulk<T>
   mode?: "scroll" | "pages"
-  /** Рядків на сторінці в `pages`. */
+  /** Рядків на сторінці в `pages`, поки людина не вибрала свій розмір. */
   perPage?: number
+  /**
+   * Розміри сторінки на вибір у `pages`; вибраний запам'ятовується для ресурсу в особистих
+   * налаштуваннях. `[]` — без вибору й без запитів налаштувань (бекенд їх не вміє, ADR-0021).
+   */
+  perPageOptions?: readonly number[]
   className?: string
 }
 
@@ -182,11 +195,18 @@ export function ListReport<T extends RaRecord>({
   bulk,
   mode = "scroll",
   perPage = LIST_REPORT_PER_PAGE,
+  perPageOptions = LIST_PAGE_SIZES,
   getRowId = recordId,
   className,
   ...options
 }: ListReportProps<T>) {
   const { resource, tabs, filters, list, views, counts, selection } = report
+  const sizes = withPageSize(perPageOptions, perPage)
+  const pageSize = useRememberedPerPage(resource, {
+    fallback: perPage,
+    options: sizes,
+    enabled: mode === "pages" && perPageOptions.length > 0,
+  })
   const selectionProps: DataTableSelectionProps<T> = bulk
     ? {
         selection,
@@ -218,12 +238,18 @@ export function ListReport<T extends RaRecord>({
   }
 
   let content: React.ReactNode = <PageSkeleton rows={8} />
-  if (list.isReady)
+  if (list.isReady && pageSize.isReady)
     content =
       mode === "scroll" ? (
         <WindowedTable {...table} />
       ) : (
-        <PagedTable {...table} perPage={perPage} />
+        <PagedTable
+          {...table}
+          perPage={pageSize.perPage}
+          {...(perPageOptions.length
+            ? { perPageOptions: sizes, onPerPageChange: pageSize.setPerPage }
+            : {})}
+        />
       )
 
   return (
@@ -322,96 +348,4 @@ function renderActions(actions: readonly ListReportAction[] | undefined) {
   return actions?.map((action) => (
     <React.Fragment key={action.id}>{action.node}</React.Fragment>
   ))
-}
-
-type ListTableProps<T> = Pick<
-  DataTableProps<T>,
-  | "label"
-  | "columns"
-  | "getRowId"
-  | "onSortChange"
-  | "isFiltered"
-  | "onResetFilters"
-  | "empty"
-  | "countLabel"
-  | "cardsBelow"
-> &
-  DataTableSelectionProps<T> & {
-    resource: string
-    filter: ListFilter
-    sort: SortPayload
-  }
-
-/** Великий список: віртуальна прокрутка, рядки вікнами по 100 з сервера. */
-function WindowedTable<T extends RaRecord>({
-  resource,
-  filter,
-  sort,
-  ...props
-}: ListTableProps<T>) {
-  const list = useWindowedList<T>(resource, { sort, filter })
-  return <DataTable {...props} sort={sort} list={list} />
-}
-
-/** Малий список: сторінки, як у звичайному списку ra-core. */
-function PagedTable<T extends RaRecord>({
-  resource,
-  filter,
-  sort,
-  perPage,
-  ...props
-}: ListTableProps<T> & { perPage: number }) {
-  const companyId = useCompanyId()
-  // Інший фільтр, сортування чи компанія — знову з першої сторінки; повернення до попереднього
-  // фільтра (A → B → A) теж з першої: збережена сторінка скидається, а не чекає на нього.
-  const listKey = JSON.stringify([resource, filter, sort, companyId, perPage])
-  const [paging, setPaging] = React.useState({ page: 1, listKey })
-  if (paging.listKey !== listKey) setPaging({ page: 1, listKey })
-  const page = paging.listKey === listKey ? paging.page : 1
-  const {
-    data,
-    total,
-    isPending,
-    isFetching,
-    isPlaceholderData,
-    error,
-    refetch,
-    dataUpdatedAt,
-  } = useGetList<T>(
-    resource,
-    {
-      pagination: { page, perPage },
-      sort,
-      filter,
-      meta: companyScope(companyId),
-    },
-    { placeholderData: keepPreviousData },
-  )
-  // Поки летить нова сторінка, видно попередню: номер і діапазон — тих рядків, що на екрані.
-  const [shownPage, setShownPage] = React.useState(page)
-  if (!isPlaceholderData && data && shownPage !== page) setShownPage(page)
-  const retry = () => {
-    void refetch()
-  }
-  return (
-    <DataTable
-      {...props}
-      sort={sort}
-      rows={data}
-      pagination={{
-        page: isPlaceholderData ? shownPage : page,
-        perPage,
-        total: total ?? data?.length ?? 0,
-        onPageChange: (next) => {
-          setPaging({ page: next, listKey })
-        },
-      }}
-      isPending={isPending}
-      isRefreshing={isFetching && !isPending}
-      error={error}
-      onRetry={retry}
-      updatedAt={dataUpdatedAt}
-      onRefresh={retry}
-    />
-  )
 }

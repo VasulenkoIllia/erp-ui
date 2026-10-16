@@ -1,5 +1,4 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { ArrowLeftIcon } from "lucide-react"
 import { useAuthenticated, useCanAccess, useGetOne } from "ra-core"
 import {
   useCallback,
@@ -10,7 +9,7 @@ import {
   type RefObject,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useLocation as useRouterLocation } from "react-router"
+import { useLocation as useRouterLocation } from "react-router"
 
 import { AuditLog } from "@/registry/erp/audit-log"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
@@ -32,7 +31,7 @@ import {
   type ObjectPageHeader,
   type ObjectPageSectionItem,
 } from "@/registry/templates/object-page"
-import { Button, buttonVariants } from "@/registry/ui/button"
+import { Button } from "@/registry/ui/button"
 import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
@@ -42,7 +41,9 @@ import {
   type Invoice,
   type InvoiceStatus,
 } from "@/data/invoices"
-import { listSearchOf, ROUTES } from "@/router"
+import { ROUTES } from "@/router"
+
+import { BackLink } from "./back-link"
 
 import { preloadJobProgress, useStartApproval } from "./invoice-bulk"
 import { EditInvoiceDialog } from "./invoice-edit-dialog"
@@ -199,7 +200,7 @@ function InvoiceCard({
       <ObjectPage
         title={pagesT("invoice")}
         headingRef={heading}
-        back={<BackLink />}
+        back={<BackLink to={ROUTES.data} label={t("back")} />}
         isPending={isPending}
         error={pageError}
         onRetry={retry}
@@ -289,21 +290,6 @@ function useInvoiceHeader(
     fields: recordFields,
     actions: applyKeyedChanges(actions, extensionActions),
   }
-}
-
-/** «До списку рахунків»: з фільтрами, видом і вкладкою, з якими список відкрив картку. */
-function BackLink() {
-  const t = useCardT()
-  const state: unknown = useRouterLocation().state
-  return (
-    <Link
-      to={`${ROUTES.data}${listSearchOf(state)}`}
-      className={buttonVariants({ variant: "ghost", size: "sm" })}
-    >
-      <ArrowLeftIcon aria-hidden />
-      {t("back")}
-    </Link>
-  )
 }
 
 function EditAction({

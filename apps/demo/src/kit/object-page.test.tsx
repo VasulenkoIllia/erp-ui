@@ -1,11 +1,16 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { lazy, useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RecordHeader, RecordStatusBar } from "@/registry/erp/record-header"
 import { ApiError, errorStateKind } from "@/registry/lib/api"
-import { ObjectPage } from "@/registry/templates/object-page"
+import {
+  OBJECT_PAGE_ASIDE_TAB,
+  ObjectPage,
+  type ObjectPageSectionItem,
+} from "@/registry/templates/object-page"
 
 import {
   makeInvoiceLines,
@@ -94,6 +99,130 @@ describe("ObjectPage: стани сторінки", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1)
     expect(screen.getByRole("region", { name: "Рядки" })).toBeInTheDocument()
     await userEvent.click(screen.getByRole("tab", { name: "Історія" }))
+    expect(screen.getByText("Подій ще немає.")).toBeInTheDocument()
+  })
+})
+
+/** Вкладки з адресою: вибрану тримає сторінка, як `?tab=` у демо. */
+function TabsPage({
+  initial = null,
+  onTab = () => undefined,
+  sections = TAB_SECTIONS,
+  ...props
+}: Partial<Parameters<typeof ObjectPage>[0]> & {
+  initial?: string | null
+  onTab?: (id: string) => void
+}) {
+  const [tab, setTab] = useState(initial)
+  return (
+    <Page
+      aside={undefined}
+      sections={sections}
+      tabs={{
+        value: tab,
+        onValueChange: (id) => {
+          onTab(id)
+          setTab(id)
+        },
+      }}
+      {...props}
+    />
+  )
+}
+
+const TAB_SECTIONS: ObjectPageSectionItem[] = [
+  { id: "requisites", title: "Реквізити", content: <p>Код 12345678</p> },
+  { id: "invoices", title: "Рахунки", content: <p>Рахунки клієнта</p> },
+  { id: "notes", title: "Нотатки", content: <p>Нотатки менеджера</p> },
+]
+
+describe("ObjectPage: вкладки секцій (ADR-0024)", () => {
+  it("невідомий ключ — перша вкладка; змонтована лише вибрана, з h2 для переходу заголовками", () => {
+    render(<TabsPage initial="removed-by-extension" />)
+    const tablist = screen.getByRole("tablist", { name: "Розділи запису" })
+    expect(
+      within(tablist)
+        .getAllByRole("tab")
+        .map((tab) => tab.textContent),
+    ).toEqual(["Реквізити", "Рахунки", "Нотатки"])
+    expect(screen.getByRole("tab", { name: "Реквізити" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    )
+    const panel = screen.getByRole("tabpanel")
+    expect(within(panel).getByRole("heading", { level: 2 })).toHaveTextContent(
+      "Реквізити",
+    )
+    expect(screen.getByText("Код 12345678")).toBeInTheDocument()
+    expect(screen.queryByText("Рахунки клієнта")).not.toBeInTheDocument()
+  })
+
+  it("клавіатура (W3C APG): стрілки лише переводять фокус, Enter вибирає й пише ключ", async () => {
+    const user = userEvent.setup()
+    const onTab = vi.fn()
+    render(<TabsPage onTab={onTab} />)
+    await user.click(screen.getByRole("tab", { name: "Реквізити" }))
+    await user.keyboard("{ArrowRight}")
+    const invoices = screen.getByRole("tab", { name: "Рахунки" })
+    expect(invoices).toHaveFocus()
+    expect(screen.queryByText("Рахунки клієнта")).not.toBeInTheDocument()
+    await user.keyboard("{End}")
+    expect(screen.getByRole("tab", { name: "Нотатки" })).toHaveFocus()
+    await user.keyboard("{Home}{ArrowRight}{Enter}")
+    expect(onTab).toHaveBeenLastCalledWith("invoices")
+    expect(screen.getByText("Рахунки клієнта")).toBeInTheDocument()
+    expect(screen.queryByText("Код 12345678")).not.toBeInTheDocument()
+    expect(invoices).toHaveFocus()
+  })
+
+  it("лінивий вміст вкладки — скелетон секції, а не вся картка", async () => {
+    let release: () => void = () => undefined
+    const Notes = lazy(
+      () =>
+        new Promise<{ default: () => React.ReactNode }>((resolve) => {
+          release = () => {
+            resolve({ default: () => <p>Нотатки з чанка</p> })
+          }
+        }),
+    )
+    render(
+      <TabsPage
+        initial="notes"
+        sections={[
+          ...TAB_SECTIONS.slice(0, 2),
+          { id: "notes", title: "Нотатки", content: <Notes /> },
+        ]}
+      />,
+    )
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Рахунок № 2026-0001",
+    )
+    expect(
+      within(screen.getByRole("tabpanel")).getByRole("status", {
+        name: "Завантаження даних",
+      }),
+    ).toBeInTheDocument()
+    release()
+    expect(await screen.findByText("Нотатки з чанка")).toBeInTheDocument()
+  })
+
+  it("вузько зі стрічкою — вона остання вкладка серед секцій", async () => {
+    const user = userEvent.setup()
+    const onTab = vi.fn()
+    render(
+      <TabsPage
+        onTab={onTab}
+        aside={{ label: "Історія", content: <p>Подій ще немає.</p> }}
+      />,
+    )
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Реквізити",
+      "Рахунки",
+      "Нотатки",
+      "Історія",
+    ])
+    await user.click(screen.getByRole("tab", { name: "Історія" }))
+    expect(onTab).toHaveBeenLastCalledWith(OBJECT_PAGE_ASIDE_TAB)
     expect(screen.getByText("Подій ще немає.")).toBeInTheDocument()
   })
 })

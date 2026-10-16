@@ -72,7 +72,11 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (
     <TabsPrimitive.Panel
       data-slot="tabs-content"
-      className={cn("flex-1 text-sm outline-none", className)}
+      // erp-ui: панель — зупинка Tab (Base UI), тож фокус має бути видно (WCAG 2.4.7).
+      className={cn(
+        "flex-1 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
       {...props}
     />
   )

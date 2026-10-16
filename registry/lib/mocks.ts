@@ -8,7 +8,8 @@
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії (`X-Company-Id`); кожна зміна — у журнал аудиту
  *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
- *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018).
+ *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018). `pins` — закріплення записів
+ *   (lib/mock-lists, ADR-0024).
  * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
  * - Кожен обробник ресурсу поважає сценарій із lib/mock-scenarios.
  * - Мок сам перевіряє права, як справжній сервер (SPEC: приховування в UI — лише косметика).
@@ -31,6 +32,7 @@ import {
   recordAudit,
   type MockAuditEvent,
 } from "@/registry/lib/mock-audit"
+import { createPinHandlers, mockPinStore } from "@/registry/lib/mock-lists"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -51,6 +53,7 @@ import {
   type MockMessage,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { pinnedFirst } from "@/registry/lib/pins"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
 export {
@@ -103,6 +106,11 @@ export interface MockResourceOptions<T extends MockRecord> {
    * конфлікту 409 віддають запис із ними, список — ні (ADR-0019).
    */
   detail?: (record: T) => Record<string, unknown>
+  /**
+   * Закріплення записів (ADR-0024): `PUT`/`DELETE /<ресурс>/:id/pin`, `pinned: true` у списку й
+   * картці, закріплені — першим блоком списку.
+   */
+  pins?: boolean
 }
 
 function matches(value: unknown, op: string, raw: FilterValue): boolean {
@@ -178,6 +186,7 @@ export function createResourceHandlers<T extends MockRecord>({
   titleField = searchFields[0],
   fieldLabels = {},
   detail,
+  pins = false,
 }: MockResourceOptions<T>) {
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
@@ -262,6 +271,15 @@ export function createResourceHandlers<T extends MockRecord>({
   const notFound = () =>
     errorResponse(404, { code: "not_found", message: `${resource}: not found` })
 
+  const pinStore = pins ? mockPinStore(resource) : null
+  /** Закріплені поточним користувачем, у порядку закріплення. */
+  const pinnedIds = () => {
+    const userId = currentMockUser()?.id
+    return pinStore && userId ? pinStore.ids(userId) : []
+  }
+  const withPin = (record: T, pinned: readonly string[]) =>
+    pinned.includes(record.id) ? { ...record, pinned: true } : record
+
   /** Запис, яким його бачить картка. */
   // Поля самого запису (id, version) — головніші: деталі лише додають вкладене.
   const full = (record: T) =>
@@ -335,10 +353,16 @@ export function createResourceHandlers<T extends MockRecord>({
       const { page, perPage, sort, filter } = fromSearchParams(
         new URL(request.url).searchParams,
       )
-      const filtered = select(filter, request.headers.get(COMPANY_HEADER), sort)
+      const pinned = pinnedIds()
+      const filtered = pinnedFirst(
+        select(filter, request.headers.get(COMPANY_HEADER), sort),
+        pinned,
+      )
       const start = (page - 1) * perPage
       return json({
-        data: filtered.slice(start, start + perPage),
+        data: filtered
+          .slice(start, start + perPage)
+          .map((record) => withPin(record, pinned)),
         total: filtered.length,
       })
     }),
@@ -349,7 +373,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const record = all()
         .filter(inCompany(request.headers.get(COMPANY_HEADER)))
         .find((r) => r.id === params.id)
-      return record ? json(full(record)) : notFound()
+      return record ? json(full(withPin(record, pinnedIds()))) : notFound()
     }),
 
     http.post(url, async ({ request }) => {
@@ -416,9 +440,21 @@ export function createResourceHandlers<T extends MockRecord>({
       const removed = all().find((r) => r.id === params.id)
       if (!removed) return notFound()
       replace(all().filter((r) => r.id !== params.id))
+      pinStore?.forget(removed.id)
       changed("deleted", removed)
       return noContent()
     }),
+    ...(pinStore
+      ? createPinHandlers({
+          url,
+          store: pinStore,
+          guard: () => guard("read"),
+          exists: (id, request) =>
+            all()
+              .filter(inCompany(request.headers.get(COMPANY_HEADER)))
+              .some((record) => record.id === id),
+        })
+      : []),
   ]
 
   return {

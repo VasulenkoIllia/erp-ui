@@ -48,6 +48,8 @@ export interface DataTableGridProps<T> {
   overflowing: boolean
   /** Вибір рядків (масові дії): `aria-selected` на рядках. */
   isSelected?: (row: T) => boolean
+  /** Закріплені записи: підсвічені, після останнього — межа блоку (ADR-0024). */
+  isPinned?: (row: T) => boolean
 }
 
 const OVERSCAN = 8
@@ -109,6 +111,7 @@ export function DataTableGrid<T extends object>({
   busy,
   overflowing,
   isSelected,
+  isPinned,
 }: DataTableGridProps<T>) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const headerRef = React.useRef<HTMLDivElement>(null)
@@ -241,6 +244,9 @@ export function DataTableGrid<T extends object>({
         >
           {items.map((item) => {
             const original = source.rowAt(item.index)
+            const pinned =
+              original !== undefined && isPinned?.(original) === true
+            const next = pinned ? source.rowAt(item.index + 1) : undefined
             return (
               <GridRow
                 key={item.key}
@@ -253,6 +259,15 @@ export function DataTableGrid<T extends object>({
                 sticky={sticky.offsets}
                 overflowing={overflowing}
                 selected={original && isSelected?.(original)}
+                pinned={
+                  // Межа блоку — лише перед відомим незакріпленим рядком: наступного рядка може
+                  // не бути на цій сторінці чи у вікні, хоча закріплені тривають далі.
+                  pinned
+                    ? next && !isPinned?.(next)
+                      ? "last"
+                      : "inside"
+                    : undefined
+                }
                 top={source.virtual ? item.start - headerHeight : undefined}
                 measureRef={
                   source.virtual ? virtualizer.measureElement : undefined

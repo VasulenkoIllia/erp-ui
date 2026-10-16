@@ -14,12 +14,23 @@ import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Skeleton } from "@/registry/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import {
+  OBJECT_PAGE_ASIDE_TAB,
+  ObjectPageTabStrip,
+  type ObjectPageTabs,
+} from "@/registry/templates/object-page-tabs"
+
+// erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
+export { OBJECT_PAGE_ASIDE_TAB }
+export type { ObjectPageTabs }
 
 /**
  * Шаблон Object Page — картка запису (SPEC §7, §8.1, §9; ADR-0019).
  *
  * - Склад: «Назад до списку» (`back`), шапка (`RecordHeader` з erp/record-header з даних `header`),
  *   смуга етапів (`RecordStatusBar`), секції з h2 (`sections`) і стрічка запису (`aside`, UI01).
+ * - Секції — одна під одною або вкладками (`tabs`, templates/object-page-tabs; ADR-0024): вибрана
+ *   вкладка — в адресі, змонтована лише вона; на вузькому контейнері стрічка — остання вкладка.
  * - Ключові поля й дії шапки, секції — списки з ключами (`id`), порядок на екрані — порядок у списку:
  *   розширення модуля додає, ховає чи переставляє елемент за ключем (ADR-0020, lib/extensions).
  * - Стрічка — праворуч, коли контейнер ширший за `asideBelow` rem; вужчий — вкладки «Подробиці» і
@@ -83,6 +94,8 @@ export interface ObjectPageProps {
   statusBar?: React.ReactNode
   /** Секції запису. */
   sections: readonly ObjectPageSectionItem[]
+  /** Секції вкладками: вибрана — ззовні (адреса). Без цього — одна під одною. */
+  tabs?: ObjectPageTabs
   /** Стрічка запису (UI01): праворуч чи вкладкою. */
   aside?: ObjectPageAside
   /** Нижче цієї ширини контейнера, rem, стрічка — вкладкою. */
@@ -101,6 +114,7 @@ export function ObjectPage({
   header,
   statusBar,
   sections,
+  tabs,
   aside,
   asideBelow = ASIDE_BELOW_REM,
   isPending = false,
@@ -133,15 +147,19 @@ export function ObjectPage({
   } else if (isPending) {
     content = <ObjectPageSkeleton />
   } else {
-    const body = sections.map((section) => (
-      <ObjectPageSection
-        key={section.id}
-        title={section.title}
-        actions={section.actions}
-      >
-        {section.content}
-      </ObjectPageSection>
-    ))
+    const body = tabs ? (
+      <ObjectPageTabStrip items={sections} {...tabs} />
+    ) : (
+      sections.map((section) => (
+        <ObjectPageSection
+          key={section.id}
+          title={section.title}
+          actions={section.actions}
+        >
+          {section.content}
+        </ObjectPageSection>
+      ))
+    )
     content = (
       <>
         {header ? (
@@ -163,7 +181,20 @@ export function ObjectPage({
         ) : null}
         {statusBar}
         {aside ? (
-          narrow === null ? null : (
+          narrow === null ? null : narrow && tabs ? (
+            // Вузько й вкладками — стрічка остання вкладка, а не окремі «Подробиці / Історія».
+            <ObjectPageTabStrip
+              items={[
+                ...sections,
+                {
+                  id: OBJECT_PAGE_ASIDE_TAB,
+                  title: aside.label,
+                  content: aside.content,
+                },
+              ]}
+              {...tabs}
+            />
+          ) : (
             <ObjectPageBody aside={aside} narrow={narrow}>
               {body}
             </ObjectPageBody>

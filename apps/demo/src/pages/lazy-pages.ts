@@ -3,6 +3,7 @@ import { createElement } from "react"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 
 import { invoicesExtension } from "@/extensions/K2-invoices"
+import { organizationsExtension } from "@/extensions/organizations"
 import { parsePath, type Route } from "@/router"
 
 /**
@@ -46,6 +47,10 @@ export const PAGES = {
         },
     ),
   ),
+  // Шаблон List Report сторінками: закріплення й запам'ятаний розмір сторінки (ADR-0024).
+  organizations: lazyWithPreload(() =>
+    import("./OrganizationsPage").then((m) => m.OrganizationsPage),
+  ),
   inbox: lazyWithPreload(() => import("./InboxPage").then((m) => m.InboxPage)),
   security: lazyWithPreload(() =>
     import("./SecurityPage").then((m) => m.SecurityPage),
@@ -86,6 +91,20 @@ export const InvoicePage = lazyWithPreload(() =>
   ),
 )
 
+// Картка організації (Object Page з вкладками, ADR-0024): вкладка розширення проекту — з
+// src/extensions/organizations.ts, як рахунки.
+export const OrganizationPage = lazyWithPreload(() =>
+  import("./OrganizationPage").then(
+    ({ OrganizationPage }) =>
+      function OrganizationWithExtension({ id }: { id: string }) {
+        return createElement(OrganizationPage, {
+          id,
+          extension: organizationsExtension,
+        })
+      },
+  ),
+)
+
 // Панель розробника — частина шару моків, поза бюджетом першого екрана (ADR-0009).
 export const DevPanel = lazyWithPreload(() =>
   import("@/registry/erp/dev-panel").then((m) => m.DevPanel),
@@ -107,6 +126,8 @@ export function preloadPage(href: string): void {
         ? ModulePage
         : location.route === "invoice"
           ? InvoicePage
-          : PAGES[location.route]
+          : location.route === "organization"
+            ? OrganizationPage
+            : PAGES[location.route]
   void page.preload()
 }

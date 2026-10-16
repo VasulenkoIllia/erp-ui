@@ -137,6 +137,7 @@ export const uk = {
   },
   objectPage: {
     details: "Подробиці",
+    tabs: "Розділи запису",
   },
   recordHeader: {
     stepOf: "{{step}} з {{total}}",

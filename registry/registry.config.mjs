@@ -220,7 +220,7 @@ export const CODE_ITEMS = {
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
-      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018).",
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -268,7 +268,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs).",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -336,6 +336,30 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["PF11"],
+  },
+  "hooks/use-list-settings": {
+    title: "Розмір сторінки: дані",
+    description:
+      "useRememberedPerPage: розмір сторінки списку з особистих налаштувань /me/list-settings/<ресурс>; список чекає на них, щоб не просити сторінку двічі; вибір діє одразу й зберігається на сервері, помилка — типовий розмір без повідомлення (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "PF11"],
+  },
+  "hooks/use-pin": {
+    title: "Закріплення: дані",
+    description:
+      "usePin: закріпити чи відкріпити запис для себе; поки запит іде — вибраний стан і жодного повтору; далі оголошення для скрінрідера й перечитування ресурсу; межа закріплених і інші помилки — сповіщенням (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "§10"],
+  },
+  "hooks/use-tab-in-view": {
+    title: "Активна вкладка у видимій частині",
+    description:
+      "useTabInView: на вузькому контейнері смуга вкладок прокручується вбік, щоб вибрана вкладка була видна (вкладки-статуси, вкладки Object Page).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§9"],
   },
   "hooks/use-record-search": {
     title: "Вибір запису: дані",
@@ -545,6 +569,22 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["UI03", "PF06", "PF11", "§17"],
   },
+  "lib/pins": {
+    title: "Закріплення записів: контракт",
+    description:
+      "PUT і DELETE /<ресурс>/:id/pin (ідемпотентні, право на читання), pinned: true у списку й записі, закріплені — першим блоком у порядку закріплення поверх сортування, total не змінюється; межа 50 на ресурс — 422 pin_limit; pinnedFirst для моків і серверів на TypeScript (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "§17"],
+  },
+  "lib/list-settings": {
+    title: "Налаштування списків: контракт",
+    description:
+      "GET і PATCH /me/list-settings/<ресурс> → { perPage } (null — нічого не збережено), розміри сторінки на вибір 10, 20, 50, 100; особисті, як і збережені види (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "§17", "PF11"],
+  },
   "lib/jobs": {
     title: "Масові дії й фонові задачі: контракт",
     description:
@@ -584,6 +624,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["PF11", "§17"],
+  },
+  "lib/mock-lists": {
+    title: "Мок закріплення й налаштувань списків",
+    description:
+      "Закріплення (createResourceHandlers з pins: true) і createListSettingsHandlers за контрактами lib/pins і lib/list-settings; усе — для кожного користувача в localStorage; сценарії ресурсу list-settings (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§17"],
   },
   "lib/mock-jobs": {
     title: "Мок масових дій і задач",
@@ -691,7 +739,7 @@ export const CODE_ITEMS = {
   "erp/data-table": {
     title: "Таблиця даних",
     description:
-      "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016); вибір рядків «сторінка / усе» з масовими діями (ADR-0018).",
+      "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016); вибір рядків «сторінка / усе» з масовими діями (ADR-0018); закріплені рядки позначені, межа після останнього (ADR-0024).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
@@ -723,7 +771,7 @@ export const CODE_ITEMS = {
   "erp/data-table-pager": {
     title: "Пагінація таблиці",
     description:
-      "Частина erp/data-table: сторінки малого списку — «1–50 з 240», попередня й наступна; сторінка за межами списку (записи видалили) — перехід на останню. Ставиться разом з erp/data-table.",
+      "Частина erp/data-table: сторінки малого списку — «1–50 з 240», попередня й наступна, «Рядків на сторінці»; сторінка за межами списку (записи видалили) — перехід на останню. Ставиться разом з erp/data-table.",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1"],
@@ -739,18 +787,34 @@ export const CODE_ITEMS = {
   "templates/object-page": {
     title: "Картка запису (Object Page)",
     description:
-      "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції й дії розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом (SPEC §7, ADR-0019, ADR-0020).",
+      "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції й дії розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом; секції одна під одною чи вкладками з вибраною в адресі (templates/object-page-tabs) (SPEC §7, ADR-0019, ADR-0020, ADR-0024).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
   },
+  "templates/object-page-tabs": {
+    title: "Вкладки картки запису",
+    description:
+      "Частина templates/object-page: секції вкладками за W3C APG Tabs (вибір Enter чи пробілом), вибрана — ззовні (адреса ?tab=), невідомий ключ — перша; змонтована лише вибрана вкладка, лінивий вміст — скелетон секції; на вузькому контейнері стрічка запису — остання вкладка. Ставиться разом із templates/object-page (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "§9", "§10"],
+  },
   "templates/list-report": {
     title: "Список (List Report)",
     description:
-      "Шаблон списку: заголовок і дії, вкладки-статуси з лічильниками, FilterBar із чипами, збережені види, панель масових дій, таблиця з картками на телефоні — прокрутка вікнами по 100 чи сторінки; стан в адресі (useListReport). Колонки, фільтри, вкладки й дії — списки з ключами для розширень модуля (SPEC §7, ADR-0020, ADR-0022).",
+      "Шаблон списку: заголовок і дії, вкладки-статуси з лічильниками, FilterBar із чипами, збережені види, панель масових дій, таблиця з картками на телефоні — прокрутка вікнами по 100 чи сторінки; стан в адресі (useListReport); закріплені записи першим блоком (isPinned), запам'ятаний розмір сторінки. Колонки, фільтри, вкладки й дії — списки з ключами для розширень модуля (SPEC §7, ADR-0020, ADR-0022, ADR-0024).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
+  },
+  "templates/list-report-tables": {
+    title: "Таблиці списку",
+    description:
+      "Частина templates/list-report: джерела рядків — вікнами по 100 з сервера чи сторінками з «Рядків на сторінці»; новий фільтр, сортування, компанія чи розмір — з першої сторінки, поки вантажиться нова сторінка, видно попередню з її номером і діапазоном. Ставиться разом із templates/list-report.",
+    status: "beta",
+    demo: "organizations",
+    spec: ["§7", "§8.1"],
   },
   "erp/status-tabs": {
     title: "Вкладки-статуси",
@@ -758,6 +822,14 @@ export const CODE_ITEMS = {
       "Вкладки списку з лічильниками (List Report): вкладка — фільтр поверх фільтрів панелі, вибір Enter чи пробілом, прокрутка вбік на вузькому контейнері (ADR-0017).",
     status: "beta",
     demo: "data",
+    spec: ["§7", "§9", "§10"],
+  },
+  "erp/pin-toggle": {
+    title: "Закріпити вгорі",
+    description:
+      "PinToggle: перемикач aria-pressed у рядку списку (іконка з назвою запису) чи в шапці картки (з підписом); фокус іде за записом на нове місце; usePinColumn — колонка для List Report з ключем pin: перша й липка, на телефоні — дія картки (ADR-0024).",
+    status: "beta",
+    demo: "organizations",
     spec: ["§7", "§9", "§10"],
   },
   "erp/filter-bar": {

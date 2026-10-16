@@ -308,6 +308,8 @@ export interface GridRowProps<T extends object> {
   overflowing: boolean
   /** Рядок вибрано (масові дії); undefined — таблиця без вибору. */
   selected?: boolean
+  /** Закріплений запис (ADR-0024); `last` — останній у блоці закріплених, з межею під ним. */
+  pinned?: "inside" | "last"
   /** Позиція віртуального рядка, px; undefined — звичайний потік (сторінка). */
   top: number | undefined
   measureRef: ((el: HTMLDivElement | null) => void) | undefined
@@ -333,6 +335,7 @@ export function GridRow<T extends object>({
   sticky,
   overflowing,
   selected,
+  pinned,
   top,
   measureRef,
   windowState,
@@ -349,6 +352,7 @@ export function GridRow<T extends object>({
       aria-rowindex={rowIndex}
       aria-busy={row ? undefined : true}
       aria-selected={row ? selected : undefined}
+      data-pinned={pinned}
       ref={measureRef}
       style={{
         ...(top === undefined
@@ -359,6 +363,9 @@ export function GridRow<T extends object>({
       }}
       className={cn(
         "grid min-h-row border-b bg-background hover:bg-muted aria-selected:bg-accent",
+        // Непрозорий фон: липкі клітинки (bg-inherit) інакше просвічують прокручені колонки.
+        pinned && "bg-muted",
+        pinned === "last" && "border-b-2 border-b-primary/40",
         // У віртуальному списку останній вузол міняється з прокруткою: без рамки він «стрибав» би на 1 px.
         top === undefined && "last:border-b-0",
       )}
@@ -383,6 +390,8 @@ export function GridRow<T extends object>({
                 )}
                 style={stick.style}
               >
+                {/* Вміст — за id запису: інший запис у тому самому рядку вікна монтує свій вміст
+                    (на цьому стоїть, напр., фокус за записом в erp/pin-toggle). */}
                 <React.Fragment key={row.id}>{render(cell)}</React.Fragment>
               </div>
             ) : null

@@ -133,6 +133,7 @@ export const en = {
   },
   objectPage: {
     details: "Details",
+    tabs: "Record sections",
   },
   recordHeader: {
     stepOf: "{{step}} of {{total}}",

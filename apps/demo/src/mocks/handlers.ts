@@ -8,6 +8,7 @@ import {
   subscribeMockEvents,
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
+import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 
 import {
@@ -102,7 +103,10 @@ const invoiceBulk = createBulkHandlers<Invoice>({
   },
 })
 
-/** Організації — довідник для вибору компанії контакту (UI40) і реквізитів із «Копіювати» (UI43). */
+/**
+ * Організації — довідник для вибору компанії контакту (UI40) і реквізитів із «Копіювати» (UI43), список
+ * із закріпленням і картка з вкладками (ADR-0024).
+ */
 const organizations = createResourceHandlers({
   resource: "organizations",
   schema: organizationSchema,
@@ -113,6 +117,7 @@ const organizations = createResourceHandlers({
     name: { uk: "Назва", en: "Name" },
     code: { uk: "Код", en: "Code" },
   },
+  pins: true,
 })
 
 /** Користувачі компанії для сторінки «Користувачі» (без паролів і кодів). */
@@ -182,6 +187,7 @@ export const handlers = [
     notificationEvents: NOTIFICATION_EVENTS,
   }),
   ...createSavedViewHandlers(),
+  ...createListSettingsHandlers(),
   ...createJobHandlers(),
   ...invoiceBulk,
   ...invoices.handlers,

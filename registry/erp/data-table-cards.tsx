@@ -43,6 +43,8 @@ export interface DataTableCardsProps<T> {
   busy: boolean
   /** Вибір рядків: вибрана картка підсвічена (стан передає ще й прапорець). */
   isSelected?: (row: T) => boolean
+  /** Закріплені записи: картка підсвічена (ADR-0024). */
+  isPinned?: (row: T) => boolean
 }
 
 const CARD_ESTIMATE_PX = 120
@@ -74,6 +76,7 @@ export function DataTableCards<T>({
   height,
   busy,
   isSelected,
+  isPinned,
 }: DataTableCardsProps<T>) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const id = React.useId()
@@ -169,8 +172,9 @@ export function DataTableCards<T>({
               aria-labelledby={row ? titleId : undefined}
               aria-busy={row ? undefined : true}
               data-selected={row && isSelected?.(row) ? "" : undefined}
+              data-pinned={row && isPinned?.(row) ? "" : undefined}
               tabIndex={item.index === activeIndex ? 0 : -1}
-              className="rounded-lg border bg-card p-3 text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring data-selected:bg-accent"
+              className="rounded-lg border bg-card p-3 text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring data-pinned:border-primary/40 data-pinned:bg-muted/50 data-selected:bg-accent"
               style={
                 source.virtual
                   ? { position: "absolute", insetInline: 0, top: item.start }

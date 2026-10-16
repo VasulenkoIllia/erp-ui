@@ -11,6 +11,10 @@
  *   → `POST /<ресурс>/bulk/<дія>`, `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
  *   перевіряється схемою, чекає до `JOB_POLL_TIMEOUT_MS`), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
  *   `useDataProvider<ErpDataProvider>()`.
+ * - Закріплення й налаштування списку (ADR-0024): `setPinned` → `PUT`/`DELETE /<ресурс>/:id/pin`
+ *   (lib/pins), `getListSettings`/`saveListSettings` → `GET`/`PATCH /me/list-settings/<ресурс>`
+ *   (lib/list-settings; читання чекає до `LIST_SETTINGS_TIMEOUT_MS`). Провайдер, написаний
+ *   повністю сам, а не обгорткою над цим (ADR-0021), має додати ці три методи.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
 
@@ -21,6 +25,13 @@ import {
   type SortField,
 } from "@/registry/lib/api"
 import {
+  LIST_SETTINGS_TIMEOUT_MS,
+  listSettingsPath,
+  listSettingsSchema,
+  type ListSettings,
+  type ListSettingsPatch,
+} from "@/registry/lib/list-settings"
+import {
   JOB_POLL_TIMEOUT_MS,
   JOBS_PATH,
   jobSchema,
@@ -29,6 +40,7 @@ import {
   type Job,
   type JobStarted,
 } from "@/registry/lib/jobs"
+import { PIN_PATH } from "@/registry/lib/pins"
 
 /** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
 export interface BulkDataProvider {
@@ -40,7 +52,24 @@ export interface BulkDataProvider {
   getJob: (id: string, options?: { signal?: AbortSignal }) => Promise<Job>
   retryJob: (id: string) => Promise<JobStarted>
 }
-export type ErpDataProvider = DataProvider & BulkDataProvider
+/** Закріплення записів і особисті налаштування списку (lib/pins, lib/list-settings; ADR-0024). */
+export interface ListDataProvider {
+  /** Закріпити запис угорі списку цього користувача чи відкріпити. */
+  setPinned: (
+    resource: string,
+    id: Identifier,
+    pinned: boolean,
+  ) => Promise<void>
+  getListSettings: (
+    resource: string,
+    options?: { signal?: AbortSignal },
+  ) => Promise<ListSettings>
+  saveListSettings: (
+    resource: string,
+    settings: ListSettingsPatch,
+  ) => Promise<ListSettings>
+}
+export type ErpDataProvider = DataProvider & BulkDataProvider & ListDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -187,6 +216,24 @@ export function createDataProvider(
     retryJob: (id) =>
       client.post(`${jobPath(id)}/retry`, undefined, {
         schema: jobStartedSchema,
+      }),
+
+    setPinned: async (resource, id, pinned) => {
+      const pin = `${path(resource, id)}/${PIN_PATH}`
+      await (pinned ? client.put(pin) : client.delete(pin))
+    },
+
+    getListSettings: (resource, { signal } = {}) =>
+      client.get(listSettingsPath(resource), {
+        schema: listSettingsSchema,
+        signal,
+        // Список чекає на налаштування: сервер, що мовчить, не тримає його в скелетоні.
+        timeoutMs: LIST_SETTINGS_TIMEOUT_MS,
+      }),
+
+    saveListSettings: (resource, settings) =>
+      client.patch(listSettingsPath(resource), settings, {
+        schema: listSettingsSchema,
       }),
   }
   return provider

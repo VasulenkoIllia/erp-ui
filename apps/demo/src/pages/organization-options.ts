@@ -1,10 +1,23 @@
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 
+import type { ListDefaults } from "@/registry/lib/list-state"
+import type { PinnableRecord } from "@/registry/lib/pins"
+
 import type { Organization } from "@/data/organizations"
 
 /** Ресурс довідника організацій (mocks/handlers). */
 export const ORGANIZATIONS = "organizations"
+
+/** Організація в списку й картці: сервер позначає закріплені читачем (ADR-0024). */
+export type OrganizationRow = Organization & PinnableRecord
+
+/** Без параметрів в адресі: усі організації за назвою. */
+export const ORGANIZATION_LIST_DEFAULTS: ListDefaults = {
+  tab: "all",
+  sort: { field: "name", order: "ASC" },
+  sortFields: ["name", "code", "city"],
+}
 
 export const organizationLabel = (organization: Organization) =>
   organization.name

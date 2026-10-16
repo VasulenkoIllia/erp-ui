@@ -63,6 +63,7 @@ const SHOT_PAGES = {
   states: "/#/states",
   module: "/#/m/K2",
   data: "/#/data",
+  organizations: "/#/organizations",
   login: "/#/login",
   signup: "/#/signup",
   inviteInvalid: "/#/login/invite?token=revoked",
@@ -93,6 +94,8 @@ const listStatus = (page: Page) =>
 const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   if (pageId === "data")
     await expect(listStatus(page)).toHaveText(/\d (рахунк|invoice)/)
+  if (pageId === "organizations")
+    await expect(listStatus(page)).toHaveText(/\d (організац|organization)/)
   // Вибір запису: підписи значень уже з сервера, а не «Завантаження…».
   if (pageId === "pickers")
     await expect(page.getByText(/^(Завантаження…|Loading…)$/)).toHaveCount(0)

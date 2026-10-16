@@ -1,8 +1,6 @@
 "use client"
 
-import * as React from "react"
-
-import { useElementSize } from "@/registry/hooks/use-element-size"
+import { useTabInView } from "@/registry/hooks/use-tab-in-view"
 import type { ListTab } from "@/registry/lib/list-state"
 import { useFormat } from "@/registry/lib/format"
 import { cn } from "@/registry/lib/utils"
@@ -39,24 +37,12 @@ export function StatusTabs({
   className,
 }: StatusTabsProps) {
   const format = useFormat()
-  const scroller = React.useRef<HTMLDivElement>(null)
   // Активна вкладка (з адреси, з виду) — у видимій частині смуги; лічильники, що прийшли пізніше,
-  // розширюють вкладки, а поворот екрана звужує смугу, тож і після них. Не scrollIntoView: той
-  // прокрутив би й сторінку.
-  const widths = tabs.map((tab) => counts?.[tab.id] ?? "").join()
-  const stripWidth = useElementSize(scroller, "width")
-  // До кадру: смуга не блимає з активною вкладкою за краєм. Пошук без CSS.escape (його немає в jsdom).
-  React.useLayoutEffect(() => {
-    const strip = scroller.current
-    const tab = Array.from(
-      strip?.querySelectorAll<HTMLElement>("[data-tab]") ?? [],
-    ).find((item) => item.dataset.tab === value)
-    if (!strip || !tab) return
-    const box = strip.getBoundingClientRect()
-    const { left, right } = tab.getBoundingClientRect()
-    if (left < box.left) strip.scrollLeft -= box.left - left
-    else if (right > box.right) strip.scrollLeft += right - box.right
-  }, [value, widths, stripWidth])
+  // розширюють вкладки, тож і після них.
+  const scroller = useTabInView(
+    value,
+    tabs.map((tab) => counts?.[tab.id] ?? "").join(),
+  )
   return (
     <Tabs
       value={value}
