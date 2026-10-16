@@ -18,7 +18,7 @@ export const ROLES: MockRole[] = [
       uk: "Рахунки й платежі: усе, крім налаштувань компанії",
       en: "Invoices and payments: everything but company settings",
     },
-    permissions: ["invoices:*"],
+    permissions: ["invoices:*", "organizations:*"],
   },
   {
     id: "admin",
@@ -44,7 +44,7 @@ export const ROLES: MockRole[] = [
       uk: "Бачить рахунки своїх клієнтів",
       en: "Sees their clients' invoices",
     },
-    permissions: ["invoices:read"],
+    permissions: ["invoices:read", "organizations:read"],
   },
   {
     id: "auditor",
@@ -65,6 +65,11 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Рахунки", en: "Invoices" },
     group: SALES,
     actions: ["read", "create", "update", "delete", "export", "approve"],
+  },
+  organizations: {
+    label: { uk: "Організації", en: "Organizations" },
+    group: SALES,
+    actions: ["read", "create", "update", "delete"],
   },
   users: {
     label: { uk: "Користувачі", en: "Users" },

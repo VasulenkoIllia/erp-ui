@@ -57,6 +57,22 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§11"],
   },
+  "lib/i18n-uk-records": {
+    title: "Рядки вибору запису uk",
+    description:
+      "Рядки кіта для вибору запису (UI40) і значень із «Копіювати» (UI43) українською; входять у простір імен erp-ui через lib/i18n-uk.",
+    status: "beta",
+    demo: "pickers",
+    spec: ["§11"],
+  },
+  "lib/i18n-en-records": {
+    title: "Рядки вибору запису en",
+    description:
+      "Ті самі рядки вибору запису й значень англійською; входять у lib/i18n-en, паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "pickers",
+    spec: ["§11"],
+  },
   "lib/lazy": {
     title: "Ліниві компоненти",
     description:
@@ -320,6 +336,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["PF11"],
+  },
+  "hooks/use-record-search": {
+    title: "Вибір запису: дані",
+    description:
+      "useRecordSearch: перша сторінка getList ресурсу з пошуком q на сервері, пауза 300 мс після останньої літери, попередні варіанти видно під час нового запиту; useRecordById: запис значення для підпису поля (щойно вибраний — без запиту, видалений — 404) (UI40, ADR-0023).",
+    status: "beta",
+    demo: "pickers",
+    spec: ["UI40"],
   },
   "hooks/use-virtual-rows": {
     title: "useVirtualRows",
@@ -1071,6 +1095,30 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "security",
     spec: ["UI43"],
+  },
+  "erp/copyable-value": {
+    title: "Значення з «Копіювати»",
+    description:
+      "Реквізит у картці з кнопкою «Копіювати»: ЄДРПОУ, РНОКПП, IBAN групами по 4 (у буфер — без пробілів), телефон і email посиланнями, посилання http(s); порожнє — «—» без кнопки; довге переноситься (UI43, ADR-0023).",
+    status: "beta",
+    demo: "pickers",
+    spec: ["UI43", "LC12"],
+  },
+  "erp/record-picker": {
+    title: "Вибір запису",
+    description:
+      "Поле вибору запису ресурсу з пошуком на сервері: список під полем, на телефоні — нижня шторка; «Показано 20 з N. Уточніть пошук.», «Створити…» з текстом пошуку (без права — неактивне з причиною), очищення; стани поля й списку — завантаження, нічого не знайдено, помилка з повтором, офлайн, немає доступу, запис видалили, лише читання (UI40, UI38, ADR-0023).",
+    status: "beta",
+    demo: "pickers",
+    spec: ["UI40", "UI38", "§8.1", "§8.3", "§9", "§10"],
+  },
+  "erp/record-picker-parts": {
+    title: "Частини вибору запису",
+    description:
+      "Частина erp/record-picker: стан поля (список, пошук, значення), клавіші (літера на закритому полі відкриває пошук, Enter на застарілих варіантах нічого не вибирає), варіанти й «Створити…», рядок стану для скрінрідера, підпис значення. Ставиться разом з erp/record-picker.",
+    status: "beta",
+    demo: "pickers",
+    spec: ["UI40", "§8.1", "§10"],
   },
   "erp/qr-code": {
     title: "QR-код",

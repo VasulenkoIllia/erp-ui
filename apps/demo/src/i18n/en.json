@@ -20,6 +20,7 @@
       "company": "Company",
       "fields": "Dates & numbers",
       "forms": "Forms",
+      "pickers": "Picker & details",
       "invoice": "Invoice"
     },
     "product": "erp-ui · demo",
@@ -616,6 +617,73 @@
       "deleteCompanyConfirm": "Delete the company for good",
       "word": "DELETE",
       "companyDeleted": "Company deleted (demo)"
+    }
+  },
+  "pickersPage": {
+    "title": "Record picker and details",
+    "lead": "Record picker with server search and “Create…” (UI40), values with a Copy button (UI43): the building blocks of module B1 “Contacts and companies”.",
+    "option": {
+      "legal": "EDRPOU {{code}}",
+      "fop": "RNOKPP {{code}}"
+    },
+    "contact": {
+      "title": "Contact and company",
+      "lead": "The company is searched on the server by name or code. If it is not there, “Create…” opens a form with the search text, and the new company becomes the field value. Signed in as Ivan (sales manager), “Create” is unavailable with a reason, and the owner list shows “No access”.",
+      "name": "Full name",
+      "organization": "Company",
+      "organizationRequired": "Select a company",
+      "createDenied": "The Accountant role can create organizations",
+      "owner": "Owner",
+      "ownerHint": "Optional: a user of the company",
+      "submit": "Save contact",
+      "saved": "Saved: {{name}}, {{organization}}"
+    },
+    "states": {
+      "title": "Field states",
+      "lead": "Empty, filled, with an error, read-only (the field stays focusable and is read by screen readers), disabled; a record that no longer exists (SPEC §8.3).",
+      "empty": "Empty",
+      "emptyHint": "Hint under the field",
+      "filled": "Filled",
+      "filledHint": "The label comes from the record by id",
+      "invalid": "With an error",
+      "readOnly": "Read-only",
+      "readOnlyHint": "No permission to change",
+      "disabled": "Disabled",
+      "disabledHint": "Not available now",
+      "missing": "Record deleted",
+      "missingHint": "You can pick another one"
+    },
+    "list": {
+      "title": "List states",
+      "lead": "A mock scenario for organizations only: searching, no matches, error with retry, offline, no access (SPEC §8.1). The developer panel sets the same.",
+      "scenario": "Organizations list scenario",
+      "scenarios": {
+        "success": "Normal",
+        "error": "Server error",
+        "empty": "Empty list",
+        "slow": "Slow (3 s)",
+        "forbidden": "No access",
+        "offline": "Offline"
+      },
+      "picker": "Company",
+      "pickerHint": "Open the list after changing the scenario"
+    },
+    "requisites": {
+      "title": "Details with Copy",
+      "lead": "Shown for people, copied as stored: IBAN without spaces, phone as +380. Email and phone are links; an empty value has no button (UI43).",
+      "code": "EDRPOU",
+      "rnokpp": "RNOKPP",
+      "phone": "Phone",
+      "site": "Website",
+      "fax": "Fax"
+    },
+    "create": {
+      "title": "New organization",
+      "lead": "Add the other details on the organization page.",
+      "name": "Name",
+      "code": "EDRPOU",
+      "cancel": "Cancel",
+      "submit": "Create"
     }
   }
 }

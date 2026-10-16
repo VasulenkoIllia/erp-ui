@@ -10,6 +10,7 @@ export const ROUTES = {
   formats: "/formats",
   fields: "/fields",
   forms: "/forms",
+  pickers: "/pickers",
   icons: "/icons",
   states: "/states",
   data: "/data",

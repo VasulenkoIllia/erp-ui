@@ -25,7 +25,8 @@ const NETWORK = {
 }
 const LCP_BUDGET_MS = 2500
 const INP_BUDGET_MS = 200
-const RUNS = 3
+/** П'ять прогонів (вікторина наприкінці 1.2): один повільний клік раннера CI не зсуває медіану. */
+const RUNS = 5
 /** Скільки взаємодій щонайменше має побачити браузер за прогін (див. interactWithList). */
 const MIN_INTERACTIONS = 5
 
@@ -226,7 +227,7 @@ async function measure(
 
 test.describe("швидкість @perf", () => {
   test("стрес-сторінка: перший екран і відгук на дії", async ({ browser }) => {
-    test.setTimeout(180_000)
+    test.setTimeout(300_000)
     const cpu = await calibratedSlowdown(browser)
     const measured = await measure(
       browser,
@@ -253,7 +254,7 @@ test.describe("швидкість @perf", () => {
   test("стрес-сторінка на десктопі: прапорці й редагування в комірці", async ({
     browser,
   }) => {
-    test.setTimeout(180_000)
+    test.setTimeout(300_000)
     const cpu = await calibratedSlowdown(browser)
     const result = {
       ...(await measure(

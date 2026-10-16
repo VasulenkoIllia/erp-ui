@@ -4,6 +4,7 @@
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 
 export const uk = {
   common: {
@@ -1354,6 +1355,7 @@ export const uk = {
     },
   },
   ...ukLists,
+  ...ukRecords,
 }
 
 export type ErpUiMessages = typeof uk

@@ -3,6 +3,7 @@
   "limitsKb": {
     "вхід": 353.2,
     "ProfilePage.tsx": 548.8,
+    "PickersPage.tsx": 562,
     "SecurityPage.tsx": 538.6,
     "CompanyPage.tsx": 512.5,
     "FormatsPage.tsx": 508.1,

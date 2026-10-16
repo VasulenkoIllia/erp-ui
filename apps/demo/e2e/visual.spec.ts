@@ -58,6 +58,7 @@ const SHOT_PAGES = {
   formats: "/#/formats",
   fields: "/#/fields",
   forms: "/#/forms",
+  pickers: "/#/pickers",
   icons: "/#/icons",
   states: "/#/states",
   module: "/#/m/K2",
@@ -92,6 +93,9 @@ const listStatus = (page: Page) =>
 const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   if (pageId === "data")
     await expect(listStatus(page)).toHaveText(/\d (рахунк|invoice)/)
+  // Вибір запису: підписи значень уже з сервера, а не «Завантаження…».
+  if (pageId === "pickers")
+    await expect(page.getByText(/^(Завантаження…|Loading…)$/)).toHaveCount(0)
 }
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")

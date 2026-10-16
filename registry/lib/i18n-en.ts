@@ -3,6 +3,7 @@
  * Форми множини англійською — лише `_one/_other`.
  */
 import { enLists } from "@/registry/lib/i18n-en-lists"
+import { enRecords } from "@/registry/lib/i18n-en-records"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
 export const en = {
@@ -1339,4 +1340,5 @@ export const en = {
     },
   },
   ...enLists,
+  ...enRecords,
 } satisfies ErpUiTranslation

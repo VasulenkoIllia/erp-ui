@@ -4,6 +4,7 @@
  */
 export const MOCK_RESOURCES = [
   "invoices",
+  "organizations",
   "views",
   "jobs",
   "users",

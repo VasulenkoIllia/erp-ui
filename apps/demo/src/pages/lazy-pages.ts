@@ -30,6 +30,10 @@ export const PAGES = {
     import("./FieldsPage").then((m) => m.FieldsPage),
   ),
   forms: lazyWithPreload(() => import("./FormsPage").then((m) => m.FormsPage)),
+  // Поле ЄДРПОУ (react-number-format) і телефон для показу (libphonenumber).
+  pickers: lazyWithPreload(() =>
+    import("./PickersPage").then((m) => m.PickersPage),
+  ),
   icons: lazyWithPreload(() => import("./IconsPage").then((m) => m.IconsPage)),
   states: lazyWithPreload(() =>
     import("./StatesPage").then((m) => m.StatesPage),
