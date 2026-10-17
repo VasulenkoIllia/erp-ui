@@ -115,6 +115,12 @@ export interface MockResourceOptions<T extends MockRecord> {
 
 function matches(value: unknown, op: string, raw: FilterValue): boolean {
   const wanted = Array.isArray(raw) ? raw : [raw]
+  // Поле-список (сегменти запису): «рівне» — хоч одне з вибраних є в списку.
+  if (Array.isArray(value)) {
+    const listed = wanted.map(String)
+    const has = value.some((item) => listed.includes(String(item)))
+    return op === "eq" ? has : op === "ne" ? !has : true
+  }
   const cast = (v: unknown) =>
     typeof value === "number"
       ? Number(v)

@@ -6,7 +6,9 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--local] [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add base, пакунки data, mocks і auth та всі елементи ui/*, erp/* і templates/* → tsc → vite build.
+ * shadcn add base, пакунки data, mocks і auth, усі елементи ui/*, erp/* і templates/* та модулі
+ * modules/* → tsc → vite build. Файли модуля мають лягти в проект дослівно (ADR-0025): імпорти в них
+ * уже шляхами проекту, і shadcn не має їх переписувати.
  *
  * --local (CI): повний набір — з реєстру, зібраного з робочої копії (`shadcn build` + локальний
  *   сервер); з GitHub на --ref — лише ui/button в окремий проект, щоб перевірити саму доставку з
@@ -58,8 +60,9 @@ const BUNDLES = ["base", "data", "mocks", "auth"]
 const uiItems = registry.items
   .filter((it) => /^(ui|erp|templates)\//.test(it.name))
   .map((it) => it.name)
+const modules = registry.items.filter((it) => it.meta?.layer === "modules")
 /** Елементи з реєстру робочої копії, що ставляться поодинці (--local): найбільше залежностей. */
-const ISOLATED = ["data", "erp/phone-input"]
+const ISOLATED = ["data", "erp/phone-input", ...modules.map((it) => it.name)]
 /** Паузи перед повтором запиту до GitHub: 403/429 — ліміт API, а не помилка коду. */
 const GITHUB_RETRY_DELAYS_MS = [30_000, 90_000]
 
@@ -153,8 +156,8 @@ async function fullInstall(source) {
   const addAll = (atRef) =>
     shadcn(
       "add",
-      ...[...BUNDLES, ...uiItems].map((name) =>
-        source ? source.url(name) : `${repo}/${name}#${atRef}`,
+      ...[...BUNDLES, ...uiItems, ...modules.map((it) => it.name)].map(
+        (name) => (source ? source.url(name) : `${repo}/${name}#${atRef}`),
       ),
       "-y",
       "--overwrite",
@@ -170,7 +173,7 @@ async function fullInstall(source) {
   if (source) await addAll(ref)
   else await fromGithub(() => addAll(ref))
 
-  for (const file of ["App.tsx", "Data.tsx", "mocks.ts"])
+  for (const file of ["App.tsx", "Data.tsx", "mocks.ts", "Contacts.tsx"])
     renameSync(
       path.join(dir, `${file}.after-install`),
       path.join(dir, `src/${file}`),
@@ -199,8 +202,26 @@ async function fullInstall(source) {
       throw new Error(`erp/phone-input: немає імпорту ${expected}`)
   }
 
+  if (source) checkModulesVerbatim(dir)
+
   await exec("pnpm", ["typecheck"])
   await exec("pnpm", ["build"])
+}
+
+/** Файли модулів у проекті — ті самі, що в робочій копії: shadcn нічого в них не переписав. */
+function checkModulesVerbatim(dir) {
+  for (const item of modules)
+    for (const file of item.files) {
+      if (!file.target?.startsWith("~/src/modules/")) continue
+      const installed = readFileSync(
+        path.join(dir, file.target.slice(2)),
+        "utf8",
+      )
+      if (installed !== readFileSync(path.join(root, file.path), "utf8"))
+        throw new Error(
+          `${file.path}: у проекті файл модуля інший, ніж у реєстрі (ADR-0025)`,
+        )
+    }
 }
 
 /** Один елемент у чистому проекті: компілюються лише його файли з його залежностями. */
@@ -211,7 +232,7 @@ async function isolatedInstall(item, add) {
     path.join(dir, "tsconfig.isolated.json"),
     JSON.stringify({
       extends: "./tsconfig.json",
-      include: ["src/components", "src/lib", "src/hooks"],
+      include: ["src/components", "src/lib", "src/hooks", "src/modules"],
     }),
   )
   await exec("npx", ["tsc", "-p", "tsconfig.isolated.json"])
@@ -235,8 +256,8 @@ try {
   }
   console.log(
     local
-      ? `\nOK: ${String(uiItems.length + BUNDLES.length)} елементів із робочої копії встановлено, проект компілюється; поодинці: ${ISOLATED.join(", ")} і ui/button з ${repo}#${ref}.`
-      : `\nOK: ${String(uiItems.length + BUNDLES.length)} елементів із ${repo}#${ref} встановлено, проект компілюється.`,
+      ? `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із робочої копії встановлено, файли модулів — дослівно, проект компілюється; поодинці: ${ISOLATED.join(", ")} і ui/button з ${repo}#${ref}.`
+      : `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із ${repo}#${ref} встановлено, проект компілюється.`,
   )
 } finally {
   source?.close()

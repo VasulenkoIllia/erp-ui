@@ -4,6 +4,7 @@ import { lazyWithPreload } from "@/registry/lib/lazy"
 
 import { invoicesExtension } from "@/extensions/K2-invoices"
 import { organizationsExtension } from "@/extensions/organizations"
+import { contactsModule } from "@/contacts-module"
 import { parsePath, type Route } from "@/router"
 
 /**
@@ -118,7 +119,12 @@ export const ImpersonationBanner = lazyWithPreload(() =>
 /** Попередньо завантажити чанк сторінки за адресою (`/settings/users`, `/m/K2?tab=1`, `/login`). */
 export function preloadPage(href: string): void {
   // Без `new URL`: адреса з hash буває будь-якою (`#//`), а тут потрібен лише шлях.
-  const location = parsePath(href.split(/[?#]/)[0] ?? "")
+  const path = href.split(/[?#]/)[0] ?? ""
+  const location = parsePath(path)
+  if (location.route === "contactsModule") {
+    contactsModule.preload(path)
+    return
+  }
   const page =
     location.route === "auth"
       ? AuthPage

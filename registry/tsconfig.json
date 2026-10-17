@@ -4,7 +4,13 @@
     "jsx": "react-jsx",
     "types": [],
     "paths": {
-      "@/registry/*": ["./*"]
+      "@/registry/*": ["./*"],
+      // Модулі (registry/modules) імпортують кіт шляхами проекту: їх файли копіюються як є (ADR-0025).
+      "@/components/ui/*": ["./ui/*"],
+      "@/components/erp/*": ["./erp/*"],
+      "@/components/templates/*": ["./templates/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/lib/*": ["./lib/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

@@ -320,6 +320,62 @@ export const invoicesExtension: InvoicesExtension = {
 - Бракує точки розширення — її додають у кіт (PR в erp-ui), проект оновлює модуль. Аварійний вихід — «від'єднати» модуль: скопіювати під іншою назвою й більше не оновлювати з кіта (рішення — у README проекту).
 - Приклад — `src/extensions/K2-invoices.ts` у демо: рахунки «Даних і моків» з колонкою й полем «Менеджер», секцією «Умови оплати» і дією «Нагадати клієнту»; точки розширення модуля-прикладу — `src/pages/invoice-extension.ts`.
 
+### Модуль у проекті (ADR-0025)
+
+```sh
+npx shadcn@latest add VasulenkoIllia/erp-ui/modules/B1-contacts
+```
+
+Файли модуля стають у `src/modules/B1-contacts/` як є, спільні компоненти кіта, яких бракує, — на свої місця. Кіт модуль імпортує шляхами проекту (`@/components/…`, `@/lib/…`, `@/hooks/…`), тож псевдоніми, які створив `shadcn init`, не змінюйте. Підключення — фабрика один раз:
+
+```ts
+// src/modules.ts
+import { createContactsModule } from "@/modules/B1-contacts"
+import { contactsExtension } from "@/extensions/B1-contacts"
+
+export const contactsModule = createContactsModule({ basePath: "/crm", extension: contactsExtension })
+
+// маршрути — під Suspense і межею помилок застосунку
+function Contacts() { return useRoutes(contactsModule.routes) }
+// навігація — contactsModule.nav: { id, label: { uk, en }, href, icon }, підпис — localizedText(item.label, language)
+// права й ресурси — contactsModule.resources (contacts, organizations, segments), до каталогу прав бекенда
+
+// src/mocks/handlers.ts — моки беруть лише файл полів, без компонентів
+import { createContactsMocks } from "@/modules/B1-contacts/mocks"
+import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
+const contacts = createContactsMocks({ extension: contactsMockExtension })
+setupWorker(...platformHandlers, ...contacts.handlers)
+```
+
+Крім полів, колонок, ключових полів картки, секцій і дій (вище), розширення модуля має:
+
+```ts
+// src/extensions/B1-contacts-fields.ts — дані без компонентів, їх беруть і моки
+export const contactsMockExtension = {
+  organizations: {
+    fields: [{ id: "vatPayer", type: "boolean", label: { uk: "Платник ПДВ", en: "VAT payer" }, mockValues: [true, false] }],
+    statuses: { add: [{ id: "suspended", label: { uk: "Призупинена", en: "Suspended" }, tone: "warning", mockEvery: 11 }] },
+  },
+} satisfies ContactsMockExtension
+
+// src/extensions/B1-contacts.ts
+export const contactsExtension: ContactsExtension = {
+  organizations: {
+    ...contactsMockExtension.organizations,
+    filters: { add: [{ id: "vatPayer" }] },               // з поля-списку, так/ні чи дати
+  },
+  contacts: {
+    tabs: { add: [{ id: "key", label: { uk: "Ключові", en: "Key" }, filter: { segments: "seg-key" } }] },
+  },
+  strings: { uk: { contacts: { lead: "Люди, з якими працює студія." } } },
+}
+```
+
+- `statuses` — додати статус (тон `neutral`, `info`, `success`, `warning`, `destructive`; `mockEvery` — кожен N-й запис фікстур), перейменувати (ключ модуля в `add`) чи сховати з вибору (`hide`). Схований лишається дійсним: записи з ним показуються з бейджем. Новий статус стає й вкладкою списку.
+- `filters` — фільтр панелі з поля розширення: список і так/ні — варіанти, дата — період; текст і число фільтром не стають (помилка при запуску). `tabs` — вкладка списку з фільтром плоскими параметрами API. Фільтр вкладки перекриває фільтр панелі з тим самим ключем (у демо «Ключові» за сегментом: на цій вкладці фільтр «Сегменти» не діє), тож для вкладки краще поле без фільтра панелі.
+- `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
+- Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
+
 ## 6. Вхід і акаунт
 
 ```sh

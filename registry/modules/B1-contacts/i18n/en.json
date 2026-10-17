@@ -1,0 +1,161 @@
+{
+  "organizations": {
+    "title": "Organizations",
+    "lead": "Clients, suppliers and partners: company details, addresses, bank accounts and contact people. The pin keeps an organization at the top of the list for you only.",
+    "search": "Search by name or code",
+    "tableLabel": "Organizations",
+    "tabsLabel": "Organization status",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "code": "Code",
+      "segments": "Segments",
+      "city": "City",
+      "phone": "Phone"
+    },
+    "filters": {
+      "type": "Type",
+      "segments": "Segments"
+    },
+    "empty": {
+      "title": "No organizations yet",
+      "description": "Clients, suppliers and partners of your company will appear here."
+    },
+    "count_one": "{{value}} organization",
+    "count_other": "{{value}} organizations"
+  },
+  "organization": {
+    "title": "Organization",
+    "back": "Back to organizations",
+    "tabsLabel": "Organization sections",
+    "history": "History",
+    "types": {
+      "legal": "Legal entity",
+      "fop": "Sole proprietor"
+    },
+    "statuses": {
+      "active": "Active",
+      "prospect": "Prospect",
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "edrpou": "EDRPOU",
+      "rnokpp": "RNOKPP",
+      "type": "Type",
+      "city": "City",
+      "phone": "Phone",
+      "email": "Email",
+      "iban": "Main account IBAN"
+    },
+    "sections": {
+      "requisites": "Details",
+      "addresses": "Addresses",
+      "bankAccounts": "Bank accounts",
+      "contacts": "Contact people"
+    },
+    "addresses": {
+      "tableLabel": "Addresses: {{name}}",
+      "columns": {
+        "kind": "Type",
+        "line": "Address",
+        "city": "City",
+        "postalCode": "Postcode"
+      },
+      "kinds": {
+        "legal": "Registered",
+        "actual": "Actual",
+        "postal": "Postal"
+      },
+      "empty": "No addresses yet.",
+      "count_one": "{{value}} address",
+      "count_other": "{{value}} addresses"
+    },
+    "bankAccounts": {
+      "tableLabel": "Bank accounts: {{name}}",
+      "columns": {
+        "iban": "IBAN",
+        "bankName": "Bank",
+        "currency": "Currency"
+      },
+      "primary": "Main",
+      "empty": "No bank accounts yet.",
+      "count_one": "{{value}} account",
+      "count_other": "{{value}} accounts"
+    },
+    "contacts": {
+      "tableLabel": "Contact people: {{name}}",
+      "columns": {
+        "name": "Name",
+        "position": "Position",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "empty": "This organization has no contact people yet.",
+      "count_one": "{{value}} person",
+      "count_other": "{{value}} people"
+    }
+  },
+  "contacts": {
+    "title": "Contacts",
+    "lead": "People your company works with: representatives of organizations and private persons. The pin keeps a contact at the top of the list for you only.",
+    "search": "Search by name, phone or email",
+    "tableLabel": "Contacts",
+    "tabsLabel": "Who they are",
+    "tabs": {
+      "all": "All",
+      "representatives": "Organization representatives",
+      "private": "Private persons"
+    },
+    "columns": {
+      "name": "Name",
+      "organization": "Organization",
+      "position": "Position",
+      "phone": "Phone",
+      "email": "Email",
+      "segments": "Segments"
+    },
+    "filters": {
+      "segments": "Segments"
+    },
+    "empty": {
+      "title": "No contacts yet",
+      "description": "People your company works with will appear here."
+    },
+    "count_one": "{{value}} contact",
+    "count_other": "{{value}} contacts"
+  },
+  "contact": {
+    "title": "Contact",
+    "back": "Back to contacts",
+    "history": "History",
+    "private": "Private person",
+    "fields": {
+      "organization": "Organization",
+      "position": "Position",
+      "phone": "Phone",
+      "email": "Email",
+      "segments": "Segments"
+    },
+    "sections": {
+      "details": "Details",
+      "organization": "Organization"
+    },
+    "organization": {
+      "none": "Does not represent an organization: a private person.",
+      "missing": "Organization not found: it may have been deleted.",
+      "unavailable": "Could not load the organization",
+      "open": "Open the organization card",
+      "label": "Contact organization",
+      "searchPlaceholder": "Search by name or code",
+      "saved": "Contact organization changed",
+      "cleared": "The contact is now a private person",
+      "option": {
+        "legal": "EDRPOU {{code}}",
+        "fop": "RNOKPP {{code}}"
+      }
+    }
+  }
+}

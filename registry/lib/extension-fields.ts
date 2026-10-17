@@ -7,7 +7,8 @@
  *   невідомі поля, а з нею вони проходять перевірку у відповідях бекенду й у моках.
  * - `withMockValues(records, fields)` — значення нових полів у фікстурах: проект працює на моках.
  * - `useExtensionFields(fields)` — значення текстом мовою інтерфейсу (числа й дати — `useFormat`),
- *   колонка списку (`ExtensionColumn` → `DataTableColumn`) і ключове поле шапки картки.
+ *   колонка списку (`ExtensionColumn` → `DataTableColumn`), ключове поле шапки картки, фільтр
+ *   панелі (`ExtensionFilter` → `FilterDefinition`) і вкладка списку (`ExtensionTab` → `ListTab`).
  * - Помилки розробника — поле з ключем поля модуля, два поля з одним ключем, колонка чи поле шапки
  *   без опису поля, невідомий тип — виняток під час збирання, а не тихий пропуск.
  */
@@ -18,12 +19,14 @@ import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { isCalendarDate } from "@/registry/lib/dates"
 import { extensionValue, type Keyed } from "@/registry/lib/extensions"
+import type { FilterDefinition } from "@/registry/lib/filters"
 import { useFormat } from "@/registry/lib/format"
 import {
   useErpUiT,
   useLanguage,
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
+import type { ListFilter, ListTab } from "@/registry/lib/list-state"
 
 export type ExtensionFieldValue = string | number | boolean | null
 
@@ -140,6 +143,25 @@ export interface ExtensionColumn
   readonly header?: LocalizedText
 }
 
+/**
+ * Фільтр панелі з поля розширення (ключ — ключ поля): список — «одне з» значень, так/ні — «так» чи
+ * «ні», дата — період (`<поле>_gte`, `<поле>_lte`). Текст і число фільтром не стають: текст шукає
+ * пошук `q`, діапазону чисел панель ще не має.
+ */
+export interface ExtensionFilter extends Keyed {
+  /** Підпис; за замовчуванням — підпис поля. */
+  readonly label?: LocalizedText
+}
+
+/**
+ * Вкладка-статус списку з файлу розширення: фільтр — плоскі параметри API (ADR-0002) за полями
+ * модуля чи розширення: `{ status: "suspended" }`, `{ vatPayer: "true" }`.
+ */
+export interface ExtensionTab extends Keyed {
+  readonly label: LocalizedText
+  readonly filter: Readonly<Record<string, string | readonly string[]>>
+}
+
 /** Ключове поле в шапці картки (`RecordField`): значення порожнє — шапка покаже «—». */
 export interface ExtensionFieldEntry {
   readonly id: string
@@ -154,6 +176,10 @@ export interface ExtensionFieldsApi {
   column: (column: ExtensionColumn) => DataTableColumn<unknown>
   /** Ключове поле шапки картки для запису. */
   entry: (item: Keyed, record: unknown) => ExtensionFieldEntry
+  /** Фільтр панелі з поля розширення. */
+  filter: (item: ExtensionFilter) => FilterDefinition
+  /** Вкладка списку з даних розширення. */
+  tab: (item: ExtensionTab) => ListTab
 }
 
 const EMPTY_CELL = "—"
@@ -188,6 +214,48 @@ function fieldText(
       if (option) return label(option.label)
       return typeof value === "string" ? value : null
     }
+    default:
+      return unknownType(field)
+  }
+}
+
+function filterOf(
+  field: ExtensionField,
+  item: ExtensionFilter,
+  label: (text: LocalizedText) => string,
+  t: ErpUiTranslate,
+): FilterDefinition {
+  const base = {
+    id: field.id,
+    field: field.id,
+    label: label(item.label ?? field.label),
+  }
+  switch (field.type) {
+    case "options":
+      return {
+        ...base,
+        kind: "options",
+        options: field.options.map((option) => ({
+          value: option.value,
+          label: label(option.label),
+        })),
+      }
+    case "boolean":
+      return {
+        ...base,
+        kind: "options",
+        options: [
+          { value: "true", label: t("common.yes") },
+          { value: "false", label: t("common.no") },
+        ],
+      }
+    case "date":
+      return { ...base, kind: "date-range" }
+    case "text":
+    case "number":
+      throw new Error(
+        `erp-ui: extension field "${field.id}" of type ${field.type} cannot be a filter`,
+      )
     default:
       return unknownType(field)
   }
@@ -240,6 +308,17 @@ export function useExtensionFields(
           value: text(field, extensionValue(record, id)),
         }
       },
+      filter: (item) => filterOf(find(item.id), item, label, t),
+      tab: (item) => ({
+        id: item.id,
+        label: label(item.label),
+        filter: Object.fromEntries(
+          Object.entries(item.filter).map(([key, value]) => [
+            key,
+            typeof value === "string" ? value : [...value],
+          ]),
+        ) satisfies ListFilter,
+      }),
     }
   }, [fields, format, language, t])
 }

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import { cellOf, expectNoA11yViolations, openWith } from "./helpers"
 
 /**
  * erp/data-table на стрес-сторінці (SPEC §18.1, ADR-0016): 10 000 рахунків вікнами з сервера,
@@ -84,9 +84,10 @@ test.describe("таблиця даних: десктоп", () => {
     await expect(amount.getByRole("button")).toBeFocused()
     await page.keyboard.press("Enter")
     await expect(amount).toHaveAttribute("aria-sort", "ascending")
-    await expect(
-      grid(page).locator('[aria-rowindex="2"] [aria-colindex="7"]'),
-    ).toHaveText(/^[\d\s]+,\d\d/)
+    const firstRow = grid(page).locator('[aria-rowindex="2"]')
+    await expect(await cellOf(grid(page), firstRow, "Сума")).toHaveText(
+      /^[\d\s]+,\d\d/,
+    )
   })
 
   test("рядок стану: «Оновлено о…» і «Оновити»", async ({ page }) => {

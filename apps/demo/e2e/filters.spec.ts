@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import { cellOf, expectNoA11yViolations, openWith } from "./helpers"
 
 /**
  * Стрес-сторінка, крок 0.6c1 (ADR-0017): вкладки-статуси з лічильниками, FilterBar із чипами,
@@ -51,7 +51,7 @@ test.describe("списки: вкладки, фільтри, збережені 
     await expect(overdue).toHaveAttribute("aria-selected", "true")
     await expect(count(page)).toHaveText(/^[\d\s]+ рахунк/)
     expect(digits(await count(page).textContent())).toBe(expected)
-    const statuses = rows(page).locator('[aria-colindex="8"]')
+    const statuses = await cellOf(grid(page), rows(page), "Статус")
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
@@ -89,9 +89,8 @@ test.describe("списки: вкладки, фільтри, збережені 
     await expect(page).toHaveURL(/client=/)
     // Лічильник «Усі» тепер рахує лише цих клієнтів.
     await expect(all).not.toHaveText(/10\s000/)
-    for (const client of await rows(page)
-      .locator('[aria-colindex="3"]')
-      .allTextContents())
+    const clients = await cellOf(grid(page), rows(page), "Клієнт")
+    for (const client of await clients.allTextContents())
       expect(client).toMatch(/Агросвіт|Шевчук/)
 
     await page.reload()

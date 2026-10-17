@@ -44,15 +44,22 @@ export type AuthRoute = keyof typeof AUTH_ROUTES
 
 export const LOGIN_PATH = AUTH_ROUTES.login
 
+/** Модулі кіта в демо (ADR-0025): початок адрес модуля — `basePath` його фабрики. */
+export const MODULE_ROUTES = {
+  contacts: "/m/B1",
+} as const
+
 /**
  * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
- * (/organizations/org-001) або заглушка модуля ERP (/m/K2).
+ * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts — маршрути модуля) або заглушка
+ * модуля ERP (/m/K2).
  */
 export type Location =
   | { route: Route }
   | { route: "auth"; screen: AuthRoute }
   | { route: "invoice"; id: string }
   | { route: "organization"; id: string }
+  | { route: "contactsModule" }
   | { route: "module"; moduleId: ModuleId }
 
 export const moduleHref = (id: ModuleId) => `/m/${id}`
@@ -104,6 +111,9 @@ export function parsePath(pathname: string): Location {
     : ""
   if (organization && !organization.includes("/"))
     return { route: "organization", id: decodeSegment(organization) }
+  const contacts = MODULE_ROUTES.contacts
+  if (pathname === contacts || pathname.startsWith(`${contacts}/`))
+    return { route: "contactsModule" }
   const m = /^\/m\/([A-Z]+\d+)$/.exec(pathname)
   if (m && MODULE_IDS.includes(m[1] as ModuleId))
     return { route: "module", moduleId: m[1] as ModuleId }

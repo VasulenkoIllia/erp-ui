@@ -1,0 +1,61 @@
+// Підставляється після `shadcn add`: модуль B1 з розширенням проекту компілюється в проекті (ADR-0025).
+import { lazy } from "react"
+import { useRoutes } from "react-router"
+
+import {
+  createContactsModule,
+  type ContactsExtension,
+} from "@/modules/B1-contacts"
+import { createContactsMocks } from "@/modules/B1-contacts/mocks"
+
+const extension: ContactsExtension = {
+  organizations: {
+    fields: [
+      {
+        id: "vatPayer",
+        type: "boolean",
+        label: { uk: "Платник ПДВ", en: "VAT payer" },
+        mockValues: [true, false],
+      },
+    ],
+    statuses: {
+      add: [
+        {
+          id: "suspended",
+          label: { uk: "Призупинена", en: "Suspended" },
+          tone: "warning",
+          mockEvery: 7,
+        },
+      ],
+      hide: ["inactive"],
+    },
+    columns: { add: [{ id: "vatPayer", place: { after: "code" } }] },
+    filters: { add: [{ id: "vatPayer" }] },
+    sections: {
+      add: [
+        {
+          id: "notes",
+          title: { uk: "Нотатки", en: "Notes" },
+          component: lazy(async () => ({
+            default: ({ record }: { record: { name: string } }) => (
+              <p>{record.name}</p>
+            ),
+          })),
+          place: { after: "requisites" },
+        },
+      ],
+    },
+  },
+  contacts: { columns: { hide: ["segments"] } },
+  strings: { uk: { contacts: { title: "Люди" } } },
+}
+
+export const contactsModule = createContactsModule({
+  basePath: "/crm",
+  extension,
+})
+export const contactsHandlers = createContactsMocks({ extension }).handlers
+
+export function Contacts() {
+  return useRoutes(contactsModule.routes)
+}

@@ -86,6 +86,21 @@ test("межа маршруту, якого немає у збірці, — за
   assert.deepEqual(report.stale, ["OldPage.tsx"])
 })
 
+test("сторінка модуля кіта — свій маршрут, як сторінка демо", () => {
+  const split = splitFirstScreen({
+    ...manifest,
+    "../../registry/modules/B1-contacts/pages/contacts-list-page.tsx": {
+      file: "a/contacts.js",
+      isDynamicEntry: true,
+      imports: ["_table.js"],
+    },
+  })
+  assert.deepEqual(split.pages["contacts-list-page.tsx"].sort(), [
+    "../../registry/modules/B1-contacts/pages/contacts-list-page.tsx",
+    "_table.js",
+  ])
+})
+
 test("збірка без сторінок валить перевірку, а не проходить порожньою", () => {
   const withoutPages = Object.fromEntries(
     Object.entries(manifest).filter(([key]) => !key.startsWith("src/pages/")),

@@ -1,0 +1,171 @@
+{
+  "organizations": {
+    "title": "Організації",
+    "lead": "Клієнти, постачальники й партнери: реквізити, адреси, рахунки й контактні особи. Шпилька закріплює організацію вгорі списку лише для вас.",
+    "search": "Пошук за назвою чи кодом",
+    "tableLabel": "Організації",
+    "tabsLabel": "Статус організації",
+    "tabs": {
+      "all": "Усі"
+    },
+    "columns": {
+      "name": "Назва",
+      "status": "Статус",
+      "code": "Код",
+      "segments": "Сегменти",
+      "city": "Місто",
+      "phone": "Телефон"
+    },
+    "filters": {
+      "type": "Тип",
+      "segments": "Сегменти"
+    },
+    "empty": {
+      "title": "Організацій ще немає",
+      "description": "Тут з'являться клієнти, постачальники й партнери вашої компанії."
+    },
+    "count_one": "{{value}} організація",
+    "count_few": "{{value}} організації",
+    "count_many": "{{value}} організацій",
+    "count_other": "{{value}} організації"
+  },
+  "organization": {
+    "title": "Організація",
+    "back": "До організацій",
+    "tabsLabel": "Розділи організації",
+    "history": "Історія",
+    "types": {
+      "legal": "Юрособа",
+      "fop": "ФОП"
+    },
+    "statuses": {
+      "active": "Активна",
+      "prospect": "Потенційна",
+      "inactive": "Неактивна"
+    },
+    "fields": {
+      "edrpou": "ЄДРПОУ",
+      "rnokpp": "РНОКПП",
+      "type": "Тип",
+      "city": "Місто",
+      "phone": "Телефон",
+      "email": "Email",
+      "iban": "IBAN основного рахунку"
+    },
+    "sections": {
+      "requisites": "Реквізити",
+      "addresses": "Адреси",
+      "bankAccounts": "Рахунки",
+      "contacts": "Контактні особи"
+    },
+    "addresses": {
+      "tableLabel": "Адреси: {{name}}",
+      "columns": {
+        "kind": "Тип",
+        "line": "Адреса",
+        "city": "Місто",
+        "postalCode": "Індекс"
+      },
+      "kinds": {
+        "legal": "Юридична",
+        "actual": "Фактична",
+        "postal": "Поштова"
+      },
+      "empty": "Адрес ще немає.",
+      "count_one": "{{value}} адреса",
+      "count_few": "{{value}} адреси",
+      "count_many": "{{value}} адрес",
+      "count_other": "{{value}} адреси"
+    },
+    "bankAccounts": {
+      "tableLabel": "Банківські рахунки: {{name}}",
+      "columns": {
+        "iban": "IBAN",
+        "bankName": "Банк",
+        "currency": "Валюта"
+      },
+      "primary": "Основний",
+      "empty": "Рахунків ще немає.",
+      "count_one": "{{value}} рахунок",
+      "count_few": "{{value}} рахунки",
+      "count_many": "{{value}} рахунків",
+      "count_other": "{{value}} рахунку"
+    },
+    "contacts": {
+      "tableLabel": "Контактні особи: {{name}}",
+      "columns": {
+        "name": "Ім'я",
+        "position": "Посада",
+        "phone": "Телефон",
+        "email": "Email"
+      },
+      "empty": "У цієї організації ще немає контактних осіб.",
+      "count_one": "{{value}} особа",
+      "count_few": "{{value}} особи",
+      "count_many": "{{value}} осіб",
+      "count_other": "{{value}} особи"
+    }
+  },
+  "contacts": {
+    "title": "Контакти",
+    "lead": "Люди, з якими працює компанія: представники організацій і приватні особи. Шпилька закріплює контакт угорі списку лише для вас.",
+    "search": "Пошук за ім'ям, телефоном чи email",
+    "tableLabel": "Контакти",
+    "tabsLabel": "Хто це",
+    "tabs": {
+      "all": "Усі",
+      "representatives": "Представники організацій",
+      "private": "Приватні особи"
+    },
+    "columns": {
+      "name": "Ім'я",
+      "organization": "Організація",
+      "position": "Посада",
+      "phone": "Телефон",
+      "email": "Email",
+      "segments": "Сегменти"
+    },
+    "filters": {
+      "segments": "Сегменти"
+    },
+    "empty": {
+      "title": "Контактів ще немає",
+      "description": "Тут з'являться люди, з якими працює ваша компанія."
+    },
+    "count_one": "{{value}} контакт",
+    "count_few": "{{value}} контакти",
+    "count_many": "{{value}} контактів",
+    "count_other": "{{value}} контакту"
+  },
+  "contact": {
+    "title": "Контакт",
+    "back": "До контактів",
+    "history": "Історія",
+    "private": "Приватна особа",
+    "fields": {
+      "organization": "Організація",
+      "position": "Посада",
+      "phone": "Телефон",
+      "email": "Email",
+      "segments": "Сегменти"
+    },
+    "sections": {
+      "details": "Подробиці",
+      "organization": "Організація"
+    },
+    "organization": {
+      "none": "Не представляє організацію: приватна особа.",
+      "missing": "Організацію не знайдено: її могли видалити.",
+      "unavailable": "Не вдалося завантажити організацію",
+      "open": "Відкрити картку організації",
+      "label": "Організація контакту",
+      "searchPlaceholder": "Пошук за назвою чи кодом",
+      "saved": "Організацію контакту змінено",
+      "cleared": "Контакт тепер приватна особа",
+      "option": {
+        "legal": "ЄДРПОУ {{code}}",
+        "fop": "РНОКПП {{code}}"
+      }
+    }
+  }
+}

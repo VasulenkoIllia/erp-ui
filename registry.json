@@ -1222,6 +1222,874 @@
       }
     },
     {
+      "name": "modules/B1-contacts",
+      "type": "registry:item",
+      "title": "Контакти й компанії (B1)",
+      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "google-libphonenumber@^3.2.47",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-day-picker@^10.0.2",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "@types/google-libphonenumber@^7.4.31",
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/account-devices.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/account-devices.tsx"
+        },
+        {
+          "path": "registry/erp/audit-log.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/audit-log.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/copy-button.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/copy-button.tsx"
+        },
+        {
+          "path": "registry/erp/copyable-value.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/copyable-value.tsx"
+        },
+        {
+          "path": "registry/erp/data-table.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cards.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cards.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-grid.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-grid.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-pager.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-pager.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-selection.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-selection.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/erp/date-range-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-range-input.tsx"
+        },
+        {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
+          "path": "registry/erp/filter-bar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-bar.tsx"
+        },
+        {
+          "path": "registry/erp/filter-panel.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-panel.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/erp/pin-toggle.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/pin-toggle.tsx"
+        },
+        {
+          "path": "registry/erp/record-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-header.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
+          "path": "registry/erp/saved-view-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-view-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/saved-views-menu.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-views-menu.tsx"
+        },
+        {
+          "path": "registry/erp/status-badge.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-badge.tsx"
+        },
+        {
+          "path": "registry/erp/status-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-tabs.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-grid-keyboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-grid-keyboard.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-counts.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-counts.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-settings.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-settings.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-state.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-state.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-pin.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-pin.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-row-selection.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-row-selection.ts"
+        },
+        {
+          "path": "registry/hooks/use-saved-views.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-saved-views.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-in-view.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/hooks/use-windowed-list.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-windowed-list.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-provider.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-provider.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-namespaces.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-namespaces.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-settings.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-auth.ts"
+        },
+        {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-lists.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/mocks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mocks.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/phone.ts",
+          "type": "registry:lib",
+          "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/pins.ts",
+          "type": "registry:lib",
+          "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/preferences.ts",
+          "type": "registry:lib",
+          "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/row-selection.ts",
+          "type": "registry:lib",
+          "target": "@lib/row-selection.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/templates/list-report.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report.tsx"
+        },
+        {
+          "path": "registry/templates/list-report-tables.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-tables.tsx"
+        },
+        {
+          "path": "registry/templates/object-page.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/object-page.tsx"
+        },
+        {
+          "path": "registry/templates/object-page-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/object-page-tabs.tsx"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        },
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/cell-text.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/cell-text.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/contact-columns.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/contact-columns.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/contact-organization.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/contact-organization.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/contact-sections.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/contact-sections.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/navigation.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/navigation.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-columns.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-columns.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-contacts.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-contacts.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-header.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-header.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-sections.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-sections.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-statuses.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-statuses.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/requisite-list.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/requisite-list.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/segments.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/segments.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/use-card-record.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/use-card-record.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/use-extended-list.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/use-extended-list.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/use-page-heading.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/use-page-heading.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/contract.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/contract.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/extension.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/extension.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/fixture-data.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/fixture-data.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/fixtures.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/fixtures.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/i18n/en.json",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/i18n/en.json"
+        },
+        {
+          "path": "registry/modules/B1-contacts/i18n/uk.json",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/i18n/uk.json"
+        },
+        {
+          "path": "registry/modules/B1-contacts/index.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/index.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/mocks.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/mocks.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/module-context.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/module-context.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/pages/contact-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/pages/contact-page.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/pages/contacts-list-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/pages/contacts-list-page.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/pages/organization-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/pages/organization-page.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/pages/organizations-list-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/pages/organizations-list-page.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/README.md",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/README.md"
+        },
+        {
+          "path": "registry/modules/B1-contacts/resources.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/resources.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/use-contacts-t.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/use-contacts-t.ts"
+        }
+      ],
+      "docs": "Модуль B1 встановлено в src/modules/B1-contacts. Файли модуля не правте: зміни під клієнта — у src/extensions/B1-contacts.ts (тип ContactsExtension).\n1) createContactsModule({ basePath, extension }) з @/modules/B1-contacts: routes — у роутер, nav — у навігацію.\n2) Моки: createContactsMocks({ extension }) з @/modules/B1-contacts/mocks — handlers у setupWorker.\n3) Права ролей: contacts, organizations, segments (read, create, update, delete). Докладно — src/modules/B1-contacts/README.md.",
+      "meta": {
+        "layer": "modules",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§7",
+          "§14",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "ui/alert-dialog",
       "type": "registry:ui",
       "title": "Діалог-попередження",
@@ -3378,6 +4246,11 @@
           "target": "@lib/extensions.ts"
         },
         {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -3421,6 +4294,11 @@
           "path": "registry/lib/invitations.ts",
           "type": "registry:lib",
           "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -3732,6 +4610,72 @@
         "demo": "formats",
         "spec": [
           "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-namespaces",
+      "type": "registry:lib",
+      "title": "Рядки модуля",
+      "description": "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/i18n-namespaces.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-namespaces.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§11",
+          "§17"
         ]
       }
     },
@@ -7043,6 +7987,155 @@
         "demo": "security",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "lib/statuses",
+      "type": "registry:lib",
+      "title": "Статуси запису модуля",
+      "description": "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), перейменовує чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§6.3",
+          "§17"
         ]
       }
     },
@@ -19605,6 +20698,173 @@
         "demo": "login",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "erp/status-badge",
+      "type": "registry:component",
+      "title": "Бейдж статусу",
+      "description": "StatusBadge: статус запису модуля (lib/statuses) — іконка, підпис і колір тону (soft-тло, SPEC §6.3); невідомий ключ від сервера — ключ текстом у нейтральному бейджі.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/status-badge.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-badge.tsx"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§6.3",
+          "§10"
         ]
       }
     },

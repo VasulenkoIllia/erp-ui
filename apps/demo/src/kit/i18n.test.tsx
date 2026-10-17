@@ -1,5 +1,6 @@
 import { act, render, screen } from "@testing-library/react"
 import type { i18n as I18n } from "i18next"
+import { Suspense } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import {
@@ -13,8 +14,15 @@ import {
   whenI18nReady,
   type Language,
 } from "@/registry/lib/i18n"
+import {
+  useNamespaceResources,
+  useNamespaceT,
+  type NamespaceResources,
+} from "@/registry/lib/i18n-namespaces"
 import { en as kitEn } from "@/registry/lib/i18n-en"
 import { uk as kitUk } from "@/registry/lib/i18n-uk"
+import contactsEn from "@/registry/modules/B1-contacts/i18n/en.json"
+import contactsUk from "@/registry/modules/B1-contacts/i18n/uk.json"
 import { Spinner } from "@/registry/ui/spinner"
 
 import { createDemoI18n } from "@/i18n"
@@ -78,6 +86,10 @@ describe("паритет рядків uk/en", () => {
 
   it("рядки демо", () => {
     expect(checkParity({ uk: demoUk, en: demoEn })).toEqual([])
+  })
+
+  it("рядки модуля B1", () => {
+    expect(checkParity({ uk: contactsUk, en: contactsEn })).toEqual([])
   })
 
   it("перевірка ловить пропущену форму множини", () => {
@@ -261,5 +273,58 @@ describe("довантаження мови (ADR-0009)", () => {
     expect(i18n.language).toBe("uk")
     expect(document.documentElement.lang).toBe("uk")
     stop()
+  })
+})
+
+describe("рядки модуля у своєму просторі імен (ADR-0025)", () => {
+  const NAMESPACE = "test-module"
+  const moduleUk = { title: "Контакти" }
+  const moduleEn = vi.fn(() => Promise.resolve({ title: "Contacts" }))
+  const resources: NamespaceResources = { uk: moduleUk, en: moduleEn }
+
+  function ModuleTitle() {
+    useNamespaceResources(NAMESPACE, resources)
+    const t = useNamespaceT<typeof moduleUk>(NAMESPACE)
+    return <h1>{t("title")}</h1>
+  }
+
+  it("сторінка модуля відкрита українською — після «English» приходять його англійські рядки", async () => {
+    const i18n = createI18n()
+    render(
+      <Suspense fallback={<Spinner />}>
+        <ModuleTitle />
+      </Suspense>,
+    )
+    expect(screen.getByRole("heading", { name: "Контакти" })).toBeVisible()
+    expect(moduleEn).not.toHaveBeenCalled()
+    await act(async () => {
+      await i18n.changeLanguage("en")
+    })
+    expect(
+      await screen.findByRole("heading", { name: "Contacts" }),
+    ).toBeVisible()
+    expect(moduleEn).toHaveBeenCalledTimes(1)
+  })
+
+  it("застосунок стартує англійською — сторінка модуля одразу з англійськими рядками", async () => {
+    const enOnly = vi.fn(() => Promise.resolve({ title: "People" }))
+    const own: NamespaceResources = { uk: { title: "Люди" }, en: enOnly }
+    function Title() {
+      useNamespaceResources("test-module-en", own)
+      const t = useNamespaceT<{ title: string }>("test-module-en")
+      return <h1>{t("title")}</h1>
+    }
+    const i18n = createI18n({ language: "en" })
+    await whenI18nReady(i18n)
+    // React у тестах повторює рендер після `use()` лише в act, який чекають.
+    await act(async () => {
+      render(
+        <Suspense fallback={<Spinner />}>
+          <Title />
+        </Suspense>,
+      )
+      await Promise.resolve()
+    })
+    expect(await screen.findByRole("heading", { name: "People" })).toBeVisible()
   })
 })

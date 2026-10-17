@@ -20,8 +20,9 @@ export const HEADROOM = 1.05
 /** Динамічні входи шару моків: їх замикання — окремий рядок звіту, поза бюджетом. */
 export const MOCK_ENTRY =
   /(^|\/)src\/mocks\/|registry\/lib\/mock-|registry\/erp\/dev-panel/
-/** Сторінки (ліниві маршрути) демо. */
-export const PAGE_ENTRY = /(^|\/)src\/pages\/[^/]+\.tsx$/
+/** Сторінки (ліниві маршрути) демо й модулів кіта (`registry/modules/<модуль>/pages`, ADR-0025). */
+export const PAGE_ENTRY =
+  /(^|\/)src\/pages\/[^/]+\.tsx$|(^|\/)registry\/modules\/[^/]+\/pages\/[^/]+\.tsx$/
 export const ENTRY_ROW = "вхід"
 
 /** Ключі маніфесту, досяжні зі `start` статичними імпортами (разом зі `start`). */

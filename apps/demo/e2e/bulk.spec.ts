@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import {
+  cellOf,
   chooseScenario,
   expectNoA11yViolations,
   openWith,
@@ -182,7 +183,7 @@ test.describe("масові дії: десктоп", () => {
     page,
   }) => {
     await openDrafts(page)
-    const cell = rows(page).first().locator('[aria-colindex="3"]')
+    const cell = await cellOf(grid(page), rows(page).first(), "Клієнт")
     await cell.getByRole("button", { name: valueButton(FIRST_CLIENT) }).click()
     const input = page.getByRole("textbox", { name: "Клієнт" })
     await expect(input).toBeFocused()
@@ -232,7 +233,7 @@ test.describe("масові дії: десктоп", () => {
             )
           : original(input, init)
     })
-    const cell = rows(page).first().locator('[aria-colindex="3"]')
+    const cell = await cellOf(grid(page), rows(page).first(), "Клієнт")
     await cell.getByRole("button").click()
     await page.getByRole("textbox", { name: "Клієнт" }).fill("ТОВ «Відкат»")
     await page.keyboard.press("Enter")
@@ -262,7 +263,7 @@ test.describe("масові дії: десктоп", () => {
   }) => {
     await openDrafts(page)
     await chooseScenario(page, "Конфлікт збереження")
-    const cell = rows(page).first().locator('[aria-colindex="7"]')
+    const cell = await cellOf(grid(page), rows(page).first(), "Сума")
     // Суми форматує Intl: між розрядами нерозривний пробіл.
     await cell
       .getByRole("button", { name: valueButton("75\\s049,00\\s₴") })
@@ -288,9 +289,8 @@ test.describe("масові дії: десктоп", () => {
     page,
   }) => {
     await openDrafts(page, USERS.sales)
-    await expect(
-      rows(page).first().locator('[aria-colindex="3"]').getByRole("button"),
-    ).toHaveCount(0)
+    const client = await cellOf(grid(page), rows(page).first(), "Клієнт")
+    await expect(client.getByRole("button")).toHaveCount(0)
     await rowCheckbox(page, FIRST).click()
     const approve = page.getByRole("button", { name: "Погодити", exact: true })
     await expect(approve).toHaveAttribute("aria-disabled", "true")

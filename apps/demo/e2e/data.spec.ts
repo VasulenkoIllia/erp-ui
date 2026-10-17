@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import {
+  cellOf,
   chooseScenario,
   expectNoA11yViolations,
   openWith,
@@ -37,14 +38,13 @@ test.describe("дані: список рахунків", () => {
       .fill("Агросвіт")
     // Новий пошук — знову перша сторінка.
     await expect(range(page)).toHaveText(/^1-20 з [\d\s]+$/)
-    for (const client of await rows(page)
-      .locator('[aria-colindex="3"]')
-      .allTextContents())
+    const clients = await cellOf(grid(page), rows(page), "Клієнт")
+    for (const client of await clients.allTextContents())
       expect(client).toContain("Агросвіт")
 
     await page.getByRole("tab", { name: /^Прострочені/ }).click()
     // Чекаємо, поки список оновиться: одразу після вибору ще видно попередні рядки.
-    const statuses = rows(page).locator('[aria-colindex="8"]')
+    const statuses = await cellOf(grid(page), rows(page), "Статус")
     await expect(statuses.first()).toHaveText("Прострочено")
     await expect(statuses.filter({ hasNotText: "Прострочено" })).toHaveCount(0)
 
@@ -213,7 +213,7 @@ test.describe("дані: сценарії моків", () => {
     const first = rows(page).first()
     // Клієнт у комірці — кнопка редагування з прихованим «, змінити».
     const original = (
-      await first.locator('[aria-colindex="3"]').textContent()
+      await (await cellOf(grid(page), first, "Клієнт")).textContent()
     )?.replace(/, змінити$/, "")
     await first.getByRole("button", { name: /^Редагувати/ }).click()
     const dialog = page.getByRole("dialog", { name: /^Рахунок №/ })

@@ -10,6 +10,8 @@
  * - Англійська показує британські формати (en-GB): день перед місяцем, 24-годинний час.
  * - Рядки не довантажились (офлайн) — i18next повторює двічі, далі показує запасну українську;
  *   наступний `changeLanguage` пробує знову. `<html lang>` — мова, якою інтерфейс справді показано.
+ * - Рядки модуля (ADR-0025) — свій простір імен, що приходить разом зі сторінками модуля, а не на
+ *   старті: `lib/i18n-namespaces`.
  */
 import i18next, { type BackendModule, type i18n } from "i18next"
 import { useMemo } from "react"
@@ -67,7 +69,8 @@ const KIT_LOADERS: Partial<Record<Language, () => Promise<object>>> = {
 const LOAD_RETRIES = 2
 const LOAD_RETRY_MS = 300
 
-async function withRetries<T>(load: () => Promise<T>): Promise<T> {
+/** Завантаження з повторами — і для мов, і для просторів імен модулів (`lib/i18n-namespaces`). */
+export async function withRetries<T>(load: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await load()
@@ -239,8 +242,11 @@ type Leaves<T, Prefix extends string = ""> = {
 type PluralSuffix = "zero" | "one" | "two" | "few" | "many" | "other"
 type WithoutPlural<K> = K extends `${infer Base}_${PluralSuffix}` ? Base : K
 
+/** Ключ рядка з дерева `M` без суфіксів множини: "list.count" для "list.count_one" тощо. */
+export type MessageKey<M> = WithoutPlural<Leaves<M>>
+
 /** Ключ рядка кіта, напр. "common.close" або "validation.iban.checksum". */
-export type ErpUiKey = WithoutPlural<Leaves<ErpUiMessages>>
+export type ErpUiKey = MessageKey<ErpUiMessages>
 export type ErpUiTranslate = (
   key: ErpUiKey,
   options?: Record<string, unknown>,

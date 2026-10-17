@@ -1,7 +1,7 @@
 {
   "targetKb": 250,
   "limitsKb": {
-    "вхід": 353.2,
+    "вхід": 371.2,
     "ProfilePage.tsx": 548.8,
     "PickersPage.tsx": 562,
     "SecurityPage.tsx": 538.6,
@@ -13,18 +13,22 @@
     "OrganizationPage.tsx": 444.1,
     "OrganizationsPage.tsx": 443.5,
     "AuthPage.tsx": 403.4,
-    "FieldsPage.tsx": 398.5,
-    "UsersPage.tsx": 392.1,
+    "FieldsPage.tsx": 418.7,
+    "UsersPage.tsx": 412.0,
     "SecurityPolicyPage.tsx": 387.8,
-    "AuditPage.tsx": 382.9,
-    "IntegrationsPage.tsx": 382.7,
+    "AuditPage.tsx": 402.3,
+    "IntegrationsPage.tsx": 402.0,
     "PrimitivesPage.tsx": 382,
-    "RolesPage.tsx": 368.1,
-    "NotificationsPage.tsx": 367.4,
-    "AppearancePage.tsx": 360.1,
-    "IconsPage.tsx": 355.2,
-    "InboxPage.tsx": 354.9,
-    "StatesPage.tsx": 354.3,
-    "ModulePage.tsx": 354
+    "RolesPage.tsx": 387.1,
+    "NotificationsPage.tsx": 386.2,
+    "AppearancePage.tsx": 378.7,
+    "IconsPage.tsx": 373.7,
+    "InboxPage.tsx": 373.4,
+    "StatesPage.tsx": 372.9,
+    "ModulePage.tsx": 372.6,
+    "organization-page.tsx": 579.9,
+    "contacts-list-page.tsx": 579.1,
+    "organizations-list-page.tsx": 577.0,
+    "contact-page.tsx": 573.0
   }
 }

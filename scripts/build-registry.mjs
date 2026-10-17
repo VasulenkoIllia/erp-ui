@@ -10,7 +10,12 @@
  *   registryDependencies: так `add …#v0.3.0` ставить узгоджений набір з однієї версії;
  * - npm-залежності — з імпортів, версії — з registry/package.json; типи для пакетів без власних
  *   типів (TYPE_PACKAGES) і пакети для розробки (DEV_PACKAGES, напр. msw) — у devDependencies;
- * - метадані каталогу (назва, опис, статус, демо, SPEC) — у meta.
+ * - метадані каталогу (назва, опис, статус, демо, SPEC) — у meta;
+ * - модуль (шар 5, ADR-0025) — тека registry/modules/<ID>-<назва>/; ім'я — `modules/<ID>-<назва>`.
+ *   Його файли копіюються в проект як є (`registry:file`, ціль `~/src/modules/<ID>-<назва>/…`),
+ *   тож імпорти в них — шляхами проекту (`@/components/templates/…`, `@/lib/…`), а всередині
+ *   модуля — відносні. Спільні файли, які він імпортує, їдуть із ним першими: shadcn шукає файл
+ *   спільного шару за назвою, і `lib/mocks` має стояти перед `mocks.ts` модуля.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
@@ -23,9 +28,10 @@ const REGISTRY_JSON = path.join(root, "registry.json")
 const CATALOG_MD = path.join(root, "docs/CATALOG.md")
 const ROUTER = path.join(root, "apps/demo/src/router.ts")
 
-const { REPO, CODE_ITEMS, BUNDLE_ITEMS } = await import(
+const { REPO, CODE_ITEMS, BUNDLE_ITEMS, MODULE_ITEMS } = await import(
   path.join(root, "registry/registry.config.mjs")
 )
+const MODULES_DIR = "registry/modules"
 const pkg = JSON.parse(
   readFileSync(path.join(root, "registry/package.json"), "utf8"),
 )
@@ -55,7 +61,26 @@ const LAYER_TITLES = {
   ui: "Шар 2 · примітиви",
   erp: "Шар 3 · ERP-компоненти",
   templates: "Шар 4 · шаблони сторінок",
+  modules: "Шар 5 · модулі",
 }
+/** Шляхи проекту в імпортах модуля → шар реєстру (аліаси shadcn за замовчуванням). */
+const PROJECT_PATHS = [
+  ["@/components/ui/", "ui"],
+  ["@/components/erp/", "erp"],
+  ["@/components/templates/", "templates"],
+  ["@/hooks/", "hooks"],
+  ["@/lib/", "lib"],
+]
+/** Без цих файлів модуль у реєстр не приймається (SPEC §17, ADR-0020). */
+const MODULE_FILES = [
+  "contract.ts",
+  "mocks.ts",
+  "fixtures.ts",
+  "index.ts",
+  "README.md",
+  "i18n/uk.json",
+  "i18n/en.json",
+]
 
 function codeFiles() {
   const files = []
@@ -72,6 +97,31 @@ function codeFiles() {
     }
   }
   return files
+}
+
+/** Файли модуля (шляхи від теки модуля), без тестів. */
+function moduleFiles(dir) {
+  const files = []
+  const walk = (rel) => {
+    for (const entry of readdirSync(path.join(root, MODULES_DIR, dir, rel), {
+      withFileTypes: true,
+    }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const next = rel ? `${rel}/${entry.name}` : entry.name
+      if (entry.isDirectory()) walk(next)
+      else if (!/\.(test|spec)\./.test(entry.name)) files.push(next)
+    }
+  }
+  walk("")
+  return files
+}
+
+function moduleDirs() {
+  const abs = path.join(root, MODULES_DIR)
+  if (!existsSync(abs)) return []
+  return readdirSync(abs, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort()
 }
 
 function importsOf(file) {
@@ -121,6 +171,7 @@ function build() {
       )
     else byBase.set(base, f)
   }
+  problems.push(...sharedImportProblems(files))
   // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` і в `import("@/registry/lib/x")`
   // на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
@@ -243,6 +294,16 @@ function build() {
       meta: meta(name, cfg),
     })
   }
+  items.push(
+    ...moduleItems({
+      problems,
+      closure,
+      fileEntry,
+      dependencies,
+      devDependencies,
+      meta,
+    }),
+  )
   for (const f of files) {
     const cfg = CODE_ITEMS[f.name]
     if (!cfg) continue
@@ -300,6 +361,165 @@ function build() {
   return { registry, catalog: catalog(items), problems }
 }
 
+/** Спільний шар не знає модулів і проекту: файл реєстру з таким імпортом зламав би кожен модуль. */
+function sharedImportProblems(files) {
+  const problems = []
+  for (const f of files)
+    for (const spec of importsOf(f.file))
+      if (
+        spec.startsWith("@/registry/modules/") ||
+        (spec.startsWith("@/") && !spec.startsWith("@/registry/"))
+      )
+        problems.push(
+          `${f.file}: імпорт «${spec}» — спільний шар імпортує лише @/registry/<шар>/<файл>`,
+        )
+  return problems
+}
+
+/**
+ * Модулі (ADR-0025): файли модуля — як є, з ціллю в `src/modules/<тека>/`; спільні файли з
+ * замикання імпортів — першими. Перевіряє опис, обов'язкові файли, точку входу й імпорти.
+ */
+function moduleItems({
+  problems,
+  closure,
+  fileEntry,
+  dependencies,
+  devDependencies,
+  meta,
+}) {
+  const dirs = moduleDirs()
+  problems.push(...moduleConfigProblems(dirs))
+  const items = []
+  for (const dir of dirs) {
+    const name = `modules/${dir}`
+    const cfg = MODULE_ITEMS[name]
+    if (!cfg) continue
+    const base = `${MODULES_DIR}/${dir}`
+    const files = moduleFiles(dir)
+    problems.push(...moduleEntryProblems(base, files))
+    const { shared, packages } = moduleImports(base, files, problems)
+    const included = [...new Set(shared)].sort().map(closure)
+    const names = [...new Set(included.flatMap((c) => c.names))].sort()
+    for (const c of included)
+      for (const pkgName of c.packages) packages.add(pkgName)
+    for (const peer of PEERS) packages.delete(peer)
+    items.push({
+      name,
+      type: "registry:item",
+      title: cfg.title,
+      description: cfg.description,
+      dependencies: dependencies(packages),
+      ...devDependencies(packages),
+      files: [
+        ...names.map(fileEntry),
+        ...files.map((rel) => ({
+          path: `${base}/${rel}`,
+          type: "registry:file",
+          target: `~/src/modules/${dir}/${rel}`,
+        })),
+      ],
+      ...(cfg.docs ? { docs: cfg.docs } : {}),
+      meta: meta("modules", cfg),
+    })
+  }
+  return items
+}
+
+/** Теки модулів і описи в `MODULE_ITEMS` — одне до одного. */
+function moduleConfigProblems(dirs) {
+  const problems = []
+  for (const dir of dirs)
+    if (!MODULE_ITEMS[`modules/${dir}`])
+      problems.push(
+        `Немає опису для modules/${dir} у registry/registry.config.mjs`,
+      )
+  for (const name of Object.keys(MODULE_ITEMS))
+    if (!dirs.includes(name.replace(/^modules\//, "")))
+      problems.push(
+        `Опис ${name} є, а теки ${MODULES_DIR}/${name.slice(8)} немає`,
+      )
+  return problems
+}
+
+/** Файли SPEC §17 і точка входу: фабрика `create<Модуль>Module` і тип `<Модуль>Extension`. */
+function moduleEntryProblems(base, files) {
+  const problems = []
+  for (const required of MODULE_FILES)
+    if (!files.includes(required))
+      problems.push(`${base}: немає ${required} (SPEC §17)`)
+  const index = path.join(root, base, "index.ts")
+  if (!existsSync(index)) return problems
+  const src = readFileSync(index, "utf8")
+  const factory = /export function create(\w+)Module\(/.exec(src)
+  if (!factory) {
+    problems.push(
+      `${base}/index.ts: немає фабрики create<Модуль>Module (ADR-0020, п. 3)`,
+    )
+    return problems
+  }
+  // Тип розширення — того самого модуля, що й фабрика: `createContactsModule` → `ContactsExtension`.
+  const extension = `${factory[1]}Extension`
+  const exported = new RegExp(
+    `export (type|interface) ${extension}\\b|export type \\{[^}]*\\b${extension}\\b`,
+  )
+  if (!exported.test(src))
+    problems.push(
+      `${base}/index.ts: немає типу розширення ${extension} (ADR-0020, п. 3)`,
+    )
+  return problems
+}
+
+/**
+ * Імпорти файлів модуля: свої — відносно й лише всередині модуля; кіт — шляхами проекту
+ * (`PROJECT_PATHS`) → спільні файли для замикання; решта — npm-пакети.
+ */
+function moduleImports(base, files, problems) {
+  const shared = []
+  const packages = new Set()
+  for (const rel of files.filter((f) => /\.(ts|tsx)$/.test(f)))
+    for (const spec of importsOf(`${base}/${rel}`)) {
+      const where = `${base}/${rel}`
+      if (spec.startsWith(".")) {
+        if (!isOwnModuleFile(rel, spec, files))
+          problems.push(
+            `${where}: відносний імпорт «${spec}» — лише файли цього модуля`,
+          )
+      } else if (spec.startsWith("@/")) {
+        const layer = sharedLayerOf(spec)
+        if (layer) shared.push(layer)
+        else problems.push(`${where}: ${moduleImportProblem(spec)}`)
+      } else packages.add(packageName(spec))
+    }
+  return { shared, packages }
+}
+
+function isOwnModuleFile(rel, spec, files) {
+  const target = path.posix.normalize(
+    path.posix.join(path.posix.dirname(rel), spec),
+  )
+  return (
+    !target.startsWith("..") &&
+    ["", ".ts", ".tsx", "/index.ts"].some((ext) =>
+      files.includes(`${target}${ext}`),
+    )
+  )
+}
+
+/** `@/components/ui/button` → `ui/button`; не файл кіта першого рівня — `null`. */
+function sharedLayerOf(spec) {
+  if (spec.startsWith("@/registry/")) return null
+  const match = PROJECT_PATHS.find(([prefix]) => spec.startsWith(prefix))
+  if (!match || spec.slice(match[0].length).includes("/")) return null
+  return `${match[1]}/${spec.slice(match[0].length)}`
+}
+
+function moduleImportProblem(spec) {
+  return spec.startsWith("@/registry/")
+    ? `імпорт «${spec}» — у модулі шляхи проекту (@/components/…, @/lib/…), файли модуля копіюються як є`
+    : `імпорт «${spec}» — модуль імпортує лише кіт (@/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…) і свої файли (ADR-0020, п. 3)`
+}
+
 function catalog(items) {
   const rows = (layer) =>
     items
@@ -322,6 +542,7 @@ function catalog(items) {
     "ui",
     "erp",
     "templates",
+    "modules",
   ]
     .map((layer) => {
       const r = rows(layer)

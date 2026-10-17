@@ -26,6 +26,14 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["§11"],
   },
+  "lib/i18n-namespaces": {
+    title: "Рядки модуля",
+    description:
+      "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride.",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§11", "§17"],
+  },
   "lib/i18n-uk": {
     title: "Рядки кіта uk",
     description:
@@ -577,6 +585,14 @@ export const CODE_ITEMS = {
     demo: "organizations",
     spec: ["§7", "§17"],
   },
+  "lib/statuses": {
+    title: "Статуси запису модуля",
+    description:
+      "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), перейменовує чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§6.3", "§17"],
+  },
   "lib/list-settings": {
     title: "Налаштування списків: контракт",
     description:
@@ -831,6 +847,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "organizations",
     spec: ["§7", "§9", "§10"],
+  },
+  "erp/status-badge": {
+    title: "Бейдж статусу",
+    description:
+      "StatusBadge: статус запису модуля (lib/statuses) — іконка, підпис і колір тону (soft-тло, SPEC §6.3); невідомий ключ від сервера — ключ текстом у нейтральному бейджі.",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§6.3", "§10"],
   },
   "erp/filter-bar": {
     title: "Панель фільтрів",
@@ -1527,6 +1551,27 @@ const CLAUDE_FILES = [
   { path: "docs/SPEC.md", target: "~/docs/erp-ui/SPEC.md" },
   { path: "docs/CATALOG.md", target: "~/docs/erp-ui/CATALOG.md" },
 ]
+
+/**
+ * Модулі (шар 5, ADR-0025): ключ — `modules/<ID>-<назва>`, файли — уся тека
+ * `registry/modules/<ID>-<назва>/` (у проекті — `src/modules/…`), спільні елементи — з імпортів.
+ */
+export const MODULE_ITEMS = {
+  "modules/B1-contacts": {
+    title: "Контакти й компанії (B1)",
+    description:
+      "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7", "§14", "§17"],
+    docs: [
+      "Модуль B1 встановлено в src/modules/B1-contacts. Файли модуля не правте: зміни під клієнта — у src/extensions/B1-contacts.ts (тип ContactsExtension).",
+      "1) createContactsModule({ basePath, extension }) з @/modules/B1-contacts: routes — у роутер, nav — у навігацію.",
+      "2) Моки: createContactsMocks({ extension }) з @/modules/B1-contacts/mocks — handlers у setupWorker.",
+      "3) Права ролей: contacts, organizations, segments (read, create, update, delete). Докладно — src/modules/B1-contacts/README.md.",
+    ].join("\n"),
+  },
+}
 
 /** Елементи без власного коду: файли задано явно; `include` — елементи з кодом, які входять повністю. */
 export const BUNDLE_ITEMS = {

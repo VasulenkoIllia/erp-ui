@@ -1,6 +1,7 @@
 // Підставляється після `shadcn add`: перевіряє, що встановлені елементи компілюються разом.
 import { useState } from "react"
 
+import { contactsModule } from "./Contacts"
 import { Data } from "./Data"
 
 import { AppShell } from "@/components/erp/app-shell"
@@ -56,6 +57,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useResolvedTheme } from "@/hooks/use-resolved-theme"
+import { localizedText } from "@/lib/auth"
 import { HryvniaIcon, IconProvider, MODULE_ICONS } from "@/lib/icons"
 import { useFormat } from "@/lib/format"
 import { useErpUiT, useLanguage } from "@/lib/i18n"
@@ -77,7 +79,11 @@ export function App() {
     <IconProvider>
     <TooltipProvider>
       <AppShell
-        nav={[{ id: "sales", label: t("modules.K2"), items: [{ id: "K2", label: t("modules.K2"), href: "#/k2", icon: MODULE_ICONS.K2, mobile: true }] }]}
+        nav={[
+          { id: "sales", label: t("modules.K2"), items: [{ id: "K2", label: t("modules.K2"), href: "#/k2", icon: MODULE_ICONS.K2, mobile: true }] },
+          // Модуль B1 (ADR-0025): пункти навігації з фабрики — так проект ставить модуль у свою оболонку.
+          { id: "crm", label: t("modules.B1"), items: contactsModule.nav.map((item) => ({ id: item.id, label: localizedText(item.label, language) ?? item.id, href: `#${item.href}`, icon: item.icon })) },
+        ]}
         activeId="K2"
         breadcrumbs={[{ label: t("modules.K2") }]}
         header={<CompanySwitcher companies={[{ id: "a", name: "ТОВ «А»" }, { id: "b", name: "ФОП Б" }]} value="a" onValueChange={() => undefined} />}

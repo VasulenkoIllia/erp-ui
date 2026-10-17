@@ -6,6 +6,12 @@
     "types": ["vite/client"],
     "paths": {
       "@/registry/*": ["../../registry/*"],
+      // Модулі реєстру імпортують кіт шляхами проекту (ADR-0025); демо — через @/registry.
+      "@/components/ui/*": ["../../registry/ui/*"],
+      "@/components/erp/*": ["../../registry/erp/*"],
+      "@/components/templates/*": ["../../registry/templates/*"],
+      "@/hooks/*": ["../../registry/hooks/*"],
+      "@/lib/*": ["../../registry/lib/*"],
       "@/*": ["./src/*"],
       "@design/*": ["../../design/*"]
     }

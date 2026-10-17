@@ -1,0 +1,83 @@
+import { lazyWithPreload } from "@/registry/lib/lazy"
+import type {
+  ContactsExtension,
+  OrganizationsExtension,
+} from "@/registry/modules/B1-contacts"
+
+import { contactsMockExtension } from "./B1-contacts-fields"
+
+/**
+ * Розширення модуля B1 «Контакти й компанії» під клієнта (ADR-0020, ADR-0025) — так виглядає файл
+ * проекту `src/extensions/B1-contacts.ts`. Файли модуля (`registry/modules/B1-contacts`, у проекті —
+ * `src/modules/B1-contacts`) для цього не змінювались:
+ * - організації: поле «Платник ПДВ» — колонка після коду, фільтр і поле шапки картки; статус
+ *   «Призупинена» — бейдж і вкладка списку; вкладка проекту «Нотатки» в картці після «Реквізитів»;
+ * - контакти: поле «Зручний канал» — колонка після email, фільтр і поле шапки; вкладка списку
+ *   «Ключові» за сегментом;
+ * - рядки модуля: пояснення під назвою списку контактів.
+ */
+const organizations: OrganizationsExtension = {
+  ...contactsMockExtension.organizations,
+  columns: {
+    add: [
+      { id: "vatPayer", place: { after: "code" }, minWidth: 8, priority: 4 },
+    ],
+  },
+  filters: { add: [{ id: "vatPayer" }] },
+  recordFields: { add: [{ id: "vatPayer", place: { after: "type" } }] },
+  sections: {
+    add: [
+      {
+        id: "notes",
+        title: { uk: "Нотатки", en: "Notes" },
+        // Не React.lazy: збій чанка той запам'ятовує назавжди, і «Спробувати ще» секції не допоможе.
+        component: lazyWithPreload(() =>
+          import("./organizations-notes").then((notes) => notes.default),
+        ),
+        place: { after: "requisites" },
+      },
+    ],
+  },
+}
+
+export const contactsExtension: ContactsExtension = {
+  organizations,
+  contacts: {
+    ...contactsMockExtension.contacts,
+    columns: {
+      add: [
+        {
+          id: "channel",
+          place: { after: "email" },
+          minWidth: 9,
+          priority: 8,
+          // Не влазить — ховається: значення є в шапці картки, а рядок списку не подвоюється.
+          overflow: "hide",
+        },
+      ],
+    },
+    filters: { add: [{ id: "channel" }] },
+    tabs: {
+      add: [
+        {
+          id: "key",
+          label: { uk: "Ключові", en: "Key accounts" },
+          filter: { segments: "seg-key" },
+        },
+      ],
+    },
+    recordFields: { add: [{ id: "channel" }] },
+  },
+  strings: {
+    uk: {
+      contacts: {
+        lead: "Люди, з якими працює студія: представники клієнтів і приватні особи. Шпилька закріплює контакт угорі списку лише для вас.",
+      },
+    },
+    en: {
+      contacts: {
+        lead: "People the studio works with: client representatives and private persons. The pin keeps a contact at the top of the list for you only.",
+      },
+    },
+  },
+}

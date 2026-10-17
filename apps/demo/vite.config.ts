@@ -11,6 +11,20 @@ export default defineConfig({
   resolve: {
     alias: {
       "@/registry": fileURLToPath(new URL("../../registry", import.meta.url)),
+      // Модулі реєстру імпортують кіт шляхами проекту: їх файли копіюються в проект як є (ADR-0025).
+      "@/components/ui": fileURLToPath(
+        new URL("../../registry/ui", import.meta.url),
+      ),
+      "@/components/erp": fileURLToPath(
+        new URL("../../registry/erp", import.meta.url),
+      ),
+      "@/components/templates": fileURLToPath(
+        new URL("../../registry/templates", import.meta.url),
+      ),
+      "@/hooks": fileURLToPath(
+        new URL("../../registry/hooks", import.meta.url),
+      ),
+      "@/lib": fileURLToPath(new URL("../../registry/lib", import.meta.url)),
       "@design": fileURLToPath(new URL("../../design", import.meta.url)),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },

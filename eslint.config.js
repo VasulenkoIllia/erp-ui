@@ -50,5 +50,43 @@ export default defineConfig(
     files: ["apps/*/src/**/*.tsx"],
     extends: [reactRefresh.configs.vite],
   },
+  // Файли модуля копіюються в проект як є (ADR-0025): кіт — шляхами проекту, свої — відносно.
+  {
+    files: ["registry/modules/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/registry/*"],
+              message:
+                "У модулі — шляхи проекту: @/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // Демо й спільні шари імпортують реєстр через @/registry: шляхи проекту — лише для модулів.
+  {
+    files: [
+      "apps/*/src/**/*.{ts,tsx}",
+      "registry/{ui,erp,lib,hooks,templates}/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/components/*", "@/lib/*", "@/hooks/*"],
+              message: "Реєстр — через @/registry/<шар>/<файл>",
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 )

@@ -37,10 +37,11 @@ export class ChunkLoadError extends Error {
 }
 
 /** Проміс зі станом, який читає `use()` React: готовий результат віддається без призупинення. */
-type TrackedPromise<T> = Promise<T> &
+export type TrackedPromise<T> = Promise<T> &
   (PendingReactPromise<T> | FulfilledReactPromise<T> | RejectedReactPromise<T>)
 
-function track<T>(promise: Promise<T>): TrackedPromise<T> {
+/** Те саме для інших лінивих даних (рядки модуля, `lib/i18n-namespaces`). */
+export function track<T>(promise: Promise<T>): TrackedPromise<T> {
   const state = promise as Promise<T> & {
     status: TrackedPromise<T>["status"]
     value?: T

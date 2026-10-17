@@ -10,6 +10,7 @@ import {
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
+import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
 
 import {
   INVOICE_APPROVAL_LIMIT,
@@ -19,7 +20,8 @@ import {
   makeInvoices,
   type Invoice,
 } from "@/data/invoices"
-import { makeOrganizations, organizationSchema } from "@/data/organizations"
+import { organizationCompanyOf } from "@/data/organizations"
+import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
 
 import { ACCOUNT_SEEDS } from "./account"
@@ -104,20 +106,12 @@ const invoiceBulk = createBulkHandlers<Invoice>({
 })
 
 /**
- * Організації — довідник для вибору компанії контакту (UI40) і реквізитів із «Копіювати» (UI43), список
- * із закріпленням і картка з вкладками (ADR-0024).
+ * Модуль B1 «Контакти й компанії» (ADR-0025): організації, контакти й сегменти з полями й статусом
+ * розширення проекту. Організації — і довідник сторінок «Вибір і реквізити» та «Організації».
  */
-const organizations = createResourceHandlers({
-  resource: "organizations",
-  schema: organizationSchema,
-  data: makeOrganizations,
-  searchFields: ["name", "code"],
-  label: { uk: "Організації", en: "Organizations" },
-  fieldLabels: {
-    name: { uk: "Назва", en: "Name" },
-    code: { uk: "Код", en: "Code" },
-  },
-  pins: true,
+const contacts = createContactsMocks({
+  extension: contactsMockExtension,
+  companyOf: organizationCompanyOf,
 })
 
 /** Користувачі компанії для сторінки «Користувачі» (без паролів і кодів). */
@@ -178,6 +172,8 @@ export const handlers = [
     apiResources: {
       invoices: { uk: "Рахунки", en: "Invoices" },
       organizations: { uk: "Організації", en: "Organizations" },
+      contacts: { uk: "Контакти", en: "Contacts" },
+      segments: { uk: "Сегменти", en: "Segments" },
       users: { uk: "Користувачі", en: "Users" },
     },
     auditSeeds: AUDIT_SEEDS,
@@ -191,6 +187,6 @@ export const handlers = [
   ...createJobHandlers(),
   ...invoiceBulk,
   ...invoices.handlers,
-  ...organizations.handlers,
+  ...contacts.handlers,
   ...users.handlers,
 ]

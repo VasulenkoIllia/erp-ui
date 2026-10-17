@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, type Page } from "@playwright/test"
+import { expect, type Locator, type Page } from "@playwright/test"
 
 export const STORAGE_KEY = "erp-ui:appearance"
 
@@ -122,4 +122,19 @@ export async function expectNoA11yViolations(page: Page): Promise<void> {
     results.violations,
     JSON.stringify(results.violations, null, 2),
   ).toEqual([])
+}
+
+/**
+ * Комірка рядка грида за назвою колонки: номер — з її заголовка (`aria-colindex`), а не з порядку
+ * колонок у коді. Колонку розширення (ADR-0020) чи переставлену тест знайде так само.
+ */
+export async function cellOf(
+  grid: Locator,
+  row: Locator,
+  column: string,
+): Promise<Locator> {
+  const header = grid.getByRole("columnheader", { name: column, exact: true })
+  const index = await header.getAttribute("aria-colindex")
+  if (!index) throw new Error(`Колонки «${column}» у гриді немає`)
+  return row.locator(`[role="gridcell"][aria-colindex="${index}"]`)
 }

@@ -60,7 +60,7 @@ import {
   setAppearance,
   THEME_MODES,
 } from "@/registry/lib/appearance"
-import { LANGUAGES, useErpUiT } from "@/registry/lib/i18n"
+import { LANGUAGES, useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { whenIdle } from "@/registry/lib/lazy"
 import type { MockMessage } from "@/registry/lib/mock-server"
@@ -78,6 +78,12 @@ import { DropdownMenuItem } from "@/registry/ui/dropdown-menu"
 import { Toaster } from "@/registry/ui/sonner"
 import { TooltipProvider } from "@/registry/ui/tooltip"
 
+import {
+  contactsModule,
+  ContactsModuleRoutes,
+  contactsNavId,
+  contactsNavItems,
+} from "@/contacts-module"
 import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
 import { MOCK_RESOURCES } from "@/mocks/resources"
@@ -133,6 +139,21 @@ const RECORD_LISTS = {
 type RecordLocation = Extract<Location, { route: keyof typeof RECORD_LISTS }>
 const isRecord = (location: Location): location is RecordLocation =>
   location.route in RECORD_LISTS
+
+/** Пункт навігації сторінки: заглушка модуля, модуль кіта, картка — її список, решта — розділ. */
+function activeNavId(location: Location, pathname: string) {
+  if (location.route === "module") return location.moduleId
+  if (location.route === "contactsModule") return contactsNavId(pathname)
+  return isRecord(location) ? RECORD_LISTS[location.route] : location.route
+}
+
+/** Ключ межі помилок — сторінка: перехід на іншу скидає помилку попередньої. */
+function pageKey(location: Location, pathname: string) {
+  if (isRecord(location)) return `${location.route}/${location.id}`
+  return location.route === "contactsModule"
+    ? pathname
+    : activeNavId(location, pathname)
+}
 
 /** Розділи в нижній панелі телефона. */
 const MOBILE_PAGES: Route[] = ["appearance", "primitives", "formats", "states"]
@@ -310,8 +331,11 @@ function Shell({
   const { t } = useTranslation()
   const kitT = useErpUiT()
   const navigate = useNavigate()
+  const { language } = useLanguage()
   // Крихта «Дані й моки» з картки веде до списку з тими ж фільтрами, що й «До списку».
-  const routerState: unknown = useRouterLocation().state
+  const routerLocation = useRouterLocation()
+  const { pathname } = routerLocation
+  const routerState: unknown = routerLocation.state
   const logout = useLogout()
   const breakpoint = useBreakpoint()
   const meQuery = useMe()
@@ -348,16 +372,23 @@ function Shell({
       {
         id: "erp",
         label: t("nav.erp"),
-        items: ERP_EXAMPLE.map(({ id, badge }) => ({
-          id,
-          label: kitT(`modules.${id}`),
-          href: moduleHref(id),
-          icon: MODULE_ICONS[id],
-          badge,
-        })),
+        // Модуль кіта (B1) — своїми пунктами; решта — заглушки розділів.
+        items: ERP_EXAMPLE.flatMap(({ id, badge }) =>
+          id === contactsModule.id
+            ? contactsNavItems(language)
+            : [
+                {
+                  id,
+                  label: kitT(`modules.${id}`),
+                  href: moduleHref(id),
+                  icon: MODULE_ICONS[id],
+                  badge,
+                },
+              ],
+        ),
       },
     ],
-    [t, kitT],
+    [t, kitT, language],
   )
 
   const commands = useMemo<PaletteCommand[]>(() => {
@@ -435,17 +466,13 @@ function Shell({
   // Картка запису — частина своєї сторінки-списку («Дані й моки», «Організації»): та сама
   // позначка в навігації.
   const record = isRecord(location) ? location : null
-  const activeId =
-    location.route === "module"
-      ? location.moduleId
-      : record
-        ? RECORD_LISTS[record.route]
-        : location.route
+  const inModule = location.route === "contactsModule"
+  const activeId = activeNavId(location, pathname)
   const group = nav.find((g) => g.items.some((item) => item.id === activeId))
   const current = group?.items.find((item) => item.id === activeId)
   const Page =
     PAGES[
-      location.route === "module" || isRecord(location)
+      location.route === "module" || inModule || isRecord(location)
         ? "appearance"
         : location.route
     ]
@@ -491,7 +518,14 @@ function Shell({
                 label: current?.label ?? "",
                 href: `${ROUTES[RECORD_LISTS[record.route]]}${listSearchOf(routerState)}`,
               }
-            : { label: current?.label ?? "" },
+            : {
+                label: current?.label ?? "",
+                // Картка модуля — крихта до її списку (фільтри повертає «До списку» картки).
+                href:
+                  inModule && pathname !== current?.href
+                    ? current?.href
+                    : undefined,
+              },
           ...(record ? [{ label: t(`app.pages.${record.route}`) }] : []),
         ]}
         header={
@@ -592,11 +626,12 @@ function Shell({
           </>
         }
       >
-        {/* Ключ — адреса: перехід на іншу сторінку скидає помилку попередньої. */}
-        <ErrorBoundary key={record ? `${activeId}/${record.id}` : activeId}>
+        <ErrorBoundary key={pageKey(location, pathname)}>
           <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />
+            ) : inModule ? (
+              <ContactsModuleRoutes />
             ) : location.route === "invoice" ? (
               <InvoicePage id={location.id} />
             ) : location.route === "organization" ? (

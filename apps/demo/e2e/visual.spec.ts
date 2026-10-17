@@ -64,6 +64,11 @@ const SHOT_PAGES = {
   module: "/#/m/K2",
   data: "/#/data",
   organizations: "/#/organizations",
+  // Модуль B1 (крок 1.4a, ADR-0025): списки й картки з розширенням демо.
+  contacts: "/#/m/B1/contacts",
+  contactsOrganizations: "/#/m/B1/organizations",
+  contactsOrganization: "/#/m/B1/organizations/org-003",
+  contactsContact: "/#/m/B1/contacts/contact-001",
   login: "/#/login",
   signup: "/#/signup",
   inviteInvalid: "/#/login/invite?token=revoked",
@@ -94,8 +99,17 @@ const listStatus = (page: Page) =>
 const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   if (pageId === "data")
     await expect(listStatus(page)).toHaveText(/\d (рахунк|invoice)/)
-  if (pageId === "organizations")
+  if (pageId === "organizations" || pageId === "contactsOrganizations")
     await expect(listStatus(page)).toHaveText(/\d (організац|organization)/)
+  if (pageId === "contacts")
+    await expect(listStatus(page)).toHaveText(/\d (контакт|contact)/)
+  // Картки модуля: запис і вкладки вже з сервера, а не скелетон.
+  if (pageId === "contactsOrganization")
+    await expect(page.getByRole("tablist").last()).toBeVisible()
+  if (pageId === "contactsContact")
+    await expect(
+      page.getByText(/^(Організація контакту|Contact organization)$/),
+    ).toBeVisible()
   // Вибір запису: підписи значень уже з сервера, а не «Завантаження…».
   if (pageId === "pickers")
     await expect(page.getByText(/^(Завантаження…|Loading…)$/)).toHaveCount(0)
