@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Змінено — крок 1.5b (тестовий проект `erp-ui-pilot`)
+
+- Документи за досвідом встановлення з тегу `v0.2.0` у новий проект (`docs/using-erp-ui.md`): `paths` — і в `tsconfig.json`, і в `tsconfig.app.json` шаблону Vite; після `base` пакет `@fontsource-variable/geist` від `shadcn init` не потрібен; `npx msw init public --save` (без `--save` MSW питає в терміналі); списки на List Report у моках потребують `createSavedViewHandlers()` (елемент `lib/mock-views`) і `createListSettingsHandlers()`; мінімальний набір елементів для проекту з модулем; `methods` у моках, коли змонтовано лише `/login`, і `idleMinutes` для `SessionGuard` з `useAuthMethods`; лінтер проекту — без тек кіта; перевірка, що файли кіта не змінені (відбитки після `shadcn add`); довгий підпис у таблиці — ширина колонки через `change`; ліміт запитів GitHub при встановленні з приватного репозиторію (і в `docs/dev-setup.md`).
+- Модуль B1, `README.md`: приклад моків з обробниками видів і розміру сторінки.
+
 ## [0.2.0] — 2026-10-18
 
 Друга версія: хвиля 0 (мови й формати, оболонка, дані й моки, вхід і акаунт, команда й адміністрування, форми, таблиця на 10 000 рядків, масові дії, картка запису; 0.5b6, 0.5c і частина 0.5d відкладені) і пілот хвилі 1 до тестового проекту: шаблони List Report і Object Page, точки розширення модуля, перший модуль — B1 «Контакти й компанії». Встановлення: `npx shadcn add VasulenkoIllia/erp-ui/base#v0.2.0`, модуль — `npx shadcn add VasulenkoIllia/erp-ui/modules/B1-contacts#v0.2.0`.

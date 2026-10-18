@@ -15,10 +15,14 @@
 pnpm create vite@latest my-erp -- --template react-ts
 cd my-erp
 pnpm add -D tailwindcss @tailwindcss/vite
-# vite.config.ts: plugins: [react(), tailwindcss()], alias "@" → ./src; tsconfig: "paths": { "@/*": ["./src/*"] }
+# vite.config.ts: plugins: [react(), tailwindcss()], alias "@" → ./src
+# "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@latest init -b base -p nova
-npx shadcn@latest add VasulenkoIllia/erp-ui/base
+npx shadcn@latest add VasulenkoIllia/erp-ui/base#v0.2.0
+pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
 ```
+
+Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер проекту (oxlint чи ESLint шаблону) налаштуйте без тек кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`): їх перевіряє лінтер кіта, а правити їх у проекті не можна.
 
 `base` ставить:
 - теми й токени в `src/styles/erp-ui/` і замінює `src/index.css` точкою входу erp-ui (CLI спитає дозволу);
@@ -181,9 +185,11 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/app-shell VasulenkoIllia/erp-ui/
 Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
 
 ```sh
-npx shadcn@latest add VasulenkoIllia/erp-ui/data VasulenkoIllia/erp-ui/mocks
-npx msw init public   # service worker для моків у браузері
+npx shadcn@latest add VasulenkoIllia/erp-ui/data VasulenkoIllia/erp-ui/mocks VasulenkoIllia/erp-ui/lib/mock-views
+npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
+
+Списки на шаблоні List Report читають особисті види (`/me/views`) і розмір сторінки (`/me/list-settings/<ресурс>`): у моках це `createSavedViewHandlers()` з `@/lib/mock-views` (окремий елемент `lib/mock-views`) і `createListSettingsHandlers()` з `@/lib/mock-lists` поруч з обробниками ресурсів.
 
 ```tsx
 // src/data/providers.ts
@@ -327,8 +333,10 @@ export const invoicesExtension: InvoicesExtension = {
 ### Модуль у проекті (ADR-0025)
 
 ```sh
-npx shadcn@latest add VasulenkoIllia/erp-ui/modules/B1-contacts
+npx shadcn@latest add VasulenkoIllia/erp-ui/modules/B1-contacts#v0.2.0
 ```
+
+Мінімальний набір для проекту з модулем на моках (так ставить тестовий проект `erp-ui-pilot`, крок 1.5b): `base`, `data`, `mocks`, `auth`, `lib/mock-views`, `erp/app-shell`, `erp/user-menu`, `ui/sonner` і сам модуль — усі з одного тегу. Встановлення з приватного GitHub витрачає запити API (ліміт — 5 000 на годину для особистого токена; цей набір — кілька сотень, повний `consumer-smoke --ref` — ~1 400): 403 означає ліміт, повторіть після скидання.
 
 Файли модуля стають у `src/modules/B1-contacts/` як є, спільні компоненти кіта, яких бракує, — на свої місця. Кіт модуль імпортує шляхами проекту (`@/components/…`, `@/lib/…`, `@/hooks/…`), тож псевдоніми, які створив `shadcn init`, не змінюйте. Підключення — фабрика один раз:
 
@@ -345,10 +353,13 @@ function Contacts() { return useRoutes(contactsModule.routes) }
 // права й ресурси — contactsModule.resources (contacts, organizations, segments), до каталогу прав бекенда
 
 // src/mocks/handlers.ts — моки беруть лише файл полів, без компонентів
+import { createListSettingsHandlers } from "@/lib/mock-lists"
+import { createSavedViewHandlers } from "@/lib/mock-views"
 import { createContactsMocks } from "@/modules/B1-contacts/mocks"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 const contacts = createContactsMocks({ extension: contactsMockExtension })
-setupWorker(...platformHandlers, ...contacts.handlers)
+// Види й розмір сторінки списків модуля — обробники кіта поруч із модулем.
+setupWorker(...platformHandlers, ...createSavedViewHandlers(), ...createListSettingsHandlers(), ...contacts.handlers)
 ```
 
 Крім полів, колонок, ключових полів картки, секцій і дій (вище), розширення модуля має:
@@ -384,6 +395,8 @@ export const contactsExtension: ContactsExtension = {
 - `filters` — фільтр панелі з поля розширення: список і так/ні — варіанти, дата — період; текст і число фільтром не стають (помилка при запуску). `tabs` — вкладка списку з фільтром плоскими параметрами API. Фільтр вкладки перекриває фільтр панелі з тим самим ключем (у демо «Ключові» за сегментом: на цій вкладці фільтр «Сегменти» не діє), тож для вкладки краще поле без фільтра панелі.
 - `form` — поле розширення у формі створення й зміни: `add` з місцем серед полів модуля (`OrganizationFormFieldId`, `ContactFormFieldId`), `description` — підказка, `wide` — на всю ширину. Поле вводу — за типом поля (текст, число з `decimals`, дата, список, так/ні); обов'язкове поле (`required`) мусить бути у формі, інакше форма не збереться (помилка розробника). У запит іде лише змінене поле, порожнє — `null`.
 - `change` — змінити властивість елемента модуля без заміни (ADR-0026): у колонці — `header`, `minWidth`, `grow`, `priority`, `align`; у полі форми — `label`, `description`. Вміст і поведінка лишаються модуля, тож оновлення модуля до них доходять; закріплений елемент теж можна змінити.
+- Довгий підпис (заголовок колонки розширення, перейменований статус) таблиця кіта поки не обрізає: текст ширший за колонку налазить на сусідню. Дайте колонці ширину — новій `minWidth`, колонці модуля `columns.change: [{ id: "status", minWidth: 14 }]` (так у тестовому проекті з «Обслуговування припинено»).
+- Що файли кіта в проекті не змінені, перевіряйте відбитками, записаними одразу після `shadcn add` (приклад — `scripts/check-kit-files.mjs` і `kit-files.json` тестового проекту `erp-ui-pilot`, у `pnpm lint`): правка файлу кіта падає з підказкою «зміни — у файлі розширення».
 - `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
 - Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 
@@ -406,7 +419,8 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/auth   # усі екрани вхо�
 ```
 
 - Інші адреси — пропс `paths`. Після входу — туди, звідки ra-core перенаправив, або `afterLogin`.
-- У оболонці, коли користувач увійшов: `<SessionGuard idleMinutes={methods.idleTimeoutMinutes} />` (попередження перед кінцем сесії, вихід у всіх вкладках).
+- Моки за замовчуванням вмикають усі способи входу (`DEFAULT_MOCK_METHODS`). Проект, де змонтовано лише `/login`, передає в `createPlatformHandlers` `methods: { passwordless: [], providers: [], passwordReset: false, signUp: false }`, інакше екран входу веде на сторінки, яких немає.
+- У оболонці, коли користувач увійшов: `<SessionGuard idleMinutes={methods.idleTimeoutMinutes} />` (попередження перед кінцем сесії, вихід у всіх вкладках), де `methods` — `useAuthMethods().data` з `erp/auth-layout`.
 - Налаштування безпеки (сторінка «Безпека акаунта», ADR-0011):
   - `FactorsSection` — застосунок із QR, SMS, email, ключі доступу, резервні коди;
   - `ChangePasswordForm`, `ChangeEmailForm`, `AccountDataSection` з `erp/account-security`;

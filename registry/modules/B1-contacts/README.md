@@ -58,11 +58,14 @@ export const contactsModule = createContactsModule({ basePath: "/crm", extension
 ## Моки
 
 ```ts
+import { createListSettingsHandlers } from "@/lib/mock-lists"
+import { createSavedViewHandlers } from "@/lib/mock-views" // окремий елемент lib/mock-views
 import { createContactsMocks } from "@/modules/B1-contacts/mocks"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 
 const contacts = createContactsMocks({ extension: contactsMockExtension, locale: "uk" })
-setupWorker(...platformHandlers, ...contacts.handlers)
+// Списки модуля читають особисті види (`/me/views`) і розмір сторінки (`/me/list-settings/<ресурс>`).
+setupWorker(...platformHandlers, ...createSavedViewHandlers(), ...createListSettingsHandlers(), ...contacts.handlers)
 ```
 
 - Фікстури (`fixtures.ts`) — українською чи англійською (`locale`), коди ЄДРПОУ й РНОКПП і IBAN з дійсними контрольними цифрами; `companyOf` — компанія користувача для запису.
