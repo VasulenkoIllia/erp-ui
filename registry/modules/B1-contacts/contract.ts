@@ -16,7 +16,10 @@
  * - Права — `<ресурс>:<дія>`: `read`, `create`, `update`, `delete` (ADR-0014).
  *
  * Поля й статуси розширення проекту (ADR-0020) входять у схему через `organizationSchemaFor` і
- * `contactSchemaFor`: без них zod відкинув би нові поля відповіді.
+ * `contactSchemaFor`: без них zod відкинув би нові поля відповіді. Ця ж схема розбирає `current`
+ * конфлікту 409 у формах (ADR-0026): порівняння показує й поля розширення.
+ *
+ * Створення — `POST` з усіма полями форми; зміна — `PATCH` лише змінених полів з `version`.
  */
 import { z } from "zod"
 
@@ -44,7 +47,7 @@ export type OrganizationType = (typeof ORGANIZATION_TYPES)[number]
 export const ORGANIZATION_STATUSES = ["active", "prospect", "inactive"] as const
 export type OrganizationStatus = (typeof ORGANIZATION_STATUSES)[number]
 /** Статус нової організації, якщо форма його не передала. */
-const DEFAULT_ORGANIZATION_STATUS: OrganizationStatus = "active"
+export const DEFAULT_ORGANIZATION_STATUS: OrganizationStatus = "active"
 
 export const ADDRESS_KINDS = ["legal", "actual", "postal"] as const
 export type AddressKind = (typeof ADDRESS_KINDS)[number]
@@ -67,8 +70,11 @@ const organizationShape = recordBaseSchema.extend({
   type: z.enum(ORGANIZATION_TYPES),
   /** ЄДРПОУ чи РНОКПП; порожній — не вказано. */
   code: z.string(),
-  /** IBAN основного рахунку (з `bankAccounts`); порожній — рахунків немає. */
-  iban: z.string(),
+  /**
+   * IBAN основного рахунку (з `bankAccounts`); порожній — рахунків немає. Веде сервер, форма його не
+   * надсилає: у створенні без нього — порожній.
+   */
+  iban: z.string().default(""),
   /** E.164: +380…; порожній — не вказано. */
   phone: z.string(),
   email: z.string(),

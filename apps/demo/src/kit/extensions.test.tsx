@@ -6,8 +6,11 @@ import {
   extendSchema,
   useExtensionFields,
   withMockValues,
+  type ExtensionColumn,
+  type ExtensionColumnChange,
   type ExtensionField,
 } from "@/registry/lib/extension-fields"
+import type { ExtensionFormChanges } from "@/registry/lib/extension-form"
 import {
   applyKeyedChanges,
   extensionValue,
@@ -173,6 +176,93 @@ describe("applyKeyedChanges", () => {
   })
 })
 
+describe("change: властивість елемента без заміни (ADR-0026)", () => {
+  type LabelChange = Pick<Item, "label">
+  const change = (
+    changes: KeyedChanges<Item, string, LabelChange>,
+    locked: string[] = [],
+  ) => applyKeyedChanges(ITEMS, changes, { locked })
+
+  it("змінює лише вказане; невідомий ключ і порожні властивості — без змін", () => {
+    const result = change({
+      change: [
+        { id: "b", label: "Бе" },
+        { id: "zzz", label: "?" },
+        { id: "c", label: undefined },
+      ],
+    })
+    expect(result.map((item) => item.label)).toEqual(["A", "Бе", "C"])
+    // Елемент модуля не мутується: той самий масив модуля можна збирати знову.
+    expect(ITEMS[1]?.label).toBe("B")
+    expect(result[2]).toBe(ITEMS[2])
+  })
+
+  it("після add і до move; закріплений теж змінюється, а ключ і місце — ні", () => {
+    const result = change(
+      {
+        add: [{ id: "x", label: "X", place: "start" }],
+        change: [
+          { id: "x", label: "Ікс" },
+          { id: "a", label: "Альфа" },
+        ],
+        move: [{ id: "a", place: "end" }],
+      },
+      ["a"],
+    )
+    expect(ids(result)).toBe("x,b,c,a")
+    expect(result.map((item) => item.label)).toEqual(["Ікс", "B", "C", "Альфа"])
+  })
+
+  it("без типу змін (C = never) change не пропускає TypeScript", () => {
+    // @ts-expect-error — тип списку без change: властивість не можна змінити.
+    const changes: KeyedChanges<Item> = { change: [{ id: "a", label: "?" }] }
+    expect(changes.change).toHaveLength(1)
+  })
+
+  it("ключі й властивості змін перевіряє TypeScript", () => {
+    const form: ExtensionFormChanges<"name" | "city"> = {
+      change: [
+        // @ts-expect-error — поля «cty» у формі модуля немає
+        { id: "cty", label: { uk: "Місто", en: "City" } },
+        // @ts-expect-error — у полі форми змінюють підпис і підказку, а не тип
+        { id: "city", type: "text" },
+      ],
+    }
+    const columns: KeyedChanges<
+      ExtensionColumn,
+      "city",
+      ExtensionColumnChange
+    > = {
+      change: [
+        // @ts-expect-error — пріоритет — число
+        { id: "city", priority: "high" },
+        // @ts-expect-error — поведінку на вузькому екрані лишає модуль
+        { id: "city", overflow: "hide" },
+      ],
+    }
+    const wrong: KeyedChanges<Item, string, { label: number }> = {
+      change: [{ id: "a", label: 1 }],
+    }
+    // @ts-expect-error — властивість іншого типу, ніж у елемента модуля
+    expect(applyKeyedChanges(ITEMS, wrong)).toHaveLength(3)
+    expect(form.change).toHaveLength(2)
+    expect(columns.change).toHaveLength(2)
+  })
+
+  it("mapKeyedChanges перетворює change окремою функцією", () => {
+    const changes: KeyedChanges<Item, string, { n: number }> = {
+      change: [{ id: "a", n: 1 }],
+    }
+    const mapped = mapKeyedChanges(
+      changes,
+      (item) => item,
+      ({ id, n }) => ({ id, label: String(n) }),
+    )
+    expect(mapped?.change).toEqual([{ id: "a", label: "1" }])
+    expect(applyKeyedChanges(ITEMS, mapped)[0]?.label).toBe("1")
+  })
+})
+
 const FIELDS: readonly ExtensionField[] = [
   { id: "manager", type: "text", label: { uk: "Менеджер", en: "Manager" } },
   { id: "limit", type: "number", label: "Ліміт" },
@@ -278,6 +368,22 @@ describe("поля розширення", () => {
       value: "Єдиний податок",
     })
     expect(() => column({ id: "zzz" })).toThrow(/zzz/)
+  })
+
+  it("зміна колонки модуля: назва мовою інтерфейсу, решта — як задано", () => {
+    const { result } = renderHook(() => useExtensionFields(FIELDS))
+    expect(
+      result.current.columnChange({
+        id: "city",
+        header: { uk: "Місто клієнта", en: "Client city" },
+        priority: 9,
+      }),
+    ).toEqual({ id: "city", header: "Місто клієнта", priority: 9 })
+    expect(result.current.columnChange({ id: "city", grow: 2 })).toEqual({
+      id: "city",
+      header: undefined,
+      grow: 2,
+    })
   })
 
   it("той самий результат між рендерами: від нього залежать колонки списку", () => {

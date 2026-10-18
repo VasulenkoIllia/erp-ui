@@ -174,10 +174,10 @@ useRecordSlots({ record, resource, sections, actions })  // → { sections, acti
   збирач дробить вхідний чанк (у демо +6 КБ gzip першого екрана).
 
 Фабрику модуля, фільтри й вкладки з полів розширення, статуси й перевизначення рядків зроблено в
-кроці 1.4a (розділ «Форма типів модуля» нижче). Ще не в коді: поля розширення у формі; зміна
-властивості елемента модуля (пріоритет колонки, назва) без його заміни; схема розширення там, де
-модуль розбирає запис для показу порівняння при конфлікті (`invoice-cells`, `invoice-edit-dialog` у
-демо) — у B1 з'являться разом із формами (крок 1.4b). Демо-рахунки поки передають розширення у двох місцях
+кроці 1.4a (розділ «Форма типів модуля» нижче). Поля розширення у формі, зміну властивості
+елемента модуля без заміни (`change`) і схему розширення в порівнянні при конфлікті зроблено в
+кроці 1.4b1 (ADR-0026); демо-рахунки (`invoice-cells`, `invoice-edit-dialog`) порівнюють запис
+без схеми розширення, доки рахунки не стануть модулем. Демо-рахунки поки передають розширення у двох місцях
 проекту: маршрути (`lazy-pages.ts`) і моки (`mocks/handlers.ts`). Розширення підключається
 статично, тож у демо воно у вхідному чанку (+1,3 КБ gzip, у межах бюджету ADR-0009): так бюджет
 рахує його чесно. Важкий вміст слота проект вантажить ліниво всередині свого компонента (`lazy` і
@@ -192,9 +192,10 @@ useRecordSlots({ record, resource, sections, actions })  // → { sections, acti
 // extension.ts модуля — публічний API: несумісна зміна — мажорна версія кіта
 interface EntityExtension<T, K extends EntityIds> {
   fields?: readonly ExtensionField[]
-  columns?: KeyedChanges<ExtensionColumn, K["column"]>
+  columns?: KeyedChanges<ExtensionColumn, K["column"], ExtensionColumnChange> // change — 1.4b1
   filters?: KeyedChanges<ExtensionFilter, K["filter"]>   // з поля: список, так/ні, дата
   tabs?: KeyedChanges<ExtensionTab, K["tab"]>            // { id, label, filter } — фільтр даними
+  form?: KeyedChanges<ExtensionFormField, K["formField"], ExtensionFormFieldChange> // 1.4b1, ADR-0026
   recordFields?: KeyedChanges<Keyed, K["field"]>
   sections?: KeyedChanges<ExtensionSection<T>, K["section"]>
   actions?: KeyedChanges<ExtensionAction<T>, K["action"]>

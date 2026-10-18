@@ -1,18 +1,21 @@
 import { useAuthenticated } from "ra-core"
-import { useMemo } from "react"
-import { useSearchParams } from "react-router"
+import { useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
   ListReportHeader,
   useListReport,
+  type ListReportAction,
 } from "@/components/templates/list-report"
 import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 import { isPinned } from "@/lib/pins"
 
+import { AccessAction, useOpener } from "../components/access-action"
 import { useContactColumns } from "../components/contact-columns"
+import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
 import { useSegmentFilter } from "../components/segments"
 import { useExtendedList } from "../components/use-extended-list"
 import { usePageHeading } from "../components/use-page-heading"
@@ -42,21 +45,59 @@ const TAB_FILTERS: Record<ContactTabId, Record<string, string>> = {
  * Список контактів на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0024): вкладки «Усі»,
  * «Представники організацій», «Приватні особи», фільтр «Сегменти», пошук за ім'ям, телефоном чи
  * email, закріплення вгорі, запам'ятаний розмір сторінки; ім'я — посилання на картку контакту,
- * організація — на картку організації.
+ * організація — на картку організації. «Створити контакт» — форма в діалозі (ADR-0026), після
+ * створення — картка нового контакту.
  */
 export function ContactsListPage() {
   const t = useContactsT()
+  const { paths } = useContactsModule()
+  const navigate = useNavigate()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("contacts.title"))
+  const [isCreating, setCreating] = useState(false)
+  const opener = useOpener()
+  usePreloadForm("contact", "create")
+  const actions: (ListReportAction & { id: "create" })[] = [
+    {
+      id: "create",
+      node: (
+        <AccessAction
+          resource={CONTACTS}
+          action="create"
+          icon="create"
+          label={t("contacts.create")}
+          deniedReason={t("contacts.createDenied")}
+          variant="default"
+          onClick={(event) => {
+            opener.remember(event)
+            setCreating(true)
+          }}
+        />
+      ),
+    },
+  ]
   return (
     <div className="space-y-6">
       <ListReportHeader
         title={t("contacts.title")}
         description={t("contacts.lead")}
         headingRef={heading}
+        actions={isPending ? undefined : actions}
       />
       {isPending ? <PageSkeleton rows={8} /> : <ContactList />}
+      {isCreating ? (
+        <ContactFormDialog
+          finalFocus={opener.ref}
+          onClose={() => {
+            setCreating(false)
+          }}
+          onSaved={(contact) => {
+            setCreating(false)
+            void navigate(paths.contact(String(contact.id)))
+          }}
+        />
+      ) : null}
     </div>
   )
 }

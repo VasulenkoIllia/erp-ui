@@ -17,12 +17,15 @@ import { Button } from "@/registry/ui/button"
  * - `onError` — передати помилку в моніторинг (Sentry тощо).
  * - `fallback` — власний вигляд для тісних місць (кнопка в шапці); `key` на межі скидає її, напр.
  *   при переході на іншу сторінку.
+ * - `frame` — рамка навколо стану помилки за замовчуванням: лінива форма в діалозі показує її в
+ *   діалозі зі своєю назвою, а повтор і «Оновити сторінку» лишаються від межі.
  *
  *   <ErrorBoundary key={pathname}><Suspense fallback={<PageSkeleton />}><Page /></Suspense></ErrorBoundary>
  */
 export interface ErrorBoundaryProps {
   children: React.ReactNode
   fallback?: (retry: () => void) => React.ReactNode
+  frame?: (content: React.ReactNode) => React.ReactNode
   onError?: (error: unknown, info: React.ErrorInfo) => void
   className?: string
 }
@@ -68,7 +71,7 @@ export class ErrorBoundary extends React.Component<
     const { error, failed, retries } = this.state
     if (!failed) return this.props.children
     if (this.props.fallback) return this.props.fallback(this.retry)
-    return (
+    const content = (
       <PageState
         kind={navigator.onLine ? "error" : "offline"}
         onRetry={this.retry}
@@ -80,6 +83,7 @@ export class ErrorBoundary extends React.Component<
         className={this.props.className}
       />
     )
+    return this.props.frame ? this.props.frame(content) : content
   }
 }
 

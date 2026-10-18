@@ -1225,7 +1225,7 @@
       "name": "modules/B1-contacts",
       "type": "registry:item",
       "title": "Контакти й компанії (B1)",
-      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025).",
+      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; форми створення й зміни організації й контакту в діалозі з полями розширення, «Створити…» організацію з форми контакту, конфлікт 409 з порівнянням; контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -1270,6 +1270,11 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
         },
         {
           "path": "registry/erp/copy-button.tsx",
@@ -1327,6 +1332,11 @@
           "target": "@components/erp/error-boundary.tsx"
         },
         {
+          "path": "registry/erp/extension-field-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/extension-field-input.tsx"
+        },
+        {
           "path": "registry/erp/filter-bar.tsx",
           "type": "registry:component",
           "target": "@components/erp/filter-bar.tsx"
@@ -1340,6 +1350,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
         },
         {
           "path": "registry/erp/number-group.tsx",
@@ -1362,9 +1377,19 @@
           "target": "@components/erp/permission-gate.tsx"
         },
         {
+          "path": "registry/erp/phone-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/phone-input.tsx"
+        },
+        {
           "path": "registry/erp/pin-toggle.tsx",
           "type": "registry:component",
           "target": "@components/erp/pin-toggle.tsx"
+        },
+        {
+          "path": "registry/erp/record-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-form.tsx"
         },
         {
           "path": "registry/erp/record-header.tsx",
@@ -1400,6 +1425,11 @@
           "path": "registry/erp/status-tabs.tsx",
           "type": "registry:component",
           "target": "@components/erp/status-tabs.tsx"
+        },
+        {
+          "path": "registry/erp/ua-id-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/ua-id-input.tsx"
         },
         {
           "path": "registry/hooks/use-api-error-message.ts",
@@ -1455,6 +1485,11 @@
           "path": "registry/hooks/use-pin.ts",
           "type": "registry:hook",
           "target": "@hooks/use-pin.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
         },
         {
           "path": "registry/hooks/use-record-search.ts",
@@ -1545,6 +1580,11 @@
           "path": "registry/lib/extension-fields.ts",
           "type": "registry:lib",
           "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/extension-form.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-form.ts"
         },
         {
           "path": "registry/lib/extensions.ts",
@@ -1907,6 +1947,11 @@
           "target": "@ui/switch.tsx"
         },
         {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        },
+        {
           "path": "registry/ui/tabs.tsx",
           "type": "registry:ui",
           "target": "@ui/tabs.tsx"
@@ -1922,14 +1967,29 @@
           "target": "@ui/tooltip.tsx"
         },
         {
+          "path": "registry/modules/B1-contacts/components/access-action.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/access-action.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/cell-text.ts",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/cell-text.ts"
         },
         {
+          "path": "registry/modules/B1-contacts/components/contact-channel-fields.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/contact-channel-fields.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/contact-columns.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/contact-columns.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/contact-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/contact-form.tsx"
         },
         {
           "path": "registry/modules/B1-contacts/components/contact-organization.tsx",
@@ -1940,6 +2000,16 @@
           "path": "registry/modules/B1-contacts/components/contact-sections.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/contact-sections.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/form-dialogs.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/form-dialogs.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/form-schema.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/form-schema.ts"
         },
         {
           "path": "registry/modules/B1-contacts/components/navigation.tsx",
@@ -1955,6 +2025,11 @@
           "path": "registry/modules/B1-contacts/components/organization-contacts.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/organization-contacts.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-form.tsx"
         },
         {
           "path": "registry/modules/B1-contacts/components/organization-header.tsx",
@@ -4353,10 +4428,190 @@
       }
     },
     {
+      "name": "lib/extension-form",
+      "type": "registry:lib",
+      "title": "Поля розширення у формі",
+      "description": "Без React: які поля розширення стоять у формі модуля (form.add; обов'язкове поза формою — помилка розробника), схеми перевірки з текстами мовою інтерфейсу, значення форми з запису й значення для запиту (порожнє — null), зміна підпису й підказки поля модуля без заміни (ADR-0020, ADR-0026).",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/extension-form.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-form.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.3",
+          "§17",
+          "PF09"
+        ]
+      }
+    },
+    {
       "name": "lib/extensions",
       "type": "registry:lib",
       "title": "Точки розширення модуля",
-      "description": "Без React: зміни списку елементів модуля за ключем — додати з місцем (`place`) чи замінити, сховати й замінити (крім закріплених), переставити (applyKeyedChanges); ключі модуля в змінах і місцях перевіряє TypeScript; перетворення доданих даних на елементи шаблону (mapKeyedChanges) (ADR-0020).",
+      "description": "Без React: зміни списку елементів модуля за ключем — додати з місцем (`place`) чи замінити, сховати й замінити (крім закріплених), переставити (applyKeyedChanges); ключі модуля в змінах і місцях перевіряє TypeScript; зміна властивостей елемента модуля без заміни (change: назва й пріоритет колонки, підпис і підказка поля форми); перетворення доданих даних на елементи шаблону (mapKeyedChanges) (ADR-0020).",
       "dependencies": [],
       "files": [
         {
@@ -9380,6 +9635,169 @@
         "spec": [
           "§7",
           "§10"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-record-form",
+      "type": "registry:hook",
+      "title": "Збереження форми запису",
+      "description": "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються (ADR-0002, ADR-0026).",
+      "dependencies": [
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.2",
+          "§8.3",
+          "§17"
         ]
       }
     },
@@ -14464,7 +14882,7 @@
       "name": "erp/error-boundary",
       "type": "registry:component",
       "title": "Межа помилок",
-      "description": "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць.",
+      "description": "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць; рамка навколо стану помилки (`frame`: діалог лінивої форми).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -14562,6 +14980,352 @@
         "spec": [
           "§8.1",
           "§18.5"
+        ]
+      }
+    },
+    {
+      "name": "erp/extension-field-input",
+      "type": "registry:component",
+      "title": "Поле розширення у формі",
+      "description": "Поле вводу кіта за типом поля розширення (текст, число, дата, список, так/ні прапорцем) і useExtensionForm — поля розширення як елементи форми модуля, підписи й підказки мовою інтерфейсу, зміна поля модуля без заміни (ADR-0020, ADR-0026).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-day-picker@^10.0.2",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/extension-field-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/extension-field-input.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/record-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/extension-form.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-form.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.3",
+          "§11",
+          "§17",
+          "PF09"
         ]
       }
     },
@@ -15226,6 +15990,134 @@
         "demo": "data",
         "spec": [
           "UI03",
+          "§8.3"
+        ]
+      }
+    },
+    {
+      "name": "erp/form-select",
+      "type": "registry:component",
+      "title": "Вибір у формі",
+      "description": "FormSelect: одне значення з короткого списку для FormField (тип, статус, варіант поля розширення); «покинуто» — коли список закрили, ref — на кнопку поля. Окремо від erp/form, щоб список не їхав у кожну сторінку з формою (ADR-0026).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.2",
           "§8.3"
         ]
       }
@@ -18398,6 +19290,255 @@
         "demo": "security",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "erp/record-form",
+      "type": "registry:component",
+      "title": "Форма запису в діалозі",
+      "description": "RecordFormDialog: створення й зміна запису модуля — поля списком із ключами (поля модуля й розширення), сітка на @container, зведення помилок, помилка сервера й полів поза формою над полями з фокусом, «Закрити без збереження?», захист незбережених змін (один на вкладені форми), порівняння при конфлікті з текстом полів, вкладені діалоги, фокус на кнопку, що відкрила (ADR-0026).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/record-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-form.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§7",
+          "§8.2",
+          "§8.3",
+          "§9",
+          "§10"
         ]
       }
     },

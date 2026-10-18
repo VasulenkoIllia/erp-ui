@@ -1,4 +1,5 @@
 import { useAuthenticated } from "ra-core"
+import { useState, type MouseEvent } from "react"
 import { useParams } from "react-router"
 
 import { AuditLog } from "@/components/erp/audit-log"
@@ -21,7 +22,9 @@ import {
 } from "@/lib/extensions"
 import { formatPhone } from "@/lib/phone"
 
+import { AccessAction, useOpener } from "../components/access-action"
 import { contactName } from "../components/contact-columns"
+import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
 import { ContactOrganization } from "../components/contact-organization"
 import {
   ContactDetails,
@@ -41,7 +44,8 @@ import { useContactsT } from "../use-contacts-t"
 
 /**
  * Картка контакту на шаблоні Object Page (SPEC §7; ADR-0019): «Подробиці» з «Копіювати» (UI43) і
- * «Організація» з вибором компанії (UI40), секції розширення проекту; «Історія» з журналу аудиту.
+ * «Організація» з вибором компанії (UI40), секції розширення проекту; «Історія» з журналу аудиту;
+ * «Змінити» — форма в діалозі (ADR-0026).
  */
 export function ContactPage() {
   const { id = "" } = useParams()
@@ -69,7 +73,13 @@ function ContactCard({ id }: { id: string }) {
     sections: extension.contacts?.sections,
     actions: extension.contacts?.actions,
   })
-  const header = useContactHeader(contact, slots.actions)
+  const [isEditing, setEditing] = useState(false)
+  const opener = useOpener()
+  usePreloadForm("contact", "update")
+  const header = useContactHeader(contact, slots.actions, (event) => {
+    opener.remember(event)
+    setEditing(true)
+  })
   const sections: (ObjectPageSectionItem & { id: ContactSectionId })[] = contact
     ? [
         {
@@ -85,27 +95,41 @@ function ContactCard({ id }: { id: string }) {
       ]
     : []
   return (
-    <ObjectPage
-      title={t("contact.title")}
-      headingRef={heading}
-      back={<BackToList to={paths.contacts} label={t("contact.back")} />}
-      isPending={card.isPending}
-      error={card.pageError}
-      onRetry={card.retry}
-      header={header}
-      sections={applyKeyedChanges(sections, slots.sections)}
-      aside={{
-        label: t("contact.history"),
-        content: (
-          <AuditLog
-            filter={{ targetType: CONTACTS, targetId: id }}
-            filters={false}
-            exportable={false}
-            perPage={10}
-          />
-        ),
-      }}
-    />
+    <>
+      <ObjectPage
+        title={t("contact.title")}
+        headingRef={heading}
+        back={<BackToList to={paths.contacts} label={t("contact.back")} />}
+        isPending={card.isPending}
+        error={card.pageError}
+        onRetry={card.retry}
+        header={header}
+        sections={applyKeyedChanges(sections, slots.sections)}
+        aside={{
+          label: t("contact.history"),
+          content: (
+            <AuditLog
+              filter={{ targetType: CONTACTS, targetId: id }}
+              filters={false}
+              exportable={false}
+              perPage={10}
+            />
+          ),
+        }}
+      />
+      {isEditing && contact ? (
+        <ContactFormDialog
+          contact={contact}
+          finalFocus={opener.ref}
+          onClose={() => {
+            setEditing(false)
+          }}
+          onSaved={() => {
+            setEditing(false)
+          }}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -113,6 +137,7 @@ function ContactCard({ id }: { id: string }) {
 function useContactHeader(
   contact: Contact | undefined,
   slotActions: KeyedChanges<ObjectPageAction, ContactActionId> | undefined,
+  onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
   const { extension } = useContactsModule()
@@ -137,6 +162,19 @@ function useContactHeader(
     { id: "email", label: t("contact.fields.email"), value: contact.email },
   ]
   const actions: (ObjectPageAction & { id: ContactActionId })[] = [
+    {
+      id: "edit",
+      node: (
+        <AccessAction
+          resource={CONTACTS}
+          action="update"
+          icon="edit"
+          label={t("contact.edit")}
+          deniedReason={t("contact.editDenied")}
+          onClick={onEdit}
+        />
+      ),
+    },
     {
       id: "pin",
       node: (

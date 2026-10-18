@@ -1324,6 +1324,7 @@ export const en = {
       incomplete: "The number is incomplete",
       invalid: "This number does not exist — check the code and digits",
     },
+    email: "Check the address: it should look like name@example.com",
     date: {
       incomplete: "Enter the full date: {{format}}",
       invalid: "This date does not exist. Check the day and month",

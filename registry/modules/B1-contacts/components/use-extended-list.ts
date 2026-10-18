@@ -4,6 +4,7 @@ import type { DataTableColumn } from "@/lib/data-table-core"
 import {
   useExtensionFields,
   type ExtensionColumn,
+  type ExtensionColumnChange,
   type ExtensionField,
   type ExtensionFilter,
   type ExtensionTab,
@@ -26,7 +27,11 @@ interface ListIds {
 /** Те, що розширення змінює в списку сутності (ADR-0020). */
 interface ListExtension<Ids extends ListIds> {
   readonly fields?: readonly ExtensionField[]
-  readonly columns?: KeyedChanges<ExtensionColumn, Ids["column"]>
+  readonly columns?: KeyedChanges<
+    ExtensionColumn,
+    Ids["column"],
+    ExtensionColumnChange
+  >
   readonly filters?: KeyedChanges<ExtensionFilter, Ids["filter"]>
   readonly tabs?: KeyedChanges<ExtensionTab, Ids["tab"]>
 }
@@ -56,7 +61,7 @@ export function useExtendedList<Row, Ids extends ListIds>(
     () => ({
       columns: applyKeyedChanges(
         columns,
-        mapKeyedChanges(extension?.columns, fields.column),
+        mapKeyedChanges(extension?.columns, fields.column, fields.columnChange),
         { locked },
       ),
       filters: applyKeyedChanges(

@@ -1,4 +1,4 @@
-// Підставляється після `shadcn add`: модуль B1 з розширенням проекту компілюється в проекті (ADR-0025).
+// Підставляється після `shadcn add`: модуль B1 з розширенням проекту (поля в списку, формі й картці) компілюється в проекті (ADR-0025, ADR-0026).
 import { lazy } from "react"
 import { useRoutes } from "react-router"
 
@@ -29,8 +29,15 @@ const extension: ContactsExtension = {
       ],
       hide: ["inactive"],
     },
-    columns: { add: [{ id: "vatPayer", place: { after: "code" } }] },
+    columns: {
+      add: [{ id: "vatPayer", place: { after: "code" } }],
+      change: [{ id: "city", priority: 9 }],
+    },
     filters: { add: [{ id: "vatPayer" }] },
+    form: {
+      add: [{ id: "vatPayer", place: { after: "code" } }],
+      change: [{ id: "city", description: { uk: "Як у ЄДР", en: "As in the register" } }],
+    },
     sections: {
       add: [
         {

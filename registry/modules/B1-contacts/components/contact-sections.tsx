@@ -24,7 +24,25 @@ import { RecordLink } from "./navigation"
 import { RequisiteList } from "./requisite-list"
 import { SegmentBadges, useSegments } from "./segments"
 
-const ORGANIZATION_SORT = { field: "name", order: "ASC" } as const
+/** Порядок варіантів вибору організації контакту. */
+export const ORGANIZATION_SORT = { field: "name", order: "ASC" } as const
+
+/** Другий рядок варіанта вибору організації: код за типом і місто. */
+export function useOrganizationDescription() {
+  const t = useContactsT()
+  return useCallback(
+    (organization: Organization) =>
+      [
+        t(`contact.organization.option.${organization.type}`, {
+          code: organization.code,
+        }),
+        organization.city,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    [t],
+  )
+}
 
 /** Подробиці контакту: телефон і email з «Копіювати» (UI43), посада, сегменти. */
 export function ContactDetails({ contact }: { contact: Contact }) {
@@ -81,18 +99,7 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
   })
   const { save, isSaving } = useSaveOrganization(contact)
   const fieldId = useId()
-  const describe = useCallback(
-    (organization: Organization) =>
-      [
-        t(`contact.organization.option.${organization.type}`, {
-          code: organization.code,
-        }),
-        organization.city,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-    [t],
-  )
+  const describe = useOrganizationDescription()
   return (
     <div className="max-w-md space-y-3">
       {/* Поле не вимикається на час збереження: інакше фокус з нього зникає (WCAG 2.4.3). */}

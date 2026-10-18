@@ -14,7 +14,14 @@ import { RecordLink } from "./navigation"
  * видалили — «не знайдено», а не порожнє місце; запит не вдався (немає права, збій, офлайн) —
  * «не вдалося завантажити», а не «видалили».
  */
-export function ContactOrganization({ id }: { id: string | null }) {
+export function ContactOrganization({
+  id,
+  link = true,
+}: {
+  id: string | null
+  /** Назва посиланням на картку; без нього — текстом (порівняння в діалозі конфлікту). */
+  link?: boolean
+}) {
   const t = useContactsT()
   const { paths } = useContactsModule()
   const companyId = useCompanyId()
@@ -27,8 +34,10 @@ export function ContactOrganization({ id }: { id: string | null }) {
     return <span className="text-muted-foreground">{t("contact.private")}</span>
   const organization = data?.find((item) => item.id === id)
   if (organization)
-    return (
+    return link ? (
       <RecordLink to={paths.organization(id)}>{organization.name}</RecordLink>
+    ) : (
+      organization.name
     )
   if (isPending) return null
   return (

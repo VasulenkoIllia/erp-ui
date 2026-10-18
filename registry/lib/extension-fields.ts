@@ -18,7 +18,11 @@ import { z } from "zod"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { isCalendarDate } from "@/registry/lib/dates"
-import { extensionValue, type Keyed } from "@/registry/lib/extensions"
+import {
+  extensionValue,
+  type Keyed,
+  type KeyedChange,
+} from "@/registry/lib/extensions"
 import type { FilterDefinition } from "@/registry/lib/filters"
 import { useFormat } from "@/registry/lib/format"
 import {
@@ -47,8 +51,9 @@ interface ExtensionFieldBase {
   readonly id: string
   readonly label: LocalizedText
   /**
-   * Без значення запис не проходить схему. До полів розширення у формі модуля (крок 1.4) створення
-   * запису з обов'язковим полем не пройде й у моках: форма його не надішле.
+   * Без значення запис не проходить схему. Обов'язкове поле має бути у формі модуля (`form.add`,
+   * `lib/extension-form`): без нього форма не збереться (помилка розробника), бо створення без
+   * значення сервер однаково відхилить.
    */
   readonly required?: boolean
   /** Значення для моків і демо-даних: запис № i бере `mockValues[i % length]`. */
@@ -58,7 +63,12 @@ interface ExtensionFieldBase {
 /** Нове поле: текст, число, календарна дата `YYYY-MM-DD`, так/ні чи значення зі списку. */
 export type ExtensionField =
   | (ExtensionFieldBase & {
-      readonly type: "text" | "number" | "date" | "boolean"
+      readonly type: "text" | "date" | "boolean"
+    })
+  | (ExtensionFieldBase & {
+      readonly type: "number"
+      /** Знаків після коми в полі форми; за замовчуванням — ціле число. */
+      readonly decimals?: number
     })
   | (ExtensionFieldBase & {
       readonly type: "options"
@@ -66,7 +76,7 @@ export type ExtensionField =
     })
 
 /** Тип, якого кіт не знає (дані від сервера новіші за кіт), — помилка, а не поле без перевірки. */
-function unknownType(field: never): never {
+export function unknownFieldType(field: never): never {
   throw new Error(
     `erp-ui: unknown extension field type "${String((field as { type?: unknown }).type)}"`,
   )
@@ -87,7 +97,7 @@ function valueSchema(field: ExtensionField): z.ZodType<ExtensionFieldValue> {
       return z.string().refine((value) => values.has(value))
     }
     default:
-      return unknownType(field)
+      return unknownFieldType(field)
   }
 }
 
@@ -144,6 +154,21 @@ export interface ExtensionColumn
 }
 
 /**
+ * Що розширення змінює в колонці модуля без заміни (`change`): назва, ширина, пріоритет на вузькому
+ * екрані, вирівнювання. Вміст комірки, поведінка на вузькому екрані (`overflow`: закріплену колонку
+ * так можна було б сховати) і роль у картці лишаються від модуля.
+ */
+export type ExtensionColumnChange = Pick<
+  ExtensionColumn,
+  "header" | "minWidth" | "grow" | "priority" | "align"
+>
+
+/** Зміна колонки мовою інтерфейсу — для `applyKeyedChanges` поверх колонок модуля. */
+type ColumnChange = KeyedChange<
+  Partial<Pick<DataTableColumn<unknown>, keyof ExtensionColumnChange>>
+>
+
+/**
  * Фільтр панелі з поля розширення (ключ — ключ поля): список — «одне з» значень, так/ні — «так» чи
  * «ні», дата — період (`<поле>_gte`, `<поле>_lte`). Текст і число фільтром не стають: текст шукає
  * пошук `q`, діапазону чисел панель ще не має.
@@ -174,6 +199,8 @@ export interface ExtensionFieldsApi {
   text: (field: ExtensionField, value: unknown) => string | null
   /** Колонка списку з поля розширення. */
   column: (column: ExtensionColumn) => DataTableColumn<unknown>
+  /** Зміна колонки модуля без заміни: назва мовою інтерфейсу. */
+  columnChange: (change: KeyedChange<ExtensionColumnChange>) => ColumnChange
   /** Ключове поле шапки картки для запису. */
   entry: (item: Keyed, record: unknown) => ExtensionFieldEntry
   /** Фільтр панелі з поля розширення. */
@@ -215,7 +242,7 @@ function fieldText(
       return typeof value === "string" ? value : null
     }
     default:
-      return unknownType(field)
+      return unknownFieldType(field)
   }
 }
 
@@ -257,7 +284,7 @@ function filterOf(
         `erp-ui: extension field "${field.id}" of type ${field.type} cannot be a filter`,
       )
     default:
-      return unknownType(field)
+      return unknownFieldType(field)
   }
 }
 
@@ -300,6 +327,10 @@ export function useExtensionFields(
           card: column.card,
         }
       },
+      columnChange: ({ header, ...change }) => ({
+        ...change,
+        header: header && label(header),
+      }),
       entry: ({ id }, record) => {
         const field = find(id)
         return {

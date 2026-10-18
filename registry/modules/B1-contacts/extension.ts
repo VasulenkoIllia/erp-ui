@@ -10,10 +10,12 @@
  */
 import type {
   ExtensionColumn,
+  ExtensionColumnChange,
   ExtensionField,
   ExtensionFilter,
   ExtensionTab,
 } from "@/lib/extension-fields"
+import type { ExtensionFormChanges } from "@/lib/extension-form"
 import type { Keyed, KeyedChanges } from "@/lib/extensions"
 import type { MessagesOverride } from "@/lib/i18n-namespaces"
 import type { ExtensionStatus } from "@/lib/statuses"
@@ -38,7 +40,10 @@ export type OrganizationFieldId = "code" | "type" | "city" | "phone"
 /** Вкладки картки організації. */
 export type OrganizationSectionId =
   "requisites" | "addresses" | "bankAccounts" | "contacts"
-export type OrganizationActionId = "pin"
+export type OrganizationActionId = "edit" | "pin"
+/** Поля форми організації (ключ — ім'я поля запису). */
+export type OrganizationFormFieldId =
+  "name" | "type" | "code" | "status" | "phone" | "email" | "city"
 
 export type ContactColumnId =
   "pin" | "name" | "organization" | "position" | "phone" | "email" | "segments"
@@ -47,7 +52,10 @@ export type ContactTabId = "all" | "representatives" | "private"
 export type ContactFieldId = "organization" | "position" | "phone" | "email"
 /** Секції картки контакту. */
 export type ContactSectionId = "details" | "organization"
-export type ContactActionId = "pin"
+export type ContactActionId = "edit" | "pin"
+/** Поля форми контакту (ключ — ім'я поля запису). */
+export type ContactFormFieldId =
+  "name" | "organizationId" | "position" | "phone" | "email"
 
 /** Ключі модуля для однієї сутності: список і картка. */
 interface EntityIds {
@@ -57,14 +65,25 @@ interface EntityIds {
   field: string
   section: string
   action: string
+  formField: string
 }
 
-/** Зміни однієї сутності: поля, список (колонки, фільтри, вкладки), картка (шапка, секції, дії). */
+/**
+ * Зміни однієї сутності: поля, список (колонки, фільтри, вкладки), картка (шапка, секції, дії),
+ * форма створення й зміни.
+ */
 export interface EntityExtension<T, K extends EntityIds> {
   /** Нові поля запису: схема, підписи, значення для моків (`lib/extension-fields`). */
   readonly fields?: readonly ExtensionField[]
-  /** Колонки списку; нова колонка — з поля розширення (ключ — ключ поля). */
-  readonly columns?: KeyedChanges<ExtensionColumn, K["column"]>
+  /**
+   * Колонки списку; нова колонка — з поля розширення (ключ — ключ поля); `change` — назва, ширина
+   * чи пріоритет колонки модуля без заміни.
+   */
+  readonly columns?: KeyedChanges<
+    ExtensionColumn,
+    K["column"],
+    ExtensionColumnChange
+  >
   /** Фільтри панелі списку; новий фільтр — з поля розширення (список, так/ні, дата). */
   readonly filters?: KeyedChanges<ExtensionFilter, K["filter"]>
   /** Вкладки-статуси списку з фільтром даними. */
@@ -75,6 +94,11 @@ export interface EntityExtension<T, K extends EntityIds> {
   readonly sections?: KeyedChanges<ExtensionSection<T>, K["section"]>
   /** Дії в шапці картки — компоненти проекту з правом `access`. */
   readonly actions?: KeyedChanges<ExtensionAction<T>, K["action"]>
+  /**
+   * Форма створення й зміни (`lib/extension-form`): `add` — поле розширення з `fields` (обов'язкове
+   * — неодмінно), `hide` і `move` — поля модуля, `change` — підпис і підказка поля модуля.
+   */
+  readonly form?: ExtensionFormChanges<K["formField"]>
 }
 
 /** Ключі модуля для організацій: ними сторінки модуля перевіряють свої списки. */
@@ -85,6 +109,7 @@ export interface OrganizationIds {
   field: OrganizationFieldId
   section: OrganizationSectionId
   action: OrganizationActionId
+  formField: OrganizationFormFieldId
 }
 
 export interface OrganizationsExtension extends EntityExtension<
@@ -103,6 +128,7 @@ export interface ContactIds {
   field: ContactFieldId
   section: ContactSectionId
   action: ContactActionId
+  formField: ContactFormFieldId
 }
 
 export type ContactPeopleExtension = EntityExtension<Contact, ContactIds>

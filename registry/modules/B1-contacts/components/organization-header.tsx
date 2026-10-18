@@ -1,3 +1,5 @@
+import type { MouseEvent } from "react"
+
 import { PinToggle } from "@/components/erp/pin-toggle"
 import type { RecordField } from "@/components/erp/record-header"
 import { StatusBadge } from "@/components/erp/status-badge"
@@ -18,16 +20,18 @@ import { ORGANIZATIONS, type Organization } from "../contract"
 import type { OrganizationActionId, OrganizationFieldId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
+import { AccessAction } from "./access-action"
 import { codeLabelKey, organizationName } from "./organization-columns"
 
 /**
  * Шапка картки організації: назва, статус, ключові поля (код, тип, місто, телефон) з полями
- * розширення, «Закріпити вгорі» й дії розширення; без запису — немає.
+ * розширення, «Змінити» (форма в діалозі), «Закріпити вгорі» й дії розширення; без запису — немає.
  */
 export function useOrganizationHeader(
   organization: Organization | undefined,
   statuses: ResolvedStatuses,
   slotActions: KeyedChanges<ObjectPageAction, OrganizationActionId> | undefined,
+  onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
   const { extension } = useContactsModule()
@@ -58,6 +62,19 @@ export function useOrganizationHeader(
     },
   ]
   const actions: (ObjectPageAction & { id: OrganizationActionId })[] = [
+    {
+      id: "edit",
+      node: (
+        <AccessAction
+          resource={ORGANIZATIONS}
+          action="update"
+          icon="edit"
+          label={t("organization.edit")}
+          deniedReason={t("organization.editDenied")}
+          onClick={onEdit}
+        />
+      ),
+    },
     {
       id: "pin",
       node: (

@@ -10,10 +10,12 @@ import { contactsMockExtension } from "./B1-contacts-fields"
  * Розширення модуля B1 «Контакти й компанії» під клієнта (ADR-0020, ADR-0025) — так виглядає файл
  * проекту `src/extensions/B1-contacts.ts`. Файли модуля (`registry/modules/B1-contacts`, у проекті —
  * `src/modules/B1-contacts`) для цього не змінювались:
- * - організації: поле «Платник ПДВ» — колонка після коду, фільтр і поле шапки картки; статус
- *   «Призупинена» — бейдж і вкладка списку; вкладка проекту «Нотатки» в картці після «Реквізитів»;
- * - контакти: поле «Зручний канал» — колонка після email, фільтр і поле шапки; вкладка списку
- *   «Ключові» за сегментом;
+ * - організації: поле «Платник ПДВ» — колонка після коду, фільтр, поле шапки картки й прапорець у
+ *   формі після коду; статус «Призупинена» — бейдж, вкладка списку й вибір у формі; вкладка проекту
+ *   «Нотатки» в картці після «Реквізитів»; колонка «Місто» — інша назва, а поле форми — підказка без
+ *   заміни (`change`);
+ * - контакти: поле «Зручний канал» — колонка після email, фільтр, поле шапки й вибір у формі з
+ *   підказкою; вкладка списку «Ключові» за сегментом;
  * - рядки модуля: пояснення під назвою списку контактів.
  */
 const organizations: OrganizationsExtension = {
@@ -21,6 +23,22 @@ const organizations: OrganizationsExtension = {
   columns: {
     add: [
       { id: "vatPayer", place: { after: "code" }, minWidth: 8, priority: 4 },
+    ],
+    // Колонка модуля без заміни: інша назва, вміст і поведінка — від модуля.
+    change: [
+      { id: "city", header: { uk: "Місто клієнта", en: "Client city" } },
+    ],
+  },
+  form: {
+    add: [{ id: "vatPayer", place: { after: "code" } }],
+    change: [
+      {
+        id: "city",
+        description: {
+          uk: "Як у виписці з ЄДР: для рахунків і договорів.",
+          en: "As in the state register extract: used in invoices and contracts.",
+        },
+      },
     ],
   },
   filters: { add: [{ id: "vatPayer" }] },
@@ -57,6 +75,18 @@ export const contactsExtension: ContactsExtension = {
       ],
     },
     filters: { add: [{ id: "channel" }] },
+    form: {
+      add: [
+        {
+          id: "channel",
+          place: { after: "email" },
+          description: {
+            uk: "Як клієнтові зручніше отримувати рахунки й нагадування.",
+            en: "How the client prefers to receive invoices and reminders.",
+          },
+        },
+      ],
+    },
     tabs: {
       add: [
         {

@@ -9,9 +9,12 @@
  *   прислати сервер (PF09, хвиля 2). Модуль перетворює дані на елементи шаблону (`mapKeyedChanges`)
  *   і зливає їх зі своїми (`applyKeyedChanges`) до того, як список потрапить у шаблон. Поле
  *   розширення в записі модуля — `extensionValue(record, id)`.
- * - Ключі модуля `K` — у `hide`, `move` і в орієнтирах `place`: модуль перейменував ключ — TypeScript
- *   показує місце у файлі розширення, а `applyKeyedChanges` звіряє `K` з ключами списку модуля.
- *   Під час роботи невідомий ключ пропускається (дані від сервера).
+ * - Ключі модуля `K` — у `hide`, `move`, `change` і в орієнтирах `place`: модуль перейменував ключ —
+ *   TypeScript показує місце у файлі розширення, а `applyKeyedChanges` звіряє `K` з ключами списку
+ *   модуля. Під час роботи невідомий ключ пропускається (дані від сервера).
+ * - `change` міняє властивості елемента модуля без заміни (назва й пріоритет колонки, підпис і
+ *   підказка поля форми): які саме — задає модуль типом `C` у `KeyedChanges<T, K, C>`. Без `C` змін
+ *   властивостей у списку немає.
  */
 
 /** Елемент списку з ключем. */
@@ -40,8 +43,22 @@ export interface KeyedMove<K extends string = string> {
   readonly place: Placement<K>
 }
 
-/** Зміни списку елементів модуля; застосовуються в порядку `hide` → `add` → `move`. */
-export interface KeyedChanges<T extends Keyed, K extends string = string> {
+/**
+ * Нові значення властивостей елемента за ключем: `{ id: "phone", priority: 9 }`. `C` — що модуль
+ * дозволяє змінити; без `C` (`never`) змін властивостей немає.
+ */
+export type KeyedChange<C extends object, K extends string = string> = [
+  C,
+] extends [never]
+  ? never
+  : { readonly id: K } & { readonly [P in keyof C]?: C[P] }
+
+/** Зміни списку елементів модуля; застосовуються в порядку `hide` → `add` → `change` → `move`. */
+export interface KeyedChanges<
+  T extends Keyed,
+  K extends string = string,
+  C extends object = never,
+> {
   /**
    * Нові елементи. Ключ, що вже є в модулі, — заміна: елемент розширення стає замість елемента
    * модуля (на його місці, якщо `place` не задано чи орієнтира немає), тож ключі в списку не
@@ -52,6 +69,11 @@ export interface KeyedChanges<T extends Keyed, K extends string = string> {
   readonly hide?: readonly K[]
   /** Переставити елементи модуля (нові ставить на місце `place`). */
   readonly move?: readonly KeyedMove<K>[]
+  /**
+   * Змінити властивості елемента модуля без заміни: решта властивостей і поведінка лишаються від
+   * модуля, тож оновлення модуля їх приносить. Закріплений (`locked`) елемент теж змінюється.
+   */
+  readonly change?: readonly KeyedChange<C, K>[]
 }
 
 export interface ApplyKeyedOptions {
@@ -65,11 +87,16 @@ export interface ApplyKeyedOptions {
 /**
  * Злити список модуля зі змінами розширення; без змін — той самий список. Ключі змін — ключі
  * елементів модуля (`T["id"]`), а додані елементи — свого типу `A` (дані розширення, вже
- * перетворені модулем).
+ * перетворені модулем). Зміни властивостей `C` — лише властивості елемента модуля з тими самими
+ * типами.
  */
-export function applyKeyedChanges<T extends Keyed, A extends Keyed = T>(
+export function applyKeyedChanges<
+  T extends Keyed,
+  A extends Keyed = T,
+  C extends Partial<Omit<T, "id">> = never,
+>(
   items: readonly T[],
-  changes?: KeyedChanges<A, T["id"]>,
+  changes?: KeyedChanges<A, T["id"], C>,
   { locked = [] }: ApplyKeyedOptions = {},
 ): readonly (T | A)[] {
   if (!changes) return items
@@ -97,6 +124,7 @@ export function applyKeyedChanges<T extends Keyed, A extends Keyed = T>(
     placedAt.set(at, before + 1)
     insert(result, item, place, before)
   }
+  for (const change of changes.change ?? []) changeProps(result, change)
   for (const { id, place } of changes.move ?? []) {
     const index = result.findIndex((item) => item.id === id)
     const item = result[index]
@@ -105,6 +133,20 @@ export function applyKeyedChanges<T extends Keyed, A extends Keyed = T>(
     insert(result, item, place, 0)
   }
   return result
+}
+
+/**
+ * Нові значення властивостей елемента з ключем; `undefined` не стирає значення модуля, а ключ і
+ * місце не змінюються. Елемента немає (сховано, ключ невідомий) — пропуск.
+ */
+function changeProps<T extends Keyed>(items: T[], change: Keyed) {
+  const index = items.findIndex((item) => item.id === change.id)
+  const item = items[index]
+  if (!item) return
+  const props = Object.entries(change).filter(
+    ([key, value]) => key !== "id" && key !== "place" && value !== undefined,
+  )
+  if (props.length) items[index] = { ...item, ...Object.fromEntries(props) }
 }
 
 /** Ключ місця для порядку кількох нових: "start", "end", "before:a", "after:a". */
@@ -166,7 +208,11 @@ export function extensionValue(record: unknown, id: string): unknown {
     : undefined
 }
 
-/** Перетворити додані елементи (дані розширення → елементи шаблону); `hide`, `move` і місця — ті самі. */
+/**
+ * Перетворити додані елементи (дані розширення → елементи шаблону); `hide`, `move` і місця — ті самі.
+ * Зміни властивостей (`change`) — другою функцією: напр., підпис `{ uk, en }` → рядок мовою
+ * інтерфейсу.
+ */
 export function mapKeyedChanges<
   A extends Keyed,
   B extends Keyed,
@@ -174,13 +220,30 @@ export function mapKeyedChanges<
 >(
   changes: KeyedChanges<A, K> | undefined,
   map: (item: A) => B,
-): KeyedChanges<B, K> | undefined {
+): KeyedChanges<B, K> | undefined
+export function mapKeyedChanges<
+  A extends Keyed,
+  B extends Keyed,
+  K extends string,
+  C extends object,
+  D extends object,
+>(
+  changes: KeyedChanges<A, K, C> | undefined,
+  map: (item: A) => B,
+  mapChange: (change: KeyedChange<C, K>) => KeyedChange<D, K>,
+): KeyedChanges<B, K, D> | undefined
+export function mapKeyedChanges(
+  changes: KeyedChanges<Keyed, string, object> | undefined,
+  map: (item: Keyed) => Keyed,
+  mapChange?: (change: KeyedChange<object>) => KeyedChange<object>,
+): KeyedChanges<Keyed, string, object> | undefined {
   if (!changes) return undefined
   return {
     ...changes,
     add: changes.add?.map(({ place, ...item }) => {
-      const mapped = map(item as A)
+      const mapped = map(item)
       return place === undefined ? mapped : { ...mapped, place }
     }),
+    change: mapChange ? changes.change?.map(mapChange) : changes.change,
   }
 }

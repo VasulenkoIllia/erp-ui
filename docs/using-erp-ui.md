@@ -101,6 +101,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/d
 - Сума — `MoneyInput` зі значенням `Money` (цілі копійки й валюта) або `null`; число — `NumberInput` (за замовчуванням ціле: кома й дріб не вводяться, під полем спливає «Лише ціле число»; дріб — `decimalScale`). Сума прописом для документів — `amountInWords(money, "uk")` з `lib/amount-in-words`.
 - Підтвердження: зворотна дія — `useUndoToast()`; видалення — `ConfirmDialog` з кнопкою, що називає наслідок; критична дія — ще й `confirmWord`.
 - Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
+- Форма запису ресурсу (створення й зміна) — `RecordFormDialog` з `erp/record-form` і `useRecordForm` з `hooks/use-record-form` (ADR-0026): `const state = useRecordForm({ resource, record, schema, defaultValues, recordSchema, toPayload, toValues, onSaved })` створює форму з налаштуваннями вище (`state.form`), `POST` усіх полів, `PATCH` лише змінених з `version`, 409 — порівняння змінених полів («Зберегти мої зміни», «Взяти збережене»; `current` розбирає `recordSchema` — схема контракту з полями розширення), 422 — біля полів і в зведенні (поле, якого у формі немає, — над формою), «Закрити без збереження?» для зміненої форми. `finalFocus` — кнопка, що відкрила форму (Safari кнопку кліком не фокусує); форма поверх іншої форми — `nested`. Поля — `RecordFormItem` (`{ id, label, description?, wide?, render, text? }`, ключ — ім'я поля форми), вибір зі списку — `FormSelect` з `erp/form-select`. Діалог монтуйте, лише поки він відкритий (`{editing ? <Форма /> : null}`); `onSaved` викликається після рендера зі скинутою формою, тож перехід на картку нового запису в ньому не зупиняє `UnsavedChangesGuard`. Форма тягне react-hook-form і поля вводу: у сторінку її ставте лінивим чанком (`lazyWithPreload`, попереднє завантаження через `whenIdle`), поки чанк вантажиться чи не завантажився — діалог із назвою форми, спінером чи «Спробувати ще» (так у B1, `components/form-dialogs.tsx`).
 
 ## 4. Оболонка застосунку
 
@@ -363,6 +364,11 @@ export const contactsExtension: ContactsExtension = {
   organizations: {
     ...contactsMockExtension.organizations,
     filters: { add: [{ id: "vatPayer" }] },               // з поля-списку, так/ні чи дати
+    columns: { change: [{ id: "city", header: { uk: "Місто клієнта", en: "Client city" } }] },
+    form: {
+      add: [{ id: "vatPayer", place: { after: "code" } }],  // поле розширення у формі
+      change: [{ id: "city", description: { uk: "Як у виписці з ЄДР", en: "As in the register" } }],
+    },
   },
   contacts: {
     tabs: { add: [{ id: "key", label: { uk: "Ключові", en: "Key" }, filter: { segments: "seg-key" } }] },
@@ -373,6 +379,8 @@ export const contactsExtension: ContactsExtension = {
 
 - `statuses` — додати статус (тон `neutral`, `info`, `success`, `warning`, `destructive`; `mockEvery` — кожен N-й запис фікстур), перейменувати (ключ модуля в `add`) чи сховати з вибору (`hide`). Схований лишається дійсним: записи з ним показуються з бейджем. Новий статус стає й вкладкою списку.
 - `filters` — фільтр панелі з поля розширення: список і так/ні — варіанти, дата — період; текст і число фільтром не стають (помилка при запуску). `tabs` — вкладка списку з фільтром плоскими параметрами API. Фільтр вкладки перекриває фільтр панелі з тим самим ключем (у демо «Ключові» за сегментом: на цій вкладці фільтр «Сегменти» не діє), тож для вкладки краще поле без фільтра панелі.
+- `form` — поле розширення у формі створення й зміни: `add` з місцем серед полів модуля (`OrganizationFormFieldId`, `ContactFormFieldId`), `description` — підказка, `wide` — на всю ширину. Поле вводу — за типом поля (текст, число з `decimals`, дата, список, так/ні); обов'язкове поле (`required`) мусить бути у формі, інакше форма не збереться (помилка розробника). У запит іде лише змінене поле, порожнє — `null`.
+- `change` — змінити властивість елемента модуля без заміни (ADR-0026): у колонці — `header`, `minWidth`, `grow`, `priority`, `align`; у полі форми — `label`, `description`. Вміст і поведінка лишаються модуля, тож оновлення модуля до них доходять; закріплений елемент теж можна змінити.
 - `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
 - Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 

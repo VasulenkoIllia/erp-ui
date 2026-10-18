@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { Suspense } from "react"
 import { describe, expect, it, vi } from "vitest"
@@ -99,6 +99,40 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     expect(
       await screen.findByRole("button", { name: "Оновити сторінку" }),
     ).toBeVisible()
+    consoleError.mockRestore()
+  })
+
+  it("frame: стан помилки за замовчуванням у своїй рамці, повтор і «Оновити сторінку» — від межі", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined)
+    const Page = lazyWithPreload(flakyLoader(2))
+    await renderAsync(
+      <ErrorBoundary
+        frame={(content) => (
+          <section aria-label="Нова організація">{content}</section>
+        )}
+      >
+        <Suspense fallback={<p>Вантажу</p>}>
+          <Page />
+        </Suspense>
+      </ErrorBoundary>,
+    )
+    const frame = await screen.findByRole("region", {
+      name: "Нова організація",
+    })
+    await act(async () => {
+      await userEvent.click(
+        within(frame).getByRole("button", { name: "Спробувати ще" }),
+      )
+    })
+    // Після повтору межа малює стан заново — рамку шукаємо знову.
+    const reload = await screen.findByRole("button", {
+      name: "Оновити сторінку",
+    })
+    expect(
+      screen.getByRole("region", { name: "Нова організація" }),
+    ).toContainElement(reload)
     consoleError.mockRestore()
   })
 

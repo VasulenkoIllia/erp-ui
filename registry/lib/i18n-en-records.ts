@@ -1,5 +1,6 @@
 /**
- * Рядки кіта для вибору запису й значень із «Копіювати» (ADR-0023) англійською — ті самі ключі, що в
+ * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023) і форми запису (ADR-0026)
+ * англійською — ті самі ключі, що в
  * `i18n-uk-records.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -31,5 +32,24 @@ export const enRecords = {
   copyableValue: {
     copy: "Copy: {{label}}",
     empty: "Not specified",
+  },
+  recordForm: {
+    save: "Save",
+    create: "Create",
+    cancel: "Cancel",
+    notSet: "Not specified",
+    discardTitle: "Close without saving?",
+    discardDescription: "What you entered in the form will be lost.",
+    discardConfirm: "Close without saving",
+    discardCancel: "Back to the form",
+    hiddenFields:
+      "Could not save: there is an error in fields that are not on the form ({{fields}}). Contact your administrator.",
+    reloaded:
+      "The form now shows the values saved right now. Change them again if needed.",
+    serverErrors: {
+      duplicate: "Another record already has this value",
+      tooLong: "The value is too long",
+      invalid: "The server didn't accept this value. Please check it.",
+    },
   },
 } satisfies ErpUiTranslation<typeof ukRecords>

@@ -3,6 +3,8 @@
     "title": "Organizations",
     "lead": "Clients, suppliers and partners: company details, addresses, bank accounts and contact people. The pin keeps an organization at the top of the list for you only.",
     "search": "Search by name or code",
+    "create": "Create organization",
+    "createDenied": "You don't have permission to create organizations",
     "tableLabel": "Organizations",
     "tabsLabel": "Organization status",
     "tabs": {
@@ -32,6 +34,23 @@
     "back": "Back to organizations",
     "tabsLabel": "Organization sections",
     "history": "History",
+    "edit": "Edit",
+    "editDenied": "You don't have permission to edit organizations",
+    "form": {
+      "createTitle": "New organization",
+      "createLead": "Key details. Addresses and bank accounts are on the organization page.",
+      "editTitle": "Edit organization",
+      "fields": {
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "phone": "Phone",
+        "email": "Email",
+        "city": "City"
+      },
+      "created": "Organization created: {{name}}",
+      "saved": "Changes saved: {{name}}"
+    },
     "types": {
       "legal": "Legal entity",
       "fop": "Sole proprietor"
@@ -102,6 +121,8 @@
     "title": "Contacts",
     "lead": "People your company works with: representatives of organizations and private persons. The pin keeps a contact at the top of the list for you only.",
     "search": "Search by name, phone or email",
+    "create": "Create contact",
+    "createDenied": "You don't have permission to create contacts",
     "tableLabel": "Contacts",
     "tabsLabel": "Who they are",
     "tabs": {
@@ -132,6 +153,22 @@
     "back": "Back to contacts",
     "history": "History",
     "private": "Private person",
+    "edit": "Edit",
+    "editDenied": "You don't have permission to edit contacts",
+    "form": {
+      "createTitle": "New contact",
+      "editTitle": "Edit contact",
+      "fields": {
+        "name": "Name",
+        "organizationId": "Organization",
+        "position": "Position",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "organizationHint": "Leave empty for a private person.",
+      "created": "Contact created: {{name}}",
+      "saved": "Changes saved: {{name}}"
+    },
     "fields": {
       "organization": "Organization",
       "position": "Position",

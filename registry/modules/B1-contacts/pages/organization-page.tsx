@@ -1,5 +1,5 @@
 import { useAuthenticated } from "ra-core"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useLocation, useParams, useSearchParams } from "react-router"
 
 import { AuditLog } from "@/components/erp/audit-log"
@@ -12,8 +12,13 @@ import {
 import { applyKeyedChanges } from "@/lib/extensions"
 import { TAB_PARAM } from "@/lib/list-state"
 
+import { useOpener } from "../components/access-action"
 import { BackToList } from "../components/navigation"
 import { OrganizationContacts } from "../components/organization-contacts"
+import {
+  OrganizationFormDialog,
+  usePreloadForm,
+} from "../components/form-dialogs"
 import { useOrganizationHeader } from "../components/organization-header"
 import {
   OrganizationAddresses,
@@ -72,7 +77,18 @@ function OrganizationCard({ id }: { id: string }) {
     sections: extension.organizations?.sections,
     actions: extension.organizations?.actions,
   })
-  const header = useOrganizationHeader(organization, statuses, slots.actions)
+  const [isEditing, setEditing] = useState(false)
+  const opener = useOpener()
+  usePreloadForm("organization", "update")
+  const header = useOrganizationHeader(
+    organization,
+    statuses,
+    slots.actions,
+    (event) => {
+      opener.remember(event)
+      setEditing(true)
+    },
+  )
   const detail = useDetailState(card)
   const tabs = useTabParam()
   const sections: (ObjectPageSectionItem & { id: OrganizationSectionId })[] =
@@ -112,30 +128,44 @@ function OrganizationCard({ id }: { id: string }) {
       : []
 
   return (
-    <ObjectPage
-      title={t("organization.title")}
-      headingRef={heading}
-      back={
-        <BackToList to={paths.organizations} label={t("organization.back")} />
-      }
-      isPending={card.isPending}
-      error={card.pageError}
-      onRetry={card.retry}
-      header={header}
-      sections={applyKeyedChanges(sections, slots.sections)}
-      tabs={{ ...tabs, label: t("organization.tabsLabel") }}
-      aside={{
-        label: t("organization.history"),
-        content: (
-          <AuditLog
-            filter={{ targetType: ORGANIZATIONS, targetId: id }}
-            filters={false}
-            exportable={false}
-            perPage={10}
-          />
-        ),
-      }}
-    />
+    <>
+      <ObjectPage
+        title={t("organization.title")}
+        headingRef={heading}
+        back={
+          <BackToList to={paths.organizations} label={t("organization.back")} />
+        }
+        isPending={card.isPending}
+        error={card.pageError}
+        onRetry={card.retry}
+        header={header}
+        sections={applyKeyedChanges(sections, slots.sections)}
+        tabs={{ ...tabs, label: t("organization.tabsLabel") }}
+        aside={{
+          label: t("organization.history"),
+          content: (
+            <AuditLog
+              filter={{ targetType: ORGANIZATIONS, targetId: id }}
+              filters={false}
+              exportable={false}
+              perPage={10}
+            />
+          ),
+        }}
+      />
+      {isEditing && organization ? (
+        <OrganizationFormDialog
+          organization={organization}
+          finalFocus={opener.ref}
+          onClose={() => {
+            setEditing(false)
+          }}
+          onSaved={() => {
+            setEditing(false)
+          }}
+        />
+      ) : null}
+    </>
   )
 }
 
