@@ -46,7 +46,8 @@
         "status": "Status",
         "phone": "Phone",
         "email": "Email",
-        "city": "City"
+        "city": "City",
+        "segments": "Segments"
       },
       "created": "Organization created: {{name}}",
       "saved": "Changes saved: {{name}}"
@@ -67,7 +68,8 @@
       "city": "City",
       "phone": "Phone",
       "email": "Email",
-      "iban": "Main account IBAN"
+      "iban": "Main account IBAN",
+      "segments": "Segments"
     },
     "sections": {
       "requisites": "Details",
@@ -163,7 +165,8 @@
         "organizationId": "Organization",
         "position": "Position",
         "phone": "Phone",
-        "email": "Email"
+        "email": "Email",
+        "segments": "Segments"
       },
       "organizationHint": "Leave empty for a private person.",
       "created": "Contact created: {{name}}",
@@ -193,6 +196,34 @@
         "legal": "EDRPOU {{code}}",
         "fop": "RNOKPP {{code}}"
       }
+    }
+  },
+  "segments": {
+    "title": "Segments",
+    "lead": "Segments group organizations and contacts: lists filter by them. Each name is used once.",
+    "search": "Search by name",
+    "create": "Create segment",
+    "createDenied": "You don't have permission to create segments",
+    "tableLabel": "Segments",
+    "columns": {
+      "name": "Name"
+    },
+    "edit": "Edit segment “{{name}}”",
+    "empty": {
+      "title": "No segments yet",
+      "description": "Create the first segment to group clients."
+    },
+    "count_one": "{{value}} segment",
+    "count_other": "{{value}} segments",
+    "form": {
+      "createTitle": "New segment",
+      "editTitle": "Edit segment",
+      "fields": {
+        "name": "Name"
+      },
+      "tooLong": "{{max}} characters at most",
+      "created": "Segment created: {{name}}",
+      "saved": "Changes saved: {{name}}"
     }
   }
 }

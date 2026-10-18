@@ -111,6 +111,38 @@ export interface MockResourceOptions<T extends MockRecord> {
    * картці, закріплені — першим блоком списку.
    */
   pins?: boolean
+  /**
+   * Поля, значення яких не повторюються в компанії (назва сегмента): створення й зміна з тим самим
+   * значенням, без урахування регістру й пробілів на краях, — 422 з кодом `duplicate` (ADR-0027).
+   */
+  unique?: readonly (keyof T & string)[]
+}
+
+const uniqueKey = (value: unknown) =>
+  typeof value === "string" ? value.trim().toLocaleLowerCase("uk") : value
+
+/** Поля `unique`, значення яких уже має інший запис тієї самої компанії; порожні не перевіряються. */
+function duplicateFields<T extends MockRecord>(
+  records: readonly T[],
+  candidate: T,
+  unique: readonly (keyof T & string)[],
+): Record<string, string> | null {
+  const companyId = candidate.companyId ?? null
+  const fields = unique.filter((field) => {
+    const value = uniqueKey(candidate[field])
+    if (value === "" || value === null || value === undefined) return false
+    return records.some(
+      (record) =>
+        record.id !== candidate.id &&
+        (!companyId ||
+          record.companyId == null ||
+          record.companyId === companyId) &&
+        uniqueKey(record[field]) === value,
+    )
+  })
+  return fields.length
+    ? Object.fromEntries(fields.map((field) => [field, "duplicate"]))
+    : null
 }
 
 function matches(value: unknown, op: string, raw: FilterValue): boolean {
@@ -175,6 +207,13 @@ function fieldErrors(error: z.ZodError): Record<string, string> {
   )
 }
 
+const validationError = (errors: Record<string, string>) =>
+  errorResponse(422, {
+    code: "validation",
+    message: "Validation failed",
+    fieldErrors: errors,
+  })
+
 const DATA_VERBS = {
   created: { uk: "створення", en: "created" },
   updated: { uk: "зміна", en: "updated" },
@@ -193,6 +232,7 @@ export function createResourceHandlers<T extends MockRecord>({
   fieldLabels = {},
   detail,
   pins = false,
+  unique = [],
 }: MockResourceOptions<T>) {
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
@@ -346,6 +386,13 @@ export function createResourceHandlers<T extends MockRecord>({
       version: latest.version + 1,
     })
     if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
+    // Лише змінені поля: повтор, що вже є в даних, не блокує зміну інших полів запису.
+    const duplicates = duplicateFields(
+      all(),
+      parsed.data,
+      unique.filter((field) => field in changes),
+    )
+    if (duplicates) return { fieldErrors: duplicates }
     update(index, parsed.data)
     changed("updated", parsed.data, latest)
     return { record: parsed.data }
@@ -392,13 +439,9 @@ export function createResourceHandlers<T extends MockRecord>({
         version: 1,
         companyId: body.companyId ?? request.headers.get(COMPANY_HEADER),
       })
-      if (!parsed.success) {
-        return errorResponse(422, {
-          code: "validation",
-          message: "Validation failed",
-          fieldErrors: fieldErrors(parsed.error),
-        })
-      }
+      if (!parsed.success) return validationError(fieldErrors(parsed.error))
+      const duplicates = duplicateFields(all(), parsed.data, unique)
+      if (duplicates) return validationError(duplicates)
       replace([parsed.data, ...all()])
       changed("created", parsed.data)
       return json(full(parsed.data), { status: 201 })
@@ -430,13 +473,7 @@ export function createResourceHandlers<T extends MockRecord>({
       }
       const result = patch(latest.id, changes)
       if (!result) return notFound()
-      if ("fieldErrors" in result) {
-        return errorResponse(422, {
-          code: "validation",
-          message: "Validation failed",
-          fieldErrors: result.fieldErrors,
-        })
-      }
+      if ("fieldErrors" in result) return validationError(result.fieldErrors)
       return json(full(result.record))
     }),
 

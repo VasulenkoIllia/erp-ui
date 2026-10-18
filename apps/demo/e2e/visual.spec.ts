@@ -110,9 +110,14 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
     await expect(
       page.getByText(/^(Організація контакту|Contact organization)$/),
     ).toBeVisible()
-  // Вибір запису: підписи значень уже з сервера, а не «Завантаження…».
+  // Вибір запису: підписи значень уже з сервера, а не «Завантаження…». Мультивибір «Довідник
+  // вантажиться» на тій самій сторінці показує завантаження навмисно — його не рахуємо.
   if (pageId === "pickers")
-    await expect(page.getByText(/^(Завантаження…|Loading…)$/)).toHaveCount(0)
+    await expect(
+      page
+        .locator('[data-slot="record-picker"]')
+        .getByText(/^(Завантаження…|Loading…)$/),
+    ).toHaveCount(0)
 }
 const selected = (
   process.env.SCREENSHOT_PAGES ?? Object.keys(SHOT_PAGES).join(",")

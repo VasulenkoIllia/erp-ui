@@ -41,6 +41,7 @@ import {
   type Contact,
   type Organization,
   type OrganizationStatus,
+  type Segment,
 } from "@/registry/modules/B1-contacts/contract"
 import { createContactsFixtures } from "@/registry/modules/B1-contacts/fixtures"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
@@ -253,6 +254,47 @@ describe("моки B1", () => {
       (error) => isApiError(error) && error.status === 409,
     )
   })
+
+  it("назва сегмента не повторюється: створення й зміна — 422 `duplicate`, своя назва — можна", async () => {
+    mocks.db.segments.reset()
+    const duplicate = (error: unknown) =>
+      isApiError(error) &&
+      error.status === 422 &&
+      error.fieldErrors?.name === "duplicate"
+    await expect(
+      provider.create<Segment>("segments", { data: { name: " ключовий " } }),
+    ).rejects.toSatisfy(duplicate)
+    const { data: segment } = await provider.getOne<Segment>("segments", {
+      id: "seg-new",
+    })
+    await expect(
+      provider.update<Segment>("segments", {
+        id: segment.id,
+        data: { name: "Партнер", version: segment.version },
+        previousData: segment,
+      }),
+    ).rejects.toSatisfy(duplicate)
+    const { data: renamed } = await provider.update<Segment>("segments", {
+      id: segment.id,
+      data: { name: "Нові клієнти", version: segment.version },
+      previousData: segment,
+    })
+    expect(renamed.name).toBe("Нові клієнти")
+    const { data: created } = await provider.create<Segment>("segments", {
+      data: { name: "Новий" },
+    })
+    expect(created.version).toBe(1)
+
+    // Повтор, що вже є в даних, не блокує зміну інших полів: перевіряються лише змінені поля.
+    const records = mocks.db.segments.all()
+    const index = records.findIndex((record) => record.name === "Партнер")
+    const twin = { ...records[index], name: "ключовий" }
+    records[index] = twin
+    expect(mocks.db.segments.patch(twin.id, {})).toHaveProperty("record")
+    expect(mocks.db.segments.patch(twin.id, { name: " Ключовий" })).toEqual({
+      fieldErrors: { name: "duplicate" },
+    })
+  })
 })
 
 describe("фабрика createContactsModule", () => {
@@ -263,11 +305,13 @@ describe("фабрика createContactsModule", () => {
       "/crm/contacts/:id",
       "/crm/organizations",
       "/crm/organizations/:id",
+      "/crm/segments",
       "/crm/",
     ])
     expect(module.nav.map((item) => item.href)).toEqual([
       "/crm/contacts",
       "/crm/organizations",
+      "/crm/segments",
     ])
     expect(module.paths.organization("org/1")).toBe(
       "/crm/organizations/org%2F1",
@@ -281,7 +325,7 @@ describe("фабрика createContactsModule", () => {
 
   it("без basePath — без перенаправлення; чужа адреса — без завантаження", () => {
     const module = createContactsModule()
-    expect(module.routes).toHaveLength(4)
+    expect(module.routes).toHaveLength(5)
     expect(() => {
       module.preload("/settings/users")
     }).not.toThrow()

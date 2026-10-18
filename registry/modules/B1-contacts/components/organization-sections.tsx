@@ -16,6 +16,7 @@ import type {
 import { useContactsT } from "../use-contacts-t"
 import { codeLabelKey } from "./organization-columns"
 import { RequisiteList } from "./requisite-list"
+import { RecordSegments } from "./segments"
 
 /**
  * Вкладки картки організації: реквізити з «Копіювати» (UI43), адреси й банківські рахунки з
@@ -33,6 +34,23 @@ export interface DetailState {
 }
 
 export function OrganizationRequisites({
+  organization,
+}: {
+  organization: Organization
+}) {
+  const t = useContactsT()
+  return (
+    <div className="space-y-4">
+      <OrganizationRequisiteList organization={organization} />
+      <RecordSegments
+        label={t("organization.fields.segments")}
+        ids={organization.segments}
+      />
+    </div>
+  )
+}
+
+function OrganizationRequisiteList({
   organization,
 }: {
   organization: Organization

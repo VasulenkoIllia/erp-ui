@@ -21,6 +21,7 @@ import {
 } from "@/registry/erp/record-picker"
 import { ApiError } from "@/registry/lib/api"
 import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
+import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
 
 /** Крок 1.3a (ADR-0023): вибір запису з пошуком на сервері (UI40). */
 
@@ -96,6 +97,8 @@ function renderPicker(
   dataProvider: DataProvider,
   { initial = null, ...props }: PickerOptions = {},
   permissions = ["orgs:*"],
+  /** Поле у формі-діалозі: зміни відкриття діалогу. */
+  onDialogChange?: () => void,
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -136,7 +139,16 @@ function renderPicker(
   }
   render(
     <CoreAdminContext dataProvider={dataProvider} queryClient={queryClient}>
-      <Field />
+      {onDialogChange ? (
+        <Dialog open onOpenChange={onDialogChange}>
+          <DialogContent>
+            <DialogTitle>Новий контакт</DialogTitle>
+            <Field />
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Field />
+      )}
     </CoreAdminContext>,
   )
   return { onValueChange, onBlur }
@@ -287,6 +299,27 @@ describe("RecordPicker: пошук на сервері й вибір", () => {
     await waitFor(() => {
       expect(server.getList.mock.calls.length).toBe(calls + 1)
     })
+  })
+
+  it("у формі-діалозі Escape зі списку без варіантів закриває лише список (ADR-0027)", async () => {
+    mockWindow(true)
+    const onDialogChange = vi.fn()
+    renderPicker(fakeServer(), {}, undefined, onDialogChange)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole("combobox", { name: "Компанія" }))
+    await user.type(
+      await screen.findByRole("combobox", { name: "Пошук: Компанія" }),
+      "zzz",
+    )
+    expect(
+      await screen.findByText("За «zzz» нічого не знайдено"),
+    ).toBeInTheDocument()
+    await user.keyboard("{Escape}")
+    expect(onDialogChange).not.toHaveBeenCalled()
+    expect(screen.getByRole("combobox", { name: "Компанія" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    )
   })
 
   it("лише читання: поле в фокусі з підписом, список не відкривається", async () => {

@@ -123,6 +123,9 @@ export function PickerResults<T extends RaRecord>({
       >
         {status.text}
       </ComboboxPrimitive.Status>
+      {/* Без Empty Base UI пускає Escape порожнього списку далі, і закривається діалог
+          форми (ADR-0027). Текст стану — у Status вище, тож Empty прихований. */}
+      <ComboboxPrimitive.Empty hidden />
       {search.error ? (
         <div className="px-2.5 pb-1.5">
           <Button

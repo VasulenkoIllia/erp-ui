@@ -125,6 +125,9 @@ export function createContactsMocks({
     data: () => fixtures().segments,
     searchFields: ["name"],
     label: labelOf(SEGMENTS),
+    fieldLabels: { name: { uk: "Назва", en: "Name" } },
+    // Назва сегмента не повторюється в компанії: 422 `duplicate` біля поля форми.
+    unique: ["name"],
   })
 
   return {

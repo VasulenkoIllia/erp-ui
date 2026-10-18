@@ -94,11 +94,14 @@ const PAGES = {
   organization: lazyWithPreload(() =>
     import("./pages/organization-page").then((m) => m.OrganizationPage),
   ),
+  segments: lazyWithPreload(() =>
+    import("./pages/segments-list-page").then((m) => m.SegmentsListPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: ContactsExtension = {}
 
-/** Чанк сторінки за адресою: список чи картка контактів або організацій. */
+/** Чанк сторінки за адресою: список чи картка контактів або організацій, довідник сегментів. */
 function preloadFor(paths: ContactsPaths) {
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
@@ -110,7 +113,9 @@ function preloadFor(paths: ContactsPaths) {
       ? PAGES[contacts === "list" ? "contacts" : "contact"]
       : organizations
         ? PAGES[organizations === "list" ? "organizations" : "organization"]
-        : null
+        : path === paths.segments
+          ? PAGES.segments
+          : null
     void target?.preload()
   }
 }
@@ -133,6 +138,7 @@ export function createContactsModule({
     { path: `${paths.contacts}/:id`, element: page(PAGES.contact) },
     { path: paths.organizations, element: page(PAGES.organizations) },
     { path: `${paths.organizations}/:id`, element: page(PAGES.organization) },
+    { path: paths.segments, element: page(PAGES.segments) },
   ]
   // Адреса самого модуля (`/crm`) — список контактів.
   if (basePath.replace(/\/+$/, ""))
@@ -152,6 +158,12 @@ export function createContactsModule({
       label: { uk: "Організації", en: "Organizations" },
       href: paths.organizations,
       icon: SHELL_ICONS.company,
+    },
+    {
+      id: "B1-segments",
+      label: { uk: "Сегменти", en: "Segments" },
+      href: paths.segments,
+      icon: SHELL_ICONS.segments,
     },
   ]
   return {

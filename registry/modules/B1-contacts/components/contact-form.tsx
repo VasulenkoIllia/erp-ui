@@ -29,6 +29,7 @@ import type { ContactFormFieldId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { useContactChannelItems } from "./contact-channel-fields"
+import { useSegmentItem } from "./segment-field"
 import { ContactOrganization } from "./contact-organization"
 import {
   ORGANIZATION_SORT,
@@ -44,8 +45,8 @@ import { OrganizationFormDialog } from "./organization-form"
 /**
  * Форма контакту в діалозі (ADR-0026): створення зі списку і зміна з картки. Поля модуля — ім'я,
  * організація (вибір із пошуком на сервері, UI40; порожньо — приватна особа; «Створити…» відкриває
- * форму організації поверх і ставить нову організацію в поле), посада, телефон, email; поля
- * розширення — з `form` розширення проекту.
+ * форму організації поверх і ставить нову організацію в поле), посада, телефон, email, сегменти;
+ * поля розширення — з `form` розширення проекту.
  */
 
 type ContactFormValues = {
@@ -54,6 +55,7 @@ type ContactFormValues = {
   position: string
   phone: string
   email: string
+  segments: string[]
 } & Record<string, unknown>
 
 const MODULE_FIELDS = [
@@ -62,6 +64,7 @@ const MODULE_FIELDS = [
   "position",
   "phone",
   "email",
+  "segments",
 ] as const satisfies readonly ContactFormFieldId[]
 
 /** Ім'я обов'язкове в контракті: розширення його не ховає. */
@@ -80,6 +83,7 @@ function useContactFormSchema(
         position: z.string().trim(),
         phone: common.phone,
         email: common.email,
+        segments: z.array(z.string()),
         ...extensionShape,
       }),
     [common, extensionShape],
@@ -151,6 +155,7 @@ function useContactItems(
     onCreateOrganization,
   )
   const channels = useContactChannelItems(control, "contact.form.fields")
+  const segments = useSegmentItem(control, t("contact.form.fields.segments"))
   return [
     {
       id: "name",
@@ -182,6 +187,7 @@ function useContactItems(
       ),
     },
     ...channels,
+    segments,
   ]
 }
 
@@ -193,6 +199,7 @@ function useFormValues(ext: ExtensionFormApi<ContactFormFieldId>) {
       position: contact.position,
       phone: contact.phone,
       email: contact.email,
+      segments: contact.segments,
       ...ext.values(contact),
     }),
     [ext],
@@ -203,6 +210,7 @@ function useFormValues(ext: ExtensionFormApi<ContactFormFieldId>) {
     position: "",
     phone: "",
     email: "",
+    segments: [],
     ...ext.values(),
   })
   return { toValues, emptyValues }

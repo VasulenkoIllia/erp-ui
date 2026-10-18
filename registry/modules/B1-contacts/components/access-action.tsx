@@ -1,5 +1,5 @@
 import { useCanAccess } from "ra-core"
-import { useRef, type MouseEvent } from "react"
+import { useCallback, useRef, type MouseEvent } from "react"
 
 import { DeniedAction } from "@/components/erp/permission-gate"
 import { Button } from "@/components/ui/button"
@@ -49,8 +49,9 @@ export function AccessAction({
  */
 export function useOpener() {
   const ref = useRef<HTMLElement | null>(null)
-  const remember = (event: MouseEvent<HTMLElement>) => {
+  // Стабільна: її беруть колонки списку (кнопка в рядку), а новий масив колонок перебудовує таблицю.
+  const remember = useCallback((event: MouseEvent<HTMLElement>) => {
     ref.current = event.currentTarget
-  }
+  }, [])
   return { ref, remember }
 }

@@ -12,7 +12,11 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { AvatarEditor } from "@/registry/erp/avatar-editor"
-import { FormField, UnsavedChangesGuard } from "@/registry/erp/form"
+import {
+  FormField,
+  keepFieldFocus,
+  UnsavedChangesGuard,
+} from "@/registry/erp/form"
 import { PhoneInput } from "@/registry/erp/phone-input"
 import { browserTimezone, TimezoneSelect } from "@/registry/erp/timezone-select"
 import { useMe } from "@/registry/hooks/use-me"
@@ -224,6 +228,7 @@ export function ProfileForm() {
       </FieldGroup>
       <Button
         type="submit"
+        onMouseDown={keepFieldFocus}
         disabled={formState.isSubmitting}
         focusableWhenDisabled
       >

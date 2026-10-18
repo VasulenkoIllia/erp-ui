@@ -1225,7 +1225,7 @@
       "name": "modules/B1-contacts",
       "type": "registry:item",
       "title": "Контакти й компанії (B1)",
-      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; форми створення й зміни організації й контакту в діалозі з полями розширення, «Створити…» організацію з форми контакту, конфлікт 409 з порівнянням; контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025).",
+      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; форми створення й зміни організації й контакту в діалозі з полями розширення, «Створити…» організацію з форми контакту, конфлікт 409 з порівнянням; сегменти мультивибором у формах і довідник сегментів (назва не повторюється); контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025, ADR-0027).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -1355,6 +1355,16 @@
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/multi-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select.tsx"
+        },
+        {
+          "path": "registry/erp/multi-select-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select-parts.tsx"
         },
         {
           "path": "registry/erp/number-group.tsx",
@@ -2052,6 +2062,16 @@
           "target": "~/src/modules/B1-contacts/components/requisite-list.tsx"
         },
         {
+          "path": "registry/modules/B1-contacts/components/segment-field.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/segment-field.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/segment-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/segment-form.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/segments.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/segments.tsx"
@@ -2135,6 +2155,11 @@
           "path": "registry/modules/B1-contacts/pages/organizations-list-page.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/pages/organizations-list-page.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/pages/segments-list-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/pages/segments-list-page.tsx"
         },
         {
           "path": "registry/modules/B1-contacts/README.md",
@@ -17302,6 +17327,273 @@
         "demo": "login",
         "spec": [
           "PF01"
+        ]
+      }
+    },
+    {
+      "name": "erp/multi-select-parts",
+      "type": "registry:component",
+      "title": "Частини мультивибору",
+      "description": "Частина erp/multi-select: варіанти з довідника й вибрані значення, яких у ньому немає, пошук у пам'яті, рядок стану для очей і скрінрідера, мітки в полі. Ставиться разом з erp/multi-select.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/multi-select-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select-parts.tsx"
+        },
+        {
+          "path": "registry/erp/multi-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "pickers",
+        "spec": [
+          "UI40",
+          "§8.1",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/multi-select",
+      "type": "registry:component",
+      "title": "Мультивибір із довідника",
+      "description": "MultiSelect: кілька значень із короткого довідника в пам'яті (сегменти, теги, ролі) — мітки в полі, список із пошуком за підписом, що не закривається після вибору, на телефоні — нижня шторка з «Готово»; «Очистити»; значення, якого вже немає в довіднику, можна зняти; стани — довідник вантажиться, порожній, нічого не знайдено, не завантажився з повтором, помилка поля, лише читання, вимкнено (UI40, UI38, ADR-0027).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/multi-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select.tsx"
+        },
+        {
+          "path": "registry/erp/multi-select-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/multi-select-parts.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "pickers",
+        "spec": [
+          "UI40",
+          "UI38",
+          "§8.1",
+          "§8.3",
+          "§9",
+          "§10"
         ]
       }
     },

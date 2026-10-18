@@ -136,6 +136,7 @@ import {
   Sparkles,
   Store,
   Sun,
+  Tags,
   Ticket,
   Timer,
   Trash2,
@@ -472,6 +473,8 @@ export const SHELL_ICONS = {
   notifications: Bell,
   user: CircleUser,
   company: Building2,
+  /** Сегменти й теги: довідник груп для організацій і контактів. */
+  segments: Tags,
   signIn: LogIn,
   signOut: LogOut,
   palette: Palette,

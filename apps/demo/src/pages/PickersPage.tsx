@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import { CopyableValue } from "@/registry/erp/copyable-value"
-import { FormField } from "@/registry/erp/form"
+import { FormField, keepFieldFocus } from "@/registry/erp/form"
 import { RecordPicker } from "@/registry/erp/record-picker"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
@@ -37,6 +37,7 @@ import {
 import type { Organization } from "@/data/organizations"
 import type { UserRecord } from "@/mocks/handlers"
 
+import { MultiSelectSections } from "./multi-select-sections"
 import { OrganizationCreateDialog } from "./OrganizationCreateDialog"
 import {
   ORGANIZATION_SORT,
@@ -62,6 +63,7 @@ export function PickersPage() {
       <ContactSection />
       <FieldStatesSection />
       <ListStatesSection />
+      <MultiSelectSections />
       <RequisitesSection />
     </div>
   )
@@ -174,7 +176,9 @@ function ContactSection() {
           />
         </FieldGroup>
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit">{t("contact.submit")}</Button>
+          <Button type="submit" onMouseDown={keepFieldFocus}>
+            {t("contact.submit")}
+          </Button>
           <p role="status" className="text-sm text-muted-foreground">
             {saved}
           </p>

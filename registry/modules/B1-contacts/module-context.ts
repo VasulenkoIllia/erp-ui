@@ -8,6 +8,8 @@ export interface ContactsPaths {
   readonly contact: (id: string) => string
   readonly organizations: string
   readonly organization: (id: string) => string
+  /** Довідник сегментів (ADR-0027). */
+  readonly segments: string
 }
 
 export function contactsPaths(basePath: string): ContactsPaths {
@@ -17,6 +19,7 @@ export function contactsPaths(basePath: string): ContactsPaths {
     contact: (id) => `${base}/contacts/${encodeURIComponent(id)}`,
     organizations: `${base}/organizations`,
     organization: (id) => `${base}/organizations/${encodeURIComponent(id)}`,
+    segments: `${base}/segments`,
   }
 }
 

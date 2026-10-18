@@ -8,7 +8,11 @@ import {
   ConflictDialog,
   type ConflictField,
 } from "@/registry/erp/conflict-dialog"
-import { FormErrorSummary, UnsavedChangesGuard } from "@/registry/erp/form"
+import {
+  FormErrorSummary,
+  keepFieldFocus,
+  UnsavedChangesGuard,
+} from "@/registry/erp/form"
 import type {
   RecordFormConflict,
   RecordFormState,
@@ -125,14 +129,6 @@ function conflictFields<TValues extends FieldValues>(
         theirs: show(conflict.theirs[key]),
       }
     })
-}
-
-/**
- * Кнопки форми не забирають фокус у поля при натисканні мишею: інакше поле перевіряється при виході
- * з нього, помилка під ним зсуває кнопку між натисканням і відпусканням — і клік губиться.
- */
-const keepFieldFocus = (event: React.MouseEvent) => {
-  event.preventDefault()
 }
 
 export interface RecordFormDialogProps<TValues extends FieldValues> {

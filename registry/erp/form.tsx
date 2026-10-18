@@ -33,7 +33,9 @@ import {
  *   Поле без прав — `readOnly` (у фокусі й для скрінрідера), не `disabled`. Короткий список
  *   варіантів — `FormSelect` з erp/form-select (окремо: список не їде в кожну сторінку з формою).
  * - «Зберегти» ніколи не вимикається: без змін — підказка, під час запиту — зайнята кнопка
- *   (`disabled` + `focusableWhenDisabled`, щоб фокус не губився).
+ *   (`disabled` + `focusableWhenDisabled`, щоб фокус не губився). Кнопки форми —
+ *   `onMouseDown={keepFieldFocus}`: помилка поля, що з'являється при виході з нього, не зсуває
+ *   кнопку посеред кліку.
  * - Довга форма — `FormErrorSummary` угорі й `useForm({ shouldFocusError: false })`: фокус іде на
  *   зведення, звідти — кнопки переходу до полів.
  * - `UnsavedChangesGuard when={isDirty}` — діалог у застосунку при переході й `beforeunload`
@@ -284,9 +286,19 @@ function NavigationGuard({ when }: { when: boolean }) {
   )
 }
 
+/**
+ * Кнопки форми не забирають фокус у поля при натисканні мишею: `onMouseDown={keepFieldFocus}`.
+ * Поле перевіряється при виході з нього, помилка під ним зсуває кнопку між натисканням і
+ * відпусканням, і перший клік губився (ADR-0026, ADR-0027). Клавіатура й дотик працюють як були.
+ */
+function keepFieldFocus(event: React.MouseEvent) {
+  event.preventDefault()
+}
+
 export {
   FormErrorSummary,
   FormField,
+  keepFieldFocus,
   UnsavedChangesGuard,
   type FormControlProps,
   type FormErrorSummaryProps,

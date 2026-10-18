@@ -1,6 +1,6 @@
 /**
- * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023) і форми запису (ADR-0026)
- * англійською — ті самі ключі, що в
+ * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023), форми запису (ADR-0026) і
+ * мультивибору з довідника (ADR-0027) англійською — ті самі ключі, що в
  * `i18n-uk-records.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -28,6 +28,24 @@ export const enRecords = {
     offline: "No connection to the server",
     retry: "Try again",
     clear: "Clear: {{label}}",
+  },
+  multiSelect: {
+    placeholder: "Select…",
+    search: "Search: {{label}}",
+    searchPlaceholder: "Start typing",
+    loading: "Loading…",
+    found_one: "{{count}} option",
+    found_other: "{{count}} options",
+    selected: "Selected: {{count}}",
+    empty: "The list is empty",
+    emptyFor: "No matches for “{{query}}”",
+    missing: "Not in the list",
+    error: "Couldn't load the options",
+    forbidden: "No access to this list",
+    offline: "No connection to the server",
+    retry: "Try again",
+    clear: "Clear: {{label}}",
+    done: "Done",
   },
   copyableValue: {
     copy: "Copy: {{label}}",

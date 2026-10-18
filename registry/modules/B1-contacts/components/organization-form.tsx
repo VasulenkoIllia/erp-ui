@@ -33,6 +33,7 @@ import type { OrganizationFormFieldId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { useContactChannelItems } from "./contact-channel-fields"
+import { useSegmentItem } from "./segment-field"
 import {
   hiddenFormFields,
   moduleFieldsOf,
@@ -44,7 +45,8 @@ import { useOrganizationStatuses } from "./organization-statuses"
 /**
  * Форма організації в діалозі (ADR-0026): створення зі списку чи з «Створити…» у виборі організації
  * контакту і зміна з картки. Поля модуля — назва, тип, код (ЄДРПОУ юрособи чи РНОКПП ФОП із
- * контрольною цифрою), статус, телефон, email, місто; поля розширення — з `form` розширення проекту.
+ * контрольною цифрою), статус, телефон, email, місто, сегменти; поля розширення — з `form` розширення
+ * проекту.
  * Адреси й рахунки — у картці (ADR-0019).
  */
 
@@ -56,6 +58,7 @@ type OrganizationFormValues = {
   phone: string
   email: string
   city: string
+  segments: string[]
 } & Record<string, unknown>
 
 const MODULE_FIELDS = [
@@ -66,6 +69,7 @@ const MODULE_FIELDS = [
   "phone",
   "email",
   "city",
+  "segments",
 ] as const satisfies readonly OrganizationFormFieldId[]
 
 /** Назва й тип — обов'язкові в контракті: розширення їх не ховає. */
@@ -88,6 +92,7 @@ function useOrganizationFormSchema(
           phone: common.phone,
           email: common.email,
           city: z.string().trim(),
+          segments: z.array(z.string()),
           ...extensionShape,
         })
         .superRefine((values, ctx) => {
@@ -189,6 +194,10 @@ function useOrganizationItems(
   const { control } = form
   const typeAndCode = useTypeAndCodeItems(form)
   const channels = useContactChannelItems(control, "organization.form.fields")
+  const segments = useSegmentItem(
+    control,
+    t("organization.form.fields.segments"),
+  )
   // Схований розширенням статус лишається у виборі запису, який його має.
   const hidden =
     currentStatus && !statuses.options.some((s) => s.id === currentStatus)
@@ -251,6 +260,7 @@ function useOrganizationItems(
         />
       ),
     },
+    segments,
   ]
 }
 
@@ -263,6 +273,7 @@ function moduleValuesOf(organization: Organization) {
     phone: organization.phone,
     email: organization.email,
     city: organization.city,
+    segments: organization.segments,
   }
 }
 
@@ -289,6 +300,7 @@ function useFormValues(
     phone: "",
     email: "",
     city: "",
+    segments: [],
     ...ext.values(),
   })
   return { toValues, emptyValues }

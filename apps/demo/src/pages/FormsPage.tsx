@@ -10,6 +10,7 @@ import { DateInput, useDateIssueText } from "@/registry/erp/date-input"
 import {
   FormErrorSummary,
   FormField,
+  keepFieldFocus,
   UnsavedChangesGuard,
 } from "@/registry/erp/form"
 import { MoneyInput, NumberInput } from "@/registry/erp/number-input"
@@ -263,6 +264,7 @@ function InvoiceForm() {
       </FieldGroup>
       <Button
         type="submit"
+        onMouseDown={keepFieldFocus}
         disabled={formState.isSubmitting}
         focusableWhenDisabled
       >

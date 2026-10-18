@@ -43,7 +43,7 @@ export type OrganizationSectionId =
 export type OrganizationActionId = "edit" | "pin"
 /** Поля форми організації (ключ — ім'я поля запису). */
 export type OrganizationFormFieldId =
-  "name" | "type" | "code" | "status" | "phone" | "email" | "city"
+  "name" | "type" | "code" | "status" | "phone" | "email" | "city" | "segments"
 
 export type ContactColumnId =
   "pin" | "name" | "organization" | "position" | "phone" | "email" | "segments"
@@ -55,7 +55,7 @@ export type ContactSectionId = "details" | "organization"
 export type ContactActionId = "edit" | "pin"
 /** Поля форми контакту (ключ — ім'я поля запису). */
 export type ContactFormFieldId =
-  "name" | "organizationId" | "position" | "phone" | "email"
+  "name" | "organizationId" | "position" | "phone" | "email" | "segments"
 
 /** Ключі модуля для однієї сутності: список і картка. */
 interface EntityIds {

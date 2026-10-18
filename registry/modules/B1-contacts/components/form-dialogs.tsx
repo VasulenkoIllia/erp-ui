@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/dialog"
 import { lazyWithPreload, whenIdle } from "@/lib/lazy"
 
-import { CONTACTS, ORGANIZATIONS } from "../contract"
+import { CONTACTS, ORGANIZATIONS, SEGMENTS } from "../contract"
 import { useContactsT } from "../use-contacts-t"
 import type { ContactFormDialogProps } from "./contact-form"
 import type { OrganizationFormDialogProps } from "./organization-form"
+import type { SegmentFormDialogProps } from "./segment-form"
 
 // Форми тягнуть react-hook-form, резолвер zod і поля вводу: окремими чанками, а не в сторінці
 // списку чи картки (ADR-0009, ADR-0026).
@@ -30,10 +31,14 @@ const OrganizationForm = lazyWithPreload(() =>
 const ContactForm = lazyWithPreload(() =>
   import("./contact-form").then((m) => m.ContactFormDialog),
 )
+const SegmentForm = lazyWithPreload(() =>
+  import("./segment-form").then((m) => m.SegmentFormDialog),
+)
 
 const FORMS = {
   organization: { component: OrganizationForm, resource: ORGANIZATIONS },
   contact: { component: ContactForm, resource: CONTACTS },
+  segment: { component: SegmentForm, resource: SEGMENTS },
 } as const
 
 /**
@@ -87,6 +92,22 @@ export function ContactFormDialog(props: ContactFormDialogProps) {
       finalFocus={props.finalFocus}
     >
       <ContactForm {...props} />
+    </FormChunkBoundary>
+  )
+}
+
+/** Діалог змонтований, лише поки відкритий: `{editing ? <SegmentFormDialog … /> : null}`. */
+export function SegmentFormDialog(props: SegmentFormDialogProps) {
+  const t = useContactsT()
+  return (
+    <FormChunkBoundary
+      title={t(
+        props.segment ? "segments.form.editTitle" : "segments.form.createTitle",
+      )}
+      onClose={props.onClose}
+      finalFocus={props.finalFocus}
+    >
+      <SegmentForm {...props} />
     </FormChunkBoundary>
   )
 }

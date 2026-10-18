@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
-import { FormField } from "@/registry/erp/form"
+import { FormField, keepFieldFocus } from "@/registry/erp/form"
 import { UaIdInput, uaIdIssueKey } from "@/registry/erp/ua-id-input"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useCompanyId } from "@/registry/hooks/use-company"
@@ -169,12 +169,18 @@ function CreateForm({
           type="button"
           variant="outline"
           onClick={onCancel}
+          onMouseDown={keepFieldFocus}
           disabled={isPending}
           focusableWhenDisabled
         >
           {t("cancel")}
         </Button>
-        <Button type="submit" disabled={isPending} focusableWhenDisabled>
+        <Button
+          type="submit"
+          onMouseDown={keepFieldFocus}
+          disabled={isPending}
+          focusableWhenDisabled
+        >
           {isPending ? <Spinner aria-hidden /> : null}
           {t("submit")}
         </Button>

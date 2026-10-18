@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { FormField } from "@/registry/erp/form"
+import { FormField, keepFieldFocus } from "@/registry/erp/form"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -136,11 +136,17 @@ export function SavedViewNameForm({
         />
       ) : null}
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          onMouseDown={keepFieldFocus}
+        >
           {t("savedViews.dialog.cancel")}
         </Button>
         <Button
           type="submit"
+          onMouseDown={keepFieldFocus}
           disabled={formState.isSubmitting}
           focusableWhenDisabled
         >

@@ -16,14 +16,10 @@ const SEGMENT_STALE_MS = 5 * 60_000
 
 const NO_SEGMENTS: ReadonlyMap<string, Segment> = new Map()
 
-/**
- * Сегменти компанії за `id`: одна підписка на сторінку чи колонку, мітки рядків отримують їх
- * пропсом (кожна підписка ra-core переписує кеш записів). Поки вантажиться — `undefined`;
- * не завантажились (немає права, збій) — порожній довідник: мітки покажуть ключі.
- */
-export function useSegments(): ReadonlyMap<string, Segment> | undefined {
+/** Довідник сегментів компанії: той самий запит у списках, картках і формах. */
+function useSegmentList() {
   const companyId = useCompanyId()
-  const { data, isError } = useGetList<Segment>(
+  return useGetList<Segment>(
     SEGMENTS,
     {
       pagination: { page: 1, perPage: SEGMENT_LIMIT },
@@ -32,10 +28,39 @@ export function useSegments(): ReadonlyMap<string, Segment> | undefined {
     },
     { staleTime: SEGMENT_STALE_MS },
   )
+}
+
+/**
+ * Сегменти компанії за `id`: одна підписка на сторінку чи колонку, мітки рядків отримують їх
+ * пропсом (кожна підписка ra-core переписує кеш записів). Поки вантажиться — `undefined`;
+ * не завантажились (немає права, збій) — порожній довідник: мітки покажуть ключі.
+ */
+export function useSegments(): ReadonlyMap<string, Segment> | undefined {
+  const { data, isError } = useSegmentList()
   return useMemo(() => {
     if (data) return new Map(data.map((segment) => [segment.id, segment]))
     return isError ? NO_SEGMENTS : undefined
   }, [data, isError])
+}
+
+/**
+ * Варіанти сегментів для мультивибору у формі (ADR-0027): поки вантажиться — `undefined`; не
+ * завантажились — причина й повтор у списку поля.
+ */
+export function useSegmentOptions() {
+  const { data, error, refetch } = useSegmentList()
+  const options = useMemo(
+    () => data?.map((segment) => ({ value: segment.id, label: segment.name })),
+    [data],
+  )
+  // Збій фонового перечитування не ховає довідник, який уже є: стан помилки — лише без даних.
+  return {
+    options,
+    error: data ? undefined : (error ?? undefined),
+    retry: () => {
+      void refetch()
+    },
+  }
 }
 
 /** Фільтр «Сегменти» — «хоч один із» вибраних; варіанти — з довідника. */
@@ -54,6 +79,27 @@ export function useSegmentFilter(label: string) {
         })),
       }) satisfies FilterDefinition,
     [segments, label],
+  )
+}
+
+/**
+ * Сегменти запису в картці під реквізитами: підпис і мітки; без сегментів — нічого. Поки довідник
+ * вантажиться — теж нічого: підпис без міток виглядав би як порожнє поле.
+ */
+export function RecordSegments({
+  label,
+  ids,
+}: {
+  label: string
+  ids: readonly string[]
+}) {
+  const segments = useSegments()
+  if (!ids.length || !segments) return null
+  return (
+    <div className="space-y-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <SegmentBadges ids={ids} segments={segments} />
+    </div>
   )
 }
 

@@ -721,6 +721,42 @@
       "picker": "Company",
       "pickerHint": "Open the list after changing the scenario"
     },
+    "multi": {
+      "title": "Several values from a list",
+      "lead": "Multi-select (UI40): selected values as tags in the field, a list with search that stays open after a pick, a bottom sheet with Done on phones. Module B1 picks segments this way.",
+      "tags": "Client tags",
+      "tagsHint": "At least one",
+      "tagsRequired": "Pick at least one tag",
+      "submit": "Save tags",
+      "saved": "Saved: {{tags}}",
+      "options": {
+        "key": "Key client",
+        "vip": "VIP",
+        "new": "New",
+        "wholesale": "Wholesale",
+        "retail": "Retail",
+        "partner": "Partner",
+        "supplier": "Supplier",
+        "public": "Public sector",
+        "export": "Export",
+        "seasonal": "Seasonal"
+      }
+    },
+    "multiStates": {
+      "title": "Multi-select states",
+      "lead": "Field: empty, filled, many values, with an error, read-only, disabled, a value that is no longer in the list. List: loading, failed to load with retry, empty (SPEC §8.1, §8.3).",
+      "filledHint": "Labels come from the list by key",
+      "many": "Many values",
+      "manyHint": "Tags wrap to the next line",
+      "missing": "Tag deleted",
+      "missingHint": "You can remove it in the list",
+      "loading": "List is loading",
+      "loadingHint": "The list shows Loading…",
+      "failed": "List failed to load",
+      "failedHint": "Open the list and press Try again",
+      "emptyList": "Empty list",
+      "emptyListHint": "No options yet"
+    },
     "requisites": {
       "title": "Details with Copy",
       "lead": "Shown for people, copied as stored: IBAN without spaces, phone as +380. Email and phone are links; an empty value has no button (UI43).",

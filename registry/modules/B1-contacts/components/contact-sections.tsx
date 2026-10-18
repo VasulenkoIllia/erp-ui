@@ -22,7 +22,7 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { RecordLink } from "./navigation"
 import { RequisiteList } from "./requisite-list"
-import { SegmentBadges, useSegments } from "./segments"
+import { RecordSegments } from "./segments"
 
 /** Порядок варіантів вибору організації контакту. */
 export const ORGANIZATION_SORT = { field: "name", order: "ASC" } as const
@@ -47,7 +47,6 @@ export function useOrganizationDescription() {
 /** Подробиці контакту: телефон і email з «Копіювати» (UI43), посада, сегменти. */
 export function ContactDetails({ contact }: { contact: Contact }) {
   const t = useContactsT()
-  const segments = useSegments()
   return (
     <div className="space-y-4">
       <RequisiteList
@@ -73,14 +72,10 @@ export function ContactDetails({ contact }: { contact: Contact }) {
           },
         ]}
       />
-      {contact.segments.length ? (
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">
-            {t("contact.fields.segments")}
-          </p>
-          <SegmentBadges ids={contact.segments} segments={segments} />
-        </div>
-      ) : null}
+      <RecordSegments
+        label={t("contact.fields.segments")}
+        ids={contact.segments}
+      />
     </div>
   )
 }
