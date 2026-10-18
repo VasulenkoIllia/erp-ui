@@ -1,5 +1,5 @@
 import { useCanAccess } from "ra-core"
-import { useCallback, useRef, type MouseEvent } from "react"
+import { useCallback, useRef, type MouseEvent, type Ref } from "react"
 
 import { DeniedAction } from "@/components/erp/permission-gate"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,8 @@ export function AccessAction({
   deniedReason,
   variant = "outline",
   onClick,
+  ref,
+  busy = false,
 }: {
   resource: string
   action: "create" | "update"
@@ -26,12 +28,22 @@ export function AccessAction({
   deniedReason: string
   variant?: "default" | "outline"
   onClick: (event: MouseEvent<HTMLButtonElement>) => void
+  /** Кнопка дії: сюди повертається фокус, коли елемента, з якого відкрили діалог, уже немає. */
+  ref?: Ref<HTMLButtonElement>
+  /** Поки зберігається інша зміна запису — неактивна, але фокус лишається на ній. */
+  busy?: boolean
 }) {
   const { canAccess, isPending } = useCanAccess({ resource, action })
   const Icon = ACTION_ICONS[icon]
   if (isPending) return null
   return canAccess ? (
-    <Button variant={variant} onClick={onClick}>
+    <Button
+      ref={ref}
+      variant={variant}
+      disabled={busy}
+      focusableWhenDisabled
+      onClick={onClick}
+    >
       <Icon aria-hidden />
       {label}
     </Button>

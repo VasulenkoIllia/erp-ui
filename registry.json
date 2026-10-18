@@ -1225,7 +1225,7 @@
       "name": "modules/B1-contacts",
       "type": "registry:item",
       "title": "Контакти й компанії (B1)",
-      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; форми створення й зміни організації й контакту в діалозі з полями розширення, «Створити…» організацію з форми контакту, конфлікт 409 з порівнянням; сегменти мультивибором у формах і довідник сегментів (назва не повторюється); контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025, ADR-0027).",
+      "description": "Модуль: організації (юрособа, ФОП) з реквізитами, адресами й рахунками, контакти — представники й приватні особи, сегменти. Списки на List Report (вкладки, фільтри, закріплення, розмір сторінки), картки на Object Page (вкладки в адресі, історія), вибір організації контакту з пошуком на сервері; форми створення й зміни організації й контакту в діалозі з полями розширення, «Створити…» організацію з форми контакту, конфлікт 409 з порівнянням; сегменти мультивибором у формах і довідник сегментів (назва не повторюється); адреси й банківські рахунки в картці організації (додати, змінити, зробити основним, видалити; PATCH колекції з version, IBAN з контрольними цифрами); контракт, моки зі сценаріями, фікстури uk/en, рядки uk/en; фабрика createContactsModule з маршрутами, навігацією й правами, тип розширення ContactsExtension (ADR-0020, ADR-0025, ADR-0027, ADR-0028).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -1390,6 +1390,11 @@
           "path": "registry/erp/phone-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/phone-input.tsx"
+        },
+        {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
         },
         {
           "path": "registry/erp/pin-toggle.tsx",
@@ -1982,6 +1987,16 @@
           "target": "~/src/modules/B1-contacts/components/access-action.tsx"
         },
         {
+          "path": "registry/modules/B1-contacts/components/address-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/address-form.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/bank-account-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/bank-account-form.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/cell-text.ts",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/cell-text.ts"
@@ -2012,6 +2027,21 @@
           "target": "~/src/modules/B1-contacts/components/contact-sections.tsx"
         },
         {
+          "path": "registry/modules/B1-contacts/components/detail-items.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/detail-items.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/detail-remove-dialog.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/detail-remove-dialog.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/detail-row-actions.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/detail-row-actions.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/form-dialogs.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/form-dialogs.tsx"
@@ -2027,6 +2057,16 @@
           "target": "~/src/modules/B1-contacts/components/navigation.tsx"
         },
         {
+          "path": "registry/modules/B1-contacts/components/organization-addresses.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-addresses.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-bank-accounts.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-bank-accounts.tsx"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/organization-columns.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/organization-columns.tsx"
@@ -2035,6 +2075,11 @@
           "path": "registry/modules/B1-contacts/components/organization-contacts.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/organization-contacts.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/organization-details.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/organization-details.tsx"
         },
         {
           "path": "registry/modules/B1-contacts/components/organization-form.tsx",
@@ -2082,9 +2127,19 @@
           "target": "~/src/modules/B1-contacts/components/use-card-record.ts"
         },
         {
+          "path": "registry/modules/B1-contacts/components/use-detail-update.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/use-detail-update.ts"
+        },
+        {
           "path": "registry/modules/B1-contacts/components/use-extended-list.ts",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/use-extended-list.ts"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/use-history-refresh.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/use-history-refresh.ts"
         },
         {
           "path": "registry/modules/B1-contacts/components/use-page-heading.ts",
@@ -7546,7 +7601,7 @@
       "name": "lib/mocks",
       "type": "registry:lib",
       "title": "Мок-сервер MSW",
-      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists).",
+      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -9667,7 +9722,7 @@
       "name": "hooks/use-record-form",
       "type": "registry:hook",
       "title": "Збереження форми запису",
-      "description": "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються (ADR-0002, ADR-0026).",
+      "description": "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються; toPayload отримує запис, до якого застосовують зміну (після конфлікту — збережений зараз), fieldOfServerError — поле форми для помилки елемента колекції (ADR-0002, ADR-0026, ADR-0028).",
       "dependencies": [
         "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
@@ -17356,6 +17411,11 @@
           "target": "@components/erp/multi-select.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
           "path": "registry/hooks/use-breakpoint.ts",
           "type": "registry:hook",
           "target": "@hooks/use-breakpoint.ts"
@@ -17486,6 +17546,11 @@
           "path": "registry/erp/multi-select-parts.tsx",
           "type": "registry:component",
           "target": "@components/erp/multi-select-parts.tsx"
+        },
+        {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
         },
         {
           "path": "registry/hooks/use-breakpoint.ts",
@@ -18895,6 +18960,31 @@
       }
     },
     {
+      "name": "erp/picker-field",
+      "type": "registry:component",
+      "title": "Спільне полів вибору",
+      "description": "Спільне erp/record-picker і erp/multi-select: клас кнопки поля, літера на закритому полі відкриває пошук із неї, ref кнопки поля разом із ref ззовні (фокус після «Очистити»). Ставиться разом із ними.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "pickers",
+        "spec": [
+          "UI40",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/pin-toggle",
       "type": "registry:component",
       "title": "Закріпити вгорі",
@@ -19926,6 +20016,11 @@
           "target": "@components/erp/record-picker-parts.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
           "path": "registry/erp/record-picker.tsx",
           "type": "registry:component",
           "target": "@components/erp/record-picker.tsx"
@@ -20148,6 +20243,11 @@
           "path": "registry/erp/record-picker.tsx",
           "type": "registry:component",
           "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
         },
         {
           "path": "registry/erp/record-picker-parts.tsx",

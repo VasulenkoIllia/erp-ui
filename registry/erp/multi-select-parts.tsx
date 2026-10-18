@@ -201,11 +201,9 @@ export function MultiSelectValue({
 /** «Очистити» біля заповненого поля. */
 export function MultiSelectClear({
   label,
-  fieldId,
   onClear,
 }: {
   label: string
-  fieldId: string
   onClear: () => void
 }) {
   const t = useErpUiT()
@@ -216,21 +214,9 @@ export function MultiSelectClear({
       size="icon-xs"
       className="absolute end-8 top-1/2 -translate-y-1/2"
       aria-label={t("multiSelect.clear", { label })}
-      onClick={() => {
-        onClear()
-        // Кнопка зникає разом зі значенням — фокус лишається на полі (WCAG 2.4.3).
-        document.getElementById(fieldId)?.focus()
-      }}
+      onClick={onClear}
     >
       <XIcon aria-hidden />
     </Button>
   )
 }
-
-/** Друкована клавіша без модифікаторів; пробіл лишається кнопці (відкрити список). */
-export const isPrintableKey = (event: React.KeyboardEvent) =>
-  event.key.length === 1 &&
-  event.key !== " " &&
-  !event.ctrlKey &&
-  !event.metaKey &&
-  !event.altKey

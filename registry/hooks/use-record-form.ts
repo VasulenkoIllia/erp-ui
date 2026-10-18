@@ -52,11 +52,22 @@ export interface RecordFormOptions<
   readonly defaultValues: TValues
   /** Схема запису контракту з полями розширення: розбирає `current` з відповіді 409. */
   readonly recordSchema: z.ZodType<TRecord>
-  /** Значення форми → поля запиту; `keys` — що надсилати (при зміні — лише змінені поля). */
+  /**
+   * Значення форми → поля запиту; `keys` — що надсилати (при зміні — лише змінені поля). `target` —
+   * запис, до якого застосовують зміну: збережений чи, після «Зберегти мої зміни», збережений зараз.
+   * Форма одного елемента вкладеної колекції (адреса організації) будує з нього всю колекцію, щоб
+   * не затерти чужих змін (ADR-0028).
+   */
   readonly toPayload: (
     values: TValues,
     keys: readonly Path<TValues>[],
+    target: TRecord | undefined,
   ) => Record<string, unknown>
+  /**
+   * Поле форми для помилки 422 сервера: `bankAccounts.1.iban` → `iban`. Без нього — ім'я з відповіді;
+   * поле, якого у формі немає, діалог показує над формою.
+   */
+  readonly fieldOfServerError?: (field: string) => string
   /** Запис → значення форми: «Взяти збережене» після конфлікту. */
   readonly toValues: (record: TRecord) => TValues
   readonly onSaved: (record: TRecord) => void
@@ -132,6 +143,7 @@ function useKitForm<TValues extends FieldValues>(
 /** Серверні помилки полів; `false` — у відповіді їх немає. */
 function useServerFieldErrors<TValues extends FieldValues>(
   form: UseFormReturn<TValues>,
+  fieldOf: (field: string) => string = (field) => field,
 ) {
   const t = useErpUiT()
   return (failure: unknown): boolean => {
@@ -143,7 +155,7 @@ function useServerFieldErrors<TValues extends FieldValues>(
       const key = Object.hasOwn(SERVER_ERROR_KEYS, code)
         ? SERVER_ERROR_KEYS[code]
         : undefined
-      form.setError(name as Path<TValues>, {
+      form.setError(fieldOf(name) as Path<TValues>, {
         type: "server",
         message: t(key ?? "recordForm.serverErrors.invalid"),
       })
@@ -232,7 +244,10 @@ export function useRecordForm<
   const queryClient = useQueryClient()
   const form = useKitForm(schema, options.defaultValues)
   const request = useSaveRequest<TRecord>(resource)
-  const serverFieldErrors = useServerFieldErrors(form)
+  const serverFieldErrors = useServerFieldErrors(
+    form,
+    options.fieldOfServerError,
+  )
   // Запис, від якого рахуємо зміни й версію: після створення — створений, після «Взяти збережене» —
   // версія сервера.
   const [base, setBase] = React.useState(record)
@@ -259,7 +274,10 @@ export function useRecordForm<
     setError(null)
     try {
       // З `returnPromise` ra-core повертає запис; `void` у типі — для виклику без нього.
-      const result = await request(options.toPayload(values, keys), target)
+      const result = await request(
+        options.toPayload(values, keys, target),
+        target,
+      )
       if (!result) throw NO_RECORD
       form.reset(values)
       setBase(result)

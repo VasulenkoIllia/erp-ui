@@ -19,15 +19,17 @@ import {
   OrganizationFormDialog,
   usePreloadForm,
 } from "../components/form-dialogs"
+import { OrganizationAddresses } from "../components/organization-addresses"
+import { OrganizationBankAccounts } from "../components/organization-bank-accounts"
+import { useDetailEditing } from "../components/organization-details"
 import { useOrganizationHeader } from "../components/organization-header"
 import {
-  OrganizationAddresses,
-  OrganizationBankAccounts,
   OrganizationRequisites,
   type DetailState,
 } from "../components/organization-sections"
 import { useOrganizationStatuses } from "../components/organization-statuses"
 import { useCardRecord, type CardRecord } from "../components/use-card-record"
+import { useHistoryRefresh } from "../components/use-history-refresh"
 import { usePageHeading } from "../components/use-page-heading"
 import {
   ORGANIZATIONS,
@@ -48,6 +50,7 @@ const MISSING_DETAIL = new Error(
  * Картка організації на шаблоні Object Page з вкладками (SPEC §7; ADR-0019, ADR-0024): «Реквізити»,
  * «Адреси», «Рахунки», «Контактні особи» і вкладки розширення проекту; «Історія» з журналу аудиту —
  * праворуч на широкому, останньою вкладкою на вузькому. Вибрана вкладка — в адресі (`?tab=`).
+ * Адреси й рахунки змінюються в картці (ADR-0028): «Додати…» в заголовку вкладки, меню рядка.
  */
 export function OrganizationPage() {
   const { id = "" } = useParams()
@@ -90,6 +93,8 @@ function OrganizationCard({ id }: { id: string }) {
     },
   )
   const detail = useDetailState(card)
+  const details = useDetailEditing(organization, detail)
+  useHistoryRefresh(organization?.version)
   const tabs = useTabParam()
   const sections: (ObjectPageSectionItem & { id: OrganizationSectionId })[] =
     organization
@@ -102,20 +107,24 @@ function OrganizationCard({ id }: { id: string }) {
           {
             id: "addresses",
             title: t("organization.sections.addresses"),
+            actions: details.addAddress,
             content: (
               <OrganizationAddresses
                 organization={organization}
                 state={detail}
+                actions={details.addressActions}
               />
             ),
           },
           {
             id: "bankAccounts",
             title: t("organization.sections.bankAccounts"),
+            actions: details.addBankAccount,
             content: (
               <OrganizationBankAccounts
                 organization={organization}
                 state={detail}
+                actions={details.bankAccountActions}
               />
             ),
           },
@@ -165,6 +174,7 @@ function OrganizationCard({ id }: { id: string }) {
           }}
         />
       ) : null}
+      {details.dialogs}
     </>
   )
 }

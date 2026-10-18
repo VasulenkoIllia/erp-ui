@@ -92,7 +92,25 @@
       },
       "empty": "No addresses yet.",
       "count_one": "{{value}} address",
-      "count_other": "{{value}} addresses"
+      "count_other": "{{value}} addresses",
+      "add": "Add address",
+      "form": {
+        "createTitle": "New address",
+        "editTitle": "Edit address",
+        "fields": {
+          "kind": "Type",
+          "country": "Country",
+          "line": "Street, building, office",
+          "postalCode": "Postcode",
+          "city": "City"
+        },
+        "postalCode": "A Ukrainian postcode has 5 digits",
+        "added": "Address added: {{line}}",
+        "saved": "Changes saved: {{line}}"
+      },
+      "deleteTitle": "Delete the address?",
+      "deleteConfirm": "Delete address",
+      "deleted": "Address deleted: {{line}}"
     },
     "bankAccounts": {
       "tableLabel": "Bank accounts: {{name}}",
@@ -104,7 +122,29 @@
       "primary": "Main",
       "empty": "No bank accounts yet.",
       "count_one": "{{value}} account",
-      "count_other": "{{value}} accounts"
+      "count_other": "{{value}} accounts",
+      "add": "Add bank account",
+      "makePrimary": "Make main",
+      "primarySaving": "Making {{iban}} the main account…",
+      "primarySaved": "Main account: {{iban}}",
+      "form": {
+        "createTitle": "New bank account",
+        "editTitle": "Edit bank account",
+        "fields": {
+          "iban": "IBAN",
+          "bankName": "Bank",
+          "currency": "Currency"
+        },
+        "firstPrimary": "The first account becomes the main one: its IBAN goes to the organization details.",
+        "duplicate": "This organization already has this account",
+        "added": "Bank account added: {{iban}}",
+        "saved": "Changes saved: {{iban}}"
+      },
+      "deleteTitle": "Delete the bank account?",
+      "deleteConfirm": "Delete bank account",
+      "nextPrimary": "{{iban}} becomes the main account.",
+      "lastAccount": "There are no other accounts: the organization details will have no IBAN.",
+      "deleted": "Bank account deleted: {{iban}}"
     },
     "contacts": {
       "tableLabel": "Contact people: {{name}}",
@@ -117,6 +157,15 @@
       "empty": "This organization has no contact people yet.",
       "count_one": "{{value}} person",
       "count_other": "{{value}} people"
+    },
+    "detail": {
+      "actionsFor": "Actions: {{name}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "tooLong": "{{max}} characters at most",
+      "conflict": "Someone else has just changed this organization. The card is up to date now: check it and try again.",
+      "add": "Add",
+      "actions": "Actions"
     }
   },
   "contacts": {

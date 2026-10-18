@@ -20,6 +20,13 @@
  * конфлікту 409 у формах (ADR-0026): порівняння показує й поля розширення.
  *
  * Створення — `POST` з усіма полями форми; зміна — `PATCH` лише змінених полів з `version`.
+ *
+ * Адреси й рахунки (ADR-0028) змінюються `PATCH /organizations/:id` з усією колекцією
+ * (`addresses` чи `bankAccounts`) і `version`: колекція замінюється цілком, тож версія не дає затерти
+ * чужу зміну (409 з `current`). Новий елемент — без `id`, його дає сервер. Основний рахунок — рівно
+ * один, якщо рахунки є: сервер робить основним перший, коли жоден не позначений (видалили основний),
+ * і лишає перший позначений, коли їх кілька; `iban` організації — його IBAN. Помилки елемента — 422
+ * `fieldErrors` з шляхом `bankAccounts.<індекс>.iban` (`invalid`, `duplicate` — той самий IBAN двічі).
  */
 import { z } from "zod"
 
@@ -133,14 +140,37 @@ export interface ContactSchemaExtension {
   readonly fields?: readonly ExtensionField[]
 }
 
+const organizationObject = (extension?: OrganizationSchemaExtension) =>
+  organizationShape.extend({
+    status: statusSchema(ORGANIZATION_STATUSES, extension?.statuses).default(
+      DEFAULT_ORGANIZATION_STATUS,
+    ),
+  })
+
 /** Схема організації зі статусами й полями розширення; статус за замовчуванням — `active`. */
 export function organizationSchemaFor(extension?: OrganizationSchemaExtension) {
+  return extendSchema(organizationObject(extension), extension?.fields)
+}
+
+/** Схеми колекцій картки: моки беруть свої — з `id` новим елементам і перевіркою IBAN. */
+type OrganizationDetailShape = {
+  readonly [K in keyof OrganizationDetail]: z.ZodType<
+    OrganizationDetail[K],
+    unknown
+  >
+}
+
+/**
+ * Детальний запис організації (`GET /organizations/:id`, відповідь `PATCH` і `current` 409): запис з
+ * адресами й рахунками. Розбирає конфлікт у формах адреси й рахунку. Поле розширення з ключем
+ * колекції (`addresses`) — помилка розробника, як і з ключем поля модуля.
+ */
+export function organizationCardSchemaFor(
+  extension?: OrganizationSchemaExtension,
+  detail: OrganizationDetailShape = organizationDetailSchema.shape,
+): z.ZodType<OrganizationCard> {
   return extendSchema(
-    organizationShape.extend({
-      status: statusSchema(ORGANIZATION_STATUSES, extension?.statuses).default(
-        DEFAULT_ORGANIZATION_STATUS,
-      ),
-    }),
+    organizationObject(extension).extend(detail),
     extension?.fields,
   )
 }
@@ -154,4 +184,6 @@ export function contactSchemaFor(extension?: ContactSchemaExtension) {
 export type Organization = z.output<typeof organizationShape> & {
   status: string
 } & ExtensionValues
+/** Організація з адресами й рахунками — детальний запис картки. */
+export type OrganizationCard = Organization & OrganizationDetail
 export type Contact = z.output<typeof contactShape> & ExtensionValues

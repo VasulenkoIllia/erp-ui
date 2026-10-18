@@ -5,6 +5,7 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox"
 import { ChevronDownIcon, XIcon } from "lucide-react"
 import type { RaRecord, SortPayload } from "ra-core"
 
+import { PICKER_FIELD_CLASS } from "@/registry/erp/picker-field"
 import {
   PickerResults,
   sameItem,
@@ -94,8 +95,7 @@ export interface RecordPickerProps<T extends RaRecord> {
   className?: string
 }
 
-const FIELD_CLASS =
-  "flex h-control w-full min-w-0 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-start text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-popup-open:border-ring md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+const FIELD_CLASS = cn("h-control", PICKER_FIELD_CLASS)
 
 export function RecordPicker<T extends RaRecord>(props: RecordPickerProps<T>) {
   const {

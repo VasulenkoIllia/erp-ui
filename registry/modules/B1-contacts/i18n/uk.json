@@ -96,7 +96,25 @@
       "count_one": "{{value}} адреса",
       "count_few": "{{value}} адреси",
       "count_many": "{{value}} адрес",
-      "count_other": "{{value}} адреси"
+      "count_other": "{{value}} адреси",
+      "add": "Додати адресу",
+      "form": {
+        "createTitle": "Нова адреса",
+        "editTitle": "Змінити адресу",
+        "fields": {
+          "kind": "Тип",
+          "country": "Країна",
+          "line": "Вулиця, будинок, офіс",
+          "postalCode": "Індекс",
+          "city": "Місто"
+        },
+        "postalCode": "Індекс в Україні має 5 цифр",
+        "added": "Адресу додано: {{line}}",
+        "saved": "Зміни збережено: {{line}}"
+      },
+      "deleteTitle": "Видалити адресу?",
+      "deleteConfirm": "Видалити адресу",
+      "deleted": "Адресу видалено: {{line}}"
     },
     "bankAccounts": {
       "tableLabel": "Банківські рахунки: {{name}}",
@@ -110,7 +128,29 @@
       "count_one": "{{value}} рахунок",
       "count_few": "{{value}} рахунки",
       "count_many": "{{value}} рахунків",
-      "count_other": "{{value}} рахунку"
+      "count_other": "{{value}} рахунку",
+      "add": "Додати рахунок",
+      "makePrimary": "Зробити основним",
+      "primarySaving": "Робимо основним рахунок {{iban}}…",
+      "primarySaved": "Основний рахунок: {{iban}}",
+      "form": {
+        "createTitle": "Новий рахунок",
+        "editTitle": "Змінити рахунок",
+        "fields": {
+          "iban": "IBAN",
+          "bankName": "Банк",
+          "currency": "Валюта"
+        },
+        "firstPrimary": "Перший рахунок стане основним: його IBAN буде в реквізитах організації.",
+        "duplicate": "Цей рахунок уже є в організації",
+        "added": "Рахунок додано: {{iban}}",
+        "saved": "Зміни збережено: {{iban}}"
+      },
+      "deleteTitle": "Видалити рахунок?",
+      "deleteConfirm": "Видалити рахунок",
+      "nextPrimary": "Основним стане рахунок {{iban}}.",
+      "lastAccount": "Інших рахунків немає: в реквізитах організації не буде IBAN.",
+      "deleted": "Рахунок видалено: {{iban}}"
     },
     "contacts": {
       "tableLabel": "Контактні особи: {{name}}",
@@ -125,6 +165,15 @@
       "count_few": "{{value}} особи",
       "count_many": "{{value}} осіб",
       "count_other": "{{value}} особи"
+    },
+    "detail": {
+      "actionsFor": "Дії: {{name}}",
+      "edit": "Змінити",
+      "delete": "Видалити",
+      "tooLong": "Не довше {{max}} символів",
+      "conflict": "Організацію щойно змінив інший користувач. Картку оновлено: перевірте й повторіть дію.",
+      "add": "Додати",
+      "actions": "Дії"
     }
   },
   "contacts": {

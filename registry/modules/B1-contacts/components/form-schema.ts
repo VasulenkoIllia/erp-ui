@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { z } from "zod"
 
-import { useErpUiT } from "@/lib/i18n"
+import { useErpUiT, useLanguage } from "@/lib/i18n"
 import { validatePhone } from "@/lib/phone"
 
 /**
@@ -49,6 +49,45 @@ export function useContactFieldSchemas(hidden: ReadonlySet<string>) {
     [t, hidden],
   )
 }
+
+/** Назва коду; на код, якого `Intl.DisplayNames` не розбирає (`"U$D"`), — без назви, а не помилка. */
+function displayName(names: Intl.DisplayNames, code: string) {
+  try {
+    return names.of(code)
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Варіанти коду з назвою мовою інтерфейсу (країна, валюта — `Intl.DisplayNames`). Код запису, якого
+ * немає серед варіантів форми, лишається у виборі: зміна іншого поля його не підмінить.
+ */
+export function useCodeItems(
+  codes: readonly string[],
+  current: string | undefined,
+  type: "region" | "currency",
+): { value: string; label: string }[] {
+  const { locale } = useLanguage()
+  return useMemo(() => {
+    const names = new Intl.DisplayNames([locale], { type })
+    const all =
+      current && !codes.includes(current) ? [...codes, current] : codes
+    return all.map((code) => {
+      const name = displayName(names, code)
+      return {
+        value: code,
+        label:
+          type === "currency" && name ? `${code} · ${name}` : (name ?? code),
+      }
+    })
+  }, [codes, current, type, locale])
+}
+
+/** Підпис варіанта вибору за значенням — для порівняння при конфлікті. */
+export const choiceText =
+  (items: readonly { value: string; label: string }[]) => (value: unknown) =>
+    items.find((item) => item.value === value)?.label ?? null
 
 /** Поля модуля з `keys` для запиту; поля розширення додає `useExtensionForm().payload`. */
 export function moduleFieldsOf<K extends string>(

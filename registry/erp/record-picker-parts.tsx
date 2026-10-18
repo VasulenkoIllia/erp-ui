@@ -5,6 +5,11 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox"
 import { PlusIcon } from "lucide-react"
 import type { RaRecord } from "ra-core"
 
+import {
+  openSearchFromLetter,
+  useFieldRef,
+  type PickerFieldKeyDown,
+} from "@/registry/erp/picker-field"
 import type { RecordPickerProps } from "@/registry/erp/record-picker"
 import { useHasPermission } from "@/registry/hooks/use-me"
 import {
@@ -180,15 +185,11 @@ function usePickerKeys({
   setQuery: (query: string) => void
   open: () => void
 }) {
-  // Base UI на закритому полі вибирав би за першою літерою варіант без списку — відкриваємо пошук.
-  const onFieldKeyDown: NonNullable<
-    ComboboxPrimitive.Trigger.Props["onKeyDown"]
-  > = (event) => {
-    if (!isPrintableKey(event)) return
-    event.preventBaseUIHandler()
-    event.preventDefault()
-    setQuery(event.key)
-    open()
+  const onFieldKeyDown: PickerFieldKeyDown = (event) => {
+    openSearchFromLetter(event, (letter) => {
+      setQuery(letter)
+      open()
+    })
   }
   // Enter на варіантах попереднього пошуку вибрав би запис не за текстом поля.
   const onSearchKeyDown: NonNullable<
@@ -199,36 +200,6 @@ function usePickerKeys({
     event.preventDefault()
   }
   return { onFieldKeyDown, onSearchKeyDown }
-}
-
-/** Друкована клавіша без модифікаторів; пробіл лишається кнопці (відкрити список). */
-const isPrintableKey = (event: React.KeyboardEvent) =>
-  event.key.length === 1 &&
-  event.key !== " " &&
-  !event.ctrlKey &&
-  !event.metaKey &&
-  !event.altKey
-
-/** `ref` ззовні (react-hook-form фокусує поле з помилкою) — на ту саму кнопку, що й свій. */
-function assignRef(
-  ref: React.Ref<HTMLButtonElement> | undefined,
-  node: HTMLButtonElement | null,
-) {
-  if (typeof ref === "function") ref(node)
-  else if (ref) ref.current = node
-}
-
-/** Свій ref кнопки поля разом із `ref` ззовні. */
-function useFieldRef(ref: React.Ref<HTMLButtonElement> | undefined) {
-  const fieldRef = React.useRef<HTMLButtonElement | null>(null)
-  const setFieldRef = React.useCallback(
-    (node: HTMLButtonElement | null) => {
-      fieldRef.current = node
-      assignRef(ref, node)
-    },
-    [ref],
-  )
-  return [fieldRef, setFieldRef] as const
 }
 
 /** Варіанти списку: записи й «Створити…» з текстом пошуку; текст варіанта. */

@@ -25,6 +25,7 @@ import {
   type FilterValue,
   type SortField,
 } from "@/registry/lib/api"
+import type { AuditValue } from "@/registry/lib/audit"
 import { hasPermission, type LocalizedText } from "@/registry/lib/auth"
 import type { MockAccountSeed } from "@/registry/lib/mock-account"
 import {
@@ -106,6 +107,18 @@ export interface MockResourceOptions<T extends MockRecord> {
    * конфлікту 409 віддають запис із ними, список — ні (ADR-0019).
    */
   detail?: (record: T) => Record<string, unknown>
+  /**
+   * Вкладені колекції, що зберігаються разом із записом (адреси й рахунки організації, ADR-0028):
+   * картка, POST, PATCH і `current` 409 віддають їх, список — ні. `PATCH` з колекцією замінює її
+   * цілком; перевіряє її `schema`.
+   */
+  detailFields?: readonly (keyof T & string)[]
+  /**
+   * Значення поля в «було → стало» журналу: вкладена колекція — рядками, а не JSON. Поля, якого в
+   * записі немає (`undefined`, `null`), функція не отримує: у журналі — порожнє.
+   */
+  // `never`: функція бере значення свого поля (`Address[]`), а не `unknown` з індексу записів моків.
+  auditValue?: Partial<Record<keyof T & string, (value: never) => AuditValue>>
   /**
    * Закріплення записів (ADR-0024): `PUT`/`DELETE /<ресурс>/:id/pin`, `pinned: true` у списку й
    * картці, закріплені — першим блоком списку.
@@ -207,6 +220,31 @@ function fieldErrors(error: z.ZodError): Record<string, string> {
   )
 }
 
+/** «Було → стало» для журналу: що змінилось — за самими значеннями, показ — через `auditValue`. */
+function readableChanges<T extends MockRecord>(
+  previous: T,
+  record: T,
+  labels: Record<string, LocalizedText>,
+  auditValue: MockResourceOptions<T>["auditValue"],
+) {
+  return auditChanges(previous, record, labels).map((change) => {
+    // Лише свої ключі: `constructor` з прототипу — не показ поля.
+    const show =
+      auditValue && Object.hasOwn(auditValue, change.field)
+        ? (auditValue[change.field] as (value: unknown) => AuditValue)
+        : undefined
+    if (!show) return change
+    // Поля може не бути в записі (додали чи прибрали): порожнє значення функція не отримує.
+    const shown = (value: unknown) =>
+      value === undefined || value === null ? null : show(value)
+    return {
+      ...change,
+      from: shown(previous[change.field]),
+      to: shown(record[change.field]),
+    }
+  })
+}
+
 const validationError = (errors: Record<string, string>) =>
   errorResponse(422, {
     code: "validation",
@@ -231,6 +269,8 @@ export function createResourceHandlers<T extends MockRecord>({
   titleField = searchFields[0],
   fieldLabels = {},
   detail,
+  detailFields = [],
+  auditValue,
   pins = false,
   unique = [],
 }: MockResourceOptions<T>) {
@@ -325,6 +365,13 @@ export function createResourceHandlers<T extends MockRecord>({
   }
   const withPin = (record: T, pinned: readonly string[]) =>
     pinned.includes(record.id) ? { ...record, pinned: true } : record
+  /** Рядок списку: без вкладених колекцій (ADR-0019). */
+  const listRow = (record: T): T => {
+    if (!detailFields.length) return record
+    const row = { ...record }
+    for (const field of detailFields) delete row[field]
+    return row
+  }
 
   /** Запис, яким його бачить картка. */
   // Поля самого запису (id, version) — головніші: деталі лише додають вкладене.
@@ -360,10 +407,11 @@ export function createResourceHandlers<T extends MockRecord>({
       },
       ...(previous
         ? {
-            changes: auditChanges(
+            changes: readableChanges(
               previous,
               record,
               fieldLabels as Record<string, LocalizedText>,
+              auditValue,
             ),
           }
         : {}),
@@ -415,7 +463,7 @@ export function createResourceHandlers<T extends MockRecord>({
       return json({
         data: filtered
           .slice(start, start + perPage)
-          .map((record) => withPin(record, pinned)),
+          .map((record) => withPin(listRow(record), pinned)),
         total: filtered.length,
       })
     }),

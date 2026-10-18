@@ -19,6 +19,8 @@ import { lazyWithPreload, whenIdle } from "@/lib/lazy"
 
 import { CONTACTS, ORGANIZATIONS, SEGMENTS } from "../contract"
 import { useContactsT } from "../use-contacts-t"
+import type { AddressFormDialogProps } from "./address-form"
+import type { BankAccountFormDialogProps } from "./bank-account-form"
 import type { ContactFormDialogProps } from "./contact-form"
 import type { OrganizationFormDialogProps } from "./organization-form"
 import type { SegmentFormDialogProps } from "./segment-form"
@@ -34,11 +36,20 @@ const ContactForm = lazyWithPreload(() =>
 const SegmentForm = lazyWithPreload(() =>
   import("./segment-form").then((m) => m.SegmentFormDialog),
 )
+const AddressForm = lazyWithPreload(() =>
+  import("./address-form").then((m) => m.AddressFormDialog),
+)
+const BankAccountForm = lazyWithPreload(() =>
+  import("./bank-account-form").then((m) => m.BankAccountFormDialog),
+)
 
 const FORMS = {
   organization: { component: OrganizationForm, resource: ORGANIZATIONS },
   contact: { component: ContactForm, resource: CONTACTS },
   segment: { component: SegmentForm, resource: SEGMENTS },
+  // Адреси й рахунки — частина організації: право `organizations:update` (ADR-0028).
+  address: { component: AddressForm, resource: ORGANIZATIONS },
+  bankAccount: { component: BankAccountForm, resource: ORGANIZATIONS },
 } as const
 
 /**
@@ -108,6 +119,42 @@ export function SegmentFormDialog(props: SegmentFormDialogProps) {
       finalFocus={props.finalFocus}
     >
       <SegmentForm {...props} />
+    </FormChunkBoundary>
+  )
+}
+
+/** Діалог змонтований, лише поки відкритий: `{editing ? <AddressFormDialog … /> : null}`. */
+export function AddressFormDialog(props: AddressFormDialogProps) {
+  const t = useContactsT()
+  return (
+    <FormChunkBoundary
+      title={t(
+        props.address
+          ? "organization.addresses.form.editTitle"
+          : "organization.addresses.form.createTitle",
+      )}
+      onClose={props.onClose}
+      finalFocus={props.finalFocus}
+    >
+      <AddressForm {...props} />
+    </FormChunkBoundary>
+  )
+}
+
+/** Діалог змонтований, лише поки відкритий: `{editing ? <BankAccountFormDialog … /> : null}`. */
+export function BankAccountFormDialog(props: BankAccountFormDialogProps) {
+  const t = useContactsT()
+  return (
+    <FormChunkBoundary
+      title={t(
+        props.account
+          ? "organization.bankAccounts.form.editTitle"
+          : "organization.bankAccounts.form.createTitle",
+      )}
+      onClose={props.onClose}
+      finalFocus={props.finalFocus}
+    >
+      <BankAccountForm {...props} />
     </FormChunkBoundary>
   )
 }

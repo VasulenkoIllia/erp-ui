@@ -5,8 +5,13 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox"
 import { ChevronDownIcon } from "lucide-react"
 
 import {
+  openSearchFromLetter,
+  PICKER_FIELD_CLASS,
+  useFieldRef,
+  type PickerFieldKeyDown,
+} from "@/registry/erp/picker-field"
+import {
   choiceLabel,
-  isPrintableKey,
   MultiSelectClear,
   MultiSelectResults,
   MultiSelectValue,
@@ -88,8 +93,7 @@ export interface MultiSelectProps {
   className?: string
 }
 
-const FIELD_CLASS =
-  "flex min-h-control w-full min-w-0 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-start text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-popup-open:border-ring md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+const FIELD_CLASS = cn("min-h-control", PICKER_FIELD_CLASS)
 
 /** Відкритий список, текст пошуку й вихід із поля (перевірка форми — коли список закрили). */
 function useMultiSelectOpen({
@@ -119,15 +123,11 @@ function useMultiSelectOpen({
     setQuery("")
     onBlur?.()
   }
-  // Base UI на закритому полі вибирав би варіант за першою літерою без списку — відкриваємо пошук.
-  const onFieldKeyDown: NonNullable<
-    ComboboxPrimitive.Trigger.Props["onKeyDown"]
-  > = (event) => {
-    if (!isPrintableKey(event)) return
-    event.preventBaseUIHandler()
-    event.preventDefault()
-    setQuery(event.key)
-    changeOpen(true)
+  const onFieldKeyDown: PickerFieldKeyDown = (event) => {
+    openSearchFromLetter(event, (letter) => {
+      setQuery(letter)
+      changeOpen(true)
+    })
   }
   const asSheet = open ? openedOnPhone : phone
   return { open, asSheet, query, setQuery, openRef, changeOpen, onFieldKeyDown }
@@ -156,9 +156,8 @@ export function MultiSelect(props: MultiSelectProps) {
     "aria-describedby": props["aria-describedby"],
   }
   const t = useErpUiT()
-  const autoId = React.useId()
-  const fieldId = props.id ?? autoId
   const sheetId = React.useId()
+  const [fieldRef, setFieldRef] = useFieldRef(ref)
   const state = useMultiSelectOpen({
     readOnly,
     disabled,
@@ -173,7 +172,7 @@ export function MultiSelect(props: MultiSelectProps) {
   if (readOnly)
     return (
       <Textarea
-        id={fieldId}
+        id={props.id}
         readOnly
         rows={1}
         value={
@@ -188,8 +187,8 @@ export function MultiSelect(props: MultiSelectProps) {
 
   const canClear = clearable && value.length > 0 && !disabled
   const fieldProps = {
-    id: fieldId,
-    ref,
+    id: props.id,
+    ref: setFieldRef,
     className: FIELD_CLASS,
     onBlur: () => {
       if (!state.openRef.current) onBlur?.()
@@ -321,9 +320,10 @@ export function MultiSelect(props: MultiSelectProps) {
       {canClear ? (
         <MultiSelectClear
           label={label}
-          fieldId={fieldId}
           onClear={() => {
             onValueChange([])
+            // Кнопка зникає разом зі значенням — фокус лишається на полі (WCAG 2.4.3).
+            fieldRef.current?.focus()
           }}
         />
       ) : null}
