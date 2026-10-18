@@ -32,6 +32,7 @@ import {
 } from "../components/contact-sections"
 import { BackToList } from "../components/navigation"
 import { useCardRecord } from "../components/use-card-record"
+import { useHistoryRefresh } from "../components/use-history-refresh"
 import { usePageHeading } from "../components/use-page-heading"
 import { CONTACTS, type Contact } from "../contract"
 import type {
@@ -44,8 +45,8 @@ import { useContactsT } from "../use-contacts-t"
 
 /**
  * Картка контакту на шаблоні Object Page (SPEC §7; ADR-0019): «Подробиці» з «Копіювати» (UI43) і
- * «Організація» з вибором компанії (UI40), секції розширення проекту; «Історія» з журналу аудиту;
- * «Змінити» — форма в діалозі (ADR-0026).
+ * «Організація» з вибором компанії (UI40), секції розширення проекту; «Історія» з журналу аудиту
+ * перечитується з новою версією запису; «Змінити» — форма в діалозі (ADR-0026).
  */
 export function ContactPage() {
   const { id = "" } = useParams()
@@ -63,6 +64,7 @@ function ContactCard({ id }: { id: string }) {
   const { extension, paths } = useContactsModule()
   const card = useCardRecord<Contact>(CONTACTS, id)
   const contact = card.record
+  useHistoryRefresh(contact?.version)
   const heading = usePageHeading(
     contact?.name ?? t("contact.title"),
     !card.isPending || card.pageError !== undefined,

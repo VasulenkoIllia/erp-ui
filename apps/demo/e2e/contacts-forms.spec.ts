@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import {
   chooseScenario,
@@ -12,11 +12,15 @@ import {
  * (`src/extensions/B1-contacts.ts`): прапорець «Платник ПДВ» після коду, підказка поля «Місто» і
  * назва колонки «Місто клієнта» без заміни (`change`), «Зручний канал» у формі контакту. Створення
  * організації просто з вибору в формі контакту («Створити…»), конфлікт із полем розширення.
+ * fix-contact-history (ADR-0028, п. 7): після «Змінити» історія картки контакту показує новий
+ * запис без перезавантаження.
  */
 const CONTACTS = "/#/m/B1/contacts"
 const ORGANIZATIONS = "/#/m/B1/organizations"
 /** Юрособа з фікстур (ЄДРПОУ, «Платник ПДВ» — так). */
 const LEGAL_CARD = "/#/m/B1/organizations/org-013"
+/** Представник організації з фікстур; історія картки порожня, поки контакт не змінили. */
+const CONTACT_CARD = "/#/m/B1/contacts/contact-001"
 /** Правильний ЄДРПОУ (контрольна цифра збігається), якого немає в фікстурах. */
 const NEW_CODE = "12345678"
 /** Лінивий чанк форми організації (ADR-0009, ADR-0026). */
@@ -31,6 +35,20 @@ const headerValue = (page: Page, label: string) =>
     .locator("dd")
 const errorSummary = (page: Page) =>
   page.locator('[data-slot="form-error-summary"]')
+const contactChanges = (history: Locator) =>
+  history.getByRole("button", { name: "Подробиці: Контакти: зміна" })
+
+/** «Змінити» в шапці картки контакту: нова посада, «Зберегти», діалог закрито. */
+async function changePosition(page: Page) {
+  await page.getByRole("button", { name: "Змінити", exact: true }).click()
+  const form = dialog(page, "Змінити контакт")
+  await form
+    .getByRole("textbox", { name: "Посада" })
+    .fill("Директорка з розвитку")
+  await form.getByRole("button", { name: "Зберегти" }).click()
+  await expect(form).toBeHidden()
+  await expect(page.getByText(/^Зміни збережено: /)).toBeVisible()
+}
 
 test.describe("B1: форми", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -118,6 +136,18 @@ test.describe("B1: форми", () => {
     await expect(page.getByText(/^Зміни збережено: /)).toBeVisible()
     await expect(edit).toBeFocused()
     await expect(headerValue(page, "Платник ПДВ")).toHaveText("Ні")
+  })
+
+  test("зміна контакту з картки: новий запис в історії без перезавантаження", async ({
+    page,
+  }) => {
+    await openWith(page, {}, CONTACT_CARD)
+    const history = page.getByRole("region", { name: "Історія" })
+    await expect(history.getByText("Подій ще немає.")).toBeVisible()
+    await changePosition(page)
+    // Історія перечитується з новою версією запису (ADR-0019, п. 7).
+    await expect(contactChanges(history)).toHaveCount(1)
+    await expectNoA11yViolations(page)
   })
 
   test("новий контакт: організацію створюють просто з вибору, поле розширення — вибір зі списку", async ({
@@ -247,6 +277,18 @@ test.describe("B1: форми на телефоні", () => {
     expect(layout.overflow).toBeLessThanOrEqual(0)
     expect(new Set(layout.widths).size).toBe(1)
     expect(layout.fontSize).toBe("16px")
+    await expectNoA11yViolations(page)
+  })
+
+  test("зміна контакту з картки: відкрита вкладка «Історія» показує новий запис", async ({
+    page,
+  }) => {
+    await openWith(page, {}, CONTACT_CARD)
+    await page.getByRole("tab", { name: "Історія" }).click()
+    const history = page.getByRole("tabpanel", { name: "Історія" })
+    await expect(history.getByText("Подій ще немає.")).toBeVisible()
+    await changePosition(page)
+    await expect(contactChanges(history)).toHaveCount(1)
     await expectNoA11yViolations(page)
   })
 })

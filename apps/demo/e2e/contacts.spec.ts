@@ -75,6 +75,8 @@ test.describe("B1: контакти", () => {
       PRIVATE_NAME,
     )
     await expect(page.getByText("Приватна особа").first()).toBeVisible()
+    const history = page.getByRole("region", { name: "Історія" })
+    await expect(history.getByText("Подій ще немає.")).toBeVisible()
     await page
       .getByRole("combobox", { name: "Організація контакту", exact: true })
       .click()
@@ -86,6 +88,10 @@ test.describe("B1: контакти", () => {
     await expect(
       page.getByRole("link", { name: "ПП «Агросвіт»", exact: true }),
     ).toBeVisible()
+    // Історія перечитується з новою версією запису (ADR-0028, п. 7).
+    await expect(
+      history.getByRole("button", { name: "Подробиці: Контакти: зміна" }),
+    ).toHaveCount(1)
 
     await page
       .getByRole("link", { name: "Відкрити картку організації" })
