@@ -50,7 +50,7 @@ export const en = {
     empty: "No new notifications",
   },
   userMenu: {
-    label: "User menu: {{name}}",
+    label: "User menu: {{name}}, {{initials}}",
     signOut: "Sign out",
   },
   company: {

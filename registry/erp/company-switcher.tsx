@@ -86,14 +86,10 @@ export function CompanySwitcher({
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <SidebarMenuButton
-                size="lg"
-                aria-label={`${t("company.switch")}: ${current.name}`}
-              />
-            }
-          >
+          {/* Назва кнопки — з видимого тексту з дією попереду, а не `aria-label`: голосове
+              керування знаходить її за назвою й кодом компанії (WCAG 2.5.3). */}
+          <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
+            <span className="sr-only">{t("company.switch")}: </span>
             <CompanyMark name={current.name} />
             <CompanyText company={current} />
             <ChevronsUpDownIcon

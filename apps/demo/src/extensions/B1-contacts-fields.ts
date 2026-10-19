@@ -19,6 +19,14 @@ const organizationStatuses: OrganizationsExtension["statuses"] = {
       mockEvery: 11,
     },
   ],
+  // Статус модуля без заміни: інша назва, а тон і іконка — від модуля. Назва довга: у вузькій
+  // колонці таблиці бейдж обрізається трикрапкою.
+  change: [
+    {
+      id: "inactive",
+      label: { uk: "Співпрацю припинено", en: "Partnership ended" },
+    },
+  ],
 }
 
 export const contactsMockExtension = {

@@ -13,7 +13,9 @@ import {
 import { createApiClient, isApiError } from "@/registry/lib/api"
 import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
+import type { AuditEvent } from "@/registry/lib/audit"
 import {
+  extensionAuditOptions,
   useExtensionFields,
   type ExtensionField,
 } from "@/registry/lib/extension-fields"
@@ -30,6 +32,7 @@ import {
   statusSchema,
   useResolvedStatuses,
   type ExtensionStatus,
+  type ExtensionStatusChanges,
 } from "@/registry/lib/statuses"
 import { validateUaId } from "@/registry/lib/ua-ids"
 import { createContactsModule } from "@/registry/modules/B1-contacts"
@@ -94,6 +97,34 @@ describe("lib/statuses", () => {
     expect(result.current.byId.get("inactive")?.label).toBe("inactive")
     expect(result.current.byId.get("suspended")?.tone).toBe("warning")
   })
+
+  it("`change` — підпис, тон, іконка статусу модуля без заміни; схований — з тими самими змінами на бейджі", () => {
+    const statuses = ORGANIZATION_STATUSES.map((id) => ({
+      id,
+      label: id,
+      tone: "neutral" as const,
+    }))
+    const changes: ExtensionStatusChanges<OrganizationStatus> = {
+      change: [
+        { id: "active", tone: "success", icon: "pending" },
+        {
+          id: "inactive",
+          label: { uk: "Обслуговування припинено", en: "Service ended" },
+        },
+      ],
+      hide: ["inactive"],
+    }
+    const { result } = renderHook(() => useResolvedStatuses(statuses, changes))
+    expect(result.current.options).toEqual([
+      { id: "active", label: "active", tone: "success", icon: "pending" },
+      { id: "prospect", label: "prospect", tone: "neutral" },
+    ])
+    expect(result.current.byId.get("inactive")).toEqual({
+      id: "inactive",
+      label: "Обслуговування припинено",
+      tone: "neutral",
+    })
+  })
 })
 
 describe("фікстури B1", () => {
@@ -155,7 +186,10 @@ const user: MockUser = {
 }
 const mocks = createContactsMocks({
   baseUrl: BASE,
-  extension: { organizations: { statuses: STATUSES } },
+  extension: {
+    organizations: { statuses: STATUSES },
+    contacts: contactsMockExtension.contacts,
+  },
 })
 const server = setupServer(
   ...createPlatformHandlers({ users: [user], baseUrl: BASE }),
@@ -253,6 +287,40 @@ describe("моки B1", () => {
     await expect(stale).rejects.toSatisfy(
       (error) => isApiError(error) && error.status === 409,
     )
+  })
+
+  it("журнал: поле розширення — підписом, значення зі списку — підписом мовою даних", async () => {
+    const { data: contact } = await provider.getOne<Contact>("contacts", {
+      id: "contact-001",
+    })
+    await provider.update<Contact>("contacts", {
+      id: contact.id,
+      data: { channel: "telegram", version: contact.version },
+      previousData: contact,
+    })
+    const { data: events } = await provider.getList<AuditEvent>(
+      "audit-events",
+      {
+        filter: { targetType: "contacts", targetId: contact.id },
+        pagination: { page: 1, perPage: 5 },
+        sort: { field: "at", order: "DESC" },
+      },
+    )
+    const channel = events[0]?.changes?.find(
+      (change) => change.field === "channel",
+    )
+    expect(channel).toMatchObject({
+      label: "Зручний канал",
+      from: "Телефон",
+      to: "Telegram",
+    })
+    // Значення, якого вже немає в списку, — ключем, а не порожнім місцем.
+    const { auditValue } = extensionAuditOptions(
+      "en",
+      contactsMockExtension.contacts.fields,
+    )
+    expect(auditValue.channel?.("email")).toBe("Email")
+    expect(auditValue.channel?.("fax")).toBe("fax")
   })
 
   it("назва сегмента не повторюється: створення й зміна — 422 `duplicate`, своя назва — можна", async () => {

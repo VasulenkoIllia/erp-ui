@@ -238,15 +238,24 @@ function FilterPanelButton({
     if (next) setOpenedNarrow(narrow)
     setOpen(next)
   }
+  const filtersLabel = t("filterBar.filters")
   const label = (
     <>
       <ListFilterIcon aria-hidden />
-      {t("filterBar.filters")}
       {activeCount ? (
-        <Badge variant="secondary" aria-hidden className="tabular-nums">
-          {activeCount}
-        </Badge>
-      ) : null}
+        <>
+          {/* Скрінрідер чує одну назву «Фільтри, 2 активні», підпис і число — для очей. */}
+          <span aria-hidden>{filtersLabel}</span>
+          <span className="sr-only">
+            {`${filtersLabel}, ${t("filterBar.activeCount", { count: activeCount })}`}
+          </span>
+          <Badge variant="secondary" aria-hidden className="tabular-nums">
+            {activeCount}
+          </Badge>
+        </>
+      ) : (
+        filtersLabel
+      )}
     </>
   )
   // Перше відкриття не чекає на мережу.
@@ -271,7 +280,8 @@ function FilterPanelButton({
       </React.Suspense>
     </ErrorBoundary>
   )
-  // Число на значку — для очей; скрінрідер чує «Фільтри, 2 активні».
+  // Число на значку — для очей; скрінрідер чує «Фільтри, 2 активні» з прихованого тексту, а не з
+  // `aria-label`: назва кнопки містить видимий підпис (WCAG 2.5.3, axe `label-content-name-mismatch`).
   const button = (
     <Button
       ref={ref}
@@ -282,11 +292,6 @@ function FilterPanelButton({
       onFocus={() => {
         void FilterPanelForm.preload()
       }}
-      aria-label={
-        activeCount
-          ? `${t("filterBar.filters")}, ${t("filterBar.activeCount", { count: activeCount })}`
-          : undefined
-      }
     />
   )
   if (sheet)

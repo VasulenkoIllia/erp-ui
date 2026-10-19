@@ -52,7 +52,7 @@ export const uk = {
     empty: "Нових сповіщень немає",
   },
   userMenu: {
-    label: "Меню користувача: {{name}}",
+    label: "Меню користувача: {{name}}, {{initials}}",
     signOut: "Вийти",
   },
   company: {

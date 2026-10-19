@@ -63,7 +63,9 @@ export function useContactColumns(): readonly ContactColumn[] {
         id: "phone",
         header: t("contacts.columns.phone"),
         cell: (contact) => (
-          <span className="tabular-nums">{formatPhone(contact.phone)}</span>
+          <span className="tabular-nums">
+            {cellText(formatPhone(contact.phone))}
+          </span>
         ),
         minWidth: 10,
         priority: 4,

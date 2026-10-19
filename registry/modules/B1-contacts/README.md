@@ -35,11 +35,11 @@ export const contactsModule = createContactsModule({ basePath: "/crm", extension
 
 Усе, чим клієнт відрізняється, — у файлі проекту `src/extensions/B1-contacts.ts` (тип `ContactsExtension`):
 
-- `organizations` і `contacts`: `fields` (нові поля: схема, підписи, значення для моків), `columns` (`change` — назва, ширина, пріоритет колонки модуля без заміни), `form` (поле розширення у формі — `add` з місцем, підказкою `description` і `wide`; обов'язкове поле мусить бути у формі; `change` — підпис чи підказка поля модуля), `filters`, `tabs` (вкладки списку з фільтром даними), `recordFields` (поля шапки картки), `sections` (вкладки й секції картки — компоненти проекту), `actions` (дії шапки з правом `access`);
-- `organizations.statuses` — статуси організації: додати (`mockEvery` — кожен N-й запис фікстур), перейменувати (ключ модуля в `add`), сховати з вибору; новий статус стає й вкладкою списку;
+- `organizations` і `contacts`: `fields` (нові поля: схема, підписи, значення для моків), `columns` (`change` — назва, ширина, пріоритет колонки модуля без заміни), `form` (поле розширення у формі — `add` з місцем, підказкою `description` і `wide`; обов'язкове поле мусить бути у формі; `change` — підпис чи підказка поля модуля), `filters`, `tabs` (вкладки списку з фільтром даними), `recordFields` (поля шапки картки), `detailRows` (сховати рядки «Подробиць» контакту чи «Реквізитів» організації, напр. посаду, якої бекенд не має), `history: false` (картка без журналу «Історія» для бекенду без журналу змін), `sections` (вкладки й секції картки — компоненти проекту), `actions` (дії шапки з правом `access`);
+- `organizations.statuses` — статуси організації: додати (`mockEvery` — кожен N-й запис фікстур), сховати з вибору, змінити підпис, тон чи іконку статусу модуля без заміни (`change`; ключ модуля в `add` — заміна статусу цілком); новий статус стає й вкладкою списку;
 - `strings` — перевизначення рядків модуля за ключами `i18n/uk.json` і `i18n/en.json`.
 
-Ключі модуля для `hide`, `move`, `change` і `place` — типи `OrganizationColumnId`, `ContactColumnId`, `OrganizationFormFieldId`, `ContactFormFieldId`, `OrganizationSectionId` тощо (`extension.ts`): модуль перейменує ключ — TypeScript покаже місце у файлі розширення. Назву в списку (посилання на картку), назву й тип організації та ім'я контакту у формі розширення не ховає. Повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
+Ключі модуля для `hide`, `move`, `change` і `place` — типи `OrganizationColumnId`, `ContactColumnId`, `OrganizationFormFieldId`, `ContactFormFieldId`, `OrganizationSectionId`, `ContactDetailRowId` тощо (`extension.ts`): модуль перейменує ключ — TypeScript покаже місце у файлі розширення. Типи для файлу розширення й компонентів слотів — з індексу модуля (`import type { Contact, Organization, ExtensionField } from "@/modules/B1-contacts"`), а не з його внутрішніх файлів. Назву в списку (посилання на картку), назву й тип організації та ім'я контакту у формі розширення не ховає. Повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 
 ## Контракт API
 
@@ -71,12 +71,14 @@ setupWorker(...platformHandlers, ...createSavedViewHandlers(), ...createListSett
 - Фікстури (`fixtures.ts`) — українською чи англійською (`locale`), коди ЄДРПОУ й РНОКПП і IBAN з дійсними контрольними цифрами; `companyOf` — компанія користувача для запису.
 - Сценарії `success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline` — для кожного ресурсу окремо (`setScenario(scenario, "contacts")`, панель розробника `DevPanel`).
 - Адреси й рахунки моки зберігають разом з організацією (`detailFields`): нові елементи отримують `id`, IBAN перевіряється, основний рахунок і `iban` рахуються, у журналі «було → стало» колекції показано рядками з позначкою основного рахунку.
+- Поля розширення в журналі «було → стало» — з підписом поля, а значення зі списку — підписом мовою фікстур (`extensionAuditOptions` з `lib/extension-fields`).
 - Моки беруть лише дані розширення без компонентів (`ContactsMockExtension`): файл полів проекту окремо від компонентів слотів.
 
 ## Оновлення
 
 ```sh
-npx shadcn@latest add VasulenkoIllia/erp-ui/modules/B1-contacts#vX.Y.Z --diff
+pnpm exec shadcn add VasulenkoIllia/erp-ui/modules/B1-contacts#vX.Y.Z --diff   # що зміниться
+pnpm exec shadcn add VasulenkoIllia/erp-ui/modules/B1-contacts#vX.Y.Z          # застосувати
 ```
 
-`--diff` показує лише зміни кіта: файли модуля в проекті не правились. Несумісна зміна типу розширення — мажорна версія кіта, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`.
+`--diff` показує лише зміни кіта: файли модуля в проекті не правились. CLI shadcn — та сама закріплена версія для встановлення, `--diff` і `add` (`shadcn` без `^` у `package.json` проекту): інша версія CLI інакше перетворює файли, і `--diff` показує зайве. Нове в модулі — сумісні доповнення типу розширення (мінорна версія): файл розширення проекту не змінюється, а нове проект бере, коли знадобиться. Несумісна зміна типу розширення — мажорна версія кіта, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`.

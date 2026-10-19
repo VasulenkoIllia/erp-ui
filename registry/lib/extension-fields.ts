@@ -5,7 +5,8 @@
  *
  * - `extendSchema(schema, fields)` — схема контракту з полями розширення: без неї zod відкидає
  *   невідомі поля, а з нею вони проходять перевірку у відповідях бекенду й у моках.
- * - `withMockValues(records, fields)` — значення нових полів у фікстурах: проект працює на моках.
+ * - `withMockValues(records, fields)` — значення нових полів у фікстурах: проект працює на моках;
+ *   `extensionAuditOptions(language, fields)` — підписи й значення нових полів у журналі моків.
  * - `useExtensionFields(fields)` — значення текстом мовою інтерфейсу (числа й дати — `useFormat`),
  *   колонка списку (`ExtensionColumn` → `DataTableColumn`), ключове поле шапки картки, фільтр
  *   панелі (`ExtensionFilter` → `FilterDefinition`) і вкладка списку (`ExtensionTab` → `ListTab`).
@@ -139,6 +140,40 @@ export function withMockValues<T extends object>(
       values[id] = list[index % list.length]
     return { ...record, ...values }
   })
+}
+
+/** Опції журналу змін моків для `createResourceHandlers` (ключ — ключ поля розширення). */
+export interface ExtensionAuditOptions {
+  fieldLabels: Record<string, LocalizedText>
+  auditValue: Record<string, (value: unknown) => string>
+}
+
+/**
+ * Журнал змін у моках (`createResourceHandlers` з `lib/mocks`): підписи полів розширення в «було →
+ * стало» і значення зі списку — підписом мовою даних (`language`), а не ключем. Так/ні журнал
+ * підписує сам.
+ */
+export function extensionAuditOptions(
+  language: string,
+  fields: readonly ExtensionField[] = [],
+): ExtensionAuditOptions {
+  const fieldLabels: Record<string, LocalizedText> = {}
+  const auditValue: Record<string, (value: unknown) => string> = {}
+  for (const field of fields) {
+    fieldLabels[field.id] = field.label
+    if (field.type !== "options") continue
+    const labels = new Map(
+      field.options.map((option) => [
+        option.value,
+        localizedText(option.label, language),
+      ]),
+    )
+    // Значення, якого вже немає в списку, — ключем, а не порожнім місцем.
+    auditValue[field.id] = (value) =>
+      (typeof value === "string" ? labels.get(value) : undefined) ??
+      String(value)
+  }
+  return { fieldLabels, auditValue }
 }
 
 /** Колонка списку з поля розширення: ключ колонки — ключ поля, решта — як у `DataTableColumn`. */

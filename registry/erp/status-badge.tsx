@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react"
 
 import { STATUS_ICONS, type StatusIcon } from "@/registry/lib/icons"
 import type { ModuleStatus, StatusTone } from "@/registry/lib/statuses"
+import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 
 /** Тон статусу → варіант бейджа (soft-тло + *-foreground, SPEC §6.3). */
@@ -46,10 +47,15 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const Icon: LucideIcon =
     (resolved.icon && KNOWN_ICONS[resolved.icon]) ??
     STATUS_ICONS[TONE_ICONS[tone]]
+  // У вузькій колонці таблиці довгий підпис обрізається трикрапкою, а не налазить на сусідню.
   return (
-    <Badge variant={TONE_VARIANTS[tone]} className={className}>
+    <Badge
+      variant={TONE_VARIANTS[tone]}
+      className={cn("max-w-full min-w-0 shrink", className)}
+      title={resolved.label}
+    >
       <Icon aria-hidden />
-      {resolved.label}
+      <span className="truncate">{resolved.label}</span>
     </Badge>
   )
 }

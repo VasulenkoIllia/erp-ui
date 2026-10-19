@@ -142,6 +142,48 @@ test.describe("B1: організації", () => {
     ).toBeVisible()
   })
 
+  test("статус модуля з іншою назвою (`change`); довгий бейдж і назва колонки — у межах комірки", async ({
+    page,
+  }) => {
+    await openWith(page, {}, ORGANIZATIONS)
+    await listTab(page, /^Співпрацю припинено/).click()
+    await expect(page).toHaveURL(/[?&]tab=inactive/)
+    const table = grid(page, "Організації")
+    const statuses = await cellOf(table, rows(page, "Організації"), "Статус")
+    await expect(statuses.first()).toHaveText("Співпрацю припинено")
+    // Довга назва колонки (дані з сервера) теж не налазить на сусідню колонку.
+    await table
+      .getByRole("columnheader", { name: "Код", exact: true })
+      .locator("span")
+      .first()
+      .evaluate((label) => {
+        label.textContent = "Код ЄДРПОУ або РНОКПП клієнта за даними реєстру"
+      })
+    const overflow = await table.evaluate((root) =>
+      [
+        ...root.querySelectorAll('[role="columnheader"], [role="gridcell"]'),
+      ].flatMap((cell) => {
+        const box = cell.getBoundingClientRect()
+        return [...cell.querySelectorAll("span, button")]
+          .filter((inner) => {
+            const own = inner.getBoundingClientRect()
+            return own.width > 0 && own.right > box.right + 1
+          })
+          .map((inner) => inner.textContent)
+      }),
+    )
+    expect(overflow).toEqual([])
+    const badge = statuses.first().locator('[data-slot="badge"] span')
+    // Не влазить — обрізається трикрапкою (від ширини колонки не залежить), повна назва — у
+    // підказці й для скрінрідера.
+    await expect(badge).toHaveCSS("text-overflow", "ellipsis")
+    await expect(badge).toHaveCSS("overflow", "hidden")
+    await expect(
+      statuses.first().locator('[data-slot="badge"]'),
+    ).toHaveAttribute("title", "Співпрацю припинено")
+    await expectNoA11yViolations(page)
+  })
+
   test("картка: вкладки модуля й розширення, рахунки з детального запису, вкладка в адресі", async ({
     page,
   }) => {

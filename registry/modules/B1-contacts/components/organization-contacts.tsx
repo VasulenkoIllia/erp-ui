@@ -12,6 +12,7 @@ import { formatPhone } from "@/lib/phone"
 import { CONTACTS, type Contact, type Organization } from "../contract"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
+import { cellText } from "./cell-text"
 import { RecordLink } from "./navigation"
 
 const CONTACTS_PER_PAGE = 10
@@ -97,14 +98,16 @@ function useOrganizationContactColumns(): DataTableColumn<Contact>[] {
         id: "phone",
         header: t("organization.contacts.columns.phone"),
         cell: (contact) => (
-          <span className="tabular-nums">{formatPhone(contact.phone)}</span>
+          <span className="tabular-nums">
+            {cellText(formatPhone(contact.phone))}
+          </span>
         ),
         minWidth: 10,
       },
       {
         id: "email",
         header: t("organization.contacts.columns.email"),
-        cell: (contact) => contact.email,
+        cell: (contact) => cellText(contact.email),
         minWidth: 12,
         priority: 5,
       },

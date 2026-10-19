@@ -116,13 +116,22 @@ export function SegmentBadges({
 }) {
   if (!ids.length) return <span className="text-muted-foreground">—</span>
   if (!segments) return null
+  // Довга назва в колонці таблиці обрізається трикрапкою, а не налазить на сусідню колонку.
   return (
-    <span className="flex flex-wrap gap-1">
-      {ids.map((id) => (
-        <Badge key={id} variant="outline">
-          {segments.get(id)?.name ?? id}
-        </Badge>
-      ))}
+    <span className="flex min-w-0 flex-wrap gap-1">
+      {ids.map((id) => {
+        const name = segments.get(id)?.name ?? id
+        return (
+          <Badge
+            key={id}
+            variant="outline"
+            className="max-w-full min-w-0 shrink"
+            title={name}
+          >
+            <span className="truncate">{name}</span>
+          </Badge>
+        )
+      })}
     </span>
   )
 }

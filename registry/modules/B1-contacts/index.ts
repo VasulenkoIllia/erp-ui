@@ -30,6 +30,7 @@ import { CONTACTS_RESOURCES, type ContactsResource } from "./resources"
 export type {
   ContactActionId,
   ContactColumnId,
+  ContactDetailRowId,
   ContactFieldId,
   ContactFilterId,
   ContactFormFieldId,
@@ -41,6 +42,7 @@ export type {
   ContactTabId,
   OrganizationActionId,
   OrganizationColumnId,
+  OrganizationDetailRowId,
   OrganizationFieldId,
   OrganizationFilterId,
   OrganizationFormFieldId,
@@ -50,6 +52,9 @@ export type {
 } from "./extension"
 export type { ContactsPaths } from "./module-context"
 export type { ContactsResource } from "./resources"
+// Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
+export type { Contact, Organization } from "./contract"
+export type { ExtensionField } from "@/lib/extension-fields"
 
 export const CONTACTS_MODULE_ID = "B1"
 

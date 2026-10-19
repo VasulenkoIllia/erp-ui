@@ -1,8 +1,8 @@
 /**
  * Статуси запису модуля з точкою розширення (ADR-0020, ADR-0025): модуль має свої статуси, проект у
- * файлі розширення додає нові, перейменовує статус модуля (ключ модуля в `add`) чи ховає його з
- * вибору. Схований статус лишається дійсним у схемі й підписаним на бейджі: старі записи з ним не
- * ламають відповідь сервера.
+ * файлі розширення додає нові, змінює підпис, тон чи іконку статусу модуля без заміни (`change`) чи
+ * ховає його з вибору. Схований статус лишається дійсним у схемі й підписаним на бейджі (зі змінами
+ * `change`): старі записи з ним не ламають відповідь сервера.
  *
  * - `statusIds` і `statusSchema` — ключі статусів для zod-схеми запису (модуль і розширення).
  * - `useResolvedStatuses` — статуси мовою інтерфейсу: `options` — для вкладок і вибору (без
@@ -43,6 +43,25 @@ export interface ExtensionStatus {
   readonly mockEvery?: number
 }
 
+/**
+ * Що розширення змінює в статусі модуля без заміни (`change`): підпис, тон, іконку. Решта — від
+ * модуля, тож зміна тону чи іконки в модулі доходить до проекту з оновленням.
+ */
+export type ExtensionStatusChange = Pick<
+  ExtensionStatus,
+  "label" | "tone" | "icon"
+>
+
+/** Зміни статусів у файлі розширення: `add`, `hide`, `move` і `change` за ключем статусу модуля. */
+export type ExtensionStatusChanges<K extends string = string> = KeyedChanges<
+  ExtensionStatus,
+  K,
+  ExtensionStatusChange
+>
+
+/** `change` мовою інтерфейсу. */
+type ResolvedStatusChange = Pick<ModuleStatus, "label" | "tone" | "icon">
+
 export interface ResolvedStatuses {
   /** Для вкладок і вибору — у порядку злитого списку, без схованих. */
   readonly options: readonly ModuleStatus[]
@@ -53,7 +72,7 @@ export interface ResolvedStatuses {
 /** Ключі статусів модуля й нових статусів розширення (схований — теж дійсний). */
 export function statusIds<K extends string>(
   module: readonly K[],
-  changes?: KeyedChanges<ExtensionStatus, K>,
+  changes?: ExtensionStatusChanges<K>,
 ): [string, ...string[]] {
   const ids = new Set<string>(module)
   for (const status of changes?.add ?? []) ids.add(status.id)
@@ -66,7 +85,7 @@ export function statusIds<K extends string>(
 /** Схема статусу запису: ключ модуля чи розширення. */
 export function statusSchema<K extends string>(
   module: readonly K[],
-  changes?: KeyedChanges<ExtensionStatus, K>,
+  changes?: ExtensionStatusChanges<K>,
 ) {
   return z.enum(statusIds(module, changes))
 }
@@ -77,7 +96,7 @@ export function statusSchema<K extends string>(
  */
 export function useResolvedStatuses<K extends string>(
   statuses: readonly (ModuleStatus & { readonly id: K })[],
-  changes?: KeyedChanges<ExtensionStatus, K>,
+  changes?: ExtensionStatusChanges<K>,
 ): ResolvedStatuses {
   const { language } = useLanguage()
   return useMemo(() => {
@@ -87,14 +106,24 @@ export function useResolvedStatuses<K extends string>(
       tone: status.tone,
       icon: status.icon,
     })
-    const options = applyKeyedChanges<
-      ModuleStatus & { readonly id: K },
-      ModuleStatus
-    >(statuses, mapKeyedChanges(changes, resolve))
+    const resolved = mapKeyedChanges(changes, resolve, (change) => ({
+      ...change,
+      label: localizedText(change.label, language),
+    }))
+    const apply = (merged: typeof resolved) =>
+      applyKeyedChanges<
+        ModuleStatus & { readonly id: K },
+        ModuleStatus,
+        ResolvedStatusChange
+      >(statuses, merged)
+    const options = apply(resolved)
+    // Бейдж знає й схований статус — з тими самими змінами підпису, тону й іконки.
+    const known = resolved?.hide?.length
+      ? apply({ ...resolved, hide: [] })
+      : options
     const byId = new Map<string, ModuleStatus>(
-      statuses.map((status) => [status.id, status]),
+      known.map((status) => [status.id, status]),
     )
-    for (const status of options) byId.set(status.id, status)
     return { options, byId }
   }, [statuses, changes, language])
 }

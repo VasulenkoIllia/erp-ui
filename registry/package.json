@@ -1,6 +1,6 @@
 {
   "name": "@erp-ui/registry",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Вихідний код реєстру erp-ui. Залежності тут — ті, що отримає проект під час shadcn add.",

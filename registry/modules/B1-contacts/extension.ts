@@ -18,7 +18,7 @@ import type {
 import type { ExtensionFormChanges } from "@/lib/extension-form"
 import type { Keyed, KeyedChanges } from "@/lib/extensions"
 import type { MessagesOverride } from "@/lib/i18n-namespaces"
-import type { ExtensionStatus } from "@/lib/statuses"
+import type { ExtensionStatusChanges } from "@/lib/statuses"
 import type {
   ExtensionAction,
   ExtensionSection,
@@ -37,6 +37,9 @@ export type OrganizationFilterId = "type" | "segments"
 export type OrganizationTabId = "all" | OrganizationStatus | (string & {})
 /** Ключові поля шапки картки організації. */
 export type OrganizationFieldId = "code" | "type" | "city" | "phone"
+/** Рядки вкладки «Реквізити» картки організації. */
+export type OrganizationDetailRowId =
+  "code" | "iban" | "phone" | "email" | "city" | "segments"
 /** Вкладки картки організації. */
 export type OrganizationSectionId =
   "requisites" | "addresses" | "bankAccounts" | "contacts"
@@ -50,6 +53,8 @@ export type ContactColumnId =
 export type ContactFilterId = "segments"
 export type ContactTabId = "all" | "representatives" | "private"
 export type ContactFieldId = "organization" | "position" | "phone" | "email"
+/** Рядки секції «Подробиці» картки контакту. */
+export type ContactDetailRowId = "phone" | "email" | "position" | "segments"
 /** Секції картки контакту. */
 export type ContactSectionId = "details" | "organization"
 export type ContactActionId = "edit" | "pin"
@@ -63,6 +68,7 @@ interface EntityIds {
   filter: string
   tab: string
   field: string
+  detailRow: string
   section: string
   action: string
   formField: string
@@ -90,6 +96,13 @@ export interface EntityExtension<T, K extends EntityIds> {
   readonly tabs?: KeyedChanges<ExtensionTab, K["tab"]>
   /** Ключові поля шапки картки; нове — з поля розширення. */
   readonly recordFields?: KeyedChanges<Keyed, K["field"]>
+  /**
+   * Рядки «Подробиць» картки (в організації — вкладки «Реквізити»): сховати рядок модуля, напр.
+   * посаду, якої бекенд не має. Без розширення — усі рядки.
+   */
+  readonly detailRows?: Pick<KeyedChanges<Keyed, K["detailRow"]>, "hide">
+  /** `false` — картка без журналу «Історія»: бекенд не веде журналу змін. За замовчуванням — є. */
+  readonly history?: boolean
   /** Секції (у картці організації — вкладки) — компоненти проекту в слотах. */
   readonly sections?: KeyedChanges<ExtensionSection<T>, K["section"]>
   /** Дії в шапці картки — компоненти проекту з правом `access`. */
@@ -107,6 +120,7 @@ export interface OrganizationIds {
   filter: OrganizationFilterId
   tab: OrganizationTabId
   field: OrganizationFieldId
+  detailRow: OrganizationDetailRowId
   section: OrganizationSectionId
   action: OrganizationActionId
   formField: OrganizationFormFieldId
@@ -116,8 +130,11 @@ export interface OrganizationsExtension extends EntityExtension<
   Organization,
   OrganizationIds
 > {
-  /** Статуси організації: додати, перейменувати (ключ модуля в `add`), сховати з вибору. */
-  readonly statuses?: KeyedChanges<ExtensionStatus, OrganizationStatus>
+  /**
+   * Статуси організації: додати, сховати з вибору; `change` — підпис, тон чи іконка статусу модуля
+   * без заміни (ключ модуля в `add` — заміна статусу цілком).
+   */
+  readonly statuses?: ExtensionStatusChanges<OrganizationStatus>
 }
 
 /** Ключі модуля для контактів. */
@@ -126,6 +143,7 @@ export interface ContactIds {
   filter: ContactFilterId
   tab: ContactTabId
   field: ContactFieldId
+  detailRow: ContactDetailRowId
   section: ContactSectionId
   action: ContactActionId
   formField: ContactFormFieldId

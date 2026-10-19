@@ -89,25 +89,30 @@ export function HeaderCell<T>({
       )}
       style={stick.style}
     >
+      {/* Довга назва не налазить на сусідню колонку: обрізається трикрапкою, уся — у підказці. */}
       {column.renderHeader ? (
         column.renderHeader()
       ) : column.sortField && onSort ? (
         <Button
           variant="ghost"
           size="sm"
-          className="-mx-2"
+          className="-mx-2 min-w-0 shrink"
+          title={column.header}
           onClick={(event) => {
             onSort(event)
           }}
         >
-          {column.header}
+          <span className="truncate">{column.header}</span>
           <Icon
             aria-hidden
             className={sorted ? undefined : "text-muted-foreground"}
           />
         </Button>
       ) : (
-        <span className={column.headerHidden ? "sr-only" : undefined}>
+        <span
+          className={column.headerHidden ? "sr-only" : "truncate"}
+          title={column.headerHidden ? undefined : column.header}
+        >
           {column.header}
         </span>
       )}

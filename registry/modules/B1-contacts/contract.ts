@@ -36,8 +36,7 @@ import {
   type ExtensionField,
   type ExtensionValues,
 } from "@/lib/extension-fields"
-import type { KeyedChanges } from "@/lib/extensions"
-import { statusSchema, type ExtensionStatus } from "@/lib/statuses"
+import { statusSchema, type ExtensionStatusChanges } from "@/lib/statuses"
 
 export {
   CONTACTS,
@@ -133,7 +132,7 @@ const contactShape = recordBaseSchema.extend({
 /** Те, що схема запису бере з розширення проекту: нові поля й статуси. */
 export interface OrganizationSchemaExtension {
   readonly fields?: readonly ExtensionField[]
-  readonly statuses?: KeyedChanges<ExtensionStatus, OrganizationStatus>
+  readonly statuses?: ExtensionStatusChanges<OrganizationStatus>
 }
 
 export interface ContactSchemaExtension {

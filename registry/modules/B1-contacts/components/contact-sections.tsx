@@ -10,6 +10,7 @@ import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useCompanyId } from "@/hooks/use-company"
 import { isApiError } from "@/lib/api"
 import { companyScope } from "@/lib/company-scope"
+import { applyKeyedChanges } from "@/lib/extensions"
 import { formatPhone } from "@/lib/phone"
 
 import {
@@ -18,10 +19,11 @@ import {
   type Contact,
   type Organization,
 } from "../contract"
+import type { ContactDetailRowId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { RecordLink } from "./navigation"
-import { RequisiteList } from "./requisite-list"
+import { RequisiteList, type Requisite } from "./requisite-list"
 import { RecordSegments } from "./segments"
 
 /** Порядок варіантів вибору організації контакту. */
@@ -44,38 +46,44 @@ export function useOrganizationDescription() {
   )
 }
 
-/** Подробиці контакту: телефон і email з «Копіювати» (UI43), посада, сегменти. */
+/**
+ * Подробиці контакту: телефон і email з «Копіювати» (UI43), посада, сегменти; розширення ховає
+ * рядки (`detailRows`), напр. посаду, якої бекенд не має.
+ */
 export function ContactDetails({ contact }: { contact: Contact }) {
   const t = useContactsT()
+  const { extension } = useContactsModule()
+  const rows: (Requisite & { id: ContactDetailRowId })[] = [
+    {
+      id: "phone",
+      label: t("contact.fields.phone"),
+      value: contact.phone,
+      kind: "phone",
+      display: formatPhone(contact.phone),
+    },
+    {
+      id: "email",
+      label: t("contact.fields.email"),
+      value: contact.email,
+      kind: "email",
+    },
+    {
+      id: "position",
+      label: t("contact.fields.position"),
+      value: contact.position,
+      kind: "text",
+    },
+  ]
+  const hidden = extension.contacts?.detailRows?.hide ?? []
   return (
     <div className="space-y-4">
-      <RequisiteList
-        items={[
-          {
-            id: "phone",
-            label: t("contact.fields.phone"),
-            value: contact.phone,
-            kind: "phone",
-            display: formatPhone(contact.phone),
-          },
-          {
-            id: "email",
-            label: t("contact.fields.email"),
-            value: contact.email,
-            kind: "email",
-          },
-          {
-            id: "position",
-            label: t("contact.fields.position"),
-            value: contact.position,
-            kind: "text",
-          },
-        ]}
-      />
-      <RecordSegments
-        label={t("contact.fields.segments")}
-        ids={contact.segments}
-      />
+      <RequisiteList items={applyKeyedChanges(rows, { hide: hidden })} />
+      {hidden.includes("segments") ? null : (
+        <RecordSegments
+          label={t("contact.fields.segments")}
+          ids={contact.segments}
+        />
+      )}
     </div>
   )
 }

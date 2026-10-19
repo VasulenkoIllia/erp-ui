@@ -73,7 +73,12 @@ export function UserMenu({
             variant="ghost"
             size="icon"
             className="rounded-full"
-            aria-label={t("userMenu.label", { name: user.name })}
+            // Видимі ініціали — у назві кнопки: голосове керування знаходить її за тим, що видно
+            // (WCAG 2.5.3, axe `label-content-name-mismatch`).
+            aria-label={t("userMenu.label", {
+              name: user.name,
+              initials: initials(user.name),
+            })}
           />
         }
       >

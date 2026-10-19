@@ -1,9 +1,12 @@
+import { applyKeyedChanges } from "@/lib/extensions"
 import { formatPhone } from "@/lib/phone"
 
 import type { Organization, OrganizationDetail } from "../contract"
+import type { OrganizationDetailRowId } from "../extension"
+import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { codeLabelKey } from "./organization-columns"
-import { RequisiteList } from "./requisite-list"
+import { RequisiteList, type Requisite } from "./requisite-list"
 import { RecordSegments } from "./segments"
 
 /**
@@ -28,58 +31,62 @@ export function OrganizationRequisites({
   organization: Organization
 }) {
   const t = useContactsT()
+  const { extension } = useContactsModule()
+  // Розширення ховає рядки (`detailRows`), яких бекенд не має.
+  const hidden = extension.organizations?.detailRows?.hide ?? []
   return (
     <div className="space-y-4">
-      <OrganizationRequisiteList organization={organization} />
-      <RecordSegments
-        label={t("organization.fields.segments")}
-        ids={organization.segments}
-      />
+      <OrganizationRequisiteList organization={organization} hidden={hidden} />
+      {hidden.includes("segments") ? null : (
+        <RecordSegments
+          label={t("organization.fields.segments")}
+          ids={organization.segments}
+        />
+      )}
     </div>
   )
 }
 
 function OrganizationRequisiteList({
   organization,
+  hidden,
 }: {
   organization: Organization
+  hidden: readonly OrganizationDetailRowId[]
 }) {
   const t = useContactsT()
-  return (
-    <RequisiteList
-      items={[
-        {
-          id: "code",
-          label: t(codeLabelKey(organization.type)),
-          value: organization.code,
-          kind: "code",
-        },
-        {
-          id: "iban",
-          label: t("organization.fields.iban"),
-          value: organization.iban,
-          kind: "iban",
-        },
-        {
-          id: "phone",
-          label: t("organization.fields.phone"),
-          value: organization.phone,
-          kind: "phone",
-          display: formatPhone(organization.phone),
-        },
-        {
-          id: "email",
-          label: t("organization.fields.email"),
-          value: organization.email,
-          kind: "email",
-        },
-        {
-          id: "city",
-          label: t("organization.fields.city"),
-          value: organization.city,
-          kind: "text",
-        },
-      ]}
-    />
-  )
+  const rows: (Requisite & { id: OrganizationDetailRowId })[] = [
+    {
+      id: "code",
+      label: t(codeLabelKey(organization.type)),
+      value: organization.code,
+      kind: "code",
+    },
+    {
+      id: "iban",
+      label: t("organization.fields.iban"),
+      value: organization.iban,
+      kind: "iban",
+    },
+    {
+      id: "phone",
+      label: t("organization.fields.phone"),
+      value: organization.phone,
+      kind: "phone",
+      display: formatPhone(organization.phone),
+    },
+    {
+      id: "email",
+      label: t("organization.fields.email"),
+      value: organization.email,
+      kind: "email",
+    },
+    {
+      id: "city",
+      label: t("organization.fields.city"),
+      value: organization.city,
+      kind: "text",
+    },
+  ]
+  return <RequisiteList items={applyKeyedChanges(rows, { hide: hidden })} />
 }

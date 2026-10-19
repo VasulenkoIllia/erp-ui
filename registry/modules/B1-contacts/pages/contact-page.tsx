@@ -107,17 +107,22 @@ function ContactCard({ id }: { id: string }) {
         onRetry={card.retry}
         header={header}
         sections={applyKeyedChanges(sections, slots.sections)}
-        aside={{
-          label: t("contact.history"),
-          content: (
-            <AuditLog
-              filter={{ targetType: CONTACTS, targetId: id }}
-              filters={false}
-              exportable={false}
-              perPage={10}
-            />
-          ),
-        }}
+        // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
+        aside={
+          extension.contacts?.history === false
+            ? undefined
+            : {
+                label: t("contact.history"),
+                content: (
+                  <AuditLog
+                    filter={{ targetType: CONTACTS, targetId: id }}
+                    filters={false}
+                    exportable={false}
+                    perPage={10}
+                  />
+                ),
+              }
+        }
       />
       {isEditing && contact ? (
         <ContactFormDialog

@@ -12,10 +12,9 @@
  */
 import { z } from "zod"
 
-import { withMockValues } from "@/lib/extension-fields"
-import type { KeyedChanges } from "@/lib/extensions"
+import { extensionAuditOptions, withMockValues } from "@/lib/extension-fields"
 import { createResourceHandlers } from "@/lib/mocks"
-import type { ExtensionStatus } from "@/lib/statuses"
+import type { ExtensionStatusChanges } from "@/lib/statuses"
 import { formatIban, normalizeIban, validateUaId } from "@/lib/ua-ids"
 
 import {
@@ -151,7 +150,7 @@ const labelOf = (name: string) =>
 /** Нові статуси розширення з `mockEvery`: кожна N-та організація фікстур отримує цей статус. */
 function withMockStatuses<T extends Organization>(
   records: T[],
-  statuses?: KeyedChanges<ExtensionStatus, string>,
+  statuses?: ExtensionStatusChanges,
 ): T[] {
   const samples = (statuses?.add ?? []).filter(
     (status) => status.mockEvery !== undefined && status.mockEvery > 0,
@@ -173,6 +172,16 @@ export function createContactsMocks({
   // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, закріплення).
   const fixtures = (): ContactsFixtures =>
     createContactsFixtures(fixtureOptions)
+  const locale = fixtureOptions.locale ?? "uk"
+  // Поля розширення в журналі — підписом і значенням зі списку, а не ключем.
+  const organizationAudit = extensionAuditOptions(
+    locale,
+    extension?.organizations?.fields,
+  )
+  const contactAudit = extensionAuditOptions(
+    locale,
+    extension?.contacts?.fields,
+  )
   // Адреси й рахунки — у записі організації: PATCH змінює їх разом із версією (ADR-0028).
   const organizationsWithDetail = () => {
     const { organizations: records, details } = fixtures()
@@ -198,6 +207,7 @@ export function createContactsMocks({
     searchFields: ["name", "code"],
     label: labelOf(ORGANIZATIONS),
     fieldLabels: {
+      ...organizationAudit.fieldLabels,
       name: { uk: "Назва", en: "Name" },
       code: { uk: "Код", en: "Code" },
       status: { uk: "Статус", en: "Status" },
@@ -209,8 +219,9 @@ export function createContactsMocks({
     },
     detailFields: ["addresses", "bankAccounts"],
     auditValue: {
-      addresses: addressText(fixtureOptions.locale ?? "uk"),
-      bankAccounts: accountText(fixtureOptions.locale ?? "uk"),
+      ...organizationAudit.auditValue,
+      addresses: addressText(locale),
+      bankAccounts: accountText(locale),
     },
     pins: true,
   })
@@ -224,12 +235,14 @@ export function createContactsMocks({
     searchFields: ["name", "phone", "email"],
     label: labelOf(CONTACTS),
     fieldLabels: {
+      ...contactAudit.fieldLabels,
       name: { uk: "Ім'я", en: "Name" },
       position: { uk: "Посада", en: "Position" },
       organizationId: { uk: "Організація", en: "Organization" },
       phone: { uk: "Телефон", en: "Phone" },
       email: { uk: "Email", en: "Email" },
     },
+    auditValue: contactAudit.auditValue,
     pins: true,
   })
 

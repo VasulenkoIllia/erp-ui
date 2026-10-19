@@ -68,7 +68,8 @@ export function PinToggle({
   const t = useErpUiT()
   const pin = usePin(resource, record, name)
   const ref = React.useRef<HTMLButtonElement>(null)
-  const key = `${resource}\u0000${String(record.id)}`
+  // Не `\u0000`: CLI shadcn при встановленні пише його справжнім NUL, і git бачить файл двійковим.
+  const key = JSON.stringify([resource, String(record.id)])
   const saved = isPinned(record)
 
   // `saved` — і для кнопки, яку React лише переставив: перестановка теж забирає фокус.

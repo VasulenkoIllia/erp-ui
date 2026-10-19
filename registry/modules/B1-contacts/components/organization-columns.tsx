@@ -106,7 +106,7 @@ export function useOrganizationColumns(
         header: t("organizations.columns.phone"),
         cell: (organization) => (
           <span className="tabular-nums">
-            {formatPhone(organization.phone)}
+            {cellText(formatPhone(organization.phone))}
           </span>
         ),
         minWidth: 10,

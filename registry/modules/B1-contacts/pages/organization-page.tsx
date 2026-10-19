@@ -150,17 +150,22 @@ function OrganizationCard({ id }: { id: string }) {
         header={header}
         sections={applyKeyedChanges(sections, slots.sections)}
         tabs={{ ...tabs, label: t("organization.tabsLabel") }}
-        aside={{
-          label: t("organization.history"),
-          content: (
-            <AuditLog
-              filter={{ targetType: ORGANIZATIONS, targetId: id }}
-              filters={false}
-              exportable={false}
-              perPage={10}
-            />
-          ),
-        }}
+        // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
+        aside={
+          extension.organizations?.history === false
+            ? undefined
+            : {
+                label: t("organization.history"),
+                content: (
+                  <AuditLog
+                    filter={{ targetType: ORGANIZATIONS, targetId: id }}
+                    filters={false}
+                    exportable={false}
+                    perPage={10}
+                  />
+                ),
+              }
+        }
       />
       {isEditing && organization ? (
         <OrganizationFormDialog
