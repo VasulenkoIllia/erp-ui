@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { FingerprintIcon } from "lucide-react"
 import { LinkBase } from "ra-core"

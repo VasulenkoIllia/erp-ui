@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import type { FieldValues, Path } from "react-hook-form"
 

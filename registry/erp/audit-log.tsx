@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import {

@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"

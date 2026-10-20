@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { EllipsisVerticalIcon, KeyRoundIcon } from "lucide-react"

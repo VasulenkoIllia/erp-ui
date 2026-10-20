@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"

@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { DateRangeInput } from "@/registry/erp/date-range-input"

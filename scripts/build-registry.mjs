@@ -172,6 +172,7 @@ function build() {
     else byBase.set(base, f)
   }
   problems.push(...sharedImportProblems(files))
+  problems.push(...useClientProblems(files.map((f) => f.file)))
   // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` і в `import("@/registry/lib/x")`
   // на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
@@ -361,6 +362,28 @@ function build() {
   return { registry, catalog: catalog(items), problems }
 }
 
+// Директива на початку файлу, зокрема після коментарів (блочний коментар без лінивого `*?`:
+// лінійно навіть на сотнях коментарів поспіль).
+const USE_CLIENT =
+  /^(?:\s|\/\/[^\n]*(?:\n|$)|\/\*(?:[^*]|\*(?!\/))*\*\/)*["']use client["'](?=\s*(?:;|\r?\n|\/[/*]|$))/
+
+/**
+ * Без директиви "use client": у Vite вона нічого не робить, а CLI shadcn 4.22.0 при `"rsc": false`
+ * прибирає її лише з частини файлів, тож оновлення проекту дає зміни, яких у кіті немає.
+ */
+function useClientProblems(files) {
+  return files
+    .filter(
+      (file) =>
+        /\.(ts|tsx)$/.test(file) &&
+        USE_CLIENT.test(readFileSync(path.join(root, file), "utf8")),
+    )
+    .map(
+      (file) =>
+        `${file}: директива "use client" — приберіть (у Vite вона нічого не робить, а CLI shadcn прибирає її лише з частини файлів)`,
+    )
+}
+
 /** Спільний шар не знає модулів і проекту: файл реєстру з таким імпортом зламав би кожен модуль. */
 function sharedImportProblems(files) {
   const problems = []
@@ -398,6 +421,7 @@ function moduleItems({
     const base = `${MODULES_DIR}/${dir}`
     const files = moduleFiles(dir)
     problems.push(...moduleEntryProblems(base, files))
+    problems.push(...useClientProblems(files.map((rel) => `${base}/${rel}`)))
     const { shared, packages } = moduleImports(base, files, problems)
     const included = [...new Set(shared)].sort().map(closure)
     const names = [...new Set(included.flatMap((c) => c.names))].sort()

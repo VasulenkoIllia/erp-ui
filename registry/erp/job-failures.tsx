@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { useFormat } from "@/registry/lib/format"

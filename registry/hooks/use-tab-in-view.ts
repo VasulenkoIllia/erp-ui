@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { useElementSize } from "@/registry/hooks/use-element-size"

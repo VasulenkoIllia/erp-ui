@@ -1,5 +1,3 @@
-"use client"
-
 import { KeyRoundIcon } from "lucide-react"
 
 import type { SsoProvider } from "@/registry/lib/auth"

@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { useAppearance } from "@/registry/hooks/use-appearance"

@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { useHasPermission, useMe } from "@/registry/hooks/use-me"

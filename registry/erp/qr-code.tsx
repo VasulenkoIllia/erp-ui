@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { correction, generate } from "lean-qr"
 import { toSvgPath } from "lean-qr/extras/svg"

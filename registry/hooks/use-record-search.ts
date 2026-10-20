@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { keepPreviousData } from "@tanstack/react-query"
 import { useGetList, useGetOne, type RaRecord, type SortPayload } from "ra-core"

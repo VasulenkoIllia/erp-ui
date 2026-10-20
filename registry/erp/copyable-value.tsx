@@ -1,5 +1,3 @@
-"use client"
-
 import { CopyButton } from "@/registry/erp/copy-button"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"

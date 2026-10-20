@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { useBlocker, useCanBlock } from "ra-core"
 import {

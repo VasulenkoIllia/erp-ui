@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { ImageUpIcon, Trash2Icon } from "lucide-react"
 

@@ -69,6 +69,26 @@ test("рух: лише токени, без transition-all", () => {
   )
 })
 
+test('без директиви "use client" на початку файлу', () => {
+  assert.equal(
+    adapt('"use client"\n\nimport * as React from "react"\n'),
+    'import * as React from "react"\n',
+  )
+  assert.equal(
+    adapt("'use client';\r\nimport * as React from \"react\"\r\n"),
+    'import * as React from "react"\r\n',
+  )
+  assert.equal(
+    adapt('"use client"\n"use client"\n\n\nimport x from "x"\n'),
+    'import x from "x"\n',
+  )
+  const quoted = 'const note = "use client"\n'
+  assert.equal(adapt(quoted), quoted)
+  // Лише на початку: після коментаря директиву лишає (її ловить pnpm check:registry).
+  const afterComment = '// erp-ui: основа — shadcn\n"use client"\n'
+  assert.equal(adapt(afterComment), afterComment)
+})
+
 test("ідемпотентність", () => {
   const once = adapt(
     "focus-visible:ring-3 focus-visible:ring-ring/50 text-destructive bg-black/10 transition-all duration-100 ease-in-out data-open:animate-in data-closed:animate-out",

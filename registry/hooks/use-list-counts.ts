@@ -1,5 +1,3 @@
-"use client"
-
 import { keepPreviousData, useQueries } from "@tanstack/react-query"
 import { useDataProvider } from "ra-core"
 

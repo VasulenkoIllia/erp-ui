@@ -1,5 +1,3 @@
-"use client"
-
 import { useTabInView } from "@/registry/hooks/use-tab-in-view"
 import type { ListTab } from "@/registry/lib/list-state"
 import { useFormat } from "@/registry/lib/format"

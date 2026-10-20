@@ -1,5 +1,3 @@
-"use client"
-
 import { ChevronsUpDownIcon } from "lucide-react"
 
 import { useErpUiT } from "@/registry/lib/i18n"

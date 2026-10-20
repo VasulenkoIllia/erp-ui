@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 
 import { PageState } from "@/registry/erp/page-state"

@@ -1,5 +1,3 @@
-"use client"
-
 import { useQueryClient } from "@tanstack/react-query"
 import { useDataProvider, useGetList, type GetListResult } from "ra-core"
 

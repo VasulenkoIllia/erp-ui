@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import type { Cell, Header, Row } from "@tanstack/react-table"
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react"

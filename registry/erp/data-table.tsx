@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { RefreshCwIcon } from "lucide-react"
 import type { SortPayload } from "ra-core"

@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useRef, type RefObject } from "react"
 
 /** Перший екран сесії вже показано: на першому відкритті застосунку фокус не чіпаємо. */
