@@ -76,9 +76,16 @@ setupWorker(...platformHandlers, ...createSavedViewHandlers(), ...createListSett
 
 ## Оновлення
 
+З реєстру, зібраного з тегу локально (`docs/using-erp-ui.md` кіта, розділ 8): напряму з приватного GitHub CLI робить на модуль тисячі запитів, кожен з тайм-аутом і без повтору.
+
 ```sh
-pnpm exec shadcn add VasulenkoIllia/erp-ui/modules/B1-contacts#vX.Y.Z --diff   # що зміниться
-pnpm exec shadcn add VasulenkoIllia/erp-ui/modules/B1-contacts#vX.Y.Z          # застосувати
+KIT="$(mktemp -d)"
+gh api repos/VasulenkoIllia/erp-ui/tarball/vX.Y.Z > "$KIT/kit.tar.gz" &&    # тег одним запитом
+  tar -xzf "$KIT/kit.tar.gz" -C "$KIT" --strip-components=1 &&
+  pnpm exec shadcn build "$KIT/registry.json" -c "$KIT" -o "$KIT/r"
+pnpm exec shadcn add "$KIT/r/modules/B1-contacts.json" --dry-run              # які файли зміняться
+pnpm exec shadcn add "$KIT/r/modules/B1-contacts.json" --overwrite --yes      # застосувати
+rm -rf "$KIT"
 ```
 
-`--diff` показує лише зміни кіта: файли модуля в проекті не правились. CLI shadcn — та сама закріплена версія для встановлення, `--diff` і `add` (`shadcn` без `^` у `package.json` проекту): інша версія CLI інакше перетворює файли, і `--diff` показує зайве. Нове в модулі — сумісні доповнення типу розширення (мінорна версія): файл розширення проекту не змінюється, а нове проект бере, коли знадобиться. Несумісна зміна типу розширення — мажорна версія кіта, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`.
+Зміни — лише кіта: файли модуля в проекті не правились. Разом з модулем беріть ті самі інші елементи, що й минулого разу (напр. `erp/user-menu`): частина файлів може змінитися лише директивою `"use client"`, і як саме — залежить від набору елементів (вада CLI 4.22.0, у Vite директива нічого не робить). CLI shadcn — та сама закріплена версія для встановлення й оновлення (`shadcn` без `^` у `package.json` проекту). Нове в модулі — сумісні доповнення типу розширення (мінорна версія): файл розширення проекту не змінюється, а нове проект бере, коли знадобиться. Несумісна зміна типу розширення — мажорна версія кіта, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`.

@@ -9,7 +9,7 @@ description: Build or change any UI in an ERP/CRM project that uses the private 
 
 ## Перед роботою
 1. Визнач, до якого модуля (ID A1…T1, LC01…LC12) і якого шаблону сторінки (List Report, Object Page, Worklist, Overview, Wizard, Split/FCL, Board, Runner, Kiosk) належить задача.
-2. Знайди в реєстрі потрібні компоненти: каталог `docs/erp-ui/CATALOG.md` або `npx shadcn@latest search VasulenkoIllia/erp-ui -q <що шукаєш>`. Перевір, що вже встановлено в `src/components/ui/`. Ставити — `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>`; оновлювати — спершу з `--diff`, тією самою версією CLI, що й ставили (закріплена в `package.json`, `pnpm exec shadcn`).
+2. Знайди в реєстрі потрібні компоненти: каталог `docs/erp-ui/CATALOG.md` або `npx shadcn@latest search VasulenkoIllia/erp-ui -q <що шукаєш>`. Перевір, що вже встановлено в `src/components/ui/`. Ставити — `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>`; оновлювати — тією самою версією CLI, що й ставили (закріплена в `package.json`, `pnpm exec shadcn`): спершу `--dry-run` (список змін; `--diff <файл>` — різниця файлу), далі `--overwrite`; модуль — з реєстру, зібраного з тегу локально (розділ «Оновлення» в `src/modules/<ID>-<назва>/README.md`), а не напряму з GitHub.
 3. Якщо компонента немає: **не пиши локальний аналог**. Опиши, чого бракує, і запропонуй додати його в реєстр erp-ui (UI-ID з SPEC §13 або новий). Локальна реалізація — лише якщо користувач явно погодився, з позначкою `// erp-ui: candidate for registry`.
 
 ## Правила під час роботи

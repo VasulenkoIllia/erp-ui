@@ -3,7 +3,7 @@
 Цей проект використовує приватний реєстр **erp-ui** (shadcn-реєстр на GitHub). Специфікація: `docs/erp-ui/SPEC.md`. Для будь-якої роботи з інтерфейсом використовуй скіл `erp-ui`.
 
 - Що є в кіті — `docs/erp-ui/CATALOG.md`. Компоненти ставляться командою `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (наприклад, `ui/button`) у `src/components/ui/`, утиліти — у `src/lib/`, хуки — у `src/hooks/`, стилі — у `src/styles/erp-ui/`. Доступ до приватного реєстру — `gh auth login` або `GH_TOKEN` (лише читання).
-- Оновлення: спершу `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент> --diff`, переглянути зміни, потім без `--diff`. Версія — `#vX.Y.Z`. Посібник — https://github.com/VasulenkoIllia/erp-ui/blob/main/docs/using-erp-ui.md.
+- Оновлення: тією самою версією CLI, що й ставили (`pnpm exec shadcn`, версія закріплена в `package.json`), спершу `add … --dry-run` (список змін), потім `add … --overwrite`. Версія — `#vX.Y.Z`. Модуль — з реєстру, зібраного з тегу локально, а не напряму з GitHub (розділ «Оновлення» в `src/modules/<ID>-<назва>/README.md`). Посібник — https://github.com/VasulenkoIllia/erp-ui/blob/main/docs/using-erp-ui.md, розділ 8.
 - Не пиши аналогів компонентів реєстру. Бракує — запропонуй додати в erp-ui.
 - Лише токени тем (`src/styles/erp-ui/themes.css`): палітра `data-palette` (основні — `sapphire`, `graphite`), клас `dark`, `data-density`, `data-sidebar`.
 - Стек: React 19, Vite, TypeScript, Tailwind v4, shadcn/ui на Base UI, ra-core + Shadcn Admin Kit, TanStack Query/Table, react-hook-form + zod, i18next (uk, en).
