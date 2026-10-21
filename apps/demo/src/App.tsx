@@ -231,7 +231,12 @@ export function App() {
     <IconProvider>
       <TooltipProvider>
         {location.route === "auth" ? (
-          <ErrorBoundary className="m-4">
+          // Стан помилки — на місці всієї сторінки входу: h1 у <main>, як у createAuthRoutes.
+          <ErrorBoundary
+            key={location.screen}
+            headingLevel={1}
+            frame={(content) => <main className="p-4 pt-24">{content}</main>}
+          >
             <Suspense fallback={<LoadingFallback className="mt-24" />}>
               <AuthPage screen={location.screen} devPanel={devPanel} />
             </Suspense>
@@ -615,7 +620,8 @@ function Shell({
           </>
         }
       >
-        <ErrorBoundary key={pageKey(location, pathname)}>
+        {/* Стан помилки замінює всю сторінку з її h1 — тож сам h1. */}
+        <ErrorBoundary key={pageKey(location, pathname)} headingLevel={1}>
           <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />

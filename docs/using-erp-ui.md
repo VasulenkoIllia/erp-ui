@@ -19,13 +19,13 @@ pnpm add -D tailwindcss @tailwindcss/vite
 # "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@latest init -b base -p nova
 # package.json: "shadcn": "4.22.0" без ^ — та сама CLI для встановлення й оновлення (розділ 8)
-pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.0.0
+pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.0.1
 pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
-git add -A && git commit -m "erp-ui: base v1.0.0"   # команда кіта пише лише в чисте дерево
-node scripts/erp-ui-kit.mjs update v1.0.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
+git add -A && git commit -m "erp-ui: base v1.0.1"   # команда кіта пише лише в чисте дерево
+node scripts/erp-ui-kit.mjs update v1.0.1 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
 ```
 
-Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.0.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
+Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.0.1 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
 
 Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
@@ -35,7 +35,7 @@ node scripts/erp-ui-kit.mjs update v1.0.0 --items base,data,mocks,auth,erp/app-g
 - мови й форматери: `src/lib/i18n.ts` (+ рядки кіта `i18n-uk.ts`, `i18n-en.ts`) і `src/lib/format.ts`;
 - вподобання вигляду `src/lib/appearance.ts` + `src/hooks/use-appearance.ts` і словник іконок `src/lib/icons.tsx`;
 - скіл для Claude Code у `.claude/skills/erp-ui/`, SPEC і каталог у `docs/erp-ui/`;
-- команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029).
+- команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`, `erp-ui-kit-deps.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029).
 
 Після цього додайте в `CLAUDE.md` проекту рядок:
 
@@ -48,7 +48,7 @@ node scripts/erp-ui-kit.mjs update v1.0.0 --items base,data,mocks,auth,erp/app-g
 ## 2. Компоненти
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.0 --add ui/button,ui/dialog
+node scripts/erp-ui-kit.mjs update v1.0.1 --add ui/button,ui/dialog
 npx shadcn@latest list VasulenkoIllia/erp-ui              # усе, що є
 npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 ```
@@ -92,7 +92,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ```
 
 - Мова даних (назви компаній, документи) — окремо від мови інтерфейсу: форматери з `lib/format` приймають локаль явно.
-- Ідентифікатори й телефони: `npx shadcn@latest add VasulenkoIllia/erp-ui/erp/ua-id-input VasulenkoIllia/erp-ui/erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
+- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 - Вибір запису з пошуком на сервері (компанія контакту, відповідальний) — `erp/record-picker` (ADR-0023): значення — `id`, `optionLabel` і `sort` від проекту, «Створити…» — `create.onCreate(query)` відкриває форму проекту, а новий запис проект сам ставить у значення. Реквізити в картці з «Копіювати» — `erp/copyable-value` (`kind`: `code`, `iban`, `phone`, `email`, `url`).
 - Кілька значень із короткого довідника (сегменти, теги, ролі) — `MultiSelect` з `erp/multi-select` (ADR-0027): `options` — `{ value, label, description? }[]` (поки довідник вантажиться — не задавайте; не завантажився — `error` і `onRetry`), значення — масив ключів (`value`, `onValueChange`), `clearable`; на телефоні — шторка з «Готово». Ключ, якого вже немає в довіднику, лишається міткою, і його можна зняти. У `FormField` — `{...control}`, `value={field.value}`, `onValueChange={field.onChange}`, `onBlur={field.onBlur}`. Довідник на сотні записів і пошук на сервері — не сюди: мультивибору з пошуком на сервері ще немає.
@@ -100,7 +100,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ### Форми, дати, суми й підтвердження (ADR-0015)
 
 ```sh
-npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/date-input VasulenkoIllia/erp-ui/erp/number-input VasulenkoIllia/erp-ui/erp/confirm-dialog
+node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
 ```
 
 - Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
@@ -119,7 +119,7 @@ npx shadcn@latest add VasulenkoIllia/erp-ui/erp/form VasulenkoIllia/erp-ui/erp/d
 ## 4. Оболонка застосунку
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/user-menu,erp/company-switcher,erp/notification-inbox
+node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/user-menu,erp/company-switcher,erp/notification-inbox
 ```
 
 Застосунок — брама сесії навколо оболонки, екрани входу поруч (розділ 6):
@@ -202,7 +202,7 @@ useRoutes([
 Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.0 --add data,mocks,lib/mock-views,lib/query-client
+node scripts/erp-ui-kit.mjs update v1.0.1 --add data,mocks,lib/mock-views,lib/query-client
 npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
 
@@ -364,7 +364,7 @@ export const invoicesExtension: InvoicesExtension = {
 ### Модуль у проекті (ADR-0025)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.0 --add modules/B1-contacts
+node scripts/erp-ui-kit.mjs update v1.0.1 --add modules/B1-contacts
 ```
 
 Мінімальний набір для проекту з модулем на моках (тестовий проект `erp-ui-pilot`): `base`, `data`, `mocks`, `auth`, `lib/mock-views`, `lib/query-client`, `erp/app-gate`, `erp/auth-routes`, `erp/app-shell`, `erp/user-menu`, `ui/sonner`, `tools/e2e` і сам модуль — усі з одного тегу. Команда кіта ставить модуль з тегу одним запитом (§8): напряму з приватного GitHub CLI робить на модуль сотні й тисячі запитів API, кожен з тайм-аутом 15 с і без повтору (ліміт — 5 000 на годину для особистого токена).
@@ -448,7 +448,7 @@ export const contactsExtension: ContactsExtension = {
 ## 6. Вхід і акаунт
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
+node scripts/erp-ui-kit.mjs update v1.0.1 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
 ```
 
 Що показати на сторінці входу, вирішує бекенд (`GET /auth/methods`, ADR-0010): пароль, код на email чи в SMS, ключ доступу, Google, Apple, будь-який OIDC, реєстрація, відновлення. Маршрути — поза брамою сесії (розділ 4), усі одним викликом `createAuthRoutes` з `erp/auth-routes` (ADR-0029):
@@ -463,8 +463,13 @@ const auth = createAuthRoutes({ afterLogin: "/", afterSignUp: "/onboarding", tit
 // /login/link     → EmailLinkScreen (token з адреси)
 // /signup         → SignUpScreen
 // /auth/callback  → SsoCallbackScreen
-auth.preload(location.pathname)   // на старті: чанк екрана входу для поточної адреси
+
+// Екран входу — заздалегідь, коли браузер вільний (whenIdle з @/lib/lazy): після виходу чи кінця
+// сесії він з'явиться без спінера, а першому екрану застосунку прогрів не заважає.
+useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
 ```
+
+`auth.preload()` без адреси вантажить екран входу, `auth.preload(pathname)` — екран для адреси (напр. гість відкрив посилання з листа `/login/reset?token=…`: чанк цього екрана ще до першого рендеру).
 
 - Інші адреси — `createAuthRoutes({ paths: { forgot: "/password/forgot" } })` (`AUTH_ROUTE_PATHS` — усі за замовчуванням). Вхід — завжди `/login`: туди ra-core веде гостя й після виходу. Кожен екран — у своїй межі помилок (чанк, що не завантажився, — «Спробувати ще» з h1). Після входу — туди, звідки ra-core перенаправив, або `afterLogin`. Логотип, підвал і своя перевірка «не бот» замість Turnstile — `logo`, `footer`, `renderCaptcha`.
 - Моки за замовчуванням вмикають усі способи входу (`DEFAULT_MOCK_METHODS`). Проект, де змонтовано лише `/login`, передає в `createPlatformHandlers` `methods: { passwordless: [], providers: [], passwordReset: false, signUp: false }`, інакше екран входу веде на сторінки, яких немає.
@@ -527,36 +532,39 @@ node scripts/erp-ui-kit.mjs update vX.Y.Z --add erp/command-palette   # і по�
 node scripts/erp-ui-kit.mjs check                     # файли кіта не правлені (у pnpm lint і CI)
 ```
 
-- Що робить `update`: вимагає чисте git (оновлення видно окремо в `git diff`, повернути — `git restore .`) і незмінені файли кіта → бере тег архівом одним запитом (`gh api repos/VasulenkoIllia/erp-ui/tarball/vX.Y.Z`, ~1,5 МБ; тайм-аут 120 с, повтори через 5 і 30 с після збою мережі, 5xx чи 429; на 401, 404 і вичерпаному ліміті — зупинка з поясненням) → перевіряє, що це кіт і та версія → `shadcn build` закріпленою CLI проекту → звіт `add --dry-run` (зміниться, нові, без змін) → `add --overwrite --yes` → нові відбитки в `kit-files.json`. Напряму з приватного GitHub CLI робить на модуль тисячі запитів `gh api` з тайм-аутом 15 с і без повтору, тож команда так не робить (крок 1.7b).
+- Що робить `update`: вимагає чисте git (оновлення видно окремо в `git diff`, повернути — `git restore .`) і незмінені файли кіта → бере тег архівом одним запитом (`gh api repos/VasulenkoIllia/erp-ui/tarball/vX.Y.Z`, ~1,5 МБ; тайм-аут 120 с, повтори через 5 і 30 с після збою мережі, 5xx чи 429; на 401, 404 і вичерпаному ліміті — зупинка з поясненням) → перевіряє, що це кіт і та версія → `shadcn build` закріпленою CLI проекту → звіт `add --dry-run` (зміниться, нові, без змін; які залежності додасться) → `add --overwrite --yes` (лише файли) → залежності, яких у проекті немає → нові відбитки в `kit-files.json`. Напряму з приватного GitHub CLI робить на модуль тисячі запитів `gh api` з тайм-аутом 15 с і без повтору, тож команда так не робить (крок 1.7b).
 - `kit-files.json` — `kit` (версія), `items` (встановлені елементи: наступне оновлення бере їх звідси), `files` (відбитки файлів кіта), `own` (див. нижче). Комітьте його разом з оновленням.
 - Файли, які проект доповнює сам (`src/index.css`, `docs/erp-ui/CLAUDE.project.md`), команда не перевіряє: якщо проект їх змінював, лишає версію проекту й показує різницю з новою версією кіта — перенесіть потрібне вручну. Файли, які git ігнорує (напр. `.claude/` у `.git/info/exclude`), у відбитки не входять.
 - Файлів, яких у новій версії немає, команда не видаляє, а називає (`? шлях`): видаліть сам, якщо не потрібен.
-- Залежності: CLI shadcn 4.22.0 під час `add` заново ставить залежності оновлюваних елементів без версії, тобто найновіші, і переписує їхні діапазони в `package.json` (крок 1.9: `~4.14.0` → `^4.14.0`). Команда повертає лише закріплення CLI, тож до виправлення (крок fix-kit-deps, v1.0.1) після `update` звірте `git diff package.json pnpm-lock.yaml` і поверніть діапазони проекту.
+- Залежності (з v1.0.1, крок fix-kit-deps): залежності, які вже є в `package.json` проекту, команда не змінює — ні діапазон, ні встановлену версію в lock-файлі. Ставить лише ті, яких у проекті немає (новий елемент чи нова залежність елемента), з діапазоном кіта, менеджером пакетів проекту (за lock-файлом). Якщо встановлена версія не в діапазоні кіта (напр. кіт перейшов на нову мажорну бібліотеки), звіт називає її (`! назва: кіт чекає …`) і лишає версію проекту: оновіть її самі, якщо збірка чи тести впадуть, — що змінилось, каже `CHANGELOG.md` кіта. Причина: CLI shadcn 4.22.0 під час `add` ставить кожну залежність елемента з версією заново (`pnpm add назва@діапазон`), навіть наявну, і переписує діапазон проекту (у кроці 1.9 — `~4.14.0` → `^4.14.0`), а версію поза діапазоном кіта підняв би, зокрема до нової мажорної. Тому команда забирає залежності з елементів перед `add` і ставить їх сама. Менеджер пакетів — з поля `packageManager` у `package.json`, інакше за найближчим lock-файлом (у проекті чи вище — корінь воркспейсу, але не вище кореня git-репозиторію); не вдалося визначити, а ставити треба, — зупинка до запису файлів (npm команда не вгадує). Зупиняється команда й тоді, коли звіт `--dry-run` обіцяє залежності, коли `add` усе ж змінив `package.json` чи lock-файл (інша версія CLI) і коли після встановлення наявний діапазон змінився чи нова залежність не встановилась. Попередження про версії поза діапазоном кіта команда повторює наприкінці.
+- З v1.0.0 на v1.0.1 — командою v1.0.1: три її файли з тегу в тимчасову теку й запуск звідти, як нижче для першого запуску, але `update v1.0.1` без `--items` (список уже в `kit-files.json`). Команда v1.0.0 ще віддає залежності CLI shadcn і переписала б діапазони. Далі — `node scripts/erp-ui-kit.mjs update vX.Y.Z`, як звичайно.
 - Після оновлення — `pnpm typecheck`, `pnpm lint`, тести, збірка й e2e; що змінилось — `CHANGELOG.md` кіта. Мажорна версія — лише при зміні токенів чи публічного API (CLAUDE.md кіта, правило 8). У мінорній і патч-версії файли розширення й адаптера змінювати не треба, крім названого в `CHANGELOG.md` (як у v0.3.0: стара анотація типу статусів і точні назви кнопок у тестах).
 - Перший раз у проекті без команди (кіт до v1.0.0): завантажте її з тегу в тимчасову теку й запустіть звідти — вона сама стане у `scripts/` разом із `base`. Список `--items` — елементи, які стоять у проекті (README проекту):
 
   ```sh
   git status --short   # чисте дерево
   T="$(mktemp -d)"
-  for f in erp-ui-kit erp-ui-kit-lib; do
-    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.0.0" \
+  for f in erp-ui-kit erp-ui-kit-lib erp-ui-kit-deps; do
+    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.0.1" \
       -H "Accept: application/vnd.github.raw" > "$T/$f.mjs"
   done
-  node "$T/erp-ui-kit.mjs" update v1.0.0 --items base,data,mocks,auth,modules/B1-contacts
+  node "$T/erp-ui-kit.mjs" update v1.0.1 --items base,data,mocks,auth,modules/B1-contacts
   rm -rf "$T"
   ```
+
+  Файлів команди в тегах до v1.0.1 — два (`erp-ui-kit`, `erp-ui-kit-lib`).
 
   Відбитки проекту в старому форматі (`{ kit, files }`, як у тестовому проекті) команда читає: перевіряє за ними, що файли кіта не правлені, і перезаписує в новому.
 - Якщо компонент спільного шару (`ui`, `erp`, `templates`, `lib`, `hooks`) довелося змінити в проекті — позначте правку `// erp-ui: local override — <причина>`, а вдалу правку перенесіть у реєстр. `update` такий файл не перезапише: `check` і перевірка перед оновленням покажуть його як змінений. Перенесіть правку (у розширення чи в кіт) і поверніть файл (`git checkout -- <файл>` чи попередня версія кіта).
 - Модуль оновлюється тією самою командою: його файли в проекті не правляться, тож зміни в них — лише кіта, а відмінності клієнта лишаються у файлі розширення (§5, ADR-0020). Несумісна зміна типу розширення — мажорна версія, що змінити — у розділі «Як оновити розширення» в `CHANGELOG.md`: після `update` `pnpm typecheck`, як правило, падає у файлах розширення (`src/extensions/`) — так і має бути, файли модуля не правте (зміну поведінки без помилки TypeScript розділ теж називає). Поправте лише файли розширення, далі — `pnpm typecheck`, пошук старої назви в `src/` (обов'язковий: об'єкт без типу, де поруч є інші ключі розширення, TypeScript пропускає мовчки), тести, збірка й e2e. Зручно двома комітами: «кіт X.0.0» (як встановлено) і «розширення за розділом». Розширення оголошуйте з типом (`const organizations: OrganizationsExtension = {…}` чи `satisfies`), тоді TypeScript покаже кожне місце.
 - Гілка чи коміт кіта до випуску (перевірити зміну на своєму проекті, як у 1.7c): `update <гілка чи SHA> --from <тека копії кіта>` — команда бере з копії лише реєстр і файли, на які він посилається (`git archive`, ~4 МБ). Такий стан проекту в `main` не мерджиться.
-- Версія CLI shadcn — та сама для встановлення й оновлення: закріпіть її в проекті (`"shadcn": "4.22.0"` без `^`). Команда бере CLI проекту (`node_modules/.bin/shadcn`) і повертає закріплення, якщо `add` його змінив (до v1.0.0 `base` і `tokens` несли залежність `shadcn@^…`, з v1.0.0 — ні). Нову версію CLI беріть окремим кроком: оновили CLI → `update` тієї ж версії кіта → `git diff` показує лише перетворення CLI. Звіт `--dry-run` команда читає з формату CLI 4.22: інший формат — помилка з повним звітом, а не порожній список.
+- Версія CLI shadcn — та сама для встановлення й оновлення: закріпіть її в проекті (`"shadcn": "4.22.0"` без `^`). Команда бере CLI проекту (`node_modules/.bin/shadcn`); закріплення `add` не знімає: з v1.0.0 `base` і `tokens` не несуть залежності `shadcn`, а з v1.0.1 залежності елементів ставить команда, лише відсутні. Нову версію CLI беріть окремим кроком: оновили CLI → `update` тієї ж версії кіта → `git diff` показує лише перетворення CLI. Звіт `--dry-run` команда читає з формату CLI 4.22: інший формат — помилка з повним звітом, а не порожній список.
 - Директива `"use client"`: з v0.3.1 у файлах кіта її немає (крок fix-use-client). При оновленні з v0.3.0 чи старішої вона один раз зникає з файлів кіта, де ще стоїть (`git diff --numstat` такого файлу — 0 доданих і 2 прибрані рядки).
 - Без команди (напр. один файл для перегляду): `pnpm exec shadcn add <реєстр із тегу>/<елемент>.json --diff <шлях>` — різниця одного файлу (`--diff` без шляху показує лише перші п'ять файлів, навіть незмінних).
 
 ## 9. Чого не робити
 
-- Не копіювати компоненти руками з репозиторію — лише через `shadcn add` (так працюють оновлення).
+- Не копіювати компоненти руками з репозиторію — лише командою кіта (`node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`): так працюють оновлення й перевірка `check`.
 - Не правити файли модуля під клієнта — лише файл розширення проекту (ADR-0020).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.
 - Не писати тексти інтерфейсу в коді й не форматувати числа чи дати вручну — лише i18n і `lib/format`.

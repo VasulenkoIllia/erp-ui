@@ -10,7 +10,7 @@
 ## Встановлення
 
 ```sh
-npx shadcn@latest add VasulenkoIllia/erp-ui/modules/B1-contacts
+node scripts/erp-ui-kit.mjs update <версія кіта> --add modules/B1-contacts
 ```
 
 Файли модуля стають у `src/modules/B1-contacts/`, спільні компоненти кіта, яких бракує, — на свої місця (`src/components/…`, `src/lib/…`, `src/hooks/…`). Файли модуля в проекті не правляться: так оновлення модуля не конфліктує з правками під клієнта.

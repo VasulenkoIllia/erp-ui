@@ -151,6 +151,12 @@ function dependency(name) {
     throw new Error(
       `Пакет ${name} використовується в реєстрі, але не вказаний у registry/package.json`,
     )
+  // Команда кіта в проекті звіряє встановлену версію з діапазоном лише такого вигляду
+  // (registry/tools/erp-ui-kit-deps.mjs, крок fix-kit-deps).
+  if (!/^[\^~]?\d+\.\d+\.\d+$/.test(range))
+    throw new Error(
+      `Діапазон ${name}@${range} у registry/package.json: лише ^x.y.z, ~x.y.z чи x.y.z`,
+    )
   return `${name}@${range}`
 }
 

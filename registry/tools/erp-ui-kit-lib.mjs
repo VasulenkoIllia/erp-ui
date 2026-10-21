@@ -55,6 +55,21 @@ export function parseDryRun(output) {
   return files
 }
 
+/**
+ * Звіт `--dry-run` без секцій `├ Dependencies (N)` і `├ Dev Dependencies (N)`: залежності
+ * елементів команда забрала, і CLI ставити їх не має. Секція є (напр. `registryDependencies`, які CLI довантажує зі своїми
+ * залежностями) — зупинка ще до запису файлів.
+ */
+export function assertNoDependencies(output) {
+  const section = /├\s+(?:Dev )?Dependencies \(\d+\)[^]*?(?=\n├|\n└|$)/.exec(
+    stripVTControlCharacters(output),
+  )
+  if (section)
+    throw new KitError(
+      `shadcn add поставив би залежності, хоч команда забрала їх з елементів (інша версія CLI?):\n${section[0]}`,
+    )
+}
+
 /** Аргументи `update`: версія, `--dry-run`, `--add a,b`, `--items a,b`, `--from <тека>`. */
 export function parseArgs(args) {
   const options = { dryRun: false, add: [], items: undefined, from: undefined }
@@ -318,13 +333,4 @@ export async function buildKit({ ref, from, root, dir }) {
     },
   )
   return { out, kit }
-}
-
-/** Встановлення залежностей менеджером пакетів проекту (за lock-файлом). */
-export function installCommand(root) {
-  if (existsSync(path.join(root, "pnpm-lock.yaml")))
-    return ["pnpm", ["install"]]
-  if (existsSync(path.join(root, "yarn.lock"))) return ["yarn", ["install"]]
-  if (existsSync(path.join(root, "bun.lock"))) return ["bun", ["install"]]
-  return ["npm", ["install"]]
 }

@@ -11,10 +11,11 @@
  *
  * Список встановлених елементів і відбитки файлів — у `kit-files.json` проекту; перший раз (у файлі
  * ще немає `items`) — `--items base,data,…`. Оновлення: чисте git → тег архівом одним запитом
- * (`gh api …/tarball/<тег>`, тайм-аут і повтори) → `shadcn build` → `add --dry-run` (звіт) →
- * `add --overwrite --yes` → файли, які проект доповнює сам, лишаються його → закріплена версія CLI →
- * повторний `--dry-run` (усе вже як у версії) → нові відбитки. Файлів, яких у новій версії немає,
- * команда не видаляє, а лише називає.
+ * (`gh api …/tarball/<тег>`, тайм-аут і повтори) → `shadcn build` → залежності забираються з
+ * елементів → `add --dry-run` (звіт) → `add --overwrite --yes` (лише файли) → файли, які проект
+ * доповнює сам, лишаються його → залежності, яких у проекті немає, — з діапазоном кіта (наявні — як
+ * є) → повторний `--dry-run` (усе вже як у версії) → нові відбитки. Файлів, яких у новій версії
+ * немає, команда не видаляє, а лише називає.
  */
 import { createHash } from "node:crypto"
 import {
@@ -32,8 +33,20 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import {
+  assertDependenciesUntouched,
+  dependencyPlan,
+  installedVersion,
+  installNewDependencies,
+  packageManagerFor,
+  printDependencyPlan,
+  printDependencyWarnings,
+  snapshotDependencies,
+  takeItemDependencies,
+  verifyDependencies,
+} from "./erp-ui-kit-deps.mjs"
+import {
+  assertNoDependencies,
   buildKit,
-  installCommand,
   KitError,
   mustRun,
   parseArgs,
@@ -50,7 +63,7 @@ export const PROJECT_OWNED = ["src/index.css", "docs/erp-ui/CLAUDE.project.md"]
 const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
 const RECOVERY_HINT =
-  "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean)."
+  "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
 
 const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex")
 
@@ -92,38 +105,6 @@ function writeManifest(root, manifest) {
   const file = path.join(root, MANIFEST)
   writeFileSync(`${file}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`)
   renameSync(`${file}.tmp`, file)
-}
-
-const shadcnSpec = (root) => {
-  const pkg = readJson(path.join(root, "package.json"), "package.json")
-  return {
-    dependencies: pkg.dependencies?.shadcn,
-    devDependencies: pkg.devDependencies?.shadcn,
-  }
-}
-
-/** `add` елемента з залежністю `shadcn@^…` (base до v1.0.0) знімає закріплення CLI — повертаємо. */
-async function restoreCliPin(root, before) {
-  const after = shadcnSpec(root)
-  if (
-    after.dependencies === before.dependencies &&
-    after.devDependencies === before.devDependencies
-  )
-    return
-  const file = path.join(root, "package.json")
-  const pkg = readJson(file, "package.json")
-  for (const field of ["dependencies", "devDependencies"]) {
-    if (before[field] !== undefined) (pkg[field] ??= {}).shadcn = before[field]
-    else if (pkg[field]) delete pkg[field].shadcn
-  }
-  // Відступ — як у файлі проекту, щоб diff показав лише версію CLI.
-  const indent = /^([ \t]+)"/m.exec(readFileSync(file, "utf8"))?.[1] ?? "  "
-  writeFileSync(file, `${JSON.stringify(pkg, null, indent)}\n`)
-  console.log(
-    `Закріплення CLI shadcn повернуто (${String(before.dependencies ?? before.devDependencies)}).`,
-  )
-  const [cmd, args] = installCommand(root)
-  await mustRun(cmd, args, { cwd: root })
 }
 
 /**
@@ -250,25 +231,27 @@ function itemsToInstall(manifest, itemsArg, add) {
     throw new KitError(
       `У ${MANIFEST} уже є список елементів: новий — --add, прибрати — зі списку items у ${MANIFEST}`,
     )
-  const items = [...new Set([...(itemsArg ?? manifest.items ?? []), ...add])]
-  if (!items.length)
+  // Перший раз і з --add: інакше список склав би лише новий елемент, і base не оновлювався б.
+  if (!itemsArg && !manifest.items?.length)
     throw new KitError(
       `У ${MANIFEST} немає списку елементів: перший раз — --items base,data,…`,
     )
+  const items = [...new Set([...(itemsArg ?? manifest.items), ...add])]
   const badItem = items.find((item) => !SAFE_ITEM.test(item))
   if (badItem) throw new KitError(`Некоректна назва елемента: ${badItem}`)
   return items
 }
 
-const dryRunReport = async (root, itemFiles) =>
-  parseDryRun(
-    (
-      await mustRun(shadcnBin(root), ["add", ...itemFiles, "--dry-run"], {
-        cwd: root,
-        capture: true,
-      })
-    ).stdout,
+/** Звіт `add --dry-run`: файли з діями; залежностей CLI ставити не має (їх забрала команда). */
+async function dryRunReport(root, itemFiles) {
+  const { stdout } = await mustRun(
+    shadcnBin(root),
+    ["add", ...itemFiles, "--dry-run"],
+    { cwd: root, capture: true },
   )
+  assertNoDependencies(stdout)
+  return parseDryRun(stdout)
+}
 
 /** Після запису все, крім файлів проекту, — як у версії (`skip`), інакше оновлення неповне. */
 async function verifyApplied(root, itemFiles) {
@@ -281,13 +264,15 @@ async function verifyApplied(root, itemFiles) {
     )
 }
 
-/** `add --overwrite` і все, що після нього: файли проекту, закріплення CLI, звірка, відбитки. */
+/** `add --overwrite` і все, що після нього: файли проекту, нові залежності, звірка, відбитки. */
 async function applyUpdate({
   root,
   kit,
   items,
   itemFiles,
   files,
+  plan,
+  manager,
   manifest,
   dir,
 }) {
@@ -296,7 +281,7 @@ async function applyUpdate({
       (file) => [file, readFileSync(path.join(root, file))],
     ),
   )
-  const pin = shadcnSpec(root)
+  const dependencies = snapshotDependencies(root, manager)
   try {
     await mustRun(
       shadcnBin(root),
@@ -305,14 +290,19 @@ async function applyUpdate({
         cwd: root,
       },
     )
+    assertDependenciesUntouched(dependencies)
     const own = await keepProjectOwned(root, saved, manifest.own ?? {}, dir)
-    await restoreCliPin(root, pin)
+    if (manager) {
+      await installNewDependencies(root, plan, manager)
+      verifyDependencies(dependencies, plan, manager)
+    }
     await verifyApplied(root, itemFiles)
     const kitFiles = await kitFileHashes(root, files)
     writeManifest(root, { kit, items, files: kitFiles, own })
     console.log(
       `\nКіт ${kit}: ${MANIFEST} оновлено (${String(Object.keys(kitFiles).length)} файлів). Далі — typecheck, lint, тести, збірка й e2e; що змінилось — CHANGELOG.md кіта.`,
     )
+    printDependencyWarnings(root, plan)
   } catch (error) {
     console.error(
       `\nОновлення не завершилось, ${MANIFEST} не змінено. ${RECOVERY_HINT}`,
@@ -352,10 +342,28 @@ async function updateCommand(root, args) {
         throw new KitError(`У версії ${ref} немає елемента ${item}`)
       return file
     })
+    const plan = dependencyPlan(
+      takeItemDependencies(itemFiles),
+      readJson(path.join(root, "package.json"), "package.json"),
+      installedVersion(root),
+    )
     const files = await dryRunReport(root, itemFiles)
     printReport(kit, files, manifest.files, PROJECT_OWNED)
+    printDependencyPlan(plan)
+    // До запису: менеджер пакетів відомий і є (і в --dry-run — щоб він не обіцяв зайвого).
+    const manager = await packageManagerFor(root, plan)
     if (!dryRun)
-      await applyUpdate({ root, kit, items, itemFiles, files, manifest, dir })
+      await applyUpdate({
+        root,
+        kit,
+        items,
+        itemFiles,
+        files,
+        plan,
+        manager,
+        manifest,
+        dir,
+      })
   } finally {
     process.off("SIGINT", interrupted)
     process.off("SIGTERM", interrupted)

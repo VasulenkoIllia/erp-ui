@@ -1650,6 +1650,10 @@ const KIT_TOOL_FILES = [
     path: "registry/tools/erp-ui-kit-lib.mjs",
     target: "~/scripts/erp-ui-kit-lib.mjs",
   },
+  {
+    path: "registry/tools/erp-ui-kit-deps.mjs",
+    target: "~/scripts/erp-ui-kit-deps.mjs",
+  },
 ]
 
 /**
@@ -1702,7 +1706,7 @@ export const BUNDLE_ITEMS = {
       "2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md",
       "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).",
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
-      "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
+      "Компоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
       "5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.",
     ].join("\n"),
   },
@@ -1731,7 +1735,7 @@ export const BUNDLE_ITEMS = {
       "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).",
       "1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.",
       "2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).",
-      "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>.",
+      "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client).",
       "4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
     ].join("\n"),
   },
@@ -1769,8 +1773,8 @@ export const BUNDLE_ITEMS = {
     ],
     docs: [
       "Екрани входу erp-ui встановлено (ADR-0010). Потрібен пакунок data (authProvider із lib/auth).",
-      "1) Маршрути поза оболонкою: /login → LoginScreen, /login/forgot, /login/reset, /login/invite, /login/link → екрани з erp/account-recovery, /signup → SignUpScreen, /auth/callback → SsoCallbackScreen (адреси змінюються пропсом paths).",
-      "2) У оболонці, коли користувач увійшов: <SessionGuard idleMinutes={methods.idleTimeoutMinutes} />.",
+      "1) Маршрути екранів входу — createAuthRoutes({ afterLogin, title }) з @/components/erp/auth-routes (елемент erp/auth-routes): auth.routes — поруч із брамою сесії, не всередині; прогрів екрана входу — whenIdle(() => auth.preload()) з @/lib/lazy; адреси, крім /login, — опцією paths.",
+      "2) Оболонку для тих, хто увійшов, обгорніть у <SessionGate> з @/components/erp/app-gate (елемент erp/app-gate): гість — на /login, охорона сесії й автовихід за політикою сервера — усередині (свій термін — idleMinutes={30}); вихід у меню — useSignOut().",
       "3) Налаштування безпеки: FactorsSection (erp/account-factors); ChangePasswordForm, ChangeEmailForm, AccountDataSection (erp/account-security); SessionsSection, TrustedDevicesSection, SignInAlertsSwitch, SignInHistory (erp/account-devices).",
       "4) «Увійти як…» (ADR-0011): useImpersonation() у списку користувачів; <AppShell banner={<ImpersonationBanner />}>.",
       "5) Бренд сторінки входу приходить із GET /auth/methods (branding); у корені застосунку — useBrandAppearance() з erp/auth-layout.",
@@ -1820,7 +1824,7 @@ export const BUNDLE_ITEMS = {
     layer: "tools",
     title: "Команда кіта",
     description:
-      "scripts/erp-ui-kit.mjs: update <версія> — тег архівом одним запитом (тайм-аут, повтори), реєстр, звіт add --dry-run, add --overwrite, файли, які проект доповнює сам, лишаються його, закріплення CLI, відбитки kit-files.json; check — файли кіта не правлені (ADR-0029). Входить у base.",
+      "scripts/erp-ui-kit.mjs: update <версія> — тег архівом одним запитом (тайм-аут, повтори), реєстр, звіт add --dry-run, add --overwrite (лише файли), файли, які проект доповнює сам, лишаються його, залежності: відсутні в проекті — з діапазоном кіта, наявні — без змін, відбитки kit-files.json; check — файли кіта не правлені (ADR-0029). Входить у base.",
     status: "beta",
     spec: ["§3"],
     files: KIT_TOOL_FILES,
