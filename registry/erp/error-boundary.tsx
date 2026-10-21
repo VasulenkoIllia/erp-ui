@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { PageState } from "@/registry/erp/page-state"
+import { PageState, type PageStateProps } from "@/registry/erp/page-state"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ChunkLoadError } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
@@ -17,6 +17,7 @@ import { Button } from "@/registry/ui/button"
  *   при переході на іншу сторінку.
  * - `frame` — рамка навколо стану помилки за замовчуванням: лінива форма в діалозі показує її в
  *   діалозі зі своєю назвою, а повтор і «Оновити сторінку» лишаються від межі.
+ * - `headingLevel` — рівень заголовка стану помилки (`PageState`): 1 — межа на місці всієї сторінки.
  *
  *   <ErrorBoundary key={pathname}><Suspense fallback={<PageSkeleton />}><Page /></Suspense></ErrorBoundary>
  */
@@ -25,6 +26,7 @@ export interface ErrorBoundaryProps {
   fallback?: (retry: () => void) => React.ReactNode
   frame?: (content: React.ReactNode) => React.ReactNode
   onError?: (error: unknown, info: React.ErrorInfo) => void
+  headingLevel?: PageStateProps["headingLevel"]
   className?: string
 }
 
@@ -73,6 +75,7 @@ export class ErrorBoundary extends React.Component<
       <PageState
         kind={navigator.onLine ? "error" : "offline"}
         onRetry={this.retry}
+        headingLevel={this.props.headingLevel}
         action={
           error instanceof ChunkLoadError && retries > 0 ? (
             <ReloadButton />

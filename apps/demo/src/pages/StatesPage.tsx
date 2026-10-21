@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
+import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { Button } from "@/registry/ui/button"
 
@@ -11,6 +12,7 @@ import { Section } from "./Section"
 /** Стани сторінки SPEC §8.1 у контейнерах — так, як їх побачить користувач у списку. */
 export function StatesPage() {
   const { t } = useTranslation("demo", { keyPrefix: "statesPage" })
+  const kitT = useErpUiT()
   const Create = ACTION_ICONS.create
   return (
     <div className="space-y-6">
@@ -48,6 +50,18 @@ export function StatesPage() {
           }}
         />
         <PageState kind="not-found" />
+        {/* Стан частини під заголовком секції — h3; так виглядає й брама сесії (erp/app-gate), коли профіль не завантажився, лише з h1. */}
+        <Section title={t("sessionGate")}>
+          <PageState
+            kind="error"
+            headingLevel={3}
+            title={kitT("auth.session.meFailedTitle")}
+            description={kitT("auth.session.meFailedDescription")}
+            onRetry={() => {
+              toast(t("retried"))
+            }}
+          />
+        </Section>
       </div>
     </div>
   )

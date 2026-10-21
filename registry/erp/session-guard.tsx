@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useLogout } from "ra-core"
 import { toast } from "sonner"
 
-import { useErpAuthProvider } from "@/registry/erp/auth-layout"
+import { useAuthMethods, useErpAuthProvider } from "@/registry/erp/auth-layout"
 import { useRefreshMe, useResetUserData } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
@@ -40,22 +40,31 @@ const mmss = (seconds: number) =>
  * Охорона сесії (ADR-0010) — ставиться один раз, коли користувач увійшов:
  *
  * - за `warnSeconds` до кінця сесії (заголовок `X-Session-Expires-At`) чи автовиходу через
- *   бездіяльність (`idleMinutes`, з `GET /auth/methods`) — діалог із відліком і «Продовжити роботу»;
+ *   бездіяльність (`idleTimeoutMinutes` з `GET /auth/methods` чи пропс `idleMinutes`) — діалог із
+ *   відліком і «Продовжити роботу»;
  * - на нулі — вихід і сторінка входу (без мережі — лише тут: дані однаково ховаються);
  * - 401 у будь-якому запиті кешу (сервер завершив сесію) — сторінка входу, як для dataProvider;
  * - вихід в іншій вкладці виходить і тут; вхід в іншій вкладці оновлює профіль.
  * Бездіяльність рахується по всіх вкладках разом (lib/session).
  */
 export function SessionGuard({
-  idleMinutes,
+  idleMinutes: idleOverride,
   warnSeconds = 60,
 }: {
-  /** Автовихід після бездіяльності, хв; null — лише термін сесії сервера. */
+  /**
+   * Автовихід після бездіяльності, хв. Без пропса — політика сервера (`idleTimeoutMinutes` з
+   * `GET /auth/methods`); null — лише термін сесії сервера.
+   */
   idleMinutes?: number | null
   warnSeconds?: number
 }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
+  // Поки політика сервера не завантажилась (чи не завантажилась зовсім), автовихід через
+  // бездіяльність не діє; термін сесії сервера діє завжди.
+  const methods = useAuthMethods({ enabled: idleOverride === undefined })
+  const idleMinutes =
+    idleOverride === undefined ? methods.data?.idleTimeoutMinutes : idleOverride
   const logout = useLogout()
   const queryClient = useQueryClient()
   const resetUserData = useResetUserData()

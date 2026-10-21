@@ -19,11 +19,11 @@ export const contactsModule = createContactsModule({
   extension: contactsExtension,
 })
 
-/** Сторінка модуля за адресою; невідома адреса всередині модуля — «не знайдено». */
+/** Сторінка модуля за адресою; невідома адреса всередині модуля — «не знайдено» з h1 сторінки. */
 export function ContactsModuleRoutes() {
   return (
     useRoutes(contactsModule.routes) ??
-    createElement(PageState, { kind: "not-found" })
+    createElement(PageState, { kind: "not-found", headingLevel: 1 })
   )
 }
 

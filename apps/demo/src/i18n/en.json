@@ -29,8 +29,6 @@
     "signIn": "Sign in",
     "meFailed": "Couldn't load your profile. Check your connection.",
     "meRetry": "Retry",
-    "signOut": "You have signed out",
-    "signOutFailed": "Couldn't sign out. Check your connection and try again.",
     "languageFailed": "Couldn't load the interface language, so everything is in Ukrainian. Check your connection.",
     "languageRetry": "Retry",
     "devPanelFailed": "Mock panel didn't load. Click to try again"
@@ -317,7 +315,8 @@
     "loading": "Initial loading",
     "createInvoice": "Create invoice",
     "retried": "Retrying the request…",
-    "reset": "Filters reset"
+    "reset": "Filters reset",
+    "sessionGate": "Section state (h3): profile didn't load"
   },
   "modulePage": {
     "lead": "Module {{id}} is not built yet — the shell already leads to it.",

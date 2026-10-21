@@ -75,7 +75,11 @@ export interface AppShellProps {
   header?: React.ReactNode
   /** Низ сайдбара. */
   footer?: React.ReactNode
-  /** Шлях до сторінки; останній елемент — поточна сторінка. */
+  /**
+   * Шлях до сторінки. Остання крихта без `href` — поточна сторінка; з `href` — посилання (напр.
+   * список над карткою запису, назву якого показує h1 картки), тож крихті поточної сторінки `href`
+   * не давайте. Інша крихта без `href` — підпис групи. На телефоні — лише остання.
+   */
   breadcrumbs?: Crumb[]
   /** Права частина топбару. */
   actions?: React.ReactNode
@@ -183,6 +187,34 @@ function BottomNav({
   )
 }
 
+/** Остання крихта без `href` — поточна сторінка, з `href` — посилання; інша без `href` — підпис групи. */
+function CrumbLabel({
+  crumb,
+  last,
+  renderLink,
+}: {
+  crumb: Crumb
+  last: boolean
+  renderLink: RenderLink
+}) {
+  if (crumb.href)
+    return (
+      <BreadcrumbLink
+        render={renderLink(crumb.href)}
+        className={cn(last && "truncate font-medium")}
+      >
+        {crumb.label}
+      </BreadcrumbLink>
+    )
+  if (last)
+    return (
+      <BreadcrumbPage className="truncate font-medium">
+        {crumb.label}
+      </BreadcrumbPage>
+    )
+  return <span className="truncate">{crumb.label}</span>
+}
+
 function Topbar({
   breadcrumbs,
   actions,
@@ -209,15 +241,11 @@ function Topbar({
                   <BreadcrumbItem
                     className={cn("min-w-0", !last && "hidden md:inline-flex")}
                   >
-                    {last || !crumb.href ? (
-                      <BreadcrumbPage className="truncate font-medium">
-                        {crumb.label}
-                      </BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink render={renderLink(crumb.href)}>
-                        {crumb.label}
-                      </BreadcrumbLink>
-                    )}
+                    <CrumbLabel
+                      crumb={crumb}
+                      last={last}
+                      renderLink={renderLink}
+                    />
                   </BreadcrumbItem>
                   {last ? null : (
                     <BreadcrumbSeparator className="hidden md:inline-flex" />

@@ -76,6 +76,8 @@ const KINDS: Record<
   },
 }
 
+const HEADINGS = { 1: "h1", 2: "h2", 3: "h3" } as const
+
 export interface PageStateProps {
   kind: PageStateKind
   title?: string
@@ -86,6 +88,11 @@ export interface PageStateProps {
   action?: React.ReactNode
   onRetry?: () => void
   onReset?: () => void
+  /**
+   * Рівень заголовка: 2 — стан частини сторінки під її h1 (за замовчуванням); 1 — стан замість
+   * усієї сторінки («не знайдено», профіль не завантажився); 3 — стан секції чи вкладки під h2.
+   */
+  headingLevel?: 1 | 2 | 3
   className?: string
 }
 
@@ -97,10 +104,12 @@ export function PageState({
   action,
   onRetry,
   onReset,
+  headingLevel = 2,
   className,
 }: PageStateProps) {
   const t = useErpUiT()
   const config = KINDS[kind]
+  const Heading = HEADINGS[headingLevel]
   const Icon = icon ?? config.icon
   const announce = kind === "error" || kind === "offline"
   return (
@@ -121,7 +130,7 @@ export function PageState({
           <Icon aria-hidden />
         </EmptyMedia>
         <EmptyTitle>
-          <h2>{title ?? t(config.title)}</h2>
+          <Heading>{title ?? t(config.title)}</Heading>
         </EmptyTitle>
         <EmptyDescription>
           {description ?? t(config.description)}

@@ -21,7 +21,6 @@ import {
   Users,
   Webhook,
 } from "lucide-react"
-import { useLogout } from "ra-core"
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
@@ -32,6 +31,7 @@ import {
 } from "react-router"
 import { toast } from "sonner"
 
+import { useSignOut } from "@/registry/erp/app-gate"
 import {
   AppShell,
   type NavGroup,
@@ -43,7 +43,7 @@ import {
   useCommandPaletteShortcut,
   type PaletteCommand,
 } from "@/registry/erp/command-palette"
-import { useAuthMethods, useBrandAppearance } from "@/registry/erp/auth-layout"
+import { useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback } from "@/registry/erp/page-state"
@@ -336,11 +336,10 @@ function Shell({
   const routerLocation = useRouterLocation()
   const { pathname } = routerLocation
   const routerState: unknown = routerLocation.state
-  const logout = useLogout()
+  const signOut = useSignOut()
   const breakpoint = useBreakpoint()
   const meQuery = useMe()
   const me = meQuery.data
-  const methods = useAuthMethods()
   const [company, setCompany] = useCompany()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const openPalette = useCallback(() => {
@@ -561,17 +560,7 @@ function Shell({
                     email: me.email,
                     avatarUrl: me.avatarUrl,
                   }}
-                  onSignOut={() => {
-                    // Збій виходу (офлайн, 5xx): сесія на сервері жива — кажемо про це, а не мовчимо.
-                    void logout().then(
-                      () => {
-                        toast(t("app.signOut"))
-                      },
-                      () => {
-                        toast.error(t("app.signOutFailed"))
-                      },
-                    )
-                  }}
+                  onSignOut={signOut}
                 >
                   <DropdownMenuItem
                     onClick={() => {
@@ -642,9 +631,7 @@ function Shell({
           </Suspense>
         </ErrorBoundary>
       </AppShell>
-      {me ? (
-        <SessionGuard idleMinutes={methods.data?.idleTimeoutMinutes} />
-      ) : null}
+      {me ? <SessionGuard /> : null}
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}

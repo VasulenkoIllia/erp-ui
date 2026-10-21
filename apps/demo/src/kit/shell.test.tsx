@@ -75,6 +75,45 @@ describe("AppShell (jsdom — ширина телефона)", () => {
       screen.getByRole("link", { name: "Перейти до вмісту" }),
     ).toBeInTheDocument()
   })
+
+  it("остання крихта з href — посилання (список над карткою), без href — поточна сторінка", () => {
+    render(
+      <TooltipProvider>
+        <AppShell
+          nav={NAV}
+          activeId="b1"
+          breadcrumbs={[
+            { label: "Контакти" },
+            { label: "Організації", href: "#/b1/organizations" },
+          ]}
+        >
+          <p>Вміст</p>
+        </AppShell>
+      </TooltipProvider>,
+    )
+    expect(screen.getByRole("link", { name: "Організації" })).toHaveAttribute(
+      "href",
+      "#/b1/organizations",
+    )
+    // Підпис групи — не поточна сторінка й не посилання.
+    const crumbs = screen.getByRole("navigation", { name: "Шлях до сторінки" })
+    expect(within(crumbs).getByText("Контакти")).not.toHaveAttribute(
+      "aria-current",
+    )
+    expect(crumbs.querySelector("[aria-current]")).toBeNull()
+  })
+
+  it("остання крихта без href — поточна сторінка", () => {
+    renderShell()
+    const crumbs = screen.getByRole("navigation", { name: "Шлях до сторінки" })
+    expect(within(crumbs).getByText("Рахунки")).toHaveAttribute(
+      "aria-current",
+      "page",
+    )
+    expect(within(crumbs).getByText("Продажі")).not.toHaveAttribute(
+      "aria-current",
+    )
+  })
 })
 
 describe("PageState", () => {
@@ -94,6 +133,15 @@ describe("PageState", () => {
     expect(
       screen.getByRole("heading", { name: "Рахунків ще немає" }),
     ).toBeInTheDocument()
+  })
+
+  it("рівень заголовка: 2 за замовчуванням, 1 — стан замість сторінки, 3 — у секції", () => {
+    const { rerender } = render(<PageState kind="not-found" />)
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument()
+    rerender(<PageState kind="not-found" headingLevel={1} />)
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument()
+    rerender(<PageState kind="not-found" headingLevel={3} />)
+    expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument()
   })
 })
 

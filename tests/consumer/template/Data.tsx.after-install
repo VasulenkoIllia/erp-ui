@@ -1,8 +1,8 @@
 // Підставляється після `shadcn add`: шар даних (ADR-0002, ADR-0003) компілюється разом із ra-core.
-import { QueryClient } from "@tanstack/react-query"
 import i18next from "i18next"
 import { CoreAdminContext, useGetList, useUpdate } from "ra-core"
 import { useState } from "react"
+import { useRoutes } from "react-router"
 
 import {
   SessionsSection,
@@ -28,6 +28,8 @@ import { RecoveryRequestsSection, useResetFactors } from "@/components/erp/reset
 import { SecurityPolicyForm } from "@/components/erp/security-policy-form"
 import { TimezoneSelect } from "@/components/erp/timezone-select"
 import { AccountDataSection, ChangeEmailForm, ChangePasswordForm } from "@/components/erp/account-security"
+import { SessionGate, useSignOut } from "@/components/erp/app-gate"
+import { createAuthRoutes } from "@/components/erp/auth-routes"
 import { AcceptInviteScreen, ForgotPasswordScreen } from "@/components/erp/account-recovery"
 import { BrandLogo, useBrandAppearance, useBranding } from "@/components/erp/auth-layout"
 import { CopyButton } from "@/components/erp/copy-button"
@@ -53,8 +55,9 @@ import { countGranted, grants } from "@/lib/roles"
 import { createDataProvider } from "@/lib/data-provider"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
+import { createQueryClient } from "@/lib/query-client"
 
-const queryClient = new QueryClient()
+const queryClient = createQueryClient()
 // Компанія — лише з lib/company-scope (0.5b5-fix): заголовок і ключі кешу з одного джерела.
 setCompanyId("a")
 const api = createApiClient({
@@ -217,6 +220,26 @@ function Team() {
   )
 }
 
+// Збирання застосунку з кіта (ADR-0029): екрани входу поза брамою сесії, вихід із повідомленням.
+const auth = createAuthRoutes({ afterLogin: "/invoices", title: "ERP" })
+
+function Assembled() {
+  const signOut = useSignOut()
+  return useRoutes([
+    ...auth.routes,
+    {
+      path: "*",
+      element: (
+        <SessionGate>
+          <button type="button" onClick={signOut}>
+            Вийти
+          </button>
+        </SessionGate>
+      ),
+    },
+  ])
+}
+
 export function Data() {
   return (
     <CoreAdminContext
@@ -226,6 +249,7 @@ export function Data() {
       queryClient={queryClient}
     >
       <Invoices />
+      <Assembled />
       <LoginScreen afterLogin="/invoices" />
       <ForgotPasswordScreen />
       <AcceptInviteScreen token="t" />

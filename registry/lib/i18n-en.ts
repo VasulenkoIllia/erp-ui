@@ -355,6 +355,10 @@ export const en = {
       extend: "Keep working",
       signOut: "Sign out",
       signOutFailed: "Couldn't sign out. Check your connection and try again.",
+      signedOut: "You have signed out",
+      meFailedTitle: "Couldn't load your profile",
+      meFailedDescription:
+        "You may already be signed in. Check your connection and try again.",
     },
     reauth: {
       title: "Confirm it's you",

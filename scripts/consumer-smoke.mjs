@@ -6,7 +6,7 @@
  *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--local] [--keep] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
- * shadcn add base, пакунки data, mocks і auth, усі елементи ui/*, erp/* і templates/* та модулі
+ * shadcn add base, пакунки data, mocks і auth, lib/query-client, усі елементи ui/*, erp/*, templates/* і tools/* та модулі
  * modules/* → tsc → vite build. Файли модуля мають лягти в проект дослівно (ADR-0025): імпорти в них
  * уже шляхами проекту, і shadcn не має їх переписувати.
  *
@@ -55,10 +55,10 @@ const repo = new URL(registry.homepage).pathname.slice(1)
 const shadcnVersion = JSON.parse(
   readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
 ).version
-/** Пакунки, які ставить проект: основа, шар даних, моки, вхід. */
-const BUNDLES = ["base", "data", "mocks", "auth"]
+/** Пакунки, які ставить проект: основа, шар даних, моки, вхід, політика повторів запитів. */
+const BUNDLES = ["base", "data", "mocks", "auth", "lib/query-client"]
 const uiItems = registry.items
-  .filter((it) => /^(ui|erp|templates)\//.test(it.name))
+  .filter((it) => /^(ui|erp|templates|tools)\//.test(it.name))
   .map((it) => it.name)
 const modules = registry.items.filter((it) => it.meta?.layer === "modules")
 /** Елементи з реєстру робочої копії, що ставляться поодинці (--local): найбільше залежностей. */

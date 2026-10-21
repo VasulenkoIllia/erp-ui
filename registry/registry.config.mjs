@@ -233,6 +233,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§17"],
   },
+  "lib/query-client": {
+    title: "QueryClient застосунку",
+    description:
+      "createQueryClient: один тихий повтор читання через 1 с після збою мережі чи 5xx, без повтору 4xx (401 одразу до SessionGuard) і мутацій, свіжість даних 30 с (ADR-0029).",
+    status: "beta",
+    demo: "data",
+    spec: ["§17", "§8.1"],
+  },
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
@@ -715,7 +723,7 @@ export const CODE_ITEMS = {
   "erp/app-shell": {
     title: "Оболонка застосунку",
     description:
-      "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон), топбар із хлібними крихтами, «Перейти до вмісту».",
+      "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон), топбар із хлібними крихтами (остання з href — посилання, напр. список над карткою), «Перейти до вмісту».",
     status: "beta",
     demo: "appearance",
     spec: ["§7", "§9", "§10"],
@@ -763,7 +771,7 @@ export const CODE_ITEMS = {
   "erp/page-state": {
     title: "Стани сторінки",
     description:
-      "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
+      "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; рівень заголовка (h1 — стан замість сторінки, h3 — секції); PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
     status: "beta",
     demo: "states",
     spec: ["§8.1", "§8.2"],
@@ -1027,9 +1035,25 @@ export const CODE_ITEMS = {
   "erp/session-guard": {
     title: "Охорона сесії",
     description:
-      "Попередження з відліком перед кінцем сесії чи автовиходом через бездіяльність, «Продовжити роботу», вихід у всіх вкладках.",
+      "Попередження з відліком перед кінцем сесії чи автовиходом через бездіяльність (політика сервера з GET /auth/methods), «Продовжити роботу», вихід у всіх вкладках.",
     status: "beta",
     demo: "security",
+    spec: ["PF01"],
+  },
+  "erp/app-gate": {
+    title: "Брама сесії",
+    description:
+      "SessionGate — частина застосунку лише для тих, хто увійшов: гість — на вхід із поверненням, спінер, поки сесія перевіряється, помилка профілю з повтором (h1), далі вміст і SessionGuard; useSignOut — вихід із повідомленням «Ви вийшли» чи помилкою (ADR-0029).",
+    status: "beta",
+    demo: "states",
+    spec: ["PF01", "§8.1"],
+  },
+  "erp/auth-routes": {
+    title: "Маршрути екранів входу",
+    description:
+      "createAuthRoutes — маршрути React Router для входу, відновлення пароля, нового пароля, запрошення, входу за посиланням, реєстрації й повернення з SSO; екрани лінивими чанками, preload за адресою (ADR-0029).",
+    status: "beta",
+    demo: "login",
     spec: ["PF01"],
   },
   "erp/reauth-dialog": {
@@ -1616,6 +1640,18 @@ const CLAUDE_FILES = [
   { path: "docs/CATALOG.md", target: "~/docs/erp-ui/CATALOG.md" },
 ]
 
+/** Команда кіта в проекті (ADR-0029): оновлення однією командою й перевірка файлів кіта. */
+const KIT_TOOL_FILES = [
+  {
+    path: "registry/tools/erp-ui-kit.mjs",
+    target: "~/scripts/erp-ui-kit.mjs",
+  },
+  {
+    path: "registry/tools/erp-ui-kit-lib.mjs",
+    target: "~/scripts/erp-ui-kit-lib.mjs",
+  },
+]
+
 /**
  * Модулі (шар 5, ADR-0025): ключ — `modules/<ID>-<назва>`, файли — уся тека
  * `registry/modules/<ID>-<назва>/` (у проекті — `src/modules/…`), спільні елементи — з імпортів.
@@ -1642,11 +1678,11 @@ export const BUNDLE_ITEMS = {
   base: {
     title: "Основа erp-ui",
     description:
-      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code.",
+      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code, команда оновлення кіта scripts/erp-ui-kit.mjs.",
     status: "beta",
     demo: "appearance",
     spec: ["§3", "§6", "§19"],
-    files: [...TOKEN_FILES, ...CLAUDE_FILES],
+    files: [...TOKEN_FILES, ...CLAUDE_FILES, ...KIT_TOOL_FILES],
     include: [
       "lib/utils",
       "hooks/use-resolved-theme",
@@ -1657,7 +1693,9 @@ export const BUNDLE_ITEMS = {
       "hooks/use-appearance",
       "lib/icons",
     ],
-    dependencies: ["@fontsource/geist", "tw-animate-css", "shadcn"],
+    // shadcn/tailwind.css у src/index.css — з пакета shadcn, який проект має після `shadcn init`
+    // і закріплює сам: залежність тут зняла б закріплення при кожному оновленні (ADR-0029).
+    dependencies: ["@fontsource/geist", "tw-animate-css"],
     docs: [
       "erp-ui встановлено.",
       "1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.",
@@ -1665,6 +1703,7 @@ export const BUNDLE_ITEMS = {
       "3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).",
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: npx shadcn add VasulenkoIllia/erp-ui/ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
+      "5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.",
     ].join("\n"),
   },
   data: {
@@ -1765,7 +1804,8 @@ export const BUNDLE_ITEMS = {
     demo: "appearance",
     spec: ["§6"],
     files: TOKEN_FILES,
-    dependencies: ["@fontsource/geist", "tw-animate-css", "shadcn"],
+    // Без shadcn: пакет є в проекті після `shadcn init` (як у base).
+    dependencies: ["@fontsource/geist", "tw-animate-css"],
   },
   claude: {
     title: "Правила для Claude Code",
@@ -1775,5 +1815,26 @@ export const BUNDLE_ITEMS = {
     spec: ["§19"],
     files: CLAUDE_FILES,
     docs: "Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md",
+  },
+  "tools/kit": {
+    layer: "tools",
+    title: "Команда кіта",
+    description:
+      "scripts/erp-ui-kit.mjs: update <версія> — тег архівом одним запитом (тайм-аут, повтори), реєстр, звіт add --dry-run, add --overwrite, файли, які проект доповнює сам, лишаються його, закріплення CLI, відбитки kit-files.json; check — файли кіта не правлені (ADR-0029). Входить у base.",
+    status: "beta",
+    spec: ["§3"],
+    files: KIT_TOOL_FILES,
+    docs: "Оновлення: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — --items base,…); перевірка: node scripts/erp-ui-kit.mjs check.",
+  },
+  "tools/e2e": {
+    layer: "tools",
+    title: "Помічники e2e",
+    description:
+      "e2e/erp-ui.ts для Playwright: openAs (користувач моків і вигляд до першого кадру), expectNoA11yViolations (axe, WCAG 2.2 AA), expectNoHorizontalScroll, cellOf (комірка за назвою колонки), меню клавіатурою; ключі сховища кіта (ADR-0029).",
+    status: "beta",
+    spec: ["§10", "§18"],
+    files: [{ path: "registry/tools/e2e.ts", target: "~/e2e/erp-ui.ts" }],
+    dependencies: ["@playwright/test", "@axe-core/playwright"],
+    docs: "Помічники e2e — e2e/erp-ui.ts (не правте); свої (користувачі моків, ширини) — у своєму файлі поруч.",
   },
 }

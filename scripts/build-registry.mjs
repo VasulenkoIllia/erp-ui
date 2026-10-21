@@ -50,8 +50,12 @@ const PEERS = new Set(["react", "react-dom"])
 const TYPE_PACKAGES = {
   "google-libphonenumber": "@types/google-libphonenumber",
 }
-/** Пакети лише для розробки й тестів (моки): у devDependencies, не в збірку застосунку. */
-const DEV_PACKAGES = new Set(["msw"])
+/** Пакети лише для розробки й тестів (моки, e2e): у devDependencies, не в збірку застосунку. */
+const DEV_PACKAGES = new Set([
+  "msw",
+  "@playwright/test",
+  "@axe-core/playwright",
+])
 const LAYER_TITLES = {
   base: "Основа",
   tokens: "Шар 1 · токени й теми",
@@ -62,6 +66,7 @@ const LAYER_TITLES = {
   erp: "Шар 3 · ERP-компоненти",
   templates: "Шар 4 · шаблони сторінок",
   modules: "Шар 5 · модулі",
+  tools: "Інструменти проекту",
 }
 /** Шляхи проекту в імпортах модуля → шар реєстру (аліаси shadcn за замовчуванням). */
 const PROJECT_PATHS = [
@@ -292,7 +297,8 @@ function build() {
         ...names.map(fileEntry),
       ],
       ...(cfg.docs ? { docs: cfg.docs } : {}),
-      meta: meta(name, cfg),
+      // Збірні елементи — кожен сам собі шар; `tools/*` — шар інструментів проекту.
+      meta: meta(cfg.layer ?? name, cfg),
     })
   }
   items.push(
@@ -567,6 +573,7 @@ function catalog(items) {
     "erp",
     "templates",
     "modules",
+    "tools",
   ]
     .map((layer) => {
       const r = rows(layer)

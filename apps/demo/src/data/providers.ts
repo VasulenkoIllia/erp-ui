@@ -2,18 +2,16 @@
  * Провайдери даних демо: клієнт API, ra-core dataProvider/authProvider/i18nProvider і QueryClient
  * (спільний для ra-core й панелі розробника). Компанію для X-Company-Id веде lib/company-scope кіта.
  */
-import { QueryClient } from "@tanstack/react-query"
 import type { i18n } from "i18next"
 
 import { createApiClient } from "@/registry/lib/api"
 import { getAppearance } from "@/registry/lib/appearance"
 import { createAuthProvider, ME_QUERY_KEY } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
+import { createQueryClient } from "@/registry/lib/query-client"
 import { createRaI18nProvider } from "@/registry/lib/ra-i18n"
 
-export const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
-})
+export const queryClient = createQueryClient()
 export const apiClient = createApiClient({
   getLanguage: () => getAppearance().language,
 })

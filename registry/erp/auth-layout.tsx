@@ -46,13 +46,17 @@ export function useErpAuthProvider(): ErpAuthProvider {
 
 export const AUTH_METHODS_QUERY_KEY = ["erp-ui", "auth-methods"] as const
 
-/** Що ввімкнено в проекті й бренд (`GET /auth/methods`); кеш на 5 хв. */
-export function useAuthMethods() {
+/**
+ * Що ввімкнено в проекті й бренд (`GET /auth/methods`); кеш на 5 хв. `enabled: false` — не
+ * запитувати (напр. `SessionGuard` зі своїм `idleMinutes`).
+ */
+export function useAuthMethods({ enabled = true }: { enabled?: boolean } = {}) {
   const provider = useErpAuthProvider()
   return useQuery({
     queryKey: AUTH_METHODS_QUERY_KEY,
     queryFn: () => provider.getMethods(),
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 
