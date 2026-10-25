@@ -11,12 +11,14 @@ import { useDateIssueText, DateInput } from "@/registry/erp/date-input"
 import { FormField, type FormControlProps } from "@/registry/erp/form"
 import { FormSelect, type FormSelectItem } from "@/registry/erp/form-select"
 import { NumberInput } from "@/registry/erp/number-input"
+import { RecordPicker } from "@/registry/erp/record-picker"
 import type {
   RecordFormItem,
   RecordFormItemChange,
 } from "@/registry/erp/record-form"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import {
+  listFilterOf,
   useExtensionFields,
   type ExtensionField,
   type ExtensionFieldValue,
@@ -31,6 +33,7 @@ import {
 } from "@/registry/lib/extension-form"
 import { mapKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { recordOptionTexts } from "@/registry/lib/record-label"
 import { Checkbox } from "@/registry/ui/checkbox"
 import {
   Field,
@@ -44,7 +47,8 @@ import { Input } from "@/registry/ui/input"
  * Поля розширення у формі модуля (ADR-0020, п. 2; ADR-0026).
  *
  * - Поле вводу кіта за типом: текст — `Input`, число — `NumberInput` (`decimals`), дата — `DateInput`,
- *   список — `Select` (у необов'язковому є «Не вказано»), так/ні — прапорець із підписом праворуч.
+ *   список — `Select` (у необов'язковому є «Не вказано»), так/ні — прапорець із підписом праворуч,
+ *   запис із довідника — `RecordPicker` з пошуком на сервері (у необов'язковому є «Очистити»).
  * - `useExtensionForm(fields, changes)` — поля у формі за `form.add`, схеми з текстами мовою
  *   інтерфейсу, значення форми з запису, значення для запиту й зміни списку полів форми модуля:
  *   нові поля (`RecordFormItem`) і підпис чи підказка поля модуля без заміни (`change`).
@@ -120,7 +124,40 @@ function ExtensionFieldInput({
           ref={ref}
         />
       )
+    case "record":
+      return (
+        <RecordInput
+          {...control}
+          field={field}
+          value={typeof value === "string" && value ? value : null}
+          onValueChange={onValueChange}
+          onBlur={onBlur}
+          ref={ref}
+        />
+      )
   }
+}
+
+/** Запис із довідника сервера: підпис і другий рядок — поля запису з опису поля. */
+function RecordInput({
+  field,
+  ...props
+}: Omit<ExtensionFieldInputProps, "name" | "field" | "value"> & {
+  field: Extract<ExtensionField, { type: "record" }>
+  value: string | null
+}) {
+  const { language } = useLanguage()
+  return (
+    <RecordPicker
+      {...props}
+      resource={field.resource}
+      label={localizedText(field.label, language) ?? field.id}
+      {...recordOptionTexts(field.labelField, field.descriptionField)}
+      filter={field.filter && listFilterOf(field.filter)}
+      required={field.required}
+      clearable={!field.required}
+    />
+  )
 }
 
 function OptionsInput({
@@ -230,7 +267,7 @@ export function useExtensionForm<K extends string>(
   const t = useErpUiT()
   const { language } = useLanguage()
   const dateIssue = useDateIssueText()
-  const { text } = useExtensionFields(allFields)
+  const { display } = useExtensionFields(allFields)
   return React.useMemo(() => {
     const fields = extensionFormFields(allFields, changes)
     const label = (value: LocalizedText | undefined) =>
@@ -254,8 +291,9 @@ export function useExtensionForm<K extends string>(
           changes?.add?.find((item) => item.id === id)?.description,
         ),
         wide: changes?.add?.find((item) => item.id === id)?.wide,
-        // Як у списку й картці: «Так», «Ні», підпис варіанта, дата мовою інтерфейсу.
-        text: (value) => text(field, value === "" ? null : value),
+        // Як у списку й картці: «Так», «Ні», підпис варіанта, дата мовою інтерфейсу, запис — підпис
+        // із сервера.
+        text: (value) => display(field, value === "" ? null : value),
         render: (props) =>
           field.type === "boolean" ? (
             <BooleanFormField
@@ -307,5 +345,5 @@ export function useExtensionForm<K extends string>(
           }),
         ),
     }
-  }, [allFields, changes, language, t, dateIssue, text])
+  }, [allFields, changes, language, t, dateIssue, display])
 }

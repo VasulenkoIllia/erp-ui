@@ -90,7 +90,7 @@ export function useExtendedRecordFields(
   return applyKeyedChanges(
     fields,
     mapKeyedChanges(extension.recordFields, (field) =>
-      extensionFields.entry(field, record),
+      extensionFields.displayEntry(field, record),
     ),
   )
 }

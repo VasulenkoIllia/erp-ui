@@ -131,6 +131,31 @@ export interface MockResourceOptions<T extends MockRecord> {
   unique?: readonly (keyof T & string)[]
 }
 
+/**
+ * Записи мок-ресурсів за `id` — для журналу полів «запис із довідника» (ADR-0030). Ключ — ресурс:
+ * останні створені обробники ресурсу (той самий `resource` з іншим `baseUrl`) заміняють попередні.
+ */
+const mockRecords = new Map<
+  string,
+  { find: (id: string) => MockRecord | undefined; titleField?: string }
+>()
+
+/**
+ * Назва запису мок-ресурсу за `id` з поля `field` (без нього — `titleField` ресурсу):
+ * `users`, `u-olena`, `name` → «Олена Коваль»; невідомий запис чи порожнє поле — `undefined`.
+ */
+export function mockRecordTitle(
+  resource: string,
+  id: string,
+  field?: string,
+): string | undefined {
+  const source = mockRecords.get(resource)
+  const key = field ?? source?.titleField
+  const title = key ? source?.find(id)?.[key] : undefined
+  if (typeof title === "number") return String(title)
+  return typeof title === "string" && title ? title : undefined
+}
+
 const uniqueKey = (value: unknown) =>
   typeof value === "string" ? value.trim().toLocaleLowerCase("uk") : value
 
@@ -278,6 +303,10 @@ export function createResourceHandlers<T extends MockRecord>({
     typeof data === "function" ? data() : structuredClone(data)
   let stored: T[] | null = null
   const all = () => (stored ??= seed())
+  mockRecords.set(resource, {
+    find: (id) => all().find((record) => record.id === id),
+    titleField,
+  })
   const replace = (next: T[]) => {
     stored = next
     sorted.clear()

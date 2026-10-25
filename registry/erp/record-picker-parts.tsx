@@ -16,7 +16,7 @@ import {
   type RecordById,
   type RecordSearch,
 } from "@/registry/hooks/use-record-search"
-import { errorStateKind } from "@/registry/lib/api"
+import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
@@ -58,6 +58,9 @@ function useValueText<T extends RaRecord>(
     return { label: t("recordPicker.loadingValue"), muted: true }
   if (current.isMissing)
     return { label: t("recordPicker.missing"), muted: true }
+  // Як підпис у списку й шапці (`RecordLabel`): немає права читати довідник — не «збій».
+  if (isApiError(current.error) && current.error.status === 403)
+    return { label: t("recordPicker.valueForbidden"), muted: true }
   return { label: t("recordPicker.valueError"), muted: true }
 }
 

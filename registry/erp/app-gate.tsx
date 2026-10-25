@@ -3,7 +3,11 @@ import { useAuthenticated, useLogout } from "ra-core"
 import { toast } from "sonner"
 
 import { useErpAuthProvider } from "@/registry/erp/auth-layout"
-import { LoadingFallback, PageState } from "@/registry/erp/page-state"
+import {
+  LoadingFallback,
+  PageState,
+  PageStateMain,
+} from "@/registry/erp/page-state"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { useMe } from "@/registry/hooks/use-me"
 import { errorStateKind } from "@/registry/lib/api"
@@ -54,7 +58,7 @@ export function SessionGate({
     (meQuery.isError || (meQuery.isFetching && meQuery.errorUpdateCount > 0))
   if (failed)
     return (
-      <main className="p-4 pt-24">
+      <PageStateMain>
         <PageState
           kind={
             errorStateKind(meQuery.error) === "offline" ? "offline" : "error"
@@ -66,7 +70,7 @@ export function SessionGate({
             if (!meQuery.isFetching) void meQuery.refetch()
           }}
         />
-      </main>
+      </PageStateMain>
     )
   if (!me || (isPending && !entered))
     return <LoadingFallback className="mt-24" />

@@ -23,6 +23,7 @@ export const enRecords = {
     loadingValue: "Loading…",
     missing: "Record not found",
     valueError: "Couldn't load the record",
+    valueForbidden: "No access",
     error: "Couldn't load the options",
     forbidden: "No access to this list",
     offline: "No connection to the server",

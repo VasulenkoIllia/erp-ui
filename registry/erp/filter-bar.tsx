@@ -18,6 +18,7 @@ import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { lazyWithPreload, whenIdle } from "@/registry/lib/lazy"
 import type { ListFilter } from "@/registry/lib/list-state"
+import { RecordLabels } from "@/registry/lib/record-label"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -369,7 +370,15 @@ function FilterChips({
           >
             <span className="truncate">
               <span className="text-muted-foreground">{`${definition.label}: `}</span>
-              {filterValueText(definition, draft, textFormat)}
+              {definition.kind === "record" && draft.kind === "record" ? (
+                <RecordLabels
+                  resource={definition.resource}
+                  labelField={definition.labelField}
+                  ids={draft.values}
+                />
+              ) : (
+                filterValueText(definition, draft, textFormat)
+              )}
             </span>
             <Button
               ref={(node) => {

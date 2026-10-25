@@ -23,6 +23,7 @@ export const ukRecords = {
     loadingValue: "Завантаження…",
     missing: "Запис не знайдено",
     valueError: "Не вдалося завантажити запис",
+    valueForbidden: "Немає доступу",
     error: "Не вдалося завантажити варіанти",
     forbidden: "Немає доступу до списку",
     offline: "Немає з'єднання з сервером",

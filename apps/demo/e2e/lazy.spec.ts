@@ -43,12 +43,26 @@ test.describe("збій лінивого завантаження", () => {
     ).toBeVisible()
     await expectNoA11yViolations(page)
 
+    // Повтор не вдався: кнопка зникла разом зі станом — фокус на h1 нового стану (WCAG 2.4.3).
+    await failure.getByRole("button", { name: "Спробувати ще" }).click()
+    await expect(
+      page.getByRole("button", { name: "Оновити сторінку" }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: "Не вдалося завантажити дані",
+      }),
+    ).toBeFocused()
+
     await page.context().unroute(DATA_CHUNK)
     await failure.getByRole("button", { name: "Спробувати ще" }).click()
     await expect(
       page.getByRole("grid", { name: "Рахунки клієнтам" }),
     ).toBeVisible()
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1)
+    // Вдалий повтор — фокус на h1 сторінки, а не на body.
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused()
   })
 
   test("екран входу не завантажився — h1 у <main>, «Спробувати ще» вантажить його", async ({
@@ -70,9 +84,10 @@ test.describe("збій лінивого завантаження", () => {
 
     await page.context().unroute(AUTH_CHUNK)
     await main.getByRole("button", { name: "Спробувати ще" }).click()
-    // Рамки стану вже немає: один <main> — екрана входу, один h1.
+    // Рамки стану вже немає: один <main> — екрана входу, один h1 — і фокус на ньому.
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Вхід")
     await expect(main).toHaveCount(1)
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused()
   })
 
   test("мова не завантажилась — українська, <html lang> чесний, повтор у сповіщенні", async ({

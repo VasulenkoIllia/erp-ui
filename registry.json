@@ -432,6 +432,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -1539,6 +1549,11 @@
           "target": "@hooks/use-element-size.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
@@ -1662,6 +1677,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
         },
         {
           "path": "registry/lib/extension-fields.ts",
@@ -1852,6 +1872,11 @@
           "path": "registry/lib/preferences.ts",
           "type": "registry:lib",
           "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -4405,10 +4430,159 @@
       }
     },
     {
+      "name": "lib/extension-field-types",
+      "type": "registry:lib",
+      "title": "Типи полів розширення",
+      "description": "Типи для lib/extension-fields: поле розширення (текст, число, дата, так/ні, список, запис із довідника), колонка, зміна колонки модуля, фільтр, вкладка, поле запису текстом (entry) і для шапки (displayEntry), опції журналу моків; unknownFieldType. Проект імпортує їх з lib/extension-fields (ADR-0020, ADR-0030).",
+      "dependencies": [
+        "@tanstack/react-table@^9.3.1",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§17",
+          "PF09"
+        ]
+      }
+    },
+    {
       "name": "lib/extension-fields",
       "type": "registry:lib",
       "title": "Поля розширення",
-      "description": "Нові поля запису даними (текст, число, дата, так/ні, список; підписи uk/en): схема контракту з ними (extendSchema), значення для моків (withMockValues), підписи й значення в журналі моків (extensionAuditOptions), значення з запису модуля (extensionValue), текст мовою інтерфейсу, колонка списку й поле шапки картки (useExtensionFields) (ADR-0020).",
+      "description": "Нові поля запису даними (текст, число, дата, так/ні, список, запис із довідника сервера; підписи uk/en): схема контракту з ними (extendSchema), значення для моків (withMockValues), підписи й значення в журналі моків (extensionAuditOptions, запис — назвою з довідника моків), значення з запису модуля (extensionValue), текст мовою інтерфейсу, колонка списку й поле шапки картки, запис — підписом із сервера (useExtensionFields), фільтр панелі (ADR-0020, ADR-0030).",
       "dependencies": [
         "@tanstack/react-table@^9.3.1",
         "i18next@^26.4.4",
@@ -4466,6 +4640,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
         },
         {
           "path": "registry/lib/extensions.ts",
@@ -4541,6 +4720,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -4643,6 +4827,11 @@
           "target": "@lib/dates.ts"
         },
         {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
+        },
+        {
           "path": "registry/lib/extension-fields.ts",
           "type": "registry:lib",
           "target": "@lib/extension-fields.ts"
@@ -4723,6 +4912,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -4786,7 +4980,7 @@
       "name": "lib/filters",
       "type": "registry:lib",
       "title": "Фільтри панелі",
-      "description": "Без React: опис фільтра FilterBar (варіанти, період, діапазон суми) і перетворення між значенням у формі та плоскими параметрами API, активні фільтри для чипів (ADR-0017).",
+      "description": "Без React: опис фільтра FilterBar (варіанти, період, діапазон суми, запис із довідника сервера) і перетворення між значенням у формі та плоскими параметрами API, активні фільтри для чипів (ADR-0017, ADR-0030).",
       "dependencies": [
         "ra-core@^5.15.4",
         "zod@^4.6.6"
@@ -8237,6 +8431,86 @@
       }
     },
     {
+      "name": "lib/record-label",
+      "type": "registry:lib",
+      "title": "Підпис запису з довідника",
+      "description": "RecordLabel: назва запису довідника сервера за id для колонки, шапки й чипа фільтра; підписи сторінки — одним запитом getMany (GET /<ресурс>?id=a&id=b); стани «Завантаження…», «Запис не знайдено», «Немає доступу» (403), «Не вдалося завантажити запис». recordOptionTexts — підпис і другий рядок варіанта вибору з полів запису (ADR-0030).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.2",
+          "§17",
+          "UI40",
+          "PF09"
+        ]
+      }
+    },
+    {
       "name": "lib/roles",
       "type": "registry:lib",
       "title": "Ролі й права",
@@ -9183,10 +9457,35 @@
       }
     },
     {
+      "name": "hooks/use-email-link-token",
+      "type": "registry:hook",
+      "title": "Токен із листа поза адресою",
+      "description": "useEmailLinkToken(screen): токен посилання з листа (новий пароль, запрошення, вхід за посиланням) — з ?token= адреси, далі геть із рядка адреси й записів історії вкладки (запис замінюється); поки екран змонтовано, живе в sessionStorage вкладки, тож оновлення сторінки форму не губить; перехід із екрана в застосунку його стирає, а clearEmailLinkTokens — вхід і екран входу, куди веде кожен вихід. Ставиться над межею помилок екрана. Роутер — через ra-core.",
+      "dependencies": [
+        "ra-core@^5.15.4"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "login",
+        "spec": [
+          "PF01",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-focus-heading",
       "type": "registry:hook",
       "title": "Фокус на h1 після переходу",
-      "description": "useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page.",
+      "description": "useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page. useFocusHeadingOnMount(heading): заголовок на місці зниклого вмісту (стан замість сторінки, екран входу після повтору чи виходу) бере фокус, коли фокус загубився.",
       "dependencies": [],
       "files": [
         {
@@ -10532,6 +10831,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -10810,6 +11119,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -11126,6 +11445,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -11390,6 +11719,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -11642,6 +11981,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -11921,6 +12270,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -12258,6 +12617,16 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -12493,6 +12862,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -12716,6 +13095,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -13163,6 +13552,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -13377,6 +13776,11 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/lib/announce.ts",
           "type": "registry:lib",
           "target": "@lib/announce.ts"
@@ -13499,6 +13903,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -13653,6 +14062,16 @@
           "path": "registry/hooks/use-company-profile.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -14940,6 +15359,11 @@
           "target": "@hooks/use-element-size.ts"
         },
         {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -15624,7 +16048,7 @@
       "name": "erp/error-boundary",
       "type": "registry:component",
       "title": "Межа помилок",
-      "description": "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць; рамка навколо стану помилки (`frame`: діалог лінивої форми).",
+      "description": "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць; рамка навколо стану помилки (`frame`: діалог лінивої форми); після невдалого повтору фокус — на заголовку нового стану (WCAG 2.4.3).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -15643,6 +16067,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -15729,7 +16158,7 @@
       "name": "erp/extension-field-input",
       "type": "registry:component",
       "title": "Поле розширення у формі",
-      "description": "Поле вводу кіта за типом поля розширення (текст, число, дата, список, так/ні прапорцем) і useExtensionForm — поля розширення як елементи форми модуля, підписи й підказки мовою інтерфейсу, зміна поля модуля без заміни (ADR-0020, ADR-0026).",
+      "description": "Поле вводу кіта за типом поля розширення (текст, число, дата, список, так/ні прапорцем, запис із довідника — erp/record-picker) і useExtensionForm — поля розширення як елементи форми модуля, підписи й підказки мовою інтерфейсу, зміна поля модуля без заміни (ADR-0020, ADR-0026).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -15789,14 +16218,34 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
           "path": "registry/erp/record-form.tsx",
           "type": "registry:component",
           "target": "@components/erp/record-form.tsx"
         },
         {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
         },
         {
           "path": "registry/hooks/use-company.ts",
@@ -15812,6 +16261,11 @@
           "path": "registry/hooks/use-record-form.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -15857,6 +16311,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
         },
         {
           "path": "registry/lib/extension-fields.ts",
@@ -15944,6 +16403,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -15999,6 +16463,11 @@
           "target": "@ui/checkbox.tsx"
         },
         {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
           "path": "registry/ui/dialog.tsx",
           "type": "registry:ui",
           "target": "@ui/dialog.tsx"
@@ -16037,6 +16506,11 @@
           "path": "registry/ui/separator.tsx",
           "type": "registry:ui",
           "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
         },
         {
           "path": "registry/ui/spinner.tsx",
@@ -16114,6 +16588,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -16304,9 +16788,10 @@
       "name": "erp/filter-bar",
       "type": "registry:component",
       "title": "Панель фільтрів",
-      "description": "FilterBar: пошук із паузою, «Фільтри» з лічильником (поповер на широкому контейнері, нижня шторка на телефоні), чипи активних фільтрів із «Прибрати» й «Скинути фільтри», місце для меню видів (UI03, ADR-0017).",
+      "description": "FilterBar: пошук із паузою, «Фільтри» з лічильником (поповер на широкому контейнері, нижня шторка на телефоні), чипи активних фільтрів із «Прибрати» й «Скинути фільтри» (фільтр за записом — назвою з сервера), місце для меню видів (UI03, ADR-0017, ADR-0030).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -16359,9 +16844,54 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -16372,6 +16902,26 @@
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
         },
         {
           "path": "registry/lib/company-scope.ts",
@@ -16429,6 +16979,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
@@ -16437,6 +16992,36 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -16452,6 +17037,11 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/badge.tsx",
@@ -16472,6 +17062,11 @@
           "path": "registry/ui/checkbox.tsx",
           "type": "registry:ui",
           "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
         },
         {
           "path": "registry/ui/empty.tsx",
@@ -16551,9 +17146,10 @@
       "name": "erp/filter-panel",
       "type": "registry:component",
       "title": "Форма фільтрів",
-      "description": "Частина erp/filter-bar: поля за описом фільтрів (варіанти, період, діапазон суми), «Застосувати» одним запитом, помилка діапазону біля поля. Ставиться разом з erp/filter-bar.",
+      "description": "Частина erp/filter-bar: поля за описом фільтрів (варіанти, період, діапазон суми, запис із довідника — вибір із пошуком на сервері), «Застосувати» одним запитом, помилка діапазону біля поля. Ставиться разом з erp/filter-bar.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -16591,9 +17187,69 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
           "path": "registry/lib/api.ts",
           "type": "registry:lib",
           "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
         },
         {
           "path": "registry/lib/company-scope.ts",
@@ -16651,9 +17307,44 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -16671,6 +17362,11 @@
           "target": "@lib/utils.ts"
         },
         {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
           "path": "registry/ui/button.tsx",
           "type": "registry:ui",
           "target": "@ui/button.tsx"
@@ -16684,6 +17380,11 @@
           "path": "registry/ui/checkbox.tsx",
           "type": "registry:ui",
           "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
         },
         {
           "path": "registry/ui/field.tsx",
@@ -16714,6 +17415,16 @@
           "path": "registry/ui/separator.tsx",
           "type": "registry:ui",
           "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
         },
         {
           "path": "registry/ui/textarea.tsx",
@@ -17027,6 +17738,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -17275,6 +17996,16 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -17826,6 +18557,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -18463,6 +19204,16 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -18685,6 +19436,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -19086,7 +19847,7 @@
       "name": "erp/page-state",
       "type": "registry:component",
       "title": "Стани сторінки",
-      "description": "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; рівень заголовка (h1 — стан замість сторінки, h3 — секції); PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
+      "description": "Порожньо вперше, нічого не знайдено, помилка з повтором, немає доступу, офлайн, не знайдено; рівень заголовка (h1 — стан замість сторінки, h3 — секції); стан замість сторінки бере фокус на h1, коли фокус загубився (WCAG 2.4.3); PageStateMain — <main> для стану поза оболонкою; PageSkeleton для завантаження; LoadingFallback для лінивих частин (оголошення через постійний live-регіон після 1 с).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -19100,6 +19861,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -19208,6 +19974,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -19848,6 +20624,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -20136,6 +20922,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -21171,6 +21967,16 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -21434,6 +22240,16 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -21862,6 +22678,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-list-state.ts",
           "type": "registry:hook",
           "target": "@hooks/use-list-state.ts"
@@ -22087,6 +22908,16 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -22347,6 +23178,16 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -22543,6 +23384,16 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -23428,6 +24279,16 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -23843,6 +24704,16 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -24161,6 +25032,11 @@
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -24488,6 +25364,21 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
           "path": "registry/erp/saved-view-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/saved-view-dialog.tsx"
@@ -24508,6 +25399,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
@@ -24516,6 +25412,11 @@
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -24541,6 +25442,11 @@
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
         },
         {
           "path": "registry/hooks/use-row-selection.ts",
@@ -24713,6 +25619,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -24786,6 +25697,11 @@
           "path": "registry/ui/checkbox.tsx",
           "type": "registry:ui",
           "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
         },
         {
           "path": "registry/ui/dialog.tsx",
@@ -24909,6 +25825,11 @@
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-tab-in-view.ts",
@@ -25043,6 +25964,11 @@
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",

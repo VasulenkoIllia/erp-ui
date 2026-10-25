@@ -14,9 +14,15 @@ import {
   type AuthPaths,
 } from "@/registry/erp/auth-layout"
 import type { CaptchaRenderer } from "@/registry/erp/captcha"
+import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoginScreen } from "@/registry/erp/login-screen"
+import { PageStateMain } from "@/registry/erp/page-state"
 import { SignUpScreen } from "@/registry/erp/sign-up-screen"
 import { useAppearance } from "@/registry/hooks/use-appearance"
+import {
+  useEmailLinkToken,
+  type EmailLinkScreen as EmailLinkScreenId,
+} from "@/registry/hooks/use-email-link-token"
 import { LANGUAGES, type Language } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { Button } from "@/registry/ui/button"
@@ -38,7 +44,7 @@ import {
   type DemoBrand,
 } from "@/mocks/brands"
 import { MOCK_USERS } from "@/mocks/users"
-import { AUTH_ROUTES, ROUTES, useSearchParam, type AuthRoute } from "@/router"
+import { AUTH_ROUTES, ROUTES, type AuthRoute } from "@/router"
 
 import { MockSsoPage } from "./MockSsoPage"
 
@@ -157,6 +163,37 @@ function BrandSelect() {
   )
 }
 
+const EMAIL_LINK_SCREENS = {
+  reset: ResetPasswordScreen,
+  invite: AcceptInviteScreen,
+  link: EmailLinkScreen,
+}
+
+/**
+ * Екран за посиланням із листа: токен поза адресою й історією, як у createAuthRoutes кіта. Своя межа
+ * помилок — під хуком: помилка екрана й «Спробувати ще» не стирають токен із вкладки.
+ */
+function EmailLinkPage({
+  screen,
+  ...props
+}: {
+  screen: EmailLinkScreenId
+  footer: React.ReactNode
+  paths: AuthPaths
+  afterLogin: string
+}) {
+  const token = useEmailLinkToken(screen)
+  const Screen = EMAIL_LINK_SCREENS[screen]
+  return (
+    <ErrorBoundary
+      headingLevel={1}
+      frame={(content) => <PageStateMain>{content}</PageStateMain>}
+    >
+      <Screen {...props} token={token} />
+    </ErrorBoundary>
+  )
+}
+
 const HINTS: Record<string, "accountant" | "sales" | "temporary"> = {
   "u-olena": "accountant",
   "u-ivan": "sales",
@@ -176,7 +213,6 @@ export function AuthPage({
   devPanel: React.ReactNode
 }) {
   const { t } = useTranslation("demo", { keyPrefix: "authDemo" })
-  const token = useSearchParam("token")
   const [prefill, setPrefill] = useState<{
     key: number
     email: string
@@ -198,11 +234,9 @@ export function AuthPage({
     case "forgot":
       return <ForgotPasswordScreen {...common} renderCaptcha={demoCaptcha} />
     case "reset":
-      return <ResetPasswordScreen {...common} token={token} />
     case "invite":
-      return <AcceptInviteScreen {...common} token={token} />
     case "link":
-      return <EmailLinkScreen {...common} token={token} />
+      return <EmailLinkPage {...common} screen={screen} />
     case "signUp":
       return (
         <SignUpScreen

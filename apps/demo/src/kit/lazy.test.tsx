@@ -99,6 +99,33 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     expect(
       await screen.findByRole("button", { name: "Оновити сторінку" }),
     ).toBeVisible()
+    // Кнопка повтору зникла разом зі станом — фокус на заголовку нового стану, а не на body.
+    expect(
+      screen.getByRole("heading", { name: "Не вдалося завантажити дані" }),
+    ).toHaveFocus()
+    consoleError.mockRestore()
+  })
+
+  it("помилка повторилась одразу під час повтору — фокус на заголовку стану, а не на кнопці (A2a)", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined)
+    const Broken = (): React.ReactNode => {
+      throw new Error("render")
+    }
+    await renderAsync(
+      <ErrorBoundary headingLevel={2}>
+        <Broken />
+      </ErrorBoundary>,
+    )
+    const retry = screen.getByRole("button", { name: "Спробувати ще" })
+    await act(async () => {
+      await userEvent.click(retry)
+    })
+    // Стан той самий (кнопка лишилась), тож без фокуса на заголовку скрінрідер нічого не сказав би.
+    expect(
+      screen.getByRole("heading", { name: "Не вдалося завантажити дані" }),
+    ).toHaveFocus()
     consoleError.mockRestore()
   })
 

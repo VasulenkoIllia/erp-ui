@@ -203,7 +203,7 @@ function useContactHeader(
     fields: applyKeyedChanges(
       fields,
       mapKeyedChanges(extension.contacts?.recordFields, (field) =>
-        extensionFields.entry(field, contact),
+        extensionFields.displayEntry(field, contact),
       ),
     ),
     actions: applyKeyedChanges(actions, slotActions),

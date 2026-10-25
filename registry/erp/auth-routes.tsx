@@ -1,10 +1,15 @@
 import * as React from "react"
-import { useSearchParams, type RouteObject } from "react-router"
+import type { RouteObject } from "react-router"
 
 import { AUTH_PATHS, type AuthPaths } from "@/registry/erp/auth-layout"
 import type { CaptchaRenderer } from "@/registry/erp/captcha"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import { LoadingFallback } from "@/registry/erp/page-state"
+import { LoadingFallback, PageStateMain } from "@/registry/erp/page-state"
+import {
+  clearEmailLinkTokens,
+  useEmailLinkToken,
+  type EmailLinkScreen,
+} from "@/registry/hooks/use-email-link-token"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 
 /**
@@ -19,6 +24,7 @@ import { lazyWithPreload } from "@/registry/lib/lazy"
  * - Кожен екран — у своїй межі помилок: чанк, що не завантажився (офлайн, застарілий після деплою),
  *   покаже «Спробувати ще» з h1, а не білий екран.
  * - Вхід — завжди `/login`: туди ra-core веде гостя й після виходу, тож цю адресу не змінюють.
+ * - Екран входу стирає токени листів у вкладці (`clearEmailLinkTokens`): сюди веде кожен вихід.
  *
  *   const auth = useMemo(() => createAuthRoutes({ afterLogin: "/crm/contacts", title: t("app.name") }), [t])
  *   const page = useRoutes([...auth.routes, { path: "*", element: <SessionGate><Shell /></SessionGate> }])
@@ -79,8 +85,6 @@ export interface AuthRoutes {
   readonly preload: (pathname?: string) => void
 }
 
-type TokenScreen = "reset" | "invite" | "link"
-
 interface ScreenCommon {
   logo?: React.ReactNode
   footer?: React.ReactNode
@@ -88,30 +92,49 @@ interface ScreenCommon {
   afterLogin?: string
 }
 
-/** Екран за посиланням із листа: токен — з `?token=` адреси. */
+/** Межа помилок і завантаження екрана входу. */
+function ScreenBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary
+      headingLevel={1}
+      frame={(content) => <PageStateMain>{content}</PageStateMain>}
+    >
+      <React.Suspense fallback={<LoadingFallback className="mt-24" />}>
+        {children}
+      </React.Suspense>
+    </ErrorBoundary>
+  )
+}
+
+/**
+ * Екран за посиланням із листа: токен — з `?token=` адреси, далі поза нею (`useEmailLinkToken`).
+ * Хук — над межею помилок: адреса чиста, поки чанк вантажиться, а помилка екрана токен не стирає.
+ */
 function TokenRoute({
   screen,
   ...props
-}: ScreenCommon & { screen: TokenScreen }) {
-  const [search] = useSearchParams()
+}: ScreenCommon & { screen: EmailLinkScreen }) {
+  const token = useEmailLinkToken(screen)
   const Screen = SCREENS[screen]
-  return <Screen {...props} token={search.get("token")} />
+  return (
+    <ScreenBoundary>
+      <Screen {...props} token={token} />
+    </ScreenBoundary>
+  )
+}
+
+/** Екран входу стирає токени листів: сюди веде кожен вихід (кнопка, таймер, 401, інша вкладка). */
+function ClearEmailLinkTokens() {
+  React.useEffect(() => {
+    clearEmailLinkTokens()
+  }, [])
+  return null
 }
 
 /** Екран за адресою: своя межа помилок (ключ — адреса, щоб помилка не переходила на інший екран). */
 const screenAt = (path: string, screen: React.ReactNode): RouteObject => ({
   path,
-  element: (
-    <ErrorBoundary
-      key={path}
-      headingLevel={1}
-      frame={(content) => <main className="p-4 pt-24">{content}</main>}
-    >
-      <React.Suspense fallback={<LoadingFallback className="mt-24" />}>
-        {screen}
-      </React.Suspense>
-    </ErrorBoundary>
-  ),
+  element: <ScreenBoundary key={path}>{screen}</ScreenBoundary>,
 })
 
 export function createAuthRoutes({
@@ -137,17 +160,22 @@ export function createAuthRoutes({
       callback: paths.callback,
     },
   }
-  const token = (screen: TokenScreen) =>
-    screenAt(paths[screen], <TokenRoute {...common} screen={screen} />)
+  const token = (screen: EmailLinkScreen): RouteObject => ({
+    path: paths[screen],
+    element: <TokenRoute key={paths[screen]} {...common} screen={screen} />,
+  })
   const routes: RouteObject[] = [
     screenAt(
       paths.login,
-      <SCREENS.login
-        {...common}
-        title={title}
-        description={description}
-        renderCaptcha={renderCaptcha}
-      />,
+      <>
+        <ClearEmailLinkTokens />
+        <SCREENS.login
+          {...common}
+          title={title}
+          description={description}
+          renderCaptcha={renderCaptcha}
+        />
+      </>,
     ),
     screenAt(
       paths.forgot,

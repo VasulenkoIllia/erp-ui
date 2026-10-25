@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { useFocusHeadingOnMount } from "@/registry/hooks/use-focus-heading"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
@@ -34,6 +35,10 @@ import { Spinner } from "@/registry/ui/spinner"
  *   для `no-results` — `onReset` дають стандартні кнопки.
  * - Порожній стан ніколи не підміняє помилку: показуйте `error`, якщо дані не завантажились.
  * - Помилка й офлайн оголошуються скрінрідеру (role="alert"), решта — ні.
+ * - Стан замість усієї сторінки (h1) бере фокус на заголовок, коли фокус загубився разом зі зниклим
+ *   вмістом (`useFocusHeadingOnMount`, WCAG 2.4.3); `focusHeading` — так само для іншого рівня;
+ *   `headingRef` — заголовок для фокусу ззовні (межа помилок після невдалого повтору).
+ * - `PageStateMain` — `<main>` для стану на місці сторінки поза оболонкою (вхід, брама сесії).
  */
 export type PageStateKind =
   "empty" | "no-results" | "error" | "forbidden" | "offline" | "not-found"
@@ -93,6 +98,12 @@ export interface PageStateProps {
    * усієї сторінки («не знайдено», профіль не завантажився); 3 — стан секції чи вкладки під h2.
    */
   headingLevel?: 1 | 2 | 3
+  /**
+   * Фокус на заголовок при появі, якщо фокус загубився; за замовчуванням — для h1 (стан замість
+   * сторінки).
+   */
+  focusHeading?: boolean
+  headingRef?: React.RefObject<HTMLHeadingElement | null>
   className?: string
 }
 
@@ -105,6 +116,8 @@ export function PageState({
   onRetry,
   onReset,
   headingLevel = 2,
+  focusHeading = headingLevel === 1,
+  headingRef,
   className,
 }: PageStateProps) {
   const t = useErpUiT()
@@ -112,6 +125,10 @@ export function PageState({
   const Heading = HEADINGS[headingLevel]
   const Icon = icon ?? config.icon
   const announce = kind === "error" || kind === "offline"
+  const ownHeading = React.useRef<HTMLHeadingElement>(null)
+  const heading = headingRef ?? ownHeading
+  const focusable = focusHeading || Boolean(headingRef)
+  useFocusHeadingOnMount(heading, focusHeading)
   return (
     <Empty
       data-slot="page-state"
@@ -130,7 +147,13 @@ export function PageState({
           <Icon aria-hidden />
         </EmptyMedia>
         <EmptyTitle>
-          <Heading>{title ?? t(config.title)}</Heading>
+          <Heading
+            ref={heading}
+            tabIndex={focusable ? -1 : undefined}
+            className={focusable ? "focus-visible:outline-none" : undefined}
+          >
+            {title ?? t(config.title)}
+          </Heading>
         </EmptyTitle>
         <EmptyDescription>
           {description ?? t(config.description)}
@@ -162,6 +185,20 @@ export function PageState({
         </EmptyContent>
       ) : null}
     </Empty>
+  )
+}
+
+/**
+ * Стан на місці всієї сторінки поза оболонкою (екран входу не завантажився, профіль не прийшов):
+ * `<main>` з відступом під стан. В оболонці стан стоїть у її `<main>`, рамка не потрібна.
+ *
+ *   <ErrorBoundary headingLevel={1} frame={(content) => <PageStateMain>{content}</PageStateMain>}>
+ */
+export function PageStateMain({ children }: { children: React.ReactNode }) {
+  return (
+    <main data-slot="page-state-main" className="p-4 pt-24">
+      {children}
+    </main>
   )
 }
 

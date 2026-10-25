@@ -41,13 +41,40 @@ export function useFocusHeadingOnNavigation(
   useEffect(() => {
     if (!ready || handled.current === location) return
     handled.current = location
-    const active = document.activeElement
-    if (
-      active &&
-      active !== document.body &&
-      active !== activeAtNavigation.current
-    )
+    if (!isFocusLost() && document.activeElement !== activeAtNavigation.current)
       return
     heading.current?.focus()
   }, [heading, location, ready])
+}
+
+/** Фокус загубився: елемент у фокусі зник зі сторінки, і браузер поставив фокус на body. */
+export function isFocusLost(): boolean {
+  const active = document.activeElement
+  return !active || active === document.body
+}
+
+/**
+ * Заголовок, що з'являється на місці зниклого вмісту, — фокус на ньому (WCAG 2.4.3): стан замість
+ * сторінки (`PageState` з h1), стан помилки після невдалого «Спробувати ще», екран входу після
+ * вдалого повтору чи виходу. Без цього фокус лишається на body разом зі зниклою кнопкою.
+ *
+ * - Лише при появі (монтуванні) і лише коли фокус загубився: фокус, який людина поставила деінде,
+ *   лишається. Заголовку потрібен `tabIndex={-1}`.
+ * - Перший екран сесії не чіпає, як і `useFocusHeadingOnNavigation`, і сам позначає його показаним.
+ * - `enabled: false` — нічого не робить і перший екран не позначає.
+ */
+export function useFocusHeadingOnMount(
+  heading: RefObject<HTMLElement | null>,
+  enabled = true,
+): void {
+  const enabledAtMount = useRef(enabled)
+  // Рішення — один раз на екземпляр: повторний запуск ефекту в StrictMode бачив би `started` уже
+  // позначеним і забирав фокус на першому екрані.
+  const firstScreen = useRef<boolean | null>(null)
+  useEffect(() => {
+    if (!enabledAtMount.current) return
+    firstScreen.current ??= !started
+    started = true
+    if (!firstScreen.current && isFocusLost()) heading.current?.focus()
+  }, [heading])
 }

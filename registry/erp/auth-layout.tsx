@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthProvider, useLocation, useNavigate } from "ra-core"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
+import { clearEmailLinkTokens } from "@/registry/hooks/use-email-link-token"
+import { useFocusHeadingOnMount } from "@/registry/hooks/use-focus-heading"
 import { isApiError } from "@/registry/lib/api"
 import { setBrandAppearance, type Palette } from "@/registry/lib/appearance"
 import {
@@ -216,8 +218,9 @@ export function useAfterLogin(fallback = "/") {
   const queryClient = useQueryClient()
   const target = useLoginTarget(fallback)
   return React.useCallback(() => {
-    // Права й доступи попереднього користувача більше не дійсні.
+    // Права й доступи попереднього користувача більше не дійсні, токени листів у вкладці — теж.
     void queryClient.invalidateQueries({ queryKey: ["auth"] })
+    clearEmailLinkTokens()
     navigate(target, { replace: true })
   }, [navigate, queryClient, target])
 }
@@ -257,7 +260,8 @@ export function useAuthErrorText(): (error: unknown) => string {
 
 /**
  * Картка екрана входу. Заголовок (h1) отримує фокус, коли змінюється крок (`title`), —
- * скрінрідер чує новий крок, а не мовчить.
+ * скрінрідер чує новий крок, а не мовчить; і коли екран з'являється на місці зниклого вмісту
+ * (після виходу, після вдалого «Спробувати ще»), а фокус загубився (`useFocusHeadingOnMount`).
  *
  * Бренд (`GET /auth/methods` → `branding`): логотип над карткою, палітра, бічна панель на широких
  * екранах, посилання на документи й підтримку; назва бренду — у заголовку вкладки.
@@ -284,6 +288,7 @@ export function AuthLayout({
 }) {
   const heading = React.useRef<HTMLHeadingElement>(null)
   const first = React.useRef(true)
+  useFocusHeadingOnMount(heading)
   const brand = useBranding()
   const branding = branded ? brand : undefined
   useBrandAppearance()

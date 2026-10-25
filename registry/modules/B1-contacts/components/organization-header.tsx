@@ -97,7 +97,7 @@ export function useOrganizationHeader(
     fields: applyKeyedChanges(
       fields,
       mapKeyedChanges(extension.organizations?.recordFields, (field) =>
-        extensionFields.entry(field, organization),
+        extensionFields.displayEntry(field, organization),
       ),
     ),
     actions: applyKeyedChanges(actions, slotActions),

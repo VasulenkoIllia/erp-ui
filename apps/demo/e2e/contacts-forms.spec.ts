@@ -80,6 +80,7 @@ test.describe("B1: форми", () => {
       "email",
       "city",
       "segments",
+      "manager",
     ])
     await expect(
       form.getByRole("textbox", { name: "Місто" }),

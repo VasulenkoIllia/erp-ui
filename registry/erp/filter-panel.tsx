@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { DateRangeInput } from "@/registry/erp/date-range-input"
 import { MoneyInput } from "@/registry/erp/number-input"
+import { RecordPicker } from "@/registry/erp/record-picker"
 import {
   clearFilters,
   filterIssue,
@@ -12,6 +13,7 @@ import {
 } from "@/registry/lib/filters"
 import { useErpUiT } from "@/registry/lib/i18n"
 import type { ListFilter } from "@/registry/lib/list-state"
+import { recordOptionTexts } from "@/registry/lib/record-label"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
 import {
@@ -30,6 +32,7 @@ import {
  * - «Застосувати» — один запит до сервера на всі зміни; «Очистити» лише спорожнює поля.
  * - Діапазон, у якому початок більший за кінець, не застосовується: помилка біля поля, фокус на
  *   ньому (SPEC §8.3, кнопка не вимикається).
+ * - Запис із довідника — вибір запису з пошуком на сервері (`erp/record-picker`), один запис.
  */
 
 type Drafts = Record<string, FilterDraft>
@@ -165,6 +168,29 @@ function FilterControl({
           })}
         </div>
       </FieldSet>
+    )
+  }
+
+  if (definition.kind === "record" && draft.kind === "record") {
+    return (
+      <Field>
+        <FieldLabel htmlFor={ids}>{definition.label}</FieldLabel>
+        <RecordPicker
+          id={ids}
+          resource={definition.resource}
+          label={definition.label}
+          value={draft.values[0] ?? null}
+          onValueChange={(id) => {
+            onChange({ kind: "record", values: id ? [id] : [] })
+          }}
+          {...recordOptionTexts(
+            definition.labelField,
+            definition.descriptionField,
+          )}
+          filter={definition.filter}
+          clearable
+        />
+      </Field>
     )
   }
 

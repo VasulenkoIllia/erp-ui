@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { PageState, type PageStateProps } from "@/registry/erp/page-state"
+import { isFocusLost } from "@/registry/hooks/use-focus-heading"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ChunkLoadError } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
@@ -18,6 +19,11 @@ import { Button } from "@/registry/ui/button"
  * - `frame` — рамка навколо стану помилки за замовчуванням: лінива форма в діалозі показує її в
  *   діалозі зі своєю назвою, а повтор і «Оновити сторінку» лишаються від межі.
  * - `headingLevel` — рівень заголовка стану помилки (`PageState`): 1 — межа на місці всієї сторінки.
+ * - Фокус після «Спробувати ще» (WCAG 2.4.3): невдалий повтор ставить фокус на заголовок стану
+ *   помилки будь-якого рівня — і коли кнопка зникла разом зі станом (чанк не завантажився вдруге),
+ *   і коли помилка повторилась одразу (стан той самий, інакше скрінрідер нічого б не сказав).
+ *   Вдалий повтор лишає фокус вмісту — сторінки шаблонів і екрани входу ставлять його на свій h1
+ *   (`hooks/use-focus-heading`).
  *
  *   <ErrorBoundary key={pathname}><Suspense fallback={<PageSkeleton />}><Page /></Suspense></ErrorBoundary>
  */
@@ -57,7 +63,24 @@ export class ErrorBoundary extends React.Component<
     this.props.onError?.(error, info)
   }
 
+  /** Заголовок стану помилки за замовчуванням: на нього фокус після невдалого повтору. */
+  private heading = React.createRef<HTMLHeadingElement>()
+  private retried = false
+
+  override componentDidUpdate(
+    _props: ErrorBoundaryProps,
+    previous: ErrorBoundaryState,
+  ) {
+    if (!this.state.failed || !this.retried) return
+    this.retried = false
+    // Помилка під час самого повтору лишає стан на місці (фокус на кнопці, той самий alert) —
+    // заголовок у фокусі каже, що повтор не вдався. Після завантаження (чанк) стан новий, кнопка
+    // зникла, і фокус загубився.
+    if (previous.failed || isFocusLost()) this.heading.current?.focus()
+  }
+
   retry = () => {
+    this.retried = true
     const { error } = this.state
     if (error instanceof ChunkLoadError) error.retry()
     this.setState(({ retries }) => ({
@@ -76,6 +99,7 @@ export class ErrorBoundary extends React.Component<
         kind={navigator.onLine ? "error" : "offline"}
         onRetry={this.retry}
         headingLevel={this.props.headingLevel}
+        headingRef={this.heading}
         action={
           error instanceof ChunkLoadError && retries > 0 ? (
             <ReloadButton />

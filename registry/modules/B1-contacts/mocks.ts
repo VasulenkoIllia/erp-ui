@@ -13,7 +13,7 @@
 import { z } from "zod"
 
 import { extensionAuditOptions, withMockValues } from "@/lib/extension-fields"
-import { createResourceHandlers } from "@/lib/mocks"
+import { createResourceHandlers, mockRecordTitle } from "@/lib/mocks"
 import type { ExtensionStatusChanges } from "@/lib/statuses"
 import { formatIban, normalizeIban, validateUaId } from "@/lib/ua-ids"
 
@@ -173,14 +173,16 @@ export function createContactsMocks({
   const fixtures = (): ContactsFixtures =>
     createContactsFixtures(fixtureOptions)
   const locale = fixtureOptions.locale ?? "uk"
-  // Поля розширення в журналі — підписом і значенням зі списку, а не ключем.
+  // Поля розширення в журналі — підписом, значенням зі списку й назвою запису довідника, а не ключем.
   const organizationAudit = extensionAuditOptions(
     locale,
     extension?.organizations?.fields,
+    mockRecordTitle,
   )
   const contactAudit = extensionAuditOptions(
     locale,
     extension?.contacts?.fields,
+    mockRecordTitle,
   )
   // Адреси й рахунки — у записі організації: PATCH змінює їх разом із версією (ADR-0028).
   const organizationsWithDetail = () => {

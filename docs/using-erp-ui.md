@@ -358,6 +358,14 @@ export const invoicesExtension: InvoicesExtension = {
 - Зміни списку (`lib/extensions`): `add` — новий елемент на місці `place` (`"start"`, `"end"`, `{ before: "…" }`, `{ after: "…" }`; без нього — у кінець), `hide` — сховати, `move` — переставити. Ключі модуля в `hide`, `move` і `place` типізовані: модуль перейменував ключ — TypeScript покаже місце у файлі розширення. Ключ модуля в `add` — заміна його секції чи дії; номер-посилання й обов'язкові поля модуль закріплює (`locked`): їх не сховати й не замінити.
 - Розширення — дані (тип поля, підпис `{ uk, en }`, обов'язковість, значення для моків), крім компонентів у слотах: секція й дія отримують `{ record, resource }` (тип з `templates/object-page`), поле розширення беруть через `extensionValue(record, "manager")`, права — з `useCanAccess`, мову — з `useLanguage`; дія з `access` (`"edit"`, не `"invoices:edit"`) видна лише з правом. Компонент, що впав, не валить картку: секція покаже помилку з повтором, дія зникне. Так ті самі зміни зможе прислати сервер (PF09).
 - Нові поля проходять перевірку: модуль розбирає відповіді схемою `extendSchema(контракт, fields)`, моки — теж, а фікстури отримують значення з `withMockValues` (`lib/extension-fields`). Моки імпортують лише файл полів: компоненти слотів у шарі моків роздувають перший екран.
+- Зв'язок з іншим записом сервера — поле `type: "record"` (ADR-0030), а не список імен у коді: новий працівник з'являється у виборі без нової версії проекту. У записі — `id`, назву колонка, шапка (`displayEntry`) і чип фільтра беруть із сервера одним запитом на сторінку (`GET /users?id=a&id=b`), форма — вибір із пошуком на сервері, у журналі моків — назва (`extensionAuditOptions(locale, fields, mockRecordTitle)`). `entry()` і `text()` дають `id` — для тексту, а не для показу. Хто не має права читати довідник, бачить «Немає доступу», а не помилку сторінки:
+
+  ```ts
+  { id: "manager", type: "record", label: { uk: "Відповідальний менеджер", en: "Account manager" },
+    resource: "users", labelField: "name", descriptionField: "email",
+    filter: { status: "active" },               // постійні умови довідника, необов'язково
+    mockValues: ["u-olena", "u-ivan", null] }   // id записів довідника моків
+  ```
 - Бракує точки розширення — її додають у кіт (PR в erp-ui), проект оновлює модуль. Аварійний вихід — «від'єднати» модуль: скопіювати під іншою назвою й більше не оновлювати з кіта (рішення — у README проекту).
 - Приклад — `src/extensions/K2-invoices.ts` у демо: рахунки «Даних і моків» з колонкою й полем «Менеджер», секцією «Умови оплати» і дією «Нагадати клієнту»; точки розширення модуля-прикладу — `src/pages/invoice-extension.ts`.
 
@@ -458,9 +466,9 @@ const auth = createAuthRoutes({ afterLogin: "/", afterSignUp: "/onboarding", tit
 // auth.routes — лінивими чанками:
 // /login          → LoginScreen
 // /login/forgot   → ForgotPasswordScreen
-// /login/reset    → ResetPasswordScreen (token з адреси)
-// /login/invite   → AcceptInviteScreen (token з адреси)
-// /login/link     → EmailLinkScreen (token з адреси)
+// /login/reset    → ResetPasswordScreen (token з листа)
+// /login/invite   → AcceptInviteScreen (token з листа)
+// /login/link     → EmailLinkScreen (token з листа)
 // /signup         → SignUpScreen
 // /auth/callback  → SsoCallbackScreen
 
@@ -470,6 +478,10 @@ useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
 ```
 
 `auth.preload()` без адреси вантажить екран входу, `auth.preload(pathname)` — екран для адреси (напр. гість відкрив посилання з листа `/login/reset?token=…`: чанк цього екрана ще до першого рендеру).
+
+Токен із листа (`?token=…`) екран одразу прибирає з рядка адреси й записів історії вкладки (адреса замінюється) і тримає у вкладці (`sessionStorage`), поки екран відкрито: оновлення сторінки його не губить і в адресу не повертає; перехід з екрана, вхід і вихід його стирають (ADR-0030). Свій екран з токеном — через `useEmailLinkToken("reset" | "invite" | "link")` з `hooks/use-email-link-token` над межею помилок екрана, а не `useSearchParams`.
+
+Перший запит сторінки з токеном JS не прибере. З hash-роутером (`/#/login/reset?token=…`) частина після `#` на сервер і в `Referer` не йде. З роутером на шляхах (`/login/reset?token=…`) — заголовок `Referrer-Policy: no-referrer` на HTML-відповіді й маскування параметра `token` у журналах сервера, проксі й CDN; аналітику й моніторинг — ініціалізувати так, щоб адреса з `token` у них не потрапляла.
 
 - Інші адреси — `createAuthRoutes({ paths: { forgot: "/password/forgot" } })` (`AUTH_ROUTE_PATHS` — усі за замовчуванням). Вхід — завжди `/login`: туди ra-core веде гостя й після виходу. Кожен екран — у своїй межі помилок (чанк, що не завантажився, — «Спробувати ще» з h1). Після входу — туди, звідки ra-core перенаправив, або `afterLogin`. Логотип, підвал і своя перевірка «не бот» замість Turnstile — `logo`, `footer`, `renderCaptcha`.
 - Моки за замовчуванням вмикають усі способи входу (`DEFAULT_MOCK_METHODS`). Проект, де змонтовано лише `/login`, передає в `createPlatformHandlers` `methods: { passwordless: [], providers: [], passwordReset: false, signUp: false }`, інакше екран входу веде на сторінки, яких немає.

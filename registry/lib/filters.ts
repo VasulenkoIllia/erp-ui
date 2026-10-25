@@ -5,6 +5,10 @@
  * - `options` — кілька значень зі списку: `client=A&client=B` («одне з»).
  * - `date-range` — період календарних дат: `date_gte=2026-01-01&date_lte=2026-03-31`.
  * - `money-range` — сума в мінорних одиницях: `amount_gte=1000000` (10 000,00 ₴).
+ * - `record` — запис із довідника сервера за `id`: `accountant=u-olena` (вибір з пошуком на
+ *   сервері, кілька — «одне з», з адреси — не більше `MAX_RECORD_VALUES`); підпис чипа — з сервера
+ *   (`RecordLabel`, `lib/record-label`). Панель вибирає один запис; кілька з адреси чи виду чип
+ *   показує всі, а новий вибір у панелі їх заміняє.
  * - Значення з адреси, які не розібрати (`amount_gte=abc`, сума поза безпечним цілим), ігноруються:
  *   фільтр неактивний, і в запит до API вони не йдуть (`normalizeFilter`).
  */
@@ -37,10 +41,22 @@ export type FilterDefinition =
       /** Валюта підпису поля й чипа (ISO 4217); суми — у мінорних одиницях. */
       currency: string
     })
+  | (FilterBase & {
+      kind: "record"
+      /** Ресурс API довідника: `users`. */
+      resource: string
+      /** Поле запису з назвою: `name`. */
+      labelField: string
+      /** Другий рядок варіанта: `email`. */
+      descriptionField?: string
+      /** Постійні умови довідника: лише активні. */
+      filter?: ListFilter
+    })
 
 /** Значення фільтра у формі панелі. */
 export type FilterDraft =
   | { kind: "options"; values: string[] }
+  | { kind: "record"; values: string[] }
   | { kind: "date-range"; from: CalendarDate | null; to: CalendarDate | null }
   | { kind: "money-range"; from: number | null; to: number | null }
 
@@ -48,10 +64,12 @@ const GTE = "_gte"
 const LTE = "_lte"
 /** Пошук рядком: `q=агро`. */
 const SEARCH = "q"
+/** Скільки записів довідника фільтр бере з адреси. */
+export const MAX_RECORD_VALUES = 50
 
 /** Ключі параметрів, які займає фільтр. */
 export function filterKeys(definition: FilterDefinition): string[] {
-  return definition.kind === "options"
+  return definition.kind === "options" || definition.kind === "record"
     ? [definition.field]
     : [definition.field + GTE, definition.field + LTE]
 }
@@ -83,12 +101,22 @@ export function readFilter(
 ): FilterDraft {
   const { field } = definition
   switch (definition.kind) {
-    case "options": {
+    case "options":
+    case "record": {
       const raw = filter[field]
-      const values = (Array.isArray(raw) ? raw : [raw])
-        .filter((item) => item !== undefined && item !== null && item !== "")
-        .map(String)
-      return { kind: "options", values: [...new Set(values)] }
+      const values = [
+        ...new Set(
+          (Array.isArray(raw) ? raw : [raw])
+            .filter(
+              (item) => item !== undefined && item !== null && item !== "",
+            )
+            .map(String),
+        ),
+      ]
+      // Записи — підписи з сервера одним запитом: довга адреса не робить запиту на сотні `id`.
+      return definition.kind === "record"
+        ? { kind: "record", values: values.slice(0, MAX_RECORD_VALUES) }
+        : { kind: "options", values }
     }
     case "date-range":
       return {
@@ -118,7 +146,7 @@ export function writeFilter(
   const next: ListFilter = { ...filter }
   for (const key of filterKeys(definition)) delete next[key]
   const { field } = definition
-  if (draft.kind === "options") {
+  if (draft.kind === "options" || draft.kind === "record") {
     if (draft.values.length) next[field] = [...draft.values]
     return next
   }
@@ -128,14 +156,19 @@ export function writeFilter(
 }
 
 export function isFilterEmpty(draft: FilterDraft): boolean {
-  return draft.kind === "options"
+  return draft.kind === "options" || draft.kind === "record"
     ? draft.values.length === 0
     : draft.from === null && draft.to === null
 }
 
 /** Помилка значення: початок діапазону більший за кінець. */
 export function filterIssue(draft: FilterDraft): "range" | null {
-  if (draft.kind === "options" || draft.from === null || draft.to === null)
+  if (
+    draft.kind === "options" ||
+    draft.kind === "record" ||
+    draft.from === null ||
+    draft.to === null
+  )
     return null
   const reversed =
     draft.kind === "date-range"
@@ -187,8 +220,8 @@ export function clearFilters(
 
 /** Значення без вибору того самого виду: «Прибрати» в чипі. */
 export function emptyFilter(draft: FilterDraft): FilterDraft {
-  return draft.kind === "options"
-    ? { kind: "options", values: [] }
+  return draft.kind === "options" || draft.kind === "record"
+    ? { kind: draft.kind, values: [] }
     : { ...draft, from: null, to: null }
 }
 
@@ -202,12 +235,16 @@ export interface FilterTextFormat {
   between: (from: string, to: string) => string
 }
 
-/** Значення фільтра для чипа: «ТОВ «Агросвіт», ФОП Коваленко», «від 1 січ. до 31 бер. 2026». */
+/**
+ * Значення фільтра для чипа: «ТОВ «Агросвіт», ФОП Коваленко», «від 1 січ. до 31 бер. 2026». Запис із
+ * довідника — `id` через кому: підпис чип бере з сервера (`RecordLabel`).
+ */
 export function filterValueText(
   definition: FilterDefinition,
   draft: FilterDraft,
   format: FilterTextFormat,
 ): string {
+  if (draft.kind === "record") return draft.values.join(", ")
   if (draft.kind === "options") {
     const labels = new Map(
       definition.kind === "options"

@@ -337,6 +337,25 @@ vX.Y.Z` (ADR-0029). Вона ж перевіряє, що файли модуля
 `kit-files.json`), а гілку кіта для пробної несумісної зміни (доповнення 1.7c) бере з локальної
 копії (`--from`).
 
+## Доповнення: крок A2a — поле «запис із довідника сервера» (25.10.2026)
+
+Новий тип поля розширення (ADR-0030), лише доповнення — типи полів тепер у
+`lib/extension-field-types`, а імпортуються, як і раніше, з `lib/extension-fields`:
+
+```ts
+type ExtensionField = …
+  | { type: "record"; resource: string; labelField: string; descriptionField?: string;
+      filter?: Readonly<Record<string, string | readonly string[]>>; mockValues?: (string | null)[] }
+useExtensionFields(fields)  // + display(field, value): ReactNode — запис — назва з сервера
+                            // + displayEntry(item, record): { id, label, value: ReactNode } — шапка
+                            // entry() і text() — як були: текст, для запису — id
+extensionAuditOptions(language, fields, recordTitle?)  // журнал моків — назвою запису
+```
+
+У записі — `id` запису довідника; колонка, шапка (`displayEntry`), форма (`erp/record-picker`) і
+фільтр панелі (`kind: "record"` в `lib/filters`) працюють з ним без коду модуля: модуль не знає
+типів полів розширення. Модулі кіта (B1) ставлять у шапку `displayEntry()` замість `entry()`.
+
 ## Наслідки
 
 - B1 «Контакти й компанії» (крок 1.4) — перший модуль із розширенням. Тестовий проект пілота

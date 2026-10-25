@@ -46,7 +46,7 @@ import {
 import { useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import { LoadingFallback } from "@/registry/erp/page-state"
+import { LoadingFallback, PageStateMain } from "@/registry/erp/page-state"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
@@ -235,7 +235,7 @@ export function App() {
           <ErrorBoundary
             key={location.screen}
             headingLevel={1}
-            frame={(content) => <main className="p-4 pt-24">{content}</main>}
+            frame={(content) => <PageStateMain>{content}</PageStateMain>}
           >
             <Suspense fallback={<LoadingFallback className="mt-24" />}>
               <AuthPage screen={location.screen} devPanel={devPanel} />

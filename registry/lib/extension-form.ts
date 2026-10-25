@@ -5,9 +5,9 @@
  *
  * - Поле стає у форму, коли розширення додає його в `form.add` (місце — `place`, як у колонок).
  *   Обов'язкове поле, якого у формі немає, і ключ, якого немає серед полів, — помилка розробника.
- * - Порожнє у формі: текст і дата — `""`, число й список — `null`, так/ні — `false`; у запит порожнє
- *   йде як `null` (`extendSchema` приймає `null` для необов'язкових полів).
- * - Обов'язкове: текст, дата, число й список — не порожні; так/ні — будь-яке значення.
+ * - Порожнє у формі: текст і дата — `""`, число, список і запис із довідника — `null`, так/ні —
+ *   `false`; у запит порожнє йде як `null` (`extendSchema` приймає `null` для необов'язкових полів).
+ * - Обов'язкове: текст, дата, число, список і запис — не порожні; так/ні — будь-яке значення.
  */
 import { z } from "zod"
 
@@ -102,6 +102,7 @@ function fieldSchema(
     case "boolean":
       return z.boolean()
     case "options":
+    case "record":
       return isRequired
         ? z.string().nullable().refine(filled, required)
         : z.string().nullable()
@@ -131,6 +132,7 @@ function formValue(field: ExtensionField, value: unknown): ExtensionFormValue {
     case "boolean":
       return typeof value === "boolean" ? value : false
     case "options":
+    case "record":
       return typeof value === "string" ? value : null
     default:
       return unknownFieldType(field)

@@ -255,6 +255,16 @@ describe("RecordPicker: пошук на сервері й вибір", () => {
         screen.getByRole("combobox", { name: "Компанія" }),
       ).toHaveTextContent("Запис не знайдено")
     })
+    // Немає права читати довідник — як підпис у списку (A2a), а не «збій».
+    server.getOne.mockImplementation(() =>
+      Promise.reject(new ApiError(403, { code: "forbidden", message: "no" })),
+    )
+    cleanupAndRender(server, "org-2")
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Компанія" }),
+      ).toHaveTextContent("Немає доступу")
+    })
   })
 
   it("«Створити…»: текст пошуку проекту, без виходу з поля; без права — неактивне з причиною", async () => {

@@ -285,7 +285,7 @@ describe("createAuthRoutes", () => {
   async function renderAuthScreen(path: string) {
     auth.preload(path)
     await vi.dynamicImportSettled()
-    renderApp(<p>Інше</p>, { path, routes: auth.routes, raRouter: false })
+    renderApp(<p>Інше</p>, { path, routes: auth.routes, raRouter: true })
   }
 
   it("екран входу з назвою застосунку", async () => {
@@ -295,11 +295,12 @@ describe("createAuthRoutes", () => {
     ).toBeVisible()
   })
 
-  it("новий пароль бере токен з адреси", async () => {
+  it("новий пароль бере токен з адреси й тримає його у вкладці (A2a)", async () => {
     await renderAuthScreen("/login/reset?token=t1")
     expect(
       await screen.findByRole("heading", { name: "Новий пароль" }),
     ).toBeVisible()
+    expect(sessionStorage.getItem("erp-ui:email-link-token:reset")).toBe("t1")
   })
 
   it("відновлення пароля; адреса з кінцевою косою", async () => {

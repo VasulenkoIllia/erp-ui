@@ -231,6 +231,8 @@ test.describe("відновлення, запрошення, реєстраці�
       .getByRole("button", { name: "Відкрити посилання з листа" })
       .click()
     await expect(heading(page)).toHaveText("Новий пароль")
+    // Токен із листа екран прочитав — в адресі його вже немає (A2a).
+    await expect(page).toHaveURL(/#\/login\/reset$/)
     await page
       .getByLabel("Новий пароль", { exact: true })
       .fill("новий-надійний-пароль-2026")
@@ -274,6 +276,32 @@ test.describe("відновлення, запрошення, реєстраці�
     await expect(
       page.getByRole("button", { name: "Меню користувача: Петро Новенький" }),
     ).toBeVisible()
+    // Пішли з екрана запрошення — токена й у вкладці немає.
+    expect(
+      await page.evaluate(() =>
+        sessionStorage.getItem("erp-ui:email-link-token:invite"),
+      ),
+    ).toBeNull()
+  })
+
+  test("токен із листа — поза адресою й історією, оновлення сторінки запрошення не губить", async ({
+    page,
+  }) => {
+    const title = "Приєднатися до ТОВ «Зоряна логістика»"
+    await openWith(page, {}, "/#/login/invite?token=demo-invite", {
+      user: null,
+    })
+    await expect(heading(page)).toHaveText(title)
+    await expect(page).toHaveURL(/#\/login\/invite$/)
+
+    await page.reload()
+    await expect(heading(page)).toHaveText(title)
+
+    // Запис історії з токеном замінено: «Назад» і «Вперед» його не повертають.
+    await page.goBack()
+    await page.goForward()
+    await expect(page).toHaveURL(/#\/login\/invite$/)
+    await expect(heading(page)).toHaveText(title)
   })
 
   test("реєстрація: компанія, код з листа, власник бачить дані", async ({

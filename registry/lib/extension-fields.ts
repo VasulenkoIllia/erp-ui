@@ -10,15 +10,33 @@
  * - `useExtensionFields(fields)` — значення текстом мовою інтерфейсу (числа й дати — `useFormat`),
  *   колонка списку (`ExtensionColumn` → `DataTableColumn`), ключове поле шапки картки, фільтр
  *   панелі (`ExtensionFilter` → `FilterDefinition`) і вкладка списку (`ExtensionTab` → `ListTab`).
+ * - Поле «запис із довідника сервера» (`record`, крок A2a, ADR-0030): у записі — `id` запису
+ *   довідника, підпис колонка й шапка беруть із сервера (`RecordLabel`, `lib/record-label`), у
+ *   формі — вибір запису з пошуком на сервері (`erp/record-picker`), у панелі — фільтр за ним.
  * - Помилки розробника — поле з ключем поля модуля, два поля з одним ключем, колонка чи поле шапки
  *   без опису поля, невідомий тип — виняток під час збирання, а не тихий пропуск.
  */
-import { useMemo } from "react"
+import { createElement, useMemo, type ReactNode } from "react"
 import { z } from "zod"
 
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { isCalendarDate } from "@/registry/lib/dates"
+import {
+  unknownFieldType,
+  type ExtensionAuditOptions,
+  type ExtensionColumn,
+  type ExtensionColumnChange,
+  type ExtensionDisplayEntry,
+  type ExtensionField,
+  type ExtensionFieldEntry,
+  type ExtensionFieldOption,
+  type ExtensionFieldValue,
+  type ExtensionFilter,
+  type ExtensionTab,
+  type ExtensionValues,
+  type RecordTitle,
+} from "@/registry/lib/extension-field-types"
 import {
   extensionValue,
   type Keyed,
@@ -32,55 +50,23 @@ import {
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
 import type { ListFilter, ListTab } from "@/registry/lib/list-state"
+import { RecordLabel } from "@/registry/lib/record-label"
 
-export type ExtensionFieldValue = string | number | boolean | null
-
-/**
- * Поля розширення в записі, розібраному схемою `extendSchema`. Значення — `unknown`: запис модуля
- * може мати масиви й вкладені об'єкти, а читати поле розширення — через `extensionValue`
- * (`lib/extensions`: компонент слота бере його без zod).
- */
-export type ExtensionValues = Readonly<Record<string, unknown>>
-
-export interface ExtensionFieldOption {
-  readonly value: string
-  readonly label: LocalizedText
-}
-
-interface ExtensionFieldBase {
-  /** Ключ у записі, у колонці й у шапці картки: `manager`; не збігається з полем модуля. */
-  readonly id: string
-  readonly label: LocalizedText
-  /**
-   * Без значення запис не проходить схему. Обов'язкове поле має бути у формі модуля (`form.add`,
-   * `lib/extension-form`): без нього форма не збереться (помилка розробника), бо створення без
-   * значення сервер однаково відхилить.
-   */
-  readonly required?: boolean
-  /** Значення для моків і демо-даних: запис № i бере `mockValues[i % length]`. */
-  readonly mockValues?: readonly ExtensionFieldValue[]
-}
-
-/** Нове поле: текст, число, календарна дата `YYYY-MM-DD`, так/ні чи значення зі списку. */
-export type ExtensionField =
-  | (ExtensionFieldBase & {
-      readonly type: "text" | "date" | "boolean"
-    })
-  | (ExtensionFieldBase & {
-      readonly type: "number"
-      /** Знаків після коми в полі форми; за замовчуванням — ціле число. */
-      readonly decimals?: number
-    })
-  | (ExtensionFieldBase & {
-      readonly type: "options"
-      readonly options: readonly ExtensionFieldOption[]
-    })
-
-/** Тип, якого кіт не знає (дані від сервера новіші за кіт), — помилка, а не поле без перевірки. */
-export function unknownFieldType(field: never): never {
-  throw new Error(
-    `erp-ui: unknown extension field type "${String((field as { type?: unknown }).type)}"`,
-  )
+// Проект імпортує типи полів звідси, як до винесення їх у `lib/extension-field-types`.
+export {
+  unknownFieldType,
+  type ExtensionAuditOptions,
+  type ExtensionColumn,
+  type ExtensionColumnChange,
+  type ExtensionDisplayEntry,
+  type ExtensionField,
+  type ExtensionFieldEntry,
+  type ExtensionFieldOption,
+  type ExtensionFieldValue,
+  type ExtensionFilter,
+  type ExtensionTab,
+  type ExtensionValues,
+  type RecordTitle,
 }
 
 function valueSchema(field: ExtensionField): z.ZodType<ExtensionFieldValue> {
@@ -97,6 +83,8 @@ function valueSchema(field: ExtensionField): z.ZodType<ExtensionFieldValue> {
       const values = new Set(field.options.map((option) => option.value))
       return z.string().refine((value) => values.has(value))
     }
+    case "record":
+      return z.string().min(1)
     default:
       return unknownFieldType(field)
   }
@@ -142,25 +130,29 @@ export function withMockValues<T extends object>(
   })
 }
 
-/** Опції журналу змін моків для `createResourceHandlers` (ключ — ключ поля розширення). */
-export interface ExtensionAuditOptions {
-  fieldLabels: Record<string, LocalizedText>
-  auditValue: Record<string, (value: unknown) => string>
-}
-
 /**
  * Журнал змін у моках (`createResourceHandlers` з `lib/mocks`): підписи полів розширення в «було →
  * стало» і значення зі списку — підписом мовою даних (`language`), а не ключем. Так/ні журнал
- * підписує сам.
+ * підписує сам. Запис із довідника — тим самим полем назви (`labelField`), що й список, із
+ * довідника моків (`recordTitle`, у моках — `mockRecordTitle` з `lib/mocks`), інакше `id`.
  */
 export function extensionAuditOptions(
   language: string,
   fields: readonly ExtensionField[] = [],
+  recordTitle?: RecordTitle,
 ): ExtensionAuditOptions {
   const fieldLabels: Record<string, LocalizedText> = {}
   const auditValue: Record<string, (value: unknown) => string> = {}
   for (const field of fields) {
     fieldLabels[field.id] = field.label
+    if (field.type === "record") {
+      const { resource, labelField } = field
+      auditValue[field.id] = (value) =>
+        (typeof value === "string"
+          ? recordTitle?.(resource, value, labelField)
+          : undefined) ?? String(value)
+      continue
+    }
     if (field.type !== "options") continue
     const labels = new Map(
       field.options.map((option) => [
@@ -176,68 +168,27 @@ export function extensionAuditOptions(
   return { fieldLabels, auditValue }
 }
 
-/** Колонка списку з поля розширення: ключ колонки — ключ поля, решта — як у `DataTableColumn`. */
-export interface ExtensionColumn
-  extends
-    Keyed,
-    Pick<
-      DataTableColumn<unknown>,
-      "minWidth" | "grow" | "priority" | "overflow" | "align" | "card"
-    > {
-  /** Заголовок; за замовчуванням — підпис поля. */
-  readonly header?: LocalizedText
-}
-
-/**
- * Що розширення змінює в колонці модуля без заміни (`change`): назва, ширина, пріоритет на вузькому
- * екрані, вирівнювання. Вміст комірки, поведінка на вузькому екрані (`overflow`: закріплену колонку
- * так можна було б сховати) і роль у картці лишаються від модуля.
- */
-export type ExtensionColumnChange = Pick<
-  ExtensionColumn,
-  "header" | "minWidth" | "grow" | "priority" | "align"
->
-
 /** Зміна колонки мовою інтерфейсу — для `applyKeyedChanges` поверх колонок модуля. */
 type ColumnChange = KeyedChange<
   Partial<Pick<DataTableColumn<unknown>, keyof ExtensionColumnChange>>
 >
 
-/**
- * Фільтр панелі з поля розширення (ключ — ключ поля): список — «одне з» значень, так/ні — «так» чи
- * «ні», дата — період (`<поле>_gte`, `<поле>_lte`). Текст і число фільтром не стають: текст шукає
- * пошук `q`, діапазону чисел панель ще не має.
- */
-export interface ExtensionFilter extends Keyed {
-  /** Підпис; за замовчуванням — підпис поля. */
-  readonly label?: LocalizedText
-}
-
-/**
- * Вкладка-статус списку з файлу розширення: фільтр — плоскі параметри API (ADR-0002) за полями
- * модуля чи розширення: `{ status: "suspended" }`, `{ vatPayer: "true" }`.
- */
-export interface ExtensionTab extends Keyed {
-  readonly label: LocalizedText
-  readonly filter: Readonly<Record<string, string | readonly string[]>>
-}
-
-/** Ключове поле в шапці картки (`RecordField`): значення порожнє — шапка покаже «—». */
-export interface ExtensionFieldEntry {
-  readonly id: string
-  readonly label: string
-  readonly value: string | null
-}
-
 export interface ExtensionFieldsApi {
-  /** Значення текстом мовою інтерфейсу; порожнє чи не того типу — `null`. */
+  /**
+   * Значення текстом мовою інтерфейсу; порожнє чи не того типу — `null`. Запис із довідника —
+   * його `id`: підпис приходить із сервера, тож показувати — через `display`.
+   */
   text: (field: ExtensionField, value: unknown) => string | null
+  /** Значення для показу: текст, а запис із довідника — підпис із сервера (`RecordLabel`). */
+  display: (field: ExtensionField, value: unknown) => ReactNode
   /** Колонка списку з поля розширення. */
   column: (column: ExtensionColumn) => DataTableColumn<unknown>
   /** Зміна колонки модуля без заміни: назва мовою інтерфейсу. */
   columnChange: (change: KeyedChange<ExtensionColumnChange>) => ColumnChange
-  /** Ключове поле шапки картки для запису. */
+  /** Поле запису текстом (`text`): запис із довідника — `id`. */
   entry: (item: Keyed, record: unknown) => ExtensionFieldEntry
+  /** Ключове поле шапки картки (`RecordField`): запис із довідника — підпис із сервера. */
+  displayEntry: (item: Keyed, record: unknown) => ExtensionDisplayEntry
   /** Фільтр панелі з поля розширення. */
   filter: (item: ExtensionFilter) => FilterDefinition
   /** Вкладка списку з даних розширення. */
@@ -245,6 +196,18 @@ export interface ExtensionFieldsApi {
 }
 
 const EMPTY_CELL = "—"
+
+/** Плоскі параметри з даних розширення (вкладка, умови довідника) — у змінний `ListFilter`. */
+export function listFilterOf(
+  filter: Readonly<Record<string, string | readonly string[]>>,
+): ListFilter {
+  return Object.fromEntries(
+    Object.entries(filter).map(([key, value]) => [
+      key,
+      typeof value === "string" ? value : [...value],
+    ]),
+  )
+}
 const NO_FIELDS: readonly ExtensionField[] = []
 
 interface TextContext {
@@ -276,6 +239,8 @@ function fieldText(
       if (option) return label(option.label)
       return typeof value === "string" ? value : null
     }
+    case "record":
+      return typeof value === "string" ? value : null
     default:
       return unknownFieldType(field)
   }
@@ -313,6 +278,15 @@ function filterOf(
       }
     case "date":
       return { ...base, kind: "date-range" }
+    case "record":
+      return {
+        ...base,
+        kind: "record",
+        resource: field.resource,
+        labelField: field.labelField,
+        descriptionField: field.descriptionField,
+        filter: field.filter && listFilterOf(field.filter),
+      }
     case "text":
     case "number":
       throw new Error(
@@ -344,8 +318,17 @@ export function useExtensionFields(
     const context: TextContext = { format, t, label }
     const text = (field: ExtensionField, value: unknown) =>
       fieldText(field, value, context)
+    const display = (field: ExtensionField, value: unknown): ReactNode =>
+      field.type === "record" && typeof value === "string" && value
+        ? createElement(RecordLabel, {
+            resource: field.resource,
+            id: value,
+            labelField: field.labelField,
+          })
+        : text(field, value)
     return {
       text,
+      display,
       column: (column) => {
         const field = find(column.id)
         // Лише властивості показу: решта ключів із даних (`sticky`, `sortField`) у колонку не йде.
@@ -353,7 +336,7 @@ export function useExtensionFields(
           id: column.id,
           header: label(column.header ?? field.label),
           cell: (row) =>
-            text(field, extensionValue(row, column.id)) ?? EMPTY_CELL,
+            display(field, extensionValue(row, column.id)) ?? EMPTY_CELL,
           minWidth: column.minWidth,
           grow: column.grow,
           priority: column.priority,
@@ -374,16 +357,19 @@ export function useExtensionFields(
           value: text(field, extensionValue(record, id)),
         }
       },
+      displayEntry: ({ id }, record) => {
+        const field = find(id)
+        return {
+          id,
+          label: label(field.label),
+          value: display(field, extensionValue(record, id)),
+        }
+      },
       filter: (item) => filterOf(find(item.id), item, label, t),
       tab: (item) => ({
         id: item.id,
         label: label(item.label),
-        filter: Object.fromEntries(
-          Object.entries(item.filter).map(([key, value]) => [
-            key,
-            typeof value === "string" ? value : [...value],
-          ]),
-        ) satisfies ListFilter,
+        filter: listFilterOf(item.filter),
       }),
     }
   }, [fields, format, language, t])
