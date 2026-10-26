@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 
 import { DataTable } from "@/components/erp/data-table"
 import { PageState } from "@/components/erp/page-state"
+import { RecordLink } from "@/components/erp/record-link"
 import { useCompanyId } from "@/hooks/use-company"
 import { companyScope } from "@/lib/company-scope"
 import type { DataTableColumn } from "@/lib/data-table-core"
@@ -13,7 +14,6 @@ import { CONTACTS, type Contact, type Organization } from "../contract"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { cellText } from "./cell-text"
-import { RecordLink } from "./navigation"
 
 const CONTACTS_PER_PAGE = 10
 const CONTACT_SORT = { field: "name", order: "ASC" } as const
@@ -74,14 +74,16 @@ export function OrganizationContacts({
 
 function useOrganizationContactColumns(): DataTableColumn<Contact>[] {
   const t = useContactsT()
-  const { paths } = useContactsModule()
+  const { paths, preload } = useContactsModule()
   return useMemo(
     () => [
       {
         id: "name",
         header: t("organization.contacts.columns.name"),
         cell: (contact) => (
-          <RecordLink to={paths.contact(contact.id)}>{contact.name}</RecordLink>
+          <RecordLink to={paths.contact(contact.id)} preload={preload}>
+            {contact.name}
+          </RecordLink>
         ),
         minWidth: 12,
         grow: 2,
@@ -112,6 +114,6 @@ function useOrganizationContactColumns(): DataTableColumn<Contact>[] {
         priority: 5,
       },
     ],
-    [t, paths],
+    [t, paths, preload],
   )
 }

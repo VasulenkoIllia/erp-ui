@@ -25,6 +25,22 @@
 - Демо: «Відповідальний менеджер» організацій B1 з довідника користувачів — колонка, фільтр, шапка, форма, журнал (`src/extensions/B1-contacts-fields.ts`).
 - Тести: `src/kit/record-field.test.tsx` (фільтри й обмеження з адреси, схема й тип `mockValues`, форма, журнал моків за полем назви, `display`, `entry`, `displayEntry`, підпис одним запитом і стани, запис без назви, чип), `focus-on-mount.test.tsx`, `focus-on-mount-strict.test.tsx` (StrictMode), `email-link-token.test.tsx` (StrictMode, інший екран, недоступне сховище, `clearEmailLinkTokens`, помилка екрана й «Спробувати ще» в `createAuthRoutes`, екран входу стирає токени), `lazy.test.tsx` (фокус після невдалого повтору — чанк і одразу), `record-picker.test.tsx` (403 — «Немає доступу»), `app-gate.test.tsx`; e2e `record-field.spec.ts` (колонка одним запитом, фільтр і чип, форма й журнал, без права, телефон), `auth.spec.ts` (токен поза адресою й історією, оновлення сторінки запрошення), `lazy.spec.ts` (фокус після повтору), `contacts-forms.spec.ts` (порядок полів форми з новим полем).
 
+Крок A2b1 (ADR-0031): модуль A2 «Користувачі й ролі» — список і картка людини. Лише доповнення. Що помітить проект:
+
+- Поле-запис на довідник `users` показує імена колег і тим, хто не має `users:read`: ім'я та email бачить кожен у компанії, решту — лише з правом (контракт `users`, README модуля A2). Бекенд проекту виконує цю політику сам.
+- Модуль B1 бере помічники сторінок зі спільного шару (`hooks/use-extended-list`, `hooks/use-card-record`, `hooks/use-page-heading`, `hooks/use-history-refresh`, `hooks/use-tab-param`, `erp/record-link`). Команда оновлення кіта не видаляє старих файлів: `src/modules/B1-contacts/components/navigation.tsx`, `use-card-record.ts`, `use-extended-list.ts`, `use-history-refresh.ts`, `use-page-heading.ts` (та сама тека) після оновлення невживані — видаліть їх руками.
+
+### Додано — A2b1 (ADR-0031)
+
+- Модуль `modules/A2-users`: `createUsersModule({ basePath, extension, homePath })` — список користувачів (вкладки статусів із лічильниками, фільтри «Роль» і «Другий крок», пошук) і картка людини (статус, «Це ви», поля, «Увійти як…»; вкладки «Доступ», «Ролі», «Сесії», історія збоку, на телефоні — вкладкою); без `users:read` — «Немає доступу». Тип розширення `UsersExtension` (поля, колонки, фільтри, вкладки, поля шапки, секції, дії, історія, рядки); моки `createUsersMocks({ extension })` — живий вигляд користувачів мок-сервера входу; фікстури `createUsersFixtures({ company, roles, emailDomain })` — 16 колег українською й англійською.
+- Контракт `users`: `GET /users` і `GET /users/:id` лише для читання; без `users:read` — довідник `{ id, version, name, email }` (пошук і сторінки — активні, за `id` — будь-хто, інші фільтри — 403); `version` зростає після зміни ролей і блокування.
+- Спільне: `hooks/use-tab-param`, `hooks/use-extended-list`, `hooks/use-card-record`, `hooks/use-page-heading`, `hooks/use-history-refresh`, `erp/record-link` (з B1); `moduleResources` і `ModuleStrings` у `lib/i18n-namespaces`; `filterMockRecords`, `sortMockRecords`, `registerMockRecords` у `lib/mocks`; `mockRequestCompany` у `lib/mock-server` (компанія запиту лише за членством; `lib/mock-company` бере його ж); `UserAccessQuery` в `erp/user-access` (стани запиту доступу людини); `MockAccountSeed.blocked`.
+- `pnpm check:registry` не пропускає `\u0000` і байт NUL у файлах реєстру: CLI shadcn пише таку послідовність справжнім NUL, і git у проекті бачить файл двійковим (вада кроку 1.7a).
+- Панель доступу й картка людини: після виходу на всіх пристроях, завершення сесії й скидання другого кроку журнал перечитується (`useRefreshAccess`); каталог ролей не завантажився — стан помилки з повтором замість ключів ролей (`erp/user-roles-section`).
+- `erp/user-access` розділено без зміни поведінки: `erp/user-access-data`, `erp/user-access-actions`, `erp/user-roles-section`, `erp/user-sessions`.
+- Демо: модуль на `/m/A2` з розширенням `src/extensions/A2-users.ts` (поле «Відділ», вкладка «Без другого кроку», інша назва колонки «Посада»); ресурс `users` демо — моки модуля.
+- Тести: `src/kit/users-module.test.ts` (фікстури, повний запис і довідник, фільтри, сторінки, компанія, версія після змін, сценарії); e2e `users-module.spec.ts` (список, фільтри, картка, блокування, ролі, сесії, «Увійти як…», своя картка, без права, телефон, axe).
+
 ## [1.0.1] — 2026-10-21
 
 Патч-версія (крок fix-kit-deps, ADR-0029, доповнення fix-kit-deps): команда оновлення кіта більше не змінює залежностей проекту. Публічний API не змінився, файли розширення й адаптера змінювати не треба.

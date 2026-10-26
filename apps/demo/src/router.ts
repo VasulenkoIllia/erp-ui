@@ -47,11 +47,13 @@ export const LOGIN_PATH = AUTH_ROUTES.login
 /** Модулі кіта в демо (ADR-0025): початок адрес модуля — `basePath` його фабрики. */
 export const MODULE_ROUTES = {
   contacts: "/m/B1",
+  usersModule: "/m/A2",
 } as const
+export type KitModuleKey = keyof typeof MODULE_ROUTES
 
 /**
  * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
- * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts — маршрути модуля) або заглушка
+ * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users — маршрути модуля) або заглушка
  * модуля ERP (/m/K2).
  */
 export type Location =
@@ -59,7 +61,7 @@ export type Location =
   | { route: "auth"; screen: AuthRoute }
   | { route: "invoice"; id: string }
   | { route: "organization"; id: string }
-  | { route: "contactsModule" }
+  | { route: "kitModule"; moduleKey: KitModuleKey }
   | { route: "module"; moduleId: ModuleId }
 
 export const moduleHref = (id: ModuleId) => `/m/${id}`
@@ -111,9 +113,12 @@ export function parsePath(pathname: string): Location {
     : ""
   if (organization && !organization.includes("/"))
     return { route: "organization", id: decodeSegment(organization) }
-  const contacts = MODULE_ROUTES.contacts
-  if (pathname === contacts || pathname.startsWith(`${contacts}/`))
-    return { route: "contactsModule" }
+  const kitModule = (Object.keys(MODULE_ROUTES) as KitModuleKey[]).find(
+    (key) =>
+      pathname === MODULE_ROUTES[key] ||
+      pathname.startsWith(`${MODULE_ROUTES[key]}/`),
+  )
+  if (kitModule) return { route: "kitModule", moduleKey: kitModule }
   const m = /^\/m\/([A-Z]+\d+)$/.exec(pathname)
   if (m && MODULE_IDS.includes(m[1] as ModuleId))
     return { route: "module", moduleId: m[1] as ModuleId }

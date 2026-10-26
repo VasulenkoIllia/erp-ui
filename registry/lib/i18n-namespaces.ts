@@ -57,7 +57,36 @@ export type NamespaceResources = {
   ]?: () => Promise<object>
 }
 
-/** Завантаження рядків простору імен іншою мовою: одне на екземпляр, мову й простір. */
+/** Перевизначення рядків модуля мовами — поле `strings` файлу розширення (ADR-0020). */
+export interface ModuleStrings<M> {
+  readonly uk?: MessagesOverride<M>
+  readonly en?: MessagesOverride<M>
+}
+
+/**
+ * Рядки модуля з перевизначеннями розширення для `useNamespaceResources`: українські — разом зі
+ * сторінками модуля, англійські — окремим чанком (`loadEn`, ADR-0009). Набір — один на об'єкт
+ * `strings`, тож i18next отримує рядки раз, а не на кожен рендер. Приклад — `use-contacts-t.ts`
+ * модуля B1: `loadEn` — динамічний імпорт `en.json` модуля.
+ */
+export function moduleResources<M extends object>(
+  uk: M,
+  loadEn: () => Promise<M>,
+): (strings: ModuleStrings<M>) => NamespaceResources {
+  const cache = new WeakMap<object, NamespaceResources>()
+  return (strings) => {
+    let resources = cache.get(strings)
+    if (!resources) {
+      resources = {
+        uk: mergeMessages(uk, strings.uk),
+        en: () => loadEn().then((en) => mergeMessages(en, strings.en)),
+      }
+      cache.set(strings, resources)
+    }
+    return resources
+  }
+}
+
 /**
  * Завантаження рядків простору імен іншою мовою: одне на екземпляр, мову й простір, і проміс
  * лишається в кеші зі станом для `use()` (`track`): готові рядки сторінка бере без призупинення.

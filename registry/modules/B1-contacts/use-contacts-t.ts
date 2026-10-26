@@ -1,8 +1,7 @@
 import {
-  mergeMessages,
+  moduleResources,
   useNamespaceResources,
   useNamespaceT,
-  type NamespaceResources,
 } from "@/lib/i18n-namespaces"
 
 import type { ContactsExtension, ContactsMessages } from "./extension"
@@ -13,27 +12,13 @@ import { useContactsModule } from "./module-context"
 const CONTACTS_NAMESPACE = "B1-contacts"
 
 const NO_STRINGS: NonNullable<ContactsExtension["strings"]> = {}
-/** Рядки з перевизначеннями — одні на розширення: i18next отримує їх раз. */
-const resourcesCache = new WeakMap<object, NamespaceResources>()
 
-function resourcesFor(
-  strings: NonNullable<ContactsExtension["strings"]>,
-): NamespaceResources {
-  let resources = resourcesCache.get(strings)
-  if (!resources) {
-    resources = {
-      uk: mergeMessages(uk, strings.uk),
-      // Англійські — окремим чанком: у пам'яті лише мова інтерфейсу (ADR-0009).
-      en: () =>
-        import("./i18n/en.json").then((m) =>
-          // В англійській немає форм `_few` і `_many` — тип рядків береться з української.
-          mergeMessages(m.default as unknown as ContactsMessages, strings.en),
-        ),
-    }
-    resourcesCache.set(strings, resources)
-  }
-  return resources
-}
+// В англійській немає форм `_few` і `_many` — тип рядків береться з української.
+const resourcesFor = moduleResources<ContactsMessages>(uk, () =>
+  import("./i18n/en.json").then(
+    (m) => m.default as unknown as ContactsMessages,
+  ),
+)
 
 /**
  * Переклад рядків модуля для сторінок і секцій: рядки приходять разом зі сторінками модуля

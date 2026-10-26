@@ -135,10 +135,23 @@ export interface MockResourceOptions<T extends MockRecord> {
  * Записи мок-ресурсів за `id` — для журналу полів «запис із довідника» (ADR-0030). Ключ — ресурс:
  * останні створені обробники ресурсу (той самий `resource` з іншим `baseUrl`) заміняють попередні.
  */
-const mockRecords = new Map<
-  string,
-  { find: (id: string) => MockRecord | undefined; titleField?: string }
->()
+const mockRecords = new Map<string, MockRecordSource>()
+
+export interface MockRecordSource {
+  readonly find: (id: string) => MockRecord | undefined
+  readonly titleField?: string
+}
+
+/**
+ * Записи мок-ресурсу, якого не будує `createResourceHandlers` (модуль зі своїми обробниками), — для
+ * `mockRecordTitle`: журнал полів «запис із довідника» пише назву, а не `id`.
+ */
+export function registerMockRecords(
+  resource: string,
+  source: MockRecordSource,
+): void {
+  mockRecords.set(resource, source)
+}
 
 /**
  * Назва запису мок-ресурсу за `id` з поля `field` (без нього — `titleField` ресурсу):
@@ -218,6 +231,35 @@ function matches(value: unknown, op: string, raw: FilterValue): boolean {
   }
 }
 
+/**
+ * Записи за плоскими фільтрами списку (ADR-0002), як їх фільтрує `createResourceHandlers`: `q` —
+ * підрядок у `searchFields` без урахування регістру, решта — `<поле>[_<оп>]=значення`; поле-список —
+ * «хоч одне з».
+ */
+export function filterMockRecords<T extends MockRecord>(
+  records: readonly T[],
+  filter: Record<string, FilterValue>,
+  searchFields: readonly (keyof T & string)[],
+): T[] {
+  const { q, ...rest } = filter
+  const query = typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
+  return records.filter((record) => {
+    if (
+      query &&
+      !searchFields.some((field) =>
+        String(record[field] ?? "")
+          .toLocaleLowerCase("uk")
+          .includes(query),
+      )
+    )
+      return false
+    return Object.entries(rest).every(([key, value]) => {
+      const { field, op } = parseFilterKey(key)
+      return matches(record[field], op, value)
+    })
+  })
+}
+
 const collator = new Intl.Collator("uk", { numeric: true, sensitivity: "base" })
 
 function compare(a: unknown, b: unknown): number {
@@ -228,8 +270,12 @@ function compare(a: unknown, b: unknown): number {
   return collator.compare(text(a), text(b))
 }
 
-function sortRecords<T extends MockRecord>(records: T[], sort: SortField[]) {
-  if (!sort.length) return records
+/** Записи в порядку `sort` списку (ADR-0002): `null` — останніми, рядки — за абеткою `uk`. */
+export function sortMockRecords<T extends MockRecord>(
+  records: readonly T[],
+  sort: readonly SortField[],
+): T[] {
+  if (!sort.length) return [...records]
   return [...records].sort((a, b) => {
     for (const { field, order } of sort) {
       const diff = compare(a[field], b[field])
@@ -303,7 +349,7 @@ export function createResourceHandlers<T extends MockRecord>({
     typeof data === "function" ? data() : structuredClone(data)
   let stored: T[] | null = null
   const all = () => (stored ??= seed())
-  mockRecords.set(resource, {
+  registerMockRecords(resource, {
     find: (id) => all().find((record) => record.id === id),
     titleField,
   })
@@ -320,7 +366,7 @@ export function createResourceHandlers<T extends MockRecord>({
     const key = JSON.stringify(sort)
     let result = sorted.get(key)
     if (!result) {
-      result = sortRecords(all(), sort)
+      result = sortMockRecords(all(), sort)
       sorted.set(key, result)
     }
     return result
@@ -361,27 +407,12 @@ export function createResourceHandlers<T extends MockRecord>({
     filter: Record<string, FilterValue>,
     companyId: string | null,
     sort: SortField[] = [],
-  ): T[] => {
-    const { q, ...rest } = filter
-    const query = typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
-    return sortedBy(sort)
-      .filter(inCompany(companyId))
-      .filter((record) => {
-        if (
-          query &&
-          !searchFields.some((field) =>
-            String(record[field] ?? "")
-              .toLocaleLowerCase("uk")
-              .includes(query),
-          )
-        )
-          return false
-        return Object.entries(rest).every(([key, value]) => {
-          const { field, op } = parseFilterKey(key)
-          return matches(record[field], op, value)
-        })
-      })
-  }
+  ): T[] =>
+    filterMockRecords(
+      sortedBy(sort).filter(inCompany(companyId)),
+      filter,
+      searchFields,
+    )
 
   const notFound = () =>
     errorResponse(404, { code: "not_found", message: `${resource}: not found` })

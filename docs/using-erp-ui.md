@@ -440,6 +440,31 @@ export const contactsExtension: ContactsExtension = {
 - `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
 - Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 
+### Модуль A2 «Користувачі й ролі» (ADR-0031)
+
+```ts
+// src/modules.ts
+import { createUsersModule } from "@/modules/A2-users"
+import { usersExtension } from "@/extensions/A2-users"
+
+// homePath — куди перейти після «Увійти як…»
+export const usersModule = createUsersModule({ basePath: "/team", extension: usersExtension, homePath: "/" })
+
+// src/mocks/handlers.ts — колеги з фікстур модуля стають користувачами мок-сервера входу,
+// ресурс users — моки модуля (свого ресурсу users у моках проекту не треба)
+import { createUsersFixtures } from "@/modules/A2-users/fixtures"
+import { createUsersMocks } from "@/modules/A2-users/mocks"
+import { usersMockExtension } from "@/extensions/A2-users-fields"
+const team = createUsersFixtures({ company: COMPANIES[0], roles: ["sales", "accountant"], emailDomain: "example.com" })
+const platformHandlers = createPlatformHandlers({ users: [...USERS, ...team.users], accountSeeds: { ...SEEDS, ...team.accountSeeds }, … })
+setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExtension }).handlers)
+```
+
+- Список і картка людини; ролі змінюють вкладка «Ролі» картки й сторінка ролей кіта (`erp/roles-editor`), запрошення — `erp/invitations-section`: їх сторінки в модулі — з A2b2.
+- Права: список і картка — `users:read`, вкладки «Доступ» і «Сесії» — `users:update`, зміна ролей — `users:update` і `roles:read`, «Увійти як…» — `users:impersonate`. Без `users:read` — «Немає доступу» на місці сторінки.
+- Довідник для полів-записів: поле `type: "record", resource: "users"` в іншому модулі показує імена всім у компанії — бекенд віддає без `users:read` лише `{ id, version, name, email }` (контракт — `README.md` модуля).
+- Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення).
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — `src/adapters/pilot-api/` тестового проекту `erp-ui-pilot` (pilot-api, крок 1.6).

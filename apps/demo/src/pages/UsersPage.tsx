@@ -6,7 +6,6 @@ import { useImpersonation } from "@/registry/erp/impersonation"
 import { InvitationsSection } from "@/registry/erp/invitations-section"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { RecoveryRequestsSection } from "@/registry/erp/reset-factors"
-import { useRoles } from "@/registry/erp/roles-editor"
 import {
   ActiveSessionsSection,
   UserBlockedBadge,
@@ -19,8 +18,8 @@ import { useErpUiT } from "@/registry/lib/i18n"
 import { Avatar, AvatarFallback } from "@/registry/ui/avatar"
 import { Button } from "@/registry/ui/button"
 import { Card, CardContent } from "@/registry/ui/card"
+import type { User } from "@/registry/modules/A2-users"
 
-import type { UserRecord } from "@/mocks/handlers"
 import { ROUTES } from "@/router"
 
 import { PageHeader } from "./PageHeader"
@@ -35,19 +34,24 @@ const initials = (name: string) =>
 
 /**
  * Користувачі компанії: «Увійти як…» (ADR-0011), доступ — ролі, сесії, скидання другого кроку,
- * блокування (ADR-0013/0014), запрошення, запити на відновлення й активні сесії. Повний модуль
- * користувачів і ролей — A2 у хвилі 1; тут — простий список.
+ * блокування (ADR-0013/0014), запрошення, запити на відновлення й активні сесії. Модуль A2 зі
+ * списком і карткою людини — `/m/A2` (ADR-0031); тут — простий список.
  */
 export function UsersPage() {
   const { t } = useTranslation("demo", { keyPrefix: "usersPage" })
-  const { t: dataT } = useTranslation("demo", { keyPrefix: "dataPage" })
   const kitT = useErpUiT()
   const navigate = useNavigate()
   const { data: me } = useMe()
-  const { data, isPending, error, refetch } = useGetList<UserRecord>("users", {
-    pagination: { page: 1, perPage: 50 },
-    sort: { field: "name", order: "ASC" },
-  })
+  // Без `users:read` сервер віддав би лише довідник (ім'я та email, ADR-0031) — сторінки немає.
+  const canRead = me ? hasPermission(me.permissions, "users", "read") : false
+  const { data, isPending, error, refetch } = useGetList<User>(
+    "users",
+    {
+      pagination: { page: 1, perPage: 50 },
+      sort: { field: "name", order: "ASC" },
+    },
+    { enabled: canRead },
+  )
   const { start, dialog } = useImpersonation({
     onStarted: () => {
       void navigate(ROUTES.data)
@@ -69,16 +73,11 @@ export function UsersPage() {
     me && !me.impersonator
       ? hasPermission(me.permissions, "users", "create")
       : false
-  // Назви ролей — із каталогу ролей (ADR-0014), якщо є право їх бачити.
-  const roles = useRoles(
-    me ? hasPermission(me.permissions, "roles", "read") : false,
-  )
-  const roleName = (id: string) =>
-    roles.data?.roles.find((role) => role.id === id)?.name ??
-    dataT(`roles.${id}`, { defaultValue: id })
 
   let body: React.ReactNode
-  if (isPending) body = <PageSkeleton rows={3} />
+  if (!me) body = <PageSkeleton rows={3} />
+  else if (!canRead) body = <PageState kind="forbidden" />
+  else if (isPending) body = <PageSkeleton rows={3} />
   else if (error)
     body =
       isApiError(error) && error.status === 403 ? (
@@ -111,9 +110,10 @@ export function UsersPage() {
                       {canManage ? <UserBlockedBadge userId={user.id} /> : null}
                     </p>
                     <p className="truncate text-sm text-muted-foreground">
-                      {[user.email, user.roles.map(roleName).join(", ")].join(
-                        " · ",
-                      )}
+                      {[
+                        user.email,
+                        user.roles.map((role) => role.name).join(", "),
+                      ].join(" · ")}
                     </p>
                   </div>
                 </div>

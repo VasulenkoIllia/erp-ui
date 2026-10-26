@@ -104,11 +104,14 @@ test.describe("ролі й права (ADR-0014)", () => {
       people.getByText("ivan@zoriana.example · Аудитор"),
     ).toBeVisible()
 
-    // Лічильники ролей теж оновились: «Аудитор» тепер має користувача.
+    // Лічильники ролей теж оновились: в «Аудитора» — четверо колег із фікстур A2 і Іван.
     await openWith(page, {}, ROLES)
     await expect(
-      page.getByRole("list", { name: "Ролі" }).getByText("0 користувачів"),
-    ).toHaveCount(0)
+      page
+        .getByRole("list", { name: "Ролі" })
+        .getByRole("listitem")
+        .filter({ hasText: "Аудитор" }),
+    ).toContainText("5 користувачів")
   })
 
   test("без права roles:read — сторінка заборонена", async ({ page }) => {

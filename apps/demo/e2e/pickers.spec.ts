@@ -161,7 +161,8 @@ test.describe("вибір запису: поведінка", () => {
     await expect(companyField(page)).toBeFocused()
   })
 
-  test("менеджер: «Створити» неактивне з причиною, список користувачів — немає доступу", async ({
+  // Без `users:read` список відповідальних — довідник колег: імена активних, без заблокованих (ADR-0031).
+  test("менеджер: «Створити» неактивне з причиною, відповідальні — довідник колег", async ({
     page,
   }) => {
     await openWith(page, {}, PATH, { user: USERS.sales })
@@ -177,8 +178,14 @@ test.describe("вибір запису: поведінка", () => {
       .getByRole("combobox", { name: "Відповідальний" })
       .click()
     await expect(
-      page.getByText("Немає доступу до списку", { exact: true }),
+      page.getByRole("option", { name: /Андрій Бондар/ }),
     ).toBeVisible()
+    await expect(page.getByRole("option", { name: /Ірина Мороз/ })).toHaveCount(
+      0,
+    )
+    await expect(
+      page.getByText("Немає доступу до списку", { exact: true }),
+    ).toHaveCount(0)
   })
 
   test("стани поля: лише читання, вимкнено, запис видалили, очищення", async ({

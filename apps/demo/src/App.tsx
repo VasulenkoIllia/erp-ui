@@ -78,14 +78,14 @@ import { DropdownMenuItem } from "@/registry/ui/dropdown-menu"
 import { Toaster } from "@/registry/ui/sonner"
 import { TooltipProvider } from "@/registry/ui/tooltip"
 
-import {
-  contactsModule,
-  ContactsModuleRoutes,
-  contactsNavId,
-  contactsNavItems,
-} from "@/contacts-module"
 import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
+import {
+  kitModuleNavId,
+  kitModuleNavItems,
+  kitModuleOf,
+  KitModuleRoutes,
+} from "@/kit-modules"
 import { MOCK_RESOURCES } from "@/mocks/resources"
 import { useLanguageFallbackNotice } from "@/i18n/fallback-notice"
 import {
@@ -143,14 +143,15 @@ const isRecord = (location: Location): location is RecordLocation =>
 /** Пункт навігації сторінки: заглушка модуля, модуль кіта, картка — її список, решта — розділ. */
 function activeNavId(location: Location, pathname: string) {
   if (location.route === "module") return location.moduleId
-  if (location.route === "contactsModule") return contactsNavId(pathname)
+  if (location.route === "kitModule")
+    return kitModuleNavId(location.moduleKey, pathname)
   return isRecord(location) ? RECORD_LISTS[location.route] : location.route
 }
 
 /** Ключ межі помилок — сторінка: перехід на іншу скидає помилку попередньої. */
 function pageKey(location: Location, pathname: string) {
   if (isRecord(location)) return `${location.route}/${location.id}`
-  return location.route === "contactsModule"
+  return location.route === "kitModule"
     ? pathname
     : activeNavId(location, pathname)
 }
@@ -376,10 +377,11 @@ function Shell({
       {
         id: "erp",
         label: t("nav.erp"),
-        // Модуль кіта (B1) — своїми пунктами; решта — заглушки розділів.
-        items: ERP_EXAMPLE.flatMap(({ id, badge }) =>
-          id === contactsModule.id
-            ? contactsNavItems(language)
+        // Модуль кіта (B1, A2) — своїми пунктами; решта — заглушки розділів.
+        items: ERP_EXAMPLE.flatMap(({ id, badge }) => {
+          const kitModule = kitModuleOf(id)
+          return kitModule
+            ? kitModuleNavItems(kitModule, language)
             : [
                 {
                   id,
@@ -388,8 +390,8 @@ function Shell({
                   icon: MODULE_ICONS[id],
                   badge,
                 },
-              ],
-        ),
+              ]
+        }),
       },
     ],
     [t, kitT, language],
@@ -470,13 +472,15 @@ function Shell({
   // Картка запису — частина своєї сторінки-списку («Дані й моки», «Організації»): та сама
   // позначка в навігації.
   const record = isRecord(location) ? location : null
-  const inModule = location.route === "contactsModule"
+  const kitModule = location.route === "kitModule" ? location : null
   const activeId = activeNavId(location, pathname)
   const group = nav.find((g) => g.items.some((item) => item.id === activeId))
   const current = group?.items.find((item) => item.id === activeId)
   const Page =
     PAGES[
-      location.route === "module" || inModule || isRecord(location)
+      location.route === "module" ||
+      location.route === "kitModule" ||
+      isRecord(location)
         ? "appearance"
         : location.route
     ]
@@ -526,7 +530,7 @@ function Shell({
                 label: current?.label ?? "",
                 // Картка модуля — крихта до її списку (фільтри повертає «До списку» картки).
                 href:
-                  inModule && pathname !== current?.href
+                  kitModule && pathname !== current?.href
                     ? current?.href
                     : undefined,
               },
@@ -625,8 +629,8 @@ function Shell({
           <Suspense fallback={<LoadingFallback />}>
             {location.route === "module" ? (
               <ModulePage moduleId={location.moduleId} />
-            ) : inModule ? (
-              <ContactsModuleRoutes />
+            ) : kitModule ? (
+              <KitModuleRoutes moduleKey={kitModule.moduleKey} />
             ) : location.route === "invoice" ? (
               <InvoicePage id={location.id} />
             ) : location.route === "organization" ? (

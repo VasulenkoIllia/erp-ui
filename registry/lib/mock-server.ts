@@ -14,8 +14,9 @@ import { HttpResponse } from "msw/http"
 import { delay } from "msw/utils/delay"
 
 import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
-import type { ApiErrorBody } from "@/registry/lib/api"
+import { COMPANY_HEADER, type ApiErrorBody } from "@/registry/lib/api"
 import {
+  hasPermission,
   meSchema,
   type AuthFactor,
   type LocalizedText,
@@ -304,6 +305,22 @@ export function currentMockUser(request?: Request): MockUser | null {
   if (request?.headers.get(BACKGROUND_HEADER) !== "1")
     writeMockSession({ ...session, expiresAt: newExpiry() })
   return mockUsers.find((u) => u.id === session.userId) ?? null
+}
+
+/**
+ * Компанія запиту (ADR-0003): заголовок `X-Company-Id`, без нього — компанія сесії. Компанія, де
+ * людина не працює, — `null`: заголовку без членства сервер не вірить, а «усіх компаній» не буває.
+ */
+export function mockRequestCompany(
+  request: Request,
+  user: MockUser,
+): string | null {
+  const id = request.headers.get(COMPANY_HEADER) ?? user.companyId
+  if (!id) return null
+  const member =
+    user.companies.some((company) => company.id === id) ||
+    hasPermission(user.permissions, "*", "*")
+  return member ? id : null
 }
 
 /** Увійти в мок без форми — для тестів і демо. */

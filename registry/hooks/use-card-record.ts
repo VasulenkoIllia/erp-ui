@@ -1,9 +1,9 @@
 import { useGetOne, type RaRecord } from "ra-core"
 import { useCallback } from "react"
 
-import { useCompanyId } from "@/hooks/use-company"
-import { ApiError, isApiError } from "@/lib/api"
-import { companyScope } from "@/lib/company-scope"
+import { useCompanyId } from "@/registry/hooks/use-company"
+import { ApiError, isApiError } from "@/registry/lib/api"
+import { companyScope } from "@/registry/lib/company-scope"
 
 /** Мережі немає, і TanStack Query тримає запит на паузі: це «немає з'єднання», а не вічний скелетон. */
 const OFFLINE = new ApiError(0, {

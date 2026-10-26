@@ -356,6 +356,24 @@ extensionAuditOptions(language, fields, recordTitle?)  // журнал мокі�
 фільтр панелі (`kind: "record"` в `lib/filters`) працюють з ним без коду модуля: модуль не знає
 типів полів розширення. Модулі кіта (B1) ставлять у шапку `displayEntry()` замість `entry()`.
 
+## Доповнення: крок A2b1 — розширення модуля A2 (26.10.2026)
+
+Другий модуль (ADR-0031) має ту саму форму, що й B1: зміни згруповано за сутністю, ключі модуля —
+типи, нове — з полів розширення.
+
+```ts
+interface UsersExtension {
+  users?: { fields?, columns?, filters?, tabs?, recordFields?, history?: boolean, sections?, actions? }
+  strings?: { uk?, en? }
+}
+interface UsersMockExtension { users?: Pick<UserPeopleExtension, "fields"> }
+```
+
+Форми запису немає (людину створює запрошення), тож немає й `form`. Ролі й запрошення (A2b2) і
+права на рівні записів (A2c) з'являться новими необов'язковими ключами поруч з `users` —
+доповнення, мінорна версія. Рядки з перевизначеннями модуль бере спільним `moduleResources`
+(`lib/i18n-namespaces`), як і B1.
+
 ## Наслідки
 
 - B1 «Контакти й компанії» (крок 1.4) — перший модуль із розширенням. Тестовий проект пілота

@@ -9,6 +9,8 @@ import {
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
+import { useExtendedList } from "@/hooks/use-extended-list"
+import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 import { isPinned } from "@/lib/pins"
@@ -17,8 +19,6 @@ import { AccessAction, useOpener } from "../components/access-action"
 import { useContactColumns } from "../components/contact-columns"
 import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
 import { useSegmentFilter } from "../components/segments"
-import { useExtendedList } from "../components/use-extended-list"
-import { usePageHeading } from "../components/use-page-heading"
 import { CONTACTS, type Contact } from "../contract"
 import type { ContactColumnId, ContactIds, ContactTabId } from "../extension"
 import { useContactsModule } from "../module-context"

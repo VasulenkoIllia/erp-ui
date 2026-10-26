@@ -1,15 +1,13 @@
-import { z } from "zod"
-
-import { recordBaseSchema } from "@/registry/lib/api"
 import { extendSchema, withMockValues } from "@/registry/lib/extension-fields"
 import {
   createPlatformHandlers,
   createResourceHandlers,
-  subscribeMockEvents,
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
+import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
+import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
 
 import {
@@ -21,7 +19,9 @@ import {
   type Invoice,
 } from "@/data/invoices"
 import { organizationCompanyOf } from "@/data/organizations"
+import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
+import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
 
 import { ACCOUNT_SEEDS } from "./account"
@@ -114,57 +114,24 @@ const contacts = createContactsMocks({
   companyOf: organizationCompanyOf,
 })
 
-/** Користувачі компанії для сторінки «Користувачі» (без паролів і кодів). */
-export const userRecordSchema = recordBaseSchema.extend({
-  name: z.string(),
-  email: z.string(),
-  roles: z.array(z.string()),
-  companyId: z.string().nullable(),
+/**
+ * Модуль A2 «Користувачі й ролі» (ADR-0031): ресурс `users` — живий вигляд користувачів мок-сервера
+ * входу (зміни ролей, блокування й нові колеги з запрошень видно одразу) з полем розширення
+ * «Відділ». Колеги з фікстур модуля — у першій компанії демо, щоб список мав вкладки й сторінки.
+ */
+const team = createUsersFixtures({
+  company: COMPANIES[0],
+  roles: ["sales", "accountant", "sales", "auditor"],
+  emailDomain: "zoriana.example",
 })
-export type UserRecord = z.infer<typeof userRecordSchema>
-
-export const users = createResourceHandlers({
-  resource: "users",
-  schema: userRecordSchema,
-  data: MOCK_USERS.map((user) => ({
-    id: user.id,
-    version: 1,
-    name: user.name,
-    email: user.email,
-    roles: user.roles,
-    companyId: user.companyId,
-  })),
-  searchFields: ["name", "email"],
-  label: { uk: "Користувачі", en: "Users" },
-})
-
-// Ролі змінив адміністратор, колега прийняв запрошення — список користувачів теж змінюється.
-subscribeMockEvents((event) => {
-  const data = event.data as Partial<UserRecord>
-  if (event.type === "users.roles_changed" && data.id && data.roles) {
-    const record = users.db.all().find((user) => user.id === data.id)
-    if (record) {
-      record.roles = data.roles
-      record.version += 1
-    }
-  }
-  if (event.type === "users.joined" && data.id && data.name && data.email)
-    users.db.all().push({
-      id: data.id,
-      version: 1,
-      name: data.name,
-      email: data.email,
-      roles: data.roles ?? [],
-      companyId: data.companyId ?? null,
-    })
-})
+const users = createUsersMocks({ extension: usersMockExtension })
 
 export const handlers = [
   ...createPlatformHandlers({
-    users: MOCK_USERS,
+    users: [...MOCK_USERS, ...team.users],
     invites: MOCK_INVITES,
     branding: currentBranding,
-    accountSeeds: ACCOUNT_SEEDS,
+    accountSeeds: { ...ACCOUNT_SEEDS, ...team.accountSeeds },
     roles: ROLES,
     permissionResources: PERMISSION_RESOURCES,
     inboxSeeds: INBOX_SEEDS,

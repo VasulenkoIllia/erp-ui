@@ -3,6 +3,7 @@ import { useCanAccess, useRefresh, useUpdate } from "ra-core"
 import { useCallback, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { RecordLink } from "@/components/erp/record-link"
 import { RecordPicker } from "@/components/erp/record-picker"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,7 +23,6 @@ import {
 import type { ContactDetailRowId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
-import { RecordLink } from "./navigation"
 import { RequisiteList, type Requisite } from "./requisite-list"
 import { RecordSegments } from "./segments"
 
@@ -95,7 +95,7 @@ export function ContactDetails({ contact }: { contact: Contact }) {
  */
 export function ContactOrganizationSection({ contact }: { contact: Contact }) {
   const t = useContactsT()
-  const { paths } = useContactsModule()
+  const { paths, preload } = useContactsModule()
   const { canAccess = false, isPending: isAccessPending } = useCanAccess({
     resource: CONTACTS,
     action: "update",
@@ -130,7 +130,10 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
         )}
       </Field>
       {contact.organizationId ? (
-        <RecordLink to={paths.organization(contact.organizationId)}>
+        <RecordLink
+          to={paths.organization(contact.organizationId)}
+          preload={preload}
+        >
           {t("contact.organization.open")}
         </RecordLink>
       ) : (

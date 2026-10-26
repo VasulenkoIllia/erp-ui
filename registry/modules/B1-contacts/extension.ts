@@ -17,7 +17,7 @@ import type {
 } from "@/lib/extension-fields"
 import type { ExtensionFormChanges } from "@/lib/extension-form"
 import type { Keyed, KeyedChanges } from "@/lib/extensions"
-import type { MessagesOverride } from "@/lib/i18n-namespaces"
+import type { ModuleStrings } from "@/lib/i18n-namespaces"
 import type { ExtensionStatusChanges } from "@/lib/statuses"
 import type {
   ExtensionAction,
@@ -158,10 +158,7 @@ export interface ContactsExtension {
   readonly organizations?: OrganizationsExtension
   readonly contacts?: ContactPeopleExtension
   /** Перевизначення рядків модуля за ключами `i18n/*.json`, напр. назва чи пояснення списку. */
-  readonly strings?: {
-    readonly uk?: MessagesOverride<ContactsMessages>
-    readonly en?: MessagesOverride<ContactsMessages>
-  }
+  readonly strings?: ModuleStrings<ContactsMessages>
 }
 
 /** Те, що беруть моки: дані без компонентів (файл полів проекту не тягне інтерфейс у моки). */

@@ -2,14 +2,15 @@ import { ArrowLeftIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link, useLocation } from "react-router"
 
-import { buttonVariants } from "@/components/ui/button"
-
-import { useContactsModule } from "../module-context"
+import { buttonVariants } from "@/registry/ui/button"
 
 /**
- * Посилання між сторінками модуля (ADR-0019): зі списку на картку — з адресою списку в стані
- * переходу, тож «До списку» на картці повертає вкладку, фільтри й вид; чанк картки — заздалегідь,
- * щойно на посилання навели чи сфокусувались (ADR-0009).
+ * Посилання між сторінками модуля на React Router (ADR-0019, ADR-0025): зі списку на картку — з
+ * адресою списку в стані переходу, тож «До списку» на картці повертає вкладку, фільтри й вид; чанк
+ * картки — заздалегідь, щойно на посилання навели чи сфокусувались (`preload`, ADR-0009).
+ *
+ *   <RecordLink to={paths.contact(id)} preload={preload} fromList>{name}</RecordLink>
+ *   <BackToList to={paths.contacts} label="До контактів" />
  */
 
 interface ListLinkState {
@@ -28,10 +29,13 @@ function listSearchOf(state: unknown): string {
 
 export function RecordLink({
   to,
+  preload,
   fromList = false,
   children,
 }: {
   to: string
+  /** Прогріти чанк сторінки за адресою (`preload` фабрики модуля). */
+  preload?: (pathname: string) => void
   /**
    * Посилання зі списку на картку: адреса списку (вкладка, пошук, вид) — у стані переходу для «До
    * списку». Читає її саме посилання, а не колонки: інакше кожна зміна адреси перебудовувала б таблицю.
@@ -39,10 +43,9 @@ export function RecordLink({
   fromList?: boolean
   children: ReactNode
 }) {
-  const { preload } = useContactsModule()
   const { search } = useLocation()
   const warm = () => {
-    preload(to)
+    preload?.(to)
   }
   return (
     <Link

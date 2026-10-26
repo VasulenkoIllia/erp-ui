@@ -184,6 +184,7 @@ function build() {
   }
   problems.push(...sharedImportProblems(files))
   problems.push(...useClientProblems(files.map((f) => f.file)))
+  problems.push(...nulProblems(files.map((f) => f.file)))
   // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` і в `import("@/registry/lib/x")`
   // на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
@@ -396,6 +397,21 @@ function useClientProblems(files) {
     )
 }
 
+/**
+ * Без `\u0000` і байта NUL: CLI shadcn при встановленні пише `\u0000` справжнім NUL, і git у
+ * проекті бачить файл двійковим (крок 1.7a). Роздільник ключа — `JSON.stringify` чи інший символ.
+ */
+function nulProblems(files) {
+  return files
+    .filter((file) =>
+      /\\u0000|\0/.test(readFileSync(path.join(root, file), "utf8")),
+    )
+    .map(
+      (file) =>
+        `${file}: \\u0000 чи байт NUL — CLI shadcn пише їх справжнім NUL, і git бачить файл двійковим; візьміть JSON.stringify`,
+    )
+}
+
 /** Спільний шар не знає модулів і проекту: файл реєстру з таким імпортом зламав би кожен модуль. */
 function sharedImportProblems(files) {
   const problems = []
@@ -434,6 +450,7 @@ function moduleItems({
     const files = moduleFiles(dir)
     problems.push(...moduleEntryProblems(base, files))
     problems.push(...useClientProblems(files.map((rel) => `${base}/${rel}`)))
+    problems.push(...nulProblems(files.map((rel) => `${base}/${rel}`)))
     const { shared, packages } = moduleImports(base, files, problems)
     const included = [...new Set(shared)].sort().map(closure)
     const names = [...new Set(included.flatMap((c) => c.names))].sort()

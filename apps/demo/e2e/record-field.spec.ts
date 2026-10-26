@@ -119,13 +119,16 @@ test.describe("поле-запис: десктоп", () => {
     await expect(headerValue(page, "Відповідальний менеджер")).toHaveText("—")
   })
 
-  test("без права читати довідник — «Немає доступу» в комірці, а не збій сторінки", async ({
+  test("без права `users:read` — імена з довідника колег, а не «Немає доступу» (ADR-0031)", async ({
     page,
   }) => {
     await openWith(page, {}, ORGANIZATIONS, { user: USERS.sales })
     await expect(
-      page.getByRole("gridcell", { name: "Немає доступу" }).first(),
+      page.getByRole("gridcell", { name: "Іван Петренко" }).first(),
     ).toBeVisible()
+    await expect(
+      page.getByRole("gridcell", { name: "Немає доступу" }),
+    ).toHaveCount(0)
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Організації",
     )
@@ -150,7 +153,9 @@ test.describe("поле-запис: телефон", () => {
       .getByRole("combobox", { name: "Відповідальний менеджер", exact: true })
       .click()
     const sheet = page.getByRole("dialog", { name: "Відповідальний менеджер" })
-    await expect(sheet.getByRole("option")).toHaveCount(3)
+    await expect(
+      sheet.getByRole("option", { name: /Іван Петренко/ }),
+    ).toBeVisible()
     const scroll = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
     )

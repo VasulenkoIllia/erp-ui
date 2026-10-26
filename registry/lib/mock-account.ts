@@ -67,6 +67,8 @@ export interface MockAccountSeed {
   signIns?: MockSignInSeed[]
   passwordChangedAt?: string | null
   newSignInAlerts?: boolean
+  /** Заблоковано адміністратором ще до запуску моків (ADR-0013): хто, коли, чому. */
+  blocked?: { at: string; by: string; reason: string }
 }
 
 /** Змінене в профілі (поверх `MockUser`); avatarUrl: null — фото видалено. */
@@ -151,6 +153,7 @@ function initialState(user: MockUser): MockAccountState {
     profile: {},
     apiTokens: [],
     passwordHistory: [user.password],
+    ...(seed.blocked ? { blocked: seed.blocked } : {}),
   }
 }
 

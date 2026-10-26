@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 
+import { RecordLink } from "@/components/erp/record-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import { usePinColumn } from "@/components/erp/pin-toggle"
 import type { DataTableColumn } from "@/lib/data-table-core"
@@ -15,7 +16,6 @@ import type { OrganizationColumnId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { cellText } from "./cell-text"
-import { RecordLink } from "./navigation"
 import { SegmentBadges, useSegments } from "./segments"
 
 type OrganizationColumn = DataTableColumn<Organization> & {
@@ -37,7 +37,7 @@ export function useOrganizationColumns(
   statuses: ResolvedStatuses,
 ): readonly OrganizationColumn[] {
   const t = useContactsT()
-  const { paths } = useContactsModule()
+  const { paths, preload } = useContactsModule()
   const segments = useSegments()
   const pin = usePinColumn<Organization>({
     resource: ORGANIZATIONS,
@@ -50,7 +50,11 @@ export function useOrganizationColumns(
         id: "name",
         header: t("organizations.columns.name"),
         cell: (organization) => (
-          <RecordLink to={paths.organization(organization.id)} fromList>
+          <RecordLink
+            to={paths.organization(organization.id)}
+            preload={preload}
+            fromList
+          >
             {organization.name}
           </RecordLink>
         ),
@@ -114,6 +118,6 @@ export function useOrganizationColumns(
         overflow: "wrap",
       },
     ],
-    [t, pin, paths, segments, statuses],
+    [t, pin, paths, preload, segments, statuses],
   )
 }

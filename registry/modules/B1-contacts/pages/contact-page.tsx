@@ -6,6 +6,7 @@ import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton } from "@/components/erp/page-state"
 import { PinToggle } from "@/components/erp/pin-toggle"
 import type { RecordField } from "@/components/erp/record-header"
+import { BackToList } from "@/components/erp/record-link"
 import {
   ObjectPage,
   useRecordSlots,
@@ -14,6 +15,9 @@ import {
   type ObjectPageSectionItem,
 } from "@/components/templates/object-page"
 import { Badge } from "@/components/ui/badge"
+import { useCardRecord } from "@/hooks/use-card-record"
+import { useHistoryRefresh } from "@/hooks/use-history-refresh"
+import { usePageHeading } from "@/hooks/use-page-heading"
 import { useExtensionFields } from "@/lib/extension-fields"
 import {
   applyKeyedChanges,
@@ -30,10 +34,6 @@ import {
   ContactDetails,
   ContactOrganizationSection,
 } from "../components/contact-sections"
-import { BackToList } from "../components/navigation"
-import { useCardRecord } from "../components/use-card-record"
-import { useHistoryRefresh } from "../components/use-history-refresh"
-import { usePageHeading } from "../components/use-page-heading"
 import { CONTACTS, type Contact } from "../contract"
 import type {
   ContactActionId,

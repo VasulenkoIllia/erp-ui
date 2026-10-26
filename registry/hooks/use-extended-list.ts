@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 
-import type { DataTableColumn } from "@/lib/data-table-core"
+import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import {
   useExtensionFields,
   type ExtensionColumn,
@@ -8,16 +8,16 @@ import {
   type ExtensionField,
   type ExtensionFilter,
   type ExtensionTab,
-} from "@/lib/extension-fields"
+} from "@/registry/lib/extension-fields"
 import {
   applyKeyedChanges,
   mapKeyedChanges,
   type KeyedChanges,
-} from "@/lib/extensions"
-import type { FilterDefinition } from "@/lib/filters"
-import type { ListTab } from "@/lib/list-state"
+} from "@/registry/lib/extensions"
+import type { FilterDefinition } from "@/registry/lib/filters"
+import type { ListTab } from "@/registry/lib/list-state"
 
-/** Ключі модуля для списку сутності — ті самі, що в типі розширення (`OrganizationIds`…). */
+/** Ключі модуля для списку сутності — ті самі, що в типі розширення (`OrganizationIds` модуля B1…). */
 interface ListIds {
   column: string
   filter: string
@@ -43,7 +43,7 @@ interface ExtendedList<Row> {
 }
 
 /**
- * Колонки, фільтри й вкладки списку модуля зі змінами розширення проекту. Аргументи — стабільні між
+ * Колонки, фільтри й вкладки списку модуля зі змінами розширення проекту (ADR-0020, ADR-0025). Аргументи — стабільні між
  * рендерами (`useMemo` модуля, константа файлу розширення): від них залежить перебудова таблиці.
  * `locked` — колонки, яких розширення не ховає й не замінює (назва — посилання на картку).
  * `Ids` передається явно (`useExtendedList<Contact, ContactIds>`): ключ, якого немає в типах

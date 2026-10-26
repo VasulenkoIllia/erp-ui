@@ -18,7 +18,7 @@
     "SecurityPolicyPage.tsx": 387.8,
     "AuditPage.tsx": 402.3,
     "IntegrationsPage.tsx": 402.0,
-    "PrimitivesPage.tsx": 382,
+    "PrimitivesPage.tsx": 401.1,
     "RolesPage.tsx": 387.1,
     "NotificationsPage.tsx": 386.2,
     "AppearancePage.tsx": 378.7,
@@ -30,6 +30,8 @@
     "contacts-list-page.tsx": 579.1,
     "organizations-list-page.tsx": 577.0,
     "contact-page.tsx": 573.0,
-    "segments-list-page.tsx": 451.7
+    "segments-list-page.tsx": 451.7,
+    "users-list-page.tsx": 458.8,
+    "user-page.tsx": 445.4
   }
 }

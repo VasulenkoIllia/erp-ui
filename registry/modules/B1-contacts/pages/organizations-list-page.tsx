@@ -9,6 +9,8 @@ import {
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
+import { useExtendedList } from "@/hooks/use-extended-list"
+import { usePageHeading } from "@/hooks/use-page-heading"
 import { SHELL_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 import { isPinned } from "@/lib/pins"
@@ -21,8 +23,6 @@ import {
 } from "../components/form-dialogs"
 import { useOrganizationStatuses } from "../components/organization-statuses"
 import { useSegmentFilter } from "../components/segments"
-import { useExtendedList } from "../components/use-extended-list"
-import { usePageHeading } from "../components/use-page-heading"
 import {
   ORGANIZATION_TYPES,
   ORGANIZATIONS,

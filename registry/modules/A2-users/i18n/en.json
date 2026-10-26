@@ -1,0 +1,65 @@
+{
+  "users": {
+    "title": "Users",
+    "lead": "People in the company: roles, access, sessions and change history. New colleagues appear here once they accept an invitation.",
+    "search": "Search by name or email",
+    "tableLabel": "Users",
+    "tabsLabel": "User status",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "position": "Position",
+      "status": "Status",
+      "roles": "Roles",
+      "twoFactor": "Two-step",
+      "lastSignInAt": "Last sign-in"
+    },
+    "filters": {
+      "roles": "Role",
+      "twoFactor": "Two-step"
+    },
+    "empty": {
+      "title": "No users yet",
+      "description": "Colleagues appear here once they accept an invitation."
+    },
+    "count_one": "{{value}} user",
+    "count_other": "{{value}} users"
+  },
+  "user": {
+    "title": "User",
+    "back": "Back to users",
+    "tabsLabel": "User page sections",
+    "history": "History",
+    "self": "This is you",
+    "impersonateDenied": "You have no permission to sign in as other people",
+    "sections": {
+      "access": "Access",
+      "roles": "Roles",
+      "sessions": "Sessions"
+    },
+    "fields": {
+      "email": "Email",
+      "position": "Position",
+      "roles": "Roles",
+      "lastSignInAt": "Last sign-in"
+    },
+    "selfAccess": "You change your own access in security settings, not here.",
+    "rolesReadOnly": "Roles can be changed by someone with permission to manage user access.",
+    "rolesNoCatalog": "To change roles, you also need permission to view company roles.",
+    "rolesImpersonating": "Roles and access can't be changed while you are signed in as someone else.",
+    "selfRoles": "You don't change your own roles: another company administrator does."
+  },
+  "statuses": {
+    "active": "Active",
+    "blocked": "Blocked"
+  },
+  "twoFactor": {
+    "on": "On",
+    "off": "Off"
+  },
+  "neverSignedIn": "Never signed in",
+  "noRoles": "No roles"
+}

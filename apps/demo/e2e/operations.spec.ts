@@ -261,6 +261,8 @@ test.describe("доступ користувачів (ADR-0013)", () => {
     await expect(
       page
         .getByRole("list", { name: "Користувачі компанії" })
+        .getByRole("listitem")
+        .filter({ hasText: "Іван Петренко" })
         .getByText("Заблоковано"),
     ).toBeVisible()
 

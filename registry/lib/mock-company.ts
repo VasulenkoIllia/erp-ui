@@ -8,7 +8,7 @@
  */
 import { http, type HttpHandler } from "msw/http"
 
-import { API_PREFIX, COMPANY_HEADER } from "@/registry/lib/api"
+import { API_PREFIX } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
 import { hasPermission } from "@/registry/lib/auth"
 import {
@@ -25,6 +25,7 @@ import {
   errorResponse,
   impersonationForbidden,
   json,
+  mockRequestCompany,
   mockUsersList,
   noContent,
   randomToken,
@@ -65,16 +66,6 @@ export function createCompanyHandlers({
   baseUrl = API_PREFIX,
   profiles = {},
 }: CompanyMockOptions = {}): HttpHandler[] {
-  /** Компанія запиту: заголовок або компанія користувача. */
-  const companyOf = (request: Request, user: MockUser): string | null => {
-    const id = request.headers.get(COMPANY_HEADER) ?? user.companyId
-    if (!id) return null
-    const member =
-      user.companies.some((c) => c.id === id) ||
-      hasPermission(user.permissions, "*", "*")
-    return member ? id : null
-  }
-
   const initial = (id: string): CompanyProfile => {
     const name =
       mockUsersList()
@@ -118,7 +109,7 @@ export function createCompanyHandlers({
   ): { user: MockUser; id: string } | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    const id = companyOf(request, user)
+    const id = mockRequestCompany(request, user)
     if (!id)
       return errorResponse(403, {
         code: "forbidden",

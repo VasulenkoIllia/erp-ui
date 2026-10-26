@@ -33,9 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/registry/ui/select"
+import type { UserDirectoryEntry } from "@/registry/modules/A2-users"
 
 import type { Organization } from "@/data/organizations"
-import type { UserRecord } from "@/mocks/handlers"
 
 import { MultiSelectSections } from "./multi-select-sections"
 import { OrganizationCreateDialog } from "./OrganizationCreateDialog"
@@ -159,7 +159,7 @@ function ContactSection() {
             label={t("contact.owner")}
             description={t("contact.ownerHint")}
             render={({ field, control }) => (
-              <RecordPicker<UserRecord>
+              <RecordPicker<UserDirectoryEntry>
                 {...control}
                 ref={field.ref}
                 resource="users"

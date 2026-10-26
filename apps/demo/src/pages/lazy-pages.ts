@@ -4,7 +4,7 @@ import { lazyWithPreload } from "@/registry/lib/lazy"
 
 import { invoicesExtension } from "@/extensions/K2-invoices"
 import { organizationsExtension } from "@/extensions/organizations"
-import { contactsModule } from "@/contacts-module"
+import { KIT_MODULES } from "@/kit-modules"
 import { parsePath, type Route } from "@/router"
 
 /**
@@ -121,8 +121,8 @@ export function preloadPage(href: string): void {
   // Без `new URL`: адреса з hash буває будь-якою (`#//`), а тут потрібен лише шлях.
   const path = href.split(/[?#]/)[0] ?? ""
   const location = parsePath(path)
-  if (location.route === "contactsModule") {
-    contactsModule.preload(path)
+  if (location.route === "kitModule") {
+    KIT_MODULES[location.moduleKey].preload(path)
     return
   }
   const page =

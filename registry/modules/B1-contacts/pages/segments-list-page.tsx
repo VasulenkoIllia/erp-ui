@@ -10,13 +10,13 @@ import {
   type ListReportAction,
 } from "@/components/templates/list-report"
 import { Button } from "@/components/ui/button"
+import { usePageHeading } from "@/hooks/use-page-heading"
 import type { DataTableColumn } from "@/lib/data-table-core"
 import { SHELL_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import { AccessAction, useOpener } from "../components/access-action"
 import { SegmentFormDialog, usePreloadForm } from "../components/form-dialogs"
-import { usePageHeading } from "../components/use-page-heading"
 import { SEGMENTS, type Segment } from "../contract"
 import { useContactsT } from "../use-contacts-t"
 

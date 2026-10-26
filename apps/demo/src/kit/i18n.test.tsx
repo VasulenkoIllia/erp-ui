@@ -23,6 +23,8 @@ import { en as kitEn } from "@/registry/lib/i18n-en"
 import { uk as kitUk } from "@/registry/lib/i18n-uk"
 import contactsEn from "@/registry/modules/B1-contacts/i18n/en.json"
 import contactsUk from "@/registry/modules/B1-contacts/i18n/uk.json"
+import usersEn from "@/registry/modules/A2-users/i18n/en.json"
+import usersUk from "@/registry/modules/A2-users/i18n/uk.json"
 import { Spinner } from "@/registry/ui/spinner"
 
 import { createDemoI18n } from "@/i18n"
@@ -90,6 +92,10 @@ describe("паритет рядків uk/en", () => {
 
   it("рядки модуля B1", () => {
     expect(checkParity({ uk: contactsUk, en: contactsEn })).toEqual([])
+  })
+
+  it("рядки модуля A2", () => {
+    expect(checkParity({ uk: usersUk, en: usersEn })).toEqual([])
   })
 
   it("перевірка ловить пропущену форму множини", () => {

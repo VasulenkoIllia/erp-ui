@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 
 import { usePinColumn } from "@/components/erp/pin-toggle"
+import { RecordLink } from "@/components/erp/record-link"
 import type { DataTableColumn } from "@/lib/data-table-core"
 import { formatPhone } from "@/lib/phone"
 
@@ -10,7 +11,6 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { ContactOrganization } from "./contact-organization"
 import { cellText } from "./cell-text"
-import { RecordLink } from "./navigation"
 import { SegmentBadges, useSegments } from "./segments"
 
 type ContactColumn = DataTableColumn<Contact> & { id: ContactColumnId }
@@ -23,7 +23,7 @@ export const contactName = (contact: Contact) => contact.name
  */
 export function useContactColumns(): readonly ContactColumn[] {
   const t = useContactsT()
-  const { paths } = useContactsModule()
+  const { paths, preload } = useContactsModule()
   const segments = useSegments()
   const pin = usePinColumn<Contact>({ resource: CONTACTS, name: contactName })
   return useMemo(
@@ -33,7 +33,7 @@ export function useContactColumns(): readonly ContactColumn[] {
         id: "name",
         header: t("contacts.columns.name"),
         cell: (contact) => (
-          <RecordLink to={paths.contact(contact.id)} fromList>
+          <RecordLink to={paths.contact(contact.id)} preload={preload} fromList>
             {contact.name}
           </RecordLink>
         ),
@@ -89,6 +89,6 @@ export function useContactColumns(): readonly ContactColumn[] {
         overflow: "wrap",
       },
     ],
-    [t, pin, paths, segments],
+    [t, pin, paths, preload, segments],
   )
 }

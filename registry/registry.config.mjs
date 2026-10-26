@@ -441,6 +441,46 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§10"],
   },
+  "hooks/use-page-heading": {
+    title: "h1 сторінки модуля",
+    description:
+      "usePageHeading(title, ready): фокус на h1 після переходу (useFocusHeadingOnNavigation з адресою React Router) і назва вкладки браузера; зміна мови фокус не чіпає (ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§10"],
+  },
+  "hooks/use-card-record": {
+    title: "Запис картки модуля",
+    description:
+      "useCardRecord(resource, id): запис картки (GET /<ресурс>/:id) у компанії користувача — одразу з кешу списку, далі з відповіді; 404 — «не знайдено» сторінки, збій при записі з кешу — помилка секції з повтором, немає мережі — «немає з'єднання» (ADR-0019, ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7", "§8.1"],
+  },
+  "hooks/use-tab-param": {
+    title: "Вкладка картки в адресі",
+    description:
+      "useTabParam(): вибрана вкладка картки модуля в адресі (?tab=) на React Router без нового запису історії; стан переходу лишається для «До списку» (ADR-0024).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7"],
+  },
+  "hooks/use-history-refresh": {
+    title: "Свіжа історія картки",
+    description:
+      "useHistoryRefresh(version): журнал «Історія» картки перечитується, коли змінюється версія запису; перша версія після завантаження — не зміна (ADR-0019).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7"],
+  },
+  "hooks/use-extended-list": {
+    title: "Список модуля з розширенням",
+    description:
+      "useExtendedList(columns, filters, tabs, extension, locked): колонки, фільтри й вкладки списку модуля зі змінами файлу розширення проекту — нові з полів розширення, сховати, перемістити, змінити колонку модуля; locked — колонки, яких розширення не ховає (ADR-0020, ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7", "§17"],
+  },
   "hooks/use-email-link-token": {
     title: "Токен із листа поза адресою",
     description:
@@ -1248,6 +1288,46 @@ export const CODE_ITEMS = {
     demo: "users",
     spec: ["PF01", "A2"],
   },
+  "erp/user-access-data": {
+    title: "Дані доступу користувача",
+    description:
+      "useUserAccess (GET /users/:id/access) і оновлення панелі, сесій і бейджів після змін; тип AccessTarget.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/user-access-actions": {
+    title: "Дії над доступом користувача",
+    description:
+      "useUserAccessActions і UserAccessButtons: вийти на всіх пристроях, скинути другий крок, заблокувати з причиною й розблокувати з підтвердженням і повторним підтвердженням.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/user-roles-section": {
+    title: "Ролі користувача",
+    description:
+      "UserRolesSection: ролі людини з «Зберегти ролі» й повторним підтвердженням; свої ролі — лише перегляд, хоча б одна роль.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/user-sessions": {
+    title: "Сесії користувачів",
+    description:
+      "UserSessionsList — сесії однієї людини з «Завершити»; ActiveSessionsSection — активні сесії компанії з пошуком і «Показати ще».",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/record-link": {
+    title: "Посилання між сторінками модуля",
+    description:
+      "RecordLink — зі списку на картку з адресою списку в стані переходу й прогрівом чанка картки при наведенні чи фокусі; BackToList — «До списку» з тими самими вкладкою, фільтрами й видом (React Router, ADR-0019, ADR-0025).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7", "§10"],
+  },
   "erp/copy-button": {
     title: "Кнопка «Копіювати»",
     description:
@@ -1685,6 +1765,20 @@ const KIT_TOOL_FILES = [
  * `registry/modules/<ID>-<назва>/` (у проекті — `src/modules/…`), спільні елементи — з імпортів.
  */
 export const MODULE_ITEMS = {
+  "modules/A2-users": {
+    title: "Користувачі й ролі (A2)",
+    description:
+      "Модуль: люди компанії на List Report (вкладки за статусом з лічильниками, фільтри «Роль» і «Другий крок», пошук за ім'ям чи email, розмір сторінки) і картка на Object Page з вкладками «Доступ» (стан, другий крок, вийти всюди, скинути другий крок, заблокувати й розблокувати), «Ролі», «Сесії» й «Історія»; «Увійти як…» у шапці; контракт users з довідником для полів-записів інших модулів (ім'я та email для кожного в компанії), моки поверх користувачів мок-сервера входу, фікстури колег uk/en, рядки uk/en; фабрика createUsersModule з маршрутами, навігацією й правами, тип розширення UsersExtension (ADR-0020, ADR-0025, ADR-0031).",
+    status: "beta",
+    demo: "usersModule",
+    spec: ["§7", "§14", "§17", "A2", "PF01"],
+    docs: [
+      "Модуль A2 встановлено в src/modules/A2-users. Файли модуля не правте: зміни під клієнта — у src/extensions/A2-users.ts (тип UsersExtension).",
+      "1) createUsersModule({ basePath, extension, homePath }) з @/modules/A2-users: routes — у роутер, nav — у навігацію.",
+      "2) Моки: createUsersMocks({ extension }) з @/modules/A2-users/mocks — handlers у setupWorker після createPlatformHandlers; колеги для демо — createUsersFixtures({ company, roles }) з @/modules/A2-users/fixtures у users і accountSeeds createPlatformHandlers.",
+      "3) Права ролей: users (read, create, update, impersonate), roles (read, update). Докладно — src/modules/A2-users/README.md.",
+    ].join("\n"),
+  },
   "modules/B1-contacts": {
     title: "Контакти й компанії (B1)",
     description:

@@ -1,19 +1,22 @@
 import { useAuthenticated } from "ra-core"
 import { useMemo, useState } from "react"
-import { useLocation, useParams, useSearchParams } from "react-router"
+import { useParams } from "react-router"
 
 import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton } from "@/components/erp/page-state"
+import { BackToList } from "@/components/erp/record-link"
 import {
   ObjectPage,
   useRecordSlots,
   type ObjectPageSectionItem,
 } from "@/components/templates/object-page"
+import { useCardRecord, type CardRecord } from "@/hooks/use-card-record"
+import { useHistoryRefresh } from "@/hooks/use-history-refresh"
+import { usePageHeading } from "@/hooks/use-page-heading"
+import { useTabParam } from "@/hooks/use-tab-param"
 import { applyKeyedChanges } from "@/lib/extensions"
-import { TAB_PARAM } from "@/lib/list-state"
 
 import { useOpener } from "../components/access-action"
-import { BackToList } from "../components/navigation"
 import { OrganizationContacts } from "../components/organization-contacts"
 import {
   OrganizationFormDialog,
@@ -28,9 +31,6 @@ import {
   type DetailState,
 } from "../components/organization-sections"
 import { useOrganizationStatuses } from "../components/organization-statuses"
-import { useCardRecord, type CardRecord } from "../components/use-card-record"
-import { useHistoryRefresh } from "../components/use-history-refresh"
-import { usePageHeading } from "../components/use-page-heading"
 import {
   ORGANIZATIONS,
   type Organization,
@@ -199,24 +199,4 @@ function useDetailState(card: CardRecord<OrganizationCardRecord>): DetailState {
       onRetry: retry,
     }
   }, [addresses, bankAccounts, isFetching, failure, retry])
-}
-
-/** Вибрана вкладка — в адресі, без нового запису історії: «Назад» веде з картки, а не по вкладках. */
-function useTabParam() {
-  const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
-  return {
-    value: searchParams.get(TAB_PARAM),
-    onValueChange: (tab: string) => {
-      // Стан переходу лишається: «До організацій» і далі повертає фільтри списку.
-      setSearchParams(
-        (params) => {
-          const next = new URLSearchParams(params)
-          next.set(TAB_PARAM, tab)
-          return next
-        },
-        { replace: true, state: location.state as unknown },
-      )
-    },
-  }
 }
