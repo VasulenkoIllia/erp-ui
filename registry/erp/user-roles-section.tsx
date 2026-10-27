@@ -8,9 +8,9 @@ import {
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
-import { RolePicker, useRoles } from "@/registry/erp/roles-editor"
+import { RolePicker, useRoles } from "@/registry/erp/role-picker"
 import { useRefreshAccess } from "@/registry/erp/user-access-data"
-import { useHasPermission } from "@/registry/hooks/use-me"
+import { useHasPermission, useMe } from "@/registry/hooks/use-me"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
 import { Badge } from "@/registry/ui/badge"
@@ -40,6 +40,7 @@ export function UserRolesSection({
   const refresh = useRefreshAccess()
   const { guard, dialog: reauthDialog } = useReauth()
   const canRead = useHasPermission("roles", "read")
+  const ceiling = useMe().data?.permissions
   const query = useRoles(canRead)
   const [value, setValue] = React.useState(current)
   const [error, setError] = React.useState<string>()
@@ -82,6 +83,7 @@ export function UserRolesSection({
         legend={t("roles.userRolesTitle")}
         error={error}
         disabled={self || busy}
+        ceiling={ceiling}
         onChange={(next) => {
           setValue(next)
           setError(undefined)

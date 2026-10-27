@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 
-import { useRoles } from "@/components/erp/roles-editor"
+import { useRoles } from "@/components/erp/role-picker"
 import { Badge } from "@/components/ui/badge"
 import { useHasPermission } from "@/hooks/use-me"
 import type { FilterDefinition } from "@/lib/filters"

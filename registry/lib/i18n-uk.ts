@@ -375,6 +375,7 @@ export const uk = {
       submit: "Підтвердити",
       usePassword: "Підтвердити паролем",
       useCode: "Підтвердити кодом",
+      cancelled: "Дію не виконано: підтвердження скасовано",
     },
     account: {
       passwordTitle: "Пароль",
@@ -1040,6 +1041,12 @@ export const uk = {
     userRolesSave: "Зберегти ролі",
     userRolesSaved: "Ролі змінено",
     userRolesRequired: "Оберіть хоча б одну роль",
+    beyondCeiling: "Дає права, яких немає у вас",
+    roleBeyondCeiling: "Роль дає права, яких немає у вас",
+    beyondCeilingHint:
+      "Роль дає права, яких немає у вас, тож змінити чи видалити її може лише той, хто їх має.",
+    matrixCeilingHint:
+      "Неактивних прав у вас немає, тож увімкнути чи вимкнути їх у ролі може лише той, хто їх має.",
   },
   invitations: {
     title: "Запрошення",

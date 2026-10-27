@@ -42,6 +42,7 @@ import {
   json,
   maskEmail,
   maskPhone,
+  mockCompanyTarget,
   mockUsersList,
   noContent,
   randomToken,
@@ -50,6 +51,7 @@ import {
   writeMockSession,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { impersonationBlock } from "@/registry/lib/roles"
 
 /* ----------------------------------- Стан ----------------------------------- */
 
@@ -1125,14 +1127,15 @@ export function createAccountHandlers({
       }
       const reason = body.reason?.trim() ?? ""
       if (!reason) return validation({ reason: "required" })
-      const target = mockUsersList().find((u) => u.id === body.userId)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, admin, body.userId)
+      if (target instanceof Response) return target
       if (target.id === admin.id) return validation({ userId: "invalid" })
-      // Іншого адміністратора — ні: інакше «Увійти як…» обходить розподіл прав.
-      if (hasPermission(target.permissions, "users", "impersonate"))
+      // Іншого адміністратора чи людину з правами, яких немає в адміністратора, — ні: інакше
+      // «Увійти як…» обходить розподіл прав («стеля», ADR-0032).
+      if (impersonationBlock(admin.permissions, target.permissions))
         return errorResponse(403, {
           code: "forbidden",
-          message: "Cannot impersonate an administrator",
+          message: "Cannot impersonate an administrator or a stronger user",
         })
       writeMockSession({
         ...session,

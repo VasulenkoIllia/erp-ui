@@ -460,7 +460,7 @@ const platformHandlers = createPlatformHandlers({ users: [...USERS, ...team.user
 setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExtension }).handlers)
 ```
 
-- Список і картка людини; ролі змінюють вкладка «Ролі» картки й сторінка ролей кіта (`erp/roles-editor`), запрошення — `erp/invitations-section`: їх сторінки в модулі — з A2b2.
+- Список і картка людини; ролі змінюють вкладка «Ролі» картки й сторінка ролей кіта (`erp/roles-editor`), запрошення — `erp/invitations-section`: їх сторінки в модулі — з A2b2b. Дії над людиною — лише в компанії запиту, «стеля» ролей і «Увійти як…» не в сильнішого (ADR-0032) бекенд перевіряє сам.
 - Права: список і картка — `users:read`, вкладки «Доступ» і «Сесії» — `users:update`, зміна ролей — `users:update` і `roles:read`, «Увійти як…» — `users:impersonate`. Без `users:read` — «Немає доступу» на місці сторінки.
 - Довідник для полів-записів: поле `type: "record", resource: "users"` в іншому модулі показує імена всім у компанії — бекенд віддає без `users:read` лише `{ id, version, name, email }` (контракт — `README.md` модуля).
 - Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення).
@@ -526,13 +526,14 @@ useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
   - `WebhooksSection` з `erp/webhooks-section` (права `webhooks:*`);
   - у списку користувачів — `useUserAccessSheet({ onChange })` і `UserBlockedBadge`, на сторінці — `ActiveSessionsSection` з `erp/user-access`; у панелі доступу — і ролі людини.
 - Команда й компанія (ADR-0014):
-  - `RolesEditor` з `erp/roles-editor` (права `roles:*`) — ролі й матриця прав; каталог ресурсів і дій віддає бекенд;
-  - `InvitationsSection` з `erp/invitations-section` (право `users:create`) — запрошення колег; прийняття — `AcceptInviteScreen`;
+  - `RolesEditor` з `erp/roles-editor` (права `roles:*`) — ролі й матриця прав; каталог ресурсів і дій віддає бекенд; частини — `RoleDetail` (`erp/role-detail`), `RoleMatrix` (`erp/role-matrix`), `RolePicker` і `useRoles` (`erp/role-picker`, старий імпорт з `roles-editor` працює);
+  - «стеля» (ADR-0032): дати, змінити, скопіювати чи видалити можна лише свої права — панелі кіта показують ролі й права понад стелю неактивними з причиною (`ceiling={me.permissions}` у `RolePicker`, `RoleMatrix`, `RoleDetail`), бекенд відповідає 403 і віддає права стиснено (усі дії ресурсу — `<ресурс>:*`);
+  - `InvitationsSection` з `erp/invitations-section` (право `users:create`) — запрошення колег; прийняття — `AcceptInviteScreen`, перевірка токена — `POST /auth/invite/check` з `{ token }` у тілі (невідомий токен — 410, не 404), старий `GET /auth/invite?token=` — запасний до 2.0 (`lib/invite-check`);
   - `<PermissionGate resource="invoices" action="delete">…</PermissionGate>` з `erp/permission-gate` — показати лише з правом (бекенд однаково перевіряє);
   - у топбарі — `<InboxBell onNavigate={navigate} onShowAll={() => navigate("/notifications")} />`, сторінка — `<NotificationInbox onNavigate={navigate} />` з `erp/notification-inbox`;
   - `CompanyProfileForm`, `CompanyImages`, `CompanyBranchesSection` з `erp/company-settings` (змінювати — `company:update`, решта бачить).
 - Політику виконує вхід сам: налаштування другого кроку під час входу (`FactorSetupStep`), новий пароль після терміну, 403 `ip_not_allowed`. Для SMS у `FactorSetupStep`/`useFactorSetup` можна передати `phone={{ Input: PhoneInput, validate: validatePhone }}` — на сторінці входу без нього легше пакунок.
-- Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`.
+- Чутливі дії обгортайте `useReauth().guard(action)` — діалог «Підтвердьте, що це ви» з'явиться сам на 403 `reauth_required`; «Скасувати» в ньому лишає ту саму помилку, а `useAuthErrorText` пише для неї «Дію не виконано: підтвердження скасовано» (`isReauthCancelled`).
 - «Увійти як…»: у списку користувачів — `useImpersonation({ onStarted })`, в оболонці — `<AppShell banner={<ImpersonationBanner onStopped={…} />}>`.
 - Бренд (white-label): бекенд віддає `branding` у `GET /auth/methods` за доменом; екрани входу показують його самі. У корені застосунку — `useBrandAppearance(useCompanyProfile(Boolean(me)).data?.palette)` (`hooks/use-company-profile`), щоб палітра компанії чи бренду була типовою й після входу.
 - Клієнт API: `createApiClient({ getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.

@@ -7,8 +7,8 @@
  *   const users = createUsersMocks({ extension: usersMockExtension })
  *   setupWorker(...platform, ...users.handlers)
  *
- * - Компанія — `X-Company-Id`, без нього — компанія сесії; компанія, де людина не працює, — 403
- *   (`mockRequestCompany`).
+ * - Компанія — `X-Company-Id`, без нього — компанія сесії; компанія, де людина не працює, — 403;
+ *   застосунок без компаній — одна команда (`mockCompanyOrForbidden`, ADR-0032).
  * - Права: з `users:read` — повний запис; без нього — довідник (`id`, `version`, ім'я, email):
  *   пошук і сторінки — лише активні, за `id` — будь-хто; інші фільтри й сортування не за `name`,
  *   `email` чи `id` — 403 (контракт, `contract.ts`).
@@ -32,8 +32,9 @@ import {
   applyScenario,
   currentMockUser,
   errorResponse,
+  isMockCompanyMember,
   json,
-  mockRequestCompany,
+  mockCompanyOrForbidden,
   mockUsersList,
   subscribeMockEvents,
   type MockUser,
@@ -166,12 +167,12 @@ export function createUsersMocks({
         code: "unauthenticated",
         message: "Not signed in",
       })
-    const companyId = mockRequestCompany(request, me)
-    if (!companyId) return forbidden("Not a member of the company")
+    const companyId = mockCompanyOrForbidden(request, me)
+    if (companyId instanceof Response) return companyId
     return {
       canRead: hasPermission(me.permissions, USERS, "read"),
       members: mockUsersList().filter((user) =>
-        user.companies.some((company) => company.id === companyId),
+        isMockCompanyMember(user, companyId),
       ),
     }
   }

@@ -60,6 +60,34 @@ export const ROLES: MockRole[] = [
     },
     permissions: ["invoices:read", "audit:read"],
   },
+  {
+    id: "lead",
+    name: { uk: "Керівник відділу", en: "Team lead" },
+    description: {
+      uk: "Бачить людей компанії та їхні ролі, але не змінює доступу",
+      en: "Sees the company's people and their roles but can't change access",
+    },
+    permissions: [
+      "invoices:read",
+      "organizations:read",
+      "contacts:read",
+      "segments:read",
+      "users:read",
+      "roles:read",
+    ],
+  },
+  // Сильніша за адміністратора й нікому не призначена: «стеля» в демо (ADR-0032) — Олена її не дасть,
+  // не скопіює й не запросить із нею.
+  {
+    id: "owner",
+    name: { uk: "Власник", en: "Owner" },
+    description: {
+      uk: "Усі права, зокрема права нових модулів",
+      en: "All permissions, including those of new modules",
+    },
+    system: true,
+    permissions: ["*"],
+  },
 ]
 
 const SALES: LocalizedText = { uk: "Продажі", en: "Sales" }

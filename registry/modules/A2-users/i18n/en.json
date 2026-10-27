@@ -35,6 +35,8 @@
     "history": "History",
     "self": "This is you",
     "impersonateDenied": "You have no permission to sign in as other people",
+    "impersonateAdministrator": "You can't sign in as another administrator",
+    "impersonateBeyondCeiling": "This person has permissions you don't have",
     "sections": {
       "access": "Access",
       "roles": "Roles",

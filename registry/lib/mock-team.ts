@@ -24,7 +24,10 @@ import {
   emitMockEvent,
   errorResponse,
   impersonationForbidden,
+  isMockCompanyMember,
   json,
+  mockCompanyOrForbidden,
+  mockCompanyTarget,
   mockUsersList,
   noContent,
   randomToken,
@@ -33,7 +36,13 @@ import {
   type MockUser,
 } from "@/registry/lib/mock-server"
 import { INVITATION_DAYS, type Invitation } from "@/registry/lib/invitations"
-import type { Role } from "@/registry/lib/roles"
+import {
+  canChangePermissions,
+  canChangeRoles,
+  canGrant,
+  permissionsOfRoles,
+  type Role,
+} from "@/registry/lib/roles"
 
 /* ----------------------------------- Ролі ----------------------------------- */
 
@@ -122,14 +131,7 @@ export function applyMockRoles(): void {
 
 /** Ролі й права нового користувача (запрошення, реєстрація). */
 export function permissionsForRoles(roleIds: readonly string[]): string[] {
-  const roles = mockRoles()
-  return [
-    ...new Set(
-      roleIds.flatMap(
-        (id) => roles.find((r) => r.id === id)?.permissions ?? [],
-      ),
-    ),
-  ]
+  return permissionsOfRoles(roleIds, roleGrants())
 }
 
 /* ------------------------------- Запрошення ------------------------------- */
@@ -219,6 +221,20 @@ const validation = (fields: Record<string, string>) =>
 const notFound = () =>
   errorResponse(404, { code: "not_found", message: "Not found" })
 
+/** «Стеля» (ADR-0032): не дати й не змінити права, яких немає в того, хто дає. */
+const beyondCeiling = () =>
+  errorResponse(403, {
+    code: "forbidden",
+    message: "Exceeds your own permissions",
+  })
+
+/** Ролі з правами для «стелі»: роль лише для назви — без прав. */
+const roleGrants = () =>
+  mockRoles().map((role) => ({
+    id: role.id,
+    permissions: role.permissions ?? [],
+  }))
+
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
@@ -268,10 +284,15 @@ export function createTeamHandlers({
   /** Права ролі — лише з каталогу: `<ресурс>:<дія>`, `<ресурс>:*` або `*`. */
   const validPermission = (permission: string) => {
     if (permission === "*") return true
-    const [resource = "", action = ""] = permission.split(":")
-    const known = resources[resource]
+    const [resource = "", action = "", ...rest] = permission.split(":")
+    // `Object.hasOwn`: інакше `constructor:read` чи `__proto__:read` пройшли б як ресурс.
+    const known = Object.hasOwn(resources, resource)
+      ? resources[resource]
+      : undefined
     return Boolean(
-      known && (action === "*" || (known.actions ?? CRUD).includes(action)),
+      known &&
+      !rest.length &&
+      (action === "*" || (known.actions ?? CRUD).includes(action)),
     )
   }
 
@@ -342,6 +363,38 @@ export function createTeamHandlers({
     }
   }
 
+  /**
+   * Компанія запиту для запрошень — лише та, де людина сама працює: `*` пускає в будь-яку
+   * компанію, але не дає запрошувати в чужу чи керувати її запрошеннями (ADR-0032).
+   */
+  const inviteCompany = (
+    request: Request,
+    user: MockUser,
+  ): string | null | Response => {
+    const companyId = mockCompanyOrForbidden(request, user)
+    if (companyId instanceof Response || isMockCompanyMember(user, companyId))
+      return companyId
+    return errorResponse(403, {
+      code: "forbidden",
+      message: "Not a member of the company",
+    })
+  }
+
+  /** Запрошення в компанію запиту; чуже — 404, як невідоме (ADR-0032). */
+  const companyInvite = (
+    request: Request,
+    user: MockUser,
+    id: unknown,
+  ): StoredInvitation | Response => {
+    const companyId = inviteCompany(request, user)
+    if (companyId instanceof Response) return companyId
+    return (
+      readInvites().find(
+        (invite) => invite.id === id && invite.companyId === companyId,
+      ) ?? notFound()
+    )
+  }
+
   /** Термін дії від моменту надсилання. */
   const expiry = (sentAt: string) =>
     new Date(Date.parse(sentAt) + INVITATION_DAYS * 86_400_000).toISOString()
@@ -373,6 +426,8 @@ export function createTeamHandlers({
         language,
       )
       if (Object.keys(fields).length) return validation(fields)
+      if (!canGrant(user.permissions, body.permissions ?? []))
+        return beyondCeiling()
       const name = (body.name ?? "").trim()
       const description = body.description?.trim()
       const role: MockRole = {
@@ -408,8 +463,21 @@ export function createTeamHandlers({
         description?: string
         permissions?: string[]
       }
+      // Сильнішу роль не змінити зовсім: перейменувати її на «Переглядач» — те саме, що дати права.
+      if (!canGrant(user.permissions, current.permissions ?? []))
+        return beyondCeiling()
       const fields = checkRole(body, language, current.id)
       if (Object.keys(fields).length) return validation(fields)
+      if (
+        body.permissions &&
+        !canChangePermissions(
+          user.permissions,
+          current.permissions ?? [],
+          body.permissions,
+          catalog(language),
+        )
+      )
+        return beyondCeiling()
       const name = body.name?.trim()
       const description = body.description?.trim()
       const next: MockRole = {
@@ -459,6 +527,8 @@ export function createTeamHandlers({
           code: "forbidden",
           message: "System roles can't be deleted",
         })
+      if (!canGrant(user.permissions, current.permissions ?? []))
+        return beyondCeiling()
       if (mockUsersList().some((u) => u.roles.includes(current.id)))
         return errorResponse(409, {
           code: "conflict",
@@ -483,14 +553,16 @@ export function createTeamHandlers({
     http.put(`${baseUrl}/users/:id/roles`, async ({ params, request }) => {
       const user = allowed("users", "update", "sensitive")
       if (user instanceof Response) return user
-      const target = mockUsersList().find((u) => u.id === params.id)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, user, params.id)
+      if (target instanceof Response) return target
       if (target.id === user.id) return validation({ userId: "invalid" })
       const { roles: next } = (await request.json()) as { roles?: string[] }
       if (!Array.isArray(next) || !next.length)
         return validation({ roles: "required" })
       if (next.some((id) => !mockRoles().some((r) => r.id === id)))
         return validation({ roles: "invalid" })
+      if (!canChangeRoles(user.permissions, target.roles, next, roleGrants()))
+        return beyondCeiling()
       const before = [...target.roles]
       write(USER_ROLES_KEY, {
         ...read<Record<string, string[]>>(USER_ROLES_KEY, {}),
@@ -513,11 +585,14 @@ export function createTeamHandlers({
 
     /* ------------------------------ Запрошення ------------------------------ */
 
-    http.get(`${baseUrl}/invitations`, () => {
+    http.get(`${baseUrl}/invitations`, ({ request }) => {
       const user = allowed("users", "create")
       if (user instanceof Response) return user
+      const companyId = inviteCompany(request, user)
+      if (companyId instanceof Response) return companyId
       return json(
         readInvites()
+          .filter((invite) => invite.companyId === companyId)
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
           .map(invitationOf),
       )
@@ -526,6 +601,8 @@ export function createTeamHandlers({
     http.post(`${baseUrl}/invitations`, async ({ request }) => {
       const user = allowed("users", "create", "change")
       if (user instanceof Response) return user
+      const companyId = inviteCompany(request, user)
+      if (companyId instanceof Response) return companyId
       const body = (await request.json()) as {
         email?: string
         name?: string
@@ -549,8 +626,10 @@ export function createTeamHandlers({
       else if (roles.some((id) => !mockRoles().some((r) => r.id === id)))
         fields.roles = "invalid"
       if (Object.keys(fields).length) return validation(fields)
+      if (!canChangeRoles(user.permissions, [], roles, roleGrants()))
+        return beyondCeiling()
+      const company = user.companies.find((c) => c.id === companyId)
       const now = new Date().toISOString()
-      const company = user.companies.find((c) => c.id === user.companyId)
       const invite: StoredInvitation = {
         id: `inv-${randomToken().slice(0, 10)}`,
         token: randomToken(),
@@ -586,11 +665,11 @@ export function createTeamHandlers({
       return json(invitationOf(invite), { status: 201 })
     }),
 
-    http.post(`${baseUrl}/invitations/:id/resend`, ({ params }) => {
+    http.post(`${baseUrl}/invitations/:id/resend`, ({ params, request }) => {
       const user = allowed("users", "create", "change")
       if (user instanceof Response) return user
-      const invite = readInvites().find((i) => i.id === params.id)
-      if (!invite) return notFound()
+      const invite = companyInvite(request, user, params.id)
+      if (invite instanceof Response) return invite
       if (Date.now() - Date.parse(invite.lastSentAt) < 60_000)
         return errorResponse(429, {
           code: "rate_limited",
@@ -615,11 +694,11 @@ export function createTeamHandlers({
       return json(invitationOf(next))
     }),
 
-    http.delete(`${baseUrl}/invitations/:id`, ({ params }) => {
+    http.delete(`${baseUrl}/invitations/:id`, ({ params, request }) => {
       const user = allowed("users", "create", "change")
       if (user instanceof Response) return user
-      const invite = readInvites().find((i) => i.id === params.id)
-      if (!invite) return notFound()
+      const invite = companyInvite(request, user, params.id)
+      if (invite instanceof Response) return invite
       write(
         INVITES_KEY,
         readInvites().filter((i) => i.id !== invite.id),

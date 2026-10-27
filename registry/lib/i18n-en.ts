@@ -367,6 +367,7 @@ export const en = {
       submit: "Confirm",
       usePassword: "Confirm with password",
       useCode: "Confirm with a code",
+      cancelled: "Not done: confirmation cancelled",
     },
     account: {
       passwordTitle: "Password",
@@ -1025,6 +1026,12 @@ export const en = {
     userRolesSave: "Save roles",
     userRolesSaved: "Roles changed",
     userRolesRequired: "Choose at least one role",
+    beyondCeiling: "Grants permissions you don't have",
+    roleBeyondCeiling: "This role grants permissions you don't have",
+    beyondCeilingHint:
+      "This role grants permissions you don't have, so only someone who has them can change or delete it.",
+    matrixCeilingHint:
+      "Inactive permissions are ones you don't have: only someone who has them can turn them on or off in a role.",
   },
   invitations: {
     title: "Invitations",

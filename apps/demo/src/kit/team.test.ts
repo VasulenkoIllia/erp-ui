@@ -76,7 +76,14 @@ const server = setupServer(
       {
         id: "admin",
         name: { uk: "Адміністратор", en: "Administrator" },
-        permissions: ["users:*", "roles:*", "company:*", "audit:read"],
+        // «Стеля» (ADR-0032): адміністратор дає ролі з нотатками, тож сам має права на нотатки.
+        permissions: [
+          "users:*",
+          "roles:*",
+          "company:*",
+          "audit:read",
+          "notes:*",
+        ],
       },
       {
         id: "sales",
@@ -330,6 +337,7 @@ describe("ролі (ADR-0014)", () => {
       "roles:*",
       "company:*",
       "audit:read",
+      "notes:*",
     ])
 
     signInMock("a1")

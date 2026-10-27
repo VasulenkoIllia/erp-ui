@@ -509,6 +509,7 @@
     "accountant": "Accountant and administrator (“Sign in as…”): password demo; app, SMS and email code 123456; backup code ab12cd34; passkey",
     "sales": "Sales manager, read-only: password demo, no second step",
     "temporary": "New colleague with temporary password temp-password — sets their own",
+    "lead": "Team lead: sees people and roles, changes nothing and can't see history; password demo",
     "invite": "Open a colleague's invitation",
     "language": "Interface language",
     "captcha": "Demo “not a bot” check (projects use Cloudflare Turnstile)",

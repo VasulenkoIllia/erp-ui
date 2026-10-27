@@ -244,16 +244,38 @@ export function useFieldError(): (
   )
 }
 
-/** Загальний текст помилки для банера над формою. */
+/**
+ * Помилки `reauth_required`, на яких людина натиснула «Скасувати» в діалозі повторного
+ * підтвердження (`useReauth().guard` позначає їх). Той самий код без діалогу (екран без `guard`,
+ * повторна відмова після підтвердження) — звичайна помилка (ADR-0032).
+ */
+const cancelledReauth = new WeakSet<object>()
+
+export function markReauthCancelled(error: unknown): void {
+  if (typeof error === "object" && error !== null) cancelledReauth.add(error)
+}
+
+export function isReauthCancelled(error: unknown): boolean {
+  return (
+    typeof error === "object" && error !== null && cancelledReauth.has(error)
+  )
+}
+
+/**
+ * Загальний текст помилки для банера над формою. Скасоване повторне підтвердження — «дію не
+ * виконано», а не «не вдалося увійти».
+ */
 export function useAuthErrorText(): (error: unknown) => string {
   const t = useErpUiT()
   const apiMessage = useApiErrorMessage()
   return React.useCallback(
-    (error: unknown) =>
-      isApiError(error) &&
-      (error.status === 0 || error.status >= 500 || error.status === 429)
+    (error: unknown) => {
+      if (isReauthCancelled(error)) return t("auth.reauth.cancelled")
+      return isApiError(error) &&
+        (error.status === 0 || error.status >= 500 || error.status === 429)
         ? apiMessage(error)
-        : t("auth.failed", { message: apiMessage(error) }),
+        : t("auth.failed", { message: apiMessage(error) })
+    },
     [t, apiMessage],
   )
 }

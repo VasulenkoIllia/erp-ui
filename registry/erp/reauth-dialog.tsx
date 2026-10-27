@@ -1,7 +1,11 @@
 import * as React from "react"
 import { REGEXP_ONLY_DIGITS } from "input-otp"
 
-import { useErpAuthProvider, useFieldError } from "@/registry/erp/auth-layout"
+import {
+  markReauthCancelled,
+  useErpAuthProvider,
+  useFieldError,
+} from "@/registry/erp/auth-layout"
 import { PasswordInput } from "@/registry/erp/password-input"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useMe } from "@/registry/hooks/use-me"
@@ -68,6 +72,7 @@ export function useReauth() {
         setPending(null)
       }}
       onCancel={() => {
+        markReauthCancelled(pending?.error)
         pending?.reject(pending.error)
         setPending(null)
       }}

@@ -5,7 +5,7 @@ import { cellOf, expectNoA11yViolations, openWith, USERS } from "./helpers"
 /**
  * Крок A2b1 (ADR-0031): модуль A2 «Користувачі й ролі» на місці заглушки `/m/A2` з розширенням
  * проекту (`src/extensions/A2-users.ts`): поле «Відділ», вкладка «Без другого кроку», інша назва
- * колонки «Посада». У компанії бухгалтерки 19 людей: троє з демо й 16 колег із фікстур модуля, двоє
+ * колонки «Посада». У компанії бухгалтерки 20 людей: четверо з демо й 16 колег із фікстур модуля, двоє
  * з них заблоковані, четверо — аудитори. На широкому екрані «Історія» — бічна колонка картки, на
  * телефоні — остання вкладка.
  */
@@ -64,10 +64,10 @@ test.describe("A2: список користувачів", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Користувачі",
     )
-    await expect(listTab(page, /^Усі/)).toHaveText(/19/)
-    await expect(listTab(page, /^Активний/)).toHaveText(/17/)
+    await expect(listTab(page, /^Усі/)).toHaveText(/20/)
+    await expect(listTab(page, /^Активний/)).toHaveText(/18/)
     await expect(listTab(page, /^Заблокований/)).toHaveText(/2/)
-    await expect(listTab(page, /^Без другого кроку/)).toHaveText(/13/)
+    await expect(listTab(page, /^Без другого кроку/)).toHaveText(/14/)
     // Колонка розширення й інша назва колонки модуля.
     await expect(
       grid(page).getByRole("columnheader", { name: /Відділ/ }),

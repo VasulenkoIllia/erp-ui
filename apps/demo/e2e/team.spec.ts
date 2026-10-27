@@ -25,7 +25,7 @@ test.describe("ролі й права (ADR-0014)", () => {
   }) => {
     await openWith(page, {}, ROLES)
     const roles = page.getByRole("list", { name: "Ролі" })
-    await expect(roles.getByRole("listitem")).toHaveCount(4)
+    await expect(roles.getByRole("listitem")).toHaveCount(6)
 
     await roles.getByRole("button", { name: /Адміністратор/ }).click()
     await expect(
@@ -62,7 +62,7 @@ test.describe("ролі й права (ADR-0014)", () => {
     await create.getByLabel("Назва").fill("Склад")
     await create.getByRole("button", { name: "Нова роль" }).click()
     await expect(toast(page, "Роль створено")).toBeVisible()
-    await expect(roles.getByRole("listitem")).toHaveCount(5)
+    await expect(roles.getByRole("listitem")).toHaveCount(7)
     await expect(roles.getByRole("button", { name: /Склад/ })).toHaveAttribute(
       "aria-current",
       "true",
@@ -75,7 +75,7 @@ test.describe("ролі й права (ADR-0014)", () => {
       .getByRole("button", { name: "Видалити" })
       .click()
     await expect(toast(page, "Роль видалено")).toBeVisible()
-    await expect(roles.getByRole("listitem")).toHaveCount(4)
+    await expect(roles.getByRole("listitem")).toHaveCount(6)
   })
 
   test("ролі користувача в панелі доступу: з підтвердженням, список оновлюється", async ({

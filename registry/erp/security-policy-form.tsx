@@ -525,7 +525,8 @@ function CheckboxGroup<T extends string>({
       className="gap-2"
     >
       <FieldLegend variant="label">{legend}</FieldLegend>
-      <div className="flex flex-wrap gap-x-6 gap-y-2">
+      {/* Між рядками — щоб галочки після переносу не стояли ближче 24 px одна від одної (WCAG 2.5.8). */}
+      <div className="flex flex-wrap gap-x-6 gap-y-3">
         {items.map((item) => (
           <Field key={item.value} orientation="horizontal" className="w-auto">
             <Checkbox

@@ -21,6 +21,8 @@ export {
 export const USERS = {
   accountant: "u-olena",
   sales: "u-ivan",
+  /** Керівник відділу: `users:read` і `roles:read` без `users:update` і `audit:read`. */
+  lead: "u-taras",
 } as const
 
 /**

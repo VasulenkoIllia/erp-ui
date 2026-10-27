@@ -9,8 +9,9 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
-import { RolePicker, useRoles } from "@/registry/erp/roles-editor"
+import { RolePicker, useRoles } from "@/registry/erp/role-picker"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
@@ -285,6 +286,7 @@ function InviteDialog({
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const ids = React.useId()
+  const ceiling = useMe().data?.permissions
   const [email, setEmail] = React.useState("")
   const [name, setName] = React.useState("")
   const [selected, setSelected] = React.useState<string[]>([])
@@ -397,6 +399,7 @@ function InviteDialog({
               legend={t("invitations.rolesLabel")}
               error={rolesInvalid}
               disabled={busy}
+              ceiling={ceiling}
               onChange={(next) => {
                 setSelected(next)
                 setRolesInvalid(undefined)

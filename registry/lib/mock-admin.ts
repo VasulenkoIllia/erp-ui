@@ -32,7 +32,10 @@ import {
   errorResponse,
   getMockSession,
   impersonationForbidden,
+  isMockCompanyMember,
   json,
+  mockCompanyOrForbidden,
+  mockCompanyTarget,
   mockUsersList,
   noContent,
   randomToken,
@@ -210,7 +213,18 @@ export function createAdminHandlers({
     return level === "sensitive" ? (reauthRequired() ?? user) : user
   }
 
-  const targetUser = (id: unknown) => mockUsersList().find((u) => u.id === id)
+  /** Люди компанії запиту або 403 (ADR-0032). */
+  const companyMembers = (request: Request, user: MockUser) => {
+    const companyId = mockCompanyOrForbidden(request, user)
+    return companyId instanceof Response
+      ? companyId
+      : mockUsersList().filter((u) => isMockCompanyMember(u, companyId))
+  }
+  /** Чи працюють двоє в одній компанії; без компаній — одна команда. */
+  const sharesCompany = (a: MockUser, b: MockUser) =>
+    b.companies.length === 0
+      ? isMockCompanyMember(a, null)
+      : b.companies.some((company) => isMockCompanyMember(a, company.id))
   const asTarget = (user: MockUser) => ({
     type: "users",
     id: user.id,
@@ -308,10 +322,12 @@ export function createAdminHandlers({
         ...readRequests().filter((r) => r.userId !== user.id),
       ])
       sendMockMessage({ channel: "email", to: user.email, kind: "recovery" })
-      // Адміністраторам — у центр сповіщень (ADR-0014).
+      // Адміністраторам компаній цієї людини — у центр сповіщень (ADR-0014, ADR-0032).
       for (const admin of mockUsersList().filter(
         (u) =>
-          u.id !== user.id && hasPermission(u.permissions, "users", "update"),
+          u.id !== user.id &&
+          hasPermission(u.permissions, "users", "update") &&
+          sharesCompany(u, user),
       ))
         pushMockNotification(admin.id, {
           type: "security.recovery_requested",
@@ -335,15 +351,24 @@ export function createAdminHandlers({
       return json({ status: "queued" }, { status: 202 })
     }),
 
-    http.get(`${baseUrl}/recovery-requests`, () => {
+    http.get(`${baseUrl}/recovery-requests`, ({ request }) => {
       const user = admin("users", "update")
       if (user instanceof Response) return user
-      return json(readRequests())
+      const members = companyMembers(request, user)
+      if (members instanceof Response) return members
+      return json(
+        readRequests().filter((r) => members.some((u) => u.id === r.userId)),
+      )
     }),
 
-    http.delete(`${baseUrl}/recovery-requests/:id`, ({ params }) => {
+    http.delete(`${baseUrl}/recovery-requests/:id`, ({ params, request }) => {
       const user = admin("users", "update")
       if (user instanceof Response) return user
+      // Уже розібраний запит — 204, як і раніше (ідемпотентно); запит людини іншої компанії — 404.
+      const entry = readRequests().find((r) => r.id === params.id)
+      if (!entry) return noContent()
+      const target = mockCompanyTarget(request, user, entry.userId)
+      if (target instanceof Response) return target
       write(
         RECOVERY_KEY,
         readRequests().filter((r) => r.id !== params.id),
@@ -358,9 +383,8 @@ export function createAdminHandlers({
         if (user instanceof Response) return user
         const { reason } = (await request.json()) as { reason?: string }
         if (!reason?.trim()) return validation({ reason: "required" })
-        const target = mockUsersList().find((u) => u.id === params.id)
-        if (!target)
-          return errorResponse(404, { code: "not_found", message: "Not found" })
+        const target = mockCompanyTarget(request, user, params.id)
+        if (target instanceof Response) return target
         if (target.id === user.id) return validation({ userId: "invalid" })
         resetMockFactors(target)
         recordAudit({
@@ -388,8 +412,8 @@ export function createAdminHandlers({
     http.get(`${baseUrl}/users/:id/access`, ({ params, request }) => {
       const user = admin("users", "update")
       if (user instanceof Response) return user
-      const target = targetUser(params.id)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, user, params.id)
+      if (target instanceof Response) return target
       const blocked = mockBlocked(target)
       const language = languageOf(request)
       return json({
@@ -416,7 +440,9 @@ export function createAdminHandlers({
         Math.max(1, Number(params.get("perPage")) || 20),
       )
       const language = languageOf(request)
-      const sessions = mockUsersList()
+      const members = companyMembers(request, user)
+      if (members instanceof Response) return members
+      const sessions = members
         .filter(
           (u) =>
             !q ||
@@ -437,15 +463,18 @@ export function createAdminHandlers({
       })
     }),
 
-    http.delete(`${baseUrl}/sessions/:id`, ({ params }) => {
+    http.delete(`${baseUrl}/sessions/:id`, ({ params, request }) => {
       const user = admin("users", "update", "change")
       if (user instanceof Response) return user
+      const members = companyMembers(request, user)
+      if (members instanceof Response) return members
       if (params.id === getMockSession()?.id)
         return errorResponse(409, {
           code: "conflict",
           message: "This is your current session — sign out instead",
         })
-      const owner = mockUsersList().find((u) =>
+      // Сесія людини іншої компанії — «не знайдено», як і сама людина.
+      const owner = members.find((u) =>
         endMockUserSession(u, String(params.id)),
       )
       if (!owner) return notFound()
@@ -457,11 +486,11 @@ export function createAdminHandlers({
       return noContent()
     }),
 
-    http.post(`${baseUrl}/users/:id/sign-out`, ({ params }) => {
+    http.post(`${baseUrl}/users/:id/sign-out`, ({ params, request }) => {
       const user = admin("users", "update", "change")
       if (user instanceof Response) return user
-      const target = targetUser(params.id)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, user, params.id)
+      if (target instanceof Response) return target
       endAllMockUserSessions(target)
       recordAudit({
         action: "users.signed_out",
@@ -474,8 +503,8 @@ export function createAdminHandlers({
     http.post(`${baseUrl}/users/:id/block`, async ({ params, request }) => {
       const user = admin("users", "update", "sensitive")
       if (user instanceof Response) return user
-      const target = targetUser(params.id)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, user, params.id)
+      if (target instanceof Response) return target
       if (target.id === user.id) return validation({ userId: "invalid" })
       const { reason } = (await request.json()) as { reason?: string }
       if (!reason?.trim()) return validation({ reason: "required" })
@@ -490,11 +519,11 @@ export function createAdminHandlers({
       return noContent()
     }),
 
-    http.post(`${baseUrl}/users/:id/unblock`, ({ params }) => {
+    http.post(`${baseUrl}/users/:id/unblock`, ({ params, request }) => {
       const user = admin("users", "update", "sensitive")
       if (user instanceof Response) return user
-      const target = targetUser(params.id)
-      if (!target) return notFound()
+      const target = mockCompanyTarget(request, user, params.id)
+      if (target instanceof Response) return target
       setMockBlocked(target, null)
       recordAudit({
         action: "users.unblocked",

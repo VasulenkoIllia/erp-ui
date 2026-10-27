@@ -323,6 +323,60 @@ export function mockRequestCompany(
   return member ? id : null
 }
 
+/**
+ * Чи працює людина в компанії; `null` — застосунок без компаній: одна команда людей, у яких
+ * компаній немає.
+ */
+export const isMockCompanyMember = (
+  user: MockUser,
+  companyId: string | null,
+): boolean =>
+  companyId === null
+    ? user.companies.length === 0
+    : user.companies.some((company) => company.id === companyId)
+
+/**
+ * Компанія запиту (ADR-0031): id, `null` — застосунок без компаній (ні заголовка, ні компаній у того,
+ * хто питає), або 403 — людина в ній не працює.
+ */
+export function mockCompanyOrForbidden(
+  request: Request,
+  actor: MockUser,
+): string | null | Response {
+  if (
+    !request.headers.get(COMPANY_HEADER) &&
+    !actor.companyId &&
+    actor.companies.length === 0
+  )
+    return null
+  return (
+    mockRequestCompany(request, actor) ??
+    errorResponse(403, {
+      code: "forbidden",
+      message: "Not a member of the company",
+    })
+  )
+}
+
+/**
+ * Ціль дії над людиною (доступ, сесії, блокування, ролі, «Увійти як…», ADR-0032) — лише людина
+ * компанії запиту: компанія без членства — 403, людина іншої компанії чи невідома — 404, як
+ * `GET /users/:id`.
+ */
+export function mockCompanyTarget(
+  request: Request,
+  actor: MockUser,
+  id: unknown,
+): MockUser | Response {
+  const companyId = mockCompanyOrForbidden(request, actor)
+  if (companyId instanceof Response) return companyId
+  return (
+    mockUsers.find(
+      (user) => user.id === id && isMockCompanyMember(user, companyId),
+    ) ?? errorResponse(404, { code: "not_found", message: "Not found" })
+  )
+}
+
 /** Увійти в мок без форми — для тестів і демо. */
 export function signInMock(userId: string | null): void {
   if (userId) authenticate(userId)

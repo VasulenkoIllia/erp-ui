@@ -37,6 +37,8 @@
     "history": "Історія",
     "self": "Це ви",
     "impersonateDenied": "Немає права входити від імені інших",
+    "impersonateAdministrator": "Не можна увійти від імені іншого адміністратора",
+    "impersonateBeyondCeiling": "У цієї людини є права, яких немає у вас",
     "sections": {
       "access": "Доступ",
       "roles": "Ролі",

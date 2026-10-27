@@ -5,7 +5,8 @@ import { COMPANIES } from "@/fixtures"
 /**
  * Користувачі мок-сервера демо. Пароль — «demo»; код застосунку, SMS і email — 123456.
  * Олена — бухгалтер і адміністратор («Увійти як…») з другим кроком (застосунок, резервний код,
- * SMS, ключ доступу); Іван — менеджер без другого кроку; Марта — новенька з тимчасовим паролем.
+ * SMS, ключ доступу); Іван — менеджер без другого кроку; Марта — новенька з тимчасовим паролем;
+ * Тарас — керівник відділу: бачить людей і ролі, але нічого не змінює й не бачить історії (A2b2a).
  */
 export const MOCK_USERS: MockUser[] = [
   {
@@ -56,6 +57,20 @@ export const MOCK_USERS: MockUser[] = [
     companyId: "zoriana",
     factors: [],
     mustChangePassword: true,
+  },
+  {
+    id: "u-taras",
+    name: "Тарас Мельник",
+    email: "taras@zoriana.example",
+    password: "demo",
+    totpCode: "123456",
+    roles: ["lead"],
+    // Права беруться з ролі «Керівник відділу» (`mocks/team.ts`): `users:read` без `users:update`
+    // і `audit:read`.
+    permissions: ["users:read", "roles:read"],
+    companies: COMPANIES.slice(0, 1),
+    companyId: "zoriana",
+    factors: [],
   },
 ]
 

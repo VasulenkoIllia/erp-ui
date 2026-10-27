@@ -89,7 +89,8 @@ const server = setupServer(
       {
         id: "admin",
         name: { uk: "Адміністратор", en: "Administrator" },
-        permissions: ["users:*", "roles:*", "audit:read"],
+        // «Стеля» (ADR-0032): знімає й дає ролі з нотатками — сам має права на нотатки.
+        permissions: ["users:*", "roles:*", "audit:read", "notes:*"],
       },
       {
         id: "sales",

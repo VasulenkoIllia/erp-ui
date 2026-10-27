@@ -13,6 +13,12 @@
  *   `permissions`: `invalid`); вбудована роль — 403; роль із користувачами не видаляється — 409.
  * - `PUT /users/:id/roles` { roles } → 204: ролі користувача (право `users:update`, повторне
  *   підтвердження; хоча б одна роль; свої ролі — ні, щоб не втратити доступ).
+ * - «Стеля» (ADR-0032): дати, змінити, скопіювати чи видалити можна лише права, які людина має сама
+ *   в компанії запиту (`canGrant`, `canChangePermissions`, `canChangeRoles`); сильнішу роль не
+ *   змінити зовсім, зокрема назву; порушення — 403 `forbidden`. Права в `GET /me` і ролях —
+ *   стиснені: усі дії ресурсу — `<ресурс>:*` (як `togglePermission`), інакше «стеля» вважатиме
+ *   роль із `<ресурс>:*` сильнішою. Людина `PUT /users/:id/roles` — лише з компанії запиту
+ *   (іншої — 404).
  * - Зміни — у журнал аудиту (ADR-0013) з «було → стало».
  */
 import { z } from "zod"
@@ -115,6 +121,120 @@ export function togglePermission(
   if (next.length === resource.actions.length)
     return [...rest, `${resource.id}:*`]
   return [...rest, ...next.map((id) => `${resource.id}:${id}`)]
+}
+
+/* ---------------------------------- Стеля ---------------------------------- */
+
+/**
+ * Чи покриває набір прав `own` одне право («стеля», ADR-0032): `*` — лише `*`; `<ресурс>:*` — `*`
+ * або `<ресурс>:*`; `<ресурс>:<дія>` — будь-що з трьох.
+ */
+export function coversPermission(
+  own: readonly string[],
+  permission: string,
+): boolean {
+  if (permission === "*") return own.includes("*")
+  const [resource = "", action = ""] = permission.split(":")
+  if (action === "*") return own.includes("*") || own.includes(`${resource}:*`)
+  return grants(own, resource, action)
+}
+
+/** Чи може людина з правами `own` дати набір прав: кожне право — в межах її власних. */
+export function canGrant(
+  own: readonly string[],
+  permissions: readonly string[],
+): boolean {
+  return permissions.every((permission) => coversPermission(own, permission))
+}
+
+/** Право описує ресурс і дію каталогу (`<ресурс>:*` — будь-який ресурс каталогу). */
+function inCatalog(
+  permission: string,
+  resources: readonly PermissionResource[],
+): boolean {
+  const [resource = "", action = "", ...rest] = permission.split(":")
+  const known = resources.find((item) => item.id === resource)
+  return (
+    known !== undefined &&
+    !rest.length &&
+    (action === "*" || known.actions.some(({ id }) => id === action))
+  )
+}
+
+/**
+ * Чи може людина з правами `own` змінити права ролі з `before` на `next`: кожна дія каталогу, яку
+ * зміна вмикає чи вимикає, — у межах `own`; право поза каталогом — так само рядком; `*` додає чи
+ * прибирає лише той, хто має `*`.
+ */
+export function canChangePermissions(
+  own: readonly string[],
+  before: readonly string[],
+  next: readonly string[],
+  resources: readonly PermissionResource[],
+): boolean {
+  if (before.includes("*") !== next.includes("*") && !own.includes("*"))
+    return false
+  // Право поза каталогом (застаріле, сервер без нього в каталозі) дій не має — порівнюємо рядком.
+  const changedOutside = [
+    ...next.filter((p) => !before.includes(p)),
+    ...before.filter((p) => !next.includes(p)),
+  ].filter((p) => p !== "*" && !inCatalog(p, resources))
+  if (!canGrant(own, changedOutside)) return false
+  return resources.every((resource) =>
+    resource.actions.every(
+      ({ id }) =>
+        grants(before, resource.id, id) === grants(next, resource.id, id) ||
+        grants(own, resource.id, id),
+    ),
+  )
+}
+
+/**
+ * Чи може людина з правами `own` змінити ролі людини з `before` на `next`: кожна роль, яку додають
+ * чи знімають, дає лише права в межах `own` (роль, сильнішу за свою, не дати й не забрати).
+ * Невідома роль — поза межами.
+ */
+export function canChangeRoles(
+  own: readonly string[],
+  before: readonly string[],
+  next: readonly string[],
+  roles: readonly Pick<Role, "id" | "permissions">[],
+): boolean {
+  const changed = [
+    ...next.filter((id) => !before.includes(id)),
+    ...before.filter((id) => !next.includes(id)),
+  ]
+  return changed.every((id) => {
+    const role = roles.find((item) => item.id === id)
+    return role !== undefined && canGrant(own, role.permissions)
+  })
+}
+
+/** Права людини з ролями `roleIds`: об'єднання прав ролей каталогу; невідома роль — без прав. */
+export function permissionsOfRoles(
+  roleIds: readonly string[],
+  roles: readonly Pick<Role, "id" | "permissions">[],
+): string[] {
+  return [
+    ...new Set(
+      roleIds.flatMap(
+        (id) => roles.find((role) => role.id === id)?.permissions ?? [],
+      ),
+    ),
+  ]
+}
+
+/**
+ * Чому «Увійти як…» у людину з правами `target` недоступне тому, хто має `own` (ADR-0011,
+ * ADR-0032): `"administrator"` — вона сама може входити від імені інших; `"ceiling"` — у неї є
+ * права, яких немає в `own`; `null` — можна.
+ */
+export function impersonationBlock(
+  own: readonly string[],
+  target: readonly string[],
+): "administrator" | "ceiling" | null {
+  if (grants(target, "users", "impersonate")) return "administrator"
+  return canGrant(own, target) ? null : "ceiling"
 }
 
 /** Скільки дій ресурсів дає набір прав — для підсумку «N прав». */

@@ -16,7 +16,7 @@
  *   ставить cookie й повертає на `returnTo` (маршрут застосунку `/auth/callback`).
  * - `POST /auth/password/forgot` { email } → 204 завжди (не розкриваємо, чи є такий акаунт);
  *   `POST /auth/password/reset` { token, password } → результат входу.
- * - `GET /auth/invite?token=` → запрошення; `POST /auth/invite/accept` { token, name, password }.
+ * - `POST /auth/invite/check` { token } → запрошення (`lib/invite-check`); `POST /auth/invite/accept`.
  * - `POST /auth/signup` { name, email, password, company } → challenge (підтвердити email).
  * - `{ status: "password_change_required" }` — тимчасовий чи скинутий пароль: спершу новий,
  *   `POST /auth/password/change-required` { password } → результат входу.
@@ -68,6 +68,7 @@ import {
   createInvitationsApi,
   type InvitationsApi,
 } from "@/registry/lib/invitations"
+import { inviteChecker } from "@/registry/lib/invite-check"
 import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
 import { createRolesApi, type RolesApi } from "@/registry/lib/roles"
@@ -357,7 +358,6 @@ export function isReauthRequired(error: unknown): boolean {
   return isApiError(error) && error.code === "reauth_required"
 }
 
-/** Після кількох невдалих спроб сервер просить перевірку «не бот». */
 /** Дія недоступна, поки адміністратор працює від імені користувача. */
 export function isImpersonationForbidden(error: unknown): boolean {
   return (
@@ -367,6 +367,7 @@ export function isImpersonationForbidden(error: unknown): boolean {
   )
 }
 
+/** Після кількох невдалих спроб сервер просить перевірку «не бот». */
 export function isCaptchaRequired(error: unknown): boolean {
   return isApiError(error) && error.code === "captcha_required"
 }
@@ -618,8 +619,7 @@ export function createAuthProvider(
     resetPassword: (token, password) =>
       post("/auth/password/reset", { token, password }),
 
-    getInvite: (token) =>
-      client.get("/auth/invite", { query: { token }, schema: inviteSchema }),
+    getInvite: inviteChecker(client, inviteSchema),
 
     acceptInvite: (token, data) =>
       post("/auth/invite/accept", { token, ...data }),

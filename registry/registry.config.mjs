@@ -636,7 +636,7 @@ export const CODE_ITEMS = {
   "lib/roles": {
     title: "Ролі й права",
     description:
-      "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці — provider.roles.",
+      "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці; «стеля» — canGrant, canChangePermissions, canChangeRoles, impersonationBlock (ADR-0032) — provider.roles.",
     status: "beta",
     demo: "roles",
     spec: ["A2", "PF01"],
@@ -645,6 +645,14 @@ export const CODE_ITEMS = {
     title: "Запрошення колег",
     description:
       "Контракт: запросити за email із ролями, надіслати ще раз (не частіше ніж раз на хвилину), відкликати; прийняття — AcceptInviteScreen — provider.invitations.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "lib/invite-check": {
+    title: "Перевірка запрошення",
+    description:
+      "inviteChecker: POST /auth/invite/check з токеном у тілі (не в адресі й журналах); сервер без маршруту — застарілий GET /auth/invite?token= до 2.0, спосіб запам'ятовується (ADR-0032).",
     status: "beta",
     demo: "users",
     spec: ["PF01", "A2"],
@@ -1251,9 +1259,33 @@ export const CODE_ITEMS = {
   "erp/roles-editor": {
     title: "Ролі й матриця прав",
     description:
-      "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія, видалення, незбережені зміни; RolePicker і useRoles.",
+      "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія (діалог створення), видалення, незбережені зміни; RolePicker і useRoles — тут же для сумісності (живуть в erp/role-picker).",
     status: "beta",
     demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "erp/role-detail": {
+    title: "Права ролі",
+    description:
+      "RoleDetail: назва, опис, підсумок і матриця прав ролі, «Зберегти», «Скасувати зміни», «Копіювати», «Видалити» з підтвердженням; роль понад «стелю» — лише перегляд (ADR-0032).",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "erp/role-matrix": {
+    title: "Матриця прав",
+    description:
+      "RoleMatrix: ресурси каталогу прав за розділами, «Усе» для ресурсу (частково — «−») і окремі дії; усі дії ресурсу стискаються до <ресурс>:*.",
+    status: "beta",
+    demo: "roles",
+    spec: ["A2", "PF01"],
+  },
+  "erp/role-picker": {
+    title: "Вибір ролей",
+    description:
+      "RolePicker: позначки ролей з описами для запрошення й ролей людини; useRoles — ролі компанії й каталог прав (право roles:read).",
+    status: "beta",
+    demo: "users",
     spec: ["A2", "PF01"],
   },
   "erp/invitations-section": {

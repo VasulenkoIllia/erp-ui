@@ -492,6 +492,24 @@ export function createPlatformHandlers({
       fieldErrors: fields,
     })
 
+  /** Запрошення за токеном листа; невідоме, прийняте чи прострочене — 410. */
+  const inviteCheck = (value: string | null) => {
+    const invite =
+      invites.find((i) => i.token === value) ??
+      (value ? findMockInvitation(value) : undefined)
+    if (!invite || usedInvites.has(invite.token))
+      return errorResponse(410, {
+        code: "token_expired",
+        message: "Invite expired",
+      })
+    return json({
+      email: invite.email,
+      name: invite.name,
+      companyName: invite.companyName,
+      invitedBy: invite.invitedBy,
+    })
+  }
+
   return [
     http.get(`${baseUrl}/auth/methods`, () => {
       const brand = brandingNow()
@@ -745,23 +763,17 @@ export function createPlatformHandlers({
       return afterFirstFactor(user, "link")
     }),
 
-    http.get(`${baseUrl}/auth/invite`, ({ request }) => {
-      const value = new URL(request.url).searchParams.get("token")
-      const invite =
-        invites.find((i) => i.token === value) ??
-        (value ? findMockInvitation(value) : undefined)
-      if (!invite || usedInvites.has(invite.token))
-        return errorResponse(410, {
-          code: "token_expired",
-          message: "Invite expired",
-        })
-      return json({
-        email: invite.email,
-        name: invite.name,
-        companyName: invite.companyName,
-        invitedBy: invite.invitedBy,
-      })
+    // Перевірка запрошення: токен у тілі, а не в адресі (ADR-0032).
+    http.post(`${baseUrl}/auth/invite/check`, async ({ request }) => {
+      const { token: value } = (await request.json()) as { token?: unknown }
+      return inviteCheck(typeof value === "string" ? value : null)
     }),
+
+    // Застарілий шлях до A2b2 (токен в адресі): кіт іде сюди лише на сервер без `POST`; прибрати
+    // у 2.0. Мок лишає його для тестів запасного шляху.
+    http.get(`${baseUrl}/auth/invite`, ({ request }) =>
+      inviteCheck(new URL(request.url).searchParams.get("token")),
+    ),
 
     http.post(`${baseUrl}/auth/invite/accept`, async ({ request }) => {
       const body = (await request.json()) as {
