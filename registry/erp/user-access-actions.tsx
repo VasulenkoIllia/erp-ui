@@ -7,6 +7,7 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useResetFactors } from "@/registry/erp/reset-factors"
 import {
@@ -37,7 +38,8 @@ import { Textarea } from "@/registry/ui/textarea"
 /**
  * Дії адміністратора над доступом людини (ADR-0013): вийти на всіх пристроях, скинути другий крок,
  * заблокувати з причиною чи розблокувати — з підтвердженням, а блокування й розблокування — ще й з
- * повторним підтвердженням.
+ * повторним підтвердженням. Людині з правами, яких немає в адміністратора, — нічого з цього
+ * («стеля», ADR-0034): `useAccessCeiling` з `erp/user-access-data` і `deniedReason`.
  *
  *   const actions = useUserAccessActions(target, { onChange })
  *   <UserAccessButtons access={access} onAction={actions.start} />{actions.dialogs}
@@ -92,57 +94,85 @@ export function useUserAccessActions(
   return { start, dialogs }
 }
 
-/** Кнопки дій за станом доступу: «Скинути другий крок» — лише з налаштованим фактором. */
+/**
+ * Кнопки дій за станом доступу: «Скинути другий крок» — лише з налаштованим фактором. Людина
+ * понад «стелю» (`deniedReason`, ADR-0034) — дії неактивні з причиною в описі кнопок і над ними
+ * (`showReason={false}` — причину над діями показує батько один раз на панель; SPEC §8.4);
+ * `checking` — ще невідомо, чи можна (`useAccessCeiling`): дії неактивні, не міняються під пальцем.
+ */
 export function UserAccessButtons({
   access,
   onAction,
+  deniedReason,
+  checking = false,
+  showReason = true,
 }: {
   access: UserAccess
   onAction: (action: UserAccessAction) => void
+  deniedReason?: string
+  checking?: boolean
+  showReason?: boolean
 }) {
   const t = useErpUiT()
   const blocked = access.status === "blocked"
-  return (
+  const actions: {
+    id: UserAccessAction
+    label: string
+    variant: "outline" | "destructive"
+    unavailable?: boolean
+  }[] = [
+    {
+      id: "signOut",
+      label: t("userAccess.signOutAll"),
+      variant: "outline",
+      unavailable: !access.sessions.length,
+    },
+    ...(access.factors.length
+      ? [
+          {
+            id: "resetFactors" as const,
+            label: t("resetFactors.action"),
+            variant: "outline" as const,
+          },
+        ]
+      : []),
+    blocked
+      ? { id: "unblock", label: t("userAccess.unblock"), variant: "outline" }
+      : { id: "block", label: t("userAccess.block"), variant: "destructive" },
+  ]
+  const buttons = (
     <div className="flex flex-wrap gap-2">
-      <Button
-        variant="outline"
-        disabled={!access.sessions.length}
-        onClick={() => {
-          onAction("signOut")
-        }}
-      >
-        {t("userAccess.signOutAll")}
-      </Button>
-      {access.factors.length ? (
-        <Button
-          variant="outline"
-          onClick={() => {
-            onAction("resetFactors")
-          }}
-        >
-          {t("resetFactors.action")}
-        </Button>
-      ) : null}
-      {blocked ? (
-        <Button
-          variant="outline"
-          onClick={() => {
-            onAction("unblock")
-          }}
-        >
-          {t("userAccess.unblock")}
-        </Button>
-      ) : (
-        <Button
-          variant="destructive"
-          onClick={() => {
-            onAction("block")
-          }}
-        >
-          {t("userAccess.block")}
-        </Button>
+      {actions.map((action) =>
+        deniedReason ? (
+          <DeniedAction
+            key={action.id}
+            reason={deniedReason}
+            variant={action.variant}
+          >
+            {action.label}
+          </DeniedAction>
+        ) : (
+          <Button
+            key={action.id}
+            variant={action.variant}
+            disabled={checking || action.unavailable}
+            onClick={() => {
+              onAction(action.id)
+            }}
+          >
+            {action.label}
+          </Button>
+        ),
       )}
     </div>
+  )
+  return deniedReason && showReason ? (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">{deniedReason}</p>
+      {buttons}
+    </div>
+  ) : (
+    buttons
   )
 }
 

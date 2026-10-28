@@ -1,9 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { useErpAuthProvider } from "@/registry/erp/auth-layout"
+import { useRoles } from "@/registry/erp/role-picker"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { useMe } from "@/registry/hooks/use-me"
 import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
+import { hasPermission } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
+import { useErpUiT } from "@/registry/lib/i18n"
+import { canGrant, permissionsOfRoles } from "@/registry/lib/roles"
 import { ADMIN_QUERY_KEYS } from "@/registry/lib/security-policy"
 
 /**
@@ -28,6 +33,39 @@ export function useUserAccess(userId: string, enabled = true) {
     // Сесії й стан змінюються будь-коли: панель відкривається зі свіжими даними.
     refetchOnMount: "always",
   })
+}
+
+/** Що показати діям над доступом людини: причину відмови й чи ще перевіряємо (ADR-0034). */
+export interface AccessCeiling {
+  /** Людина понад «стелю»: дії неактивні з цією причиною (рядок кіта `userAccess.beyondCeiling`). */
+  deniedReason?: string
+  /** Профіль чи каталог ролей ще вантажиться: дії неактивні, щоб не мінялися під пальцем. */
+  checking: boolean
+}
+
+/**
+ * «Стеля» доступу (ADR-0034): чи має поточний адміністратор усі права людини з ролями `roleIds` —
+ * за каталогом ролей (`roles:read`). З `deniedReason` вийти, завершити сесію, заблокувати,
+ * розблокувати чи скинути другий крок сервер не дасть. Без права на каталог чи з його помилкою —
+ * без причини: вирішує сервер, відмову показує тост. Результат — пропси `UserAccessButtons` і
+ * `UserSessionsList`.
+ */
+export function useAccessCeiling(
+  roleIds: readonly string[],
+  enabled = true,
+): AccessCeiling {
+  const t = useErpUiT()
+  const me = useMe().data
+  const canReadRoles = me
+    ? hasPermission(me.permissions, "roles", "read")
+    : false
+  const roles = useRoles(enabled && canReadRoles)
+  const catalog = roles.data?.roles
+  if (!enabled) return { checking: false }
+  if (!me || !catalog) return { checking: !me || roles.isLoading }
+  return canGrant(me.permissions, permissionsOfRoles(roleIds, catalog))
+    ? { checking: false }
+    : { deniedReason: t("userAccess.beyondCeiling"), checking: false }
 }
 
 /**

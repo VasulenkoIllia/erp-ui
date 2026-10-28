@@ -577,6 +577,30 @@ export const CODE_ITEMS = {
     demo: "login",
     spec: ["PF01", "§17"],
   },
+  "lib/mock-sign-in-flow": {
+    title: "Кроки входу в моках",
+    description:
+      "Спільне для моків входу: пошук облікового запису, «не бот», коди й посилання з листа, крок коду, другий фактор, довірений пристрій, політика безпеки, заблокований акаунт, повторне підтвердження (частина lib/mock-auth).",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-sign-up": {
+    title: "Мок відновлення пароля, запрошень і реєстрації",
+    description:
+      "Лист зі скиданням пароля, перевірка й прийняття запрошення (токен у тілі, застарілий GET — для сервера без POST), реєстрація з кодом із листа (частина lib/mock-auth).",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-me": {
+    title: "Мок профілю /me",
+    description:
+      "Профіль із правами, ковзна сесія, повторне підтвердження, зміна email і пароля, експорт і видалення даних, вихід, вподобання PF11 (частина lib/mock-auth).",
+    status: "beta",
+    demo: "login",
+    spec: ["PF01", "PF11", "§17"],
+  },
   "lib/security-policy": {
     title: "Політики безпеки й відновлення доступу",
     description:
@@ -781,6 +805,30 @@ export const CODE_ITEMS = {
     title: "Мок безпеки акаунта",
     description:
       "Налаштування факторів, резервні коди, сесії, довірені пристрої, журнал входів, «Увійти як…»; стан акаунта в localStorage.",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-account-state": {
+    title: "Стан акаунта в моках",
+    description:
+      "Дані акаунта кожного користувача в localStorage, сесії й журнал входів, лист про новий вхід, перевірка зміни безпеки (частина lib/mock-account).",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-factors": {
+    title: "Мок другого кроку акаунта",
+    description:
+      "/me/security, налаштування застосунку, SMS, email і ключа доступу, перейменування й видалення факторів, резервні коди (частина lib/mock-account).",
+    status: "beta",
+    demo: "security",
+    spec: ["PF01", "§17"],
+  },
+  "lib/mock-impersonation": {
+    title: "Мок «Увійти як…»",
+    description:
+      "Початок і завершення роботи від імені людини компанії запиту з причиною, повторним підтвердженням, «стелею» прав і записом у журнали (частина lib/mock-account).",
     status: "beta",
     demo: "security",
     spec: ["PF01", "§17"],

@@ -188,6 +188,11 @@ export interface MockSession {
   startedAt?: number
   /** Адміністратор, що працює від імені `userId` («Увійти як…»). */
   impersonatorId?: string
+  /**
+   * Компанія, у якій почали «Увійти як…» (ADR-0034): «стелю» перевірили лише в ній, тож інша
+   * компанія людини — 403, а не її права там.
+   */
+  impersonationCompanyId?: string
   userId: string
   /** factor_setup — політика вимагає другий крок, а його ще немає (ADR-0012). */
   stage: "challenge" | "password_change" | "factor_setup" | "authenticated"
@@ -225,6 +230,7 @@ function readSession(): MockSession | null {
       id: session.id,
       startedAt: session.startedAt,
       impersonatorId: session.impersonatorId,
+      impersonationCompanyId: session.impersonationCompanyId,
       userId: session.userId,
       stage: STAGES.includes(session.stage as MockSession["stage"])
         ? (session.stage as MockSession["stage"])
@@ -308,15 +314,25 @@ export function currentMockUser(request?: Request): MockUser | null {
 }
 
 /**
- * Компанія запиту (ADR-0003): заголовок `X-Company-Id`, без нього — компанія сесії. Компанія, де
- * людина не працює, — `null`: заголовку без членства сервер не вірить, а «усіх компаній» не буває.
+ * Компанія запиту (ADR-0003): заголовок `X-Company-Id`, без нього — компанія сесії (без неї — перша
+ * компанія людини, як обирає клієнт, `syncCompany`). Компанія, де людина не працює, — `null`:
+ * заголовку без членства сервер не вірить, а «усіх компаній» не буває.
+ * Під «Увійти як…» — лише компанія, де його почали (ADR-0034).
  */
 export function mockRequestCompany(
   request: Request,
   user: MockUser,
 ): string | null {
-  const id = request.headers.get(COMPANY_HEADER) ?? user.companyId
-  if (!id) return null
+  const session = readSession()
+  const bound = session?.impersonationCompanyId
+  // «Увійти як…» без компанії старту (сесія до ADR-0034) — відмова, а не всі компанії людини.
+  if (session?.impersonatorId && !bound && user.companies.length) return null
+  const id =
+    request.headers.get(COMPANY_HEADER) ??
+    bound ??
+    user.companyId ??
+    user.companies[0]?.id
+  if (!id || (bound && id !== bound)) return null
   const member =
     user.companies.some((company) => company.id === id) ||
     hasPermission(user.permissions, "*", "*")

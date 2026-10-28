@@ -996,6 +996,8 @@ export const uk = {
     unblockTitle: "{{name}}: розблокувати акаунт?",
     unblockDescription: "Людина знову зможе увійти.",
     unblocked: "Акаунт розблоковано",
+    beyondCeiling:
+      "У цієї людини є права, яких немає у вас: змінювати її доступ може лише той, хто має всі ці права.",
     allSessionsLabel: "Активні сесії користувачів",
     searchLabel: "Пошук за ім'ям чи email",
     shown: "Показано {{shown}} з {{total}}",

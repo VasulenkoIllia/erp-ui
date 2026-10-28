@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { expectNoA11yViolations, openWith, USERS } from "./helpers"
 
@@ -24,6 +24,30 @@ const cardTabs = (page: Page) =>
     .getByRole("tab")
 const toast = (page: Page, text: RegExp | string) =>
   page.locator("[data-sonner-toast]").filter({ hasText: text }).last()
+
+const IVAN = "/#/m/A2/users/u-ivan"
+const BEYOND_ACCESS =
+  "У цієї людини є права, яких немає у вас: змінювати її доступ може лише той, хто має всі ці права."
+
+/** Видима причина над діями (у кнопок — ще й опис для скрінрідера). */
+const reasonNote = (scope: Page | Locator) =>
+  scope.getByRole("paragraph").filter({ hasText: BEYOND_ACCESS })
+
+/** Ролі людей до старту демо (`erp-ui:mock-user-roles`), один раз на вкладку. */
+async function seedUserRoles(page: Page, roles: Record<string, string[]>) {
+  await page.addInitScript((value) => {
+    if (window !== window.top || sessionStorage.getItem("a2-seed-roles")) return
+    sessionStorage.setItem("a2-seed-roles", "1")
+    localStorage.setItem("erp-ui:mock-user-roles", value)
+  }, JSON.stringify(roles))
+}
+
+/** Кнопка неактивна, а причину чує й скрінрідер (SPEC §8.4). */
+async function expectDenied(page: Page, name: string) {
+  const button = page.getByRole("button", { name, exact: true })
+  await expect(button).toBeDisabled()
+  await expect(button).toHaveAccessibleDescription(BEYOND_ACCESS)
+}
 
 test.describe("A2b2a: керівник відділу", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -143,5 +167,58 @@ test.describe("A2b2a: «стеля» ролей", () => {
       toast(page, "Дію не виконано: підтвердження скасовано"),
     ).toBeVisible()
     await expect(page.getByText(/Не вдалося увійти/)).toHaveCount(0)
+  })
+})
+
+/**
+ * Крок A2b2b2a (ADR-0034): «стеля» доступу — людині з правами, яких у адміністраторки немає (роль
+ * «Власник»), не вийти, не завершити сесію, не заблокувати; дії неактивні з причиною.
+ */
+test.describe("A2b2b2a: «стеля» доступу", () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test("картка сильнішої людини: дії над доступом і сесіями неактивні з причиною", async ({
+    page,
+  }) => {
+    await seedUserRoles(page, { "u-ivan": ["owner"] })
+    await openWith(page, {}, `${IVAN}?tab=access`)
+    await expect(reasonNote(page)).toBeVisible()
+    await expectDenied(page, "Вийти на всіх пристроях")
+    await expectDenied(page, "Заблокувати")
+    await expectNoA11yViolations(page)
+
+    await page.goto(`${IVAN}?tab=sessions`)
+    await expectDenied(page, "Завершити сесію: Іван Петренко, Chrome, Android")
+    await expect(reasonNote(page)).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  test("панель доступу кіта: ті самі дії неактивні, причина видна один раз", async ({
+    page,
+  }) => {
+    await seedUserRoles(page, { "u-ivan": ["owner"] })
+    await openWith(page, {}, USERS_PAGE)
+    await page.getByRole("button", { name: "Доступ: Іван Петренко" }).click()
+    const sheet = page.getByRole("dialog", { name: "Доступ: Іван Петренко" })
+    await expect(reasonNote(sheet)).toHaveCount(1)
+    const block = sheet.getByRole("button", { name: "Заблокувати" })
+    await expect(block).toBeDisabled()
+    await expect(block).toHaveAccessibleDescription(BEYOND_ACCESS)
+    await expect(
+      sheet.getByRole("button", { name: /^Завершити сесію: / }).first(),
+    ).toHaveAccessibleDescription(BEYOND_ACCESS)
+    await expectNoA11yViolations(page)
+  })
+
+  test("телефон: причина видна над неактивними діями", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedUserRoles(page, { "u-ivan": ["owner"] })
+    await openWith(page, {}, `${IVAN}?tab=access`)
+    await expect(reasonNote(page)).toBeVisible()
+    await expectDenied(page, "Заблокувати")
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    )
+    expect(overflow).toBeLessThanOrEqual(0)
   })
 })

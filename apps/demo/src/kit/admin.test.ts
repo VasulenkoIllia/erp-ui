@@ -72,7 +72,9 @@ const users: MockUser[] = [
     password: "demo-password",
     totpCode: "111111",
     roles: ["admin"],
-    permissions: ["users:*", "security:*"],
+    // `invoices:*` — «стеля» доступу (ADR-0034): без нього адміністратор не скине другого кроку
+    // бухгалтерці з правами на рахунки.
+    permissions: ["users:*", "security:*", "invoices:*"],
     companies: [],
     companyId: null,
     factors: [],

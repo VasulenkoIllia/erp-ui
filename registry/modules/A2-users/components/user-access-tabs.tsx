@@ -6,7 +6,10 @@ import {
   UserAccessButtons,
   useUserAccessActions,
 } from "@/components/erp/user-access-actions"
-import type { AccessTarget } from "@/components/erp/user-access-data"
+import {
+  useAccessCeiling,
+  type AccessTarget,
+} from "@/components/erp/user-access-data"
 import { UserRolesSection } from "@/components/erp/user-roles-section"
 import { UserSessionsList } from "@/components/erp/user-sessions"
 import { useMe } from "@/hooks/use-me"
@@ -18,8 +21,9 @@ import { UserRoleBadges } from "./user-roles"
 /**
  * Вкладки «Доступ», «Ролі» й «Сесії» картки людини — частини панелі доступу кіта (ADR-0013,
  * ADR-0014): стан і дії з `GET /users/:id/access`, ролі — `PUT /users/:id/roles`. Свій доступ
- * людина тут не змінює (ні блокування, ні ролей), лише бачить. `onChange` — після зміни ролей чи
- * доступу: картка й список перечитують запис (статус, ролі, версія для «Історії»).
+ * людина тут не змінює (ні блокування, ні ролей), лише бачить. Людині з правами, яких у вас немає, —
+ * дії неактивні з причиною («стеля», ADR-0034). `onChange` — після зміни ролей чи доступу: картка й
+ * список перечитують запис (статус, ролі, версія для «Історії»).
  */
 
 const targetOf = (user: User): AccessTarget => ({
@@ -32,6 +36,13 @@ function useIsSelf(user: User): boolean {
   return useMe().data?.id === user.id
 }
 
+/** «Стеля» доступу (ADR-0034): ролі людини в компанії запиту — з `GET /users/:id`. */
+const useUserCeiling = (user: User, self: boolean) =>
+  useAccessCeiling(
+    user.roles.map((role) => role.id),
+    !self,
+  )
+
 export function UserAccessTab({
   user,
   onChange,
@@ -41,6 +52,7 @@ export function UserAccessTab({
 }) {
   const t = useUsersT()
   const self = useIsSelf(user)
+  const ceiling = useUserCeiling(user, self)
   const actions = useUserAccessActions(targetOf(user), { onChange })
   return (
     <div className="@container space-y-6">
@@ -53,7 +65,11 @@ export function UserAccessTab({
                 {t("user.selfAccess")}
               </p>
             ) : (
-              <UserAccessButtons access={access} onAction={actions.start} />
+              <UserAccessButtons
+                access={access}
+                onAction={actions.start}
+                {...ceiling}
+              />
             )}
           </>
         )}
@@ -64,11 +80,17 @@ export function UserAccessTab({
 }
 
 export function UserSessionsTab({ user }: { user: User }) {
+  const self = useIsSelf(user)
+  const ceiling = useUserCeiling(user, self)
   return (
     <div className="@container">
       <UserAccessQuery userId={user.id}>
         {(access) => (
-          <UserSessionsList userId={user.id} sessions={access.sessions} />
+          <UserSessionsList
+            userId={user.id}
+            sessions={access.sessions}
+            {...ceiling}
+          />
         )}
       </UserAccessQuery>
     </div>

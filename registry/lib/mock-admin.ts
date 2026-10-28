@@ -4,6 +4,9 @@
  *
  * - Політика й запити живуть у localStorage, як дані сервера: переживають перезавантаження демо.
  * - Політику читає мок входу (lib/mock-auth): обов'язковий другий крок, пароль, сесія, адреси.
+ * - Права адміністратора — у компанії запиту (ADR-0034); вийти, завершити сесію, заблокувати,
+ *   розблокувати чи скинути другий крок — лише людині, усі права якої він має сам («стеля»), і
+ *   до повторного підтвердження: слабшого не просять пароль, щоб потім відмовити.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -17,6 +20,7 @@ import {
 import {
   endAllMockUserSessions,
   endMockUserSession,
+  hasMockUserSession,
   mockAccessSummary,
   mockBlocked,
   mockUserSessions,
@@ -24,6 +28,12 @@ import {
   setMockBlocked,
 } from "@/registry/lib/mock-account"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
+import {
+  mockPermissionsAcross,
+  mockPermissionsIn,
+  mockRequestPermissions,
+  mockUserRolesIn,
+} from "@/registry/lib/mock-company-roles"
 import { pushMockNotification } from "@/registry/lib/mock-inbox"
 import {
   CURRENT_IP,
@@ -34,7 +44,6 @@ import {
   impersonationForbidden,
   isMockCompanyMember,
   json,
-  mockCompanyOrForbidden,
   mockCompanyTarget,
   mockUsersList,
   noContent,
@@ -44,6 +53,7 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { canGrant } from "@/registry/lib/roles"
 import {
   ipAllowed,
   isValidCidr,
@@ -188,6 +198,38 @@ const POLICY_LABELS: Record<string, LocalizedText> = {
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
+/** Хто діє, у якій компанії запиту й з якими правами в ній (ADR-0034). */
+interface AdminActor {
+  user: MockUser
+  companyId: string | null
+  permissions: string[]
+}
+
+/**
+ * «Стеля» доступу (ADR-0034): вийти, завершити сесію, заблокувати, розблокувати чи скинути другий
+ * крок — лише людині, усі права якої адміністратор має сам у компанії запиту; рівного — можна.
+ * Права людини — в усіх її компаніях разом: обліковий запис і сесії в неї одні на всі компанії.
+ */
+const withinCeiling = (actor: AdminActor, target: MockUser) =>
+  canGrant(actor.permissions, mockPermissionsAcross(target))
+    ? null
+    : forbidden("The user has permissions you don't have")
+
+/**
+ * Хто отримає сповіщення про запит на відновлення людини: колеги з `users:update` хоч в одній її
+ * компанії — права там, а не в їхній активній компанії (ADR-0014, ADR-0034).
+ */
+const managesRecoveryOf = (admin: MockUser, user: MockUser) =>
+  admin.id !== user.id &&
+  (user.companies.length
+    ? user.companies.map((company) => company.id)
+    : [null]
+  ).some(
+    (companyId) =>
+      isMockCompanyMember(admin, companyId) &&
+      hasPermission(mockPermissionsIn(admin, companyId), "users", "update"),
+  )
+
 export function createAdminHandlers({
   baseUrl = API_PREFIX,
   roles,
@@ -195,36 +237,54 @@ export function createAdminHandlers({
   reauthRequired,
 }: AdminMockOptions): HttpHandler[] {
   /**
-   * Адміністратор із правом. `change` — не під час «Увійти як…»; `sensitive` — ще й після
-   * повторного підтвердження.
+   * Адміністратор із правом у компанії запиту (ADR-0034). `change` — не під час «Увійти як…»;
+   * `sensitive` — ще й після повторного підтвердження (дії над людиною підтверджують після
+   * «стелі», `withinCeiling`).
    */
   const admin = (
+    request: Request,
     resource: "security" | "users",
     action: "read" | "update",
     level: "read" | "change" | "sensitive" = "read",
-  ): MockUser | Response => {
+  ): AdminActor | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    if (!hasPermission(user.permissions, resource, action))
+    const access = mockRequestPermissions(request, user)
+    if (access instanceof Response) return access
+    if (!hasPermission(access.permissions, resource, action))
       return forbidden(`Missing ${resource}:${action}`)
-    if (level === "read") return user
+    const actor = { user, ...access }
+    if (level === "read") return actor
     const denied = impersonationForbidden()
     if (denied) return denied
-    return level === "sensitive" ? (reauthRequired() ?? user) : user
+    return level === "sensitive" ? (reauthRequired() ?? actor) : actor
   }
 
-  /** Люди компанії запиту або 403 (ADR-0032). */
-  const companyMembers = (request: Request, user: MockUser) => {
-    const companyId = mockCompanyOrForbidden(request, user)
-    return companyId instanceof Response
-      ? companyId
-      : mockUsersList().filter((u) => isMockCompanyMember(u, companyId))
+  /** Люди компанії запиту (ADR-0032). */
+  const companyMembers = ({ companyId }: AdminActor) =>
+    mockUsersList().filter((u) => isMockCompanyMember(u, companyId))
+
+  /**
+   * Людина компанії запиту (404), не сам адміністратор, коли так не можна (422), у межах «стелі»
+   * (403), потім — повторне підтвердження, якщо потрібне: слабшого не просять пароль, щоб відмовити.
+   */
+  const accessTarget = (
+    request: Request,
+    actor: AdminActor,
+    id: unknown,
+    { self, confirm }: { self: boolean; confirm: boolean },
+  ): MockUser | Response => {
+    const target = mockCompanyTarget(request, actor.user, id)
+    if (target instanceof Response) return target
+    const own = target.id === actor.user.id
+    if (own && !self) return validation({ userId: "invalid" })
+    // Дія над собою своїх прав не підвищує: «стеля» — лише для інших.
+    return (
+      (own ? null : withinCeiling(actor, target)) ??
+      (confirm ? reauthRequired() : null) ??
+      target
+    )
   }
-  /** Чи працюють двоє в одній компанії; без компаній — одна команда. */
-  const sharesCompany = (a: MockUser, b: MockUser) =>
-    b.companies.length === 0
-      ? isMockCompanyMember(a, null)
-      : b.companies.some((company) => isMockCompanyMember(a, company.id))
   const asTarget = (user: MockUser) => ({
     type: "users",
     id: user.id,
@@ -235,8 +295,8 @@ export function createAdminHandlers({
 
   return [
     http.get(`${baseUrl}/security-policy`, ({ request }) => {
-      const user = admin("security", "read")
-      if (user instanceof Response) return user
+      const actor = admin(request, "security", "read")
+      if (actor instanceof Response) return actor
       const language = languageOf(request)
       const roleOptions =
         roles?.map((role) => ({
@@ -254,8 +314,8 @@ export function createAdminHandlers({
     }),
 
     http.put(`${baseUrl}/security-policy`, async ({ request }) => {
-      const user = admin("security", "update", "sensitive")
-      if (user instanceof Response) return user
+      const actor = admin(request, "security", "update", "sensitive")
+      if (actor instanceof Response) return actor
       const parsed = securityPolicySchema.safeParse(await request.json())
       if (!parsed.success)
         return validation(
@@ -323,11 +383,8 @@ export function createAdminHandlers({
       ])
       sendMockMessage({ channel: "email", to: user.email, kind: "recovery" })
       // Адміністраторам компаній цієї людини — у центр сповіщень (ADR-0014, ADR-0032).
-      for (const admin of mockUsersList().filter(
-        (u) =>
-          u.id !== user.id &&
-          hasPermission(u.permissions, "users", "update") &&
-          sharesCompany(u, user),
+      for (const admin of mockUsersList().filter((u) =>
+        managesRecoveryOf(u, user),
       ))
         pushMockNotification(admin.id, {
           type: "security.recovery_requested",
@@ -352,22 +409,22 @@ export function createAdminHandlers({
     }),
 
     http.get(`${baseUrl}/recovery-requests`, ({ request }) => {
-      const user = admin("users", "update")
-      if (user instanceof Response) return user
-      const members = companyMembers(request, user)
-      if (members instanceof Response) return members
+      const actor = admin(request, "users", "update")
+      if (actor instanceof Response) return actor
+      const members = companyMembers(actor)
       return json(
         readRequests().filter((r) => members.some((u) => u.id === r.userId)),
       )
     }),
 
     http.delete(`${baseUrl}/recovery-requests/:id`, ({ params, request }) => {
-      const user = admin("users", "update")
-      if (user instanceof Response) return user
+      const actor = admin(request, "users", "update")
+      if (actor instanceof Response) return actor
       // Уже розібраний запит — 204, як і раніше (ідемпотентно); запит людини іншої компанії — 404.
+      // «Стелі» немає: розібраний запит доступу не змінює (ADR-0034).
       const entry = readRequests().find((r) => r.id === params.id)
       if (!entry) return noContent()
-      const target = mockCompanyTarget(request, user, entry.userId)
+      const target = mockCompanyTarget(request, actor.user, entry.userId)
       if (target instanceof Response) return target
       write(
         RECOVERY_KEY,
@@ -379,13 +436,15 @@ export function createAdminHandlers({
     http.post(
       `${baseUrl}/users/:id/reset-factors`,
       async ({ params, request }) => {
-        const user = admin("users", "update", "sensitive")
-        if (user instanceof Response) return user
+        const actor = admin(request, "users", "update", "change")
+        if (actor instanceof Response) return actor
+        const target = accessTarget(request, actor, params.id, {
+          self: false,
+          confirm: true,
+        })
+        if (target instanceof Response) return target
         const { reason } = (await request.json()) as { reason?: string }
         if (!reason?.trim()) return validation({ reason: "required" })
-        const target = mockCompanyTarget(request, user, params.id)
-        if (target instanceof Response) return target
-        if (target.id === user.id) return validation({ userId: "invalid" })
         resetMockFactors(target)
         recordAudit({
           action: "security.factors_reset",
@@ -401,7 +460,7 @@ export function createAdminHandlers({
           channel: "email",
           to: target.email,
           kind: "factors_reset",
-          detail: user.name,
+          detail: actor.user.name,
         })
         return noContent()
       },
@@ -410,9 +469,9 @@ export function createAdminHandlers({
     /* ------------------------- Доступ користувача ------------------------- */
 
     http.get(`${baseUrl}/users/:id/access`, ({ params, request }) => {
-      const user = admin("users", "update")
-      if (user instanceof Response) return user
-      const target = mockCompanyTarget(request, user, params.id)
+      const actor = admin(request, "users", "update")
+      if (actor instanceof Response) return actor
+      const target = mockCompanyTarget(request, actor.user, params.id)
       if (target instanceof Response) return target
       const blocked = mockBlocked(target)
       const language = languageOf(request)
@@ -420,7 +479,8 @@ export function createAdminHandlers({
         userId: target.id,
         status: blocked ? "blocked" : "active",
         blocked,
-        roles: target.roles,
+        // Ролі людини в компанії запиту: за ними клієнт показує «стелю» (ADR-0034).
+        roles: mockUserRolesIn(target, actor.companyId),
         ...mockAccessSummary(target),
         sessions: mockUserSessions(target, language).map((session) => ({
           ...session,
@@ -430,8 +490,8 @@ export function createAdminHandlers({
     }),
 
     http.get(`${baseUrl}/sessions`, ({ request }) => {
-      const user = admin("users", "update")
-      if (user instanceof Response) return user
+      const actor = admin(request, "users", "update")
+      if (actor instanceof Response) return actor
       const params = new URL(request.url).searchParams
       const q = params.get("q")?.trim().toLocaleLowerCase("uk") ?? ""
       const page = Math.max(1, Number(params.get("page")) || 1)
@@ -440,9 +500,7 @@ export function createAdminHandlers({
         Math.max(1, Number(params.get("perPage")) || 20),
       )
       const language = languageOf(request)
-      const members = companyMembers(request, user)
-      if (members instanceof Response) return members
-      const sessions = members
+      const sessions = companyMembers(actor)
         .filter(
           (u) =>
             !q ||
@@ -464,20 +522,24 @@ export function createAdminHandlers({
     }),
 
     http.delete(`${baseUrl}/sessions/:id`, ({ params, request }) => {
-      const user = admin("users", "update", "change")
-      if (user instanceof Response) return user
-      const members = companyMembers(request, user)
-      if (members instanceof Response) return members
-      if (params.id === getMockSession()?.id)
+      const actor = admin(request, "users", "update", "change")
+      if (actor instanceof Response) return actor
+      const sessionId = String(params.id)
+      if (sessionId === getMockSession()?.id)
         return errorResponse(409, {
           code: "conflict",
           message: "This is your current session — sign out instead",
         })
-      // Сесія людини іншої компанії — «не знайдено», як і сама людина.
-      const owner = members.find((u) =>
-        endMockUserSession(u, String(params.id)),
+      // Сесія людини іншої компанії — «не знайдено», як і сама людина; сильнішої — 403: людину
+      // видно в списку сесій компанії (ADR-0034).
+      const owner = companyMembers(actor).find((u) =>
+        hasMockUserSession(u, sessionId),
       )
       if (!owner) return notFound()
+      const denied =
+        owner.id === actor.user.id ? null : withinCeiling(actor, owner)
+      if (denied) return denied
+      endMockUserSession(owner, sessionId)
       recordAudit({
         action: "users.session_ended",
         category: "users",
@@ -487,9 +549,12 @@ export function createAdminHandlers({
     }),
 
     http.post(`${baseUrl}/users/:id/sign-out`, ({ params, request }) => {
-      const user = admin("users", "update", "change")
-      if (user instanceof Response) return user
-      const target = mockCompanyTarget(request, user, params.id)
+      const actor = admin(request, "users", "update", "change")
+      if (actor instanceof Response) return actor
+      const target = accessTarget(request, actor, params.id, {
+        self: true,
+        confirm: false,
+      })
       if (target instanceof Response) return target
       endAllMockUserSessions(target)
       recordAudit({
@@ -501,14 +566,16 @@ export function createAdminHandlers({
     }),
 
     http.post(`${baseUrl}/users/:id/block`, async ({ params, request }) => {
-      const user = admin("users", "update", "sensitive")
-      if (user instanceof Response) return user
-      const target = mockCompanyTarget(request, user, params.id)
+      const actor = admin(request, "users", "update", "change")
+      if (actor instanceof Response) return actor
+      const target = accessTarget(request, actor, params.id, {
+        self: false,
+        confirm: true,
+      })
       if (target instanceof Response) return target
-      if (target.id === user.id) return validation({ userId: "invalid" })
       const { reason } = (await request.json()) as { reason?: string }
       if (!reason?.trim()) return validation({ reason: "required" })
-      setMockBlocked(target, { by: user.name, reason: reason.trim() })
+      setMockBlocked(target, { by: actor.user.name, reason: reason.trim() })
       recordAudit({
         action: "users.blocked",
         category: "users",
@@ -520,9 +587,12 @@ export function createAdminHandlers({
     }),
 
     http.post(`${baseUrl}/users/:id/unblock`, ({ params, request }) => {
-      const user = admin("users", "update", "sensitive")
-      if (user instanceof Response) return user
-      const target = mockCompanyTarget(request, user, params.id)
+      const actor = admin(request, "users", "update", "change")
+      if (actor instanceof Response) return actor
+      const target = accessTarget(request, actor, params.id, {
+        self: true,
+        confirm: true,
+      })
       if (target instanceof Response) return target
       setMockBlocked(target, null)
       recordAudit({

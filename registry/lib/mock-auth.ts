@@ -7,39 +7,31 @@
  * Коди SMS і email мок не надсилає — він передає їх `subscribeMockMessages` (демо показує як
  * сповіщення). Ключ доступу мок не перевіряє криптографічно: користувача визначає `userHandle`.
  * Фактори, сесії, журнал входів і «Увійти як…» — lib/mock-account (ADR-0011).
+ *
+ * Частини: кроки входу — `lib/mock-sign-in-flow`, відновлення пароля, запрошення й реєстрація —
+ * `lib/mock-sign-up`, профіль `/me` — `lib/mock-me`; тут — налаштування, маршрути входу й збирання
+ * всіх обробників платформи. Старі імпорти з цього файлу працюють.
  */
 import { http, type HttpHandler } from "msw/http"
 
-import {
-  SETUP_FACTORS,
-  type SetupFactor,
-  type SignInMethod,
-} from "@/registry/lib/account"
-import { API_PREFIX, COMPANY_HEADER } from "@/registry/lib/api"
-import {
-  hasPermission,
-  meSchema,
-  type AuthFactor,
-  type AuthMethods,
-  type Branding,
-  type LocalizedText,
-  type Me,
+import { SETUP_FACTORS, type SetupFactor } from "@/registry/lib/account"
+import { API_PREFIX } from "@/registry/lib/api"
+import type {
+  AuthFactor,
+  AuthMethods,
+  Branding,
+  LocalizedText,
 } from "@/registry/lib/auth"
 import {
   consumeBackupCode,
   createAccountHandlers,
-  isTrustedHere,
-  mockBlocked,
   mockFactorTypes,
-  mockProfile,
   passwordChanged,
-  passwordChangedAt,
-  passwordReused,
   recordSignIn,
   setMockAccountSeeds,
-  trustHere,
   type MockAccountSeed,
 } from "@/registry/lib/mock-account"
+import { RESEND_SECONDS } from "@/registry/lib/mock-account-state"
 import {
   createCompanyHandlers,
   type MockCompanyProfile,
@@ -49,10 +41,14 @@ import {
   setMockInboxSeeds,
   type MockInboxItem,
 } from "@/registry/lib/mock-inbox"
+import { createMeHandlers } from "@/registry/lib/mock-me"
+import { createSignInFlow } from "@/registry/lib/mock-sign-in-flow"
 import {
-  acceptMockInvitation,
+  createSignUpHandlers,
+  type MockInvite,
+} from "@/registry/lib/mock-sign-up"
+import {
   createTeamHandlers,
-  findMockInvitation,
   type MockPermissionResource,
   type MockRole,
 } from "@/registry/lib/mock-team"
@@ -75,36 +71,27 @@ import {
   createAdminHandlers,
   DEFAULT_MOCK_POLICY,
   getMockPolicy,
-  ipAllowedByPolicy,
-  ipNotAllowed,
   policyRequiresFactor,
   setMockPolicyDefaults,
 } from "@/registry/lib/mock-admin"
 import {
-  addMockUser,
   authenticate,
-  currentMockUser,
   errorResponse,
   getMockSession,
-  impersonationForbidden,
   json,
-  maskEmail,
-  maskPhone,
   mockUsersList,
-  newExpiry,
   noContent,
-  randomToken,
-  removeMockUser,
-  sendMockMessage,
   setMockUsers,
   setSessionMinutes,
   unauthenticated,
   writeMockSession,
-  type MockChallenge,
   type MockUser,
 } from "@/registry/lib/mock-server"
 import type { Preferences } from "@/registry/lib/preferences"
 import type { SecurityPolicy } from "@/registry/lib/security-policy"
+
+// erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
+export type { MockInvite }
 
 export const DEFAULT_MOCK_METHODS: AuthMethods = {
   password: true,
@@ -117,16 +104,6 @@ export const DEFAULT_MOCK_METHODS: AuthMethods = {
   signUp: true,
   trustedDeviceDays: 30,
   idleTimeoutMinutes: null,
-}
-
-export interface MockInvite {
-  token: string
-  email: string
-  name?: string
-  companyName: string
-  invitedBy?: string
-  /** Ролі, права й компанії нового користувача. */
-  user: Pick<MockUser, "roles" | "permissions" | "companies" | "companyId">
 }
 
 export interface PlatformMockOptions {
@@ -178,27 +155,7 @@ export interface PlatformMockOptions {
   companyProfiles?: Record<string, MockCompanyProfile>
 }
 
-const RESEND_SECONDS = 30
 const MAX_ATTEMPTS = 5
-const PREFS_KEY = (userId: string) => `erp-ui:mock-preferences:${userId}`
-
-function toMe(user: MockUser): Me {
-  const session = getMockSession()
-  const admin = session?.impersonatorId
-    ? mockUsersList().find((u) => u.id === session.impersonatorId)
-    : undefined
-  return meSchema.parse({
-    ...user,
-    ...mockProfile(user),
-    factors: mockFactorTypes(user),
-    sessionExpiresAt: new Date(session?.expiresAt ?? newExpiry()).toISOString(),
-    ...(admin ? { impersonator: { id: admin.id, name: admin.name } } : {}),
-  })
-}
-
-const token = randomToken
-
-const digits = (value: string) => value.replace(/\D/g, "")
 
 function base64UrlDecode(value: string): string {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/")
@@ -281,234 +238,28 @@ export function createPlatformHandlers({
     policyRequiresFactor(user) || (twoFactorRequired?.(user) ?? false)
   const brandingNow = () =>
     typeof branding === "function" ? branding() : branding
-  /** Невдалі спроби за email — після captchaAfter потрібна перевірка «не бот». */
-  const failures = new Map<string, number>()
-  /** Одноразові токени листів: вхід, відновлення пароля. */
-  const tokens = new Map<
-    string,
-    { userId: string; kind: "login" | "reset"; expires: number }
-  >()
-  const usedInvites = new Set<string>()
-
-  const findUser = (identifier: string) => {
-    const lower = identifier.trim().toLowerCase()
-    return mockUsersList().find(
-      (u) =>
-        u.email.toLowerCase() === lower ||
-        (u.phone !== undefined &&
-          digits(u.phone) !== "" &&
-          digits(u.phone) === digits(identifier)),
-    )
-  }
-
-  const needsCaptcha = (key: string, captchaToken?: string) => {
-    if ((failures.get(key) ?? 0) < captchaAfter) return false
-    if (captchaToken) {
-      failures.delete(key)
-      return false
-    }
-    return true
-  }
-
-  const captchaRequired = () =>
-    errorResponse(428, {
-      code: "captcha_required",
-      message: "Confirm that you are not a bot",
-    })
-
-  /** Надіслати код методом (sms/email) і повернути, куди. */
-  const deliver = (
-    user: MockUser | undefined,
-    method: AuthFactor,
-    fallback?: string,
-  ) => {
-    if (method === "sms") {
-      const to = user?.phone ?? fallback ?? ""
-      if (user)
-        sendMockMessage({ channel: "sms", to, kind: "login", code: sentCode })
-      return maskPhone(to)
-    }
-    if (method === "email") {
-      const to = user?.email ?? fallback ?? ""
-      if (user) {
-        const value = token()
-        tokens.set(value, {
-          userId: user.id,
-          kind: "login",
-          expires: Date.now() + 15 * 60_000,
-        })
-        sendMockMessage({
-          channel: "email",
-          to,
-          kind: "login",
-          code: sentCode,
-          link: linkUrl("login", value),
-        })
-      }
-      return maskEmail(to)
-    }
-    return undefined
-  }
-
-  /** Почати підтвердження: відповідь `challenge` і сесія на кроці коду. */
-  const startChallenge = (
-    userId: string,
-    challenge: Omit<MockChallenge, "attempts" | "sentAt">,
-    user: MockUser | undefined,
-    fallback?: string,
-  ) => {
-    const destination =
-      deliver(user, challenge.method, fallback) ?? challenge.destination
-    const sent = challenge.method === "sms" || challenge.method === "email"
-    writeMockSession({
-      userId,
-      stage: "challenge",
-      challenge: {
-        ...challenge,
-        destination,
-        attempts: 0,
-        sentAt: sent ? Date.now() : undefined,
-      },
-      expiresAt: Date.now() + 15 * 60_000,
-    })
-    return json({
-      status: "challenge",
-      challenge: {
-        methods: challenge.methods,
-        method: challenge.method,
-        destination,
-        resendIn: sent ? RESEND_SECONDS : undefined,
-        codeLength: challenge.method === "backup_code" ? 8 : 6,
-        secondFactor: challenge.secondFactor,
-      },
-    })
-  }
-
-  const signedIn = (
-    userId: string,
-    method: SignInMethod,
-    trustDevice?: boolean,
-    second = false,
-  ) => {
-    const user = mockUsersList().find((u) => u.id === userId)
-    const blocked = user ? accountBlocked(user, method) : null
-    if (blocked) return blocked
-    if (!ipAllowedByPolicy()) {
-      if (user) recordSignIn(user, { result: "blocked", method })
-      writeMockSession(null)
-      return ipNotAllowed()
-    }
-    const policy = getMockPolicy()
-    if (user && trustDevice && second && policy.trustedDeviceDays > 0)
-      trustHere(user, policy.trustedDeviceDays)
-    const changedAt = user ? passwordChangedAt(user) : null
-    // Термін пароля перевіряємо лише після входу паролем (з кодом чи без).
-    const expired =
-      policy.password.expiryDays !== null &&
-      (method === "password" || second) &&
-      changedAt !== null &&
-      changedAt + policy.password.expiryDays * 86_400_000 < Date.now()
-    if (user?.mustChangePassword || expired) {
-      writeMockSession({
-        userId,
-        stage: "password_change",
-        expiresAt: Date.now() + 15 * 60_000,
-      })
-      return json({
-        status: "password_change_required",
-        reason: user?.mustChangePassword ? "temporary" : "expired",
-      })
-    }
-    authenticate(userId)
-    if (user) recordSignIn(user, { result: "success", method })
-    return json({ status: "authenticated" })
-  }
-
-  /** Чутлива дія: потрібне свіже повторне підтвердження. */
-  const reauthRequired = (): Response | null => {
-    const session = getMockSession()
-    return !session?.reauthUntil || session.reauthUntil < Date.now()
-      ? errorResponse(403, {
-          code: "reauth_required",
-          message: "Confirm it's you",
-        })
-      : null
-  }
-
-  /** Заблокований адміністратором акаунт не входить (ADR-0013). */
-  const accountBlocked = (user: MockUser, method: SignInMethod) => {
-    if (!mockBlocked(user)) return null
-    recordSignIn(user, { result: "blocked", method })
-    writeMockSession(null)
-    return errorResponse(403, {
-      code: "account_blocked",
-      message: "This account is blocked",
-    })
-  }
-
-  /** Пароль чи токен підтверджено: другий фактор, його налаштування (політика) або вхід. */
-  const afterFirstFactor = (user: MockUser, method: SignInMethod) => {
-    const blocked = accountBlocked(user, method)
-    if (blocked) return blocked
-    if (!ipAllowedByPolicy()) {
-      recordSignIn(user, { result: "blocked", method })
-      return ipNotAllowed()
-    }
-    const factors = mockFactorTypes(user)
-    if (!factors.length && factorRequired(user)) {
-      writeMockSession({
-        userId: user.id,
-        stage: "factor_setup",
-        expiresAt: Date.now() + 15 * 60_000,
-      })
-      return json({ status: "factor_setup_required", factors: setupFactors() })
-    }
-    if (factors.length && !isTrustedHere(user)) {
-      const preferred: AuthFactor = factors.includes("totp")
-        ? "totp"
-        : (factors.find((f) => f !== "backup_code") ?? "totp")
-      return startChallenge(
-        user.id,
-        { methods: factors, method: preferred, secondFactor: true },
-        user,
-      )
-    }
-    return signedIn(user.id, method)
-  }
-
-  const weakPassword = (password: unknown) =>
-    typeof password !== "string" ||
-    password.length < getMockPolicy().password.minLength
-
-  /** Пароль серед останніх N (політика «не повторювати»). */
-  const reused = (user: MockUser, password: unknown) =>
-    typeof password === "string" &&
-    passwordReused(user, password, getMockPolicy().password.preventReuse)
-
-  const validation = (fields: Record<string, string>) =>
-    errorResponse(422, {
-      code: "validation",
-      message: "Validation failed",
-      fieldErrors: fields,
-    })
-
-  /** Запрошення за токеном листа; невідоме, прийняте чи прострочене — 410. */
-  const inviteCheck = (value: string | null) => {
-    const invite =
-      invites.find((i) => i.token === value) ??
-      (value ? findMockInvitation(value) : undefined)
-    if (!invite || usedInvites.has(invite.token))
-      return errorResponse(410, {
-        code: "token_expired",
-        message: "Invite expired",
-      })
-    return json({
-      email: invite.email,
-      name: invite.name,
-      companyName: invite.companyName,
-      invitedBy: invite.invitedBy,
-    })
-  }
+  const flow = createSignInFlow({
+    sentCode,
+    linkUrl,
+    captchaAfter,
+    setupFactors,
+    factorRequired,
+  })
+  const {
+    failures,
+    tokens,
+    findUser,
+    needsCaptcha,
+    captchaRequired,
+    deliver,
+    startChallenge,
+    signedIn,
+    reauthRequired,
+    afterFirstFactor,
+    weakPassword,
+    reused,
+    validation,
+  } = flow
 
   return [
     http.get(`${baseUrl}/auth/methods`, () => {
@@ -723,147 +474,16 @@ export function createPlatformHandlers({
       return noContent()
     }),
 
-    http.post(`${baseUrl}/auth/password/forgot`, async ({ request }) => {
-      const { email } = (await request.json()) as { email?: string }
-      const user = email ? findUser(email) : undefined
-      if (user) {
-        const value = token()
-        tokens.set(value, {
-          userId: user.id,
-          kind: "reset",
-          expires: Date.now() + 60 * 60_000,
-        })
-        sendMockMessage({
-          channel: "email",
-          to: user.email,
-          kind: "reset",
-          link: linkUrl("reset", value),
-        })
-      }
-      return noContent()
+    ...createSignUpHandlers({
+      baseUrl,
+      flow,
+      sentCode,
+      linkUrl,
+      invites,
+      signUp: methods.signUp,
     }),
 
-    http.post(`${baseUrl}/auth/password/reset`, async ({ request }) => {
-      const body = (await request.json()) as {
-        token?: string
-        password?: string
-      }
-      const entry = body.token ? tokens.get(body.token) : undefined
-      if (!body.token || entry?.kind !== "reset" || entry.expires < Date.now())
-        return errorResponse(410, {
-          code: "token_expired",
-          message: "Link expired",
-        })
-      if (weakPassword(body.password)) return validation({ password: "weak" })
-      const user = mockUsersList().find((u) => u.id === entry.userId)
-      if (!user) return unauthenticated()
-      if (reused(user, body.password)) return validation({ password: "reused" })
-      tokens.delete(body.token)
-      passwordChanged(user, body.password as string)
-      return afterFirstFactor(user, "link")
-    }),
-
-    // Перевірка запрошення: токен у тілі, а не в адресі (ADR-0032).
-    http.post(`${baseUrl}/auth/invite/check`, async ({ request }) => {
-      const { token: value } = (await request.json()) as { token?: unknown }
-      return inviteCheck(typeof value === "string" ? value : null)
-    }),
-
-    // Застарілий шлях до A2b2 (токен в адресі): кіт іде сюди лише на сервер без `POST`; прибрати
-    // у 2.0. Мок лишає його для тестів запасного шляху.
-    http.get(`${baseUrl}/auth/invite`, ({ request }) =>
-      inviteCheck(new URL(request.url).searchParams.get("token")),
-    ),
-
-    http.post(`${baseUrl}/auth/invite/accept`, async ({ request }) => {
-      const body = (await request.json()) as {
-        token?: string
-        name?: string
-        password?: string
-      }
-      const invite =
-        invites.find((i) => i.token === body.token) ??
-        (body.token ? findMockInvitation(body.token) : undefined)
-      if (!invite || usedInvites.has(invite.token))
-        return errorResponse(410, {
-          code: "token_expired",
-          message: "Invite expired",
-        })
-      if (!body.name?.trim()) return validation({ name: "required" })
-      if (weakPassword(body.password)) return validation({ password: "weak" })
-      usedInvites.add(invite.token)
-      const user: MockUser = {
-        id: `u-${token().slice(0, 8)}`,
-        name: body.name.trim(),
-        email: invite.email,
-        password: body.password as string,
-        totpCode: sentCode,
-        factors: [],
-        ...invite.user,
-      }
-      addMockUser(user)
-      acceptMockInvitation(invite.token, user)
-      authenticate(user.id)
-      recordSignIn(user, { result: "success", method: "link" })
-      return json({ status: "authenticated" })
-    }),
-
-    http.post(`${baseUrl}/auth/signup`, async ({ request }) => {
-      if (!methods.signUp)
-        return errorResponse(403, {
-          code: "forbidden",
-          message: "Sign-up disabled",
-        })
-      const body = (await request.json()) as {
-        name?: string
-        email?: string
-        password?: string
-        company?: { name?: string; code?: string }
-      }
-      const fields: Record<string, string> = {}
-      if (!body.name?.trim()) fields.name = "required"
-      if (!body.email?.includes("@")) fields.email = "invalid"
-      else if (findUser(body.email)) fields.email = "taken"
-      if (weakPassword(body.password)) fields.password = "weak"
-      if (!body.company?.name?.trim()) fields["company.name"] = "required"
-      if (Object.keys(fields).length) return validation(fields)
-      const companyId = `c-${token().slice(0, 8)}`
-      const user: MockUser = {
-        id: `u-${token().slice(0, 8)}`,
-        name: (body.name ?? "").trim(),
-        email: (body.email ?? "").trim(),
-        password: body.password as string,
-        totpCode: sentCode,
-        roles: ["owner"],
-        permissions: ["*"],
-        companies: [
-          {
-            id: companyId,
-            name: (body.company?.name ?? "").trim(),
-            description: body.company?.code,
-          },
-        ],
-        companyId,
-        factors: [],
-      }
-      addMockUser(user)
-      // Обліковий запис активується після коду з листа.
-      return startChallenge(
-        user.id,
-        { methods: ["email"], method: "email", secondFactor: false },
-        user,
-      )
-    }),
-
-    http.post(`${baseUrl}/auth/session/extend`, () => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      return json({
-        expiresAt: new Date(
-          getMockSession()?.expiresAt ?? newExpiry(),
-        ).toISOString(),
-      })
-    }),
+    ...createMeHandlers({ baseUrl, flow, sentCode, defaultPreferences }),
 
     http.post(
       `${baseUrl}/auth/password/change-required`,
@@ -883,167 +503,6 @@ export function createPlatformHandlers({
         return json({ status: "authenticated" })
       },
     ),
-
-    http.post(`${baseUrl}/auth/reauth`, async ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      // Адміністратор не знає пароля користувача — і не повинен підтверджувати дії за нього.
-      const impersonating = impersonationForbidden()
-      if (impersonating) return impersonating
-      const body = (await request.json()) as {
-        password?: string
-        method?: AuthFactor
-        code?: string
-      }
-      const ok =
-        body.password !== undefined
-          ? body.password === user.password
-          : body.method === "totp"
-            ? body.code === user.totpCode
-            : (body.method === "sms" || body.method === "email") &&
-              body.code === sentCode
-      if (!ok)
-        return validation(
-          body.password !== undefined
-            ? { password: "invalid" }
-            : { code: "invalid" },
-        )
-      const session = getMockSession()
-      const grantedUntil = Date.now() + 5 * 60_000
-      if (session) writeMockSession({ ...session, reauthUntil: grantedUntil })
-      return json({ grantedUntil: new Date(grantedUntil).toISOString() })
-    }),
-
-    http.post(`${baseUrl}/me/email`, async ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const denied = impersonationForbidden() ?? reauthRequired()
-      if (denied) return denied
-      const { email } = (await request.json()) as { email?: string }
-      if (!email?.includes("@")) return validation({ email: "invalid" })
-      if (findUser(email)) return validation({ email: "taken" })
-      const session = getMockSession()
-      if (session) writeMockSession({ ...session, pendingEmail: email })
-      sendMockMessage({
-        channel: "email",
-        to: email,
-        kind: "verify",
-        code: sentCode,
-      })
-      return json({
-        methods: ["email"],
-        method: "email",
-        destination: maskEmail(email),
-        resendIn: RESEND_SECONDS,
-        codeLength: 6,
-        secondFactor: false,
-      })
-    }),
-
-    http.post(`${baseUrl}/me/email/verify`, async ({ request }) => {
-      const user = currentMockUser()
-      const session = getMockSession()
-      if (!user || !session?.pendingEmail) return unauthenticated()
-      const { code } = (await request.json()) as { code?: string }
-      if (code !== sentCode) return validation({ code: "invalid" })
-      sendMockMessage({ channel: "email", to: user.email, kind: "notice" })
-      user.email = session.pendingEmail
-      writeMockSession({ ...session, pendingEmail: undefined })
-      return noContent()
-    }),
-
-    http.post(`${baseUrl}/me/export`, () => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const denied = impersonationForbidden()
-      if (denied) return denied
-      sendMockMessage({
-        channel: "email",
-        to: user.email,
-        kind: "export",
-        link: `${globalThis.location?.origin ?? ""}/export-${token()}.zip`,
-      })
-      return json({ status: "queued" }, { status: 202 })
-    }),
-
-    http.delete(`${baseUrl}/me`, () => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const denied = impersonationForbidden() ?? reauthRequired()
-      if (denied) return denied
-      removeMockUser(user.id)
-      writeMockSession(null)
-      return noContent()
-    }),
-
-    http.post(`${baseUrl}/auth/logout`, () => {
-      writeMockSession(null)
-      return noContent()
-    }),
-
-    http.get(`${baseUrl}/me`, ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      // Як сервер (ADR-0002 §5): з компанією, до якої доступу немає, — відмова навіть у профілі.
-      const companyId = request.headers.get(COMPANY_HEADER)
-      if (
-        companyId &&
-        !user.companies.some((c) => c.id === companyId) &&
-        !hasPermission(user.permissions, "*", "*")
-      )
-        return errorResponse(403, {
-          code: "forbidden",
-          message: "Not a member of this company",
-        })
-      return json(toMe(user))
-    }),
-
-    http.post(`${baseUrl}/me/password`, async ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const denied = impersonationForbidden()
-      if (denied) return denied
-      const body = (await request.json()) as {
-        currentPassword?: string
-        newPassword?: string
-      }
-      if (body.currentPassword !== user.password)
-        return validation({ currentPassword: "invalid" })
-      if (weakPassword(body.newPassword))
-        return validation({ newPassword: "weak" })
-      if (reused(user, body.newPassword))
-        return validation({ newPassword: "reused" })
-      passwordChanged(user, body.newPassword as string)
-      return noContent()
-    }),
-
-    http.get(`${baseUrl}/me/preferences`, () => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      try {
-        const raw = globalThis.localStorage?.getItem(PREFS_KEY(user.id))
-        return json(
-          raw ? (JSON.parse(raw) as Preferences) : (defaultPreferences ?? {}),
-        )
-      } catch {
-        return json(defaultPreferences ?? {})
-      }
-    }),
-
-    http.put(`${baseUrl}/me/preferences`, async ({ request }) => {
-      const user = currentMockUser()
-      if (!user) return unauthenticated()
-      const prefs = (await request.json()) as Preferences
-      try {
-        globalThis.localStorage?.setItem(
-          PREFS_KEY(user.id),
-          JSON.stringify(prefs),
-        )
-      } catch {
-        // Не збереглося — мок однаково відповідає успіхом.
-      }
-      return json(prefs)
-    }),
 
     /** Обов'язковий другий крок налаштовано — завершити вхід (ADR-0012). */
     http.post(`${baseUrl}/auth/factor-setup/complete`, () => {

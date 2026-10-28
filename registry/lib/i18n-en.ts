@@ -981,6 +981,8 @@ export const en = {
     unblockTitle: "{{name}}: unblock the account?",
     unblockDescription: "They will be able to sign in again.",
     unblocked: "Account unblocked",
+    beyondCeiling:
+      "This person has permissions you don't have: only someone with all of them can change their access.",
     allSessionsLabel: "Active user sessions",
     searchLabel: "Search by name or email",
     shown: "Showing {{shown}} of {{total}}",

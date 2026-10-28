@@ -4,8 +4,10 @@ import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import {
   UserAccessButtons,
   useUserAccessActions,
+  type UserAccessAction,
 } from "@/registry/erp/user-access-actions"
 import {
+  useAccessCeiling,
   useUserAccess,
   type AccessTarget,
 } from "@/registry/erp/user-access-data"
@@ -153,6 +155,63 @@ export function UserAccessQuery({
   return children(query.data)
 }
 
+/**
+ * Стан, ролі, сесії й дії панелі; людина понад «стелю» — дії неактивні з причиною (ADR-0034), яку
+ * видно один раз над сесіями й діями, а скрінрідер чує в описі кожної кнопки.
+ */
+function AccessDetails({
+  target,
+  access,
+  self,
+  onAction,
+  onChange,
+}: {
+  target: AccessTarget
+  access: UserAccess
+  self: boolean
+  onAction: (action: UserAccessAction) => void
+  onChange?: () => void
+}) {
+  const t = useErpUiT()
+  const ceiling = useAccessCeiling(access.roles, !self)
+  return (
+    <div className="space-y-6">
+      <UserAccessSummary access={access} />
+
+      <UserRolesSection
+        key={access.roles.join()}
+        userId={target.id}
+        current={access.roles}
+        self={self}
+        onChange={onChange}
+      />
+
+      {ceiling.deniedReason ? (
+        <p className="text-sm text-muted-foreground">{ceiling.deniedReason}</p>
+      ) : null}
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-medium">{t("userAccess.sessionsTitle")}</h3>
+        <UserSessionsList
+          userId={target.id}
+          sessions={access.sessions}
+          {...ceiling}
+          showReason={false}
+        />
+      </section>
+
+      {self ? null : (
+        <UserAccessButtons
+          access={access}
+          onAction={onAction}
+          {...ceiling}
+          showReason={false}
+        />
+      )}
+    </div>
+  )
+}
+
 function AccessPanel({
   target,
   onChange,
@@ -168,28 +227,13 @@ function AccessPanel({
   const body = (
     <UserAccessQuery userId={target.id}>
       {(access) => (
-        <div className="space-y-6">
-          <UserAccessSummary access={access} />
-
-          <UserRolesSection
-            key={access.roles.join()}
-            userId={target.id}
-            current={access.roles}
-            self={self}
-            onChange={onChange}
-          />
-
-          <section className="space-y-2">
-            <h3 className="text-sm font-medium">
-              {t("userAccess.sessionsTitle")}
-            </h3>
-            <UserSessionsList userId={target.id} sessions={access.sessions} />
-          </section>
-
-          {self ? null : (
-            <UserAccessButtons access={access} onAction={actions.start} />
-          )}
-        </div>
+        <AccessDetails
+          target={target}
+          access={access}
+          self={self}
+          onAction={actions.start}
+          onChange={onChange}
+        />
       )}
     </UserAccessQuery>
   )

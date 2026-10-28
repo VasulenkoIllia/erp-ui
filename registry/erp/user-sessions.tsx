@@ -8,6 +8,7 @@ import {
   useErpAuthProvider,
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
+import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useRefreshAccess } from "@/registry/erp/user-access-data"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
@@ -33,16 +34,26 @@ function SessionRow({
   session,
   showUser,
   ending,
+  disabled = false,
+  deniedReason,
   onEnd,
 }: {
   session: AdminSession
   showUser?: boolean
   ending: boolean
+  /** Ще невідомо, чи можна завершити (каталог ролей вантажиться). */
+  disabled?: boolean
+  /** Чому завершити не можна («стеля», ADR-0034); без неї — кнопка «Завершити». */
+  deniedReason?: string
   onEnd: () => void
 }) {
   const t = useErpUiT()
   const format = useFormat()
   const device = deviceLabel(session.device, t)
+  const endLabel = t("userAccess.endSessionFor", {
+    name: session.user.name,
+    device,
+  })
   return (
     <li className="flex flex-col gap-3 p-3 @md:flex-row @md:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -90,16 +101,22 @@ function SessionRow({
           ) : null}
         </div>
       </div>
-      {session.current ? null : (
+      {session.current ? null : deniedReason ? (
+        <DeniedAction
+          reason={deniedReason}
+          size="sm"
+          className="self-start @md:self-center"
+          aria-label={endLabel}
+        >
+          {t("userAccess.endSession")}
+        </DeniedAction>
+      ) : (
         <Button
           variant="outline"
           size="sm"
           className="self-start @md:self-center"
-          disabled={ending}
-          aria-label={t("userAccess.endSessionFor", {
-            name: session.user.name,
-            device,
-          })}
+          disabled={ending || disabled}
+          aria-label={endLabel}
           onClick={onEnd}
         >
           {ending ? <Spinner aria-hidden /> : null}
@@ -110,20 +127,37 @@ function SessionRow({
   )
 }
 
-/** Сесії одного користувача з відповіді `GET /users/:id/access`: «Завершити» кожну. */
+/**
+ * Сесії одного користувача з відповіді `GET /users/:id/access`: «Завершити» кожну. Людина понад
+ * «стелю» (`deniedReason`, ADR-0034) — «Завершити» неактивна з причиною в описі кнопки й над
+ * списком (`showReason={false}` — над списком її показує батько); `checking` — ще невідомо, чи
+ * можна (`useAccessCeiling`).
+ */
 export function UserSessionsList({
   userId,
   sessions,
+  deniedReason,
+  checking = false,
+  showReason = true,
 }: {
   userId: string
   sessions: readonly AdminSession[]
+  deniedReason?: string
+  checking?: boolean
+  showReason?: boolean
 }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const refresh = useRefreshAccess()
   const [ending, setEnding] = React.useState<string | null>(null)
-  return sessions.length ? (
+  if (!sessions.length)
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("userAccess.noSessions")}
+      </p>
+    )
+  const list = (
     <ul
       className="divide-y rounded-lg border"
       aria-label={t("userAccess.sessionsTitle")}
@@ -133,6 +167,8 @@ export function UserSessionsList({
           key={session.id}
           session={session}
           ending={ending === session.id}
+          disabled={checking}
+          deniedReason={deniedReason}
           onEnd={() => {
             setEnding(session.id)
             provider.admin
@@ -151,10 +187,15 @@ export function UserSessionsList({
         />
       ))}
     </ul>
+  )
+  const endable = sessions.some((session) => !session.current)
+  return deniedReason && showReason && endable ? (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">{deniedReason}</p>
+      {list}
+    </div>
   ) : (
-    <p className="text-sm text-muted-foreground">
-      {t("userAccess.noSessions")}
-    </p>
+    list
   )
 }
 
