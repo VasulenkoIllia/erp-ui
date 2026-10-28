@@ -11,6 +11,7 @@ export const MOCK_RESOURCES = [
   "list-settings",
   "jobs",
   "users",
+  "roles",
   "audit",
   "webhooks",
 ]

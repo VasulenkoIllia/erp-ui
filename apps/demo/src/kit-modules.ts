@@ -3,7 +3,11 @@ import { useRoutes, type RouteObject } from "react-router"
 
 import type { NavItem } from "@/registry/erp/app-shell"
 import { PageState } from "@/registry/erp/page-state"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  hasPermission,
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/auth"
 import type { ModuleId } from "@/registry/lib/icons"
 
 import { contactsModule } from "@/contacts-module"
@@ -23,6 +27,7 @@ interface KitModule {
     readonly label: LocalizedText
     readonly href: string
     readonly icon: NavItem["icon"]
+    readonly access?: { readonly resource: string; readonly action: string }
   }[]
   readonly preload: (pathname: string) => void
 }
@@ -45,12 +50,20 @@ export function KitModuleRoutes({ moduleKey }: { moduleKey: KitModuleKey }) {
   )
 }
 
-/** Пункти модуля в навігації оболонки мовою інтерфейсу. */
+/**
+ * Пункти модуля в навігації оболонки мовою інтерфейсу; пункт із правом (`access`) — лише тому, хто
+ * його має (профіль ще вантажиться — без таких пунктів).
+ */
 export function kitModuleNavItems(
   module: KitModule,
   language: string,
+  permissions: readonly string[] | undefined,
 ): NavItem[] {
-  return module.nav.map((item) => ({
+  const allowed = ({ access }: KitModule["nav"][number]) =>
+    !access ||
+    (permissions !== undefined &&
+      hasPermission(permissions, access.resource, access.action))
+  return module.nav.filter(allowed).map((item) => ({
     id: item.id,
     label: localizedText(item.label, language) ?? item.id,
     href: item.href,

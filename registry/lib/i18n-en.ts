@@ -1031,7 +1031,20 @@ export const en = {
     beyondCeilingHint:
       "This role grants permissions you don't have, so only someone who has them can change or delete it.",
     matrixCeilingHint:
-      "Inactive permissions are ones you don't have: only someone who has them can turn them on or off in a role.",
+      "Some permissions can't be changed: you don't have them, so only someone who has them can turn them on or off in a role.",
+    readOnlyHint:
+      "View only: changing roles needs the permission to update roles.",
+    selfReadOnly:
+      "Another company administrator changes your roles, so you don't lose access.",
+    conflict:
+      "Another administrator has just changed this role. The latest data is shown and your unsaved changes are kept: check them and save again.",
+    removeConflict:
+      "Another administrator has just changed this role. The data is updated: check the role and delete it again.",
+    notFoundTitle: "Role not found",
+    notFoundDescription:
+      "It may have been deleted. Choose a role from the list.",
+    emptyTitle: "No roles yet",
+    emptyDescription: "Create the first role and mark what it allows.",
   },
   invitations: {
     title: "Invitations",

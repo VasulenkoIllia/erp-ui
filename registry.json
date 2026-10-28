@@ -892,9 +892,19 @@
           "target": "@components/erp/role-detail.tsx"
         },
         {
+          "path": "registry/erp/role-list.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-list.tsx"
+        },
+        {
           "path": "registry/erp/role-matrix.tsx",
           "type": "registry:component",
           "target": "@components/erp/role-matrix.tsx"
+        },
+        {
+          "path": "registry/hooks/use-role-draft.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-role-draft.ts"
         },
         {
           "path": "registry/erp/invitations-section.tsx",
@@ -1085,6 +1095,11 @@
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -1357,7 +1372,7 @@
       "name": "modules/A2-users",
       "type": "registry:item",
       "title": "Користувачі й ролі (A2)",
-      "description": "Модуль: люди компанії на List Report (вкладки за статусом з лічильниками, фільтри «Роль» і «Другий крок», пошук за ім'ям чи email, розмір сторінки) і картка на Object Page з вкладками «Доступ» (стан, другий крок, вийти всюди, скинути другий крок, заблокувати й розблокувати), «Ролі», «Сесії» й «Історія»; «Увійти як…» у шапці; контракт users з довідником для полів-записів інших модулів (ім'я та email для кожного в компанії), моки поверх користувачів мок-сервера входу, фікстури колег uk/en, рядки uk/en; фабрика createUsersModule з маршрутами, навігацією й правами, тип розширення UsersExtension (ADR-0020, ADR-0025, ADR-0031).",
+      "description": "Модуль: люди компанії на List Report (вкладки за статусом з лічильниками, фільтри «Роль» і «Другий крок», пошук за ім'ям чи email, розмір сторінки) і картка на Object Page з вкладками «Доступ» (стан, другий крок, вийти всюди, скинути другий крок, заблокувати й розблокувати), «Ролі», «Сесії» й «Історія»; «Увійти як…» у шапці; «Ролі й права» — список ролей і права вибраної поруч, роль в адресі (?role=), нова, копія, видалення зі «стелею», пункт навігації з правом roles:read (ADR-0033); контракт users з довідником для полів-записів інших модулів (ім'я та email для кожного в компанії), моки поверх користувачів мок-сервера входу, фікстури колег uk/en, рядки uk/en; фабрика createUsersModule з маршрутами, навігацією й правами, тип розширення UsersExtension (ADR-0020, ADR-0025, ADR-0031, ADR-0033).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -1528,9 +1543,29 @@
           "target": "@components/erp/reset-factors.tsx"
         },
         {
+          "path": "registry/erp/role-detail.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-detail.tsx"
+        },
+        {
+          "path": "registry/erp/role-list.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-list.tsx"
+        },
+        {
+          "path": "registry/erp/role-matrix.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-matrix.tsx"
+        },
+        {
           "path": "registry/erp/role-picker.tsx",
           "type": "registry:component",
           "target": "@components/erp/role-picker.tsx"
+        },
+        {
+          "path": "registry/erp/roles-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/roles-editor.tsx"
         },
         {
           "path": "registry/erp/saved-view-dialog.tsx",
@@ -1656,6 +1691,11 @@
           "path": "registry/hooks/use-record-search.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-role-draft.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-role-draft.ts"
         },
         {
           "path": "registry/hooks/use-row-selection.ts",
@@ -1866,6 +1906,11 @@
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -2213,6 +2258,11 @@
           "target": "~/src/modules/A2-users/module-context.ts"
         },
         {
+          "path": "registry/modules/A2-users/pages/roles-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A2-users/pages/roles-page.tsx"
+        },
+        {
           "path": "registry/modules/A2-users/pages/user-page.tsx",
           "type": "registry:file",
           "target": "~/src/modules/A2-users/pages/user-page.tsx"
@@ -2238,7 +2288,7 @@
           "target": "~/src/modules/A2-users/use-users-t.ts"
         }
       ],
-      "docs": "Модуль A2 встановлено в src/modules/A2-users. Файли модуля не правте: зміни під клієнта — у src/extensions/A2-users.ts (тип UsersExtension).\n1) createUsersModule({ basePath, extension, homePath }) з @/modules/A2-users: routes — у роутер, nav — у навігацію.\n2) Моки: createUsersMocks({ extension }) з @/modules/A2-users/mocks — handlers у setupWorker після createPlatformHandlers; колеги для демо — createUsersFixtures({ company, roles }) з @/modules/A2-users/fixtures у users і accountSeeds createPlatformHandlers.\n3) Права ролей: users (read, create, update, impersonate), roles (read, update). Докладно — src/modules/A2-users/README.md.",
+      "docs": "Модуль A2 встановлено в src/modules/A2-users. Файли модуля не правте: зміни під клієнта — у src/extensions/A2-users.ts (тип UsersExtension).\n1) createUsersModule({ basePath, extension, homePath }) з @/modules/A2-users: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).\n2) Моки: createUsersMocks({ extension }) з @/modules/A2-users/mocks — handlers у setupWorker після createPlatformHandlers; колеги для демо — createUsersFixtures({ company, roles }) з @/modules/A2-users/fixtures у users і accountSeeds createPlatformHandlers.\n3) Права ролей: users (read, create, update, impersonate), roles (read, update). Докладно — src/modules/A2-users/README.md.",
       "meta": {
         "layer": "modules",
         "status": "beta",
@@ -2786,6 +2836,11 @@
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -3637,7 +3692,7 @@
       "name": "ui/checkbox",
       "type": "registry:ui",
       "title": "Прапорець",
-      "description": "Checkbox на Base UI зі зоною натиску ≥ 24 px.",
+      "description": "Checkbox на Base UI зі зоною натиску ≥ 24 px; неактивна приглушена, лише для перегляду (readOnly) — у порядку Tab, рамка пунктиром, позначена сіра (ADR-0033).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "cn@^0.4.0",
@@ -7313,6 +7368,11 @@
           "target": "@lib/mock-company.ts"
         },
         {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
           "path": "registry/lib/mock-inbox.ts",
           "type": "registry:lib",
           "target": "@lib/mock-inbox.ts"
@@ -7394,6 +7454,182 @@
         "demo": "login",
         "spec": [
           "PF01",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-company-roles",
+      "type": "registry:lib",
+      "title": "Ролі компанії в моках",
+      "description": "Ролі проекту є в кожній компанії, зміна чи видалення — копією лише в своїй, нова роль — компанії, де її створили; ролі людини свої в кожній її компанії, права — за ролями в компанії (mockPermissionsIn); стан у localStorage з перевіркою прочитаного, люди компанії з роллю, конфлікт сценарію conflict раз на роль компанії (ADR-0033).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
           "§17"
         ]
       }
@@ -7859,6 +8095,11 @@
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -8458,7 +8699,7 @@
       "name": "lib/mock-team",
       "type": "registry:lib",
       "title": "Мок ролей і запрошень",
-      "description": "Ролі й призначення в localStorage, права користувача — сума прав його ролей; запрошення з листом-посиланням і прийняттям через мок входу.",
+      "description": "Ролі й призначення в localStorage, ролі — компанії запиту (лічильник людей і 409 — лише її люди), права користувача — сума прав його ролей у компанії, ролями й запрошеннями керують лише в своїй компанії; сценарії ресурсу roles (conflict — перша зміна ролі компанії 409); запрошення з листом-посиланням і прийняттям через мок входу.",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -8558,6 +8799,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -9076,6 +9322,11 @@
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -12039,6 +12290,50 @@
       }
     },
     {
+      "name": "hooks/use-role-draft",
+      "type": "registry:hook",
+      "title": "Чернетка ролі",
+      "description": "useRoleDraft(role, resources): назва, опис і права ролі, які людина змінює, і збережене на сервері; свіжі дані ролі (після 409 чи збереження) — свої зміни поверх них (rebasePermissions), після «Зберегти» збережене — одразу основа (ADR-0033). Частина erp/role-detail.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-role-draft.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-role-draft.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-row-selection",
       "type": "registry:hook",
       "title": "Вибір рядків",
@@ -12165,7 +12460,7 @@
       "name": "hooks/use-tab-param",
       "type": "registry:hook",
       "title": "Вкладка картки в адресі",
-      "description": "useTabParam(): вибрана вкладка картки модуля в адресі (?tab=) на React Router без нового запису історії; стан переходу лишається для «До списку» (ADR-0024).",
+      "description": "useTabParam(): вибрана вкладка картки модуля в адресі (?tab=) на React Router без нового запису історії; стан переходу лишається для «До списку» (ADR-0024); useSearchParamState(name) — те саме для будь-якого вибору на сторінці, напр. ролі (?role=, ADR-0033).",
       "dependencies": [
         "ra-core@^5.15.4",
         "react-router@^7.18.4",
@@ -24003,7 +24298,7 @@
       "name": "erp/role-detail",
       "type": "registry:component",
       "title": "Права ролі",
-      "description": "RoleDetail: назва, опис, підсумок і матриця прав ролі, «Зберегти», «Скасувати зміни», «Копіювати», «Видалити» з підтвердженням; роль понад «стелю» — лише перегляд (ADR-0032).",
+      "description": "RoleDetail: назва, опис, підсумок і матриця прав ролі, «Зберегти», «Скасувати зміни», «Копіювати», «Видалити» з підтвердженням; роль понад «стелю» — лише перегляд (ADR-0032); роль щойно змінив інший (409) — свіжі дані без втрати незбережених галочок (ADR-0033).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -24056,6 +24351,11 @@
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-role-draft.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-role-draft.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -24259,10 +24559,234 @@
       }
     },
     {
+      "name": "erp/role-list",
+      "type": "registry:component",
+      "title": "Список ролей",
+      "description": "RoleList: ролі компанії з кількістю людей, вбудована — із замком, вибрана — aria-current; shownRole — яку роль показати (вибрана, перша чи «не знайдено» для вибору з адреси); CreateRoleDialog — нова роль чи копія. Частина erp/roles-editor (ADR-0033).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/role-list.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-list.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "roles",
+        "spec": [
+          "A2",
+          "PF01"
+        ]
+      }
+    },
+    {
       "name": "erp/role-matrix",
       "type": "registry:component",
       "title": "Матриця прав",
-      "description": "RoleMatrix: ресурси каталогу прав за розділами, «Усе» для ресурсу (частково — «−») і окремі дії; усі дії ресурсу стискаються до <ресурс>:*.",
+      "description": "RoleMatrix: ресурси каталогу прав за розділами, «Усе» для ресурсу (частково — «−») і окремі дії; усі дії ресурсу стискаються до <ресурс>:*; галочки, яких не змінити, — лише для перегляду в порядку Tab з причиною (ADR-0033).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -24373,7 +24897,7 @@
       "name": "erp/role-picker",
       "type": "registry:component",
       "title": "Вибір ролей",
-      "description": "RolePicker: позначки ролей з описами для запрошення й ролей людини; useRoles — ролі компанії й каталог прав (право roles:read).",
+      "description": "RolePicker: позначки ролей з описами для запрошення й ролей людини; ролі, яких не змінити, — лише для перегляду в порядку Tab з причиною (readOnly, readOnlyReason, «стеля»; ADR-0033); useRoles — ролі компанії й каталог прав (право roles:read), rolesQueryKey — ключ їх кешу.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -24586,7 +25110,7 @@
       "name": "erp/roles-editor",
       "type": "registry:component",
       "title": "Ролі й матриця прав",
-      "description": "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія (діалог створення), видалення, незбережені зміни; RolePicker і useRoles — тут же для сумісності (живуть в erp/role-picker).",
+      "description": "RolesEditor: ролі, матриця прав за розділами (усе / окремі дії, частково — «−»), нова роль і копія, видалення, незбережені зміни (питання й перед новою роллю чи копією), порожній список; вибрана роль ззовні (адреса сторінки: selectedId, onSelect) — з «Роль не знайдено», фокусом на заголовку ролі після вибору й охороною переходу (ADR-0033); список і діалог нової ролі — erp/role-list; RolePicker і useRoles — тут же для сумісності (живуть в erp/role-picker).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -24595,6 +25119,7 @@
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "sonner@^2.0.8",
         "zod@^4.6.6"
@@ -24611,6 +25136,16 @@
           "target": "@components/erp/auth-layout.tsx"
         },
         {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -24624,6 +25159,11 @@
           "path": "registry/erp/role-detail.tsx",
           "type": "registry:component",
           "target": "@components/erp/role-detail.tsx"
+        },
+        {
+          "path": "registry/erp/role-list.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-list.tsx"
         },
         {
           "path": "registry/erp/role-matrix.tsx",
@@ -24659,6 +25199,11 @@
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-role-draft.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-role-draft.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -24794,6 +25339,11 @@
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
         },
         {
           "path": "registry/ui/badge.tsx",

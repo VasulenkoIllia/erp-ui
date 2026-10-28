@@ -39,7 +39,11 @@ import {
   subscribeMockEvents,
   type MockUser,
 } from "@/lib/mock-server"
-import { mockRoles } from "@/lib/mock-team"
+import {
+  mockCompanyRoles,
+  mockPermissionsIn,
+  mockUserRolesIn,
+} from "@/lib/mock-company-roles"
 import {
   filterMockRecords,
   registerMockRecords,
@@ -104,10 +108,17 @@ export function createUsersMocks({
       versions.set(id, (versions.get(id) ?? 1) + 1)
   })
 
-  /** Запис людини мовою запиту: профіль поверх даних входу, ролі з назвами, стан акаунта. */
-  const recordOf = (user: MockUser, language: string) => {
+  /**
+   * Запис людини мовою запиту: профіль поверх даних входу, ролі з назвами ролей компанії запиту
+   * (ADR-0033), стан акаунта.
+   */
+  const recordOf = (
+    user: MockUser,
+    language: string,
+    companyId: string | null,
+  ) => {
     const profile = mockProfile(user)
-    const roles = mockRoles()
+    const roles = mockCompanyRoles(companyId)
     const summary = mockAccessSummary(user)
     return {
       id: user.id,
@@ -116,12 +127,12 @@ export function createUsersMocks({
       email: user.email,
       position: profile.position ?? user.position ?? "",
       status: mockBlocked(user) ? "blocked" : "active",
-      roles: user.roles.map((id) => {
+      // Ролі людини в компанії запиту; схованої тут ролі не показуємо: її тут не дати й не зняти.
+      roles: mockUserRolesIn(user, companyId).flatMap((id) => {
         const role = roles.find((item) => item.id === id)
-        return {
-          id,
-          name: (role && localizedText(role.name, language)) ?? id,
-        }
+        return role
+          ? [{ id, name: localizedText(role.name, language) ?? id }]
+          : []
       }),
       twoFactor: summary.factors.length > 0,
       lastSignInAt: summary.lastSignInAt,
@@ -133,7 +144,11 @@ export function createUsersMocks({
    * `withMockValues`): значення стають до розбору схемою, тож обов'язкове поле розширення не валить
    * відповідь. Стан акаунта читається лише для вибраних.
    */
-  const recordsOf = (people: readonly MockUser[], language: string): User[] => {
+  const recordsOf = (
+    people: readonly MockUser[],
+    language: string,
+    companyId: string | null,
+  ): User[] => {
     const all = mockUsersList()
     const samples = withMockValues(
       all.map((user) => ({ id: user.id })),
@@ -142,7 +157,7 @@ export function createUsersMocks({
     return people.map((user) =>
       schema.parse({
         ...samples[all.indexOf(user)],
-        ...recordOf(user, language),
+        ...recordOf(user, language, companyId),
       }),
     )
   }
@@ -150,7 +165,7 @@ export function createUsersMocks({
   registerMockRecords(USERS, {
     find: (id) => {
       const user = mockUsersList().find((item) => item.id === id)
-      return user ? recordsOf([user], "uk")[0] : undefined
+      return user ? recordsOf([user], "uk", user.companyId)[0] : undefined
     },
     titleField: "name",
   })
@@ -158,7 +173,10 @@ export function createUsersMocks({
   /** Сценарій, сесія й компанія; повертає відповідь-відмову або доступ того, хто питає. */
   async function guard(
     request: Request,
-  ): Promise<Response | { canRead: boolean; members: MockUser[] }> {
+  ): Promise<
+    | Response
+    | { canRead: boolean; companyId: string | null; members: MockUser[] }
+  > {
     const early = await applyScenario(scenarioFor(USERS))
     if (early) return early
     const me = currentMockUser(request)
@@ -170,7 +188,9 @@ export function createUsersMocks({
     const companyId = mockCompanyOrForbidden(request, me)
     if (companyId instanceof Response) return companyId
     return {
-      canRead: hasPermission(me.permissions, USERS, "read"),
+      // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої.
+      canRead: hasPermission(mockPermissionsIn(me, companyId), USERS, "read"),
+      companyId,
       members: mockUsersList().filter((user) =>
         isMockCompanyMember(user, companyId),
       ),
@@ -191,7 +211,11 @@ export function createUsersMocks({
           sort.some(({ field }) => !DIRECTORY_SORT.has(field)))
       )
         return forbidden("Missing permission users:read")
-      const people = recordsOf(access.members, languageOf(request))
+      const people = recordsOf(
+        access.members,
+        languageOf(request),
+        access.companyId,
+      )
       // Без `users:read` за `id` — будь-хто (підпис уже вибраного), пошук і сторінки — лише активні.
       const visible =
         access.canRead || "id" in filter
@@ -213,7 +237,8 @@ export function createUsersMocks({
       const access = await guard(request)
       if (access instanceof Response) return access
       const user = access.members.find((member) => member.id === params.id)
-      const person = user && recordsOf([user], languageOf(request))[0]
+      const person =
+        user && recordsOf([user], languageOf(request), access.companyId)[0]
       if (!person)
         return errorResponse(404, {
           code: "not_found",

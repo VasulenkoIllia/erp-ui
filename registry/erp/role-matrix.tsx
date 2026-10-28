@@ -15,18 +15,23 @@ export type PermissionsUpdate = (current: string[]) => string[]
 /**
  * Матриця прав ролі (ADR-0014): ресурси каталогу за розділами, «Усе» для ресурсу (частково — «−»)
  * і окремі дії. Усі дії ресурсу разом стискаються до `<ресурс>:*` (`togglePermission`). `ceiling` —
- * права того, хто змінює: дії, яких у нього немає, неактивні з поясненням над матрицею (ADR-0032).
+ * права того, хто змінює: дії, яких у нього немає, лише для перегляду з поясненням над матрицею
+ * (ADR-0032). Галочки, яких не змінити (`readOnly`, «стеля»), — у порядку Tab з `aria-readonly` і
+ * причиною: `readOnlyReasonId` — елемент, що пояснює, чому вся матриця лише для перегляду
+ * (ADR-0033). `memo`: введення назви ролі не перемальовує всієї матриці.
  */
-export function RoleMatrix({
+export const RoleMatrix = React.memo(function RoleMatrix({
   resources,
   permissions,
   readOnly,
+  readOnlyReasonId,
   onChange,
   ceiling,
 }: {
   resources: readonly PermissionResource[]
   permissions: readonly string[]
   readOnly: boolean
+  readOnlyReasonId?: string
   onChange: (update: PermissionsUpdate) => void
   ceiling?: readonly string[]
 }) {
@@ -39,6 +44,9 @@ export function RoleMatrix({
   const anyLocked = resources.some((r) =>
     r.actions.some((a) => locked(r.id, a.id)),
   )
+  // Причина галочки, якої не змінити: уся матриця — пояснення ззовні, дія поза стелею — над матрицею.
+  const reasonOf = (isLocked: boolean) =>
+    readOnly ? readOnlyReasonId : isLocked ? hintId : undefined
   return (
     <div className="space-y-5">
       {anyLocked ? (
@@ -72,8 +80,8 @@ export function RoleMatrix({
                         id={allId}
                         checked={all}
                         indeterminate={!all && granted.length > 0}
-                        disabled={readOnly || allLocked}
-                        aria-describedby={allLocked ? hintId : undefined}
+                        readOnly={readOnly || allLocked}
+                        aria-describedby={reasonOf(allLocked)}
                         aria-label={t("roles.allFor", {
                           resource: resource.label,
                         })}
@@ -115,14 +123,12 @@ export function RoleMatrix({
                                 resource.id,
                                 action.id,
                               )}
-                              disabled={
+                              readOnly={
                                 readOnly || locked(resource.id, action.id)
                               }
-                              aria-describedby={
-                                locked(resource.id, action.id)
-                                  ? hintId
-                                  : undefined
-                              }
+                              aria-describedby={reasonOf(
+                                locked(resource.id, action.id),
+                              )}
                               aria-label={t("roles.actionFor", {
                                 action: action.label,
                                 resource: resource.label,
@@ -153,4 +159,4 @@ export function RoleMatrix({
       ))}
     </div>
   )
-}
+})

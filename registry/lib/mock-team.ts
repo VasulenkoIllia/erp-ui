@@ -1,10 +1,17 @@
 /**
  * Мок команди (ADR-0014): ролі й права, призначення ролей, запрошення колег.
  *
- * - Ролі, призначені ролі й запрошення живуть у localStorage (`erp-ui:mock-roles`,
+ * - Ролі компаній, призначені ролі й запрошення живуть у localStorage (`lib/mock-company-roles`,
  *   `erp-ui:mock-user-roles`, `erp-ui:mock-invitations`), як дані сервера.
- * - Права користувача — об'єднання прав його ролей, якщо всі ролі описано; інакше лишаються права
- *   з `MockUser` (сумісність із моками без опису ролей).
+ * - Ролі — компанії запиту (ADR-0033, `lib/mock-company-roles`): ролі проекту є в кожній компанії,
+ *   зміна чи видалення — лише в своїй, нова роль — лише компанії, де її створили; `usersCount` і
+ *   409 «роль призначена» — люди цієї компанії.
+ * - Ролі людини — свої в кожній її компанії; права — об'єднання прав її ролей, якщо всі ролі описано,
+ *   інакше — права з `MockUser`. Ролі, призначення ролей і запрошення беруть права в компанії запиту,
+ *   де людина працює (`mockPermissionsIn`; `*` чужої не відкриває); `MockUser.permissions` — права
+ *   в активній компанії (профіль і решта моків).
+ * - Сценарії ресурсу `roles` (`lib/mock-scenarios`) — для `GET`, `POST`, `PATCH`, `DELETE /roles`;
+ *   `conflict` — перший `PATCH` чи `DELETE` кожної ролі компанії — 409.
  * - Запрошення приймає екран `AcceptInviteScreen` через мок входу (`findMockInvitation`).
  * - Події шини (`subscribeMockEvents`): `users.roles_changed` { id, roles } і `users.joined`
  *   { id, name, email, roles, companyId } — щоб список користувачів проекту оновився.
@@ -18,8 +25,28 @@ import {
   type LocalizedText,
 } from "@/registry/lib/auth"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
-import { pushMockNotification } from "@/registry/lib/mock-inbox"
 import {
+  applyMockRoles,
+  companyRoleMembers,
+  mockCompanyRoles,
+  mockPermissionsIn,
+  mockProjectRoles,
+  mockRoles,
+  mockUserRolesIn,
+  readMockCompanyRoles,
+  readMockUserRoles,
+  roleConflictOnce,
+  saveMockCompanyRoles,
+  saveMockUserRoles,
+  setMockProjectRoles,
+  withAssignedRoles,
+  withCompanyRole,
+  withoutCompanyRole,
+} from "@/registry/lib/mock-company-roles"
+import { pushMockNotification } from "@/registry/lib/mock-inbox"
+import { scenarioFor } from "@/registry/lib/mock-scenarios"
+import {
+  applyScenario,
   currentMockUser,
   emitMockEvent,
   errorResponse,
@@ -45,6 +72,9 @@ import {
 } from "@/registry/lib/roles"
 
 /* ----------------------------------- Ролі ----------------------------------- */
+
+// Стан ролей живе в `lib/mock-company-roles` (ADR-0033); старі імпорти з цього файлу працюють.
+export { applyMockRoles, mockRoles }
 
 /** Роль проекту: назва й опис мовами, права. */
 export interface MockRole {
@@ -75,17 +105,10 @@ const ACTION_LABELS: Record<string, LocalizedText> = {
   impersonate: { uk: "«Увійти як…»", en: "“Sign in as…”" },
 }
 const CRUD = ["read", "create", "update", "delete"]
+/** Ресурс сценаріїв моків для `/roles` (панель розробника). */
+const ROLES_RESOURCE = "roles"
 
-const ROLES_KEY = "erp-ui:mock-roles"
-const USER_ROLES_KEY = "erp-ui:mock-user-roles"
 const INVITES_KEY = "erp-ui:mock-invitations"
-
-let seedRoles: MockRole[] = []
-/** Ролі й права користувачів, як їх задав проект (до змін адміністратора). */
-const original = new WeakMap<
-  MockUser,
-  { roles: string[]; permissions: string[] }
->()
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -104,34 +127,12 @@ function write(key: string, value: unknown): void {
   }
 }
 
-export function mockRoles(): MockRole[] {
-  return read<MockRole[]>(ROLES_KEY, seedRoles)
-}
-
-/** Перерахувати ролі й права користувачів після змін (ролі, призначення). */
-export function applyMockRoles(): void {
-  const roles = mockRoles()
-  const assigned = read<Record<string, string[]>>(USER_ROLES_KEY, {})
-  for (const user of mockUsersList()) {
-    if (!original.has(user))
-      original.set(user, {
-        roles: [...user.roles],
-        permissions: [...user.permissions],
-      })
-    const base = original.get(user)
-    if (!base) continue
-    user.roles = assigned[user.id] ?? base.roles
-    const defined = user.roles.map((id) => roles.find((r) => r.id === id))
-    user.permissions =
-      defined.length > 0 && defined.every((r) => r?.permissions)
-        ? [...new Set(defined.flatMap((r) => r?.permissions ?? []))]
-        : base.permissions
-  }
-}
-
-/** Ролі й права нового користувача (запрошення, реєстрація). */
-export function permissionsForRoles(roleIds: readonly string[]): string[] {
-  return permissionsOfRoles(roleIds, roleGrants())
+/** Ролі й права нового користувача (запрошення, реєстрація) — за ролями його компанії. */
+export function permissionsForRoles(
+  roleIds: readonly string[],
+  companyId: string | null = null,
+): string[] {
+  return permissionsOfRoles(roleIds, roleGrants(companyId))
 }
 
 /* ------------------------------- Запрошення ------------------------------- */
@@ -159,7 +160,7 @@ export function findMockInvitation(token: string) {
     invitedBy: invite.invitedBy,
     user: {
       roles: invite.roles,
-      permissions: permissionsForRoles(invite.roles),
+      permissions: permissionsForRoles(invite.roles, invite.companyId),
       companies: invite.companies,
       companyId: invite.companyId,
     },
@@ -228,9 +229,16 @@ const beyondCeiling = () =>
     message: "Exceeds your own permissions",
   })
 
-/** Ролі з правами для «стелі»: роль лише для назви — без прав. */
-const roleGrants = () =>
-  mockRoles().map((role) => ({
+/** Хто діє, у якій компанії запиту й з якими правами в ній (ADR-0033). */
+interface CompanyAccess {
+  user: MockUser
+  companyId: string | null
+  permissions: string[]
+}
+
+/** Ролі компанії з правами для «стелі»: роль лише для назви — без прав. */
+const roleGrants = (companyId: string | null) =>
+  mockCompanyRoles(companyId).map((role) => ({
     id: role.id,
     permissions: role.permissions ?? [],
   }))
@@ -247,17 +255,18 @@ export function createTeamHandlers({
   inviteLink,
   reauthRequired,
 }: TeamMockOptions): HttpHandler[] {
-  seedRoles = roles
+  setMockProjectRoles(roles)
   applyMockRoles()
 
   const allowed = (
     resource: string,
     action: string,
     level: "read" | "change" | "sensitive" = "read",
+    permissions?: readonly string[],
   ): MockUser | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    if (!hasPermission(user.permissions, resource, action))
+    if (!hasPermission(permissions ?? user.permissions, resource, action))
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing ${resource}:${action}`,
@@ -266,6 +275,24 @@ export function createTeamHandlers({
     const denied = impersonationForbidden()
     if (denied) return denied
     return level === "sensitive" ? (reauthRequired() ?? user) : user
+  }
+
+  /** Право в компанії запиту, де людина працює: за її ролями в цій компанії (ADR-0033). */
+  const allowedIn = (
+    request: Request,
+    resource: string,
+    action: string,
+    level: "read" | "change" | "sensitive" = "read",
+  ): CompanyAccess | Response => {
+    const user = currentMockUser()
+    if (!user) return unauthenticated()
+    const companyId = memberCompany(request, user)
+    if (companyId instanceof Response) return companyId
+    const permissions = mockPermissionsIn(user, companyId)
+    const checked = allowed(resource, action, level, permissions)
+    return checked instanceof Response
+      ? checked
+      : { user, companyId, permissions }
   }
 
   const catalog = (language: string) =>
@@ -296,7 +323,11 @@ export function createTeamHandlers({
     )
   }
 
-  const publicRole = (role: MockRole, language: string): Role => {
+  const publicRole = (
+    role: MockRole,
+    language: string,
+    companyId: string | null,
+  ): Role => {
     const description = localizedText(role.description, language)
     return {
       id: role.id,
@@ -304,14 +335,34 @@ export function createTeamHandlers({
       ...(description ? { description } : {}),
       system: role.system ?? false,
       permissions: role.permissions ?? [],
-      usersCount: mockUsersList().filter((u) => u.roles.includes(role.id))
-        .length,
+      usersCount: companyRoleMembers(role.id, companyId).length,
     }
   }
+
+  /** Ролі: сценарій ресурсу `roles`, право й компанія запиту (ADR-0033). */
+  const rolesAccess = async (
+    request: Request,
+    action: "read" | "update",
+  ): Promise<CompanyAccess | Response> => {
+    const scenario = scenarioFor(ROLES_RESOURCE)
+    // Сценарій змінився — наступний `conflict` знову починає з 409.
+    if (scenario !== "conflict") changedByOther.reset()
+    const early = await applyScenario(scenario)
+    if (early) return early
+    const level = action === "read" ? "read" : "change"
+    return allowedIn(request, "roles", action, level)
+  }
+  /** Сценарій `conflict`: роль «щойно змінив інший адміністратор» — раз на роль компанії. */
+  const changedByOther = roleConflictOnce()
+  const conflictFor = (companyId: string | null, id: string) =>
+    scenarioFor(ROLES_RESOURCE) === "conflict"
+      ? changedByOther.check(companyId, id)
+      : null
 
   const checkRole = (
     body: { name?: unknown; permissions?: unknown },
     language: string,
+    companyId: string | null,
     exceptId?: string,
   ) => {
     const fields: Record<string, string> = {}
@@ -319,7 +370,7 @@ export function createTeamHandlers({
       const name = typeof body.name === "string" ? body.name.trim() : ""
       if (!name) fields.name = "required"
       else if (
-        mockRoles().some(
+        mockCompanyRoles(companyId).some(
           (r) =>
             r.id !== exceptId &&
             (localizedText(r.name, language) ?? r.id).toLocaleLowerCase(
@@ -364,10 +415,10 @@ export function createTeamHandlers({
   }
 
   /**
-   * Компанія запиту для запрошень — лише та, де людина сама працює: `*` пускає в будь-яку
-   * компанію, але не дає запрошувати в чужу чи керувати її запрошеннями (ADR-0032).
+   * Компанія запиту для ролей і запрошень — лише та, де людина сама працює: `*` пускає в будь-яку
+   * компанію, але не дає керувати ролями чи запрошеннями чужої (ADR-0032, ADR-0033).
    */
-  const inviteCompany = (
+  const memberCompany = (
     request: Request,
     user: MockUser,
   ): string | null | Response => {
@@ -386,7 +437,7 @@ export function createTeamHandlers({
     user: MockUser,
     id: unknown,
   ): StoredInvitation | Response => {
-    const companyId = inviteCompany(request, user)
+    const companyId = memberCompany(request, user)
     if (companyId instanceof Response) return companyId
     return (
       readInvites().find(
@@ -402,19 +453,26 @@ export function createTeamHandlers({
   return [
     /* -------------------------------- Ролі -------------------------------- */
 
-    http.get(`${baseUrl}/roles`, ({ request }) => {
-      const user = allowed("roles", "read")
-      if (user instanceof Response) return user
+    http.get(`${baseUrl}/roles`, async ({ request }) => {
+      const access = await rolesAccess(request, "read")
+      if (access instanceof Response) return access
       const language = languageOf(request)
+      const roles =
+        scenarioFor(ROLES_RESOURCE) === "empty"
+          ? []
+          : mockCompanyRoles(access.companyId)
       return json({
-        roles: mockRoles().map((role) => publicRole(role, language)),
+        roles: roles.map((role) =>
+          publicRole(role, language, access.companyId),
+        ),
         resources: catalog(language),
       })
     }),
 
     http.post(`${baseUrl}/roles`, async ({ request }) => {
-      const user = allowed("roles", "update", "change")
-      if (user instanceof Response) return user
+      const access = await rolesAccess(request, "update")
+      if (access instanceof Response) return access
+      const { permissions, companyId } = access
       const language = languageOf(request)
       const body = (await request.json()) as {
         name?: string
@@ -424,10 +482,10 @@ export function createTeamHandlers({
       const fields = checkRole(
         { name: body.name ?? "", permissions: body.permissions ?? [] },
         language,
+        companyId,
       )
       if (Object.keys(fields).length) return validation(fields)
-      if (!canGrant(user.permissions, body.permissions ?? []))
-        return beyondCeiling()
+      if (!canGrant(permissions, body.permissions ?? [])) return beyondCeiling()
       const name = (body.name ?? "").trim()
       const description = body.description?.trim()
       const role: MockRole = {
@@ -438,20 +496,26 @@ export function createTeamHandlers({
           : {}),
         permissions: body.permissions ?? [],
       }
-      write(ROLES_KEY, [...mockRoles(), role])
+      saveMockCompanyRoles(
+        withCompanyRole(readMockCompanyRoles(), companyId, role),
+      )
       recordAudit({
         action: "users.role_created",
         category: "users",
         target: { type: "roles", id: role.id, name },
       })
-      return json(publicRole(role, language), { status: 201 })
+      return json(publicRole(role, language, companyId), { status: 201 })
     }),
 
     http.patch(`${baseUrl}/roles/:id`, async ({ params, request }) => {
-      const user = allowed("roles", "update", "change")
-      if (user instanceof Response) return user
+      const access = await rolesAccess(request, "update")
+      if (access instanceof Response) return access
+      const { permissions, companyId } = access
       const language = languageOf(request)
-      const current = mockRoles().find((r) => r.id === params.id)
+      // Роль іншої компанії — 404, як невідома (ADR-0033).
+      const current = mockCompanyRoles(companyId).find(
+        (r) => r.id === params.id,
+      )
       if (!current) return notFound()
       if (current.system)
         return errorResponse(403, {
@@ -464,20 +528,22 @@ export function createTeamHandlers({
         permissions?: string[]
       }
       // Сильнішу роль не змінити зовсім: перейменувати її на «Переглядач» — те саме, що дати права.
-      if (!canGrant(user.permissions, current.permissions ?? []))
+      if (!canGrant(permissions, current.permissions ?? []))
         return beyondCeiling()
-      const fields = checkRole(body, language, current.id)
+      const fields = checkRole(body, language, companyId, current.id)
       if (Object.keys(fields).length) return validation(fields)
       if (
         body.permissions &&
         !canChangePermissions(
-          user.permissions,
+          permissions,
           current.permissions ?? [],
           body.permissions,
           catalog(language),
         )
       )
         return beyondCeiling()
+      const conflict = conflictFor(companyId, current.id)
+      if (conflict) return conflict
       const name = body.name?.trim()
       const description = body.description?.trim()
       const next: MockRole = {
@@ -490,9 +556,8 @@ export function createTeamHandlers({
           : {}),
         ...(body.permissions ? { permissions: body.permissions } : {}),
       }
-      write(
-        ROLES_KEY,
-        mockRoles().map((r) => (r.id === next.id ? next : r)),
+      saveMockCompanyRoles(
+        withCompanyRole(readMockCompanyRoles(), companyId, next),
       )
       applyMockRoles()
       recordAudit({
@@ -514,29 +579,38 @@ export function createTeamHandlers({
           },
         ),
       })
-      return json(publicRole(next, language))
+      return json(publicRole(next, language, companyId))
     }),
 
-    http.delete(`${baseUrl}/roles/:id`, ({ params, request }) => {
-      const user = allowed("roles", "update", "change")
-      if (user instanceof Response) return user
-      const current = mockRoles().find((r) => r.id === params.id)
+    http.delete(`${baseUrl}/roles/:id`, async ({ params, request }) => {
+      const access = await rolesAccess(request, "update")
+      if (access instanceof Response) return access
+      const { permissions, companyId } = access
+      const current = mockCompanyRoles(companyId).find(
+        (r) => r.id === params.id,
+      )
       if (!current) return notFound()
       if (current.system)
         return errorResponse(403, {
           code: "forbidden",
           message: "System roles can't be deleted",
         })
-      if (!canGrant(user.permissions, current.permissions ?? []))
+      if (!canGrant(permissions, current.permissions ?? []))
         return beyondCeiling()
-      if (mockUsersList().some((u) => u.roles.includes(current.id)))
+      const conflict = conflictFor(companyId, current.id)
+      if (conflict) return conflict
+      if (companyRoleMembers(current.id, companyId).length)
         return errorResponse(409, {
           code: "conflict",
           message: "The role is assigned to users",
         })
-      write(
-        ROLES_KEY,
-        mockRoles().filter((r) => r.id !== current.id),
+      saveMockCompanyRoles(
+        withoutCompanyRole(
+          readMockCompanyRoles(),
+          mockProjectRoles(),
+          companyId,
+          current.id,
+        ),
       )
       recordAudit({
         action: "users.role_deleted",
@@ -551,34 +625,40 @@ export function createTeamHandlers({
     }),
 
     http.put(`${baseUrl}/users/:id/roles`, async ({ params, request }) => {
-      const user = allowed("users", "update", "sensitive")
-      if (user instanceof Response) return user
+      const access = allowedIn(request, "users", "update", "sensitive")
+      if (access instanceof Response) return access
+      const { user, companyId, permissions } = access
       const target = mockCompanyTarget(request, user, params.id)
       if (target instanceof Response) return target
       if (target.id === user.id) return validation({ userId: "invalid" })
       const { roles: next } = (await request.json()) as { roles?: string[] }
       if (!Array.isArray(next) || !next.length)
         return validation({ roles: "required" })
-      if (next.some((id) => !mockRoles().some((r) => r.id === id)))
+      // Лише ролі компанії запиту; роль іншої компанії — як невідома (ADR-0033).
+      const companyRoles = new Set(mockCompanyRoles(companyId).map((r) => r.id))
+      if (next.some((id) => !companyRoles.has(id)))
         return validation({ roles: "invalid" })
-      if (!canChangeRoles(user.permissions, target.roles, next, roleGrants()))
+      // Ролі людини — свої в кожній її компанії: змінюються лише в компанії запиту.
+      const before = mockUserRolesIn(target, companyId).filter((id) =>
+        companyRoles.has(id),
+      )
+      if (!canChangeRoles(permissions, before, next, roleGrants(companyId)))
         return beyondCeiling()
-      const before = [...target.roles]
-      write(USER_ROLES_KEY, {
-        ...read<Record<string, string[]>>(USER_ROLES_KEY, {}),
-        [target.id]: [...new Set(next)],
-      })
+      const after = [...new Set(next)]
+      saveMockUserRoles(
+        withAssignedRoles(readMockUserRoles(), target, companyId, after),
+      )
       applyMockRoles()
       emitMockEvent("users.roles_changed", {
         id: target.id,
         name: target.name,
-        roles: target.roles,
+        roles: after,
       })
       recordAudit({
         action: "users.roles_changed",
         category: "users",
         target: { type: "users", id: target.id, name: target.name },
-        changes: [{ field: "roles", from: before, to: target.roles }],
+        changes: [{ field: "roles", from: before, to: after }],
       })
       return noContent()
     }),
@@ -586,10 +666,9 @@ export function createTeamHandlers({
     /* ------------------------------ Запрошення ------------------------------ */
 
     http.get(`${baseUrl}/invitations`, ({ request }) => {
-      const user = allowed("users", "create")
-      if (user instanceof Response) return user
-      const companyId = inviteCompany(request, user)
-      if (companyId instanceof Response) return companyId
+      const access = allowedIn(request, "users", "create")
+      if (access instanceof Response) return access
+      const { companyId } = access
       return json(
         readInvites()
           .filter((invite) => invite.companyId === companyId)
@@ -599,10 +678,9 @@ export function createTeamHandlers({
     }),
 
     http.post(`${baseUrl}/invitations`, async ({ request }) => {
-      const user = allowed("users", "create", "change")
-      if (user instanceof Response) return user
-      const companyId = inviteCompany(request, user)
-      if (companyId instanceof Response) return companyId
+      const access = allowedIn(request, "users", "create", "change")
+      if (access instanceof Response) return access
+      const { user, companyId, permissions } = access
       const body = (await request.json()) as {
         email?: string
         name?: string
@@ -623,10 +701,14 @@ export function createTeamHandlers({
         fields.email = "invited"
       const roles = body.roles ?? []
       if (!roles.length) fields.roles = "required"
-      else if (roles.some((id) => !mockRoles().some((r) => r.id === id)))
+      else if (
+        roles.some(
+          (id) => !mockCompanyRoles(companyId).some((r) => r.id === id),
+        )
+      )
         fields.roles = "invalid"
       if (Object.keys(fields).length) return validation(fields)
-      if (!canChangeRoles(user.permissions, [], roles, roleGrants()))
+      if (!canChangeRoles(permissions, [], roles, roleGrants(companyId)))
         return beyondCeiling()
       const company = user.companies.find((c) => c.id === companyId)
       const now = new Date().toISOString()
@@ -666,8 +748,9 @@ export function createTeamHandlers({
     }),
 
     http.post(`${baseUrl}/invitations/:id/resend`, ({ params, request }) => {
-      const user = allowed("users", "create", "change")
-      if (user instanceof Response) return user
+      const access = allowedIn(request, "users", "create", "change")
+      if (access instanceof Response) return access
+      const { user } = access
       const invite = companyInvite(request, user, params.id)
       if (invite instanceof Response) return invite
       if (Date.now() - Date.parse(invite.lastSentAt) < 60_000)
@@ -695,8 +778,9 @@ export function createTeamHandlers({
     }),
 
     http.delete(`${baseUrl}/invitations/:id`, ({ params, request }) => {
-      const user = allowed("users", "create", "change")
-      if (user instanceof Response) return user
+      const access = allowedIn(request, "users", "create", "change")
+      if (access instanceof Response) return access
+      const { user } = access
       const invite = companyInvite(request, user, params.id)
       if (invite instanceof Response) return invite
       write(

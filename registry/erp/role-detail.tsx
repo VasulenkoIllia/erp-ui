@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { CopyIcon, LockIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -9,11 +10,13 @@ import {
 } from "@/registry/erp/auth-layout"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RoleMatrix } from "@/registry/erp/role-matrix"
+import { useRoleDraft } from "@/registry/hooks/use-role-draft"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   canGrant,
   countGranted,
+  ROLES_QUERY_KEYS,
   type PermissionResource,
   type Role,
   type RoleInput,
@@ -38,8 +41,9 @@ import { Textarea } from "@/registry/ui/textarea"
  * Права ролі (ADR-0014): назва, опис, підсумок і матриця прав; «Зберегти», «Скасувати зміни»,
  * «Копіювати», «Видалити» з підтвердженням. Вбудована роль чи без права `roles:update` — лише
  * перегляд. Незбережені зміни — `onDirtyChange` для переходу до іншої ролі. `ceiling` — права
- * того, хто змінює: права поза ними неактивні, а роль, що дає більше, лише для перегляду — не
- * змінити, не скопіювати й не видалити (ADR-0032).
+ * того, хто змінює: права поза ними лише для перегляду, а роль, що дає більше, лише для перегляду —
+ * не змінити, не скопіювати й не видалити (ADR-0032). Роль щойно змінив інший адміністратор
+ * (409) — ролі перечитуються, свої незбережені зміни лишаються поверх свіжих даних (ADR-0033).
  */
 export function RoleDetail({
   role,
@@ -64,24 +68,43 @@ export function RoleDetail({
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
+  const queryClient = useQueryClient()
   const ids = React.useId()
-  const [name, setName] = React.useState(role.name)
-  const [description, setDescription] = React.useState(role.description ?? "")
-  const [permissions, setPermissions] = React.useState(role.permissions)
+  const {
+    name,
+    setName,
+    description,
+    setDescription,
+    permissions,
+    setPermissions,
+    dirty,
+    reset,
+    markSaved,
+  } = useRoleDraft(role, resources)
   const [nameError, setNameError] = React.useState<string>()
   const [busy, setBusy] = React.useState(false)
   const [removing, setRemoving] = React.useState(false)
+  // Роль щойно змінив інший адміністратор: збереження (`save`) чи видалення (`remove`) — ще раз.
+  const [conflict, setConflict] = React.useState<"save" | "remove" | null>(null)
   const beyond = ceiling ? !canGrant(ceiling, role.permissions) : false
   // Сильнішу роль не змінити зовсім, зокрема назву: сервер однаково відмовить (ADR-0032).
   const readOnly = role.system || !canEdit || beyond
-  const dirty =
-    name !== role.name ||
-    description !== (role.description ?? "") ||
-    JSON.stringify([...permissions].sort()) !==
-      JSON.stringify([...role.permissions].sort())
+  // Чому матриця лише для перегляду — у порядку Tab разом із галочками (ADR-0033).
+  const reasonId = readOnly ? `${ids}-read-only` : undefined
+  /** 409: перечитати ролі — свіжі дані прийдуть у `role`, свої зміни лишаться (`useRoleDraft`). */
+  const changedByOther = (failure: unknown, action: "save" | "remove") => {
+    if (!isApiError(failure) || failure.status !== 409) return false
+    setConflict(action)
+    void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.list })
+    return true
+  }
 
   React.useEffect(() => {
     onDirtyChange(dirty)
+    // Роль зникла зі списку (видалили, перечитали) — незбереженого в ній більше немає.
+    return () => {
+      onDirtyChange(false)
+    }
   }, [dirty, onDirtyChange])
 
   const save = () => {
@@ -91,18 +114,24 @@ export function RoleDetail({
     }
     setNameError(undefined)
     setBusy(true)
+    const input = {
+      name: name.trim(),
+      description: description.trim(),
+      permissions,
+    }
     provider.roles
-      .update(role.id, {
-        name: name.trim(),
-        description: description.trim(),
-        permissions,
-      })
+      .update(role.id, input)
       .then(() => {
+        setConflict(null)
+        markSaved(input)
         toast.success(t("roles.saved"))
         onSaved()
       })
       .catch((failure: unknown) => {
         const code = isApiError(failure) ? failure.fieldErrors?.name : undefined
+        if (changedByOther(failure, "save")) return
+        // Інша помилка — повідомлення про чужу зміну вже не про те.
+        setConflict(null)
         if (code === "taken") setNameError(t("roles.nameTaken"))
         else if (fieldError(failure, "name"))
           setNameError(fieldError(failure, "name") ?? undefined)
@@ -118,15 +147,24 @@ export function RoleDetail({
       className="min-w-0 space-y-5"
       aria-label={t("roles.matrixLabel", { name: role.name })}
     >
-      {role.system ? (
-        <Alert>
+      {reasonId ? (
+        // Стан, а не подія: `note`, щоб скрінрідер не перебивав ним заголовок ролі.
+        <Alert role="note">
           <LockIcon aria-hidden />
-          <AlertDescription>{t("roles.systemHint")}</AlertDescription>
+          <AlertDescription id={reasonId}>
+            {t(
+              role.system
+                ? "roles.systemHint"
+                : !canEdit
+                  ? "roles.readOnlyHint"
+                  : "roles.beyondCeilingHint",
+            )}
+          </AlertDescription>
         </Alert>
-      ) : beyond && canEdit ? (
+      ) : null}
+      {conflict === "save" ? (
         <Alert>
-          <LockIcon aria-hidden />
-          <AlertDescription>{t("roles.beyondCeilingHint")}</AlertDescription>
+          <AlertDescription>{t("roles.conflict")}</AlertDescription>
         </Alert>
       ) : null}
       <div className="grid gap-4 @xl:grid-cols-2">
@@ -181,6 +219,7 @@ export function RoleDetail({
         resources={resources}
         permissions={permissions}
         readOnly={readOnly}
+        readOnlyReasonId={reasonId}
         onChange={setPermissions}
         ceiling={ceiling}
       />
@@ -197,10 +236,9 @@ export function RoleDetail({
                 variant="outline"
                 disabled={!dirty || busy}
                 onClick={() => {
-                  setName(role.name)
-                  setDescription(role.description ?? "")
-                  setPermissions(role.permissions)
+                  reset()
                   setNameError(undefined)
+                  setConflict(null)
                 }}
               >
                 {t("roles.discard")}
@@ -249,7 +287,9 @@ export function RoleDetail({
       <Dialog
         open={removing}
         onOpenChange={(next) => {
-          if (!next) setRemoving(false)
+          if (next) return
+          setRemoving(false)
+          setConflict(null)
         }}
       >
         <DialogContent>
@@ -263,12 +303,19 @@ export function RoleDetail({
                 : t("roles.removeDescription")}
             </DialogDescription>
           </DialogHeader>
+          {/* Роль, яку щойно призначили, пояснює опис вище; інша зміна — це повідомлення. */}
+          {conflict === "remove" && !role.usersCount ? (
+            <Alert>
+              <AlertDescription>{t("roles.removeConflict")}</AlertDescription>
+            </Alert>
+          ) : null}
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 setRemoving(false)
+                setConflict(null)
               }}
             >
               {t("auth.account.cancel")}
@@ -287,7 +334,8 @@ export function RoleDetail({
                     onDeleted()
                   })
                   .catch((failure: unknown) => {
-                    toast.error(errorText(failure))
+                    if (!changedByOther(failure, "remove"))
+                      toast.error(errorText(failure))
                   })
                   .finally(() => {
                     setBusy(false)

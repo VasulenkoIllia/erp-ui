@@ -460,10 +460,11 @@ const platformHandlers = createPlatformHandlers({ users: [...USERS, ...team.user
 setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExtension }).handlers)
 ```
 
-- Список і картка людини; ролі змінюють вкладка «Ролі» картки й сторінка ролей кіта (`erp/roles-editor`), запрошення — `erp/invitations-section`: їх сторінки в модулі — з A2b2b. Дії над людиною — лише в компанії запиту, «стеля» ролей і «Увійти як…» не в сильнішого (ADR-0032) бекенд перевіряє сам.
-- Права: список і картка — `users:read`, вкладки «Доступ» і «Сесії» — `users:update`, зміна ролей — `users:update` і `roles:read`, «Увійти як…» — `users:impersonate`. Без `users:read` — «Немає доступу» на місці сторінки.
+- Список і картка людини, сторінка «Ролі й права» (`<basePath>/roles`, вибрана роль — `?role=<id>`; ADR-0033); запрошення — поки `erp/invitations-section` кіта на сторінці проекту, сторінка в модулі — з A2b2b2. Дії над людиною — лише в компанії запиту, «стеля» ролей і «Увійти як…» не в сильнішого (ADR-0032), ролі компанії запиту й лічильник людей лише цієї компанії, ролі людини свої в кожній її компанії, права й «стеля» — у компанії запиту, `*` не керує ролями чужої компанії (ADR-0033) бекенд перевіряє сам.
+- Навігація — `usersModule.nav`: «Користувачі» і «Ролі й права». Пункт з `access` показуйте лише з цим правом: `item.access ? hasPermission(me.permissions, item.access.resource, item.access.action) : true` (`@/lib/auth`).
+- Права: список і картка — `users:read`, вкладки «Доступ» і «Сесії» — `users:update`, зміна ролей — `users:update` і `roles:read`, «Увійти як…» — `users:impersonate`, сторінка ролей — `roles:read`, нова роль, копія, зміна й видалення — `roles:update`. Без права — «Немає доступу» на місці сторінки.
 - Довідник для полів-записів: поле `type: "record", resource: "users"` в іншому модулі показує імена всім у компанії — бекенд віддає без `users:read` лише `{ id, version, name, email }` (контракт — `README.md` модуля).
-- Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення).
+- Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення). `roles: { page: false }` — без сторінки ролей і пункту навігації.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 
@@ -526,8 +527,8 @@ useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
   - `WebhooksSection` з `erp/webhooks-section` (права `webhooks:*`);
   - у списку користувачів — `useUserAccessSheet({ onChange })` і `UserBlockedBadge`, на сторінці — `ActiveSessionsSection` з `erp/user-access`; у панелі доступу — і ролі людини.
 - Команда й компанія (ADR-0014):
-  - `RolesEditor` з `erp/roles-editor` (права `roles:*`) — ролі й матриця прав; каталог ресурсів і дій віддає бекенд; частини — `RoleDetail` (`erp/role-detail`), `RoleMatrix` (`erp/role-matrix`), `RolePicker` і `useRoles` (`erp/role-picker`, старий імпорт з `roles-editor` працює);
-  - «стеля» (ADR-0032): дати, змінити, скопіювати чи видалити можна лише свої права — панелі кіта показують ролі й права понад стелю неактивними з причиною (`ceiling={me.permissions}` у `RolePicker`, `RoleMatrix`, `RoleDetail`), бекенд відповідає 403 і віддає права стиснено (усі дії ресурсу — `<ресурс>:*`);
+  - `RolesEditor` з `erp/roles-editor` (права `roles:*`) — ролі й матриця прав; каталог ресурсів і дій віддає бекенд; частини — `RoleDetail` (`erp/role-detail`), `RoleMatrix` (`erp/role-matrix`), `RolePicker` і `useRoles` (`erp/role-picker`, старий імпорт з `roles-editor` працює); вибрана роль в адресі — `<RolesEditor selectedId={role.value} onSelect={role.onValueChange} />` з `useSearchParamState("role")` (`hooks/use-tab-param`), так робить сторінка модуля A2; роль щойно змінив інший адміністратор (409) — попередження й свіжі дані, незбережені зміни лишаються (ADR-0033);
+  - «стеля» (ADR-0032): дати, змінити, скопіювати чи видалити можна лише свої права — панелі кіта показують ролі й права понад стелю лише для перегляду з причиною, у порядку клавіші Tab (`ceiling={me.permissions}` у `RolePicker`, `RoleMatrix`, `RoleDetail`; ADR-0033), бекенд відповідає 403 і віддає права стиснено (усі дії ресурсу — `<ресурс>:*`);
   - `InvitationsSection` з `erp/invitations-section` (право `users:create`) — запрошення колег; прийняття — `AcceptInviteScreen`, перевірка токена — `POST /auth/invite/check` з `{ token }` у тілі (невідомий токен — 410, не 404), старий `GET /auth/invite?token=` — запасний до 2.0 (`lib/invite-check`);
   - `<PermissionGate resource="invoices" action="delete">…</PermissionGate>` з `erp/permission-gate` — показати лише з правом (бекенд однаково перевіряє);
   - у топбарі — `<InboxBell onNavigate={navigate} onShowAll={() => navigate("/notifications")} />`, сторінка — `<NotificationInbox onNavigate={navigate} />` з `erp/notification-inbox`;

@@ -114,11 +114,9 @@ export function UserRolesTab({
         userId={user.id}
         current={current}
         self={self}
+        selfReason={t("user.selfRoles")}
         onChange={onChange}
       />
-      {self ? (
-        <p className="text-sm text-muted-foreground">{t("user.selfRoles")}</p>
-      ) : null}
     </div>
   )
 }

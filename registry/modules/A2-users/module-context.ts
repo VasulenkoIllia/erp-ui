@@ -6,13 +6,19 @@ import type { UsersExtension } from "./extension"
 export interface UsersPaths {
   readonly users: string
   readonly user: (id: string) => string
+  /** «Ролі й права»; вибрана роль — `?role=` (`ROLE_PARAM`). */
+  readonly roles: string
 }
+
+/** Параметр адреси сторінки ролей з вибраною роллю. */
+export const ROLE_PARAM = "role"
 
 export function usersPaths(basePath: string): UsersPaths {
   const base = basePath.replace(/\/+$/, "")
   return {
     users: `${base}/users`,
     user: (id) => `${base}/users/${encodeURIComponent(id)}`,
+    roles: `${base}/roles`,
   }
 }
 

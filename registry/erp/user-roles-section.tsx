@@ -19,18 +19,21 @@ import { Spinner } from "@/registry/ui/spinner"
 
 /**
  * Ролі користувача (ADR-0014): позначки ролей і «Зберегти ролі» з повторним підтвердженням.
- * Свої ролі — лише перегляд (щоб не втратити доступ); без права `roles:read` — назви з відповіді.
- * Каталог ролей не завантажився — стан помилки з повтором, а не ключі ролей замість назв.
+ * Свої ролі — лише перегляд з причиною `selfReason` (щоб не втратити доступ, ADR-0033); без права
+ * `roles:read` — назви з відповіді. Каталог ролей не завантажився — стан помилки з повтором, а не
+ * ключі ролей замість назв.
  */
 export function UserRolesSection({
   userId,
   current,
   self,
+  selfReason,
   onChange,
 }: {
   userId: string
   current: string[]
   self: boolean
+  selfReason?: string
   onChange?: () => void
 }) {
   const t = useErpUiT()
@@ -82,7 +85,9 @@ export function UserRolesSection({
         value={value}
         legend={t("roles.userRolesTitle")}
         error={error}
-        disabled={self || busy}
+        disabled={busy}
+        readOnly={self}
+        readOnlyReason={selfReason ?? t("roles.selfReadOnly")}
         ceiling={ceiling}
         onChange={(next) => {
           setValue(next)

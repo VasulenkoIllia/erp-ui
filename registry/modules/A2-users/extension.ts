@@ -7,8 +7,9 @@
  * `createUsersMocks({ extension })`. Ключі модуля в `hide`, `move` і `place` — типи нижче: модуль
  * перейменує ключ — TypeScript покаже місце у файлі розширення.
  *
- * Зміни згруповано за сутностями (`users`): ролі й запрошення (крок A2b2) і права на рівні записів
- * (A2c) з'являться новими необов'язковими ключами поруч, тож наявні файли розширення не ламаються.
+ * Зміни згруповано за сутностями (`users`, `roles`): запрошення (крок A2b2b2) і права на рівні
+ * записів (A2c) з'являться новими необов'язковими ключами поруч, тож наявні файли розширення не
+ * ламаються.
  * Ключі модуля (`User…Id`, `UserStatus`) у мінорних версіях можуть доповнюватися: на них не
  * будують вичерпних `Record` чи `switch` без `default`.
  */
@@ -86,11 +87,21 @@ export interface UserPeopleExtension {
   readonly actions?: KeyedChanges<ExtensionAction<User>, UserActionId>
 }
 
+/** Сторінка «Ролі й права» (ADR-0033). */
+export interface UserRolesExtension {
+  /**
+   * `false` — модуль без сторінки ролей і її пункту навігації: ролі веде інша система чи бекенд
+   * їх не віддає. Ролі людини на її картці лишаються. За замовчуванням — є.
+   */
+  readonly page?: boolean
+}
+
 /** Рядки модуля (простір імен `A2-users`, `i18n/uk.json`). */
 export type UsersMessages = typeof ukMessages
 
 export interface UsersExtension {
   readonly users?: UserPeopleExtension
+  readonly roles?: UserRolesExtension
   /** Перевизначення рядків модуля за ключами `i18n/*.json`, напр. назва чи пояснення списку. */
   readonly strings?: ModuleStrings<UsersMessages>
 }

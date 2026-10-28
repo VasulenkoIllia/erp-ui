@@ -54,6 +54,10 @@
     "rolesImpersonating": "Roles and access can't be changed while you are signed in as someone else.",
     "selfRoles": "You don't change your own roles: another company administrator does."
   },
+  "roles": {
+    "title": "Roles & permissions",
+    "lead": "What each role in the company can do. A person's permissions add up from all their roles, and you can only give a role permissions you have yourself."
+  },
   "statuses": {
     "active": "Active",
     "blocked": "Blocked"

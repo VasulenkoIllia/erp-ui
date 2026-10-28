@@ -361,6 +361,7 @@ function Shell({
     [],
   )
 
+  const permissions = me?.permissions
   const nav = useMemo<NavGroup[]>(
     () => [
       {
@@ -381,7 +382,7 @@ function Shell({
         items: ERP_EXAMPLE.flatMap(({ id, badge }) => {
           const kitModule = kitModuleOf(id)
           return kitModule
-            ? kitModuleNavItems(kitModule, language)
+            ? kitModuleNavItems(kitModule, language, permissions)
             : [
                 {
                   id,
@@ -394,7 +395,7 @@ function Shell({
         }),
       },
     ],
-    [t, kitT, language],
+    [t, kitT, language, permissions],
   )
 
   const commands = useMemo<PaletteCommand[]>(() => {

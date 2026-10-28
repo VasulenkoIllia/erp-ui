@@ -33,7 +33,7 @@ test.describe("ролі й права (ADR-0014)", () => {
     ).toBeVisible()
     await expect(
       page.getByRole("checkbox", { name: "Зміна: Користувачі" }),
-    ).toBeDisabled()
+    ).toHaveAttribute("aria-readonly", "true")
 
     await roles.getByRole("button", { name: /Аудитор/ }).click()
     const allInvoices = page.getByRole("checkbox", { name: "Усе: Рахунки" })

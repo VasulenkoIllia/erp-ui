@@ -123,6 +123,29 @@ export function togglePermission(
   return [...rest, ...next.map((id) => `${resource.id}:${id}`)]
 }
 
+/**
+ * Свої незбережені зміни поверх свіжих прав ролі (одночасна зміна, 409, ADR-0033): дії каталогу, які
+ * людина змінила відносно `base` (права, з яких почала), — як у `mine`, решта — як у `theirs`
+ * (свіжі з сервера); права поза каталогом — з `theirs`.
+ */
+export function rebasePermissions(
+  base: readonly string[],
+  mine: readonly string[],
+  theirs: readonly string[],
+  resources: readonly PermissionResource[],
+): string[] {
+  return resources.reduce(
+    (result, resource) =>
+      resource.actions.reduce((next, { id }) => {
+        const on = grants(mine, resource.id, id)
+        return on === grants(base, resource.id, id)
+          ? next
+          : togglePermission(next, resource, id, on)
+      }, result),
+    [...theirs],
+  )
+}
+
 /* ---------------------------------- Стеля ---------------------------------- */
 
 /**

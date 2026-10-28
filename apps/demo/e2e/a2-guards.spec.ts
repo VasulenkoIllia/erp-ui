@@ -77,8 +77,9 @@ test.describe("A2b2a: «стеля» ролей", () => {
   }) => {
     await openWith(page, {}, `${COLLEAGUE}?tab=roles`)
     const roles = page.getByRole("group", { name: "Ролі" })
+    // Лише для перегляду в порядку Tab (ADR-0033), а не неактивна: причину чує й клавіатура.
     const owner = roles.getByRole("checkbox", { name: "Власник" })
-    await expect(owner).toBeDisabled()
+    await expect(owner).toHaveAttribute("aria-readonly", "true")
     await expect(owner).toHaveAccessibleDescription(new RegExp(BEYOND))
     await expect(roles.getByRole("checkbox", { name: "Аудитор" })).toBeEnabled()
     await expectNoA11yViolations(page)
@@ -88,7 +89,7 @@ test.describe("A2b2a: «стеля» ролей", () => {
     const invite = page.getByRole("dialog", { name: "Запросити колегу" })
     await expect(
       invite.getByRole("checkbox", { name: "Власник" }),
-    ).toBeDisabled()
+    ).toHaveAttribute("aria-readonly", "true")
     await invite.getByRole("button", { name: "Скасувати" }).click()
 
     await page.goto(ROLES_PAGE)

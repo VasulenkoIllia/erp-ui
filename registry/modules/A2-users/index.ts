@@ -5,13 +5,14 @@
  *   <Routes>{usersModule.routes.map(…)}</Routes>  // чи useRoutes(usersModule.routes)
  *
  * Фабрика повертає маршрути React Router зі сторінками модуля (лінивими чанками, `Suspense` і межа
- * помилок — у застосунку), пункти навігації, ресурси для прав і моків і `preload` за адресою. Без
+ * помилок — у застосунку): люди, картка людини, «Ролі й права» (ADR-0033); пункти навігації з
+ * правом, яке їм потрібне, ресурси для прав і моків і `preload` за адресою. Без
  * розширення модуль такий, як у демо кіта. Файли модуля в проекті не правляться: зміни під
  * клієнта — у файлі розширення (`src/extensions/A2-users.ts`). Моки — окремо, `./mocks`
  * (`createUsersMocks`), фікстури колег — `./fixtures` (`createUsersFixtures`), щоб MSW не потрапив
  * у застосунок.
  */
-import type { LucideIcon } from "lucide-react"
+import { KeySquareIcon, type LucideIcon } from "lucide-react"
 import { createElement, type ComponentType } from "react"
 import { Navigate, type RouteObject } from "react-router"
 
@@ -26,7 +27,7 @@ import {
   type UsersModuleContextValue,
   type UsersPaths,
 } from "./module-context"
-import { USERS_RESOURCES, type UsersResource } from "./resources"
+import { ROLES, USERS_RESOURCES, type UsersResource } from "./resources"
 
 export type {
   UserActionId,
@@ -35,6 +36,7 @@ export type {
   UserFilterId,
   UserIds,
   UserPeopleExtension,
+  UserRolesExtension,
   UsersExtension,
   UserSectionId,
   UsersMessages,
@@ -55,6 +57,11 @@ export interface UsersNavItem {
   readonly label: LocalizedText
   readonly href: string
   readonly icon: LucideIcon
+  /**
+   * Право, без якого пункт ховають (`<ресурс>:<дія>`, як `useCanAccess`): сторінка однаково покаже
+   * «Немає доступу». Без нього — пункт для всіх.
+   */
+  readonly access?: { readonly resource: string; readonly action: string }
 }
 
 export interface UsersModule {
@@ -84,11 +91,14 @@ const PAGES = {
   user: lazyWithPreload(() =>
     import("./pages/user-page").then((m) => m.UserPage),
   ),
+  roles: lazyWithPreload(() =>
+    import("./pages/roles-page").then((m) => m.RolesPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: UsersExtension = {}
 
-/** Чанк сторінки за адресою: список людей чи картка людини. */
+/** Чанк сторінки за адресою: список людей, картка людини чи ролі. */
 function preloadFor(paths: UsersPaths) {
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
@@ -97,7 +107,9 @@ function preloadFor(paths: UsersPaths) {
         ? PAGES.users
         : path.startsWith(`${paths.users}/`)
           ? PAGES.user
-          : null
+          : path === paths.roles
+            ? PAGES.roles
+            : null
     void target?.preload()
   }
 }
@@ -121,9 +133,12 @@ export function createUsersModule({
       { value: context },
       createElement(Page),
     )
+  // Ролі веде інша система — без сторінки й пункту (`roles.page: false`, ADR-0033).
+  const rolesPage = extension.roles?.page !== false
   const routes: RouteObject[] = [
     { path: paths.users, element: page(PAGES.users) },
     { path: `${paths.users}/:id`, element: page(PAGES.user) },
+    ...(rolesPage ? [{ path: paths.roles, element: page(PAGES.roles) }] : []),
   ]
   // Адреса самого модуля (`/team`) — список людей.
   if (basePath.replace(/\/+$/, ""))
@@ -134,10 +149,21 @@ export function createUsersModule({
   const nav: UsersNavItem[] = [
     {
       id: "A2-users",
-      label: { uk: "Користувачі й ролі", en: "Users and roles" },
+      label: { uk: "Користувачі", en: "Users" },
       href: paths.users,
       icon: MODULE_ICONS.A2,
     },
+    ...(rolesPage
+      ? [
+          {
+            id: "A2-roles",
+            label: { uk: "Ролі й права", en: "Roles & permissions" },
+            href: paths.roles,
+            icon: KeySquareIcon,
+            access: { resource: ROLES, action: "read" },
+          },
+        ]
+      : []),
   ]
   return {
     id: USERS_MODULE_ID,

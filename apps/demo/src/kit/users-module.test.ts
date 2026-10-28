@@ -20,7 +20,7 @@ import {
   signInMock,
   type MockUser,
 } from "@/registry/lib/mocks"
-import type { User } from "@/registry/modules/A2-users"
+import { createUsersModule, type User } from "@/registry/modules/A2-users"
 import { userSchemaFor } from "@/registry/modules/A2-users/contract"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
@@ -349,5 +349,30 @@ describe("моки A2: users", () => {
     expect(await list()).toMatchObject({ data: [], total: 0 })
     setScenario("forbidden", "users")
     expect(await statusOf(list())).toBe(403)
+  })
+})
+
+describe("фабрика A2: сторінка ролей (ADR-0033)", () => {
+  it("маршрут і пункт «Ролі й права» з правом roles:read; `roles.page: false` — без них", () => {
+    const module = createUsersModule({ basePath: "/team" })
+    expect(module.paths.roles).toBe("/team/roles")
+    expect(module.routes.map((route) => route.path)).toContain("/team/roles")
+    expect(module.nav).toEqual([
+      expect.objectContaining({ id: "A2-users", href: "/team/users" }),
+      expect.objectContaining({
+        id: "A2-roles",
+        href: "/team/roles",
+        access: { resource: "roles", action: "read" },
+      }),
+    ])
+
+    const without = createUsersModule({
+      basePath: "/team",
+      extension: { roles: { page: false } },
+    })
+    expect(without.routes.map((route) => route.path)).not.toContain(
+      "/team/roles",
+    )
+    expect(without.nav.map((item) => item.id)).toEqual(["A2-users"])
   })
 })

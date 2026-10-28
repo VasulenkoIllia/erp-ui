@@ -9,12 +9,18 @@ import { canGrant, ROLES_QUERY_KEYS, type Role } from "@/registry/lib/roles"
 import { Checkbox } from "@/registry/ui/checkbox"
 import { FieldError, FieldLegend, FieldSet } from "@/registry/ui/field"
 
+/** Ключ кешу ролей компанії — один для `useRoles` і правок кешу (`erp/roles-editor`). */
+export const rolesQueryKey = (companyId: string | null) => [
+  ...ROLES_QUERY_KEYS.list,
+  companyScope(companyId),
+]
+
 /** Ролі компанії й каталог прав (право `roles:read`); без права запит не йде. */
 export function useRoles(enabled = true) {
   const provider = useErpAuthProvider()
   const companyId = useCompanyId()
   return useQuery({
-    queryKey: [...ROLES_QUERY_KEYS.list, companyScope(companyId)],
+    queryKey: rolesQueryKey(companyId),
     queryFn: () => provider.roles.list(),
     enabled,
   })
@@ -22,8 +28,10 @@ export function useRoles(enabled = true) {
 
 /**
  * Позначки ролей з описами — для запрошення й доступу користувача. Права людини — сума прав
- * обраних ролей; порожній вибір підсвічується помилкою `error`. `ceiling` — права того, хто
- * вибирає: роль, що дає більше, неактивна з причиною (її не дати й не забрати, ADR-0032).
+ * обраних ролей; порожній вибір підсвічується помилкою `error`. `disabled` — на час запиту.
+ * Ролі, яких не змінити, — лише для перегляду в порядку Tab з причиною (ADR-0033): увесь вибір —
+ * `readOnly` з `readOnlyReason` (напр. свої ролі); роль понад `ceiling` (права того, хто вибирає) —
+ * «Дає права, яких немає у вас» (її не дати й не забрати, ADR-0032).
  */
 export function RolePicker({
   roles,
@@ -32,6 +40,8 @@ export function RolePicker({
   legend,
   error,
   disabled,
+  readOnly,
+  readOnlyReason,
   ceiling,
 }: {
   roles: readonly Role[]
@@ -40,10 +50,13 @@ export function RolePicker({
   legend: string
   error?: string
   disabled?: boolean
+  readOnly?: boolean
+  readOnlyReason?: string
   ceiling?: readonly string[]
 }) {
   const t = useErpUiT()
   const ids = React.useId()
+  const reasonId = readOnly && readOnlyReason ? `${ids}-read-only` : ""
   return (
     <FieldSet
       className="gap-2"
@@ -51,6 +64,11 @@ export function RolePicker({
       aria-describedby={error ? `${ids}-error` : undefined}
     >
       <FieldLegend variant="label">{legend}</FieldLegend>
+      {reasonId ? (
+        <p id={reasonId} className="text-sm text-muted-foreground">
+          {readOnlyReason}
+        </p>
+      ) : null}
       <ul className="divide-y rounded-lg border">
         {roles.map((role) => {
           const id = `${ids}-${role.id}`
@@ -58,6 +76,7 @@ export function RolePicker({
           const describedBy = [
             role.description ? `${id}-description` : "",
             beyond ? `${id}-ceiling` : "",
+            reasonId,
           ]
             .filter(Boolean)
             .join(" ")
@@ -67,7 +86,8 @@ export function RolePicker({
                 id={id}
                 className="mt-0.5"
                 checked={value.includes(role.id)}
-                disabled={disabled || beyond}
+                disabled={disabled}
+                readOnly={readOnly || beyond}
                 aria-describedby={describedBy || undefined}
                 onCheckedChange={(checked) => {
                   onChange(
