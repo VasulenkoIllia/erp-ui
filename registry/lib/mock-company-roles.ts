@@ -321,6 +321,13 @@ export function mockCompanyRoles(companyId: string | null): MockRole[] {
   return rolesOfCompany(projectRoles, readMockCompanyRoles(), companyId)
 }
 
+/** Ролі компанії з правами для «стелі» (ADR-0032): роль лише для назви — без прав. */
+export const mockRoleGrants = (companyId: string | null) =>
+  mockCompanyRoles(companyId).map((role) => ({
+    id: role.id,
+    permissions: role.permissions ?? [],
+  }))
+
 /** Ролі людини в компанії: призначені там, без призначення — як задав проект (ADR-0033). */
 export function mockUserRolesIn(
   user: MockUser,

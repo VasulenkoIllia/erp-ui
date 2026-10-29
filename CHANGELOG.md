@@ -115,6 +115,32 @@
 - Розділ моків без зміни поведінки: `lib/mock-auth` (1111 → 570 рядків), `lib/mock-account` (1189 → 548).
 - Демо: фікстура адміністратора в `admin.test.ts` — з `invoices:*`.
 
+Крок A2b2b2b (ADR-0035): сторінка «Запрошення» модуля A2, права того, хто запросив, у момент прийняття, «стеля» повтору й відкликання, сценарії моків запрошень. Публічний API — лише доповнення. Що помітить проект:
+
+- Модуль A2 має нову сторінку `<basePath>/invitations` і третій пункт навігації «Запрошення» з полем `access: { resource: "users", action: "create" }`: навігація проекту ховає пункт без права. Без сторінки — `invitations: { page: false }` у файлі розширення. Свою сторінку з `InvitationsSection` проект може замінити сторінкою модуля.
+- Моки: посилання із запрошення перестає діяти (410 на перевірці й прийнятті, як прострочене), коли автора запрошення понизили, заблокували, він більше не в компанії чи роль запрошення стала сильнішою за його права. Тести проекту, що запрошують від імені людини без `users:create` чи з ролями понад її права (через засів сховища), отримають 410. Запрошення з насіння проекту (`invites` у `createPlatformHandlers`) — як були.
+- Після «Надіслати ще раз» автор запрошення — той, хто повторив (`invitedBy` у списку й відповіді). Повтор і відкликання запрошення з роллю понад свої права — 403 (раніше проходили); повтор із роллю, якої в компанії вже немає, — 422 `roles: invalid`. `InvitationsSection` показує такі дії неактивними з причиною (за каталогом ролей, `roles:read`); на 404 і 409 — тост «Запрошення щойно змінилось: список оновлено» і свіжий список замість помилки; на 422 повтору — тост «відкличте його й запросіть колегу знову». Повтор пише подію журналу `users.invitation_resent` (з «Надсилав раніше», коли автор змінився).
+- Діалог відкликання запрошення в `InvitationsSection` — `ConfirmDialog` з роллю `alertdialog` (був `dialog`): e2e проекту, що шукає його за роллю, міняє `getByRole("dialog", …)` на `getByRole("alertdialog", …)`. Діалог закривається після свіжого списку (на повільному сервері — довше зі спінером), фокус — на «Запросити колегу».
+- Моки: тіло `POST /invitations` з полями не тих типів чи зіпсований JSON — 422 біля полів (раніше могло бути 500); нове запрошення замінює старе прострочене на ту саму адресу лише в своїй компанії (раніше — в усіх).
+- Сценарії моків для ресурсу `invitations` (`setScenario(scenario, "invitations")`): запити запрошень тепер слухаються панелі розробника, зокрема загального сценарію; `conflict` — перший повтор чи відкликання кожного запрошення — 409.
+- Нові рядки кіта `invitations.beyondCeiling`, `invitations.changed`, `invitations.roleGone`, `audit.actions.users.invitation_resent`, `audit.detailLabels.roles`, `audit.detailLabels.previousInviter`: проект зі своїм мовним пакетом кіта додає їх.
+- Моки запрошень перенесено з `lib/mock-team` у нові елементи `lib/mock-invitations` (обробники адміністратора) і `lib/mock-invitation-store` (сховище, перевірка й прийняття) без зміни поведінки: вони ставляться разом із `lib/mock-team`, старі імпорти (`findMockInvitation`, `acceptMockInvitation`) працюють.
+
+### Додано — A2b2b2b (ADR-0035)
+
+- Модуль A2: сторінка «Запрошення» (`pages/invitations-page.tsx`) — шапка з поясненням, `InvitationsSection`, «Немає доступу» без `users:create`; `UsersPaths.invitations`, ключ розширення `invitations?: UserInvitationsExtension` (`page?: boolean`), пункт навігації `A2-invitations`; рядки модуля `invitations.title`, `invitations.lead`.
+- `erp/invitation-actions` (новий елемент): `InvitationActions` — «Надіслати ще раз» і «Відкликати» одного запрошення з `deniedReason` і `checking`; `useInvitationCeiling()` — «стеля» повтору й відкликання за каталогом ролей; `useInvitationActions(refresh)` — повтор і відкликання списку з відмовами сервера.
+- `erp/user-access-data`: `useRolesCeiling(enabled)` → `{ checking, exceeds(roleIds) }`, тип `RolesCeiling`; `useAccessCeiling` — на ньому, поведінка та сама.
+- `lib/mock-invitations` (новий елемент): `createInvitationHandlers`, типи `MockCompanyAccess`, `InvitationMockOptions`; `lib/mock-invitation-store` (новий елемент): `readMockInvitations`, `writeMockInvitations`, `findMockInvitation`, `acceptMockInvitation`, тип `StoredMockInvitation`; `lib/mock-company-roles`: `mockRoleGrants(companyId)`; `lib/mock-account-state`: `beyondCeiling()` — 403 «стелі».
+- Демо: ресурс `invitations` у панелі розробника, пункт «Запрошення» з правом.
+- Тести: `src/kit/invitations.test.ts` (20: права автора при прийнятті, повтор від імені того, хто повторив, журнал повтору, «стеля» повтору й відкликання, `*` у чужій компанії, «Увійти як…», тіло не тих типів, порядок відмов, сценарії), `src/kit/users-module.test.ts` (сторінка, пункт, `invitations.page: false`); e2e `invitations-page.spec.ts` (пункт навігації, запросити колегу, дії неактивні з причиною в порядку Tab, посилання не діє після пониження автора, сценарії `conflict`, `error`, `forbidden`, фокус після відкликання (і на повільному сервері), 409 і 404 на повтор, людина без `roles:read`, керівник відділу без права, телефон, axe).
+
+### Змінено — A2b2b2b
+
+- `erp/invitations-section`: кнопки рядка — `InvitationActions`, причина «стелі» видимим текстом у рядку; відкликання — `ConfirmDialog` з поверненням фокуса після свіжого списку; дії списку — `useInvitationActions` (399 рядків замість 455); повтори різних запрошень незалежні; 404 і 409 на повтор чи відкликання — тост і свіжий список, діалог відкликання закривається; 422 повтору — свій тост.
+- `lib/mock-team`: запрошення — з `lib/mock-invitations` і `lib/mock-invitation-store` (798 → 530 рядків); відповідь запрошення — лише поля контракту (перелік дозволених).
+- Шапка-контракт `lib/invitations`: порядок відмов повтору й відкликання, «стеля», 410 при перевірці й прийнятті; `lib/auth` — рядок про 410.
+
 ## [1.0.1] — 2026-10-21
 
 Патч-версія (крок fix-kit-deps, ADR-0029, доповнення fix-kit-deps): команда оновлення кіта більше не змінює залежностей проекту. Публічний API не змінився, файли розширення й адаптера змінювати не треба.

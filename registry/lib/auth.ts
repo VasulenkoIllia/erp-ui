@@ -17,6 +17,7 @@
  * - `POST /auth/password/forgot` { email } → 204 завжди (не розкриваємо, чи є такий акаунт);
  *   `POST /auth/password/reset` { token, password } → результат входу.
  * - `POST /auth/invite/check` { token } → запрошення (`lib/invite-check`); `POST /auth/invite/accept`.
+ *   Обидва — 410, коли термін минув або той, хто запросив, уже не може дати ці ролі (ADR-0035).
  * - `POST /auth/signup` { name, email, password, company } → challenge (підтвердити email).
  * - `{ status: "password_change_required" }` — тимчасовий чи скинутий пароль: спершу новий,
  *   `POST /auth/password/change-required` { password } → результат входу.

@@ -786,6 +786,8 @@ export const en = {
       type: "Type",
       scopes: "Permissions",
       provider: "Provider",
+      roles: "Roles",
+      previousInviter: "Previously sent by",
     },
     actions: {
       auth: {
@@ -815,6 +817,7 @@ export const en = {
         invited: "Colleague invited",
         invitation_accepted: "Invitation accepted",
         invitation_revoked: "Invitation revoked",
+        invitation_resent: "Invitation resent",
       },
       company: {
         updated: "Company details changed",
@@ -1077,6 +1080,11 @@ export const en = {
     revokeTitle: "Revoke the invitation for {{email}}?",
     revokeDescription: "The link in the email will stop working.",
     revoked: "Invitation revoked",
+    beyondCeiling:
+      "This invitation has roles with permissions you don't have: only someone with all of them can resend or revoke it.",
+    changed: "The invitation has just changed: the list is updated",
+    roleGone:
+      "This invitation has a role the company no longer has: revoke it and invite your colleague again.",
   },
   inbox: {
     title: "Notifications",

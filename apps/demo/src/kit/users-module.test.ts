@@ -364,6 +364,7 @@ describe("фабрика A2: сторінка ролей (ADR-0033)", () => {
         href: "/team/roles",
         access: { resource: "roles", action: "read" },
       }),
+      expect.objectContaining({ id: "A2-invitations" }),
     ])
 
     const without = createUsersModule({
@@ -373,6 +374,35 @@ describe("фабрика A2: сторінка ролей (ADR-0033)", () => {
     expect(without.routes.map((route) => route.path)).not.toContain(
       "/team/roles",
     )
-    expect(without.nav.map((item) => item.id)).toEqual(["A2-users"])
+    expect(without.nav.map((item) => item.id)).toEqual([
+      "A2-users",
+      "A2-invitations",
+    ])
+  })
+})
+
+describe("фабрика A2: сторінка запрошень (ADR-0035)", () => {
+  it("маршрут і пункт «Запрошення» з правом users:create; `invitations.page: false` — без них", () => {
+    const module = createUsersModule({ basePath: "/team" })
+    expect(module.paths.invitations).toBe("/team/invitations")
+    expect(module.routes.map((route) => route.path)).toContain(
+      "/team/invitations",
+    )
+    expect(module.nav.at(-1)).toEqual(
+      expect.objectContaining({
+        id: "A2-invitations",
+        href: "/team/invitations",
+        access: { resource: "users", action: "create" },
+      }),
+    )
+
+    const without = createUsersModule({
+      basePath: "/team",
+      extension: { invitations: { page: false } },
+    })
+    expect(without.routes.map((route) => route.path)).not.toContain(
+      "/team/invitations",
+    )
+    expect(without.nav.map((item) => item.id)).toEqual(["A2-users", "A2-roles"])
   })
 })

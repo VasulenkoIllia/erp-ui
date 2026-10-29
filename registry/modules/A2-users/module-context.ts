@@ -8,6 +8,8 @@ export interface UsersPaths {
   readonly user: (id: string) => string
   /** «Ролі й права»; вибрана роль — `?role=` (`ROLE_PARAM`). */
   readonly roles: string
+  /** «Запрошення» (ADR-0035). */
+  readonly invitations: string
 }
 
 /** Параметр адреси сторінки ролей з вибраною роллю. */
@@ -19,6 +21,7 @@ export function usersPaths(basePath: string): UsersPaths {
     users: `${base}/users`,
     user: (id) => `${base}/users/${encodeURIComponent(id)}`,
     roles: `${base}/roles`,
+    invitations: `${base}/invitations`,
   }
 }
 

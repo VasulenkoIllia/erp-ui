@@ -43,6 +43,43 @@ export interface AccessCeiling {
   checking: boolean
 }
 
+/** «Стеля» за каталогом ролей: стан перевірки й чи дають ролі права понад свої. */
+export interface RolesCeiling {
+  /** Профіль чи каталог ролей ще вантажиться: дії неактивні, щоб не мінялися під пальцем. */
+  checking: boolean
+  /**
+   * Чи дають ролі `roleIds` права, яких немає в поточної людини в компанії запиту; `false` і без
+   * права на каталог чи з його помилкою — тоді вирішує сервер, відмову показує тост.
+   */
+  exceeds: (roleIds: readonly string[]) => boolean
+}
+
+/**
+ * «Стеля» за каталогом ролей (ADR-0034, ADR-0035): для однієї людини чи списку запрошень. Поки
+ * профіль вантажиться чи каталог вантажиться для того, хто має `roles:read`, — `checking`; без
+ * профілю (помилка), без права на каталог чи з його помилкою — без «стелі»: вирішує сервер.
+ */
+export function useRolesCeiling(enabled = true): RolesCeiling {
+  const profile = useMe()
+  const me = profile.data
+  const canReadRoles = me
+    ? hasPermission(me.permissions, "roles", "read")
+    : false
+  const roles = useRoles(enabled && canReadRoles)
+  const catalog = roles.data?.roles
+  return {
+    // Запит каталогу може йти й без права (секція запрошень читає ролі для назв): його стан не
+    // чекаємо, інакше дії без `roles:read` були б неактивні до відповіді 403.
+    checking:
+      enabled &&
+      (profile.isPending || (canReadRoles && !catalog && roles.isLoading)),
+    exceeds: (roleIds) =>
+      enabled && me && catalog
+        ? !canGrant(me.permissions, permissionsOfRoles(roleIds, catalog))
+        : false,
+  }
+}
+
 /**
  * «Стеля» доступу (ADR-0034): чи має поточний адміністратор усі права людини з ролями `roleIds` —
  * за каталогом ролей (`roles:read`). З `deniedReason` вийти, завершити сесію, заблокувати,
@@ -55,17 +92,11 @@ export function useAccessCeiling(
   enabled = true,
 ): AccessCeiling {
   const t = useErpUiT()
-  const me = useMe().data
-  const canReadRoles = me
-    ? hasPermission(me.permissions, "roles", "read")
-    : false
-  const roles = useRoles(enabled && canReadRoles)
-  const catalog = roles.data?.roles
-  if (!enabled) return { checking: false }
-  if (!me || !catalog) return { checking: !me || roles.isLoading }
-  return canGrant(me.permissions, permissionsOfRoles(roleIds, catalog))
-    ? { checking: false }
-    : { deniedReason: t("userAccess.beyondCeiling"), checking: false }
+  const ceiling = useRolesCeiling(enabled)
+  if (ceiling.checking) return { checking: true }
+  return ceiling.exceeds(roleIds)
+    ? { deniedReason: t("userAccess.beyondCeiling"), checking: false }
+    : { checking: false }
 }
 
 /**

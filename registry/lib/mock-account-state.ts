@@ -190,6 +190,13 @@ export const validation = (fields: Record<string, string>) =>
 export const notFound = () =>
   errorResponse(404, { code: "not_found", message: "Not found" })
 
+/** «Стеля» (ADR-0032): не дати й не змінити права, яких немає в того, хто дає. */
+export const beyondCeiling = () =>
+  errorResponse(403, {
+    code: "forbidden",
+    message: "Exceeds your own permissions",
+  })
+
 export const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 

@@ -33,6 +33,7 @@
     "segments-list-page.tsx": 451.7,
     "users-list-page.tsx": 458.8,
     "user-page.tsx": 445.4,
-    "roles-page.tsx": 474.3
+    "roles-page.tsx": 474.3,
+    "invitations-page.tsx": 459.0
   }
 }

@@ -1,18 +1,20 @@
 /**
- * Модуль A2 «Користувачі й ролі» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0031) — точка входу.
+ * Модуль A2 «Користувачі й ролі» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0031, ADR-0035) — точка
+ * входу.
  *
  *   const usersModule = createUsersModule({ basePath: "/team", extension: usersExtension })
  *   <Routes>{usersModule.routes.map(…)}</Routes>  // чи useRoutes(usersModule.routes)
  *
  * Фабрика повертає маршрути React Router зі сторінками модуля (лінивими чанками, `Suspense` і межа
- * помилок — у застосунку): люди, картка людини, «Ролі й права» (ADR-0033); пункти навігації з
+ * помилок — у застосунку): люди, картка людини, «Ролі й права» (ADR-0033), «Запрошення»
+ * (ADR-0035); пункти навігації з
  * правом, яке їм потрібне, ресурси для прав і моків і `preload` за адресою. Без
  * розширення модуль такий, як у демо кіта. Файли модуля в проекті не правляться: зміни під
  * клієнта — у файлі розширення (`src/extensions/A2-users.ts`). Моки — окремо, `./mocks`
  * (`createUsersMocks`), фікстури колег — `./fixtures` (`createUsersFixtures`), щоб MSW не потрапив
  * у застосунок.
  */
-import { KeySquareIcon, type LucideIcon } from "lucide-react"
+import { KeySquareIcon, MailPlusIcon, type LucideIcon } from "lucide-react"
 import { createElement, type ComponentType } from "react"
 import { Navigate, type RouteObject } from "react-router"
 
@@ -27,7 +29,7 @@ import {
   type UsersModuleContextValue,
   type UsersPaths,
 } from "./module-context"
-import { ROLES, USERS_RESOURCES, type UsersResource } from "./resources"
+import { ROLES, USERS, USERS_RESOURCES, type UsersResource } from "./resources"
 
 export type {
   UserActionId,
@@ -35,6 +37,7 @@ export type {
   UserFieldId,
   UserFilterId,
   UserIds,
+  UserInvitationsExtension,
   UserPeopleExtension,
   UserRolesExtension,
   UsersExtension,
@@ -94,11 +97,14 @@ const PAGES = {
   roles: lazyWithPreload(() =>
     import("./pages/roles-page").then((m) => m.RolesPage),
   ),
+  invitations: lazyWithPreload(() =>
+    import("./pages/invitations-page").then((m) => m.InvitationsPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: UsersExtension = {}
 
-/** Чанк сторінки за адресою: список людей, картка людини чи ролі. */
+/** Чанк сторінки за адресою: список людей, картка людини, ролі чи запрошення. */
 function preloadFor(paths: UsersPaths) {
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
@@ -109,7 +115,9 @@ function preloadFor(paths: UsersPaths) {
           ? PAGES.user
           : path === paths.roles
             ? PAGES.roles
-            : null
+            : path === paths.invitations
+              ? PAGES.invitations
+              : null
     void target?.preload()
   }
 }
@@ -135,10 +143,15 @@ export function createUsersModule({
     )
   // Ролі веде інша система — без сторінки й пункту (`roles.page: false`, ADR-0033).
   const rolesPage = extension.roles?.page !== false
+  // Людей запрошує інша система — без сторінки й пункту (`invitations.page: false`, ADR-0035).
+  const invitationsPage = extension.invitations?.page !== false
   const routes: RouteObject[] = [
     { path: paths.users, element: page(PAGES.users) },
     { path: `${paths.users}/:id`, element: page(PAGES.user) },
     ...(rolesPage ? [{ path: paths.roles, element: page(PAGES.roles) }] : []),
+    ...(invitationsPage
+      ? [{ path: paths.invitations, element: page(PAGES.invitations) }]
+      : []),
   ]
   // Адреса самого модуля (`/team`) — список людей.
   if (basePath.replace(/\/+$/, ""))
@@ -161,6 +174,17 @@ export function createUsersModule({
             href: paths.roles,
             icon: KeySquareIcon,
             access: { resource: ROLES, action: "read" },
+          },
+        ]
+      : []),
+    ...(invitationsPage
+      ? [
+          {
+            id: "A2-invitations",
+            label: { uk: "Запрошення", en: "Invitations" },
+            href: paths.invitations,
+            icon: MailPlusIcon,
+            access: { resource: USERS, action: "create" },
           },
         ]
       : []),

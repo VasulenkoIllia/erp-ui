@@ -58,6 +58,10 @@
     "title": "Roles & permissions",
     "lead": "What each role in the company can do. A person's permissions add up from all their roles, and you can only give a role permissions you have yourself."
   },
+  "invitations": {
+    "title": "Invitations",
+    "lead": "Who hasn't accepted an invitation yet: resend, revoke or invite a colleague. They set their own name and password from the link in the email; the link works for 7 days."
+  },
   "statuses": {
     "active": "Active",
     "blocked": "Blocked"

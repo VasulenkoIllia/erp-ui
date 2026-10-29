@@ -8,6 +8,12 @@ import {
   useErpAuthProvider,
   useFieldError,
 } from "@/registry/erp/auth-layout"
+import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import {
+  InvitationActions,
+  useInvitationActions,
+  useInvitationCeiling,
+} from "@/registry/erp/invitation-actions"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { RolePicker, useRoles } from "@/registry/erp/role-picker"
 import { useCompanyId } from "@/registry/hooks/use-company"
@@ -45,7 +51,8 @@ import { Textarea } from "@/registry/ui/textarea"
 /**
  * Запрошення колег (ADR-0014, PF01/A2): хто чекає на прийняття, «Запросити колегу» з ролями,
  * надіслати ще раз, відкликати. Людина приймає запрошення на `AcceptInviteScreen` (ADR-0010).
- * Право `users:create`; ролі для вибору — `roles:read`.
+ * Право `users:create`; ролі для вибору — `roles:read`. Запрошення з ролями понад свої права —
+ * дії неактивні з причиною; щойно змінене чи зникле (409, 404) — свіжий список (ADR-0035).
  */
 export function InvitationsSection() {
   const t = useErpUiT()
@@ -54,8 +61,7 @@ export function InvitationsSection() {
   const errorText = useAuthErrorText()
   const format = useFormat()
   const [inviting, setInviting] = React.useState(false)
-  const [revoking, setRevoking] = React.useState<Invitation | null>(null)
-  const [busy, setBusy] = React.useState<string | null>(null)
+  const inviteButton = React.useRef<HTMLButtonElement>(null)
   const companyId = useCompanyId()
   const query = useQuery({
     queryKey: [...INVITATION_QUERY_KEYS.list, companyScope(companyId)],
@@ -64,11 +70,14 @@ export function InvitationsSection() {
     refetchOnMount: "always",
   })
   const roles = useRoles()
+  const ceiling = useInvitationCeiling()
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: INVITATION_QUERY_KEYS.list }),
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.list }),
     ])
+  const actions = useInvitationActions(refresh)
+  const { revoking } = actions
 
   if (query.isPending) return <SectionSkeleton rows={2} />
   if (query.isError)
@@ -96,6 +105,7 @@ export function InvitationsSection() {
         >
           {query.data.map((invitation) => {
             const expired = invitation.status === "expired"
+            const deniedReason = ceiling.deniedReason(invitation)
             return (
               <li
                 key={invitation.id}
@@ -137,47 +147,26 @@ export function InvitationsSection() {
                         </span>
                       )}
                     </p>
+                    {deniedReason ? (
+                      <p className="text-sm text-muted-foreground">
+                        {deniedReason}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 @lg:shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={busy === invitation.id}
-                    aria-label={t("invitations.resendFor", {
-                      email: invitation.email,
-                    })}
-                    onClick={() => {
-                      setBusy(invitation.id)
-                      provider.invitations
-                        .resend(invitation.id)
-                        .then(() => {
-                          toast.success(t("invitations.resent"))
-                          return refresh()
-                        })
-                        .catch((failure: unknown) => {
-                          toast.error(errorText(failure))
-                        })
-                        .finally(() => {
-                          setBusy(null)
-                        })
+                  <InvitationActions
+                    invitation={invitation}
+                    busy={actions.resending.has(invitation.id)}
+                    checking={ceiling.checking}
+                    deniedReason={deniedReason}
+                    onResend={() => {
+                      actions.resend(invitation)
                     }}
-                  >
-                    {busy === invitation.id ? <Spinner aria-hidden /> : null}
-                    {t("invitations.resend")}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={t("invitations.revokeFor", {
-                      email: invitation.email,
-                    })}
-                    onClick={() => {
-                      setRevoking(invitation)
+                    onRevoke={() => {
+                      actions.askRevoke(invitation)
                     }}
-                  >
-                    {t("invitations.revoke")}
-                  </Button>
+                  />
                 </div>
               </li>
             )
@@ -190,6 +179,7 @@ export function InvitationsSection() {
       )}
 
       <Button
+        ref={inviteButton}
         onClick={() => {
           setInviting(true)
         }}
@@ -213,59 +203,22 @@ export function InvitationsSection() {
         />
       ) : null}
 
-      <Dialog
-        open={revoking !== null}
-        onOpenChange={(next) => {
-          if (!next) setRevoking(null)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {t("invitations.revokeTitle", { email: revoking?.email ?? "" })}
-            </DialogTitle>
-            <DialogDescription>
-              {t("invitations.revokeDescription")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setRevoking(null)
-              }}
-            >
-              {t("auth.account.cancel")}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={busy !== null}
-              onClick={() => {
-                if (!revoking) return
-                setBusy(revoking.id)
-                provider.invitations
-                  .revoke(revoking.id)
-                  .then(() => {
-                    setRevoking(null)
-                    toast.success(t("invitations.revoked"))
-                    return refresh()
-                  })
-                  .catch((failure: unknown) => {
-                    toast.error(errorText(failure))
-                  })
-                  .finally(() => {
-                    setBusy(null)
-                  })
-              }}
-            >
-              {busy !== null ? <Spinner aria-hidden /> : null}
-              {t("invitations.revoke")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        // Запрошення зникло зі списку (прийняли чи відкликали деінде) — діалог закривається сам.
+        open={
+          actions.revokeOpen &&
+          revoking !== null &&
+          query.data.some((invitation) => invitation.id === revoking.id)
+        }
+        title={t("invitations.revokeTitle", { email: revoking?.email ?? "" })}
+        description={t("invitations.revokeDescription")}
+        confirmLabel={t("invitations.revoke")}
+        destructive
+        // Рядка з кнопкою «Відкликати» після відкликання вже немає — фокус на «Запросити колегу».
+        returnFocus={() => inviteButton.current}
+        onClose={actions.closeRevoke}
+        onConfirm={actions.confirmRevoke}
+      />
     </div>
   )
 }

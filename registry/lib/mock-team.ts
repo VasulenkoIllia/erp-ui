@@ -1,8 +1,8 @@
 /**
  * Мок команди (ADR-0014): ролі й права, призначення ролей, запрошення колег.
  *
- * - Ролі компаній, призначені ролі й запрошення живуть у localStorage (`lib/mock-company-roles`,
- *   `erp-ui:mock-user-roles`, `erp-ui:mock-invitations`), як дані сервера.
+ * - Ролі компаній і призначені ролі живуть у localStorage (`lib/mock-company-roles`,
+ *   `erp-ui:mock-user-roles`), як дані сервера.
  * - Ролі — компанії запиту (ADR-0033, `lib/mock-company-roles`): ролі проекту є в кожній компанії,
  *   зміна чи видалення — лише в своїй, нова роль — лише компанії, де її створили; `usersCount` і
  *   409 «роль призначена» — люди цієї компанії.
@@ -12,9 +12,11 @@
  *   в активній компанії (профіль і решта моків).
  * - Сценарії ресурсу `roles` (`lib/mock-scenarios`) — для `GET`, `POST`, `PATCH`, `DELETE /roles`;
  *   `conflict` — перший `PATCH` чи `DELETE` кожної ролі компанії — 409.
- * - Запрошення приймає екран `AcceptInviteScreen` через мок входу (`findMockInvitation`).
- * - Події шини (`subscribeMockEvents`): `users.roles_changed` { id, roles } і `users.joined`
- *   { id, name, email, roles, companyId } — щоб список користувачів проекту оновився.
+ * - Запрошення — `lib/mock-invitations` (обробники підключає `createTeamHandlers` зі своєю
+ *   перевіркою права в компанії запиту); сховище, `findMockInvitation` і `acceptMockInvitation` —
+ *   `lib/mock-invitation-store`.
+ * - Подія шини (`subscribeMockEvents`) `users.roles_changed` { id, roles } — щоб список
+ *   користувачів проекту оновився; `users.joined` — у `lib/mock-invitation-store`.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -31,6 +33,7 @@ import {
   mockCompanyRoles,
   mockPermissionsIn,
   mockProjectRoles,
+  mockRoleGrants,
   mockRoles,
   mockUserRolesIn,
   readMockCompanyRoles,
@@ -43,7 +46,15 @@ import {
   withCompanyRole,
   withoutCompanyRole,
 } from "@/registry/lib/mock-company-roles"
-import { pushMockNotification } from "@/registry/lib/mock-inbox"
+import { beyondCeiling } from "@/registry/lib/mock-account-state"
+import {
+  acceptMockInvitation,
+  findMockInvitation,
+} from "@/registry/lib/mock-invitation-store"
+import {
+  createInvitationHandlers,
+  type MockCompanyAccess as CompanyAccess,
+} from "@/registry/lib/mock-invitations"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
@@ -55,14 +66,11 @@ import {
   json,
   mockCompanyOrForbidden,
   mockCompanyTarget,
-  mockUsersList,
   noContent,
   randomToken,
-  sendMockMessage,
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { INVITATION_DAYS, type Invitation } from "@/registry/lib/invitations"
 import {
   canChangePermissions,
   canChangeRoles,
@@ -75,6 +83,8 @@ import {
 
 // Стан ролей живе в `lib/mock-company-roles` (ADR-0033); старі імпорти з цього файлу працюють.
 export { applyMockRoles, mockRoles }
+// Запрошення живуть у `lib/mock-invitation-store` і `lib/mock-invitations`; старі імпорти працюють.
+export { acceptMockInvitation, findMockInvitation }
 
 /** Роль проекту: назва й опис мовами, права. */
 export interface MockRole {
@@ -108,97 +118,12 @@ const CRUD = ["read", "create", "update", "delete"]
 /** Ресурс сценаріїв моків для `/roles` (панель розробника). */
 const ROLES_RESOURCE = "roles"
 
-const INVITES_KEY = "erp-ui:mock-invitations"
-
-function read<T>(key: string, fallback: T): T {
-  try {
-    const raw = globalThis.localStorage?.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function write(key: string, value: unknown): void {
-  try {
-    globalThis.localStorage?.setItem(key, JSON.stringify(value))
-  } catch {
-    // Без сховища — до перезавантаження.
-  }
-}
-
 /** Ролі й права нового користувача (запрошення, реєстрація) — за ролями його компанії. */
 export function permissionsForRoles(
   roleIds: readonly string[],
   companyId: string | null = null,
 ): string[] {
-  return permissionsOfRoles(roleIds, roleGrants(companyId))
-}
-
-/* ------------------------------- Запрошення ------------------------------- */
-
-interface StoredInvitation extends Omit<Invitation, "status"> {
-  token: string
-  message?: string
-  invitedById: string
-  companyName: string
-  companies: MockUser["companies"]
-  companyId: MockUser["companyId"]
-}
-
-const readInvites = () => read<StoredInvitation[]>(INVITES_KEY, [])
-
-/** Запрошення для екрана прийняття: як `MockInvite` мока входу. */
-export function findMockInvitation(token: string) {
-  const invite = readInvites().find((i) => i.token === token)
-  if (!invite || Date.parse(invite.expiresAt) < Date.now()) return undefined
-  return {
-    token: invite.token,
-    email: invite.email,
-    name: invite.name,
-    companyName: invite.companyName,
-    invitedBy: invite.invitedBy,
-    user: {
-      roles: invite.roles,
-      permissions: permissionsForRoles(invite.roles, invite.companyId),
-      companies: invite.companies,
-      companyId: invite.companyId,
-    },
-  }
-}
-
-/** Запрошення прийнято: прибрати його, повідомити того, хто запрошував. */
-export function acceptMockInvitation(token: string, user: MockUser): void {
-  const invite = readInvites().find((i) => i.token === token)
-  if (!invite) return
-  write(
-    INVITES_KEY,
-    readInvites().filter((i) => i.token !== token),
-  )
-  emitMockEvent("users.joined", {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    roles: user.roles,
-    companyId: user.companyId,
-  })
-  recordAudit({
-    action: "users.invitation_accepted",
-    category: "users",
-    actor: { type: "user", id: user.id, name: user.name },
-    target: { type: "users", id: user.id, name: user.name },
-  })
-  pushMockNotification(invite.invitedById, {
-    type: "team.invitation_accepted",
-    title: {
-      uk: `Запрошення прийнято: ${user.name}`,
-      en: `Invitation accepted: ${user.name}`,
-    },
-    body: { uk: user.email, en: user.email },
-    severity: "success",
-    actor: { name: user.name },
-    link: "/settings/users",
-  })
+  return permissionsOfRoles(roleIds, mockRoleGrants(companyId))
 }
 
 /* --------------------------------- Обробники --------------------------------- */
@@ -222,31 +147,8 @@ const validation = (fields: Record<string, string>) =>
 const notFound = () =>
   errorResponse(404, { code: "not_found", message: "Not found" })
 
-/** «Стеля» (ADR-0032): не дати й не змінити права, яких немає в того, хто дає. */
-const beyondCeiling = () =>
-  errorResponse(403, {
-    code: "forbidden",
-    message: "Exceeds your own permissions",
-  })
-
-/** Хто діє, у якій компанії запиту й з якими правами в ній (ADR-0033). */
-interface CompanyAccess {
-  user: MockUser
-  companyId: string | null
-  permissions: string[]
-}
-
-/** Ролі компанії з правами для «стелі»: роль лише для назви — без прав. */
-const roleGrants = (companyId: string | null) =>
-  mockCompanyRoles(companyId).map((role) => ({
-    id: role.id,
-    permissions: role.permissions ?? [],
-  }))
-
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
-
-const emailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
 export function createTeamHandlers({
   baseUrl = API_PREFIX,
@@ -393,27 +295,6 @@ export function createTeamHandlers({
     return fields
   }
 
-  const invitationOf = ({
-    token,
-    message,
-    invitedById,
-    companyName,
-    companies,
-    companyId,
-    ...rest
-  }: StoredInvitation): Invitation => {
-    void token
-    void message
-    void invitedById
-    void companyName
-    void companies
-    void companyId
-    return {
-      ...rest,
-      status: Date.parse(rest.expiresAt) < Date.now() ? "expired" : "pending",
-    }
-  }
-
   /**
    * Компанія запиту для ролей і запрошень — лише та, де людина сама працює: `*` пускає в будь-яку
    * компанію, але не дає керувати ролями чи запрошеннями чужої (ADR-0032, ADR-0033).
@@ -430,25 +311,6 @@ export function createTeamHandlers({
       message: "Not a member of the company",
     })
   }
-
-  /** Запрошення в компанію запиту; чуже — 404, як невідоме (ADR-0032). */
-  const companyInvite = (
-    request: Request,
-    user: MockUser,
-    id: unknown,
-  ): StoredInvitation | Response => {
-    const companyId = memberCompany(request, user)
-    if (companyId instanceof Response) return companyId
-    return (
-      readInvites().find(
-        (invite) => invite.id === id && invite.companyId === companyId,
-      ) ?? notFound()
-    )
-  }
-
-  /** Термін дії від моменту надсилання. */
-  const expiry = (sentAt: string) =>
-    new Date(Date.parse(sentAt) + INVITATION_DAYS * 86_400_000).toISOString()
 
   return [
     /* -------------------------------- Ролі -------------------------------- */
@@ -642,7 +504,7 @@ export function createTeamHandlers({
       const before = mockUserRolesIn(target, companyId).filter((id) =>
         companyRoles.has(id),
       )
-      if (!canChangeRoles(permissions, before, next, roleGrants(companyId)))
+      if (!canChangeRoles(permissions, before, next, mockRoleGrants(companyId)))
         return beyondCeiling()
       const after = [...new Set(next)]
       saveMockUserRoles(
@@ -663,136 +525,6 @@ export function createTeamHandlers({
       return noContent()
     }),
 
-    /* ------------------------------ Запрошення ------------------------------ */
-
-    http.get(`${baseUrl}/invitations`, ({ request }) => {
-      const access = allowedIn(request, "users", "create")
-      if (access instanceof Response) return access
-      const { companyId } = access
-      return json(
-        readInvites()
-          .filter((invite) => invite.companyId === companyId)
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-          .map(invitationOf),
-      )
-    }),
-
-    http.post(`${baseUrl}/invitations`, async ({ request }) => {
-      const access = allowedIn(request, "users", "create", "change")
-      if (access instanceof Response) return access
-      const { user, companyId, permissions } = access
-      const body = (await request.json()) as {
-        email?: string
-        name?: string
-        roles?: string[]
-        message?: string
-      }
-      const email = body.email?.trim().toLowerCase() ?? ""
-      const fields: Record<string, string> = {}
-      if (!email) fields.email = "required"
-      else if (!emailValid(email)) fields.email = "invalid"
-      else if (mockUsersList().some((u) => u.email.toLowerCase() === email))
-        fields.email = "taken"
-      else if (
-        readInvites().some(
-          (i) => i.email === email && Date.parse(i.expiresAt) > Date.now(),
-        )
-      )
-        fields.email = "invited"
-      const roles = body.roles ?? []
-      if (!roles.length) fields.roles = "required"
-      else if (
-        roles.some(
-          (id) => !mockCompanyRoles(companyId).some((r) => r.id === id),
-        )
-      )
-        fields.roles = "invalid"
-      if (Object.keys(fields).length) return validation(fields)
-      if (!canChangeRoles(permissions, [], roles, roleGrants(companyId)))
-        return beyondCeiling()
-      const company = user.companies.find((c) => c.id === companyId)
-      const now = new Date().toISOString()
-      const invite: StoredInvitation = {
-        id: `inv-${randomToken().slice(0, 10)}`,
-        token: randomToken(),
-        email,
-        ...(body.name?.trim() ? { name: body.name.trim() } : {}),
-        roles,
-        ...(body.message?.trim() ? { message: body.message.trim() } : {}),
-        invitedBy: user.name,
-        invitedById: user.id,
-        companyName: company?.name ?? "",
-        companies: company ? [company] : [],
-        companyId: company?.id ?? null,
-        createdAt: now,
-        lastSentAt: now,
-        expiresAt: expiry(now),
-      }
-      write(INVITES_KEY, [
-        invite,
-        ...readInvites().filter((i) => i.email !== email),
-      ])
-      sendMockMessage({
-        channel: "email",
-        to: email,
-        kind: "invite",
-        link: inviteLink(invite.token),
-      })
-      recordAudit({
-        action: "users.invited",
-        category: "users",
-        target: { type: "invitations", id: invite.id, name: email },
-        details: { roles: roles.join(", ") },
-      })
-      return json(invitationOf(invite), { status: 201 })
-    }),
-
-    http.post(`${baseUrl}/invitations/:id/resend`, ({ params, request }) => {
-      const access = allowedIn(request, "users", "create", "change")
-      if (access instanceof Response) return access
-      const { user } = access
-      const invite = companyInvite(request, user, params.id)
-      if (invite instanceof Response) return invite
-      if (Date.now() - Date.parse(invite.lastSentAt) < 60_000)
-        return errorResponse(429, {
-          code: "rate_limited",
-          message: "Wait a minute before sending again",
-        })
-      const sentAt = new Date().toISOString()
-      const next: StoredInvitation = {
-        ...invite,
-        lastSentAt: sentAt,
-        expiresAt: expiry(sentAt),
-      }
-      write(
-        INVITES_KEY,
-        readInvites().map((i) => (i.id === next.id ? next : i)),
-      )
-      sendMockMessage({
-        channel: "email",
-        to: next.email,
-        kind: "invite",
-        link: inviteLink(next.token),
-      })
-      return json(invitationOf(next))
-    }),
-
-    http.delete(`${baseUrl}/invitations/:id`, ({ params, request }) => {
-      const access = allowedIn(request, "users", "create", "change")
-      if (access instanceof Response) return access
-      const { user } = access
-      const invite = companyInvite(request, user, params.id)
-      if (invite instanceof Response) return invite
-      write(
-        INVITES_KEY,
-        readInvites().filter((i) => i.id !== invite.id),
-      )
-      recordAudit({
-        action: "users.invitation_revoked",
-        category: "users",
-        target: { type: "invitations", id: invite.id, name: invite.email },
-      })
-      return noContent()
-    }),
+    ...createInvitationHandlers({ baseUrl, inviteLink, allowedIn }),
   ]
 }

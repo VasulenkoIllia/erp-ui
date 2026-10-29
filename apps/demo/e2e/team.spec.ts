@@ -207,7 +207,7 @@ test.describe("запрошення (ADR-0014)", () => {
       })
       .click()
     await page
-      .getByRole("dialog", {
+      .getByRole("alertdialog", {
         name: "Відкликати запрошення для petro@zoriana.example?",
       })
       .getByRole("button", { name: "Відкликати" })

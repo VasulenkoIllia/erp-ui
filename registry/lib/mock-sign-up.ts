@@ -2,7 +2,7 @@
  * Мок відновлення пароля, запрошень і реєстрації (ADR-0010, ADR-0014, ADR-0032): лист зі скиданням
  * пароля, перевірка й прийняття запрошення (токен у тілі, застарілий `GET` — для сервера без
  * `POST`), реєстрація нової компанії з кодом із листа. Обробники бере `createPlatformHandlers`
- * (`lib/mock-auth`); запрошення адміністраторів — `lib/mock-team`.
+ * (`lib/mock-auth`); запрошення адміністраторів — `lib/mock-invitations`, їх сховище — `lib/mock-invitation-store`.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -23,7 +23,7 @@ import type { SignInFlow } from "@/registry/lib/mock-sign-in-flow"
 import {
   acceptMockInvitation,
   findMockInvitation,
-} from "@/registry/lib/mock-team"
+} from "@/registry/lib/mock-invitation-store"
 
 export interface MockInvite {
   token: string
