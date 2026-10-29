@@ -2,7 +2,7 @@
  * Чиї дані й події в моках (ADR-0036): компанія запиту бачить свої й спільні (без компанії) записи,
  * події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої;
  * спільне в застосунку з компаніями змінює лише адміністратор платформи. У застосунку без компаній
- * усе спільне, як до ADR-0036. Без MSW.
+ * усе спільне, як до ADR-0036. Позначка заборон на записі для того, хто питає (ADR-0037). Без MSW.
  */
 import {
   hasMockCompanies,
@@ -11,6 +11,10 @@ import {
   type MockScope,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import {
+  RECORD_DENIAL_REASONS,
+  type RecordDeniedActions,
+} from "@/registry/lib/record-access"
 
 /**
  * Застосунок без компаній (за початковими людьми): дані й події видно всі, і людині, що
@@ -64,6 +68,33 @@ export const isMockSharedLocked = (
   actor: MockUser,
   ownerId: string | null | undefined,
 ) => ownerId == null && actor.isPlatformAdmin !== true && !isNoCompanyApp()
+
+/**
+ * Позначка сервера на записі (`deniedActions`, ADR-0037): спільний запис у застосунку з компаніями
+ * змінює й видаляє лише адміністратор платформи, решті `update` і `delete` заборонені з причиною
+ * `shared`; `undefined` — запис нічого не забороняє.
+ */
+export function mockDeniedActions(
+  actor: MockUser,
+  ownerId: string | null | undefined,
+): RecordDeniedActions | undefined {
+  if (!isMockSharedLocked(actor, ownerId)) return undefined
+  const { shared } = RECORD_DENIAL_REASONS
+  return { update: shared, delete: shared }
+}
+
+/**
+ * Запис для відповіді тому, хто питає: позначку заборон обчислює сервер щоразу, а збереженої (з
+ * засіву, зі схеми без суворих полів) не віддає.
+ */
+export function withMockDeniedActions<
+  T extends { companyId?: string | null; deniedActions?: unknown },
+>(actor: MockUser, record: T): T {
+  const row = { ...record }
+  delete row.deniedActions
+  const denied = mockDeniedActions(actor, record.companyId)
+  return denied ? { ...row, deniedActions: denied } : row
+}
 
 /**
  * Лише своєї компанії: підписки й токени (ADR-0036). Без компанії — підписка застосунку: її в

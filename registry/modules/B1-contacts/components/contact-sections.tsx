@@ -1,14 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useCanAccess, useRefresh, useUpdate } from "ra-core"
+import { useRefresh, useUpdate } from "ra-core"
 import { useCallback, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { RecordLink } from "@/components/erp/record-link"
 import { RecordPicker } from "@/components/erp/record-picker"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useCompanyId } from "@/hooks/use-company"
+import { useRecordAccess } from "@/hooks/use-record-access"
 import { isApiError } from "@/lib/api"
 import { companyScope } from "@/lib/company-scope"
 import { applyKeyedChanges } from "@/lib/extensions"
@@ -91,17 +92,20 @@ export function ContactDetails({ contact }: { contact: Contact }) {
 /**
  * Організація, яку представляє контакт: вибір з пошуком на сервері (UI40, erp/record-picker) і
  * посилання на картку. Зміна — одразу збереженням з версією запису (ADR-0002): конфлікт чи збій —
- * сповіщення, а поле лишається зі збереженим значенням. Без права змінювати контакти — лише читання.
+ * сповіщення, а поле лишається зі збереженим значенням. Без права змінювати контакти — лише читання;
+ * сервер забороняє зміну цього контакту (спільний запис, ADR-0037) — лише читання з причиною під полем.
  */
 export function ContactOrganizationSection({ contact }: { contact: Contact }) {
   const t = useContactsT()
   const { paths, preload } = useContactsModule()
-  const { canAccess = false, isPending: isAccessPending } = useCanAccess({
-    resource: CONTACTS,
-    action: "update",
-  })
+  const {
+    canAccess,
+    isPending: isAccessPending,
+    recordReason,
+  } = useRecordAccess({ resource: CONTACTS, action: "update", record: contact })
   const { save, isSaving } = useSaveOrganization(contact)
   const fieldId = useId()
+  const reasonId = useId()
   const describe = useOrganizationDescription()
   return (
     <div className="max-w-md space-y-3">
@@ -126,8 +130,12 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
             searchPlaceholder={t("contact.organization.searchPlaceholder")}
             clearable
             readOnly={!canAccess}
+            aria-describedby={recordReason ? reasonId : undefined}
           />
         )}
+        {recordReason ? (
+          <FieldDescription id={reasonId}>{recordReason}</FieldDescription>
+        ) : null}
       </Field>
       {contact.organizationId ? (
         <RecordLink

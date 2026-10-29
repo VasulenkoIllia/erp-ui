@@ -296,6 +296,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -555,6 +560,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -1205,6 +1215,11 @@
           "path": "registry/lib/preferences.ts",
           "type": "registry:lib",
           "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -2088,6 +2103,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/record-label.tsx",
           "type": "registry:lib",
           "target": "@lib/record-label.tsx"
@@ -2723,6 +2743,11 @@
           "target": "@hooks/use-pin.ts"
         },
         {
+          "path": "registry/hooks/use-record-access.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-access.ts"
+        },
+        {
           "path": "registry/hooks/use-record-form.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-form.ts"
@@ -3066,6 +3091,11 @@
           "path": "registry/lib/preferences.ts",
           "type": "registry:lib",
           "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -5343,6 +5373,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -5727,6 +5762,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -5904,6 +5944,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -6099,6 +6144,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -7105,6 +7155,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -7329,6 +7384,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -7557,6 +7617,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -7781,6 +7846,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -8034,6 +8104,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -8263,6 +8338,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -8496,6 +8576,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -8727,6 +8812,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -8953,6 +9043,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -9112,6 +9207,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -9340,6 +9440,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -9564,6 +9669,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -9847,6 +9957,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -10016,6 +10131,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -10253,6 +10373,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -10410,6 +10535,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -10466,7 +10596,7 @@
       "name": "lib/mock-scope",
       "type": "registry:lib",
       "title": "Чиї дані й події в моках",
-      "description": "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036).",
+      "description": "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -10586,6 +10716,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -10737,6 +10872,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -10962,6 +11102,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -11190,6 +11335,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -11416,6 +11566,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -11570,6 +11725,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -11808,6 +11968,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -11842,7 +12007,7 @@
       "name": "lib/mocks",
       "type": "registry:lib",
       "title": "Мок-сервер MSW",
-      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -12077,6 +12242,11 @@
           "path": "registry/lib/preferences.ts",
           "type": "registry:lib",
           "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -12457,6 +12627,30 @@
         "demo": "data",
         "spec": [
           "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/record-access",
+      "type": "registry:lib",
+      "title": "Права на рівні запису: контракт",
+      "description": "Позначка сервера на записі deniedActions { <дія>: <код причини> } у списку, картці, відповідях POST і PATCH і current 409: що з цим записом не можна тому, хто питає; немає поля — діють права ролі. recordDenial(record, action), коди причин зі своїм текстом кіта (shared — спільний запис); сервер однаково перевіряє кожен запит (ADR-0037).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.4",
+          "§17",
+          "A2"
         ]
       }
     },
@@ -12864,6 +13058,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -13291,6 +13490,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -13450,6 +13654,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -13602,6 +13811,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -13837,6 +14051,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -14181,6 +14400,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -14453,6 +14677,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -14628,6 +14857,155 @@
       }
     },
     {
+      "name": "hooks/use-record-access",
+      "type": "registry:hook",
+      "title": "Дія над записом",
+      "description": "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку (ADR-0037).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-record-access.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-access.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§8.4",
+          "§17",
+          "A2"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-record-form",
       "type": "registry:hook",
       "title": "Збереження форми запису",
@@ -14757,6 +15135,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -14922,6 +15305,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -15353,6 +15741,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -15546,6 +15939,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -15856,6 +16254,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -16177,6 +16580,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -16449,6 +16857,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -16728,6 +17141,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -17012,6 +17430,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -17369,6 +17792,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -17602,6 +18030,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -17867,6 +18300,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -18302,6 +18740,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -18834,6 +19277,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -20161,6 +20609,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -21070,6 +21523,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/record-label.tsx",
           "type": "registry:lib",
           "target": "@lib/record-label.tsx"
@@ -21365,6 +21823,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -21684,6 +22147,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -22012,6 +22480,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -22535,6 +23008,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -22798,6 +23276,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -23067,6 +23550,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -23643,6 +24131,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -24300,6 +24793,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -24522,6 +25020,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -25067,6 +25570,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -25131,7 +25639,7 @@
       "name": "erp/permission-gate",
       "type": "registry:component",
       "title": "Перевірка права",
-      "description": "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
+      "description": "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003) і коли запис не забороняє дію (record — позначка сервера deniedActions, ADR-0037); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -25247,6 +25755,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -25730,6 +26243,11 @@
           "target": "@lib/phone.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -26035,6 +26553,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -26293,6 +26816,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -26654,6 +27182,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -26886,6 +27419,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -27145,6 +27683,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -27417,6 +27960,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -27659,6 +28207,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -28005,6 +28558,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -28268,6 +28826,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -28958,6 +29521,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -29221,6 +29789,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -29432,6 +30005,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -29656,6 +30234,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -29820,6 +30403,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -30362,6 +30950,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -30638,6 +31231,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -30928,6 +31526,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -31360,6 +31963,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -31669,6 +32277,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
@@ -31967,6 +32580,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -32327,6 +32945,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -32772,6 +33395,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/record-label.tsx",
@@ -33244,6 +33872,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/roles.ts",

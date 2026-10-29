@@ -178,6 +178,7 @@ function useContactHeader(
           icon="edit"
           label={t("contact.edit")}
           deniedReason={t("contact.editDenied")}
+          record={contact}
           onClick={onEdit}
         />
       ),

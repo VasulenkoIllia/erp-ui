@@ -5,6 +5,17 @@
  */
 export type { Organization } from "@/registry/modules/B1-contacts/contract"
 
-/** Компанія користувача демо для організації № i: кожна п'ята — друга компанія. */
+/**
+ * Спільний контрагент платформи (без компанії) — «ТОВ «Зелена долина»»: його бачать усі компанії, а
+ * змінює лише адміністратор платформи; картка показує неактивні дії з причиною (ADR-0036, ADR-0037).
+ * Разом з ним спільні і його контакти.
+ */
+export const SHARED_ORGANIZATION_INDEX = 10
+
+/** Компанія користувача демо для організації № i: кожна п'ята — друга компанія, одна — спільна. */
 export const organizationCompanyOf = (index: number) =>
-  index % 5 === 4 ? "kovalenko" : "zoriana"
+  index === SHARED_ORGANIZATION_INDEX
+    ? null
+    : index % 5 === 4
+      ? "kovalenko"
+      : "zoriana"

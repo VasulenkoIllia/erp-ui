@@ -72,6 +72,7 @@ import {
 import { inviteChecker } from "@/registry/lib/invite-check"
 import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
+import { recordDenial } from "@/registry/lib/record-access"
 import { createRolesApi, type RolesApi } from "@/registry/lib/roles"
 import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
@@ -268,13 +269,17 @@ export const ME_QUERY_KEY = ["erp-ui", "me"] as const
 /** Скільки чекати на `POST /auth/logout`, перш ніж вважати вихід невдалим. */
 const LOGOUT_TIMEOUT_MS = 10_000
 
-/** Дії ra-core (`useCanAccess`, вбудовані контролери) → дії прав erp-ui. */
-const RA_ACTIONS: Record<string, string> = {
-  list: "read",
-  show: "read",
-  export: "read",
-  edit: "update",
-}
+/** Дії ra-core (`useCanAccess`, вбудовані контролери) → дії прав erp-ui; `Map` — без ключів прототипу. */
+const RA_ACTIONS = new Map([
+  ["list", "read"],
+  ["show", "read"],
+  ["export", "read"],
+  ["edit", "update"],
+])
+
+/** Дія прав erp-ui для дії ra-core (`edit` → `update`), своя — як є. */
+export const kitAction = (action: string): string =>
+  RA_ACTIONS.get(action) ?? action
 
 /**
  * Чи дозволяє набір прав дію: точний збіг, `<ресурс>:*` або `*`.
@@ -285,7 +290,7 @@ export function hasPermission(
   resource: string,
   action: string,
 ): boolean {
-  const normalized = RA_ACTIONS[action] ?? action
+  const normalized = kitAction(action)
   return permissions.some(
     (p) =>
       p === "*" || p === `${resource}:*` || p === `${resource}:${normalized}`,
@@ -788,13 +793,8 @@ export function createAuthProvider(
       return (await loadMe()).permissions
     },
 
-    async canAccess({
-      resource,
-      action,
-    }: {
-      resource: string
-      action: string
-    }) {
+    async canAccess({ resource, action, record }) {
+      if (recordDenial(record, kitAction(action))) return false
       return hasPermission((await loadMe()).permissions, resource, action)
     },
   }

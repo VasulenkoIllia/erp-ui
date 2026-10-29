@@ -1,7 +1,7 @@
 /**
- * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023), форми запису (ADR-0026) і
- * мультивибору з довідника (ADR-0027) англійською — ті самі ключі, що в
- * `i18n-uk-records.ts`.
+ * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023), форми запису (ADR-0026),
+ * мультивибору з довідника (ADR-0027) і причин заборони дії над записом (ADR-0037) англійською —
+ * ті самі ключі, що в `i18n-uk-records.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 import type { ukRecords } from "@/registry/lib/i18n-uk-records"
@@ -51,6 +51,10 @@ export const enRecords = {
   copyableValue: {
     copy: "Copy: {{label}}",
     empty: "Not specified",
+  },
+  recordAccess: {
+    shared: "Shared record: only a platform administrator can change it",
+    denied: "This action isn't allowed for this record",
   },
   recordForm: {
     save: "Save",

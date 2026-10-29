@@ -1,6 +1,8 @@
 import * as React from "react"
 
 import { useHasPermission, useMe } from "@/registry/hooks/use-me"
+import { kitAction } from "@/registry/lib/auth"
+import { recordDenial } from "@/registry/lib/record-access"
 import { Button } from "@/registry/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
@@ -13,7 +15,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
  *   </PermissionGate>
  *
  * `fallback` — що показати без права (за замовчуванням нічого); поки профіль вантажиться —
- * `loading` (за замовчуванням теж нічого, щоб кнопки не блимали).
+ * `loading` (за замовчуванням теж нічого, щоб кнопки не блимали). `record` — запис, над яким дія:
+ * його позначка сервера (`deniedActions`, ADR-0037) теж забороняє дію; показати її неактивною з
+ * причиною — `useRecordAccess` з hooks/use-record-access і `DeniedAction`.
  */
 export function PermissionGate({
   resource,
@@ -21,15 +25,19 @@ export function PermissionGate({
   children,
   fallback = null,
   loading = null,
+  record,
 }: {
   resource: string
   action: string
   children: React.ReactNode
   fallback?: React.ReactNode
   loading?: React.ReactNode
+  record?: unknown
 }) {
   const { isPending } = useMe()
-  const allowed = useHasPermission(resource, action)
+  const allowed =
+    useHasPermission(resource, action) &&
+    recordDenial(record, kitAction(action)) === undefined
   if (isPending) return <>{loading}</>
   return <>{allowed ? children : fallback}</>
 }

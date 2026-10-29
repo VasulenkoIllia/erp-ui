@@ -71,6 +71,7 @@ export function useOrganizationHeader(
           icon="edit"
           label={t("organization.edit")}
           deniedReason={t("organization.editDenied")}
+          record={organization}
           onClick={onEdit}
         />
       ),

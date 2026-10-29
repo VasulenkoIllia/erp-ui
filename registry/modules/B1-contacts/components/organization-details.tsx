@@ -1,4 +1,3 @@
-import { useCanAccess } from "ra-core"
 import {
   useCallback,
   useLayoutEffect,
@@ -10,6 +9,7 @@ import {
   type Ref,
 } from "react"
 
+import { useRecordAccess } from "@/hooks/use-record-access"
 import { formatIban } from "@/lib/ua-ids"
 
 import {
@@ -39,7 +39,8 @@ import { useDetailUpdate } from "./use-detail-update"
 /**
  * Редагування адрес і рахунків у картці організації (ADR-0028): «Додати…» в заголовку вкладки,
  * меню дій у рядку, форми в діалозі (лінивими чанками), підтвердження видалення. Усе — з правом
- * `organizations:update`: без нього «Додати…» неактивна з причиною, а таблиці — лише для читання.
+ * `organizations:update`: без нього чи коли сервер забороняє зміну цієї організації (спільний запис,
+ * ADR-0037) «Додати…» неактивна з причиною, а таблиці — лише для читання.
  * Поки адрес і рахунків немає (вантажаться чи не завантажились), дій немає: зміна потребує колекції.
  * Поки зберігається дія без форми («Зробити основним», «Видалити»), інші дії неактивні.
  */
@@ -64,9 +65,10 @@ export function useDetailEditing(
   state: DetailState,
 ): DetailEditing {
   const t = useContactsT()
-  const { canAccess = false } = useCanAccess({
+  const { canAccess } = useRecordAccess({
     resource: ORGANIZATIONS,
     action: "update",
+    record: organization,
   })
   const card = useMemo<OrganizationCard | undefined>(
     () =>
@@ -116,6 +118,7 @@ export function useDetailEditing(
     addAddress: card ? (
       <AddDetailAction
         kind="address"
+        organization={card}
         buttonRef={addAddressRef}
         busy={isSaving}
         onOpen={open}
@@ -124,6 +127,7 @@ export function useDetailEditing(
     addBankAccount: card ? (
       <AddDetailAction
         kind="bankAccount"
+        organization={card}
         buttonRef={addAccountRef}
         busy={isSaving}
         onOpen={open}
@@ -165,14 +169,16 @@ export function useDetailEditing(
   }
 }
 
-/** «Додати адресу» / «Додати рахунок»: без права — неактивна з причиною. */
+/** «Додати адресу» / «Додати рахунок»: без права чи з забороною сервера — неактивна з причиною. */
 function AddDetailAction({
   kind,
+  organization,
   buttonRef,
   busy,
   onOpen,
 }: {
   kind: Editing["kind"]
+  organization: OrganizationCard
   buttonRef: Ref<HTMLButtonElement>
   busy: boolean
   onOpen: (next: Editing, opener: HTMLElement | null) => void
@@ -190,6 +196,7 @@ function AddDetailAction({
           : "organization.bankAccounts.add",
       )}
       deniedReason={t("organization.editDenied")}
+      record={organization}
       busy={busy}
       onClick={(event: MouseEvent<HTMLButtonElement>) => {
         onOpen({ kind }, event.currentTarget)

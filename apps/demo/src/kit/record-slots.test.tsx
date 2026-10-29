@@ -18,6 +18,8 @@ import {
 interface Doc {
   id: string
   title: string
+  /** Позначка сервера на записі (ADR-0037). */
+  deniedActions?: Record<string, string>
 }
 
 function Note({ record, resource }: RecordSlotProps<Doc>) {
@@ -182,6 +184,12 @@ describe("ObjectPage: шапка, секції й дії списками з к�
 
   it("дія з правом: без права її немає", () => {
     renderCard(["docs:read"], record)
+    expect(screen.queryByRole("button", { name: "Нагадати" })).toBeNull()
+    expect(screen.getByRole("button", { name: "Змінити" })).toBeVisible()
+  })
+
+  it("дія з правом, яку запис забороняє (`deniedActions`, ADR-0037), — прихована, як без права", () => {
+    renderCard(["docs:*"], { ...record, deniedActions: { update: "shared" } })
     expect(screen.queryByRole("button", { name: "Нагадати" })).toBeNull()
     expect(screen.getByRole("button", { name: "Змінити" })).toBeVisible()
   })

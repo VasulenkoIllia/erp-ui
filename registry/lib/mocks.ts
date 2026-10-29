@@ -7,7 +7,8 @@
  *   користувачів (lib/mock-admin), журнал аудиту, вебхуки й сповіщення (ADR-0013).
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії запиту (`X-Company-Id` за членством, права — у ній,
- *   запис іншої компанії — 404, A2c1); кожна зміна — у журнал аудиту
+ *   запис іншої компанії — 404, A2c1), позначкою заборон на записі для того, хто питає
+ *   (`deniedActions`, ADR-0037); кожна зміна — у журнал аудиту
  *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
  *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018). `pins` — закріплення записів
  *   (lib/mock-lists, ADR-0024).
@@ -57,7 +58,11 @@ import {
   type MockScope,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { inMockCompany, isMockSharedLocked } from "@/registry/lib/mock-scope"
+import {
+  inMockCompany,
+  isMockSharedLocked,
+  withMockDeniedActions,
+} from "@/registry/lib/mock-scope"
 import { pinnedFirst } from "@/registry/lib/pins"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
@@ -574,7 +579,12 @@ export function createResourceHandlers<T extends MockRecord>({
       return json({
         data: filtered
           .slice(start, start + perPage)
-          .map((record) => withPin(listRow(record), pinned)),
+          .map((record) =>
+            withMockDeniedActions(
+              access.user,
+              withPin(listRow(record), pinned),
+            ),
+          ),
         total: filtered.length,
       })
     }),
@@ -583,13 +593,25 @@ export function createResourceHandlers<T extends MockRecord>({
       const access = await guard(request, "read")
       if (access instanceof Response) return access
       const record = findIn(access.companyId, params.id)
-      return record ? json(full(withPin(record, pinnedIds()))) : notFound()
+      return record
+        ? json(
+            withMockDeniedActions(
+              access.user,
+              full(withPin(record, pinnedIds())),
+            ),
+          )
+        : notFound()
     }),
 
     http.post(url, async ({ request }) => {
       const access = await guard(request, "create")
       if (access instanceof Response) return access
-      const body = (await request.json()) as Record<string, unknown>
+      // Позначку заборон (ADR-0037) веде сервер: з тіла запиту її не беремо.
+      const { deniedActions, ...body } = (await request.json()) as Record<
+        string,
+        unknown
+      >
+      void deniedActions
       // Компанію, як `id` і `version`, задає сервер: запис — компанії запиту.
       const parsed = schema.safeParse({
         ...body,
@@ -603,7 +625,9 @@ export function createResourceHandlers<T extends MockRecord>({
       if (duplicates) return validationError(duplicates)
       replace([record, ...all()])
       changed("created", record)
-      return json(full(record), { status: 201 })
+      return json(withMockDeniedActions(access.user, full(record)), {
+        status: 201,
+      })
     }),
 
     http.patch(`${url}/:id`, async ({ params, request }) => {
@@ -614,10 +638,9 @@ export function createResourceHandlers<T extends MockRecord>({
       const locked = sharedLocked(access, current)
       if (locked) return locked
       const index = all().indexOf(current)
-      const { version, ...changes } = (await request.json()) as Record<
-        string,
-        unknown
-      >
+      const { version, deniedActions, ...changes } =
+        (await request.json()) as Record<string, unknown>
+      void deniedActions
       // Сценарій conflict імітує, що інший користувач зберіг запис перед нами — один раз
       // на запис, тож «Зберегти мої зміни» з новою версією після цього проходить.
       if (scenarioFor(resource) === "conflict" && !bumped.delete(current.id)) {
@@ -629,13 +652,13 @@ export function createResourceHandlers<T extends MockRecord>({
         return errorResponse(409, {
           code: "conflict",
           message: "Record was changed by someone else",
-          current: full(latest),
+          current: withMockDeniedActions(access.user, full(latest)),
         })
       }
       const result = patch(latest.id, changes)
       if (!result) return notFound()
       if ("fieldErrors" in result) return validationError(result.fieldErrors)
-      return json(full(result.record))
+      return json(withMockDeniedActions(access.user, full(result.record)))
     }),
 
     http.delete(`${url}/:id`, async ({ params, request }) => {

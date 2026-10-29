@@ -286,9 +286,9 @@ export interface ExtensionAction<T> {
   readonly id: string
   readonly component: React.ComponentType<RecordSlotProps<T>>
   /**
-   * Дія ресурсу модуля, на яку потрібне право: `edit` (не `invoices:edit`). Без права дії не видно;
-   * щоб показати її неактивною з причиною (SPEC §8.4), компонент перевіряє право сам і ставить
-   * `DeniedAction`.
+   * Дія ресурсу модуля, на яку потрібне право: `edit` (не `invoices:edit`). Без права чи коли запис
+   * дію забороняє (`deniedActions`, ADR-0037), дії не видно; щоб показати її неактивною з причиною
+   * (SPEC §8.4), компонент перевіряє сам (`useRecordAccess`) і ставить `DeniedAction`.
    */
   readonly access?: string
 }
@@ -296,7 +296,8 @@ export interface ExtensionAction<T> {
 /**
  * Секції й дії розширення для картки (ADR-0020): компонент проекту в слоті отримує запис і ресурс,
  * кожен — у власній межі помилок: збій слота проекту не валить картку модуля (секція показує помилку
- * з повтором, дія зникає). Дія з `access` видна лише з правом (`PermissionGate`). Поки запису немає,
+ * з повтором, дія зникає). Дія з `access` видна лише з правом, і коли запис її не забороняє
+ * (`PermissionGate` з позначкою сервера `deniedActions`, ADR-0037). Поки запису немає,
  * змін немає. Результат модуль зливає зі своїми секціями й діями (`applyKeyedChanges`).
  */
 export function useRecordSlots<
@@ -339,7 +340,7 @@ export function useRecordSlots<
         return {
           id,
           node: access ? (
-            <PermissionGate resource={resource} action={access}>
+            <PermissionGate resource={resource} action={access} record={record}>
               {node}
             </PermissionGate>
           ) : (

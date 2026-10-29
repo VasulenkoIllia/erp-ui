@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState, type MouseEvent } from "react"
 import { useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { DeniedAction } from "@/components/erp/permission-gate"
 import {
   ListReport,
   ListReportHeader,
@@ -11,8 +12,9 @@ import {
 } from "@/components/templates/list-report"
 import { Button } from "@/components/ui/button"
 import { usePageHeading } from "@/hooks/use-page-heading"
+import { useRecordDenialReason } from "@/hooks/use-record-access"
 import type { DataTableColumn } from "@/lib/data-table-core"
-import { SHELL_ICONS } from "@/lib/icons"
+import { ACTION_ICONS, SHELL_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import { AccessAction, useOpener } from "../components/access-action"
@@ -32,8 +34,9 @@ type OpenForm = (segment: Segment, event: MouseEvent<HTMLElement>) => void
 /**
  * Довідник сегментів (ADR-0027) на шаблоні List Report сторінками: пошук за назвою, сортування,
  * запам'ятаний розмір сторінки. «Створити сегмент» і назва сегмента відкривають форму в діалозі;
- * без права змінювати назва — текст. Після збереження список перечитується, фокус — на кнопку,
- * що відкрила форму.
+ * без права змінювати назва — текст; сегмент, зміну якого забороняє сервер (спільний, ADR-0037), —
+ * назва текстом і неактивна «Змінити» з замком і причиною в колонці дій. Після збереження список
+ * перечитується, фокус — на кнопку, що відкрила форму.
  */
 export function SegmentsListPage() {
   const t = useContactsT()
@@ -100,22 +103,30 @@ export function SegmentsListPage() {
   )
 }
 
-/** Колонка назви: з правом змінювати — кнопка, що відкриває форму; без права — текст. */
-function useSegmentColumns(
-  onEdit: OpenForm,
-): readonly (DataTableColumn<Segment> & { id: "name" })[] {
+type SegmentColumn = DataTableColumn<Segment> & { id: "name" | "actions" }
+
+/**
+ * Колонки: назва — з правом змінювати кнопка, що відкриває форму, інакше текст; «Дії» — неактивна
+ * «Змінити» з причиною, коли сервер забороняє зміну сегмента (спільний, ADR-0037), інакше порожньо;
+ * без права змінювати колонки дій немає.
+ * Замок окремою колонкою: назва картки на телефоні — лише назва сегмента, без причини.
+ */
+function useSegmentColumns(onEdit: OpenForm): readonly SegmentColumn[] {
   const t = useContactsT()
   const { canAccess: canUpdate } = useCanAccess({
     resource: SEGMENTS,
     action: "update",
   })
-  return useMemo(
-    () => [
+  const recordReason = useRecordDenialReason()
+  return useMemo(() => {
+    const lockedBy = (segment: Segment) =>
+      canUpdate ? recordReason(segment, "update") : undefined
+    const columns: SegmentColumn[] = [
       {
         id: "name",
         header: t("segments.columns.name"),
         cell: (segment) =>
-          canUpdate ? (
+          canUpdate && !lockedBy(segment) ? (
             <Button
               variant="link"
               className="h-auto min-h-7 px-0 font-medium"
@@ -135,8 +146,52 @@ function useSegmentColumns(
         sticky: true,
         card: "title",
       },
-    ],
-    [t, canUpdate, onEdit],
+      {
+        id: "actions",
+        header: t("segments.columns.actions"),
+        headerHidden: true,
+        cell: (segment) => {
+          const reason = lockedBy(segment)
+          return reason ? (
+            <LockedSegmentEdit segment={segment} reason={reason} />
+          ) : null
+        },
+        minWidth: 7,
+        grow: 0,
+        align: "end",
+        card: "actions",
+      },
+    ]
+    // Без права змінювати замка не буває: колонка дій лише порожніла б.
+    return canUpdate
+      ? columns
+      : columns.filter((column) => column.id !== "actions")
+  }, [t, canUpdate, recordReason, onEdit])
+}
+
+/**
+ * «Змінити» сегмента, який не змінити (спільний): неактивна з замком, підписом і причиною. Підпис
+ * видно й на телефоні, де підказка на дотик не відкривається.
+ */
+function LockedSegmentEdit({
+  segment,
+  reason,
+}: {
+  segment: Segment
+  reason: string
+}) {
+  const t = useContactsT()
+  const Lock = ACTION_ICONS.lock
+  return (
+    <DeniedAction
+      variant="ghost"
+      size="sm"
+      reason={reason}
+      aria-label={t("segments.edit", { name: segment.name })}
+    >
+      <Lock aria-hidden />
+      {t("segments.editShort")}
+    </DeniedAction>
   )
 }
 

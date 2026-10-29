@@ -255,9 +255,11 @@
     "createDenied": "You don't have permission to create segments",
     "tableLabel": "Segments",
     "columns": {
-      "name": "Name"
+      "name": "Name",
+      "actions": "Actions"
     },
     "edit": "Edit segment “{{name}}”",
+    "editShort": "Edit",
     "empty": {
       "title": "No segments yet",
       "description": "Create the first segment to group clients."

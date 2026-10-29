@@ -308,7 +308,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -473,6 +473,14 @@ export const CODE_ITEMS = {
     demo: "roles",
     spec: ["A2"],
   },
+  "hooks/use-record-access": {
+    title: "Дія над записом",
+    description:
+      "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку (ADR-0037).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§8.4", "§17", "A2"],
+  },
   "hooks/use-history-refresh": {
     title: "Свіжа історія картки",
     description:
@@ -572,7 +580,7 @@ export const CODE_ITEMS = {
   "lib/mock-scope": {
     title: "Чиї дані й події в моках",
     description:
-      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036).",
+      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037).",
     status: "beta",
     demo: "data",
     spec: ["A2", "§17"],
@@ -712,6 +720,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["UI03", "PF06", "PF11", "§17"],
+  },
+  "lib/record-access": {
+    title: "Права на рівні запису: контракт",
+    description:
+      "Позначка сервера на записі deniedActions { <дія>: <код причини> } у списку, картці, відповідях POST і PATCH і current 409: що з цим записом не можна тому, хто питає; немає поля — діють права ролі. recordDenial(record, action), коди причин зі своїм текстом кіта (shared — спільний запис); сервер однаково перевіряє кожен запит (ADR-0037).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§8.4", "§17", "A2"],
   },
   "lib/pins": {
     title: "Закріплення записів: контракт",
@@ -1339,7 +1355,7 @@ export const CODE_ITEMS = {
   "erp/permission-gate": {
     title: "Перевірка права",
     description:
-      "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
+      "PermissionGate: вміст лише з правом <ресурс>:<дія> (ADR-0003) і коли запис не забороняє дію (record — позначка сервера deniedActions, ADR-0037); fallback і стан, поки профіль вантажиться. DeniedAction: дія без права — неактивна, у фокусі, причина в підказці й для скрінрідера (SPEC §8.4).",
     status: "beta",
     demo: "roles",
     spec: ["A2", "PF01"],

@@ -1,14 +1,15 @@
-import { useCanAccess } from "ra-core"
 import { useCallback, useRef, type MouseEvent, type Ref } from "react"
 
 import { DeniedAction } from "@/components/erp/permission-gate"
 import { Button } from "@/components/ui/button"
+import { useRecordAccess } from "@/hooks/use-record-access"
 import { ACTION_ICONS } from "@/lib/icons"
 
 /**
  * Дія з правом ресурсу (ADR-0014): «Створити організацію» в шапці списку, «Змінити» в шапці картки.
  * Без права — неактивна з причиною (SPEC §8.4); поки права невідомі — нічого, а не «немає доступу»,
- * що за мить стане кнопкою.
+ * що за мить стане кнопкою. З `record` дію забороняє й позначка сервера на записі (спільний запис,
+ * ADR-0037): кнопка неактивна з причиною запису.
  */
 export function AccessAction({
   resource,
@@ -20,6 +21,7 @@ export function AccessAction({
   onClick,
   ref,
   busy = false,
+  record,
 }: {
   resource: string
   action: "create" | "update"
@@ -32,8 +34,14 @@ export function AccessAction({
   ref?: Ref<HTMLButtonElement>
   /** Поки зберігається інша зміна запису — неактивна, але фокус лишається на ній. */
   busy?: boolean
+  /** Запис, над яким дія (`update` у картці): його позначка сервера теж забороняє дію. */
+  record?: unknown
 }) {
-  const { canAccess, isPending } = useCanAccess({ resource, action })
+  const { canAccess, isPending, recordReason } = useRecordAccess({
+    resource,
+    action,
+    record,
+  })
   const Icon = ACTION_ICONS[icon]
   if (isPending) return null
   return canAccess ? (
@@ -48,7 +56,7 @@ export function AccessAction({
       {label}
     </Button>
   ) : (
-    <DeniedAction reason={deniedReason} variant={variant}>
+    <DeniedAction reason={recordReason ?? deniedReason} variant={variant}>
       <Icon aria-hidden />
       {label}
     </DeniedAction>
