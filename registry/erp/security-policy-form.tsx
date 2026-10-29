@@ -9,15 +9,19 @@ import {
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { SETUP_FACTORS } from "@/registry/lib/account"
+import { hasPermission } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   ADMIN_QUERY_KEYS,
   isValidCidr,
   PASSWORD_LIMITS,
+  policyReadOnlyReason,
   TWO_FACTOR_MODES,
+  type PolicyReadOnlyReason,
   type SecurityPolicy,
   type SecurityPolicyResponse,
 } from "@/registry/lib/security-policy"
@@ -61,13 +65,15 @@ const optionKey = (value: number | null) =>
 export function SecurityPolicyForm() {
   const provider = useErpAuthProvider()
   const companyId = useCompanyId()
+  const me = useMe()
   const queryKey = [...ADMIN_QUERY_KEYS.securityPolicy, companyScope(companyId)]
   const query = useQuery({
     queryKey,
     queryFn: () => provider.admin.getSecurityPolicy(),
   })
   if (query.isPending) return <SectionSkeleton rows={6} />
-  if (query.isError)
+  // Помилка — лише без даних: невдале фонове оновлення не прибирає форму з введеним (SPEC §8.3).
+  if (!query.data)
     return isApiError(query.error) && query.error.status === 403 ? (
       <PageState kind="forbidden" />
     ) : (
@@ -78,16 +84,33 @@ export function SecurityPolicyForm() {
         }}
       />
     )
-  // Форма живе, поки та сама компанія: фонове оновлення не стирає введене (SPEC §8.3).
-  return <PolicyForm key={companyId} data={query.data} queryKey={queryKey} />
+  const { canUpdate } = query.data
+  // Причина «лише перегляд» залежить від права з профілю: чекаємо його, щоб форма не блимала.
+  if (canUpdate !== true && me.isPending) return <SectionSkeleton rows={6} />
+  const readOnlyReason = policyReadOnlyReason(
+    canUpdate,
+    me.data ? hasPermission(me.data.permissions, "security", "update") : false,
+  )
+  // Форма живе, поки та сама компанія й той самий режим: фонове оновлення не стирає введене
+  // (SPEC §8.3) і не перемонтовує перегляд — його значення беруться прямо з даних.
+  return (
+    <PolicyForm
+      key={`${companyId ?? ""}:${readOnlyReason ?? "edit"}`}
+      data={query.data}
+      queryKey={queryKey}
+      readOnlyReason={readOnlyReason}
+    />
+  )
 }
 
 function PolicyForm({
   data,
   queryKey,
+  readOnlyReason,
 }: {
   data: SecurityPolicyResponse
   queryKey: readonly unknown[]
+  readOnlyReason?: PolicyReadOnlyReason
 }) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
@@ -95,12 +118,20 @@ function PolicyForm({
   const errorText = useAuthErrorText()
   const { guard, dialog } = useReauth()
   const ids = React.useId()
-  const [policy, setPolicy] = React.useState<SecurityPolicy>(data.policy)
-  const [ipText, setIpText] = React.useState(data.policy.ipAllowlist.join("\n"))
+  const [draft, setPolicy] = React.useState<SecurityPolicy>(data.policy)
+  const [draftIp, setIpText] = React.useState(
+    data.policy.ipAllowlist.join("\n"),
+  )
   const [errors, setErrors] = React.useState<Errors>({})
   const [error, setError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
   const { options } = data
+  const isReadOnly = readOnlyReason !== undefined
+  // Лише перегляд (ADR-0033): поля в порядку Tab, причина — у кожній групі; значення — свіжі з
+  // сервера, без копії в стані.
+  const readOnlyId = isReadOnly ? `${ids}-read-only` : undefined
+  const policy = isReadOnly ? data.policy : draft
+  const ipText = isReadOnly ? data.policy.ipAllowlist.join("\n") : draftIp
 
   const patch = (next: Partial<SecurityPolicy>) => {
     setPolicy((current) => ({ ...current, ...next }))
@@ -171,6 +202,7 @@ function PolicyForm({
       data-slot="security-policy-form"
       onSubmit={(event) => {
         event.preventDefault()
+        if (isReadOnly) return
         const local = validate()
         setErrors(local)
         if (Object.keys(local).length) return
@@ -198,13 +230,22 @@ function PolicyForm({
           })
       }}
     >
+      {readOnlyReason ? (
+        <Alert role="note" id={readOnlyId}>
+          <AlertDescription>
+            {readOnlyReason === "platform"
+              ? t("securityPolicy.readOnlyPlatform")
+              : t("securityPolicy.readOnly")}
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {error ? (
         <Alert variant="destructive" role="alert">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
-      <FieldSet>
+      <FieldSet aria-describedby={readOnlyId}>
         <FieldLegend>{t("securityPolicy.twoFactorTitle")}</FieldLegend>
         <Field>
           <FieldLabel htmlFor={`${ids}-two-factor`}>
@@ -216,6 +257,7 @@ function PolicyForm({
               label: t(`securityPolicy.twoFactor.${mode}`),
             }))}
             value={policy.twoFactor}
+            readOnly={isReadOnly}
             onValueChange={(value: SecurityPolicy["twoFactor"] | null) => {
               if (value) patch({ twoFactor: value })
             }}
@@ -237,6 +279,7 @@ function PolicyForm({
         </Field>
         {policy.twoFactor === "roles" ? (
           <CheckboxGroup
+            readOnly={isReadOnly}
             legend={t("securityPolicy.rolesLabel")}
             error={errors.twoFactorRoles}
             errorId={`${ids}-twoFactorRoles-error`}
@@ -253,6 +296,7 @@ function PolicyForm({
           />
         ) : null}
         <CheckboxGroup
+          readOnly={isReadOnly}
           legend={t("securityPolicy.factorsLabel")}
           error={errors.allowedFactors}
           errorId={`${ids}-allowedFactors-error`}
@@ -267,9 +311,10 @@ function PolicyForm({
         />
       </FieldSet>
 
-      <FieldSet>
+      <FieldSet aria-describedby={readOnlyId}>
         <FieldLegend>{t("securityPolicy.methodsTitle")}</FieldLegend>
         <CheckboxGroup
+          readOnly={isReadOnly}
           legend={t("securityPolicy.passwordlessLabel")}
           items={PASSWORDLESS.map((method) => ({
             value: method,
@@ -282,6 +327,7 @@ function PolicyForm({
         />
         {options.providers.length ? (
           <CheckboxGroup
+            readOnly={isReadOnly}
             legend={t("securityPolicy.ssoLabel")}
             items={options.providers.map((item) => ({
               value: item.id,
@@ -295,7 +341,7 @@ function PolicyForm({
         ) : null}
       </FieldSet>
 
-      <FieldSet>
+      <FieldSet aria-describedby={readOnlyId}>
         <FieldLegend>{t("securityPolicy.passwordTitle")}</FieldLegend>
         <div className="grid gap-4 @lg:grid-cols-3">
           <Field>
@@ -309,6 +355,7 @@ function PolicyForm({
               min={PASSWORD_LIMITS.min}
               max={PASSWORD_LIMITS.max}
               value={policy.password.minLength}
+              readOnly={isReadOnly}
               onChange={number((minLength) => ({
                 password: { ...policy.password, minLength },
               }))}
@@ -327,6 +374,7 @@ function PolicyForm({
                     : t("securityPolicy.days", { count: days }),
               }))}
               value={optionKey(policy.password.expiryDays)}
+              readOnly={isReadOnly}
               onValueChange={(value: string | null) => {
                 patch({
                   password: {
@@ -362,6 +410,7 @@ function PolicyForm({
               min={0}
               max={24}
               value={policy.password.preventReuse}
+              readOnly={isReadOnly}
               aria-describedby={`${ids}-reuse-hint`}
               onChange={number((preventReuse) => ({
                 password: { ...policy.password, preventReuse },
@@ -374,7 +423,7 @@ function PolicyForm({
         </div>
       </FieldSet>
 
-      <FieldSet>
+      <FieldSet aria-describedby={readOnlyId}>
         <FieldLegend>{t("securityPolicy.sessionTitle")}</FieldLegend>
         <div className="grid gap-4 @lg:grid-cols-3">
           <Field>
@@ -388,6 +437,7 @@ function PolicyForm({
               min={5}
               max={1440}
               value={policy.sessionMinutes}
+              readOnly={isReadOnly}
               onChange={number((sessionMinutes) => ({ sessionMinutes }))}
             />
           </Field>
@@ -404,6 +454,7 @@ function PolicyForm({
                     : t("securityPolicy.minutes", { count: minutes }),
               }))}
               value={optionKey(policy.idleTimeoutMinutes)}
+              readOnly={isReadOnly}
               onValueChange={(value: string | null) => {
                 patch({
                   idleTimeoutMinutes:
@@ -439,6 +490,7 @@ function PolicyForm({
               min={0}
               max={90}
               value={policy.trustedDeviceDays}
+              readOnly={isReadOnly}
               aria-describedby={`${ids}-trusted-hint`}
               onChange={number((trustedDeviceDays) => ({ trustedDeviceDays }))}
             />
@@ -449,7 +501,7 @@ function PolicyForm({
         </div>
       </FieldSet>
 
-      <FieldSet>
+      <FieldSet aria-describedby={readOnlyId}>
         <FieldLegend>{t("securityPolicy.ipTitle")}</FieldLegend>
         <Field data-invalid={errors.ipAllowlist ? true : undefined}>
           <FieldLabel htmlFor={`${ids}-ip`}>
@@ -461,6 +513,7 @@ function PolicyForm({
             spellCheck={false}
             className="font-mono"
             value={ipText}
+            readOnly={isReadOnly}
             aria-invalid={errors.ipAllowlist ? true : undefined}
             aria-describedby={`${ids}-ip-hint${errors.ipAllowlist ? ` ${ids}-ipAllowlist-error` : ""}`}
             onChange={(event) => {
@@ -475,7 +528,9 @@ function PolicyForm({
               : null}
           </FieldDescription>
           {errorText_("ipAllowlist")}
-          {options.currentIp && !ipLines.includes(options.currentIp) ? (
+          {!isReadOnly &&
+          options.currentIp &&
+          !ipLines.includes(options.currentIp) ? (
             <Button
               type="button"
               variant="outline"
@@ -494,10 +549,12 @@ function PolicyForm({
         </Field>
       </FieldSet>
 
-      <Button type="submit" disabled={busy}>
-        {busy ? <Spinner aria-hidden /> : null}
-        {t("securityPolicy.save")}
-      </Button>
+      {isReadOnly ? null : (
+        <Button type="submit" disabled={busy}>
+          {busy ? <Spinner aria-hidden /> : null}
+          {t("securityPolicy.save")}
+        </Button>
+      )}
       {dialog}
     </form>
   )
@@ -510,12 +567,15 @@ function CheckboxGroup<T extends string>({
   onChange,
   error,
   errorId,
+  readOnly,
 }: {
   legend: string
   items: { value: T; label: string; checked: boolean }[]
   onChange: (value: T, checked: boolean) => void
   error?: string
   errorId?: string
+  /** Лише перегляд — у порядку Tab (ADR-0033); галочка Base UI — `span`, поле її не блокує. */
+  readOnly?: boolean
 }) {
   const ids = React.useId()
   return (
@@ -532,6 +592,7 @@ function CheckboxGroup<T extends string>({
             <Checkbox
               id={`${ids}-${item.value}`}
               checked={item.checked}
+              readOnly={readOnly}
               onCheckedChange={(checked) => {
                 onChange(item.value, checked)
               }}

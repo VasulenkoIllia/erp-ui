@@ -171,6 +171,7 @@ const auditActions = () =>
   (
     JSON.parse(localStorage.getItem(AUDIT_KEY) ?? "[]") as {
       action: string
+      result?: "success" | "failure"
       details?: Record<string, unknown>
     }[]
   ).filter((event) => event.action === "users.invitation_resent")
@@ -340,11 +341,16 @@ describe("«стеля» на повтор і відкликання", () => {
         status: 403,
         code: "forbidden",
       })
-    // Відмова нічого не змінила: автор той самий, у журналі повтору немає.
+    // Відмова нічого не змінила: автор той самий, у журналі повтору немає — лише невдала спроба (A2c1).
     expect((await auth.invitations.list())[0]).toMatchObject({
       invitedBy: "o3",
     })
-    expect(auditActions()).toEqual([])
+    expect(auditActions()).toEqual([
+      expect.objectContaining({
+        result: "failure",
+        details: { code: "beyond_ceiling" },
+      }),
+    ])
     // Той, хто має ці права, — як раніше: повтор лише раз на хвилину, відкликання проходить.
     signInMock("o3")
     expect(await errorOf(auth.invitations.resend(invitation.id))).toMatchObject(

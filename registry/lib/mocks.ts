@@ -6,7 +6,8 @@
  *   фактори, сесії, журнал входів і «Увійти як…» (lib/mock-account), політика й доступ
  *   користувачів (lib/mock-admin), журнал аудиту, вебхуки й сповіщення (ADR-0013).
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
- *   версіями (409) і прив'язкою до компанії (`X-Company-Id`); кожна зміна — у журнал аудиту
+ *   версіями (409) і прив'язкою до компанії запиту (`X-Company-Id` за членством, права — у ній,
+ *   запис іншої компанії — 404, A2c1); кожна зміна — у журнал аудиту
  *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
  *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018). `pins` — закріплення записів
  *   (lib/mock-lists, ADR-0024).
@@ -19,7 +20,6 @@ import type { z } from "zod"
 
 import {
   API_PREFIX,
-  COMPANY_HEADER,
   fromSearchParams,
   parseFilterKey,
   type FilterValue,
@@ -34,6 +34,7 @@ import {
   type MockAuditEvent,
 } from "@/registry/lib/mock-audit"
 import { createPinHandlers, mockPinStore } from "@/registry/lib/mock-lists"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -47,13 +48,16 @@ import {
   emitMockEvent,
   errorResponse,
   json,
+  mockCompanyOrForbidden,
   noContent,
   signInMock,
   subscribeMockEvents,
   subscribeMockMessages,
   type MockMessage,
+  type MockScope,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { inMockCompany, isMockSharedLocked } from "@/registry/lib/mock-scope"
 import { pinnedFirst } from "@/registry/lib/pins"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
@@ -171,6 +175,17 @@ export function mockRecordTitle(
 
 const uniqueKey = (value: unknown) =>
   typeof value === "string" ? value.trim().toLocaleLowerCase("uk") : value
+
+/**
+ * Компанія запису після схеми (ADR-0036): схема ресурсу без поля `companyId` його відкидає, і запис
+ * компанії став би спільним. `undefined` — компанії немає, запис як є.
+ */
+function withCompany<T extends MockRecord>(
+  record: T,
+  companyId: string | null | undefined,
+): T {
+  return companyId === undefined ? record : { ...record, companyId }
+}
 
 /** Поля `unique`, значення яких уже має інший запис тієї самої компанії; порожні не перевіряються. */
 function duplicateFields<T extends MockRecord>(
@@ -379,8 +394,14 @@ export function createResourceHandlers<T extends MockRecord>({
   const bumped = new Set<string>()
   const url = `${baseUrl}/${resource}`
 
-  /** Сценарій, сесія, права. Повертає відповідь-відмову або null. */
-  async function guard(action: string): Promise<Response | null> {
+  /**
+   * Сценарій, сесія, компанія запиту й право в ній (A2c1): компанія (`null` — застосунок без
+   * компаній) або відповідь-відмова.
+   */
+  async function guard(
+    request: Request,
+    action: string,
+  ): Promise<{ user: MockUser; companyId: string | null } | Response> {
     const early = await applyScenario(scenarioFor(resource))
     if (early) return early
     const user = currentMockUser()
@@ -390,17 +411,35 @@ export function createResourceHandlers<T extends MockRecord>({
         message: "Not signed in",
       })
     }
-    if (!hasPermission(user.permissions, resource, action)) {
+    const access = mockRequestPermissions(request, user)
+    if (access instanceof Response) return access
+    if (!hasPermission(access.permissions, resource, action)) {
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing permission ${resource}:${action}`,
       })
     }
-    return null
+    return { user, companyId: access.companyId }
   }
 
-  const inCompany = (companyId: string | null) => (record: T) =>
-    !companyId || record.companyId == null || record.companyId === companyId
+  /** Спільний запис змінює лише адміністратор платформи (ADR-0036): 403 або `null` — можна. */
+  const sharedLocked = (
+    access: { user: MockUser; companyId: string | null },
+    record: T,
+  ) =>
+    isMockSharedLocked(access.user, record.companyId)
+      ? errorResponse(403, {
+          code: "forbidden",
+          message: `${resource}: shared record`,
+        })
+      : null
+
+  /** Запис компанії запиту (чи без компанії) за id; іншої компанії — як невідомий. */
+  const findIn = (companyId: string | null, id: unknown) =>
+    all().find(
+      (record) =>
+        record.id === id && inMockCompany(record.companyId, companyId),
+    )
 
   /** Записи списку: компанія, пошук `q` і плоскі фільтри ADR-0002, у порядку `sort`. */
   const select = (
@@ -409,7 +448,9 @@ export function createResourceHandlers<T extends MockRecord>({
     sort: SortField[] = [],
   ): T[] =>
     filterMockRecords(
-      sortedBy(sort).filter(inCompany(companyId)),
+      sortedBy(sort).filter((record) =>
+        inMockCompany(record.companyId, companyId),
+      ),
       filter,
       searchFields,
     )
@@ -445,9 +486,14 @@ export function createResourceHandlers<T extends MockRecord>({
     previous?: T,
   ) => {
     const title = titleField ? record[titleField] : undefined
+    // Запис без компанії — спільний: подія застосунку, її видно в кожній компанії (ADR-0036).
+    const scope: MockScope = record.companyId
+      ? { companyId: record.companyId }
+      : {}
     recordAudit({
       action: `${resource}.${verb}`,
       category: "data",
+      ...scope,
       ...(label
         ? {
             actionLabel: Object.fromEntries(
@@ -476,7 +522,7 @@ export function createResourceHandlers<T extends MockRecord>({
           }
         : {}),
     })
-    emitMockEvent(`${resource}.${verb}`, { ...record })
+    emitMockEvent(`${resource}.${verb}`, { ...record }, scope)
   }
 
   /** Зміна запису без перевірки версії: схема, нова версія, журнал і подія; null — запису немає. */
@@ -487,36 +533,41 @@ export function createResourceHandlers<T extends MockRecord>({
     const index = all().findIndex((r) => r.id === id)
     const latest = all()[index]
     if (!latest) return null
-    const parsed = schema.safeParse({
+    const next: Record<string, unknown> = {
       ...latest,
       ...changes,
       id: latest.id,
       version: latest.version + 1,
-    })
+    }
+    // Компанію, як `id` і `version`, задає сервер: зміна не переносить запис (ADR-0036).
+    if ("companyId" in latest) next.companyId = latest.companyId
+    else delete next.companyId
+    const parsed = schema.safeParse(next)
     if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
+    const record = withCompany(parsed.data, latest.companyId)
     // Лише змінені поля: повтор, що вже є в даних, не блокує зміну інших полів запису.
     const duplicates = duplicateFields(
       all(),
-      parsed.data,
+      record,
       unique.filter((field) => field in changes),
     )
     if (duplicates) return { fieldErrors: duplicates }
-    update(index, parsed.data)
-    changed("updated", parsed.data, latest)
-    return { record: parsed.data }
+    update(index, record)
+    changed("updated", record, latest)
+    return { record }
   }
 
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {
-      const denied = await guard("read")
-      if (denied) return denied
+      const access = await guard(request, "read")
+      if (access instanceof Response) return access
       if (scenarioFor(resource) === "empty") return json({ data: [], total: 0 })
       const { page, perPage, sort, filter } = fromSearchParams(
         new URL(request.url).searchParams,
       )
       const pinned = pinnedIds()
       const filtered = pinnedFirst(
-        select(filter, request.headers.get(COMPANY_HEADER), sort),
+        select(filter, access.companyId, sort),
         pinned,
       )
       const start = (page - 1) * perPage
@@ -529,38 +580,40 @@ export function createResourceHandlers<T extends MockRecord>({
     }),
 
     http.get(`${url}/:id`, async ({ params, request }) => {
-      const denied = await guard("read")
-      if (denied) return denied
-      const record = all()
-        .filter(inCompany(request.headers.get(COMPANY_HEADER)))
-        .find((r) => r.id === params.id)
+      const access = await guard(request, "read")
+      if (access instanceof Response) return access
+      const record = findIn(access.companyId, params.id)
       return record ? json(full(withPin(record, pinnedIds()))) : notFound()
     }),
 
     http.post(url, async ({ request }) => {
-      const denied = await guard("create")
-      if (denied) return denied
+      const access = await guard(request, "create")
+      if (access instanceof Response) return access
       const body = (await request.json()) as Record<string, unknown>
+      // Компанію, як `id` і `version`, задає сервер: запис — компанії запиту.
       const parsed = schema.safeParse({
         ...body,
         id: newId(),
         version: 1,
-        companyId: body.companyId ?? request.headers.get(COMPANY_HEADER),
+        companyId: access.companyId,
       })
       if (!parsed.success) return validationError(fieldErrors(parsed.error))
-      const duplicates = duplicateFields(all(), parsed.data, unique)
+      const record = withCompany(parsed.data, access.companyId ?? undefined)
+      const duplicates = duplicateFields(all(), record, unique)
       if (duplicates) return validationError(duplicates)
-      replace([parsed.data, ...all()])
-      changed("created", parsed.data)
-      return json(full(parsed.data), { status: 201 })
+      replace([record, ...all()])
+      changed("created", record)
+      return json(full(record), { status: 201 })
     }),
 
     http.patch(`${url}/:id`, async ({ params, request }) => {
-      const denied = await guard("update")
-      if (denied) return denied
-      const index = all().findIndex((r) => r.id === params.id)
-      const current = all()[index]
+      const access = await guard(request, "update")
+      if (access instanceof Response) return access
+      const current = findIn(access.companyId, params.id)
       if (!current) return notFound()
+      const locked = sharedLocked(access, current)
+      if (locked) return locked
+      const index = all().indexOf(current)
       const { version, ...changes } = (await request.json()) as Record<
         string,
         unknown
@@ -585,11 +638,13 @@ export function createResourceHandlers<T extends MockRecord>({
       return json(full(result.record))
     }),
 
-    http.delete(`${url}/:id`, async ({ params }) => {
-      const denied = await guard("delete")
-      if (denied) return denied
-      const removed = all().find((r) => r.id === params.id)
+    http.delete(`${url}/:id`, async ({ params, request }) => {
+      const access = await guard(request, "delete")
+      if (access instanceof Response) return access
+      const removed = findIn(access.companyId, params.id)
       if (!removed) return notFound()
+      const locked = sharedLocked(access, removed)
+      if (locked) return locked
       replace(all().filter((r) => r.id !== params.id))
       pinStore?.forget(removed.id)
       changed("deleted", removed)
@@ -599,11 +654,18 @@ export function createResourceHandlers<T extends MockRecord>({
       ? createPinHandlers({
           url,
           store: pinStore,
-          guard: () => guard("read"),
-          exists: (id, request) =>
-            all()
-              .filter(inCompany(request.headers.get(COMPANY_HEADER)))
-              .some((record) => record.id === id),
+          guard: async (request) => {
+            const access = await guard(request, "read")
+            return access instanceof Response ? access : null
+          },
+          exists: (id, request) => {
+            const user = currentMockUser()
+            if (!user) return false
+            const companyId = mockCompanyOrForbidden(request, user)
+            return (
+              !(companyId instanceof Response) && Boolean(findIn(companyId, id))
+            )
+          },
         })
       : []),
   ]

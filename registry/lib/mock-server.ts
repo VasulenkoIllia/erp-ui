@@ -16,7 +16,6 @@ import { delay } from "msw/utils/delay"
 import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
 import { COMPANY_HEADER, type ApiErrorBody } from "@/registry/lib/api"
 import {
-  hasPermission,
   meSchema,
   type AuthFactor,
   type LocalizedText,
@@ -99,10 +98,17 @@ export interface MockUser extends Me {
   backupCodes?: string[]
   /** Тимчасовий пароль: після входу — спершу новий. */
   mustChangePassword?: boolean
+  /**
+   * Адміністратор платформи (ADR-0036) — позначка облікового запису, як `superadmin` у бекенді, а не
+   * роль компанії: заходить у будь-яку компанію з усіма правами, змінює спільне й політику безпеки
+   * застосунку. `*` у ролі компанії (власник, самореєстрація) дає всі права лише в цій компанії.
+   */
+  isPlatformAdmin?: boolean
 }
 
 let mockUsers: MockUser[] = []
 let seededIds = new Set<string>()
+let seededCompanies = false
 let persistOnLeave = false
 
 /**
@@ -143,6 +149,7 @@ function persistAddedUsers(): void {
 /** Початкові користувачі; збережені з реєстрації й запрошень додаються до них. */
 export function setMockUsers(users: MockUser[]): void {
   seededIds = new Set(users.map((u) => u.id))
+  seededCompanies = users.some((u) => u.companies.length > 0)
   mockUsers = [
     ...users,
     ...readAddedUsers().filter((u) => !seededIds.has(u.id)),
@@ -157,6 +164,12 @@ export function setMockUsers(users: MockUser[]): void {
 export function mockUsersList(): MockUser[] {
   return mockUsers
 }
+
+/**
+ * Застосунок із компаніями (ADR-0036) — за початковими людьми моків: реєстрація з новою компанією
+ * режиму не змінює.
+ */
+export const hasMockCompanies = () => seededCompanies
 
 export function addMockUser(user: MockUser): void {
   mockUsers = [...mockUsers, user]
@@ -335,7 +348,7 @@ export function mockRequestCompany(
   if (!id || (bound && id !== bound)) return null
   const member =
     user.companies.some((company) => company.id === id) ||
-    hasPermission(user.permissions, "*", "*")
+    user.isPlatformAdmin === true
   return member ? id : null
 }
 
@@ -352,8 +365,20 @@ export const isMockCompanyMember = (
     : user.companies.some((company) => company.id === companyId)
 
 /**
- * Компанія запиту (ADR-0031): id, `null` — застосунок без компаній (ні заголовка, ні компаній у того,
- * хто питає), або 403 — людина в ній не працює.
+ * Чия подія чи дані (A2c1): `companyId` — компанії (ролі, запрошення, записи, налаштування, вебхуки,
+ * токени API); `accountId` — облікового запису людини (входи, пароль, другий крок, сесії,
+ * блокування): він один на всі компанії людини; без обох — застосунку (політика безпеки, запис без
+ * компанії).
+ */
+export interface MockScope {
+  companyId?: string | null
+  accountId?: string
+}
+
+/**
+ * Компанія запиту (ADR-0031): id, `null` — без компанії (ні заголовка, ні компаній у того, хто
+ * питає): застосунок без компаній чи людина поза компаніями, вона бачить лише спільне (ADR-0036);
+ * або 403 — людина в компанії не працює.
  */
 export function mockCompanyOrForbidden(
   request: Request,
@@ -467,6 +492,8 @@ export interface MockEvent {
   type: string
   at: string
   data: Record<string, unknown>
+  /** Чия подія: вебхуки компанії отримують лише свої й події застосунку (A2c1). */
+  scope: MockScope
 }
 
 const eventListeners = new Set<(event: MockEvent) => void>()
@@ -480,8 +507,12 @@ export function subscribeMockEvents(
   }
 }
 
-export function emitMockEvent(type: string, data: Record<string, unknown>) {
-  const event: MockEvent = { type, at: new Date().toISOString(), data }
+export function emitMockEvent(
+  type: string,
+  data: Record<string, unknown>,
+  scope: MockScope = {},
+) {
+  const event: MockEvent = { type, at: new Date().toISOString(), data, scope }
   eventListeners.forEach((listener) => {
     listener(event)
   })

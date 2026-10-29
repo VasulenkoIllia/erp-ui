@@ -23,6 +23,8 @@ export const USERS = {
   sales: "u-ivan",
   /** Керівник відділу: `users:read` і `roles:read` без `users:update` і `audit:read`. */
   lead: "u-taras",
+  /** Адміністратор платформи поза компаніями: змінює політику безпеки (ADR-0036). */
+  platform: "u-andriy",
 } as const
 
 /**

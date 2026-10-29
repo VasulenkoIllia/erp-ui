@@ -12,7 +12,7 @@ import {
   recordSignIn,
   validation,
 } from "@/registry/lib/mock-account-state"
-import { recordAudit } from "@/registry/lib/mock-audit"
+import { recordAudit, recordCeilingDenied } from "@/registry/lib/mock-audit"
 import {
   mockPermissionsIn,
   mockRequestPermissions,
@@ -64,19 +64,27 @@ export function createImpersonationHandlers({
       const target = mockCompanyTarget(request, admin, body.userId)
       if (target instanceof Response) return target
       if (target.id === admin.id) return validation({ userId: "invalid" })
-      // Іншого адміністратора чи людину з правами, яких немає в адміністратора, — ні: інакше
-      // «Увійти як…» обходить розподіл прав («стеля», ADR-0032). До повторного підтвердження:
-      // слабшого не просять пароль, щоб потім відмовити.
+      // Іншого адміністратора, адміністратора платформи чи людину з правами, яких немає в
+      // адміністратора, — ні: інакше «Увійти як…» обходить розподіл прав («стеля», ADR-0032,
+      // ADR-0036). До повторного підтвердження: слабшого не просять пароль, щоб потім відмовити.
       if (
+        target.isPlatformAdmin === true ||
         impersonationBlock(
           access.permissions,
           mockPermissionsIn(target, access.companyId),
         )
-      )
+      ) {
+        recordCeilingDenied({
+          action: "auth.impersonation_started",
+          category: "auth",
+          companyId: access.companyId,
+          target: { type: "users", id: target.id, name: target.name },
+        })
         return errorResponse(403, {
           code: "forbidden",
           message: "Cannot impersonate an administrator or a stronger user",
         })
+      }
       const reauth = reauthRequired()
       if (reauth) return reauth
       const reason = body.reason?.trim() ?? ""
@@ -97,6 +105,7 @@ export function createImpersonationHandlers({
       recordAudit({
         action: "auth.impersonation_started",
         category: "auth",
+        companyId: access.companyId,
         actor: actorOf(admin),
         target: { type: "users", id: target.id, name: target.name },
         reason,
@@ -125,6 +134,7 @@ export function createImpersonationHandlers({
         recordAudit({
           action: "auth.impersonation_ended",
           category: "auth",
+          companyId: session.impersonationCompanyId,
           actor: actorOf(admin),
           ...(target
             ? { target: { type: "users", id: target.id, name: target.name } }

@@ -20,12 +20,12 @@ import {
   type CompanyProfile,
 } from "@/registry/lib/company"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import {
   currentMockUser,
   errorResponse,
   impersonationForbidden,
   json,
-  mockRequestCompany,
   mockUsersList,
   noContent,
   randomToken,
@@ -102,21 +102,25 @@ export function createCompanyHandlers({
     }
   }
 
-  /** Член компанії; зміни — право `company:update` і не «Увійти як…». */
+  /**
+   * Член компанії; зміни — право `company:update` у компанії запиту (A2c1) і не «Увійти як…».
+   */
   const access = (
     request: Request,
     change = false,
   ): { user: MockUser; id: string } | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    const id = mockRequestCompany(request, user)
+    const scoped = mockRequestPermissions(request, user)
+    if (scoped instanceof Response) return scoped
+    const id = scoped.companyId
     if (!id)
       return errorResponse(403, {
         code: "forbidden",
         message: "Not a member of this company",
       })
     if (change) {
-      if (!hasPermission(user.permissions, "company", "update"))
+      if (!hasPermission(scoped.permissions, "company", "update"))
         return errorResponse(403, {
           code: "forbidden",
           message: "Missing company:update",
@@ -230,6 +234,7 @@ export function createCompanyHandlers({
       recordAudit({
         action: "company.updated",
         category: "company",
+        companyId: ctx.id,
         target: { type: "company", id: next.id, name: next.name },
         changes: auditChanges(flat(before), flat(next)),
       })

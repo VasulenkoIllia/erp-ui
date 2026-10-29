@@ -20,9 +20,14 @@ const LVIV: LocalizedText = { uk: "Львів, Україна", en: "Lviv, Ukrai
 const MAC = { type: "desktop", browser: "Chrome", os: "macOS" } as const
 const IPHONE = { type: "mobile", browser: "Safari", os: "iOS" } as const
 
+/**
+ * Початковий журнал демо. Чия подія (A2c1): `companyId` — подія компанії «Зоряна», `accountId` —
+ * облікового запису людини (видно в журналі кожної її компанії), без обох — застосунку (політика).
+ */
 export const AUDIT_SEEDS: MockAuditEvent[] = [
   {
     id: "aud-seed-6",
+    companyId: "zoriana",
     at: ago(60 * 3),
     action: "invoices.updated",
     category: "data",
@@ -43,6 +48,7 @@ export const AUDIT_SEEDS: MockAuditEvent[] = [
   },
   {
     id: "aud-seed-5",
+    companyId: "zoriana",
     at: ago(60 * 26),
     action: "integrations.api_token_created",
     category: "integrations",
@@ -82,6 +88,7 @@ export const AUDIT_SEEDS: MockAuditEvent[] = [
   },
   {
     id: "aud-seed-3",
+    accountId: "u-ivan",
     at: ago(60 * 24 * 3),
     action: "auth.sign_in_failed",
     category: "auth",
@@ -94,6 +101,7 @@ export const AUDIT_SEEDS: MockAuditEvent[] = [
   },
   {
     id: "aud-seed-2",
+    companyId: "zoriana",
     at: ago(60 * 24 * 3 + 5),
     action: "auth.impersonation_started",
     category: "auth",
@@ -106,6 +114,7 @@ export const AUDIT_SEEDS: MockAuditEvent[] = [
   },
   {
     id: "aud-seed-1",
+    accountId: "u-ivan",
     at: ago(60 * 24 * 4),
     action: "auth.sign_in",
     category: "auth",
@@ -146,6 +155,7 @@ export const WEBHOOK_EVENTS: Record<string, MockWebhookEventType> = {
 export const WEBHOOK_SEEDS: MockWebhookSeed[] = [
   {
     id: "wh-1c",
+    companyId: "zoriana",
     url: "https://1c.zoriana.example/hooks/erp",
     description: "Синхронізація рахунків з 1С",
     events: ["invoices.created", "invoices.updated"],
@@ -186,6 +196,7 @@ export const WEBHOOK_SEEDS: MockWebhookSeed[] = [
   },
   {
     id: "wh-bank",
+    companyId: "zoriana",
     url: "https://bank-sync.invalid/erp",
     description: "Платіжний сервіс (стара адреса)",
     events: ["invoices.updated"],

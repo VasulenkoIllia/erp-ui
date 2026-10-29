@@ -93,6 +93,7 @@ export function createFactorHandlers({
     recordAudit({
       action: "auth.factor_added",
       category: "auth",
+      accountId: user.id,
       actor: actorOf(user),
       details: { type: factor.type },
     })
@@ -336,6 +337,7 @@ export function createFactorHandlers({
       recordAudit({
         action: "auth.factor_removed",
         category: "auth",
+        accountId: guard.id,
         actor: actorOf(guard),
         ...(removed ? { details: { type: removed.type } } : {}),
       })

@@ -34,6 +34,7 @@ import {
   ipInCidr,
   isValidCidr,
   parseIpv4,
+  policyReadOnlyReason,
   type SecurityPolicy,
 } from "@/registry/lib/security-policy"
 
@@ -137,6 +138,19 @@ beforeEach(() => {
 })
 afterEach(() => {
   server.resetHandlers()
+})
+
+describe("політика лише для перегляду (ADR-0036)", () => {
+  it.each([
+    [true, true, undefined],
+    [true, false, undefined],
+    [false, true, "platform"],
+    [false, false, "permission"],
+    [undefined, true, undefined],
+    [undefined, false, "permission"],
+  ] as const)("canUpdate %s, право %s → %s", (canUpdate, hasRight, reason) => {
+    expect(policyReadOnlyReason(canUpdate, hasRight)).toBe(reason)
+  })
 })
 
 describe("адреси IP (ADR-0012)", () => {

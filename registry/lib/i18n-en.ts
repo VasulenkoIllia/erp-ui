@@ -664,6 +664,10 @@ export const en = {
   securityPolicy: {
     title: "Security policies",
     description: "Apply to every user in the organisation.",
+    readOnly:
+      "View only: a security administrator can change the security policy.",
+    readOnlyPlatform:
+      "View only: one policy applies to every company in the app, and a platform administrator changes it.",
     twoFactorTitle: "Two-step verification",
     twoFactorLabel: "Required for",
     twoFactor: {

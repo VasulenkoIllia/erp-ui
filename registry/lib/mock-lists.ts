@@ -123,8 +123,8 @@ export function mockPinStore(resource: string) {
 export type MockPinStore = ReturnType<typeof mockPinStore>
 
 /**
- * `PUT`/`DELETE <url>/:id/pin`. `guard` — сценарій, сесія й право на читання (як для списку);
- * `exists` — чи бачить користувач запис у своїй компанії (інакше 404).
+ * `PUT`/`DELETE <url>/:id/pin`. `guard` — сценарій, сесія й право на читання в компанії запиту (як
+ * для списку); `exists` — чи бачить користувач запис у компанії запиту (інакше 404).
  */
 export function createPinHandlers({
   url,
@@ -134,11 +134,11 @@ export function createPinHandlers({
 }: {
   url: string
   store: MockPinStore
-  guard: () => Promise<Response | null>
+  guard: (request: Request) => Promise<Response | null>
   exists: (id: string, request: Request) => boolean
 }): HttpHandler[] {
   const toggle = async (id: string, request: Request, pinned: boolean) => {
-    const denied = await guard()
+    const denied = await guard(request)
     if (denied) return denied
     const userId = currentMockUser()?.id
     if (!userId || !exists(id, request))

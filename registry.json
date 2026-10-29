@@ -1152,6 +1152,11 @@
           "target": "@lib/mock-notifications.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -2016,6 +2021,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -2991,6 +3001,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -6995,9 +7010,54 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -7005,9 +7065,29 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -7209,6 +7289,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -7432,6 +7517,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -7598,14 +7688,84 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -7822,6 +7982,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -8060,6 +8225,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -8226,9 +8396,59 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -8236,9 +8456,29 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -8392,9 +8632,19 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
           "path": "registry/lib/mock-account-state.ts",
           "type": "registry:lib",
           "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
         },
         {
           "path": "registry/lib/mock-audit.ts",
@@ -8402,14 +8652,64 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -8611,6 +8911,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -8995,6 +9300,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -9214,6 +9524,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -9470,6 +9785,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -9888,6 +10208,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -10133,6 +10458,162 @@
         "status": "beta",
         "demo": "data",
         "spec": [
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-scope",
+      "type": "registry:lib",
+      "title": "Чиї дані й події в моках",
+      "description": "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "A2",
           "§17"
         ]
       }
@@ -10448,6 +10929,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -10669,6 +11155,11 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
@@ -10888,6 +11379,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",
@@ -11212,9 +11708,59 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -11222,9 +11768,29 @@
           "target": "@lib/mock-scenarios.ts"
         },
         {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -11456,6 +12022,11 @@
           "path": "registry/lib/mock-scenarios.ts",
           "type": "registry:lib",
           "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
         },
         {
           "path": "registry/lib/mock-server.ts",

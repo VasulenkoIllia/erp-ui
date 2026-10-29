@@ -174,7 +174,12 @@ function createHandler({ baseUrl, inviteLink, access }: HandlerContext) {
     if (Object.keys(input.fields).length) return validation(input.fields)
     const { email, roles } = input
     if (!canChangeRoles(permissions, [], roles, mockRoleGrants(companyId)))
-      return beyondCeiling()
+      return beyondCeiling({
+        action: "users.invited",
+        category: "users",
+        companyId,
+        target: { type: "invitations", id: email, name: email },
+      })
     const company = user.companies.find((c) => c.id === companyId)
     const now = new Date().toISOString()
     const invite: StoredMockInvitation = {
@@ -209,6 +214,7 @@ function createHandler({ baseUrl, inviteLink, access }: HandlerContext) {
     recordAudit({
       action: "users.invited",
       category: "users",
+      companyId: invite.companyId,
       target: { type: "invitations", id: invite.id, name: email },
       details: { roles: roles.join(", ") },
     })
@@ -231,7 +237,12 @@ function resendHandler({
       const invite = companyInvite(companyId, params.id)
       if (invite instanceof Response) return invite
       if (!canGrant(permissions, invitePermissions(invite)))
-        return beyondCeiling()
+        return beyondCeiling({
+          action: "users.invitation_resent",
+          category: "users",
+          companyId,
+          target: { type: "invitations", id: invite.id, name: invite.email },
+        })
       // Ролі вже немає в компанії: прийняти таке запрошення однаково не можна.
       const known = new Set(mockCompanyRoles(companyId).map((role) => role.id))
       if (invite.roles.some((id) => !known.has(id)))
@@ -265,6 +276,7 @@ function resendHandler({
       recordAudit({
         action: "users.invitation_resent",
         category: "users",
+        companyId: next.companyId,
         target: { type: "invitations", id: next.id, name: next.email },
         ...(invite.invitedById === user.id
           ? {}
@@ -284,7 +296,12 @@ function revokeHandler({ baseUrl, access, conflictFor }: HandlerContext) {
       const invite = companyInvite(allowed.companyId, params.id)
       if (invite instanceof Response) return invite
       if (!canGrant(allowed.permissions, invitePermissions(invite)))
-        return beyondCeiling()
+        return beyondCeiling({
+          action: "users.invitation_revoked",
+          category: "users",
+          companyId: allowed.companyId,
+          target: { type: "invitations", id: invite.id, name: invite.email },
+        })
       const conflict = conflictFor(invite.id)
       if (conflict) return conflict
       writeMockInvitations(
@@ -293,6 +310,7 @@ function revokeHandler({ baseUrl, access, conflictFor }: HandlerContext) {
       recordAudit({
         action: "users.invitation_revoked",
         category: "users",
+        companyId: invite.companyId,
         target: { type: "invitations", id: invite.id, name: invite.email },
       })
       return noContent()

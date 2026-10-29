@@ -22,6 +22,7 @@ import {
 } from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
 import { recordAudit } from "@/registry/lib/mock-audit"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import {
   AUTH_FACTORS,
   hasPermission,
@@ -66,6 +67,7 @@ import {
   writeMockSession,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { ownedByMockCompany, withoutMockScope } from "@/registry/lib/mock-scope"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
 export { CURRENT_IP, mockUserSessions, recordSignIn, setMockAccountSeeds }
@@ -121,6 +123,7 @@ export function passwordChanged(user: MockUser, password: string): void {
   recordAudit({
     action: "auth.password_changed",
     category: "auth",
+    accountId: user.id,
     actor: actorOf(user),
   })
 }
@@ -241,10 +244,15 @@ const TOKEN_ACTIONS: { action: string; label: LocalizedText }[] = [
 
 /** Токен без секрету — те, що бачить список. */
 const publicToken = (token: MockApiToken): ApiToken => {
-  const { secret, ...item } = token
+  const { secret, ...item } = withoutMockScope(token)
   void secret
   return item
 }
+
+/** Токени компанії запиту (ADR-0036): токен діє лише там, де його створили. */
+const tokenIn =
+  (user: MockUser, companyId: string | null) => (token: MockApiToken) =>
+    ownedByMockCompany(user, token.companyId, companyId)
 
 export function createAccountHandlers({
   baseUrl = API_PREFIX,
@@ -258,11 +266,14 @@ export function createAccountHandlers({
   const issuer = () => issuerOf?.() ?? "erp-ui"
   const guardChange = () => accountChangeGuard(reauthRequired)
 
-  /** Права для токенів: з прав користувача, лише відомі ресурси (`apiResources`). */
-  const tokenScopes = (user: MockUser, language: string) =>
+  /**
+   * Права для токенів: з прав користувача в компанії запиту (A2c1), лише відомі ресурси
+   * (`apiResources`).
+   */
+  const tokenScopes = (permissions: readonly string[], language: string) =>
     Object.entries(apiResources).flatMap(([resource, label]) =>
       TOKEN_ACTIONS.filter(({ action }) =>
-        hasPermission(user.permissions, resource, action),
+        hasPermission(permissions, resource, action),
       ).map(({ action, label: actionLabel }) => ({
         id: `${resource}:${action}`,
         label: localizedText(actionLabel, language) ?? action,
@@ -466,13 +477,22 @@ export function createAccountHandlers({
     http.get(`${baseUrl}/me/api-tokens`, ({ request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
+      const access = mockRequestPermissions(request, user)
+      if (access instanceof Response) return access
       return json({
-        tokens: loadState(user).apiTokens.map(publicToken),
-        scopes: tokenScopes(user, languageOf(request)),
+        tokens: loadState(user)
+          .apiTokens.filter(tokenIn(user, access.companyId))
+          .map(publicToken),
+        scopes: tokenScopes(access.permissions, languageOf(request)),
       })
     }),
 
     http.post(`${baseUrl}/me/api-tokens`, async ({ request }) => {
+      const user = currentMockUser()
+      if (!user) return unauthenticated()
+      // Компанія — до пароля: не просити підтвердження, щоб потім відмовити (ADR-0036).
+      const access = mockRequestPermissions(request, user)
+      if (access instanceof Response) return access
       const guard = guardChange()
       if (guard instanceof Response) return guard
       const body = (await request.json()) as {
@@ -484,7 +504,9 @@ export function createAccountHandlers({
       const name = body.name?.trim() ?? ""
       if (!name) fields.name = "required"
       else if (name.length > NAME_MAX) fields.name = "tooLong"
-      const allowed = new Set(tokenScopes(guard, "uk").map((scope) => scope.id))
+      const allowed = new Set(
+        tokenScopes(access.permissions, "uk").map((scope) => scope.id),
+      )
       const scopes = body.scopes ?? []
       if (!scopes.length) fields.scopes = "required"
       else if (scopes.some((scope) => !allowed.has(scope)))
@@ -506,6 +528,7 @@ export function createAccountHandlers({
             : new Date(Date.now() + days * 86_400_000).toISOString(),
         lastUsedAt: null,
         secret,
+        companyId: access.companyId,
       }
       update(guard, (s) => {
         s.apiTokens = [item, ...s.apiTokens]
@@ -513,6 +536,7 @@ export function createAccountHandlers({
       recordAudit({
         action: "integrations.api_token_created",
         category: "integrations",
+        companyId: access.companyId,
         actor: actorOf(guard),
         target: { type: "api_tokens", id: item.id, name: item.name },
         details: { scopes: scopes.join(", ") },
@@ -520,12 +544,16 @@ export function createAccountHandlers({
       return json({ token: secret, item: publicToken(item) }, { status: 201 })
     }),
 
-    http.delete(`${baseUrl}/me/api-tokens/:id`, ({ params }) => {
+    http.delete(`${baseUrl}/me/api-tokens/:id`, ({ params, request }) => {
       const user = currentMockUser()
       if (!user) return unauthenticated()
       const forbidden = impersonationForbidden()
       if (forbidden) return forbidden
-      const revoked = loadState(user).apiTokens.find((t) => t.id === params.id)
+      const access = mockRequestPermissions(request, user)
+      if (access instanceof Response) return access
+      const revoked = loadState(user)
+        .apiTokens.filter(tokenIn(user, access.companyId))
+        .find((t) => t.id === params.id)
       if (!revoked) return notFound()
       update(user, (s) => {
         s.apiTokens = s.apiTokens.filter((t) => t.id !== params.id)
@@ -533,6 +561,7 @@ export function createAccountHandlers({
       recordAudit({
         action: "integrations.api_token_revoked",
         category: "integrations",
+        companyId: access.companyId,
         actor: actorOf(user),
         target: {
           type: "api_tokens",

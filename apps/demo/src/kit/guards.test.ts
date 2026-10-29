@@ -14,6 +14,7 @@ import {
 import { createApiClient } from "@/registry/lib/api"
 import { createAuthProvider, isChallengeRequired } from "@/registry/lib/auth"
 import { setCompanyId } from "@/registry/lib/company-scope"
+import { addMockUser, setMockUsers } from "@/registry/lib/mock-server"
 import { applyMockRoles } from "@/registry/lib/mock-team"
 import {
   createPlatformHandlers,
@@ -75,7 +76,10 @@ const users: MockUser[] = [
   person("f5", "Ганна Фінанси", ["finance"], COMPANIES.slice(0, 1)),
   // Адміністратор лише першої компанії.
   person("a6", "Остап Перший", ["admin"], COMPANIES.slice(0, 1)),
-  // Застосунок без компаній: одна команда людей без компаній.
+]
+
+// Застосунок без компаній (ADR-0036 — за початковими людьми): одна команда людей без компаній.
+const TEAM: MockUser[] = [
   person("n7", "Ніна Без Компанії", ["sales"], []),
   person("n8", "Назар Адмін", ["admin"], []),
 ]
@@ -150,6 +154,7 @@ afterAll(() => {
 beforeEach(() => {
   signInMock(null)
   localStorage.clear()
+  setMockUsers(users)
   applyMockRoles()
   setCompanyId(null)
   auth = createAuthProvider(client, { baseUrl: BASE })
@@ -440,6 +445,9 @@ describe("ціль дії — лише людина компанії запит�
   })
 
   it("застосунок без компаній — одна команда: людей із компаніями в ній немає", async () => {
+    setMockUsers(TEAM)
+    // Людина з компанією після реєстрації: застосунок лишається без компаній.
+    addMockUser(person("u2", "Іван Петренко", ["sales"], COMPANIES.slice(0, 1)))
     signInMock("n8")
     await auth.reauthenticate({ password: "demo-password" })
     await expect(auth.admin.getUserAccess("n7")).resolves.toMatchObject({

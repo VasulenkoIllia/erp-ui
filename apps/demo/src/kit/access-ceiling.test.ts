@@ -65,8 +65,8 @@ const users: MockUser[] = [
   person("u9", ["sales"], COMPANIES),
   // Лише в другій компанії, з другим кроком і сесією на іншому пристрої.
   person("t7", ["sales"], COMPANIES.slice(1), ["totp"]),
-  // Платформний адміністратор: компаній немає, `*` діє в будь-якій (ADR-0032).
-  person("p0", ["platform"], []),
+  // Адміністратор платформи без компаній: позначка облікового запису, а не `*` у ролі (ADR-0036).
+  { ...person("p0", ["platform"], []), isPlatformAdmin: true },
 ]
 
 const ROLES = [
@@ -325,7 +325,7 @@ describe("права в компанії запиту (ADR-0034)", () => {
     expect(await errorOf(client.get("/me"))).toMatchObject({ status: 403 })
   })
 
-  it("платформний адміністратор у чужій компанії — зі своїми правами", async () => {
+  it("адміністратор платформи в чужій компанії — з усіма правами", async () => {
     signInMock("p0")
     setCompanyId("c2")
     expect((await auth.admin.getUserAccess("t7")).status).toBe("active")

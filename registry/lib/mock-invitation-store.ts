@@ -115,16 +115,21 @@ export function acceptMockInvitation(token: string, user: MockUser): void {
   const invite = readMockInvitations().find((i) => i.token === token)
   if (!invite) return
   writeMockInvitations(readMockInvitations().filter((i) => i.token !== token))
-  emitMockEvent("users.joined", {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    roles: user.roles,
-    companyId: user.companyId,
-  })
+  emitMockEvent(
+    "users.joined",
+    {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roles: user.roles,
+      companyId: user.companyId,
+    },
+    { companyId: invite.companyId },
+  )
   recordAudit({
     action: "users.invitation_accepted",
     category: "users",
+    companyId: invite.companyId,
     actor: { type: "user", id: user.id, name: user.name },
     target: { type: "users", id: user.id, name: user.name },
   })

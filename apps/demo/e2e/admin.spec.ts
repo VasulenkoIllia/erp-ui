@@ -191,6 +191,8 @@ test.describe("токени API (ADR-0012)", () => {
 })
 
 test.describe("політики безпеки (ADR-0012)", () => {
+  // Політика одна на застосунок (A2c1, ADR-0036): змінює лише адміністратор платформи — у тестах
+  // змін це Андрій (`USERS.platform`), позначка облікового запису, а не роль компанії.
   test.use({ viewport: { width: 1440, height: 900 } })
 
   test("без права — сторінка заборонена", async ({ page }) => {
@@ -198,10 +200,59 @@ test.describe("політики безпеки (ADR-0012)", () => {
     await expect(page.getByText("Немає доступу")).toBeVisible()
   })
 
-  test("обов'язковий другий крок і список адрес → налаштування під час входу", async ({
+  test("адміністратор компанії — лише перегляд із поясненням (A2c1)", async ({
     page,
   }) => {
     await openWith(page, {}, POLICY)
+    await expect(
+      page.getByRole("note").filter({
+        hasText:
+          "Лише перегляд: політика одна для всіх компаній застосунку, змінює її адміністратор платформи.",
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("group", { name: "Двоетапна перевірка" }),
+    ).toHaveAccessibleDescription(/^Лише перегляд/)
+    // Лише перегляд (ADR-0033): значення в порядку Tab; варіанти видно, вибрати інший не можна.
+    const mode = page.getByRole("combobox", { name: "Обов'язкова для" })
+    await expect(mode).toBeEnabled()
+    await expect(mode).toHaveAttribute("aria-readonly", "true")
+    await expect(mode).toHaveText(/Нікого/)
+    await mode.click()
+    await page.getByRole("option", { name: "Усіх користувачів" }).click()
+    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(mode).toHaveText(/Нікого/)
+    await page.keyboard.press("Escape")
+    await expect(page.getByRole("listbox")).toBeHidden()
+    await expect(mode).toBeFocused()
+    const ips = page.getByLabel("Адреси й мережі")
+    await expect(ips).not.toBeEditable()
+    await ips.focus()
+    await expect(ips).toBeFocused()
+    for (const input of await page.getByRole("spinbutton").all())
+      await expect(input).not.toBeEditable()
+    const factor = page
+      .getByRole("group", { name: "Дозволені способи" })
+      .getByRole("checkbox")
+      .first()
+    await expect(factor).toHaveAttribute("aria-readonly", "true")
+    const checked = await factor.getAttribute("aria-checked")
+    await factor.click()
+    await expect(factor).toHaveAttribute("aria-checked", checked ?? "")
+    await expect(
+      page.getByRole("button", { name: "Додати мою адресу" }),
+    ).toHaveCount(0)
+    await expect(
+      page.getByRole("button", { name: "Зберегти політику" }),
+    ).toHaveCount(0)
+    await expectNoA11yViolations(page)
+  })
+
+  test("обов'язковий другий крок і список адрес → налаштування під час входу", async ({
+    page,
+  }) => {
+    // Політика одна на застосунок: змінює адміністратор платформи (ADR-0036).
+    await openWith(page, {}, POLICY, { user: USERS.platform })
     await expect(page.getByText("Ваша адреса: 192.0.2.24.")).toBeVisible()
     await page.getByRole("combobox", { name: "Обов'язкова для" }).click()
     await page.getByRole("option", { name: "Вибраних ролей" }).click()
@@ -235,7 +286,7 @@ test.describe("політики безпеки (ADR-0012)", () => {
 
     // Менеджер без другого кроку: після пароля — налаштування, потім вхід.
     await page
-      .getByRole("button", { name: "Меню користувача: Олена Коваль" })
+      .getByRole("button", { name: "Меню користувача: Андрій Бондар" })
       .click()
     await page.getByRole("menuitem", { name: "Вийти" }).click()
     await signIn(page, "ivan@zoriana.example")
@@ -253,7 +304,7 @@ test.describe("політики безпеки (ADR-0012)", () => {
   })
 
   test("протермінований пароль: новий під час входу", async ({ page }) => {
-    await openWith(page, {}, POLICY)
+    await openWith(page, {}, POLICY, { user: USERS.platform })
     await page.getByRole("combobox", { name: "Термін дії" }).click()
     await page.getByRole("option", { name: "90 днів" }).click()
     await page.getByRole("button", { name: "Зберегти політику" }).click()
@@ -261,7 +312,7 @@ test.describe("політики безпеки (ADR-0012)", () => {
     await expect(toast(page, "Політику збережено")).toBeVisible()
 
     await page
-      .getByRole("button", { name: "Меню користувача: Олена Коваль" })
+      .getByRole("button", { name: "Меню користувача: Андрій Бондар" })
       .click()
     await page.getByRole("menuitem", { name: "Вийти" }).click()
     await signIn(page, "ivan@zoriana.example")

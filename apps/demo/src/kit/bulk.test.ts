@@ -264,8 +264,10 @@ describe("масова дія фоновою задачею (lib/mock-jobs)", ()
     // Чернетки «Зоряної» — 14 із 20, без inv-1 — 13; inv-4 і inv-7 зайняті.
     expect(done).toMatchObject({ total: 13, succeeded: 11, failed: 2 })
     expect(await statusOf("inv-1")).toBe("draft")
-    setCompanyId(null)
-    expect(await statusOf("inv-22")).toBe("draft")
+    // Чернетка іншої компанії не змінилась (людина її не бачить — дивимось у дані моку).
+    expect(invoices.db.all().find((r) => r.id === "inv-22")?.status).toBe(
+      "draft",
+    )
   })
 
   it("партія — одна пачка змін: журнал аудиту й доставки вебхуків пишуться в сховище раз", async () => {

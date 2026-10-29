@@ -46,7 +46,8 @@ const INVOICES: Invoice[] = Array.from({ length: 30 }, (_, i) => ({
   client: i % 3 === 0 ? "ТОВ «Зоряна логістика»" : "ФОП Коваленко",
   amount: (i + 1) * 1000,
   status: (["draft", "sent", "paid"] as const)[i % 3] ?? "draft",
-  companyId: i < 20 ? "zoriana" : "kovalenko",
+  // Застосунок без компаній: записи без компанії, видно всі.
+  companyId: null,
 }))
 
 const USERS: MockUser[] = [
@@ -58,8 +59,9 @@ const USERS: MockUser[] = [
     totpCode: "123456",
     roles: ["accountant"],
     permissions: ["invoices:*", "orders:*"],
-    companies: [{ id: "zoriana", name: "ТОВ «Зоряна логістика»" }],
-    companyId: "zoriana",
+    // Застосунок без компаній: фільтри й сторінки — на всіх 30 записах.
+    companies: [],
+    companyId: null,
     factors: ["totp", "backup_code", "sms"],
     phone: "+380671234545",
     backupCodes: ["ab12cd34"],
@@ -174,14 +176,16 @@ describe("dataProvider + мок ресурсу", () => {
     expect(search.total).toBe(10)
   })
 
-  it("X-Company-Id обмежує записи компанією", async () => {
+  // Записи за компаніями й заголовок із членством — `company-scope.test.ts` (ADR-0036).
+  it("X-Company-Id компанії, де людина не працює, — 403 (A2c1)", async () => {
     setCompanyId("kovalenko")
-    const { total } = await dataProvider.getList<Invoice>("invoices", {
-      pagination: { page: 1, perPage: 100 },
-      sort: { field: "id", order: "ASC" },
-      filter: {},
-    })
-    expect(total).toBe(10)
+    await expect(
+      dataProvider.getList<Invoice>("invoices", {
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: "id", order: "ASC" },
+        filter: {},
+      }),
+    ).rejects.toMatchObject({ status: 403 })
   })
 
   it("getMany і getOne", async () => {

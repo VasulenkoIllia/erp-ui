@@ -347,8 +347,13 @@ export function createTeamHandlers({
         companyId,
       )
       if (Object.keys(fields).length) return validation(fields)
-      if (!canGrant(permissions, body.permissions ?? [])) return beyondCeiling()
       const name = (body.name ?? "").trim()
+      if (!canGrant(permissions, body.permissions ?? []))
+        return beyondCeiling({
+          action: "users.role_created",
+          category: "users",
+          companyId,
+        })
       const description = body.description?.trim()
       const role: MockRole = {
         id: `role-${randomToken().slice(0, 8)}`,
@@ -364,6 +369,7 @@ export function createTeamHandlers({
       recordAudit({
         action: "users.role_created",
         category: "users",
+        companyId,
         target: { type: "roles", id: role.id, name },
       })
       return json(publicRole(role, language, companyId), { status: 201 })
@@ -389,9 +395,19 @@ export function createTeamHandlers({
         description?: string
         permissions?: string[]
       }
+      const attempted = {
+        action: "users.role_updated",
+        category: "users",
+        companyId,
+        target: {
+          type: "roles",
+          id: current.id,
+          name: localizedText(current.name, language) ?? current.id,
+        },
+      }
       // Сильнішу роль не змінити зовсім: перейменувати її на «Переглядач» — те саме, що дати права.
       if (!canGrant(permissions, current.permissions ?? []))
-        return beyondCeiling()
+        return beyondCeiling(attempted)
       const fields = checkRole(body, language, companyId, current.id)
       if (Object.keys(fields).length) return validation(fields)
       if (
@@ -403,7 +419,7 @@ export function createTeamHandlers({
           catalog(language),
         )
       )
-        return beyondCeiling()
+        return beyondCeiling(attempted)
       const conflict = conflictFor(companyId, current.id)
       if (conflict) return conflict
       const name = body.name?.trim()
@@ -425,6 +441,7 @@ export function createTeamHandlers({
       recordAudit({
         action: "users.role_updated",
         category: "users",
+        companyId,
         target: {
           type: "roles",
           id: next.id,
@@ -457,8 +474,18 @@ export function createTeamHandlers({
           code: "forbidden",
           message: "System roles can't be deleted",
         })
+      const target = {
+        type: "roles",
+        id: current.id,
+        name: localizedText(current.name, languageOf(request)) ?? current.id,
+      }
       if (!canGrant(permissions, current.permissions ?? []))
-        return beyondCeiling()
+        return beyondCeiling({
+          action: "users.role_deleted",
+          category: "users",
+          companyId,
+          target,
+        })
       const conflict = conflictFor(companyId, current.id)
       if (conflict) return conflict
       if (companyRoleMembers(current.id, companyId).length)
@@ -477,11 +504,8 @@ export function createTeamHandlers({
       recordAudit({
         action: "users.role_deleted",
         category: "users",
-        target: {
-          type: "roles",
-          id: current.id,
-          name: localizedText(current.name, languageOf(request)) ?? current.id,
-        },
+        companyId,
+        target,
       })
       return noContent()
     }),
@@ -504,21 +528,33 @@ export function createTeamHandlers({
       const before = mockUserRolesIn(target, companyId).filter((id) =>
         companyRoles.has(id),
       )
-      if (!canChangeRoles(permissions, before, next, mockRoleGrants(companyId)))
-        return beyondCeiling()
+      // Ролі адміністратора платформи змінює лише інший адміністратор платформи (ADR-0036).
+      const isPlatformTarget =
+        target.isPlatformAdmin === true && user.isPlatformAdmin !== true
+      if (
+        isPlatformTarget ||
+        !canChangeRoles(permissions, before, next, mockRoleGrants(companyId))
+      )
+        return beyondCeiling({
+          action: "users.roles_changed",
+          category: "users",
+          companyId,
+          target: { type: "users", id: target.id, name: target.name },
+        })
       const after = [...new Set(next)]
       saveMockUserRoles(
         withAssignedRoles(readMockUserRoles(), target, companyId, after),
       )
       applyMockRoles()
-      emitMockEvent("users.roles_changed", {
-        id: target.id,
-        name: target.name,
-        roles: after,
-      })
+      emitMockEvent(
+        "users.roles_changed",
+        { id: target.id, name: target.name, roles: after },
+        { companyId },
+      )
       recordAudit({
         action: "users.roles_changed",
         category: "users",
+        companyId,
         target: { type: "users", id: target.id, name: target.name },
         changes: [{ field: "roles", from: before, to: after }],
       })

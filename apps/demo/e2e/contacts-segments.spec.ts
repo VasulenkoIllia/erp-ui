@@ -66,16 +66,17 @@ test.describe("B1: довідник сегментів", () => {
       grid(page).getByRole("button", { name: "Змінити сегмент «VIP»" }),
     ).toBeVisible()
 
+    // Сегменти засіву — спільні: їх змінює адміністратор платформи, компанія — свої (ADR-0036).
     await grid(page)
-      .getByRole("button", { name: "Змінити сегмент «Новий»" })
+      .getByRole("button", { name: "Змінити сегмент «VIP»" })
       .click()
     const edit = dialog(page, "Змінити сегмент")
-    await edit.getByRole("textbox", { name: "Назва" }).fill("Нові клієнти")
+    await edit.getByRole("textbox", { name: "Назва" }).fill("VIP-клієнти")
     await edit.getByRole("button", { name: "Зберегти" }).click()
     await expect(edit).toBeHidden()
     await expect(
       grid(page).getByRole("button", {
-        name: "Змінити сегмент «Нові клієнти»",
+        name: "Змінити сегмент «VIP-клієнти»",
       }),
     ).toBeFocused()
 
@@ -86,12 +87,14 @@ test.describe("B1: довідник сегментів", () => {
     const segments = organization.getByRole("combobox", { name: "Сегменти" })
     await expect(segments).toHaveText("Клієнт")
     await segments.click()
-    await page.getByRole("option", { name: "VIP", exact: true }).click()
+    await page.getByRole("option", { name: "VIP-клієнти", exact: true }).click()
     await page.keyboard.press("Escape")
-    await expect(segments).toHaveText("КлієнтVIP")
+    await expect(segments).toHaveText("КлієнтVIP-клієнти")
     await organization.getByRole("button", { name: "Зберегти" }).click()
     await expect(organization).toBeHidden()
-    await expect(page.getByRole("tabpanel")).toContainText("СегментиКлієнтVIP")
+    await expect(page.getByRole("tabpanel")).toContainText(
+      "СегментиКлієнтVIP-клієнти",
+    )
   })
 
   test("без права: «Створити сегмент» неактивне з причиною, назва — текст", async ({

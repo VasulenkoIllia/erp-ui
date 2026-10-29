@@ -4,9 +4,15 @@
  *
  * Контракт (усе — під `/api/v1`, право `security:update` чи `users:update`, зміни — після повторного
  * підтвердження, ADR-0010):
- * - `GET /security-policy` → { policy, options }: політика й з чого обирати (ролі, SSO-провайдери,
- *   поточна адреса адміністратора). `PUT /security-policy` (policy) → policy; помилки — 422
- *   `fieldErrors` (напр. `ipAllowlist: "excludesCurrent"` — список відрізав би самого адміністратора).
+ * - `GET /security-policy` → { policy, options, canUpdate? }: політика й з чого обирати (ролі,
+ *   SSO-провайдери, поточна адреса адміністратора). `PUT /security-policy` (policy) → policy; помилки
+ *   — 422 `fieldErrors` (напр. `ipAllowlist: "excludesCurrent"` — список відрізав би самого
+ *   адміністратора).
+ * - Політика одна на застосунок (A2c1): пароль, сесія й способи входу діють на обліковий запис, а він
+ *   один на всі компанії людини. У застосунку з компаніями її змінює лише платформний адміністратор
+ *   (`*`), адміністратор компанії бачить її лише для перегляду; `canUpdate` — чи може змінити той, хто
+ *   питає (без поля — за правом `security:update`); `PUT` без права — 403 до повторного
+ *   підтвердження. Обов'язковий другий крок «для ролей» — за ролями людини в усіх її компаніях.
  * - Політика діє на вхід (ADR-0011, `lib/auth`): обов'язковий другий крок → після пароля
  *   `factor_setup_required`, протермінований пароль → `password_change_required` з `reason: "expired"`,
  *   адреса поза списком → 403 `ip_not_allowed`; довжина пароля, сесія й автовихід — у `GET /auth/methods`.
@@ -78,10 +84,27 @@ export const securityPolicyResponseSchema = z.object({
     /** Адреса адміністратора, як її бачить сервер: щоб не відрізати себе списком. */
     currentIp: z.string().optional(),
   }),
+  /** Чи може той, хто питає, змінити політику; без поля — за правом `security:update` (A2c1). */
+  canUpdate: z.boolean().optional(),
 })
 export type SecurityPolicyResponse = z.infer<
   typeof securityPolicyResponseSchema
 >
+
+/** Чому політика лише для перегляду: змінює адміністратор платформи чи бракує права (ADR-0036). */
+export type PolicyReadOnlyReason = "platform" | "permission"
+
+/**
+ * Лише перегляд чи ні: `canUpdate` від сервера, без нього — за правом `security:update`; право є, а
+ * сервер не дає — політику змінює адміністратор платформи.
+ */
+export function policyReadOnlyReason(
+  canUpdate: boolean | undefined,
+  hasRight: boolean,
+): PolicyReadOnlyReason | undefined {
+  if (canUpdate ?? hasRight) return undefined
+  return canUpdate === false && hasRight ? "platform" : "permission"
+}
 
 export const recoveryRequestSchema = z.object({
   id: z.string(),

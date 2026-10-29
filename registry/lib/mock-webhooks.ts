@@ -7,6 +7,9 @@
  *   до підписок, що на них чекають.
  * - Мок не ходить у мережу: хост `*.invalid` — помилка DNS, шлях із `/fail` — відповідь 500,
  *   решта — 200.
+ * - Підписки — компанії запиту (A2c1): список, зміни, тест і доставки — лише свої, іншої — 404;
+ *   подія йде підпискам компанії, якої вона стосується (`inMockScope`). Підписка без компанії —
+ *   як запис без компанії: спільна.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -17,6 +20,7 @@ import {
   type LocalizedText,
 } from "@/registry/lib/auth"
 import { recordAudit } from "@/registry/lib/mock-audit"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
@@ -30,8 +34,14 @@ import {
   subscribeMockEvents,
   unauthenticated,
   type MockEvent,
+  type MockScope,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import {
+  inMockScope,
+  ownedByMockCompany,
+  withoutMockScope,
+} from "@/registry/lib/mock-scope"
 import {
   webhookUrlIssue,
   type Webhook,
@@ -43,6 +53,8 @@ import {
 interface MockWebhook extends Webhook {
   /** Мок тримає секрет відкрито; справжній сервер — зашифрованим. */
   secret: string
+  /** Компанія підписки; немає — спільна (застосунок без компаній). */
+  companyId?: string | null
 }
 
 interface MockWebhooksState {
@@ -233,10 +245,28 @@ function saveDelivery(
   )
 }
 
-const publicWebhook = ({ secret, ...webhook }: MockWebhook): Webhook => {
+const publicWebhook = (webhook: MockWebhook): Webhook => {
+  const { secret, ...item } = withoutMockScope(webhook)
   void secret
-  return webhook
+  return item
 }
+
+/**
+ * Чи бачить компанія запиту підписку: лише свою; підписку застосунку (без компанії) налаштовує
+ * платформа, компанії її не бачать і не змінюють (ADR-0036); `null` — застосунок без компаній.
+ */
+const ownedBy =
+  (access: { user: MockUser; companyId: string | null }) =>
+  (webhook: MockWebhook) =>
+    ownedByMockCompany(access.user, webhook.companyId, access.companyId)
+
+/**
+ * Подія підписки для журналу — компанії підписки; підписки застосунку — поза компаніями (`null`): її
+ * адреси не видно в журналах компаній (ADR-0036).
+ */
+const scopeOf = (webhook: MockWebhook): MockScope => ({
+  companyId: webhook.companyId ?? null,
+})
 
 /* --------------------------------- Обробники --------------------------------- */
 
@@ -272,7 +302,10 @@ export function createWebhookHandlers({
   unsubscribe = subscribeMockEvents((event: MockEvent) => {
     const state = readState()
     const targets = state.webhooks.filter(
-      (w) => w.active && w.events.includes(event.type),
+      (w) =>
+        w.active &&
+        w.events.includes(event.type) &&
+        (!w.companyId || inMockScope(event.scope, w.companyId)),
     )
     if (!targets.length) return
     for (const webhook of targets)
@@ -280,15 +313,18 @@ export function createWebhookHandlers({
     writeState(state)
   })
 
-  /** Право на вебхуки; зміни — ще й не «Увійти як…». */
+  /** Право на вебхуки в компанії запиту (A2c1); зміни — ще й не «Увійти як…». */
   const allowed = async (
+    request: Request,
     action: "read" | "update",
-  ): Promise<MockUser | Response> => {
+  ): Promise<{ user: MockUser; companyId: string | null } | Response> => {
     const early = await applyScenario(scenarioFor("webhooks"))
     if (early) return early
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    if (!hasPermission(user.permissions, "webhooks", action))
+    const access = mockRequestPermissions(request, user)
+    if (access instanceof Response) return access
+    if (!hasPermission(access.permissions, "webhooks", action))
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing webhooks:${action}`,
@@ -297,7 +333,7 @@ export function createWebhookHandlers({
       const denied = impersonationForbidden()
       if (denied) return denied
     }
-    return user
+    return { user, companyId: access.companyId }
   }
 
   const known = new Set(Object.keys(events))
@@ -326,16 +362,22 @@ export function createWebhookHandlers({
     return fields
   }
 
-  const find = (state: MockWebhooksState, id: unknown) =>
-    state.webhooks.find((w) => w.id === id)
+  /** Підписка компанії запиту; іншої компанії — як невідома. */
+  const find = (
+    state: MockWebhooksState,
+    id: unknown,
+    access: { user: MockUser; companyId: string | null },
+  ) => state.webhooks.filter(ownedBy(access)).find((w) => w.id === id)
 
   return [
     http.get(`${baseUrl}/webhooks`, async ({ request }) => {
-      const user = await allowed("read")
-      if (user instanceof Response) return user
+      const access = await allowed(request, "read")
+      if (access instanceof Response) return access
       const language = languageOf(request)
       return json({
-        webhooks: readState().webhooks.map(publicWebhook),
+        webhooks: readState()
+          .webhooks.filter(ownedBy(access))
+          .map(publicWebhook),
         events: Object.entries(events).map(([id, type]) => ({
           id,
           label: localizedText(type.label, language) ?? id,
@@ -347,8 +389,8 @@ export function createWebhookHandlers({
     }),
 
     http.post(`${baseUrl}/webhooks`, async ({ request }) => {
-      const user = await allowed("update")
-      if (user instanceof Response) return user
+      const access = await allowed(request, "update")
+      if (access instanceof Response) return access
       const reauth = reauthRequired()
       if (reauth) return reauth
       const body = (await request.json()) as {
@@ -377,6 +419,7 @@ export function createWebhookHandlers({
         createdAt: new Date().toISOString(),
         lastDelivery: null,
         failures: 0,
+        companyId: access.companyId,
       }
       const state = readState()
       state.webhooks = [webhook, ...state.webhooks]
@@ -384,14 +427,15 @@ export function createWebhookHandlers({
       recordAudit({
         action: "integrations.webhook_created",
         category: "integrations",
+        ...scopeOf(webhook),
         target: { type: "webhooks", id: webhook.id, name: webhook.url },
       })
       return json({ webhook: publicWebhook(webhook), secret }, { status: 201 })
     }),
 
     http.patch(`${baseUrl}/webhooks/:id`, async ({ params, request }) => {
-      const user = await allowed("update")
-      if (user instanceof Response) return user
+      const access = await allowed(request, "update")
+      if (access instanceof Response) return access
       const body = (await request.json()) as Partial<{
         url: string
         description: string
@@ -399,7 +443,7 @@ export function createWebhookHandlers({
         active: boolean
       }>
       const state = readState()
-      const current = find(state, params.id)
+      const current = find(state, params.id, access)
       if (!current) return notFound()
       if (body.url !== undefined && body.url.trim() !== current.url) {
         // Нова адреса — туди підуть дані компанії: як і створення, після підтвердження.
@@ -424,6 +468,7 @@ export function createWebhookHandlers({
       recordAudit({
         action: "integrations.webhook_updated",
         category: "integrations",
+        ...scopeOf(next),
         target: { type: "webhooks", id: next.id, name: next.url },
         changes: (["url", "description", "events", "active"] as const)
           .filter(
@@ -440,11 +485,11 @@ export function createWebhookHandlers({
       return json(publicWebhook(next))
     }),
 
-    http.delete(`${baseUrl}/webhooks/:id`, async ({ params }) => {
-      const user = await allowed("update")
-      if (user instanceof Response) return user
+    http.delete(`${baseUrl}/webhooks/:id`, async ({ params, request }) => {
+      const access = await allowed(request, "update")
+      if (access instanceof Response) return access
       const state = readState()
-      const current = find(state, params.id)
+      const current = find(state, params.id, access)
       if (!current) return notFound()
       state.webhooks = state.webhooks.filter((w) => w.id !== current.id)
       state.deliveries = state.deliveries.filter(
@@ -454,43 +499,48 @@ export function createWebhookHandlers({
       recordAudit({
         action: "integrations.webhook_deleted",
         category: "integrations",
+        ...scopeOf(current),
         target: { type: "webhooks", id: current.id, name: current.url },
       })
       return noContent()
     }),
 
-    http.post(`${baseUrl}/webhooks/:id/rotate-secret`, async ({ params }) => {
-      const user = await allowed("update")
-      if (user instanceof Response) return user
-      const reauth = reauthRequired()
-      if (reauth) return reauth
-      const state = readState()
-      const current = find(state, params.id)
-      if (!current) return notFound()
-      const secret = newSecret()
-      state.webhooks = state.webhooks.map((w) =>
-        w.id === current.id
-          ? { ...w, secret, secretPrefix: prefixOf(secret) }
-          : w,
-      )
-      writeState(state)
-      recordAudit({
-        action: "integrations.webhook_secret_rotated",
-        category: "integrations",
-        target: { type: "webhooks", id: current.id, name: current.url },
-      })
-      return json({ secret })
-    }),
+    http.post(
+      `${baseUrl}/webhooks/:id/rotate-secret`,
+      async ({ params, request }) => {
+        const access = await allowed(request, "update")
+        if (access instanceof Response) return access
+        const state = readState()
+        const current = find(state, params.id, access)
+        if (!current) return notFound()
+        const reauth = reauthRequired()
+        if (reauth) return reauth
+        const secret = newSecret()
+        state.webhooks = state.webhooks.map((w) =>
+          w.id === current.id
+            ? { ...w, secret, secretPrefix: prefixOf(secret) }
+            : w,
+        )
+        writeState(state)
+        recordAudit({
+          action: "integrations.webhook_secret_rotated",
+          category: "integrations",
+          ...scopeOf(current),
+          target: { type: "webhooks", id: current.id, name: current.url },
+        })
+        return json({ secret })
+      },
+    ),
 
-    http.post(`${baseUrl}/webhooks/:id/test`, async ({ params }) => {
-      const user = await allowed("update")
-      if (user instanceof Response) return user
+    http.post(`${baseUrl}/webhooks/:id/test`, async ({ params, request }) => {
+      const access = await allowed(request, "update")
+      if (access instanceof Response) return access
       const state = readState()
-      const current = find(state, params.id)
+      const current = find(state, params.id, access)
       if (!current) return notFound()
       const delivery = deliver(current, "ping", {
         message: "Test event from erp-ui",
-        sentBy: user.name,
+        sentBy: access.user.name,
       })
       saveDelivery(state, delivery)
       writeState(state)
@@ -500,10 +550,10 @@ export function createWebhookHandlers({
     http.get(
       `${baseUrl}/webhooks/:id/deliveries`,
       async ({ params, request }) => {
-        const user = await allowed("read")
-        if (user instanceof Response) return user
+        const access = await allowed(request, "read")
+        if (access instanceof Response) return access
         const state = readState()
-        if (!find(state, params.id)) return notFound()
+        if (!find(state, params.id, access)) return notFound()
         const search = new URL(request.url).searchParams
         const page = Math.max(1, Number(search.get("page")) || 1)
         const perPage = Math.min(
@@ -521,12 +571,14 @@ export function createWebhookHandlers({
 
     http.post(
       `${baseUrl}/webhook-deliveries/:id/redeliver`,
-      async ({ params }) => {
-        const user = await allowed("update")
-        if (user instanceof Response) return user
+      async ({ params, request }) => {
+        const access = await allowed(request, "update")
+        if (access instanceof Response) return access
         const state = readState()
         const original = state.deliveries.find((d) => d.id === params.id)
-        const webhook = original ? find(state, original.webhookId) : undefined
+        const webhook = original
+          ? find(state, original.webhookId, access)
+          : undefined
         if (!original || !webhook) return notFound()
         const sameAttempts = state.deliveries.filter(
           (d) =>

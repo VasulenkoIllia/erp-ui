@@ -6,7 +6,8 @@ import { COMPANIES } from "@/fixtures"
  * Користувачі мок-сервера демо. Пароль — «demo»; код застосунку, SMS і email — 123456.
  * Олена — бухгалтер і адміністратор («Увійти як…») з другим кроком (застосунок, резервний код,
  * SMS, ключ доступу); Іван — менеджер без другого кроку; Марта — новенька з тимчасовим паролем;
- * Тарас — керівник відділу: бачить людей і ролі, але нічого не змінює й не бачить історії (A2b2a).
+ * Тарас — керівник відділу: бачить людей і ролі, але нічого не змінює й не бачить історії (A2b2a);
+ * Андрій — адміністратор платформи поза компаніями: змінює політику безпеки застосунку (ADR-0036).
  */
 export const MOCK_USERS: MockUser[] = [
   {
@@ -70,6 +71,20 @@ export const MOCK_USERS: MockUser[] = [
     permissions: ["users:read", "roles:read"],
     companies: COMPANIES.slice(0, 1),
     companyId: "zoriana",
+    factors: [],
+  },
+  {
+    id: "u-andriy",
+    name: "Андрій Бондар",
+    email: "andriy@platform.example",
+    password: "demo",
+    totpCode: "123456",
+    // Позначка облікового запису, а не роль компанії: без компанії бачить лише спільне.
+    isPlatformAdmin: true,
+    roles: ["owner"],
+    permissions: ["*"],
+    companies: [],
+    companyId: null,
     factors: [],
   },
 ]

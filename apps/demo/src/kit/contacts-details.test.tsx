@@ -50,7 +50,8 @@ const user: MockUser = {
   companyId: "c1",
   factors: [],
 }
-const mocks = createContactsMocks({ baseUrl: BASE })
+// Записи — компанії людини: спільні в застосунку з компаніями змінює лише платформа (ADR-0036).
+const mocks = createContactsMocks({ baseUrl: BASE, companyOf: () => "c1" })
 const server = setupServer(
   ...createPlatformHandlers({ users: [user], baseUrl: BASE }),
   ...mocks.handlers,

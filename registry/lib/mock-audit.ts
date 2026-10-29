@@ -6,6 +6,10 @@
  *   У пачці змін (`mockBatch`, масова дія) журнал читається й пишеться в сховище раз.
  * - Назви дій проекту й полів — мовами (`LocalizedText`); мок віддає їх мовою `Accept-Language`.
  * - Хто й звідки — із сесії (зокрема «Увійти як…»), якщо не передано явно.
+ * - Журнал компанії запиту (A2c1): подія компанії (`companyId`) — лише в її журналі, облікового
+ *   запису (`accountId`) — у журналі кожної компанії людини, без обох — застосунку, усюди
+ *   (`inMockScope`); право `audit:read` — у компанії запиту. Відмова «стелі» —
+ *   `recordCeilingDenied`: невдала подія з дією, яку пробували.
  */
 import { http, HttpResponse, type HttpHandler } from "msw/http"
 
@@ -34,7 +38,10 @@ import {
   mockUsersList,
   randomToken,
   unauthenticated,
+  type MockScope,
 } from "@/registry/lib/mock-server"
+import { inMockScope, withoutMockScope } from "@/registry/lib/mock-scope"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 
 /* ----------------------------------- Стан ----------------------------------- */
 
@@ -45,15 +52,16 @@ interface StoredChange {
   to?: AuditValue
 }
 
-/** Подія, як її зберігає мок: назви й місце — мовами. */
+/** Подія, як її зберігає мок: назви й місце — мовами, чия вона — `MockScope`. */
 export type MockAuditEvent = Omit<
   AuditEvent,
   "actionLabel" | "location" | "changes"
-> & {
-  actionLabel?: LocalizedText
-  location?: LocalizedText
-  changes?: StoredChange[]
-}
+> &
+  MockScope & {
+    actionLabel?: LocalizedText
+    location?: LocalizedText
+    changes?: StoredChange[]
+  }
 
 const AUDIT_KEY = "erp-ui:mock-audit"
 const AUDIT_LIMIT = 1000
@@ -171,13 +179,35 @@ export function recordAudit(input: MockAuditInput): void {
   writeEvents([event, ...readEvents()])
 }
 
+/** Код невдалої події, коли дію не дала «стеля» (ADR-0032, ADR-0034). */
+export const BEYOND_CEILING = "beyond_ceiling"
+
+/** Що пробували зробити понад «стелю»: дія, ціль і компанія запиту. */
+export type MockCeilingDenial = Pick<
+  MockAuditInput,
+  "action" | "category" | "target" | "companyId"
+>
+
+/**
+ * Відмова «стелі» (403 через права цілі, ролі чи запрошення) — у журнал компанії запиту: дія, яку
+ * пробували, невдала, з кодом `beyond_ceiling`. Інших 403 журнал не пише (A2c1).
+ */
+export function recordCeilingDenied(input: MockCeilingDenial): void {
+  recordAudit({
+    ...input,
+    result: "failure",
+    details: { code: BEYOND_CEILING },
+  })
+}
+
 /* --------------------------------- Обробники --------------------------------- */
 
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
 function localize(event: MockAuditEvent, language: string): AuditEvent {
-  const { actionLabel, location, changes, ...rest } = event
+  // Чия подія — справа сервера: у відповідь не йде.
+  const { actionLabel, location, changes, ...rest } = withoutMockScope(event)
   const label = localizedText(actionLabel, language)
   const place = localizedText(location, language)
   return {
@@ -195,7 +225,7 @@ function localize(event: MockAuditEvent, language: string): AuditEvent {
   }
 }
 
-function filtered(request: Request): AuditEvent[] {
+function filtered(request: Request, companyId: string | null): AuditEvent[] {
   const params = new URL(request.url).searchParams
   const language = languageOf(request)
   const q = params.get("q")?.trim().toLocaleLowerCase("uk") ?? ""
@@ -207,6 +237,7 @@ function filtered(request: Request): AuditEvent[] {
     return !wanted || wanted === value
   }
   return readEvents()
+    .filter((event) => inMockScope(event, companyId))
     .map((event) => localize(event, language))
     .filter((event) => {
       if (categories.length && !categories.includes(event.category))
@@ -234,24 +265,29 @@ function filtered(request: Request): AuditEvent[] {
 export function createAuditHandlers({
   baseUrl = API_PREFIX,
 }: { baseUrl?: string } = {}): HttpHandler[] {
-  const guard = async (): Promise<Response | null> => {
+  /** Сценарій, сесія, право в компанії запиту: компанія журналу або відмова. */
+  const guard = async (
+    request: Request,
+  ): Promise<{ companyId: string | null } | Response> => {
     const early = await applyScenario(scenarioFor("audit"))
     if (early) return early
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    if (!hasPermission(user.permissions, "audit", "read"))
+    const access = mockRequestPermissions(request, user)
+    if (access instanceof Response) return access
+    if (!hasPermission(access.permissions, "audit", "read"))
       return errorResponse(403, {
         code: "forbidden",
         message: "Missing audit:read",
       })
-    return null
+    return access
   }
 
   return [
     http.get(`${baseUrl}/audit-events/export`, async ({ request }) => {
-      const denied = await guard()
-      if (denied) return denied
-      return new HttpResponse(auditToCsv(filtered(request)), {
+      const access = await guard(request)
+      if (access instanceof Response) return access
+      return new HttpResponse(auditToCsv(filtered(request, access.companyId)), {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": 'attachment; filename="audit.csv"',
@@ -260,8 +296,8 @@ export function createAuditHandlers({
     }),
 
     http.get(`${baseUrl}/audit-events`, async ({ request }) => {
-      const denied = await guard()
-      if (denied) return denied
+      const access = await guard(request)
+      if (access instanceof Response) return access
       if (scenarioFor("audit") === "empty") return json({ data: [], total: 0 })
       const params = new URL(request.url).searchParams
       const page = Math.max(1, Number(params.get("page")) || 1)
@@ -269,7 +305,7 @@ export function createAuditHandlers({
         100,
         Math.max(1, Number(params.get("perPage")) || 20),
       )
-      const events = filtered(request)
+      const events = filtered(request, access.companyId)
       const start = (page - 1) * perPage
       return json({
         data: events.slice(start, start + perPage),

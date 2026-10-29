@@ -18,7 +18,11 @@ import {
   type SignInMethod,
   type TrustedDevice,
 } from "@/registry/lib/account"
-import { recordAudit } from "@/registry/lib/mock-audit"
+import {
+  recordAudit,
+  recordCeilingDenied,
+  type MockCeilingDenial,
+} from "@/registry/lib/mock-audit"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import {
   CURRENT_IP,
@@ -70,6 +74,8 @@ type MockProfile = Partial<{
 export interface MockApiToken extends ApiToken {
   /** Мок зберігає сам токен; справжній сервер — лише хеш. */
   secret: string
+  /** Компанія, де токен створили й де він діє (A2c1); немає — застосунок без компаній. */
+  companyId?: string | null
 }
 
 export interface MockAccountState {
@@ -190,12 +196,17 @@ export const validation = (fields: Record<string, string>) =>
 export const notFound = () =>
   errorResponse(404, { code: "not_found", message: "Not found" })
 
-/** «Стеля» (ADR-0032): не дати й не змінити права, яких немає в того, хто дає. */
-export const beyondCeiling = () =>
-  errorResponse(403, {
+/**
+ * «Стеля» (ADR-0032): не дати й не змінити права, яких немає в того, хто дає. `denied` — що
+ * пробували: невдала подія в журналі компанії запиту (A2c1).
+ */
+export const beyondCeiling = (denied?: MockCeilingDenial) => {
+  if (denied) recordCeilingDenied(denied)
+  return errorResponse(403, {
     code: "forbidden",
     message: "Exceeds your own permissions",
   })
+}
 
 export const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
@@ -303,6 +314,8 @@ export function recordSignIn(
   })
   if (event.method !== "impersonation")
     recordAudit({
+      // Вхід — подія облікового запису: її бачить журнал кожної компанії людини (A2c1).
+      accountId: user.id,
       action:
         event.result === "success"
           ? "auth.sign_in"

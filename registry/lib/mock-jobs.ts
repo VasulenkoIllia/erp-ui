@@ -9,16 +9,14 @@
  *   журнал і доставки вебхуків пишуться в localStorage раз на партію, а не на кожен запис.
  * - Сценарій запуску — ресурсу (`invoices`), опитування й повтору — ресурсу `jobs` (панель
  *   розробника): так видно і відмову запуску, і збій зв'язку посеред задачі.
- * - Задачі живуть у пам'яті до перезавантаження сторінки; бачить лише той, хто запустив.
+ * - Задачі живуть у пам'яті до перезавантаження сторінки; бачить лише той, хто запустив, і лише в
+ *   компанії, де запустив (інша — 404); право й вибір — у компанії запиту, повтор перевіряє право ще
+ *   раз (A2c1).
  */
 import { http, type HttpHandler } from "msw/http"
 import { z } from "zod"
 
-import {
-  API_PREFIX,
-  COMPANY_HEADER,
-  type FilterValue,
-} from "@/registry/lib/api"
+import { API_PREFIX, type FilterValue } from "@/registry/lib/api"
 import { hasPermission } from "@/registry/lib/auth"
 import {
   JOB_FAILURE_SAMPLE,
@@ -26,6 +24,7 @@ import {
   type Job,
   type JobFailureGroup,
 } from "@/registry/lib/jobs"
+import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
@@ -35,7 +34,9 @@ import {
   mockBatch,
   randomToken,
   unauthenticated,
+  type MockUser,
 } from "@/registry/lib/mock-server"
+import { isMockSharedLocked } from "@/registry/lib/mock-scope"
 import type { MockRecord, MockResourceDb } from "@/registry/lib/mocks"
 
 /** Ресурс для сценаріїв опитування задач у панелі розробника. */
@@ -62,6 +63,8 @@ type FailureReason = Omit<JobFailureGroup, "count" | "items"> & {
 interface MockJob {
   id: string
   userId: string
+  /** Компанія запуску; `null` — застосунок без компаній. */
+  companyId: string | null
   resource: string
   action: string
   ids: string[]
@@ -188,7 +191,7 @@ export function createBulkHandlers<T extends MockRecord>({
   now = Date.now,
 }: MockBulkOptions<T>): HttpHandler[] {
   const start = (
-    userId: string,
+    user: MockUser,
     companyId: string | null,
     actionName: string,
     action: MockBulkAction<T>,
@@ -196,7 +199,8 @@ export function createBulkHandlers<T extends MockRecord>({
   ): MockJob => {
     const job: MockJob = {
       id: `job-${randomToken().slice(0, 12)}`,
-      userId,
+      userId: user.id,
+      companyId,
       resource,
       action: actionName,
       ids,
@@ -216,6 +220,14 @@ export function createBulkHandlers<T extends MockRecord>({
           const record = byId.get(id)
           if (!record) return { ...notFound, retryable: false }
           const title = titleField ? String(record[titleField]) : undefined
+          // Спільний запис змінює лише адміністратор платформи (ADR-0036).
+          if (isMockSharedLocked(user, record.companyId))
+            return {
+              code: "forbidden",
+              message: "Shared record",
+              retryable: false,
+              title,
+            }
           // Збій дії над одним записом — невдача цього запису, а не всієї партії.
           try {
             const outcome = action.apply(record)
@@ -244,7 +256,7 @@ export function createBulkHandlers<T extends MockRecord>({
           }
         })
       },
-      retry: (failed) => start(userId, companyId, actionName, action, failed),
+      retry: (failed) => start(user, companyId, actionName, action, failed),
     }
     jobs.set(job.id, job)
     return job
@@ -265,7 +277,9 @@ export function createBulkHandlers<T extends MockRecord>({
             code: "not_found",
             message: "No such action",
           })
-        if (!hasPermission(user.permissions, resource, actionName))
+        const access = mockRequestPermissions(request, user)
+        if (access instanceof Response) return access
+        if (!hasPermission(access.permissions, resource, actionName))
           return errorResponse(403, {
             code: "forbidden",
             message: `Missing permission ${resource}:${actionName}`,
@@ -274,7 +288,7 @@ export function createBulkHandlers<T extends MockRecord>({
         const body: unknown = await request.json().catch(() => undefined)
         const parsed = selectionSchema.safeParse(body)
         if (!parsed.success) return validation("selection", "invalid")
-        const companyId = request.headers.get(COMPANY_HEADER)
+        const { companyId } = access
         let ids: string[]
         if ("ids" in parsed.data) ids = [...new Set(parsed.data.ids)]
         else {
@@ -288,7 +302,7 @@ export function createBulkHandlers<T extends MockRecord>({
             .filter((id) => !excluded.has(id))
         }
         if (!ids.length) return validation("selection", "empty")
-        const job = start(user.id, companyId, actionName, action, ids)
+        const job = start(user, companyId, actionName, action, ids)
         return json({ jobId: job.id }, { status: 202 })
       },
     ),
@@ -302,30 +316,46 @@ export function createJobHandlers({
 }: { baseUrl?: string; now?: () => number } = {}): HttpHandler[] {
   const url = `${baseUrl}/${JOBS_PATH}/:id`
 
-  /** Сценарій, сесія й власник задачі: відмова або задача. */
-  async function own(id: unknown): Promise<Response | MockJob> {
+  /**
+   * Сценарій, сесія, власник і компанія задачі (A2c1): відмова або задача з правами того, хто питає,
+   * у компанії запиту.
+   */
+  async function own(
+    request: Request,
+    id: unknown,
+  ): Promise<Response | { job: MockJob; permissions: string[] }> {
     const early = await applyScenario(scenarioFor(MOCK_JOBS_RESOURCE))
     if (early) return early
     const user = currentMockUser()
     if (!user) return unauthenticated()
+    const access = mockRequestPermissions(request, user)
+    if (access instanceof Response) return access
     const job = jobs.get(String(id))
-    if (!job || job.userId !== user.id)
+    if (!job || job.userId !== user.id || job.companyId !== access.companyId)
       return errorResponse(404, { code: "not_found", message: "Job not found" })
-    return job
+    return { job, permissions: access.permissions }
   }
 
   return [
-    http.get(url, async ({ params }) => {
-      const job = await own(params.id)
-      if (job instanceof Response) return job
+    http.get(url, async ({ params, request }) => {
+      const owned = await own(request, params.id)
+      if (owned instanceof Response) return owned
+      const { job } = owned
       const at = now()
       advance(job, at)
       return json(toJob(job, at))
     }),
 
-    http.post(`${url}/retry`, async ({ params }) => {
-      const job = await own(params.id)
-      if (job instanceof Response) return job
+    http.post(`${url}/retry`, async ({ params, request }) => {
+      const owned = await own(request, params.id)
+      if (owned instanceof Response) return owned
+      const { job } = owned
+      // Право могли забрати, поки задача йшла.
+      if (!hasPermission(owned.permissions, job.resource, job.action))
+        return errorResponse(403, {
+          code: "forbidden",
+          message: `Missing permission ${job.resource}:${job.action}`,
+        })
       const at = now()
       advance(job, at)
       if (job.processed < job.ids.length) return validation("job", "running")

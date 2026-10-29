@@ -194,11 +194,15 @@ function EmailLinkPage({
   )
 }
 
-const HINTS: Record<string, "accountant" | "sales" | "temporary" | "lead"> = {
+const HINTS: Record<
+  string,
+  "accountant" | "sales" | "temporary" | "lead" | "platform"
+> = {
   "u-olena": "accountant",
   "u-ivan": "sales",
   "u-marta": "temporary",
   "u-taras": "lead",
+  "u-andriy": "platform",
 }
 
 /**

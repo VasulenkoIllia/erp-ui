@@ -15,17 +15,19 @@
  * - Права того, хто діє, — у компанії запиту (ADR-0034): `mockRequestPermissions` беруть профіль
  *   (`lib/mock-me`), доступ людей (`lib/mock-admin`) і «Увійти як…» (`lib/mock-impersonation`);
  *   ролі й запрошення (`lib/mock-team`) — `mockPermissionsIn` після своєї, суворішої перевірки
- *   членства (`*` не керує ролями чужої компанії). Права людини в усіх її компаніях —
+ *   членства (платформа не керує ролями чужої компанії). Права людини в усіх її компаніях —
  *   `mockPermissionsAcross` («стеля» доступу, `lib/mock-admin`).
  */
 import {
   currentMockUser,
   errorResponse,
+  hasMockCompanies,
   isMockCompanyMember,
   mockCompanyOrForbidden,
   mockUsersList,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { mockCompanyIdsOf } from "@/registry/lib/mock-scope"
 import type { MockRole } from "@/registry/lib/mock-team"
 
 /** Ролі однієї компанії поверх ролей проекту. */
@@ -338,13 +340,17 @@ export function mockUserRolesIn(
   return [...assignedRoles(assigned, user.id, companyId, base)]
 }
 
-/** Права людини в компанії — за її ролями там: зміна ролі в іншій компанії їх не зачіпає. */
+/**
+ * Права людини в компанії — за її ролями там: зміна ролі в іншій компанії їх не зачіпає. Людина
+ * поза компаніями в застосунку з компаніями — без прав (ADR-0036).
+ */
 export function mockPermissionsIn(
   user: MockUser,
   companyId: string | null,
   assigned: MockUserRolesState = readMockUserRoles(),
   state: MockCompanyRolesState = readMockCompanyRoles(),
 ): string[] {
+  if (companyId === null && hasMockCompanies()) return []
   return permissionsInCompany(
     mockUserRolesIn(user, companyId, assigned),
     rolesOfCompany(projectRoles, state, companyId),
@@ -360,20 +366,32 @@ export function mockPermissionsIn(
 export function mockPermissionsAcross(user: MockUser): string[] {
   const assigned = readMockUserRoles()
   const state = readMockCompanyRoles()
-  const companies = user.companies.length
-    ? user.companies.map((company) => company.id)
-    : [null]
   return [
     ...new Set(
-      companies.flatMap((id) => mockPermissionsIn(user, id, assigned, state)),
+      mockCompanyIdsOf(user).flatMap((id) =>
+        mockPermissionsIn(user, id, assigned, state),
+      ),
+    ),
+  ]
+}
+
+/** Ролі людини в усіх її компаніях разом: для політики безпеки облікового запису (A2c1). */
+export function mockRolesAcross(user: MockUser): string[] {
+  const assigned = readMockUserRoles()
+  return [
+    ...new Set(
+      mockCompanyIdsOf(user).flatMap((id) =>
+        mockUserRolesIn(user, id, assigned),
+      ),
     ),
   ]
 }
 
 /**
  * Права того, хто діє, у компанії запиту (`X-Company-Id`, без нього — активна компанія сесії) — за
- * його ролями там (ADR-0034); компанія без членства — 403. Платформний адміністратор (`*`) у чужій
- * компанії діє зі своїми правами, а не з ролями цієї компанії (ADR-0032).
+ * його ролями там (ADR-0034); компанія без членства — 403. Адміністратор платформи в компанії, де
+ * не працює, і поза компаніями — з усіма правами; людина поза компаніями в застосунку з компаніями —
+ * без прав: спільне вона лише бачить (ADR-0036).
  */
 export function mockRequestPermissions(
   request: Request,
@@ -381,12 +399,19 @@ export function mockRequestPermissions(
 ): { companyId: string | null; permissions: string[] } | Response {
   const companyId = mockCompanyOrForbidden(request, user)
   if (companyId instanceof Response) return companyId
-  return {
-    companyId,
-    permissions: isMockCompanyMember(user, companyId)
-      ? mockPermissionsIn(user, companyId)
-      : user.permissions,
-  }
+  return { companyId, permissions: requestPermissionsIn(user, companyId) }
+}
+
+function requestPermissionsIn(
+  user: MockUser,
+  companyId: string | null,
+): string[] {
+  const isMember = companyId !== null && isMockCompanyMember(user, companyId)
+  if (user.isPlatformAdmin === true && !isMember) return ["*"]
+  // Компанію без членства сюди й так пропускає лише позначка платформи: решті — без прав.
+  return isMember || companyId === null
+    ? mockPermissionsIn(user, companyId)
+    : []
 }
 
 /** Перерахувати ролі й права користувачів (в активній компанії) після змін ролей і призначень. */

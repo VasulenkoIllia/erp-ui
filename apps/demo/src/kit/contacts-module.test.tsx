@@ -186,6 +186,8 @@ const user: MockUser = {
 }
 const mocks = createContactsMocks({
   baseUrl: BASE,
+  // Записи — компанії людини: спільні в застосунку з компаніями змінює лише платформа (ADR-0036).
+  companyOf: () => "c1",
   extension: {
     organizations: { statuses: STATUSES },
     contacts: contactsMockExtension.contacts,
@@ -332,8 +334,19 @@ describe("моки B1", () => {
     await expect(
       provider.create<Segment>("segments", { data: { name: " ключовий " } }),
     ).rejects.toSatisfy(duplicate)
-    const { data: segment } = await provider.getOne<Segment>("segments", {
+    // Сегменти модуля — спільні: їх змінює адміністратор платформи, компанія — свої (ADR-0036).
+    const { data: shared } = await provider.getOne<Segment>("segments", {
       id: "seg-new",
+    })
+    await expect(
+      provider.update<Segment>("segments", {
+        id: shared.id,
+        data: { name: "Нові клієнти", version: shared.version },
+        previousData: shared,
+      }),
+    ).rejects.toMatchObject({ status: 403 })
+    const { data: segment } = await provider.create<Segment>("segments", {
+      data: { name: "Свій" },
     })
     await expect(
       provider.update<Segment>("segments", {
@@ -344,12 +357,12 @@ describe("моки B1", () => {
     ).rejects.toSatisfy(duplicate)
     const { data: renamed } = await provider.update<Segment>("segments", {
       id: segment.id,
-      data: { name: "Нові клієнти", version: segment.version },
+      data: { name: "Свій", version: segment.version },
       previousData: segment,
     })
-    expect(renamed.name).toBe("Нові клієнти")
+    expect(renamed.name).toBe("Свій")
     const { data: created } = await provider.create<Segment>("segments", {
-      data: { name: "Новий" },
+      data: { name: "Інший" },
     })
     expect(created.version).toBe(1)
 

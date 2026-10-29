@@ -8,7 +8,8 @@
  *   setupWorker(...platform, ...users.handlers)
  *
  * - Компанія — `X-Company-Id`, без нього — компанія сесії; компанія, де людина не працює, — 403;
- *   застосунок без компаній — одна команда (`mockCompanyOrForbidden`, ADR-0032).
+ *   застосунок без компаній — одна команда; права — у компанії запиту (`mockRequestPermissions`,
+ *   ADR-0032, ADR-0036).
  * - Права: з `users:read` — повний запис; без нього — довідник (`id`, `version`, ім'я, email):
  *   пошук і сторінки — лише активні, за `id` — будь-хто; інші фільтри й сортування не за `name`,
  *   `email` чи `id` — 403 (контракт, `contract.ts`).
@@ -34,14 +35,13 @@ import {
   errorResponse,
   isMockCompanyMember,
   json,
-  mockCompanyOrForbidden,
   mockUsersList,
   subscribeMockEvents,
   type MockUser,
 } from "@/lib/mock-server"
 import {
   mockCompanyRoles,
-  mockPermissionsIn,
+  mockRequestPermissions,
   mockUserRolesIn,
 } from "@/lib/mock-company-roles"
 import {
@@ -185,11 +185,13 @@ export function createUsersMocks({
         code: "unauthenticated",
         message: "Not signed in",
       })
-    const companyId = mockCompanyOrForbidden(request, me)
-    if (companyId instanceof Response) return companyId
+    const access = mockRequestPermissions(request, me)
+    if (access instanceof Response) return access
+    const { companyId } = access
     return {
-      // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої.
-      canRead: hasPermission(mockPermissionsIn(me, companyId), USERS, "read"),
+      // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої,
+      // людина поза компаніями в застосунку з компаніями — без прав (ADR-0036).
+      canRead: hasPermission(access.permissions, USERS, "read"),
       companyId,
       members: mockUsersList().filter((user) =>
         isMockCompanyMember(user, companyId),
