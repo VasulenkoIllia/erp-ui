@@ -7,6 +7,7 @@ import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
+import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
 
@@ -20,6 +21,7 @@ import {
 } from "@/data/invoices"
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
+import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
@@ -127,6 +129,12 @@ const team = createUsersFixtures({
 })
 const users = createUsersMocks({ extension: usersMockExtension })
 
+/** Модуль A1 «Компанія й валюти» (ADR-0043): валюти й курси кожної компанії демо. */
+const company = createCompanyMocks({
+  extension: companyMockExtension,
+  companies: COMPANIES.map(({ id }) => id),
+})
+
 export const handlers = [
   ...createPlatformHandlers({
     users: [...MOCK_USERS, ...team.users],
@@ -143,6 +151,8 @@ export const handlers = [
       contacts: { uk: "Контакти", en: "Contacts" },
       segments: { uk: "Сегменти", en: "Segments" },
       users: { uk: "Користувачі", en: "Users" },
+      currencies: { uk: "Валюти", en: "Currencies" },
+      "exchange-rates": { uk: "Курси валют", en: "Exchange rates" },
     },
     auditSeeds: AUDIT_SEEDS,
     webhookEvents: WEBHOOK_EVENTS,
@@ -157,4 +167,5 @@ export const handlers = [
   ...invoices.handlers,
   ...contacts.handlers,
   ...users.handlers,
+  ...company.handlers,
 ]

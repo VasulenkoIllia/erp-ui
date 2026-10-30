@@ -13,6 +13,7 @@ export const ROUTES = {
   pickers: "/pickers",
   icons: "/icons",
   shortcuts: "/shortcuts",
+  wizard: "/wizard",
   states: "/states",
   data: "/data",
   organizations: "/organizations",
@@ -49,12 +50,13 @@ export const LOGIN_PATH = AUTH_ROUTES.login
 export const MODULE_ROUTES = {
   contacts: "/m/B1",
   usersModule: "/m/A2",
+  companyModule: "/m/A1",
 } as const
 export type KitModuleKey = keyof typeof MODULE_ROUTES
 
 /**
  * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
- * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users — маршрути модуля) або заглушка
+ * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users, /m/A1/currencies — маршрути модуля) або заглушка
  * модуля ERP (/m/K2).
  */
 export type Location =

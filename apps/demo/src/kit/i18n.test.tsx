@@ -21,6 +21,8 @@ import {
 } from "@/registry/lib/i18n-namespaces"
 import { en as kitEn } from "@/registry/lib/i18n-en"
 import { uk as kitUk } from "@/registry/lib/i18n-uk"
+import companyEn from "@/registry/modules/A1-company/i18n/en.json"
+import companyUk from "@/registry/modules/A1-company/i18n/uk.json"
 import contactsEn from "@/registry/modules/B1-contacts/i18n/en.json"
 import contactsUk from "@/registry/modules/B1-contacts/i18n/uk.json"
 import usersEn from "@/registry/modules/A2-users/i18n/en.json"
@@ -96,6 +98,10 @@ describe("паритет рядків uk/en", () => {
 
   it("рядки модуля A2", () => {
     expect(checkParity({ uk: usersUk, en: usersEn })).toEqual([])
+  })
+
+  it("рядки модуля A1", () => {
+    expect(checkParity({ uk: companyUk, en: companyEn })).toEqual([])
   })
 
   it("перевірка ловить пропущену форму множини", () => {

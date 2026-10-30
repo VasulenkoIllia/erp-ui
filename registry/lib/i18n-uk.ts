@@ -6,6 +6,7 @@
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
+import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
 export const uk = {
   common: {
@@ -633,6 +634,10 @@ export const uk = {
     signature: "Підпис для листів",
     signatureHint: "Додається до листів, які ви надсилаєте із системи.",
     save: "Зберегти",
+  },
+  currency: {
+    placeholder: "Знайдіть код чи назву",
+    empty: "Такої валюти немає",
   },
   timezone: {
     placeholder: "Знайдіть місто або UTC",
@@ -1422,6 +1427,7 @@ export const uk = {
   ...ukLists,
   ...ukRecords,
   ...ukShortcuts,
+  ...ukWizard,
 }
 
 export type ErpUiMessages = typeof uk

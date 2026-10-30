@@ -6,7 +6,7 @@ import { ApiError, isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 
 /** Мережі немає, і TanStack Query тримає запит на паузі: це «немає з'єднання», а не вічний скелетон. */
-const OFFLINE = new ApiError(0, {
+export const OFFLINE = new ApiError(0, {
   code: "offline",
   message: "Network is unavailable",
 })

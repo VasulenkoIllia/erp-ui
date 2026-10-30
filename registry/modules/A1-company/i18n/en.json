@@ -1,0 +1,125 @@
+{
+  "company": {
+    "title": "Company",
+    "tabsLabel": "Company sections",
+    "history": "History",
+    "sections": {
+      "details": "Details",
+      "images": "Logo and stamp",
+      "branches": "Branches",
+      "locale": "Localization"
+    },
+    "fields": {
+      "vatYes": "Yes",
+      "vatNo": "No",
+      "baseCurrency": "Base currency",
+      "branches": "Branches"
+    }
+  },
+  "locale": {
+    "baseCurrency": "Base currency",
+    "baseCurrencyHint": "Rates in the table are quoted against it. Changing it doesn't recalculate existing rates.",
+    "language": "Document language",
+    "languageHint": "The language the company prints documents and sends emails in.",
+    "timezone": "Time zone",
+    "timezoneHint": "The company counts day boundaries in reports by it.",
+    "fiscalStart": "Fiscal year start",
+    "fiscalStartHint": "The month the company starts its year from.",
+    "save": "Save localization",
+    "saved": "Localization saved",
+    "invalid": "Check this value",
+    "readOnly": "Only someone with the company settings permission can change localization."
+  },
+  "currencies": {
+    "title": "Currencies",
+    "lead": "Currencies the company works with. Base currency: {{base}}.",
+    "search": "Search by code",
+    "create": "Add currency",
+    "createDenied": "You don't have permission to add currencies",
+    "tableLabel": "Company currencies",
+    "base": "Base",
+    "noRate": "No rate yet",
+    "listLoading": "The currency list is still loading",
+    "listFailed": "Couldn't get the currency list",
+    "listDenied": "You don't have permission to view currencies",
+    "disable": "Disable",
+    "enable": "Enable",
+    "disableFor": "Disable {{code}}",
+    "enableFor": "Enable {{code}}",
+    "disabled": "Currency {{code}} disabled",
+    "enabled": "Currency {{code}} enabled",
+    "conflict": "Someone else has just changed this currency. Check the list and try again.",
+    "columns": {
+      "code": "Currency",
+      "status": "State",
+      "latestRate": "Rate, {{base}}",
+      "latestRateDate": "As of",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "empty": {
+      "title": "No currencies yet",
+      "description": "The company works only in {{base}}. Add a currency to keep its rate."
+    },
+    "form": {
+      "title": "New currency",
+      "code": "Currency",
+      "submit": "Add currency",
+      "created": "Currency {{code}} added"
+    },
+    "count_one": "{{value}} currency",
+    "count_other": "{{value}} currencies"
+  },
+  "rates": {
+    "title": "Exchange rates",
+    "lead": "How much {{base}} a unit of currency costs on each date. Newest rates first.",
+    "create": "Add rate",
+    "createDenied": "You don't have permission to add rates",
+    "noCurrencies": "Add a currency first",
+    "tableLabel": "Exchange rates",
+    "edit": "Change",
+    "editFor": "Change the {{currency}} rate for {{date}}",
+    "delete": "Delete",
+    "deleteFor": "Delete the {{currency}} rate for {{date}}",
+    "deleteTitle": "Delete the {{currency}} rate for {{date}}?",
+    "deleteDescription": "Documents that already used this rate won't change.",
+    "deleteConfirm": "Delete rate",
+    "deleted": "The {{currency}} rate for {{date}} deleted",
+    "sourceLocked": "A rate from “{{source}}” is updated by the server",
+    "columns": {
+      "date": "Date",
+      "currency": "Currency",
+      "rate": "Rate, {{base}}",
+      "source": "Source",
+      "actions": "Actions"
+    },
+    "filters": {
+      "currency": "Currency",
+      "date": "Date",
+      "source": "Source"
+    },
+    "sources": {
+      "manual": "Manual",
+      "nbu": "NBU"
+    },
+    "empty": {
+      "title": "No rates yet",
+      "description": "Add a currency rate for the date you need."
+    },
+    "form": {
+      "createTitle": "New rate",
+      "editTitle": "Change rate",
+      "currency": "Currency",
+      "date": "Date",
+      "rate": "Rate: {{base}} for 1 {{currency}}",
+      "tooLow": "The rate must be above zero",
+      "created": "{{currency}} rate added",
+      "saved": "{{currency}} rate saved"
+    },
+    "count_one": "{{value}} rate",
+    "count_other": "{{value}} rates"
+  }
+}

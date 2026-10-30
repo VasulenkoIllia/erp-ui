@@ -8,11 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "test": "vitest run",
-    "e2e": "playwright test --project=chromium",
-    "e2e:repeat": "playwright test --project=chromium --repeat-each=10 --workers=100%",
+    "test": "nice -n 15 vitest run",
+    "e2e": "nice -n 15 playwright test --project=chromium",
+    "e2e:repeat": "nice -n 15 playwright test --project=chromium --repeat-each=10 --workers=6",
     "perf": "playwright test --project=perf --workers=1",
-    "screenshots": "playwright test --grep @screenshots"
+    "screenshots": "nice -n 15 playwright test --grep @screenshots"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -39,24 +39,38 @@ export function withCompany<T extends MockRecord>(
   return companyId === undefined ? record : { ...record, companyId }
 }
 
+/** Поле, що не повторюється, або кілька полів, що разом не повторюються: `["currency", "date"]`. */
+export type MockUniqueKey<T> =
+  (keyof T & string) | readonly (keyof T & string)[]
+
+/** Поля ключа списком. */
+export const uniqueGroup = <T>(
+  key: MockUniqueKey<T>,
+): readonly (keyof T & string)[] => (typeof key === "string" ? [key] : key)
+
 /** Поля `unique`, значення яких уже має інший запис тієї самої компанії; порожні не перевіряються. */
 export function duplicateFields<T extends MockRecord>(
   records: readonly T[],
   candidate: T,
-  unique: readonly (keyof T & string)[],
+  unique: readonly MockUniqueKey<T>[],
 ): Record<string, string> | null {
   const companyId = candidate.companyId ?? null
-  const fields = unique.filter((field) => {
-    const value = uniqueKey(candidate[field])
-    if (value === "" || value === null || value === undefined) return false
-    return records.some(
+  const fields = unique.flatMap((key) => {
+    const group = uniqueGroup(key)
+    const values = group.map((field) => uniqueKey(candidate[field]))
+    if (values.some((value) => value === "" || value == null)) return []
+    const taken = records.some(
       (record) =>
         record.id !== candidate.id &&
         (!companyId ||
           record.companyId == null ||
           record.companyId === companyId) &&
-        uniqueKey(record[field]) === value,
+        group.every(
+          (field, index) => uniqueKey(record[field]) === values[index],
+        ),
     )
+    // Помилка складеного ключа — біля останнього поля: там людина виправить значення.
+    return taken ? group.slice(-1) : []
   })
   return fields.length
     ? Object.fromEntries(fields.map((field) => [field, "duplicate"]))

@@ -61,11 +61,15 @@ const SHOT_PAGES = {
   pickers: "/#/pickers",
   icons: "/#/icons",
   shortcuts: "/#/shortcuts",
+  wizard: "/#/wizard",
   states: "/#/states",
   module: "/#/m/K2",
   data: "/#/data",
   organizations: "/#/organizations",
   // Модуль B1 (крок 1.4a, ADR-0025): списки й картки з розширенням демо.
+  companyCard: "/#/m/A1/company",
+  companyCurrencies: "/#/m/A1/currencies",
+  companyRates: "/#/m/A1/exchange-rates",
   contacts: "/#/m/B1/contacts",
   contactsOrganizations: "/#/m/B1/organizations",
   contactsOrganization: "/#/m/B1/organizations/org-003",
@@ -104,6 +108,19 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
     await expect(listStatus(page)).toHaveText(/\d (організац|organization)/)
   if (pageId === "contacts")
     await expect(listStatus(page)).toHaveText(/\d (контакт|contact)/)
+  // Журнал і сповіщення: кнопка над списком стає активною з приходом даних, і axe не має застати перехід.
+  if (pageId === "audit")
+    await expect(
+      page.getByRole("button", { name: /^(Подробиці|Details):/ }).first(),
+    ).toBeVisible()
+  if (pageId === "inbox")
+    await expect(page.getByText(/2026-0012/).first()).toBeVisible()
+  if (pageId === "companyCurrencies")
+    await expect(listStatus(page)).toHaveText(/\d (валют|currenc)/)
+  if (pageId === "companyRates")
+    await expect(listStatus(page)).toHaveText(/\d (курс|rate)/)
+  if (pageId === "companyCard")
+    await expect(page.getByRole("tablist").last()).toBeVisible()
   // Картки модуля: запис і вкладки вже з сервера, а не скелетон.
   if (pageId === "contactsOrganization")
     await expect(page.getByRole("tablist").last()).toBeVisible()

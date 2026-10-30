@@ -10,6 +10,10 @@
  * - Філії: `POST /company/branches` → філія; `PATCH` і `DELETE /company/branches/:id`.
  * - Юрособа має ЄДРПОУ (8 цифр), ФОП — РНОКПП (10 цифр); платник ПДВ — ІПН (12 цифр).
  * - `palette` — палітра компанії: застосунок бере її типовою (`useBrandAppearance(palette)`).
+ * - Локалізація (модуль A1, ADR-0043), необов'язкові поля, бекенд без них працює:
+ *   `baseCurrency` — базова валюта (ISO 4217), курси таблиці вказано до неї; `language` — мова
+ *   документів компанії; `timezone` — пояс IANA; `fiscalYearStartMonth` — місяць початку фінансового
+ *   року, 1–12. Хибне значення — 422 `fieldErrors` з кодом `invalid`.
  */
 import { z } from "zod"
 
@@ -18,6 +22,11 @@ import { PALETTES } from "@/registry/lib/appearance"
 
 export const COMPANY_KINDS = ["legal", "fop"] as const
 export type CompanyKind = (typeof COMPANY_KINDS)[number]
+
+/** Базова валюта, поки компанія не вибрала свою. */
+export const DEFAULT_BASE_CURRENCY = "UAH"
+/** Фінансовий рік з січня, поки компанія не вибрала інший місяць. */
+export const DEFAULT_FISCAL_YEAR_START_MONTH = 1
 
 export const branchSchema = z.object({
   id: z.string(),
@@ -56,6 +65,10 @@ export const companyProfileSchema = z.object({
    * бренду сторінки входу.
    */
   palette: z.enum(PALETTES).nullable().optional(),
+  baseCurrency: z.string().nullable().optional(),
+  language: z.string().nullable().optional(),
+  timezone: z.string().nullable().optional(),
+  fiscalYearStartMonth: z.number().int().min(1).max(12).nullable().optional(),
   branches: z.array(branchSchema),
 })
 export type CompanyProfile = z.infer<typeof companyProfileSchema>

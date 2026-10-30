@@ -18,7 +18,14 @@ export const ROLES: MockRole[] = [
       uk: "Рахунки й платежі: усе, крім налаштувань компанії",
       en: "Invoices and payments: everything but company settings",
     },
-    permissions: ["invoices:*", "organizations:*", "contacts:*", "segments:*"],
+    permissions: [
+      "invoices:*",
+      "organizations:*",
+      "contacts:*",
+      "segments:*",
+      "currencies:*",
+      "exchange-rates:*",
+    ],
   },
   {
     id: "admin",
@@ -35,6 +42,8 @@ export const ROLES: MockRole[] = [
       "audit:read",
       "webhooks:*",
       "company:*",
+      "currencies:*",
+      "exchange-rates:*",
     ],
   },
   {
@@ -53,6 +62,8 @@ export const ROLES: MockRole[] = [
       "contacts:create",
       "contacts:update:own",
       "segments:read",
+      "currencies:read",
+      "exchange-rates:read",
     ],
   },
   {
@@ -78,6 +89,8 @@ export const ROLES: MockRole[] = [
       "segments:read",
       "users:read",
       "roles:read",
+      "currencies:read",
+      "exchange-rates:read",
     ],
   },
   // Сильніша за адміністратора й нікому не призначена: «стеля» в демо (ADR-0032) — Олена її не дасть,
@@ -151,6 +164,16 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Реквізити компанії", en: "Company details" },
     group: ADMIN,
     actions: ["read", "update"],
+  },
+  currencies: {
+    label: { uk: "Валюти", en: "Currencies" },
+    group: ADMIN,
+    actions: ["read", "create", "update"],
+  },
+  "exchange-rates": {
+    label: { uk: "Курси валют", en: "Exchange rates" },
+    group: ADMIN,
+    actions: ["read", "create", "update", "delete"],
   },
 }
 

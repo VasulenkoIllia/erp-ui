@@ -1,0 +1,129 @@
+{
+  "company": {
+    "title": "Компанія",
+    "tabsLabel": "Розділи компанії",
+    "history": "Історія",
+    "sections": {
+      "details": "Реквізити",
+      "images": "Логотип і печатка",
+      "branches": "Філії",
+      "locale": "Локалізація"
+    },
+    "fields": {
+      "vatYes": "Так",
+      "vatNo": "Ні",
+      "baseCurrency": "Базова валюта",
+      "branches": "Філій"
+    }
+  },
+  "locale": {
+    "baseCurrency": "Базова валюта",
+    "baseCurrencyHint": "Курси в таблиці вказано до неї. Зміна не перераховує наявні курси.",
+    "language": "Мова документів",
+    "languageHint": "Якою мовою компанія друкує документи й надсилає листи.",
+    "timezone": "Часовий пояс",
+    "timezoneHint": "За ним компанія рахує межі дня у звітах.",
+    "fiscalStart": "Початок фінансового року",
+    "fiscalStartHint": "Місяць, з якого компанія рахує рік.",
+    "save": "Зберегти локалізацію",
+    "saved": "Локалізацію збережено",
+    "invalid": "Перевірте це значення",
+    "readOnly": "Змінювати локалізацію може той, хто має право на налаштування компанії."
+  },
+  "currencies": {
+    "title": "Валюти",
+    "lead": "Валюти, якими працює компанія. Базова валюта: {{base}}.",
+    "search": "Пошук за кодом",
+    "create": "Додати валюту",
+    "createDenied": "Немає права додавати валюти",
+    "tableLabel": "Валюти компанії",
+    "base": "Базова",
+    "noRate": "Курсу ще немає",
+    "listLoading": "Перелік валют ще завантажується",
+    "listFailed": "Не вдалося отримати перелік валют",
+    "listDenied": "Немає права переглядати валюти",
+    "disable": "Вимкнути",
+    "enable": "Увімкнути",
+    "disableFor": "Вимкнути {{code}}",
+    "enableFor": "Увімкнути {{code}}",
+    "disabled": "Валюту {{code}} вимкнено",
+    "enabled": "Валюту {{code}} увімкнено",
+    "conflict": "Валюту щойно змінив хтось інший. Перегляньте список і спробуйте ще раз.",
+    "columns": {
+      "code": "Валюта",
+      "status": "Стан",
+      "latestRate": "Курс, {{base}}",
+      "latestRateDate": "На дату",
+      "actions": "Дії"
+    },
+    "status": {
+      "active": "Активна",
+      "disabled": "Вимкнена"
+    },
+    "empty": {
+      "title": "Валют ще немає",
+      "description": "Компанія працює лише в {{base}}. Додайте валюту, щоб вести її курс."
+    },
+    "form": {
+      "title": "Нова валюта",
+      "code": "Валюта",
+      "submit": "Додати валюту",
+      "created": "Валюту {{code}} додано"
+    },
+    "count_one": "{{value}} валюта",
+    "count_few": "{{value}} валюти",
+    "count_many": "{{value}} валют",
+    "count_other": "{{value}} валюти"
+  },
+  "rates": {
+    "title": "Курси валют",
+    "lead": "Скільки {{base}} коштує одиниця валюти на кожну дату. Новіші курси згори.",
+    "create": "Додати курс",
+    "createDenied": "Немає права додавати курси",
+    "noCurrencies": "Спершу додайте валюту",
+    "tableLabel": "Курси валют",
+    "edit": "Змінити",
+    "editFor": "Змінити курс {{currency}} на {{date}}",
+    "delete": "Видалити",
+    "deleteFor": "Видалити курс {{currency}} на {{date}}",
+    "deleteTitle": "Видалити курс {{currency}} на {{date}}?",
+    "deleteDescription": "Документи, що вже використали цей курс, не зміняться.",
+    "deleteConfirm": "Видалити курс",
+    "deleted": "Курс {{currency}} на {{date}} видалено",
+    "sourceLocked": "Курс із джерела «{{source}}» оновлює сервер",
+    "columns": {
+      "date": "Дата",
+      "currency": "Валюта",
+      "rate": "Курс, {{base}}",
+      "source": "Джерело",
+      "actions": "Дії"
+    },
+    "filters": {
+      "currency": "Валюта",
+      "date": "Дата",
+      "source": "Джерело"
+    },
+    "sources": {
+      "manual": "Вручну",
+      "nbu": "НБУ"
+    },
+    "empty": {
+      "title": "Курсів ще немає",
+      "description": "Додайте курс валюти на потрібну дату."
+    },
+    "form": {
+      "createTitle": "Новий курс",
+      "editTitle": "Зміна курсу",
+      "currency": "Валюта",
+      "date": "Дата",
+      "rate": "Курс: {{base}} за 1 {{currency}}",
+      "tooLow": "Курс має бути більшим за нуль",
+      "created": "Курс {{currency}} додано",
+      "saved": "Курс {{currency}} збережено"
+    },
+    "count_one": "{{value}} курс",
+    "count_few": "{{value}} курси",
+    "count_many": "{{value}} курсів",
+    "count_other": "{{value}} курсу"
+  }
+}

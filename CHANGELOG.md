@@ -6,6 +6,11 @@
 
 ### Додано
 
+- **Модуль A1 «Компанія й валюти»** `modules/A1-company` (ADR-0043): картка компанії на Object Page (реквізити, логотип і печатка, філії, локалізація, історія), валюти (додати, вимкнути), курси валют (таблиця з джерелом, форма, фільтри). Встановлення: `node scripts/erp-ui-kit.mjs update <версія> --add modules/A1-company`, далі додайте `currencies:*` і `exchange-rates:*` у свої ролі.
+- **Майстер UI06** (ADR-0043): `erp/stepper`, `hooks/use-wizard`, `templates/wizard` (шаблон Wizard і `WizardReview`), `lib/wizard-progress` (прогрес у браузері).
+- `erp/currency-select` і `lib/currencies`: вибір валюти ISO 4217 з пошуком, назва мовою інтерфейсу.
+- `CompanyProfile`: необов'язкові `baseCurrency`, `language`, `timezone`, `fiscalYearStartMonth`. Наявний бекенд без них працює далі.
+- Моки: `unique` у `createResourceHandlers` приймає складений ключ (`[["currency", "date"]]`); `/company` підкоряється сценаріям ресурсу `company`.
 - **Єдиний реєстр клавіш** `lib/shortcuts` і `hooks/use-shortcut` (ADR-0042): усі клавіші кіта в одному переліку. Свою клавішу на весь застосунок проект описує константою модуля й вішає через `useShortcut(CREATE, onPress)`.
 - **Довідка гарячих клавіш** `erp/shortcuts-help`: клавіша «?» поза полями вводу, клавіші проекту окремою групою (`extra`), перемикач «?» у самій довідці (WCAG 2.1.4). Щоб отримати її, додайте в оболонку `<ShortcutsHelp />`, `useShortcut(SHORTCUTS.help, …)` і команду палітри (`docs/using-erp-ui.md`, розділ 4). Команда потрібна: без неї людина, що вимкнула «?», не поверне клавішу.
 - Чекліст ручного проходу VoiceOver: `docs/voiceover-checklist.md`.

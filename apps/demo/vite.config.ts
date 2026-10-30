@@ -43,5 +43,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // Тихий режим на Mac (`docs/dev-setup.md`); CI — усі ядра раннера.
+    maxWorkers: process.env.CI ? undefined : 6,
   },
 })

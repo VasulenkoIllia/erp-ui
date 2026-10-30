@@ -10,6 +10,7 @@ import {
 } from "@/registry/lib/auth"
 import type { ModuleId } from "@/registry/lib/icons"
 
+import { companyModule } from "@/company-module"
 import { contactsModule } from "@/contacts-module"
 import type { KitModuleKey } from "@/router"
 import { usersModule } from "@/users-module"
@@ -35,9 +36,10 @@ interface KitModule {
 export const KIT_MODULES = {
   contacts: contactsModule,
   usersModule,
+  companyModule,
 } as const satisfies Record<KitModuleKey, KitModule>
 
-/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/A2`); інший розділ — заглушка. */
+/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/A2`, `/m/A1`); інший розділ — заглушка. */
 export function kitModuleOf(id: ModuleId): KitModule | undefined {
   return Object.values(KIT_MODULES).find((module) => module.id === id)
 }

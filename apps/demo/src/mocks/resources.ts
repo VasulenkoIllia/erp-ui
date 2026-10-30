@@ -15,4 +15,7 @@ export const MOCK_RESOURCES = [
   "invitations",
   "audit",
   "webhooks",
+  "company",
+  "currencies",
+  "exchange-rates",
 ]

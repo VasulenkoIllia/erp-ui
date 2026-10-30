@@ -7,6 +7,7 @@
       "formats": "Languages & formats",
       "icons": "Icons",
       "shortcuts": "Keyboard shortcuts",
+      "wizard": "Wizard",
       "states": "Page states",
       "data": "Data & mocks",
       "organizations": "Organizations",
@@ -793,5 +794,39 @@
     "failed": "Failed to load",
     "retried": "The real help would load the list here",
     "projectKey": "Create an invoice"
+  },
+  "wizardPage": {
+    "lead": "The Wizard template and the UI06 stepper: steps with checks and saving, a read-only final review.",
+    "stepperTitle": "Stepper",
+    "stepperDescription": "Step states. A wide container shows the steps in a row, a narrow one shows “Step 2 of 4” with a bar.",
+    "stepperWide": "Wide container",
+    "stepperNarrow": "Narrow container",
+    "stepperStates": "Step with errors",
+    "wizardTitle": "New branch",
+    "wizardDescription": "Progress survives a page reload. The branch is really created and shows up on the Company page.",
+    "failToggle": "Simulate a failure while saving",
+    "failHint": "The next save fails: the message appears on the step and what you entered stays.",
+    "finish": "Create branch",
+    "created": "Branch “{{name}}” created",
+    "steps": {
+      "main": "Name",
+      "mainDescription": "How the branch is named in documents.",
+      "contacts": "Address and phone",
+      "contactsDescription": "You can add these later.",
+      "review": "Review",
+      "reviewDescription": "Check the details before creating."
+    },
+    "fields": {
+      "name": "Branch name",
+      "code": "Branch code",
+      "address": "Address",
+      "phone": "Phone"
+    },
+    "sample": {
+      "company": "Details",
+      "logo": "Logo",
+      "team": "Colleagues",
+      "done": "Done"
+    }
   }
 }

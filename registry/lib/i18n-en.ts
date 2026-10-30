@@ -5,6 +5,7 @@
 import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
+import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
 export const en = {
@@ -625,6 +626,10 @@ export const en = {
     signature: "Email signature",
     signatureHint: "Added to emails you send from the system.",
     save: "Save",
+  },
+  currency: {
+    placeholder: "Find a code or name",
+    empty: "No such currency",
   },
   timezone: {
     placeholder: "Find a city or UTC",
@@ -1407,4 +1412,5 @@ export const en = {
   ...enLists,
   ...enRecords,
   ...enShortcuts,
+  ...enWizard,
 } satisfies ErpUiTranslation

@@ -97,6 +97,38 @@ export const CODE_ITEMS = {
     demo: "pickers",
     spec: ["§11"],
   },
+  "lib/i18n-uk-wizard": {
+    title: "Рядки майстра uk",
+    description:
+      "Рядки майстра UI06 українською: кроки, кнопки, огляд; входять у простір імен erp-ui через lib/i18n-uk.",
+    status: "beta",
+    demo: "wizard",
+    spec: ["§11", "UI06"],
+  },
+  "lib/i18n-en-wizard": {
+    title: "Рядки майстра en",
+    description:
+      "Ті самі рядки майстра англійською; паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "wizard",
+    spec: ["§11", "UI06"],
+  },
+  "lib/currencies": {
+    title: "Коди й назви валют",
+    description:
+      "Довідник ISO 4217 для поля вибору: коди з браузера, назва мовою інтерфейсу (ADR-0043).",
+    status: "beta",
+    demo: "companyModule",
+    spec: ["PF02", "§11"],
+  },
+  "lib/wizard-progress": {
+    title: "Прогрес майстра",
+    description:
+      "Прогрес майстра UI06: поточний і найдальший крок, чернетка; збереження в браузері (loadWizardProgress, saveWizardProgress, clearWizardProgress) з ключем компанії й людини (ADR-0043).",
+    status: "beta",
+    demo: "wizard",
+    spec: ["§7", "UI06"],
+  },
   "lib/shortcuts": {
     title: "Реєстр клавіш",
     description:
@@ -344,6 +376,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§17"],
+  },
+  "hooks/use-wizard": {
+    title: "useWizard",
+    description:
+      "Стан майстра UI06: крок, найдальший відкритий, далі з перевіркою чи збереженням кроку, пропуск, помилка з повтором, захист від подвійного запиту (ADR-0043).",
+    status: "beta",
+    demo: "wizard",
+    spec: ["§7", "UI06"],
   },
   "hooks/use-shortcut": {
     title: "useShortcut",
@@ -992,6 +1032,14 @@ export const CODE_ITEMS = {
     demo: "shortcuts",
     spec: ["PF06", "§10"],
   },
+  "erp/stepper": {
+    title: "Степер",
+    description:
+      "Кроки сценарію: у ряд на широкому контейнері, «Крок 2 з 4» зі смугою на вузькому; виконаний крок, крок із помилкою, перехід на відкритий крок (ADR-0043).",
+    status: "beta",
+    demo: "wizard",
+    spec: ["UI06", "§9", "§10"],
+  },
   "erp/shortcuts-help": {
     title: "Довідка гарячих клавіш",
     description:
@@ -1087,6 +1135,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§7", "§9", "§10"],
+  },
+  "templates/wizard": {
+    title: "Майстер (Wizard)",
+    description:
+      "Шаблон покрокового сценарію: степер, кроки з перевіркою чи збереженням, фокус на заголовку кроку, помилка з повтором, фінальний огляд лише для читання (WizardReview), кнопка з наслідком (ADR-0043).",
+    status: "beta",
+    demo: "wizard",
+    spec: ["§7", "§8.2", "§8.3", "§9", "§10", "UI06"],
   },
   "templates/object-page": {
     title: "Картка запису (Object Page)",
@@ -1383,6 +1439,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "profile",
     spec: ["PF01"],
+  },
+  "erp/currency-select": {
+    title: "Вибір валюти",
+    description:
+      "Пошук валюти ISO 4217 за кодом і назвою мовою інтерфейсу; перелік з браузера, зайняті коди можна прибрати (ADR-0043).",
+    status: "beta",
+    demo: "companyModule",
+    spec: ["PF02", "§11"],
   },
   "erp/timezone-select": {
     title: "Часовий пояс",
@@ -2030,6 +2094,20 @@ const KIT_TOOL_FILES = [
  * `registry/modules/<ID>-<назва>/` (у проекті — `src/modules/…`), спільні елементи — з імпортів.
  */
 export const MODULE_ITEMS = {
+  "modules/A1-company": {
+    title: "Компанія й валюти (A1)",
+    description:
+      "Модуль: картка компанії на Object Page з вкладками «Реквізити», «Логотип і печатка», «Філії», «Локалізація» (базова валюта, мова, часовий пояс, початок фінансового року) й історією; валюти компанії й таблиця курсів на List Report (фільтри за валютою, датою й джерелом, форми в діалозі, один курс на дату, курс із зовнішнього джерела лише для перегляду); контракт, моки зі сценаріями, фікстури, рядки uk/en; фабрика createCompanyModule з маршрутами, навігацією й правами, тип розширення CompanyExtension (ADR-0020, ADR-0025, ADR-0043).",
+    status: "beta",
+    demo: "companyModule",
+    spec: ["§7", "§14", "§17", "A1", "PF02"],
+    docs: [
+      "Модуль A1 встановлено в src/modules/A1-company. Файли модуля не правте: зміни під клієнта — у src/extensions/A1-company.ts (тип CompanyExtension).",
+      "1) createCompanyModule({ basePath, extension }) з @/modules/A1-company: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).",
+      "2) Моки: createCompanyMocks({ extension, companies }) з @/modules/A1-company/mocks — handlers у setupWorker після createPlatformHandlers.",
+      "3) Права ролей: company (update), currencies (read, create, update), exchange-rates (read, create, update, delete). Докладно — src/modules/A1-company/README.md.",
+    ].join("\n"),
+  },
   "modules/A2-users": {
     title: "Користувачі й ролі (A2)",
     description:

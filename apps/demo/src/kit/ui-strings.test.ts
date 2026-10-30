@@ -43,6 +43,8 @@ describe("тексти інтерфейсу без довгих тире", () =>
   it("перевірка бачить рядки обох модулів", () => {
     expect(bundles.map(([name]) => name)).toEqual(
       expect.arrayContaining([
+        "A1-company/i18n/uk.json",
+        "A1-company/i18n/en.json",
         "A2-users/i18n/uk.json",
         "A2-users/i18n/en.json",
         "B1-contacts/i18n/uk.json",

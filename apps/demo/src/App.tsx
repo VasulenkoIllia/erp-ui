@@ -12,6 +12,7 @@ import {
   KeySquare,
   Languages,
   LayoutTemplate,
+  ListOrdered,
   Palette,
   ScrollText,
   Shapes,
@@ -122,6 +123,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   pickers: TextSearch,
   icons: Shapes,
   shortcuts: Keyboard,
+  wizard: ListOrdered,
   states: LayoutTemplate,
   data: Database,
   organizations: Building,
@@ -391,7 +393,7 @@ function Shell({
       {
         id: "erp",
         label: t("nav.erp"),
-        // Модуль кіта (B1, A2) — своїми пунктами; решта — заглушки розділів.
+        // Модуль кіта (B1, A2, A1) — своїми пунктами; решта — заглушки розділів.
         items: ERP_EXAMPLE.flatMap(({ id, badge }) => {
           const kitModule = kitModuleOf(id)
           return kitModule

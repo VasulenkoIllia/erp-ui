@@ -26,6 +26,10 @@ export const PAGES = {
   shortcuts: lazyWithPreload(() =>
     import("./ShortcutsPage").then((m) => m.ShortcutsPage),
   ),
+  // Шаблон майстра, react-hook-form і поле телефону.
+  wizard: lazyWithPreload(() =>
+    import("./WizardPage").then((m) => m.WizardPage),
+  ),
   // Поле телефону тягне дані libphonenumber (~120 КБ gzip).
   formats: lazyWithPreload(() =>
     import("./FormatsPage").then((m) => m.FormatsPage),

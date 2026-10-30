@@ -470,6 +470,48 @@ setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExten
 - Довідник для полів-записів: поле `type: "record", resource: "users"` в іншому модулі показує імена всім у компанії — бекенд віддає без `users:read` лише `{ id, version, name, email }` (контракт — `README.md` модуля).
 - Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення). `roles: { page: false }` — без сторінки ролей і пункту навігації, `invitations: { page: false }` — без сторінки запрошень і її пункту.
 
+### Модуль A1 «Компанія й валюти» (ADR-0043)
+
+```ts
+// src/modules.ts
+import { createCompanyModule } from "@/modules/A1-company"
+import { companyExtension } from "@/extensions/A1-company"
+
+export const companyModule = createCompanyModule({ basePath: "/settings", extension: companyExtension })
+
+// src/mocks/handlers.ts — компанію дають моки платформи, модуль додає валюти й курси
+import { createCompanyMocks } from "@/modules/A1-company/mocks"
+import { companyMockExtension } from "@/extensions/A1-company-fields"
+setupWorker(...platformHandlers, ...createCompanyMocks({ extension: companyMockExtension, companies: ["my-company"] }).handlers)
+```
+
+- Сторінки: картка компанії (`<basePath>/company`), «Валюти» (`<basePath>/currencies`), «Курси валют» (`<basePath>/exchange-rates`, валюта в адресі: `?currency=USD`).
+- Права: картку читає кожен у компанії, зміни — `company:update`; `currencies:read|create|update`; `exchange-rates:read|create|update|delete`. Додайте їх у свої ролі.
+- Розширення — `company`: `sections`, `actions`, `history: false`; `currencies`: `page: false` (одна валюта), `columns`; `rates`: `fields`, `columns`, `filters`, `form`.
+- Курс із бекенду проекту (НБУ чи інше джерело): поставте `source` не `manual` і `deniedActions: { update: "source", delete: "source" }`, екран покаже його лише для перегляду. Опис контракту — README модуля.
+
+### Майстер (ADR-0043)
+
+```tsx
+const wizard = useWizard({
+  steps: [
+    { id: "main", label: t("steps.main"), description: t("steps.mainHint"), onNext: () => form.trigger(["name"], { shouldFocus: true }) },
+    { id: "extra", label: t("steps.extra"), optional: true },
+    { id: "review", label: t("steps.review") },
+  ],
+  onFinish: async () => { await save(form.getValues()) },
+})
+
+<Wizard wizard={wizard} finishLabel={t("create")}>
+  {wizard.step.id === "main" ? <MainFields /> : wizard.step.id === "extra" ? <ExtraFields /> : <WizardReview onEdit={wizard.goTo} sections={…} />}
+</Wizard>
+```
+
+- `onNext` повертає `false` — людина лишається на кроці, крок позначено в степері. Виняток показує шаблон, введене лишається.
+- Необов'язковий крок з полями: `onSkip` прибирає введене, інакше значення, яких ніхто не перевірив, дійдуть до `onFinish`.
+- `initial` читається раз, під час монтування: прогрес із сервера дочекайтесь до рендеру майстра.
+- Прогрес у браузері — `loadWizardProgress(key)`, `saveWizardProgress(key, { ...progress, draft })` в `onProgress` і `clearWizardProgress(key)` після успіху. Сервер, що зберігає кроки, цього не потребує: передайте `initial`.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — `src/adapters/pilot-api/` тестового проекту `erp-ui-pilot` (pilot-api, крок 1.6).

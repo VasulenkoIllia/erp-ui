@@ -5,6 +5,9 @@
  * - Профіль кожної компанії живе в localStorage (`erp-ui:mock-company:<id>`); початковий —
  *   `profiles` з опцій або назва з компаній користувачів.
  * - Реквізити перевіряються як на сервері: ЄДРПОУ, РНОКПП, ІПН ПДВ і IBAN — контрольні суми LC12.
+ * - Сценарії (`lib/mock-scenarios`, ресурс `company`): `error`, `slow`, `forbidden`, `offline` — на
+ *   кожен запит; `conflict` — по черзі: збереження дає 409, наступне проходить, потім знову 409.
+ *   `empty` не стосується: профіль є в кожної компанії.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -19,8 +22,11 @@ import {
   type CompanyProfile,
 } from "@/registry/lib/company"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
+import { isTimeZone } from "@/registry/lib/user-timezone"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
+import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
+  applyScenario,
   currentMockUser,
   errorResponse,
   impersonationForbidden,
@@ -50,6 +56,34 @@ const validation = (fields: Record<string, string>) =>
     message: "Validation failed",
     fieldErrors: fields,
   })
+
+const COMPANY = "company"
+const CURRENCY_CODE = /^[A-Z]{3}$/
+const LOCALE_LANGUAGES: readonly string[] = ["uk", "en"]
+
+/** Значення задане, але це не рядок, який приймає `valid`. */
+const invalidText = (value: unknown, valid: (text: string) => boolean) =>
+  value !== undefined &&
+  value !== null &&
+  !(typeof value === "string" && valid(value))
+
+/** Значення поля локалізації з тіла запиту: хибне — код помилки, а не мовчазне збереження. */
+function localeIssues(next: CompanyProfile): Record<string, string> {
+  const fields: Record<string, string> = {}
+  if (invalidText(next.baseCurrency, (code) => CURRENCY_CODE.test(code)))
+    fields.baseCurrency = "invalid"
+  if (invalidText(next.language, (code) => LOCALE_LANGUAGES.includes(code)))
+    fields.language = "invalid"
+  if (invalidText(next.timezone, isTimeZone)) fields.timezone = "invalid"
+  const month = next.fiscalYearStartMonth
+  if (
+    month !== undefined &&
+    month !== null &&
+    !(Number.isInteger(month) && month >= 1 && month <= 12)
+  )
+    fields.fiscalYearStartMonth = "invalid"
+  return fields
+}
 
 const TEXT_FIELDS = [
   "name",
@@ -84,6 +118,9 @@ export function createCompanyHandlers({
     }
   }
 
+  /** Компанії, де сценарій `conflict` уже імітував чуже збереження. */
+  const bumped = new Set<string>()
+
   const load = (id: string): CompanyProfile => {
     try {
       const raw = globalThis.localStorage?.getItem(KEY(id))
@@ -105,10 +142,12 @@ export function createCompanyHandlers({
   /**
    * Член компанії; зміни — право `company:update` у компанії запиту (A2c1) і не «Увійти як…».
    */
-  const access = (
+  const access = async (
     request: Request,
     change = false,
-  ): { user: MockUser; id: string } | Response => {
+  ): Promise<{ user: MockUser; id: string } | Response> => {
+    const early = await applyScenario(scenarioFor(COMPANY))
+    if (early) return early
     const user = currentMockUser()
     if (!user) return unauthenticated()
     const scoped = mockRequestPermissions(request, user)
@@ -136,7 +175,7 @@ export function createCompanyHandlers({
 
   const imageHandlers = (kind: CompanyImage) => [
     http.put(`${baseUrl}/company/${kind}`, async ({ request }) => {
-      const ctx = access(request, true)
+      const ctx = await access(request, true)
       if (ctx instanceof Response) return ctx
       const file = (await request.formData()).get("file")
       if (!file || typeof file === "string")
@@ -153,8 +192,8 @@ export function createCompanyHandlers({
       save({ ...profile, [kind === "logo" ? "logoUrl" : "stampUrl"]: url })
       return json({ url })
     }),
-    http.delete(`${baseUrl}/company/${kind}`, ({ request }) => {
-      const ctx = access(request, true)
+    http.delete(`${baseUrl}/company/${kind}`, async ({ request }) => {
+      const ctx = await access(request, true)
       if (ctx instanceof Response) return ctx
       const profile = load(ctx.id)
       save({ ...profile, [kind === "logo" ? "logoUrl" : "stampUrl"]: null })
@@ -163,15 +202,22 @@ export function createCompanyHandlers({
   ]
 
   return [
-    http.get(`${baseUrl}/company`, ({ request }) => {
-      const ctx = access(request)
+    http.get(`${baseUrl}/company`, async ({ request }) => {
+      const ctx = await access(request)
       if (ctx instanceof Response) return ctx
       return json(load(ctx.id))
     }),
 
     http.patch(`${baseUrl}/company`, async ({ request }) => {
-      const ctx = access(request, true)
+      const ctx = await access(request, true)
       if (ctx instanceof Response) return ctx
+      if (scenarioFor(COMPANY) === "conflict" && !bumped.delete(ctx.id)) {
+        bumped.add(ctx.id)
+        return errorResponse(409, {
+          code: "conflict",
+          message: "Company was changed by someone else",
+        })
+      }
       const body = (await request.json()) as Partial<CompanyProfile>
       const before = load(ctx.id)
       const next: CompanyProfile = { ...before }
@@ -184,6 +230,15 @@ export function createCompanyHandlers({
         if (typeof body[key] === "string")
           next[key] = body[key].replace(/\s/g, "")
       if (body.director !== undefined) next.director = body.director
+      if (body.baseCurrency !== undefined)
+        next.baseCurrency =
+          typeof body.baseCurrency === "string"
+            ? body.baseCurrency.trim().toUpperCase()
+            : body.baseCurrency
+      if (body.language !== undefined) next.language = body.language
+      if (body.timezone !== undefined) next.timezone = body.timezone
+      if (body.fiscalYearStartMonth !== undefined)
+        next.fiscalYearStartMonth = body.fiscalYearStartMonth
       if (body.palette === null) next.palette = null
       else if (
         body.palette &&
@@ -191,7 +246,7 @@ export function createCompanyHandlers({
       )
         next.palette = body.palette
 
-      const fields: Record<string, string> = {}
+      const fields = localeIssues(next)
       if (!next.name.trim()) fields.name = "required"
       if (!next.legalName.trim()) fields.legalName = "required"
       if (next.kind === "legal") {
@@ -245,7 +300,7 @@ export function createCompanyHandlers({
     ...imageHandlers("stamp"),
 
     http.post(`${baseUrl}/company/branches`, async ({ request }) => {
-      const ctx = access(request, true)
+      const ctx = await access(request, true)
       if (ctx instanceof Response) return ctx
       const body = (await request.json()) as Partial<Branch>
       if (!body.name?.trim()) return validation({ name: "required" })
@@ -264,7 +319,7 @@ export function createCompanyHandlers({
     http.patch(
       `${baseUrl}/company/branches/:id`,
       async ({ params, request }) => {
-        const ctx = access(request, true)
+        const ctx = await access(request, true)
         if (ctx instanceof Response) return ctx
         const profile = load(ctx.id)
         const current = profile.branches.find((b) => b.id === params.id)
@@ -288,17 +343,20 @@ export function createCompanyHandlers({
       },
     ),
 
-    http.delete(`${baseUrl}/company/branches/:id`, ({ params, request }) => {
-      const ctx = access(request, true)
-      if (ctx instanceof Response) return ctx
-      const profile = load(ctx.id)
-      if (!profile.branches.some((b) => b.id === params.id))
-        return errorResponse(404, { code: "not_found", message: "Not found" })
-      save({
-        ...profile,
-        branches: profile.branches.filter((b) => b.id !== params.id),
-      })
-      return noContent()
-    }),
+    http.delete(
+      `${baseUrl}/company/branches/:id`,
+      async ({ params, request }) => {
+        const ctx = await access(request, true)
+        if (ctx instanceof Response) return ctx
+        const profile = load(ctx.id)
+        if (!profile.branches.some((b) => b.id === params.id))
+          return errorResponse(404, { code: "not_found", message: "Not found" })
+        save({
+          ...profile,
+          branches: profile.branches.filter((b) => b.id !== params.id),
+        })
+        return noContent()
+      },
+    ),
   ]
 }

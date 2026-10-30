@@ -43,8 +43,10 @@ import {
   filterMockRecords,
   mockResourceAccess,
   sortMockRecords,
+  uniqueGroup,
   withCompany,
   type MockRecord,
+  type MockUniqueKey,
 } from "@/registry/lib/mock-records"
 import { withMockResponsible } from "@/registry/lib/mock-responsible"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
@@ -145,9 +147,10 @@ export interface MockResourceOptions<T extends MockRecord> {
   /**
    * Поля, значення яких не повторюються в компанії (назва сегмента): створення й зміна з тим самим
    * значенням, без урахування регістру й пробілів на краях, — 422 з кодом `duplicate` (ADR-0027).
-   * Дивиться на всі записи компанії, зокрема невидимі на `read:own`.
+   * Дивиться на всі записи компанії, зокрема невидимі на `read:own`. Кілька полів разом — списком
+   * (`["currency", "date"]`), помилка тоді біля останнього.
    */
-  unique?: readonly (keyof T & string)[]
+  unique?: readonly MockUniqueKey<T>[]
   /**
    * Поле відповідального з `id` людини (ADR-0039): «свої» записи для `<ресурс>:<дія>:own`, автор під
    * час створення, передача колезі. Без нього дія лише над своїми — 403.
@@ -443,7 +446,9 @@ export function createResourceHandlers<T extends MockRecord>({
       duplicateFields(
         all(),
         record,
-        unique.filter((field) => field in changes),
+        unique.filter((key) =>
+          uniqueGroup(key).some((field) => field in changes),
+        ),
       ) ?? responsibleErrors(record, responsibleOf(latest))
     if (invalid) return { fieldErrors: invalid }
     update(index, record)

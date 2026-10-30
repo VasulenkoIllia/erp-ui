@@ -108,6 +108,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -126,6 +131,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -271,6 +281,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -289,6 +304,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -542,6 +562,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -560,6 +585,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -1112,6 +1142,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -1130,6 +1165,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -1322,6 +1362,11 @@
           "target": "@lib/ua-ids.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -1510,6 +1555,1061 @@
         "spec": [
           "§10",
           "§18"
+        ]
+      }
+    },
+    {
+      "name": "modules/A1-company",
+      "type": "registry:item",
+      "title": "Компанія й валюти (A1)",
+      "description": "Модуль: картка компанії на Object Page з вкладками «Реквізити», «Логотип і печатка», «Філії», «Локалізація» (базова валюта, мова, часовий пояс, початок фінансового року) й історією; валюти компанії й таблиця курсів на List Report (фільтри за валютою, датою й джерелом, форми в діалозі, один курс на дату, курс із зовнішнього джерела лише для перегляду); контракт, моки зі сценаріями, фікстури, рядки uk/en; фабрика createCompanyModule з маршрутами, навігацією й правами, тип розширення CompanyExtension (ADR-0020, ADR-0025, ADR-0043).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "google-libphonenumber@^3.2.47",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-day-picker@^10.0.2",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "@types/google-libphonenumber@^7.4.31",
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/account-devices.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/account-devices.tsx"
+        },
+        {
+          "path": "registry/erp/audit-log.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/audit-log.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/company-settings.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/company-settings.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/currency-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/currency-select.tsx"
+        },
+        {
+          "path": "registry/erp/data-table.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cards.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cards.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-cells.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-cells.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-grid.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-grid.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-pager.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-pager.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-selection.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-selection.tsx"
+        },
+        {
+          "path": "registry/erp/date-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-input.tsx"
+        },
+        {
+          "path": "registry/erp/date-range-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/date-range-input.tsx"
+        },
+        {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
+          "path": "registry/erp/extension-field-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/extension-field-input.tsx"
+        },
+        {
+          "path": "registry/erp/filter-bar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-bar.tsx"
+        },
+        {
+          "path": "registry/erp/filter-panel.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/filter-panel.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/erp/phone-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/phone-input.tsx"
+        },
+        {
+          "path": "registry/erp/picker-field.ts",
+          "type": "registry:component",
+          "target": "@components/erp/picker-field.ts"
+        },
+        {
+          "path": "registry/erp/record-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-form.tsx"
+        },
+        {
+          "path": "registry/erp/record-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-header.tsx"
+        },
+        {
+          "path": "registry/erp/record-link.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-link.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker.tsx"
+        },
+        {
+          "path": "registry/erp/record-picker-parts.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-picker-parts.tsx"
+        },
+        {
+          "path": "registry/erp/saved-view-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-view-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/saved-views-menu.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-views-menu.tsx"
+        },
+        {
+          "path": "registry/erp/status-badge.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-badge.tsx"
+        },
+        {
+          "path": "registry/erp/status-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/status-tabs.tsx"
+        },
+        {
+          "path": "registry/erp/timezone-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/timezone-select.tsx"
+        },
+        {
+          "path": "registry/erp/ua-id-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/ua-id-input.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-breakpoint.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-breakpoint.ts"
+        },
+        {
+          "path": "registry/hooks/use-card-record.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-card-record.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-company-profile.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-element-size.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-extended-list.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-extended-list.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-grid-keyboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-grid-keyboard.ts"
+        },
+        {
+          "path": "registry/hooks/use-history-refresh.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-history-refresh.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-counts.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-counts.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-settings.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-settings.ts"
+        },
+        {
+          "path": "registry/hooks/use-list-state.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-list-state.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-page-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-page-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-access.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-access.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-row-selection.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-row-selection.ts"
+        },
+        {
+          "path": "registry/hooks/use-saved-views.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-saved-views.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-in-view.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/hooks/use-virtual-rows.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-virtual-rows.ts"
+        },
+        {
+          "path": "registry/hooks/use-windowed-list.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-windowed-list.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/currencies.ts",
+          "type": "registry:lib",
+          "target": "@lib/currencies.ts"
+        },
+        {
+          "path": "registry/lib/data-provider.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-provider.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extension-field-types.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-field-types.ts"
+        },
+        {
+          "path": "registry/lib/extension-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-fields.ts"
+        },
+        {
+          "path": "registry/lib/extension-form.ts",
+          "type": "registry:lib",
+          "target": "@lib/extension-form.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/filters.ts",
+          "type": "registry:lib",
+          "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-namespaces.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-namespaces.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/language-names.ts",
+          "type": "registry:lib",
+          "target": "@lib/language-names.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-settings.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-auth.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-lists.ts"
+        },
+        {
+          "path": "registry/lib/mock-me.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-records.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/mock-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/mocks.ts",
+          "type": "registry:lib",
+          "target": "@lib/mocks.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/phone.ts",
+          "type": "registry:lib",
+          "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/pins.ts",
+          "type": "registry:lib",
+          "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/preferences.ts",
+          "type": "registry:lib",
+          "target": "@lib/preferences.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/record-label.tsx",
+          "type": "registry:lib",
+          "target": "@lib/record-label.tsx"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/row-selection.ts",
+          "type": "registry:lib",
+          "target": "@lib/row-selection.ts"
+        },
+        {
+          "path": "registry/lib/saved-views.ts",
+          "type": "registry:lib",
+          "target": "@lib/saved-views.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
+        },
+        {
+          "path": "registry/lib/ua-ids.ts",
+          "type": "registry:lib",
+          "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/templates/list-report.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report.tsx"
+        },
+        {
+          "path": "registry/templates/list-report-tables.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-tables.tsx"
+        },
+        {
+          "path": "registry/templates/object-page.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/object-page.tsx"
+        },
+        {
+          "path": "registry/templates/object-page-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/object-page-tabs.tsx"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/badge.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/calendar.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/switch.tsx"
+        },
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        },
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tabs.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/base-currency-gate.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/base-currency-gate.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/company-locale-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/company-locale-form.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/currency-columns.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/currency-columns.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/currency-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/currency-form.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/rate-columns.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/rate-columns.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/rate-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/rate-form.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/rate-source.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/rate-source.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/components/remove-rate-dialog.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/remove-rate-dialog.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/components/use-company-state.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/use-company-state.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/components/use-currency-codes.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/use-currency-codes.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/components/use-currency-toggle.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/components/use-currency-toggle.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/contract.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/contract.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/extension.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/extension.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/fixtures.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/fixtures.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/i18n/en.json",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/i18n/en.json"
+        },
+        {
+          "path": "registry/modules/A1-company/i18n/uk.json",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/i18n/uk.json"
+        },
+        {
+          "path": "registry/modules/A1-company/index.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/index.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/mocks.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/mocks.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/module-context.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/module-context.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/pages/company-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/pages/company-page.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/pages/currencies-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/pages/currencies-page.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/pages/rates-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/pages/rates-page.tsx"
+        },
+        {
+          "path": "registry/modules/A1-company/README.md",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/README.md"
+        },
+        {
+          "path": "registry/modules/A1-company/resources.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/resources.ts"
+        },
+        {
+          "path": "registry/modules/A1-company/use-company-t.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/A1-company/use-company-t.ts"
+        }
+      ],
+      "docs": "Модуль A1 встановлено в src/modules/A1-company. Файли модуля не правте: зміни під клієнта — у src/extensions/A1-company.ts (тип CompanyExtension).\n1) createCompanyModule({ basePath, extension }) з @/modules/A1-company: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).\n2) Моки: createCompanyMocks({ extension, companies }) з @/modules/A1-company/mocks — handlers у setupWorker після createPlatformHandlers.\n3) Права ролей: company (update), currencies (read, create, update), exchange-rates (read, create, update, delete). Докладно — src/modules/A1-company/README.md.",
+      "meta": {
+        "layer": "modules",
+        "status": "beta",
+        "demo": "companyModule",
+        "spec": [
+          "§7",
+          "§14",
+          "§17",
+          "A1",
+          "PF02"
         ]
       }
     },
@@ -1998,6 +3098,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-namespaces.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-namespaces.ts"
@@ -2021,6 +3126,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -3023,6 +4133,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-namespaces.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-namespaces.ts"
@@ -3046,6 +4161,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -3870,6 +4990,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -3888,6 +5013,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -3987,6 +5117,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4005,6 +5140,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -4131,6 +5271,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4149,6 +5294,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -4227,6 +5377,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4245,6 +5400,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -4678,6 +5838,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4696,6 +5861,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -4773,6 +5943,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4791,6 +5966,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -4943,6 +6123,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -4961,6 +6146,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -5016,6 +6206,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5034,6 +6229,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -5119,6 +6319,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5137,6 +6342,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -5333,6 +6543,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5351,6 +6566,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -5464,6 +6684,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5482,6 +6707,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -5623,6 +6853,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5641,6 +6876,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -5805,6 +7045,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -5825,6 +7070,11 @@
           "target": "@lib/i18n-uk-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -5837,6 +7087,29 @@
         "spec": [
           "A1",
           "LC12"
+        ]
+      }
+    },
+    {
+      "name": "lib/currencies",
+      "type": "registry:lib",
+      "title": "Коди й назви валют",
+      "description": "Довідник ISO 4217 для поля вибору: коди з браузера, назва мовою інтерфейсу (ADR-0043).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/currencies.ts",
+          "type": "registry:lib",
+          "target": "@lib/currencies.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "companyModule",
+        "spec": [
+          "PF02",
+          "§11"
         ]
       }
     },
@@ -6037,6 +7310,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6055,6 +7333,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6231,6 +7514,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6249,6 +7537,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6446,6 +7739,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6464,6 +7762,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -6662,6 +7965,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6680,6 +7988,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -6728,6 +8041,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -6770,6 +8088,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -6812,6 +8135,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -6820,6 +8148,54 @@
         "demo": "shortcuts",
         "spec": [
           "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-en-wizard",
+      "type": "registry:lib",
+      "title": "Рядки майстра en",
+      "description": "Ті самі рядки майстра англійською; паритет ключів перевіряє тест.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "§11",
+          "UI06"
         ]
       }
     },
@@ -6851,6 +8227,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6869,6 +8250,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -6921,6 +8307,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -6939,6 +8330,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -7023,6 +8419,29 @@
       }
     },
     {
+      "name": "lib/i18n-uk-wizard",
+      "type": "registry:lib",
+      "title": "Рядки майстра uk",
+      "description": "Рядки майстра UI06 українською: кроки, кнопки, огляд; входять у простір імен erp-ui через lib/i18n-uk.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "§11",
+          "UI06"
+        ]
+      }
+    },
+    {
       "name": "lib/i18n-uk",
       "type": "registry:lib",
       "title": "Рядки кіта uk",
@@ -7048,6 +8467,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -7095,6 +8519,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -7113,6 +8542,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -7310,6 +8744,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -7328,6 +8767,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -7524,6 +8968,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -7542,6 +8991,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -7775,6 +9229,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -7793,6 +9252,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8026,6 +9490,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -8044,6 +9513,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8277,6 +9751,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -8295,6 +9774,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8528,6 +10012,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -8546,6 +10035,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -8713,6 +10207,11 @@
           "target": "@lib/ua-ids.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -8809,6 +10308,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -8827,6 +10331,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9060,6 +10569,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -9078,6 +10592,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9311,6 +10830,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -9329,6 +10853,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9476,6 +11005,11 @@
           "target": "@lib/ua-ids.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -9572,6 +11106,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -9590,6 +11129,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -9823,6 +11367,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -9841,6 +11390,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10074,6 +11628,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -10092,6 +11651,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10250,6 +11814,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -10268,6 +11837,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10501,6 +12075,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -10519,6 +12098,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10752,6 +12336,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -10770,6 +12359,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -10977,6 +12571,11 @@
           "target": "@lib/ua-ids.ts"
         },
         {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
@@ -11073,6 +12672,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -11091,6 +12695,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11253,6 +12862,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -11271,6 +12885,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11515,6 +13134,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -11533,6 +13157,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11766,6 +13395,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -11784,6 +13418,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -11937,6 +13576,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -11955,6 +13599,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12197,6 +13846,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -12215,6 +13869,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12475,6 +14134,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -12493,6 +14157,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12646,6 +14315,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -12664,6 +14338,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -12811,6 +14490,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -12829,6 +14513,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13062,6 +14751,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -13080,6 +14774,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13313,6 +15012,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -13331,6 +15035,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13564,6 +15273,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -13582,6 +15296,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13740,6 +15459,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -13758,6 +15482,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -13996,6 +15725,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -14014,6 +15748,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -14209,6 +15948,11 @@
           "path": "registry/lib/ua-ids.ts",
           "type": "registry:lib",
           "target": "@lib/ua-ids.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
         },
         {
           "path": "registry/lib/webhooks.ts",
@@ -14440,6 +16184,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -14458,6 +16207,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -14558,6 +16312,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -14576,6 +16335,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/language-names.ts",
@@ -14669,6 +16433,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -14687,6 +16456,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -15015,6 +16789,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15033,6 +16812,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -15208,6 +16992,29 @@
       }
     },
     {
+      "name": "lib/wizard-progress",
+      "type": "registry:lib",
+      "title": "Прогрес майстра",
+      "description": "Прогрес майстра UI06: поточний і найдальший крок, чернетка; збереження в браузері (loadWizardProgress, saveWizardProgress, clearWizardProgress) з ключем компанії й людини (ADR-0043).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/wizard-progress.ts",
+          "type": "registry:lib",
+          "target": "@lib/wizard-progress.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "§7",
+          "UI06"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-api-error-message",
       "type": "registry:hook",
       "title": "useApiErrorMessage",
@@ -15259,6 +17066,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15277,6 +17089,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -15339,6 +17156,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15357,6 +17179,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         }
       ],
       "meta": {
@@ -15480,6 +17307,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15498,6 +17330,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -15654,6 +17491,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15672,6 +17514,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -15823,6 +17670,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -15841,6 +17693,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -16068,6 +17925,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -16086,6 +17948,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -16435,6 +18302,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -16453,6 +18325,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -16727,6 +18604,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -16745,6 +18627,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -16911,6 +18798,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -16929,6 +18821,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/jobs.ts",
@@ -17003,6 +18900,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -17021,6 +18923,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/record-access.ts",
@@ -17136,6 +19043,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -17154,6 +19066,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -17311,6 +19228,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -17329,6 +19251,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -17793,6 +19720,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -17811,6 +19743,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -17881,6 +19818,116 @@
           "§8.1",
           "§17",
           "§18.1"
+        ]
+      }
+    },
+    {
+      "name": "hooks/use-wizard",
+      "type": "registry:hook",
+      "title": "useWizard",
+      "description": "Стан майстра UI06: крок, найдальший відкритий, далі з перевіркою чи збереженням кроку, пропуск, помилка з повтором, захист від подвійного запиту (ADR-0043).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-wizard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-wizard.ts"
+        },
+        {
+          "path": "registry/erp/stepper.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/stepper.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/wizard-progress.ts",
+          "type": "registry:lib",
+          "target": "@lib/wizard-progress.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/progress.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "§7",
+          "UI06"
         ]
       }
     },
@@ -18008,6 +20055,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -18026,6 +20078,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -18323,6 +20380,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -18341,6 +20403,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -18668,6 +20735,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -18686,6 +20758,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -18957,6 +21034,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -18975,6 +21057,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -19251,6 +21338,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -19269,6 +21361,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -19555,6 +21652,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -19573,6 +21675,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -19730,6 +21837,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -19748,6 +21860,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -19945,6 +22062,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -19963,6 +22085,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -20195,6 +22322,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -20213,6 +22345,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -20471,6 +22608,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -20489,6 +22631,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -20700,6 +22847,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -20718,6 +22870,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -20812,6 +22969,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -20830,6 +22992,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -20956,6 +23123,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -20974,6 +23146,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -21175,6 +23352,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -21193,6 +23375,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -21329,6 +23516,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -21347,6 +23539,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -21548,6 +23745,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -21566,6 +23768,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -21768,6 +23975,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -21786,6 +23998,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -21888,6 +24105,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -21906,6 +24128,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -22002,6 +24229,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22020,6 +24252,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -22097,6 +24334,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22115,6 +24357,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -22186,6 +24433,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22206,6 +24458,11 @@
           "target": "@lib/i18n-uk-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -22223,6 +24480,126 @@
         "spec": [
           "UI43",
           "LC12"
+        ]
+      }
+    },
+    {
+      "name": "erp/currency-select",
+      "type": "registry:component",
+      "title": "Вибір валюти",
+      "description": "Пошук валюти ISO 4217 за кодом і назвою мовою інтерфейсу; перелік з браузера, зайняті коди можна прибрати (ADR-0043).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/currency-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/currency-select.tsx"
+        },
+        {
+          "path": "registry/lib/currencies.ts",
+          "type": "registry:lib",
+          "target": "@lib/currencies.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/combobox.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "companyModule",
+        "spec": [
+          "PF02",
+          "§11"
         ]
       }
     },
@@ -22294,6 +24671,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22312,6 +24694,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -22416,6 +24803,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22434,6 +24826,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -22549,6 +24946,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22567,6 +24969,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -22654,6 +25061,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22672,6 +25084,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -22777,6 +25194,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -22795,6 +25217,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/jobs.ts",
@@ -23018,6 +25445,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23036,6 +25468,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -23213,6 +25650,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23231,6 +25673,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -23346,6 +25793,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23364,6 +25816,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -23476,6 +25933,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23494,6 +25956,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -23607,6 +26074,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23625,6 +26097,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -23728,6 +26205,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -23746,6 +26228,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -24002,6 +26489,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -24020,6 +26512,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -24324,6 +26821,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -24342,6 +26844,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -24648,6 +27155,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -24666,6 +27178,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -24996,6 +27513,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -25014,6 +27536,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -25224,6 +27751,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -25242,6 +27774,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -25357,6 +27894,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -25375,6 +27917,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -25552,6 +28099,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -25570,6 +28122,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -25848,6 +28405,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -25866,6 +28428,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -26183,6 +28750,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -26201,6 +28773,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -26524,6 +29101,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -26542,6 +29124,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -26833,6 +29420,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -26851,6 +29443,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -27064,6 +29661,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27082,6 +29684,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/jobs.ts",
@@ -27208,6 +29815,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27226,6 +29838,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/jobs.ts",
@@ -27439,6 +30056,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27457,6 +30079,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -27679,6 +30306,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27697,6 +30329,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -27826,6 +30463,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27844,6 +30486,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -27950,6 +30597,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -27968,6 +30620,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -28139,6 +30796,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28157,6 +30819,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -28383,6 +31050,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28401,6 +31073,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -28571,6 +31248,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28589,6 +31271,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -28687,6 +31374,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28705,6 +31397,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -28808,6 +31505,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28826,6 +31528,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -28966,6 +31673,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -28984,6 +31696,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -29168,6 +31885,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -29186,6 +31908,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -29317,6 +32044,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -29335,6 +32067,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/phone.ts",
@@ -29477,6 +32214,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -29495,6 +32237,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/jobs.ts",
@@ -29684,6 +32431,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -29702,6 +32454,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -30009,6 +32766,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -30027,6 +32789,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -30289,6 +33056,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -30307,6 +33079,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -30475,6 +33252,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -30493,6 +33275,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -30668,6 +33455,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -30686,6 +33478,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -30917,6 +33714,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -30935,6 +33737,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -31191,6 +33998,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -31209,6 +34021,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -31496,6 +34313,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -31514,6 +34336,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -31797,6 +34624,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -31815,6 +34647,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -32071,6 +34908,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -32089,6 +34931,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -32262,6 +35109,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -32280,6 +35132,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/roles.ts",
@@ -32440,6 +35297,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -32458,6 +35320,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -32731,6 +35598,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -32749,6 +35621,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -32991,6 +35868,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -33009,6 +35891,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -33207,6 +36094,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -33225,6 +36117,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -33464,6 +36361,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -33482,6 +36384,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -33747,6 +36654,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -33765,6 +36677,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -33893,6 +36810,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -33911,6 +36833,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -33992,6 +36919,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34010,6 +36942,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -34133,6 +37070,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34151,6 +37093,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -34347,6 +37294,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34365,6 +37317,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -34589,6 +37546,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34607,6 +37569,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -34765,6 +37732,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34783,6 +37755,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -34936,6 +37913,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -34954,6 +37936,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -34987,6 +37974,107 @@
         "demo": "data",
         "spec": [
           "§7",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/stepper",
+      "type": "registry:component",
+      "title": "Степер",
+      "description": "Кроки сценарію: у ряд на широкому контейнері, «Крок 2 з 4» зі смугою на вузькому; виконаний крок, крок із помилкою, перехід на відкритий крок (ADR-0043).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/stepper.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/stepper.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/progress.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "UI06",
           "§9",
           "§10"
         ]
@@ -35037,6 +38125,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -35055,6 +38148,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -35140,6 +38238,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -35158,6 +38261,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/ua-ids.ts",
@@ -35355,6 +38463,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -35373,6 +38486,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -35653,6 +38771,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -35671,6 +38794,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -35958,6 +39086,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -35976,6 +39109,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -36208,6 +39346,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -36226,6 +39369,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/icons.tsx",
@@ -36413,6 +39561,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -36431,6 +39584,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -36742,6 +39900,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -36760,6 +39923,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -37052,6 +40220,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -37070,6 +40243,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -37422,6 +40600,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -37440,6 +40623,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -37872,6 +41060,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -37890,6 +41083,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -38200,6 +41398,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -38218,6 +41421,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -38394,6 +41602,11 @@
           "target": "@lib/i18n-en-shortcuts.ts"
         },
         {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk.ts"
@@ -38412,6 +41625,11 @@
           "path": "registry/lib/i18n-uk-shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -38524,6 +41742,194 @@
           "§9",
           "§10",
           "§18.1"
+        ]
+      }
+    },
+    {
+      "name": "templates/wizard",
+      "type": "registry:component",
+      "title": "Майстер (Wizard)",
+      "description": "Шаблон покрокового сценарію: степер, кроки з перевіркою чи збереженням, фокус на заголовку кроку, помилка з повтором, фінальний огляд лише для читання (WizardReview), кнопка з наслідком (ADR-0043).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/templates/wizard.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/wizard.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/stepper.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/stepper.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-wizard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-wizard.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/wizard-progress.ts",
+          "type": "registry:lib",
+          "target": "@lib/wizard-progress.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/progress.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "templates",
+        "status": "beta",
+        "demo": "wizard",
+        "spec": [
+          "§7",
+          "§8.2",
+          "§8.3",
+          "§9",
+          "§10",
+          "UI06"
         ]
       }
     }
