@@ -319,7 +319,7 @@
     "sessionGate": "Section state (h3): profile didn't load"
   },
   "modulePage": {
-    "lead": "Module {{id}} is not built yet — the shell already leads to it.",
+    "lead": "Module {{id}} is not built yet, but the shell already leads to it.",
     "description": "Module screens arrive in their wave (SPEC §16). This shows a section without data.",
     "states": "See page states"
   },
@@ -371,7 +371,7 @@
     "saveFailed": "Could not save: {{message}}",
     "readOnlyHint": "Editing is available to the Accountant role",
     "createInvoice": "Create invoice",
-    "permissionsNote": "Signed in as {{name}} — {{roles}}.",
+    "permissionsNote": "Signed in as {{name}}: {{roles}}.",
     "reloaded": "Showing the saved version",
     "roles": {
       "accountant": "Accountant",
@@ -508,7 +508,7 @@
     "signInAs": "Fill in {{email}}",
     "accountant": "Accountant and administrator (“Sign in as…”): password demo; app, SMS and email code 123456; backup code ab12cd34; passkey",
     "sales": "Sales manager, read-only: password demo, no second step",
-    "temporary": "New colleague with temporary password temp-password — sets their own",
+    "temporary": "New colleague with temporary password temp-password (sets their own)",
     "lead": "Team lead: sees people and roles, changes nothing and can't see history; password demo",
     "platform": "Platform administrator outside companies: changes the app's security policy; password demo",
     "invite": "Open a colleague's invitation",
@@ -520,7 +520,7 @@
     "openLink": "Open the link from the email",
     "noticeToast": "Email to {{to}}: your sign-in email was changed",
     "exportToast": "Email to {{to}}: your data archive is ready",
-    "ssoTitle": "{{provider}} — demo provider",
+    "ssoTitle": "{{provider}}: demo provider",
     "ssoLead": "This is the provider step: choose an account or cancel. Real sign-in opens the Google or Apple page.",
     "ssoContinue": "Continue as {{name}}",
     "ssoCancel": "Cancel sign-in",
@@ -540,7 +540,7 @@
   },
   "usersPage": {
     "title": "Users",
-    "lead": "Company users. An administrator manages access (sessions, two-step verification, blocking) and can sign in as a user to look into a request — everything goes to the audit log.",
+    "lead": "Company users. An administrator manages access (sessions, two-step verification, blocking) and can sign in as a user to look into a request. Everything goes to the audit log.",
     "listLabel": "Company users",
     "sessionsTitle": "Active sessions",
     "sessionsDescription": "Where company users are signed in right now; end any suspicious session.",
@@ -585,7 +585,7 @@
   },
   "inboxPage": {
     "title": "Notifications",
-    "lead": "Everything the app told you: overdue invoices, mentions, tasks, security events. Which events and channels — in “Notification settings”."
+    "lead": "Everything the app told you: overdue invoices, mentions, tasks, security events. Choose events and channels in “Notification settings”."
   },
   "fieldsPage": {
     "title": "Dates & numbers",

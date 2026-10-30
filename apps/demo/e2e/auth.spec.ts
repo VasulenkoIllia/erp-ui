@@ -163,7 +163,7 @@ test.describe("вхід без пароля й SSO", () => {
   }) => {
     await openWith(page, {}, LOGIN, { user: null })
     await page.getByRole("button", { name: "Увійти через Google" }).click()
-    await expect(heading(page)).toHaveText("Google — демо-провайдер")
+    await expect(heading(page)).toHaveText("Google: демо-провайдер")
     await page.getByRole("button", { name: "Скасувати вхід" }).click()
     await expect(
       page.getByText("Не вдалося увійти через провайдера"),
@@ -318,7 +318,7 @@ test.describe("відновлення, запрошення, реєстраці�
     await page.getByLabel("Назва компанії").fill("ФОП Шевченко Т. Г.")
     await page.getByRole("button", { name: "Створити акаунт" }).click()
     await expect(
-      page.getByText("Акаунт із таким email уже є — увійдіть"),
+      page.getByText("Акаунт із таким email уже є. Увійдіть"),
     ).toBeVisible()
     await page.getByLabel("Email").fill("taras@example.com")
     await page.getByRole("button", { name: "Створити акаунт" }).click()

@@ -268,14 +268,14 @@ test.describe("політики безпеки (ADR-0012)", () => {
     await ips.fill("198.51.100.0/24\n10.0.0.300")
     await save.click()
     await expect(
-      page.getByText("Рядок 2 («10.0.0.300») — не адреса й не мережа"),
+      page.getByText("Рядок 2 («10.0.0.300»): не адреса й не мережа"),
     ).toBeVisible()
     await ips.fill("198.51.100.0/24")
     await save.click()
     await confirmWithPassword(page)
     await expect(
       page.getByText(
-        "Список відріже вашу адресу 192.0.2.24 — додайте її, щоб не втратити доступ",
+        "Список відріже вашу адресу 192.0.2.24. Додайте її, щоб не втратити доступ",
       ),
     ).toBeVisible()
     await page.getByRole("button", { name: "Додати мою адресу" }).click()
@@ -318,7 +318,7 @@ test.describe("політики безпеки (ADR-0012)", () => {
     await signIn(page, "ivan@zoriana.example")
     await expect(
       page.getByText(
-        "Термін дії пароля минув — придумайте новий, щоб продовжити.",
+        "Термін дії пароля минув. Придумайте новий, щоб продовжити.",
       ),
     ).toBeVisible()
     await page

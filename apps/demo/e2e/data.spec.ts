@@ -70,7 +70,7 @@ test.describe("дані: список рахунків", () => {
   }) => {
     await openWith(page, {}, DATA, { user: USERS.sales })
     await expect(
-      page.getByText("Ви увійшли як Іван Петренко — Менеджер з продажу."),
+      page.getByText("Ви увійшли як Іван Петренко: Менеджер з продажу."),
     ).toBeVisible()
     const edit = page.getByRole("button", { name: /^Редагувати 2026-/ }).first()
     await expect(edit).toHaveAttribute("aria-disabled", "true")

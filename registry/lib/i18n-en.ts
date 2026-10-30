@@ -13,7 +13,7 @@ export const en = {
     table: "Table",
     more: "More",
     copied: "Copied",
-    copyFailed: "Couldn't copy — select and copy it manually",
+    copyFailed: "Couldn't copy. Select and copy it manually",
     showOptions: "Show options",
     clear: "Clear",
     yes: "Yes",
@@ -155,7 +155,7 @@ export const en = {
       sign_in_error: "Sign-in failed",
     },
     message: {
-      invalid_form: "The form has errors — check the fields",
+      invalid_form: "The form has errors. Check the fields",
     },
   },
   devPanel: {
@@ -188,27 +188,27 @@ export const en = {
   },
   apiErrors: {
     validation: "Check the highlighted fields",
-    unauthenticated: "Your session has ended — please sign in again",
+    unauthenticated: "Your session has ended. Please sign in again",
     forbidden: "You don't have permission to do this",
-    not_found: "Record not found — it may have been deleted",
+    not_found: "Record not found. It may have been deleted",
     conflict: "Someone else changed this record",
-    rate_limited: "Too many requests — try again in a minute",
-    server: "Server error — please try again",
+    rate_limited: "Too many requests. Try again in a minute",
+    server: "Server error. Please try again",
     offline: "Can't reach the server",
     challenge_required: "Sign-in confirmation required",
     captcha_required: "Confirm that you are not a bot",
-    token_expired: "This link has expired — request a new one",
+    token_expired: "This link has expired. Request a new one",
     reauth_required: "Confirm it's you, then try again",
     password_change_required: "Set a new password first",
     factor_required:
-      "Your company requires two-step verification — add another method first",
+      "Your company requires two-step verification. Add another method first",
     impersonation_forbidden: "Not available while you act as another user",
     factor_setup_required: "Set up two-step verification first",
     ip_not_allowed:
-      "Your company's policy blocks sign-in from this network — contact your administrator",
+      "Your company's policy blocks sign-in from this network. Contact your administrator",
     account_blocked:
       "This account is blocked. Contact your company administrator.",
-    unknown: "Something went wrong — please try again",
+    unknown: "Something went wrong. Please try again",
     provider: "{{message}} (service response: {{provider}})",
   },
   auth: {
@@ -223,7 +223,7 @@ export const en = {
     or: "or",
     passkey: "Sign in with a passkey",
     passkeyCancelled: "Passkey sign-in was cancelled",
-    passkeyFailed: "This passkey doesn't work here — use another method",
+    passkeyFailed: "This passkey doesn't work here. Use another method",
     withEmailCode: "Email code",
     withSmsCode: "SMS code",
     withPassword: "Password",
@@ -265,7 +265,7 @@ export const en = {
       },
       trustDevice_one: "Remember this device for {{count}} day",
       trustDevice_other: "Remember this device for {{count}} days",
-      invalidCode: "That code doesn't match — check it and try again",
+      invalidCode: "That code doesn't match. Check it and try again",
       tooManyAttempts: "Too many attempts. Start signing in again.",
       restart: "Start again",
     },
@@ -292,10 +292,10 @@ export const en = {
     },
     forced: {
       title: "Set a new password",
-      lead: "Your password is temporary — choose your own to continue.",
-      expired: "Your password has expired — choose a new one to continue.",
+      lead: "Your password is temporary. Choose your own to continue.",
+      expired: "Your password has expired. Choose a new one to continue.",
       policy:
-        "Your password doesn't meet your company's requirements — choose another one to continue.",
+        "Your password doesn't meet your company's requirements. Choose another one to continue.",
     },
     invite: {
       title: "Join {{company}}",
@@ -312,7 +312,7 @@ export const en = {
     },
     signUpPage: {
       title: "Sign up",
-      lead: "Create your account and company — it takes a minute.",
+      lead: "Create your account and company. It takes a minute.",
       name: "Your name",
       company: "Company name",
       companyCode: "EDRPOU or RNOKPP",
@@ -321,7 +321,7 @@ export const en = {
     },
     strength: {
       label: "Password strength: {{value}}",
-      tooShort: "too short — at least {{min}} characters",
+      tooShort: "too short, at least {{min}} characters",
       weak: "weak",
       fair: "fair",
       strong: "strong",
@@ -330,18 +330,18 @@ export const en = {
     fieldErrors: {
       required: "Fill in this field",
       invalid: "Check this value",
-      weak: "This password is too simple — make it longer",
+      weak: "This password is too simple. Make it longer",
       same: "The new password must differ from the temporary one",
-      taken: "An account with this email already exists — sign in",
-      reused: "You've used this password before — choose a new one",
-      tooLong: "Too long — please shorten it",
+      taken: "An account with this email already exists. Sign in",
+      reused: "You've used this password before. Choose a new one",
+      tooLong: "Too long. Please shorten it",
       type: "Choose an image",
       tooLarge: "The file is too large",
     },
     captcha: {
       checking: "Checking that you're not a bot…",
       done: "Check passed",
-      failed: "The check failed — reload the page",
+      failed: "The check failed. Reload the page",
     },
     callback: {
       verifying: "Finishing sign-in…",
@@ -384,8 +384,7 @@ export const en = {
       dataDescription:
         "Download all your data or delete your account completely (GDPR).",
       export: "Download my data",
-      exportQueued:
-        "Preparing the archive — the link will be sent to {{email}}",
+      exportQueued: "Preparing the archive. The link will be sent to {{email}}",
       delete: "Delete account",
       deleteTitle: "Delete your account for good?",
       deleteDescription:
@@ -401,7 +400,7 @@ export const en = {
         "A second step after your password protects the account even if the password is stolen.",
       off: "Two-step verification is off",
       offHint:
-        "Add an authenticator app or a passkey — they are the most reliable methods.",
+        "Add an authenticator app or a passkey: they are the most reliable methods.",
       required:
         "Your company requires two-step verification: keep at least one method.",
       types: {
@@ -471,13 +470,13 @@ export const en = {
         description: "One-time codes for when your phone isn't at hand.",
         remaining_one: "{{count}} code of {{total}} left",
         remaining_other: "{{count}} codes of {{total}} left",
-        none: "No codes left — create new ones.",
+        none: "No codes left. Create new ones.",
         regenerate: "Create new codes",
         regenerateTitle: "Create new backup codes?",
         regenerateDescription: "Your old codes will stop working.",
         dialogTitle: "Save your backup codes",
         dialogDescription:
-          "Each code works once. Keep them in a password manager or print them — we only show them now.",
+          "Each code works once. Keep them in a password manager or print them: we only show them now.",
         listLabel: "Backup codes",
         copy: "Copy codes",
         download: "Download",
@@ -567,13 +566,13 @@ export const en = {
     },
     factorSetup: {
       title: "Set up two-step verification",
-      lead: "Your company requires a second step at sign-in. Choose a method — it takes a minute.",
+      lead: "Your company requires a second step at sign-in. Choose a method. It takes a minute.",
       finishing: "Finishing sign-in…",
     },
     recovery: {
       link: "Can't use any of these methods?",
       description:
-        "Ask your company administrator to restore access. They'll check it's you and reset two-step verification — then sign in with your password and set up a new method.",
+        "Ask your company administrator to restore access. They'll check it's you and reset two-step verification. Then sign in with your password and set up a new method.",
       commentLabel: "What happened (optional)",
       commentHint:
         "For example: “Lost my phone, no backup codes”. The administrator will see this text.",
@@ -597,7 +596,7 @@ export const en = {
     photoHint:
       "JPG, PNG or WebP up to {{size}} MB; you'll crop it before saving.",
     fileType: "Choose a JPG, PNG or WebP image",
-    fileSize: "The file is larger than {{size}} MB — choose a smaller one",
+    fileSize: "The file is larger than {{size}} MB. Choose a smaller one",
     cropTitle: "Crop your photo",
     cropHint: "Drag the photo or change the zoom: the profile shows a circle.",
     cropArea:
@@ -696,7 +695,8 @@ export const en = {
     days_one: "{{count}} day",
     days_other: "{{count}} days",
     preventReuse: "Block reuse of the last",
-    preventReuseHint: "How many previous passwords are blocked; 0 — no limit.",
+    preventReuseHint:
+      "How many previous passwords are blocked. If 0, no limit.",
     sessionTitle: "Session",
     sessionMinutes: "Session without activity, min",
     idleLabel: "Sign out after inactivity",
@@ -704,15 +704,15 @@ export const en = {
     minutes_one: "{{count}} minute",
     minutes_other: "{{count}} minutes",
     trustedDays: "Trusted device, days",
-    trustedHint: "0 — ask for the second step at every sign-in.",
+    trustedHint: "If 0, ask for the second step at every sign-in.",
     ipTitle: "Allowed addresses",
     ipLabel: "Addresses and networks",
     ipHint:
-      "One per line: 203.0.113.7 or 203.0.113.0/24. Empty — sign-in from any address.",
+      "One per line: 203.0.113.7 or 203.0.113.0/24. If empty, sign-in from any address.",
     ipCurrent: "Your address: {{ip}}.",
     ipInvalid: "Line {{line}} (“{{value}}”) isn't an address or a network",
     excludesCurrent:
-      "The list would block your address {{ip}} — add it so you don't lose access",
+      "The list would block your address {{ip}}. Add it so you don't lose access",
     addCurrentIp: "Add my address",
     save: "Save policy",
     saved: "Policy saved",
@@ -852,7 +852,8 @@ export const en = {
     editTitle: "Edit webhook",
     urlLabel: "URL",
     urlHint: "An HTTPS URL that accepts POST requests.",
-    urlInsecure: "https:// only — company data is never sent unencrypted",
+    urlInsecure:
+      "https:// only, because company data is never sent unencrypted",
     urlInvalid: "Check the URL",
     descriptionLabel: "Description (optional)",
     descriptionHint: "What it's for: “Accounting sync”.",
@@ -893,7 +894,7 @@ export const en = {
     rotate: "New secret",
     rotateTitle: "Create a new secret?",
     rotateDescription:
-      "The old secret stops working immediately — update it in your system.",
+      "The old secret stops working immediately. Update it in your system.",
     rotateConfirm: "Create",
     remove: "Delete",
     removeTitle: "Delete webhook?",
@@ -947,7 +948,7 @@ export const en = {
       "Otherwise push notifications won't appear on this device.",
     pushAllow: "Allow",
     pushDenied:
-      "Notifications are blocked in your browser settings — allow them for this site.",
+      "Notifications are blocked in your browser settings. Allow them for this site.",
     save: "Save",
     saved: "Notification settings saved",
     reset: "Restore defaults",
@@ -1012,16 +1013,15 @@ export const en = {
     duplicate: "Copy",
     remove: "Delete",
     removeTitle: "Delete role “{{name}}”?",
-    removeDescription: "Nobody has this role — it can be deleted.",
-    removeAssigned:
-      "This role is assigned to users — change their roles first.",
+    removeDescription: "Nobody has this role. It can be deleted.",
+    removeAssigned: "This role is assigned to users. Change their roles first.",
     removed: "Role deleted",
     saved: "Role saved",
     created: "Role created",
     save: "Save",
     discard: "Discard changes",
     systemHint:
-      "A built-in role can't be changed — copy it and adjust the copy.",
+      "A built-in role can't be changed. Copy it and adjust the copy.",
     matrixLabel: "Permissions of “{{name}}”",
     all: "All",
     allFor: "All: {{resource}}",
@@ -1079,7 +1079,7 @@ export const en = {
     send: "Send invitation",
     sent: "Invitation sent to {{email}}",
     emailTaken: "This person is already in the company",
-    emailInvited: "This address is already invited — resend the invitation",
+    emailInvited: "This address is already invited. Resend the invitation",
     invitedBy: "{{by}} · {{when}}",
     expires: "valid until {{date}}",
     expired: "Expired",
@@ -1156,10 +1156,10 @@ export const en = {
     saved: "Company details saved",
     logo: "Logo",
     logoHint:
-      "PNG, JPG, WebP or SVG up to 1 MB — in document and email headers.",
+      "PNG, JPG, WebP or SVG up to 1 MB. Shown in document and email headers.",
     stamp: "Stamp and signature",
     stampHint:
-      "PNG with a transparent background up to 1 MB — placed on invoices and acts.",
+      "PNG with a transparent background up to 1 MB. Used on invoices and acts.",
     upload: "Upload",
     replace: "Replace",
     remove: "Remove",
@@ -1170,7 +1170,7 @@ export const en = {
     uploaded: "Image updated",
     removed: "Image removed",
     fileType: "Choose a PNG, JPG, WebP or SVG",
-    fileSize: "The file is larger than 1 MB — choose a smaller one",
+    fileSize: "The file is larger than 1 MB. Choose a smaller one",
     branchesTitle: "Branches",
     branchesDescription:
       "Separate units: name and address appear on documents.",
@@ -1367,7 +1367,7 @@ export const en = {
     },
     phone: {
       incomplete: "The number is incomplete",
-      invalid: "This number does not exist — check the code and digits",
+      invalid: "This number does not exist. Check the code and digits",
     },
     email: "Check the address: it should look like name@example.com",
     date: {

@@ -115,7 +115,7 @@ test.describe("A2: ролі й права", () => {
   }) => {
     await openWith(page, {}, `${ROLES}?role=owner`)
     const hint =
-      "Вбудовану роль змінити не можна — скопіюйте її й налаштуйте копію."
+      "Вбудовану роль змінити не можна. Скопіюйте її й налаштуйте копію."
     await expect(page.getByText(hint)).toBeVisible()
     const users = page.getByRole("checkbox", { name: "Зміна: Користувачі" })
     await expect(users).toHaveAttribute("aria-readonly", "true")

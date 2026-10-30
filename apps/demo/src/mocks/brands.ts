@@ -17,8 +17,8 @@ export const DEMO_BRANDS = {
         en: "Accounting without panic",
       },
       text: {
-        uk: "Звітність, зарплата й первинка для ФОП і ТОВ — в одному кабінеті.",
-        en: "Reports, payroll and paperwork for sole traders and companies — in one place.",
+        uk: "Звітність, зарплата й первинка для ФОП і ТОВ в одному кабінеті.",
+        en: "Reports, payroll and paperwork for sole traders and companies in one place.",
       },
     },
     supportEmail: "help@buh-plus.example",
@@ -30,7 +30,7 @@ export const DEMO_BRANDS = {
     palette: "terracotta",
     panel: {
       title: {
-        uk: "Вантажі вчасно, документи — одразу",
+        uk: "Вантажі вчасно, документи одразу",
         en: "Freight on time, paperwork at once",
       },
     },

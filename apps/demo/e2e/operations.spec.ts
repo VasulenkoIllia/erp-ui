@@ -84,7 +84,9 @@ test.describe("вебхуки (ADR-0013)", () => {
       .check()
     await dialog.getByRole("button", { name: "Додати", exact: true }).click()
     await expect(
-      dialog.getByText("Лише https:// — дані компанії не надсилаємо відкрито"),
+      dialog.getByText(
+        "Лише https://, бо дані компанії не надсилаємо відкрито",
+      ),
     ).toBeVisible()
     await url.fill("https://crm.example.com/hooks")
     await dialog.getByLabel("Опис (необов'язково)").fill("CRM партнера")

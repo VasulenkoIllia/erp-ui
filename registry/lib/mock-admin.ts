@@ -576,7 +576,7 @@ export function createAdminHandlers({
       if (sessionId === getMockSession()?.id)
         return errorResponse(409, {
           code: "conflict",
-          message: "This is your current session — sign out instead",
+          message: "This is your current session. Sign out instead",
         })
       // Сесія людини іншої компанії — «не знайдено», як і сама людина; сильнішої — 403: людину
       // видно в списку сесій компанії (ADR-0034).
