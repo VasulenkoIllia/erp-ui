@@ -13,10 +13,14 @@ import {
 import { useCardRecord, type CardRecord } from "@/hooks/use-card-record"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
+import {
+  usePaletteActions,
+  useSectionActions,
+} from "@/hooks/use-palette-actions"
 import { useTabParam } from "@/hooks/use-tab-param"
 import { applyKeyedChanges } from "@/lib/extensions"
 
-import { useOpener } from "../components/access-action"
+import { useAccessPaletteAction, useOpener } from "../components/access-action"
 import { OrganizationContacts } from "../components/organization-contacts"
 import {
   OrganizationFormDialog,
@@ -141,6 +145,31 @@ function OrganizationCard({ id }: { id: string }) {
         ]
       : []
 
+  const shownSections = applyKeyedChanges(sections, slots.sections)
+  const editAction = useAccessPaletteAction({
+    id: "edit",
+    resource: ORGANIZATIONS,
+    action: "update",
+    icon: "edit",
+    label: t("organization.edit"),
+    deniedReason: t("organization.editDenied"),
+    record: organization,
+    onSelect: () => {
+      setEditing(true)
+    },
+  })
+  const sectionActions = useSectionActions(shownSections, tabs.onValueChange)
+  usePaletteActions(
+    organization
+      ? {
+          title: organization.name,
+          actions: editAction
+            ? [editAction, ...sectionActions]
+            : sectionActions,
+        }
+      : null,
+  )
+
   return (
     <>
       <ObjectPage
@@ -153,7 +182,7 @@ function OrganizationCard({ id }: { id: string }) {
         error={card.pageError}
         onRetry={card.retry}
         header={header}
-        sections={applyKeyedChanges(sections, slots.sections)}
+        sections={shownSections}
         tabs={{ ...tabs, label: t("organization.tabsLabel") }}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
         aside={

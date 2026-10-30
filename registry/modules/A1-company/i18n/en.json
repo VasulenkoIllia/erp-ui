@@ -14,6 +14,10 @@
       "vatNo": "No",
       "baseCurrency": "Base currency",
       "branches": "Branches"
+    },
+    "palette": {
+      "addBranch": "Add a branch",
+      "denied": "No permission to change the company"
     }
   },
   "locale": {
@@ -121,5 +125,43 @@
     },
     "count_one": "{{value}} rate",
     "count_other": "{{value}} rates"
+  },
+  "setup": {
+    "title": "Company setup",
+    "lead": "A few steps to get started. You can change all of this later on the company card.",
+    "exit": "Skip setup",
+    "finish": "Finish setup",
+    "finished": "Company is set up",
+    "finishedPartly": "Saved. Company details are still empty",
+    "steps": {
+      "requisites": "Company details",
+      "requisitesHint": "These details go on invoices and documents.",
+      "brand": "Logo and palette",
+      "brandHint": "This is how colleagues and clients see your company. Images are saved right away.",
+      "team": "Colleagues",
+      "teamHint": "Invite the people you will work with.",
+      "review": "Review",
+      "reviewHint": "Check the result. Everything is already saved."
+    },
+    "review": {
+      "logo": "Logo",
+      "logoSet": "Uploaded",
+      "stamp": "Stamp",
+      "palette": "Palette",
+      "invitations": "Invitations pending"
+    },
+    "checklist": {
+      "description": "A few actions to get your company ready.",
+      "requisites": "Fill in the company details",
+      "requisitesHint": "Name and code for invoices and documents.",
+      "fill": "Fill in",
+      "logo": "Add a logo",
+      "logoHint": "It appears in the app and on documents.",
+      "upload": "Upload",
+      "team": "Invite colleagues",
+      "teamHint": "Each person gets an invitation by email.",
+      "invite": "Invite",
+      "startWizard": "Start setup"
+    }
   }
 }

@@ -85,6 +85,23 @@ export interface RatesExtension {
   readonly form?: ExtensionFormChanges<RateFormFieldId>
 }
 
+/** Необов'язкові пункти чек-листа «Почніть роботу»; реквізити є завжди. */
+export type SetupItemId = "logo" | "team"
+
+/** Чек-лист і майстер першого запуску (ADR-0044). */
+export interface SetupExtension {
+  /**
+   * Чого не пропонувати: `logo` — без логотипа в чек-листі й майстрі, `team` — без запрошення колег
+   * (проект без запрошень чи без списку людей).
+   */
+  readonly hide?: readonly SetupItemId[]
+  /**
+   * `false` — без майстра (свій онбординг у проекті): немає адреси й кнопки запуску, а пункт «Колеги»
+   * зникає, бо веде на крок майстра.
+   */
+  readonly page?: false
+}
+
 /** Рядки модуля (простір імен `A1-company`, `i18n/uk.json`). */
 export type CompanyMessages = typeof ukMessages
 
@@ -92,6 +109,7 @@ export interface CompanyExtension {
   readonly company?: CompanyCardExtension
   readonly currencies?: CurrenciesExtension
   readonly rates?: RatesExtension
+  readonly setup?: SetupExtension
   /** Перевизначення рядків модуля за ключами `i18n/*.json`. */
   readonly strings?: ModuleStrings<CompanyMessages>
 }

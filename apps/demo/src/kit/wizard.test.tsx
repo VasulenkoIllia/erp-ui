@@ -1,5 +1,7 @@
 import { act, render, renderHook, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { createPortal } from "react-dom"
+import { MemoryRouter } from "react-router"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { Stepper } from "@/registry/erp/stepper"
@@ -11,6 +13,7 @@ import {
   loadWizardProgress,
   saveWizardProgress,
 } from "@/registry/lib/wizard-progress"
+import { Wizard } from "@/registry/templates/wizard"
 
 const STEPS: WizardStep[] = [
   { id: "one", label: "Перший" },
@@ -181,6 +184,39 @@ describe("useWizard", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined)
     expect(() => wizardOf({}, [])).toThrow("steps must not be empty")
     error.mockRestore()
+  })
+})
+
+describe("Wizard", () => {
+  function DialogStep({ onNext }: { onNext: () => void }) {
+    const wizard = useWizard({
+      steps: [{ id: "one", label: "Перший", onNext }, ...STEPS.slice(1)],
+      onFinish: vi.fn(),
+    })
+    return (
+      <Wizard wizard={wizard} finishLabel="Завершити">
+        {createPortal(
+          <form aria-label="Діалог">
+            <button type="submit">Надіслати</button>
+          </form>,
+          document.body,
+        )}
+      </Wizard>
+    )
+  }
+
+  it("форма діалога на кроці не переводить майстер далі", async () => {
+    const user = userEvent.setup()
+    const onNext = vi.fn()
+    render(
+      <MemoryRouter>
+        <DialogStep onNext={onNext} />
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole("button", { name: "Надіслати" }))
+    expect(onNext).not.toHaveBeenCalled()
+    await user.click(screen.getByRole("button", { name: "Далі" }))
+    expect(onNext).toHaveBeenCalledOnce()
   })
 })
 

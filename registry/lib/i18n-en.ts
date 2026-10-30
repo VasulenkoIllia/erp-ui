@@ -5,6 +5,7 @@
 import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
+import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
@@ -43,6 +44,8 @@ export const en = {
     navigate: "select",
     run: "run",
     close: "close",
+    openSection: "Open: {{section}}",
+    recordGroup: "Open record: {{name}}",
   },
   notifications: {
     label_one: "Notifications: {{count}} new",
@@ -1412,5 +1415,6 @@ export const en = {
   ...enLists,
   ...enRecords,
   ...enShortcuts,
+  ...enSetup,
   ...enWizard,
 } satisfies ErpUiTranslation

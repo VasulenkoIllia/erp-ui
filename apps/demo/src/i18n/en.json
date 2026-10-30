@@ -8,6 +8,7 @@
       "icons": "Icons",
       "shortcuts": "Keyboard shortcuts",
       "wizard": "Wizard",
+      "setup": "Get started",
       "states": "Page states",
       "data": "Data & mocks",
       "organizations": "Organizations",
@@ -793,7 +794,14 @@
     "loading": "Loading",
     "failed": "Failed to load",
     "retried": "The real help would load the list here",
-    "projectKey": "Create an invoice"
+    "projectKey": "Create an invoice",
+    "actionsTitle": "Actions of the open page in the palette",
+    "actionsDescription": "While this page is open, Ctrl+K shows its actions as the first group. Company, contact, organization and person cards work the same way. An action blocked by permissions stays visible and inactive, with the reason.",
+    "actionsGroup": "Keyboard shortcuts",
+    "actionAllowed": "Sample action",
+    "actionDone": "Action done",
+    "actionDenied": "Sample blocked action",
+    "actionReason": "Available to the Accountant role"
   },
   "wizardPage": {
     "lead": "The Wizard template and the UI06 stepper: steps with checks and saving, a read-only final review.",
@@ -827,6 +835,25 @@
       "logo": "Logo",
       "team": "Colleagues",
       "done": "Done"
+    }
+  },
+  "setupPage": {
+    "lead": "The Get started checklist and the first-run wizard (PF12). People who can change the company see the checklist. After sign-up the demo opens the wizard.",
+    "liveTitle": "Company checklist",
+    "liveDescription": "The real checklist of module A1: items are counted from company data. A logo on the company card closes its item. Not needed is kept in this browser, separately for each company.",
+    "liveEmpty": "If nothing is shown, everything is done or you lack the permission to change the company.",
+    "wizardLink": "Open the first-run wizard",
+    "statesTitle": "States",
+    "statesDescription": "The same SetupChecklist component on samples.",
+    "pending": "Loading",
+    "error": "Error with retry",
+    "partly": "Partly done",
+    "items": {
+      "first": "Fill in the company details",
+      "second": "Add a logo",
+      "secondHint": "It appears in the app and on documents.",
+      "third": "Invite colleagues",
+      "open": "Open"
     }
   }
 }

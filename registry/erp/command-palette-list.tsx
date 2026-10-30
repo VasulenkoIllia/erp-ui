@@ -96,7 +96,7 @@ export function CommandPaletteList({
               items={group.items}
               className="not-last:mb-1"
             >
-              <Autocomplete.GroupLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+              <Autocomplete.GroupLabel className="truncate px-2 py-1.5 text-xs font-medium text-muted-foreground">
                 {group.value}
               </Autocomplete.GroupLabel>
               <Autocomplete.Collection>
@@ -106,16 +106,23 @@ export function CommandPaletteList({
                     <Autocomplete.Item
                       key={command.id}
                       value={command}
+                      // Не `disabled`: стрілки його пропустили б, і причину не почути (SPEC §8.4).
+                      aria-disabled={command.deniedReason ? true : undefined}
                       onClick={() => {
                         onRun(command)
                       }}
-                      className="flex min-h-control cursor-default items-center gap-2 rounded-md px-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                      className="flex min-h-control cursor-default items-center gap-2 rounded-md px-2 text-sm outline-none select-none aria-disabled:text-muted-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                     >
                       {Icon ? (
                         <Icon aria-hidden className="size-4 shrink-0" />
                       ) : null}
-                      <span className="min-w-0 flex-1 truncate">
-                        {command.label}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{command.label}</span>
+                        {command.deniedReason ? (
+                          <span className="block text-xs">
+                            {command.deniedReason}
+                          </span>
+                        ) : null}
                       </span>
                       {command.hint ? (
                         <span className="shrink-0 text-xs text-muted-foreground">

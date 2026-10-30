@@ -2,6 +2,7 @@ import { useCallback, useRef, type MouseEvent, type Ref } from "react"
 
 import { DeniedAction } from "@/components/erp/permission-gate"
 import { Button } from "@/components/ui/button"
+import type { PaletteAction } from "@/hooks/use-palette-actions"
 import { useRecordAccess } from "@/hooks/use-record-access"
 import { ACTION_ICONS } from "@/lib/icons"
 
@@ -61,6 +62,44 @@ export function AccessAction({
       {label}
     </DeniedAction>
   )
+}
+
+/**
+ * Та сама дія в палітрі команд (ADR-0044): права й причина ті самі, що в кнопки. Поки права невідомі,
+ * дії немає, як і кнопки.
+ */
+export function useAccessPaletteAction({
+  id,
+  resource,
+  action,
+  icon,
+  label,
+  deniedReason,
+  record,
+  onSelect,
+}: {
+  id: string
+  resource: string
+  action: "create" | "update"
+  icon: keyof typeof ACTION_ICONS
+  label: string
+  deniedReason: string
+  record?: unknown
+  onSelect: () => void
+}): PaletteAction | null {
+  const { canAccess, isPending, recordReason } = useRecordAccess({
+    resource,
+    action,
+    record,
+  })
+  if (isPending) return null
+  return {
+    id,
+    label,
+    icon: ACTION_ICONS[icon],
+    deniedReason: canAccess ? undefined : (recordReason ?? deniedReason),
+    onSelect,
+  }
 }
 
 /**

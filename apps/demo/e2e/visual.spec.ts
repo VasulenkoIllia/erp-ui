@@ -61,6 +61,7 @@ const SHOT_PAGES = {
   pickers: "/#/pickers",
   icons: "/#/icons",
   shortcuts: "/#/shortcuts",
+  setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
   module: "/#/m/K2",
@@ -102,6 +103,11 @@ const userFor = (pageId: keyof typeof SHOT_PAGES) =>
 const listStatus = (page: Page) =>
   page.locator('[data-slot="data-table-status"]')
 const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
+  // Чек-лист рахує пункти з даних компанії: знімок — коли їх уже видно, а не скелетон.
+  if (pageId === "setup")
+    await expect(
+      page.getByText(/Зроблено \d|\d of \d done/).first(),
+    ).toBeVisible()
   if (pageId === "data")
     await expect(listStatus(page)).toHaveText(/\d (рахунк|invoice)/)
   if (pageId === "organizations" || pageId === "contactsOrganizations")

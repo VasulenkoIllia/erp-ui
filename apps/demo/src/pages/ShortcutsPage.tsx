@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { PageState } from "@/registry/erp/page-state"
+import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
 import { ShortcutsHelpList } from "@/registry/erp/shortcuts-help-list"
-import type { ProjectShortcut } from "@/registry/lib/shortcuts"
+import { usePaletteActions } from "@/registry/hooks/use-palette-actions"
+import { SHORTCUTS, type ProjectShortcut } from "@/registry/lib/shortcuts"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
 
@@ -27,6 +29,24 @@ export function ShortcutsPage() {
     ],
     [t],
   )
+  usePaletteActions({
+    title: t("shortcutsPage.actionsGroup"),
+    actions: [
+      {
+        id: "demo-allowed",
+        label: t("shortcutsPage.actionAllowed"),
+        onSelect: () => {
+          toast.success(t("shortcutsPage.actionDone"))
+        },
+      },
+      {
+        id: "demo-denied",
+        label: t("shortcutsPage.actionDenied"),
+        deniedReason: t("shortcutsPage.actionReason"),
+        onSelect: () => undefined,
+      },
+    ],
+  })
   return (
     <div className="space-y-6">
       <PageHeader
@@ -45,6 +65,12 @@ export function ShortcutsPage() {
         >
           {t("shortcutsPage.open")}
         </Button>
+      </Section>
+      <Section
+        title={t("shortcutsPage.actionsTitle")}
+        description={t("shortcutsPage.actionsDescription")}
+      >
+        <ShortcutKeys shortcut={SHORTCUTS.palette} />
       </Section>
       <Section
         title={t("shortcutsPage.listTitle")}

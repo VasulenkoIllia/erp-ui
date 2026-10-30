@@ -14,6 +14,7 @@ export const ROUTES = {
   icons: "/icons",
   shortcuts: "/shortcuts",
   wizard: "/wizard",
+  setup: "/setup",
   states: "/states",
   data: "/data",
   organizations: "/organizations",

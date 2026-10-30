@@ -13,6 +13,7 @@ import type {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useMe } from "@/hooks/use-me"
+import type { PaletteAction } from "@/hooks/use-palette-actions"
 import { hasPermission } from "@/lib/auth"
 import { useExtensionFields } from "@/lib/extension-fields"
 import {
@@ -39,14 +40,23 @@ export function useUserHeader(
   user: User | undefined,
   statuses: ResolvedStatuses,
   slotActions: KeyedChanges<ObjectPageAction, UserActionId> | undefined,
-): { header: ObjectPageHeader | undefined; dialog: ReactNode } {
+): {
+  header: ObjectPageHeader | undefined
+  dialog: ReactNode
+  paletteAction: PaletteAction | null
+} {
   const t = useUsersT()
   const format = useFormat()
   const { extension } = useUsersModule()
   const extensionFields = useExtensionFields(extension.users?.fields)
   const me = useMe().data
   const impersonate = useImpersonateAction(user)
-  if (!user) return { header: undefined, dialog: impersonate.dialog }
+  if (!user)
+    return {
+      header: undefined,
+      dialog: impersonate.dialog,
+      paletteAction: null,
+    }
   const self = me?.id === user.id
   const fields: (RecordField & { id: UserFieldId })[] = [
     { id: "email", label: t("user.fields.email"), value: user.email },
@@ -85,6 +95,7 @@ export function useUserHeader(
       actions: applyKeyedChanges(actions, slotActions),
     },
     dialog: impersonate.dialog,
+    paletteAction: impersonate.paletteAction,
   }
 }
 
@@ -98,6 +109,7 @@ export function useUserHeader(
 function useImpersonateAction(user: User | undefined): {
   node: ReactNode
   dialog: ReactNode
+  paletteAction: PaletteAction | null
 } {
   const t = useUsersT()
   const kitT = useErpUiT()
@@ -120,7 +132,7 @@ function useImpersonateAction(user: User | undefined): {
   )
   const catalog = roles.data?.roles
   if (!user || !me || !shown)
-    return { node: null, dialog: impersonation.dialog }
+    return { node: null, dialog: impersonation.dialog, paletteAction: null }
   const block = catalog
     ? impersonationBlock(
         me.permissions,
@@ -156,5 +168,16 @@ function useImpersonateAction(user: User | undefined): {
       </Button>
     ),
     dialog: impersonation.dialog,
+    // Поки каталог ролей вантажиться, ще невідомо, чи можна: дії в палітрі теж немає.
+    paletteAction: roles.isLoading
+      ? null
+      : {
+          id: "impersonate",
+          label,
+          deniedReason: denied ?? undefined,
+          onSelect: () => {
+            impersonation.start({ id: user.id, name: user.name })
+          },
+        },
   }
 }

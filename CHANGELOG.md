@@ -6,6 +6,11 @@
 
 ### Додано
 
+- **Майстер першого запуску** модуля A1 (ADR-0044): реквізити, логотип і палітра, колеги, огляд, адреса `paths.setup`. Щоб відкривати його після реєстрації, передайте `afterSignUp: companyModule.paths.setup` у `createAuthRoutes`. Бачить лише той, хто має `company:update`. Новий проп фабрики `afterSetup`: куди вести після завершення чи пропуску.
+- **Чек-лист «Почніть роботу»** `erp/setup-checklist` і готовий `companyModule.setupChecklist` для головної сторінки проекту (ADR-0044): реквізити, логотип, колеги, «Не потрібно» для необов'язкових пунктів. Проект без запрошень ховає пункт: `setup: { hide: ["team"] }`, а свій онбординг замість майстра — `setup: { page: false }` у файлі розширення.
+- **Дії запису в палітрі** `hooks/use-palette-actions` (ADR-0044): `Ctrl/⌘+K` показує дії відкритої картки першою групою, дію без права неактивною з причиною. Картки A1, B1 (контакт, організація) і A2 уже їх дають; проект нічого не підключає, свої дії описує тим самим хуком. `PaletteCommand` отримав необов'язковий `deniedReason`.
+- `CompanyBranchesSection`: необов'язкові `adding` і `onAddingChange`.
+- Типи A1: нові `CompanyPaths.setup`, `CompanyModule.setupChecklist`, маршрут `<basePath>/setup`. Заповнює їх фабрика, тож проект нічого не змінює, якщо не будує ці типи сам (скажімо, у моках тестів). Перевірте, що адреса `<basePath>/setup` не зайнята вашою сторінкою.
 - **Модуль A1 «Компанія й валюти»** `modules/A1-company` (ADR-0043): картка компанії на Object Page (реквізити, логотип і печатка, філії, локалізація, історія), валюти (додати, вимкнути), курси валют (таблиця з джерелом, форма, фільтри). Встановлення: `node scripts/erp-ui-kit.mjs update <версія> --add modules/A1-company`, далі додайте `currencies:*` і `exchange-rates:*` у свої ролі.
 - **Майстер UI06** (ADR-0043): `erp/stepper`, `hooks/use-wizard`, `templates/wizard` (шаблон Wizard і `WizardReview`), `lib/wizard-progress` (прогрес у браузері).
 - `erp/currency-select` і `lib/currencies`: вибір валюти ISO 4217 з пошуком, назва мовою інтерфейсу.
@@ -17,10 +22,12 @@
 
 ### Виправлено
 
+- Шаблон `Wizard`: submit із форми діалога на кроці більше не переводить майстер далі (ADR-0044).
 - `Ctrl/⌘+K` і `Ctrl/⌘+B` не спрацьовували на нелатинській розкладці (українська, інша кирилиця): браузер передавав «л» і «и». Тепер нелатинська літера порівнюється за фізичною клавішею.
 
 ### Змінено
 
+- `erp/company-settings` розділено на `erp/company-profile-form`, `erp/company-images`, `erp/company-branches`, `erp/company-profile-values`, `erp/company-profile-state`, `erp/company-selects`. Експорти й поведінка ті самі, імпортувати можна й далі з `erp/company-settings`.
 - `isMacPlatform` живе в `lib/shortcuts`, експорт з `erp/command-palette` лишився.
 
 ## [1.1.0] — 2026-10-30

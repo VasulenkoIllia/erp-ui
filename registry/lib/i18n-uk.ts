@@ -6,6 +6,7 @@
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
+import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
 export const uk = {
@@ -43,6 +44,8 @@ export const uk = {
     navigate: "вибрати",
     run: "виконати",
     close: "закрити",
+    openSection: "Відкрити: {{section}}",
+    recordGroup: "Відкритий запис: {{name}}",
   },
   notifications: {
     label_one: "Сповіщення: {{count}} нове",
@@ -1427,6 +1430,7 @@ export const uk = {
   ...ukLists,
   ...ukRecords,
   ...ukShortcuts,
+  ...ukSetup,
   ...ukWizard,
 }
 

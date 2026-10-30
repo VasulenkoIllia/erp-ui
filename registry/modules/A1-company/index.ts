@@ -6,15 +6,22 @@
  *
  * Фабрика повертає маршрути React Router зі сторінками модуля (лінивими чанками, `Suspense` і межа
  * помилок — у застосунку): картка компанії, валюти, курси; пункти навігації з правом, яке їм потрібне,
- * ресурси для прав і моків і `preload` за адресою. Без розширення модуль такий, як у демо кіта. Файли
+ * ресурси для прав і моків, `preload` за адресою й чек-лист `setupChecklist` для головної сторінки
+ * проекту (ADR-0044). Без розширення модуль такий, як у демо кіта. Файли
  * модуля в проекті не правляться: зміни під клієнта — у файлі розширення
  * (`src/extensions/A1-company.ts`). Моки — окремо, `./mocks` (`createCompanyMocks`), щоб MSW не
  * потрапив у застосунок.
  */
 import { CoinsIcon, TrendingUpIcon, type LucideIcon } from "lucide-react"
-import { createElement, type ComponentType } from "react"
+import {
+  createElement,
+  Suspense,
+  type ComponentType,
+  type ReactElement,
+} from "react"
 import { Navigate, type RouteObject } from "react-router"
 
+import { ErrorBoundary } from "@/components/erp/error-boundary"
 import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
@@ -47,6 +54,8 @@ export type {
   RateFormFieldId,
   RateIds,
   RatesExtension,
+  SetupExtension,
+  SetupItemId,
 } from "./extension"
 export type { CompanyPaths } from "./module-context"
 export type { CompanyResource } from "./resources"
@@ -79,14 +88,27 @@ export interface CompanyModule {
   readonly resources: readonly CompanyResource[]
   /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
   readonly preload: (pathname: string) => void
+  /**
+   * Чек-лист «Почніть роботу» (PF12, ADR-0044): поставте на головну сторінку проекту. Бачить той, хто
+   * може змінювати компанію. Лінивий чанк, власні `Suspense` і межа помилок.
+   */
+  readonly setupChecklist: ReactElement
 }
 
 export interface CompanyModuleOptions {
   /** Початок адрес модуля: `""` — `/company`; `"/settings"` — `/settings/company`. */
   readonly basePath?: string
+  /** Куди веде майстер першого запуску після завершення чи пропуску; за замовчуванням — картка компанії. */
+  readonly afterSetup?: string
   /** Розширення проекту (ADR-0020). */
   readonly extension?: CompanyExtension
 }
+
+const SETUP_CHECKLIST = lazyWithPreload(() =>
+  import("./components/company-setup-checklist").then(
+    (m) => m.CompanySetupChecklist,
+  ),
+)
 
 const PAGES = {
   company: lazyWithPreload(() =>
@@ -97,6 +119,9 @@ const PAGES = {
   ),
   rates: lazyWithPreload(() =>
     import("./pages/rates-page").then((m) => m.RatesPage),
+  ),
+  setup: lazyWithPreload(() =>
+    import("./pages/setup-page").then((m) => m.SetupPage),
   ),
 } satisfies Record<string, PreloadableComponent<object>>
 
@@ -113,18 +138,26 @@ function preloadFor(paths: CompanyPaths) {
           ? PAGES.currencies
           : path === paths.rates
             ? PAGES.rates
-            : null
+            : path === paths.setup
+              ? PAGES.setup
+              : null
     void target?.preload()
   }
 }
 
 export function createCompanyModule({
   basePath = "",
+  afterSetup,
   extension = NO_EXTENSION,
 }: CompanyModuleOptions = {}): CompanyModule {
   const paths = companyPaths(basePath)
   const preload = preloadFor(paths)
-  const context: CompanyModuleContextValue = { extension, paths, preload }
+  const context: CompanyModuleContextValue = {
+    extension,
+    paths,
+    afterSetup: afterSetup ?? paths.company,
+    preload,
+  }
   const page = (Page: ComponentType) =>
     createElement(
       CompanyModuleContext.Provider,
@@ -133,8 +166,10 @@ export function createCompanyModule({
     )
   // Одна валюта чи курси в іншій системі — без сторінок і пунктів (`currencies.page: false`).
   const hasCurrencies = extension.currencies?.page !== false
+  const hasWizard = extension.setup?.page !== false
   const routes: RouteObject[] = [
     { path: paths.company, element: page(PAGES.company) },
+    ...(hasWizard ? [{ path: paths.setup, element: page(PAGES.setup) }] : []),
     ...(hasCurrencies
       ? [
           { path: paths.currencies, element: page(PAGES.currencies) },
@@ -181,5 +216,10 @@ export function createCompanyModule({
     nav,
     resources: COMPANY_RESOURCES,
     preload,
+    setupChecklist: createElement(
+      ErrorBoundary,
+      null,
+      createElement(Suspense, { fallback: null }, page(SETUP_CHECKLIST)),
+    ),
   }
 }

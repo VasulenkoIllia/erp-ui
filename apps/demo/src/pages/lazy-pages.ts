@@ -30,6 +30,7 @@ export const PAGES = {
   wizard: lazyWithPreload(() =>
     import("./WizardPage").then((m) => m.WizardPage),
   ),
+  setup: lazyWithPreload(() => import("./SetupPage").then((m) => m.SetupPage)),
   // Поле телефону тягне дані libphonenumber (~120 КБ gzip).
   formats: lazyWithPreload(() =>
     import("./FormatsPage").then((m) => m.FormatsPage),

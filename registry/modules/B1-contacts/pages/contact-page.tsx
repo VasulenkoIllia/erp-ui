@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { useCardRecord } from "@/hooks/use-card-record"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
+import { usePaletteActions } from "@/hooks/use-palette-actions"
 import { useExtensionFields } from "@/lib/extension-fields"
 import {
   applyKeyedChanges,
@@ -26,7 +27,11 @@ import {
 } from "@/lib/extensions"
 import { formatPhone } from "@/lib/phone"
 
-import { AccessAction, useOpener } from "../components/access-action"
+import {
+  AccessAction,
+  useAccessPaletteAction,
+  useOpener,
+} from "../components/access-action"
 import { contactName } from "../components/contact-columns"
 import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
 import { ContactOrganization } from "../components/contact-organization"
@@ -87,6 +92,23 @@ function ContactCard({ id }: { id: string }) {
     opener.remember(event)
     setEditing(true)
   })
+  const editAction = useAccessPaletteAction({
+    id: "edit",
+    resource: CONTACTS,
+    action: "update",
+    icon: "edit",
+    label: t("contact.edit"),
+    deniedReason: t("contact.editDenied"),
+    record: contact,
+    onSelect: () => {
+      setEditing(true)
+    },
+  })
+  usePaletteActions(
+    contact && editAction
+      ? { title: contact.name, actions: [editAction] }
+      : null,
+  )
   const sections: (ObjectPageSectionItem & { id: ContactSectionId })[] = contact
     ? [
         {

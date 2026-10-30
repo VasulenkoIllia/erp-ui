@@ -162,6 +162,7 @@ useRoutes([
 ```
 
 - Гарячі клавіші (ADR-0042): усі клавіші кіта — у `SHORTCUTS` з `lib/shortcuts`. Довідка `erp/shortcuts-help` відкривається клавішею `useShortcut(SHORTCUTS.help, openHelp)` (`hooks/use-shortcut`, `openHelp` — стабільна функція в `useCallback`) і командою палітри `{ id: "shortcuts-help", label: kitT("shortcuts.items.help"), onSelect: openHelp, … }`. Команда обов'язкова: людина може вимкнути «?» у самій довідці (WCAG 2.1.4), і палітра лишається єдиним способом увімкнути її назад. Вибір зберігається в цьому браузері, а не на сервері.
+- Дії відкритого запису в палітрі (ADR-0044): картка описує їх даними, `usePaletteActions(record && { title: record.name, actions: [{ id: "edit", label: t("edit"), onSelect: openEdit, deniedReason }] })` з `hooks/use-palette-actions`, палітра показує їх першою групою сама, проект нічого не прокидає. Дія без права лишається в списку з причиною (`deniedReason`), перехід на вкладки — `useSectionActions(sections, tabs.onValueChange)`.
 - Своя клавіша проекту: константа модуля `const CREATE = { keys: [{ key: "i", mod: true }] }` (`mod` — ⌘ на Mac, Ctrl деінде; працює й на українській розкладці), `useShortcut(CREATE, onPress)` і підпис у довідці: `<ShortcutsHelp extra={[{ ...CREATE, id: "invoice", label: t("…") }]} … />`. Клавіша-символ без модифікатора (`{ key: "n" }`) сама поважає вимикач довідки, поля, меню й діалоги. Клавіші всередині свого компонента обробляйте в компоненті.
 
 - Компанія: `const [companyId, switchCompany] = useCompany()` з `hooks/use-company` (пакунок `data`). Перемикання скасовує запити, скидає дані попередньої компанії й перечитує профіль; свої `useQuery` з даними компанії додають у кінець ключа `companyScope(useCompanyId())` з `lib/company-scope`. Компанія з іншого джерела (напр. з адреси сторінки) — через `setCompanyId` з `lib/company-scope`: `X-Company-Id` і ключі кешу беруться лише звідти.
@@ -477,7 +478,7 @@ setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExten
 import { createCompanyModule } from "@/modules/A1-company"
 import { companyExtension } from "@/extensions/A1-company"
 
-export const companyModule = createCompanyModule({ basePath: "/settings", extension: companyExtension })
+export const companyModule = createCompanyModule({ basePath: "/settings", afterSetup: "/", extension: companyExtension })
 
 // src/mocks/handlers.ts — компанію дають моки платформи, модуль додає валюти й курси
 import { createCompanyMocks } from "@/modules/A1-company/mocks"
@@ -489,6 +490,8 @@ setupWorker(...platformHandlers, ...createCompanyMocks({ extension: companyMockE
 - Права: картку читає кожен у компанії, зміни — `company:update`; `currencies:read|create|update`; `exchange-rates:read|create|update|delete`. Додайте їх у свої ролі.
 - Розширення — `company`: `sections`, `actions`, `history: false`; `currencies`: `page: false` (одна валюта), `columns`; `rates`: `fields`, `columns`, `filters`, `form`.
 - Курс із бекенду проекту (НБУ чи інше джерело): поставте `source` не `manual` і `deniedActions: { update: "source", delete: "source" }`, екран покаже його лише для перегляду. Опис контракту — README модуля.
+
+- Перший запуск (ADR-0044): майстер — `companyModule.paths.setup`. Щоб відкривати його після реєстрації: `createAuthRoutes({ afterSignUp: companyModule.paths.setup })`. Чек-лист «Почніть роботу» — `{companyModule.setupChecklist}` на головній сторінці проекту. Обидва бачить лише той, хто має `company:update`. Пункт і крок «Колеги» потребують `users:create`; проект без запрошень ховає їх: `setup: { hide: ["team"] }`, без логотипа — `hide: ["logo"]`, свій онбординг замість майстра — `setup: { page: false }`. Свій чек-лист — `SetupChecklist` з `erp/setup-checklist`.
 
 ### Майстер (ADR-0043)
 

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useAuthenticated } from "ra-core"
 
 import { AuditLog } from "@/components/erp/audit-log"
@@ -24,6 +25,7 @@ import { applyKeyedChanges } from "@/lib/extensions"
 import { useErpUiT } from "@/lib/i18n"
 
 import { CompanyLocaleForm } from "../components/company-locale-form"
+import { useCompanyPaletteActions } from "../components/use-company-palette-actions"
 import {
   useCompanyState,
   type CompanyState,
@@ -74,6 +76,7 @@ function CompanyCard({
   })
   const header = useCompanyHeader(profile)
   const tabs = useTabParam()
+  const [isAddingBranch, setAddingBranch] = useState(false)
   const sections: (ObjectPageSectionItem & { id: CompanySectionId })[] = profile
     ? [
         {
@@ -89,7 +92,12 @@ function CompanyCard({
         {
           id: "branches",
           title: t("company.sections.branches"),
-          content: <CompanyBranchesSection />,
+          content: (
+            <CompanyBranchesSection
+              adding={isAddingBranch}
+              onAddingChange={setAddingBranch}
+            />
+          ),
         },
         {
           id: "locale",
@@ -98,6 +106,11 @@ function CompanyCard({
         },
       ]
     : []
+  const shownSections = applyKeyedChanges(sections, slots.sections)
+  useCompanyPaletteActions(profile, shownSections, tabs.onValueChange, () => {
+    tabs.onValueChange("branches")
+    setAddingBranch(true)
+  })
   return (
     <ObjectPage
       title={t("company.title")}
@@ -122,7 +135,7 @@ function CompanyCard({
           />
         ) : undefined
       }
-      sections={applyKeyedChanges(sections, slots.sections)}
+      sections={shownSections}
       tabs={{ ...tabs, label: t("company.tabsLabel") }}
       // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
       aside={

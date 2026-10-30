@@ -324,7 +324,7 @@ test.describe("відновлення, запрошення, реєстраці�
     await page.getByRole("button", { name: "Створити акаунт" }).click()
     await expect(heading(page)).toHaveText("Підтвердьте email")
     await typeCode(page, "123456")
-    await expect(page).toHaveURL(/#\/data$/)
+    await expect(page).toHaveURL(/#\/m\/A1\/setup$/)
   })
 })
 

@@ -393,6 +393,7 @@ describe("фабрика A1", () => {
     const module = createCompanyModule({ basePath: "/m/A1" })
     expect(module.routes.map((route) => route.path)).toEqual([
       "/m/A1/company",
+      "/m/A1/setup",
       "/m/A1/currencies",
       "/m/A1/exchange-rates",
       "/m/A1",
@@ -416,8 +417,19 @@ describe("фабрика A1", () => {
     })
     expect(module.routes.map((route) => route.path)).toEqual([
       "/settings/company",
+      "/settings/setup",
       "/settings",
     ])
     expect(module.nav.map((item) => item.id)).toEqual(["A1-company"])
+  })
+
+  it("`setup.page: false` — без адреси майстра", () => {
+    const module = createCompanyModule({
+      basePath: "/settings",
+      extension: { setup: { page: false } },
+    })
+    expect(module.routes.map((route) => route.path)).not.toContain(
+      "/settings/setup",
+    )
   })
 })

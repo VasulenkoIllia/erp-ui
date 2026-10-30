@@ -97,6 +97,14 @@ export const CODE_ITEMS = {
     demo: "pickers",
     spec: ["§11"],
   },
+  "lib/i18n-uk-setup": {
+    title: "Рядки чек-листа українською",
+    description:
+      "Рядки чек-листа «Почніть роботу» (ADR-0044): окремий файл простору імен erp-ui.",
+    status: "beta",
+    demo: "setup",
+    spec: ["PF12", "§11"],
+  },
   "lib/i18n-uk-wizard": {
     title: "Рядки майстра uk",
     description:
@@ -104,6 +112,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "wizard",
     spec: ["§11", "UI06"],
+  },
+  "lib/i18n-en-setup": {
+    title: "Рядки чек-листа англійською",
+    description:
+      "Рядки чек-листа «Почніть роботу» (ADR-0044): окремий файл простору імен erp-ui.",
+    status: "beta",
+    demo: "setup",
+    spec: ["PF12", "§11"],
   },
   "lib/i18n-en-wizard": {
     title: "Рядки майстра en",
@@ -376,6 +392,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§17"],
+  },
+  "hooks/use-palette-actions": {
+    title: "usePaletteActions",
+    description:
+      "Дії відкритого запису в палітрі команд: картка описує їх даними, палітра показує першою групою, неактивні з причиною (ADR-0044).",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["§7", "PF06", "UI15"],
+  },
+  "hooks/use-setup-dismissals": {
+    title: "useSetupDismissals",
+    description:
+      "Вибір «Не потрібно» в чек-листі «Почніть роботу»: окремо для кожної компанії, у цьому браузері (ADR-0044).",
+    status: "beta",
+    demo: "setup",
+    spec: ["PF12"],
   },
   "hooks/use-wizard": {
     title: "useWizard",
@@ -1599,6 +1631,62 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "company",
     spec: ["A1", "LC12"],
+  },
+  "erp/company-profile-form": {
+    title: "Реквізити компанії",
+    description:
+      "CompanyProfileForm: основне, банк, контакти, підписанти й палітра з перевіркою LC12; без права — лише перегляд.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "LC12"],
+  },
+  "erp/company-profile-values": {
+    title: "Значення реквізитів компанії",
+    description:
+      "Значення форми реквізитів: fieldsOf, перевірка поля checkField і зміни для PATCH /company (patchOf).",
+    status: "beta",
+    demo: "company",
+    spec: ["A1", "LC12"],
+  },
+  "erp/company-selects": {
+    title: "Вибір типу й палітри компанії",
+    description:
+      "CompanyKindSelect і CompanyPaletteSelect: спільні для форми реквізитів і майстра першого запуску.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1"],
+  },
+  "erp/setup-checklist": {
+    title: "Чек-лист «Почніть роботу»",
+    description:
+      "SetupChecklist: що лишилось налаштувати, прогрес, «Не потрібно» для необов'язкових пунктів, завантаження й помилка всередині картки (ADR-0044).",
+    status: "beta",
+    demo: "setup",
+    spec: ["PF12", "§8", "§9", "§10"],
+  },
+  "erp/company-profile-state": {
+    title: "Стан профілю компанії",
+    description:
+      "ProfileState (скелетон, помилка з повтором, немає доступу) і useRefreshCompany для частин налаштувань компанії.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1"],
+  },
+  "erp/company-images": {
+    title: "Логотип і печатка",
+    description:
+      "CompanyImages: завантажити, замінити й видалити логотип і печатку компанії (без обрізання).",
+    status: "beta",
+    demo: "company",
+    spec: ["A1"],
+  },
+  "erp/company-branches": {
+    title: "Філії компанії",
+    description:
+      "CompanyBranchesSection: перелік філій, додати, змінити й видалити з підтвердженням.",
+    status: "beta",
+    demo: "company",
+    spec: ["A1"],
   },
   "erp/user-access": {
     title: "Доступ користувачів",

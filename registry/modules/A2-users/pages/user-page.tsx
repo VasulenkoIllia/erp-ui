@@ -15,6 +15,10 @@ import { useCardRecord } from "@/hooks/use-card-record"
 import { useHasPermission, useMe } from "@/hooks/use-me"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
+import {
+  usePaletteActions,
+  useSectionActions,
+} from "@/hooks/use-palette-actions"
 import { useTabParam } from "@/hooks/use-tab-param"
 import { ApiError, errorStateKind } from "@/lib/api"
 import { applyKeyedChanges } from "@/lib/extensions"
@@ -90,7 +94,11 @@ function UserCard({ id }: { id: string }) {
     sections: extension.users?.sections,
     actions: extension.users?.actions,
   })
-  const { header, dialog } = useUserHeader(user, statuses, slots.actions)
+  const { header, dialog, paletteAction } = useUserHeader(
+    user,
+    statuses,
+    slots.actions,
+  )
   const impersonating = Boolean(useMe().data?.impersonator)
   // Під час «Увійти як…» сервер відмовляє в змінах доступу (ADR-0011): вкладок змін немає.
   const canManage = useHasPermission(USERS, "update") && !impersonating
@@ -154,6 +162,19 @@ function UserCard({ id }: { id: string }) {
       ]
     : []
 
+  const shownSections = applyKeyedChanges(sections, slots.sections)
+  const sectionActions = useSectionActions(shownSections, tabs.onValueChange)
+  usePaletteActions(
+    user
+      ? {
+          title: user.name,
+          actions: paletteAction
+            ? [paletteAction, ...sectionActions]
+            : sectionActions,
+        }
+      : null,
+  )
+
   return (
     <>
       <ObjectPage
@@ -175,7 +196,7 @@ function UserCard({ id }: { id: string }) {
             />
           ) : undefined
         }
-        sections={applyKeyedChanges(sections, slots.sections)}
+        sections={shownSections}
         tabs={{ ...tabs, label: t("user.tabsLabel") }}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
         aside={

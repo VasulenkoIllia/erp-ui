@@ -44,7 +44,7 @@ import {
   type DemoBrand,
 } from "@/mocks/brands"
 import { MOCK_USERS } from "@/mocks/users"
-import { AUTH_ROUTES, ROUTES, type AuthRoute } from "@/router"
+import { AUTH_ROUTES, MODULE_ROUTES, ROUTES, type AuthRoute } from "@/router"
 
 import { MockSsoPage } from "./MockSsoPage"
 
@@ -247,7 +247,7 @@ export function AuthPage({
         <SignUpScreen
           footer={footer}
           paths={PATHS}
-          afterSignUp={ROUTES.data}
+          afterSignUp={`${MODULE_ROUTES.companyModule}/setup`}
           renderCaptcha={demoCaptcha}
         />
       )

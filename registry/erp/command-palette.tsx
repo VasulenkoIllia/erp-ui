@@ -4,6 +4,10 @@ import { SearchIcon, type LucideIcon } from "lucide-react"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback } from "@/registry/erp/page-state"
 import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
+import {
+  usePaletteActionGroups,
+  type PaletteAction,
+} from "@/registry/hooks/use-palette-actions"
 import { useShortcut } from "@/registry/hooks/use-shortcut"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { lazyWithPreload, whenIdle } from "@/registry/lib/lazy"
@@ -26,18 +30,14 @@ import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
  * - Пошук і список (erp/command-palette-list) — окремий чанк: Autocomplete не входить у перший екран
  *   (ADR-0009). Він вантажиться, коли браузер вільний після старту, а раніше — при наведенні чи
  *   фокусі на кнопці пошуку; збій показує «Спробувати ще» в самій палітрі (erp/error-boundary).
+ * - Дії відкритого запису (`usePaletteActions`, ADR-0044) стоять першими; проект їх не передає.
  */
-export interface PaletteCommand {
-  id: string
-  label: string
+export interface PaletteCommand extends PaletteAction {
   /** Назва групи: «Розділи», «Дії», «Вигляд»… */
   group: string
   icon?: LucideIcon
-  /** Додаткові слова для пошуку (синоніми, англійська назва, ID модуля). */
-  keywords?: string[]
   /** Підказка праворуч: поєднання клавіш чи розділ. */
   hint?: string
-  onSelect: () => void
 }
 
 const CommandPaletteList = lazyWithPreload(() =>
@@ -136,8 +136,23 @@ export function CommandPalette({
   commands: PaletteCommand[]
 }) {
   const t = useErpUiT()
+  const recordGroups = usePaletteActionGroups()
+  const allCommands = React.useMemo(
+    () => [
+      ...recordGroups.flatMap(({ key, title, actions }) =>
+        actions.map((action) => ({
+          ...action,
+          id: `record-${key}-${action.id}`,
+          group: t("commandPalette.recordGroup", { name: title }),
+        })),
+      ),
+      ...commands,
+    ],
+    [recordGroups, commands, t],
+  )
 
   const run = (command: PaletteCommand) => {
+    if (command.deniedReason) return
     onOpenChange(false)
     command.onSelect()
   }
@@ -154,7 +169,7 @@ export function CommandPalette({
         </DialogTitle>
         <ErrorBoundary className="min-h-0 border-0">
           <React.Suspense fallback={<LoadingFallback className="h-24" />}>
-            <CommandPaletteList commands={commands} onRun={run} />
+            <CommandPaletteList commands={allCommands} onRun={run} />
           </React.Suspense>
         </ErrorBoundary>
       </DialogContent>

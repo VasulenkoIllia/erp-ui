@@ -105,7 +105,8 @@ export function Wizard({
         className="space-y-6"
         onSubmit={(event) => {
           event.preventDefault()
-          void wizard.next()
+          // Форма діалога на кроці: її подія доходить сюди крізь портал, але це не «Далі».
+          if (event.target === event.currentTarget) void wizard.next()
         }}
       >
         <section aria-labelledby={headingId} className="space-y-4">
