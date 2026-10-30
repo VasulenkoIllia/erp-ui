@@ -817,6 +817,14 @@ export const CODE_ITEMS = {
     demo: "users",
     spec: ["A2", "§17"],
   },
+  "lib/mock-membership": {
+    title: "Вилучення з компанії в моках",
+    description:
+      "POST /users/:id/remove-from-company зі сценаріями, стелею лише в компанії запиту й паролем ще раз; canRemoveMember для GET /users/:id/access.",
+    status: "beta",
+    demo: "users",
+    spec: ["A2", "§17"],
+  },
   "lib/mock-company-roles": {
     title: "Ролі компанії в моках",
     description:
@@ -1491,7 +1499,15 @@ export const CODE_ITEMS = {
   "erp/user-access-actions": {
     title: "Дії над доступом користувача",
     description:
-      "useUserAccessActions і UserAccessButtons: вийти на всіх пристроях, скинути другий крок, заблокувати з причиною й розблокувати з підтвердженням і повторним підтвердженням.",
+      "useUserAccessActions і UserAccessButtons: вийти на всіх пристроях, скинути другий крок, заблокувати з причиною, розблокувати й вилучити з компанії з підтвердженням і повторним підтвердженням.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/remove-member-dialog": {
+    title: "Вилучити людину з компанії",
+    description:
+      "RemoveMemberDialog: підтвердження з назвою компанії й повторним підтвердженням; людина лишається в інших своїх компаніях.",
     status: "beta",
     demo: "users",
     spec: ["PF01", "A2"],

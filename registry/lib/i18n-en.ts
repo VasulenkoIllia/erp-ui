@@ -821,6 +821,7 @@ export const en = {
         unblocked: "Account unblocked",
         signed_out: "Signed out everywhere",
         session_ended: "Session ended",
+        removed_from_company: "Removed from the company",
         role_created: "New role",
         role_updated: "Role changed",
         role_deleted: "Role deleted",
@@ -998,6 +999,15 @@ export const en = {
     unblocked: "Account unblocked",
     beyondCeiling:
       "Only someone with all of this person's permissions who manages all of their companies can change their access.",
+    removeFromCompany: "Remove from company",
+    removeTitle: "{{name}}: remove from the company?",
+    removeTitleIn: "{{name}}: remove from {{company}}?",
+    removeDescription:
+      "They will no longer work in this company: their roles and API tokens here go away. Records stay. Their account and two-step verification do not change.",
+    removed: "{{name}}: removed from the company",
+    removedAlready: "{{name}}: no longer in this company",
+    removeDenied:
+      "Only someone who works in this company and has all of this person's permissions here can remove them.",
     allSessionsLabel: "Active user sessions",
     searchLabel: "Search by name or email",
     shown: "Showing {{shown}} of {{total}}",

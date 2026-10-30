@@ -8,7 +8,11 @@ import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
 import { hasPermission } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
-import { canGrant, permissionsOfRoles } from "@/registry/lib/roles"
+import {
+  canGrant,
+  permissionsOfRoles,
+  ROLES_QUERY_KEYS,
+} from "@/registry/lib/roles"
 import { ADMIN_QUERY_KEYS } from "@/registry/lib/security-policy"
 
 /**
@@ -103,20 +107,46 @@ export function useAccessCeiling(
     : { checking: false }
 }
 
+/** Оновити журнал і сесії компанії: людини могло вже не бути, її доступ тут не чіпаємо. */
+export function useRefreshCompanyAccess() {
+  const queryClient = useQueryClient()
+  return () => {
+    // Журнал — не чекаючи: кнопка дії не тримає спінер до відповіді журналу.
+    void queryClient.invalidateQueries({ queryKey: AUDIT_QUERY_KEYS.events })
+    return queryClient.invalidateQueries({
+      queryKey: ADMIN_QUERY_KEYS.sessions,
+    })
+  }
+}
+
+/**
+ * Після вилучення людини: крім журналу й сесій змінились лічильники ролей і запити на відновлення.
+ * Її доступ не перечитуємо: він уже 404.
+ */
+export function useRefreshAfterRemoval() {
+  const queryClient = useQueryClient()
+  const refreshCompany = useRefreshCompanyAccess()
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEYS.list })
+    void queryClient.invalidateQueries({
+      queryKey: ADMIN_QUERY_KEYS.recoveryRequests,
+    })
+    return refreshCompany()
+  }
+}
+
 /**
  * Після зміни доступу — оновити панель, список сесій, бейджі й журнал: вихід, завершена сесія чи
  * скинутий другий крок пишуть подію в «Історію» картки, а версії запису не змінюють.
  */
 export function useRefreshAccess() {
   const queryClient = useQueryClient()
-  return (userId: string) => {
-    // Журнал — не чекаючи: кнопка дії не тримає спінер до відповіді журналу.
-    void queryClient.invalidateQueries({ queryKey: AUDIT_QUERY_KEYS.events })
-    return Promise.all([
+  const refreshCompany = useRefreshCompanyAccess()
+  return (userId: string) =>
+    Promise.all([
       queryClient.invalidateQueries({
         queryKey: ADMIN_QUERY_KEYS.userAccess(userId),
       }),
-      queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.sessions }),
+      refreshCompany(),
     ])
-  }
 }

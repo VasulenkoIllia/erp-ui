@@ -32,6 +32,8 @@ import { Spinner } from "@/registry/ui/spinner"
  *   не ковтає, він дійде до `unhandledrejection` (моніторинг помилок).
  * - Після закриття фокус повертається на елемент, з якого діалог відкрили; якщо дія його прибрала
  *   (масова дія зняла вибір разом із панеллю) — на `returnFocus`.
+ * - `lockWhileBusy` — незворотна дія: поки проміс триває, діалог не закривається ні «Скасувати», ні
+ *   Escape, інакше людина вирішить, що скасувала, а дія однаково виконається.
  * - `children` — вміст під кнопками, напр. вкладений діалог повторного підтвердження (`useReauth`).
  */
 
@@ -51,6 +53,8 @@ interface ConfirmDialogProps {
   onConfirm: () => Promise<unknown> | void
   /** Куди повернути фокус, якщо елемента, з якого відкрили, уже немає. */
   returnFocus?: () => HTMLElement | null
+  /** Не закривати діалог, поки `onConfirm` триває. */
+  lockWhileBusy?: boolean
   children?: React.ReactNode
 }
 
@@ -75,6 +79,7 @@ function ConfirmDialog({
   onClose,
   onConfirm,
   returnFocus,
+  lockWhileBusy = false,
   children,
 }: ConfirmDialogProps) {
   const t = useErpUiT()
@@ -123,7 +128,7 @@ function ConfirmDialog({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) onClose()
+        if (!next && !(lockWhileBusy && running.current)) onClose()
       }}
     >
       <AlertDialogContent
@@ -168,7 +173,7 @@ function ConfirmDialog({
           </Field>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>
+          <AlertDialogCancel disabled={lockWhileBusy && busy}>
             {cancelLabel ?? t("confirm.cancel")}
           </AlertDialogCancel>
           <Button

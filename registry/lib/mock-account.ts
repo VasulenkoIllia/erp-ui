@@ -198,6 +198,16 @@ export function setMockBlocked(
   })
 }
 
+/** Людину вилучено з компанії (ADR-0041): її токени API там перестають діяти, в інших лишаються. */
+export function revokeMockCompanyTokens(
+  user: MockUser,
+  companyId: string,
+): void {
+  update(user, (s) => {
+    s.apiTokens = s.apiTokens.filter((token) => token.companyId !== companyId)
+  })
+}
+
 /** Чи є в користувача сесія з таким `id` на іншому пристрої. */
 export const hasMockUserSession = (user: MockUser, sessionId: string) =>
   loadState(user).sessions.some((s) => s.id === sessionId)

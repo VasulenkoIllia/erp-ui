@@ -25,7 +25,8 @@ import { UserRoleBadges } from "./user-roles"
  * людина тут не змінює (ні блокування, ні ролей), лише бачить. Людині, якою керувати не можна, —
  * дії неактивні з причиною: вирішує сервер (`canManage`, ADR-0040), без цього поля — «стеля» за
  * каталогом ролей (ADR-0034). `onChange` — після зміни ролей чи доступу: картка й список
- * перечитують запис (статус, ролі, версія для «Історії»).
+ * перечитують запис (статус, ролі, версія для «Історії»). `onRemoved` — людину вилучили з компанії
+ * (ADR-0041): картки більше немає.
  */
 
 const targetOf = (user: User): AccessTarget => ({
@@ -51,14 +52,16 @@ const useUserCeiling = (user: User, self: boolean) => {
 export function UserAccessTab({
   user,
   onChange,
+  onRemoved,
 }: {
   user: User
   onChange: () => void
+  onRemoved: () => void
 }) {
   const t = useUsersT()
   const self = useIsSelf(user)
   const ceiling = useUserCeiling(user, self)
-  const actions = useUserAccessActions(targetOf(user), { onChange })
+  const actions = useUserAccessActions(targetOf(user), { onChange, onRemoved })
   return (
     <div className="@container space-y-6">
       <UserAccessQuery userId={user.id}>

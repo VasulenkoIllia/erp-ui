@@ -43,6 +43,10 @@ import {
 } from "@/registry/lib/mock-company-roles"
 import { pushMockNotification } from "@/registry/lib/mock-inbox"
 import {
+  canRemoveMember,
+  createMembershipHandlers,
+} from "@/registry/lib/mock-membership"
+import {
   CURRENT_IP,
   currentMockUser,
   emitMockEvent,
@@ -543,6 +547,10 @@ export function createAdminHandlers({
         // Те саме правило, що й у дій: кнопки знають відмову до запиту (ADR-0040).
         canManage:
           target.id === actor.user.id || canManageTarget(actor, target),
+        // Застосунок без компаній — без поля: вилучати нема звідки, кнопки немає (ADR-0041).
+        ...(actor.companyId === null
+          ? {}
+          : { canRemove: canRemoveMember(actor, target) }),
         ...mockAccessSummary(target),
         sessions: mockUserSessions(target, language).map((session) => ({
           ...session,
@@ -681,6 +689,12 @@ export function createAdminHandlers({
         { accountId: target.id },
       )
       return noContent()
+    }),
+
+    ...createMembershipHandlers({
+      baseUrl,
+      reauthRequired,
+      actor: (request) => admin(request, "users", "update", "change"),
     }),
   ]
 }

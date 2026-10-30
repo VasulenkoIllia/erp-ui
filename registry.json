@@ -847,6 +847,11 @@
           "target": "@components/erp/permission-gate.tsx"
         },
         {
+          "path": "registry/erp/remove-member-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/remove-member-dialog.tsx"
+        },
+        {
           "path": "registry/erp/role-picker.tsx",
           "type": "registry:component",
           "target": "@components/erp/role-picker.tsx"
@@ -1170,6 +1175,11 @@
           "path": "registry/lib/mock-me.ts",
           "type": "registry:lib",
           "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -1643,6 +1653,11 @@
           "target": "@components/erp/record-picker-parts.tsx"
         },
         {
+          "path": "registry/erp/remove-member-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/remove-member-dialog.tsx"
+        },
+        {
           "path": "registry/erp/reset-factors.tsx",
           "type": "registry:component",
           "target": "@components/erp/reset-factors.tsx"
@@ -2061,6 +2076,11 @@
           "path": "registry/lib/mock-me.ts",
           "type": "registry:lib",
           "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -3066,6 +3086,11 @@
           "path": "registry/lib/mock-me.ts",
           "type": "registry:lib",
           "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -7175,6 +7200,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -7409,6 +7439,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -7647,6 +7682,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -7881,6 +7921,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -8134,6 +8179,11 @@
           "target": "@lib/mock-me.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -8385,6 +8435,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -8619,6 +8674,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -8862,6 +8922,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -9103,6 +9168,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -9337,6 +9407,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -9741,6 +9816,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -9975,6 +10055,11 @@
           "path": "registry/lib/mock-invitation-store.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -10246,6 +10331,11 @@
           "path": "registry/lib/mock-me.ts",
           "type": "registry:lib",
           "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -10694,6 +10784,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -10781,6 +10876,247 @@
         "spec": [
           "PF01",
           "PF11",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/mock-membership",
+      "type": "registry:lib",
+      "title": "Вилучення з компанії в моках",
+      "description": "POST /users/:id/remove-from-company зі сценаріями, стелею лише в компанії запиту й паролем ще раз; canRemoveMember для GET /users/:id/access.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "users",
+        "spec": [
+          "A2",
           "§17"
         ]
       }
@@ -11102,6 +11438,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -11345,6 +11686,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -11926,6 +12272,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -12162,6 +12513,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -12396,6 +12752,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -12800,6 +13161,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
+        },
+        {
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
@@ -13064,6 +13430,11 @@
           "path": "registry/lib/mock-me.ts",
           "type": "registry:lib",
           "target": "@lib/mock-me.ts"
+        },
+        {
+          "path": "registry/lib/mock-membership.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-membership.ts"
         },
         {
           "path": "registry/lib/mock-notifications.ts",
@@ -29026,6 +29397,301 @@
       }
     },
     {
+      "name": "erp/remove-member-dialog",
+      "type": "registry:component",
+      "title": "Вилучити людину з компанії",
+      "description": "RemoveMemberDialog: підтвердження з назвою компанії й повторним підтвердженням; людина лишається в інших своїх компаніях.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "input-otp@^1.5.0",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/remove-member-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/remove-member-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/auth-layout.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/password-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-input.tsx"
+        },
+        {
+          "path": "registry/erp/reauth-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/reauth-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/role-picker.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/role-picker.tsx"
+        },
+        {
+          "path": "registry/erp/user-access-data.ts",
+          "type": "registry:component",
+          "target": "@components/erp/user-access-data.ts"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-email-link-token.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/password.ts",
+          "type": "registry:lib",
+          "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/input-otp.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-otp.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "users",
+        "spec": [
+          "PF01",
+          "A2"
+        ]
+      }
+    },
+    {
       "name": "erp/reset-factors",
       "type": "registry:component",
       "title": "Відновлення доступу",
@@ -32321,7 +32987,7 @@
       "name": "erp/user-access-actions",
       "type": "registry:component",
       "title": "Дії над доступом користувача",
-      "description": "useUserAccessActions і UserAccessButtons: вийти на всіх пристроях, скинути другий крок, заблокувати з причиною й розблокувати з підтвердженням і повторним підтвердженням.",
+      "description": "useUserAccessActions і UserAccessButtons: вийти на всіх пристроях, скинути другий крок, заблокувати з причиною, розблокувати й вилучити з компанії з підтвердженням і повторним підтвердженням.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -32370,6 +33036,11 @@
           "path": "registry/erp/reauth-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/reauth-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/remove-member-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/remove-member-dialog.tsx"
         },
         {
           "path": "registry/erp/reset-factors.tsx",
@@ -32933,6 +33604,11 @@
           "path": "registry/erp/reauth-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/reauth-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/remove-member-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/remove-member-dialog.tsx"
         },
         {
           "path": "registry/erp/reset-factors.tsx",

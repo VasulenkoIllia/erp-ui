@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useAuthenticated, useCanAccess } from "ra-core"
 import { useCallback } from "react"
-import { useParams } from "react-router"
+import { useNavigate, useParams } from "react-router"
 
 import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
@@ -108,6 +108,15 @@ function UserCard({ id }: { id: string }) {
   const refreshUser = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: [USERS] })
   }, [queryClient])
+  const navigate = useNavigate()
+  // Людину вилучили з компанії: до списку; її запис тепер 404, тож перечитуємо лише списки.
+  const leaveCard = useCallback(() => {
+    void navigate(paths.users)
+    void queryClient.invalidateQueries({
+      queryKey: [USERS],
+      predicate: (query) => query.queryKey[1] !== "getOne",
+    })
+  }, [navigate, paths.users, queryClient])
   const tabs = useTabParam()
   const sections: (ObjectPageSectionItem & { id: UserSectionId })[] = user
     ? [
@@ -116,7 +125,13 @@ function UserCard({ id }: { id: string }) {
               {
                 id: "access" as const,
                 title: t("user.sections.access"),
-                content: <UserAccessTab user={user} onChange={refreshUser} />,
+                content: (
+                  <UserAccessTab
+                    user={user}
+                    onChange={refreshUser}
+                    onRemoved={leaveCard}
+                  />
+                ),
               },
             ]
           : []),

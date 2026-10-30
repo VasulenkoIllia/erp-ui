@@ -14,6 +14,8 @@
  *   модуль не змінює й не видаляє: ролі — `PUT /users/:id/roles` (ADR-0014), доступ і сесії —
  *   `GET /users/:id/access`, `POST /users/:id/block|unblock|sign-out`, `DELETE /sessions/:id`
  *   (право `users:update`, ADR-0013). Після зміни ролей чи блокування `version` запису зростає.
+ *   Вилучити людину лише з компанії запиту — `POST /users/:id/remove-from-company` (ADR-0041).
+ *   Вилучена людина лишається лише підписом: `GET /users?id=…` віддає її записом довідника.
  * - Ролі в записі — `{ id, name }`: назва мовою `Accept-Language`, тож список показує ролі й без
  *   права `roles:read`; фільтр і `PUT /users/:id/roles` — за `id`.
  * - **Довідник для полів-записів інших модулів** (`type: "record"`, `resource: "users"`, ADR-0030;

@@ -13,9 +13,11 @@
  * - Права: з `users:read` — повний запис; без нього — довідник (`id`, `version`, ім'я, email):
  *   пошук і сторінки — лише активні, за `id` — будь-хто; інші фільтри й сортування не за `name`,
  *   `email` чи `id` — 403 (контракт, `contract.ts`).
+ * - Людина, вилучена з компанії (ADR-0041), — лише за `id` і лише довідником: на записах вона лишається
+ *   відповідальною, а її ролі й стан у цій компанії більше нікого не стосуються.
  * - Сценарії `success`, `error`, `empty`, `slow`, `forbidden`, `offline` — для ресурсу `users`
- *   (`lib/mock-scenarios`, панель розробника); `conflict` модуля A2b не стосується: запис людини
- *   модуль не змінює.
+ *   (`lib/mock-scenarios`, панель розробника); `conflict` записів не стосується: запис людини модуль
+ *   не змінює, а вилучення з компанії відповідає на нього в `lib/mock-membership`.
  * - `version` запису зростає з подіями шини `users.roles_changed`, `users.blocked`, `users.unblocked`:
  *   так картка перечитує «Історію» після змін. Лічильник — у пам'яті сторінки (після
  *   перезавантаження — знову 1, журнал аудиту лишається), підписка — на весь час життя моків.
@@ -33,8 +35,10 @@ import {
   applyScenario,
   currentMockUser,
   errorResponse,
+  hasMockCompanies,
   isMockCompanyMember,
   json,
+  mockFormerMembers,
   mockUsersList,
   subscribeMockEvents,
   type MockUser,
@@ -189,14 +193,19 @@ export function createUsersMocks({
     const access = mockRequestPermissions(request, me)
     if (access instanceof Response) return access
     const { companyId } = access
+    // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої,
+    // людина поза компаніями в застосунку з компаніями — без прав (ADR-0036).
+    const canRead = mockGrantsService(access.permissions, USERS, "read")
+    // Люди без компаній — не команда: вилучені з різних компаній не бачать адрес одне одного.
+    const isOutsider = companyId === null && hasMockCompanies() && !canRead
     return {
-      // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої,
-      // людина поза компаніями в застосунку з компаніями — без прав (ADR-0036).
-      canRead: mockGrantsService(access.permissions, USERS, "read"),
+      canRead,
       companyId,
-      members: mockUsersList().filter((user) =>
-        isMockCompanyMember(user, companyId),
-      ),
+      members: isOutsider
+        ? []
+        : mockUsersList().filter((user) =>
+            isMockCompanyMember(user, companyId),
+          ),
     }
   }
 
@@ -208,14 +217,18 @@ export function createUsersMocks({
       const { page, perPage, sort, filter } = fromSearchParams(
         new URL(request.url).searchParams,
       )
-      if (
-        !access.canRead &&
-        (Object.keys(filter).some((key) => !DIRECTORY_FILTERS.has(key)) ||
-          sort.some(({ field }) => !DIRECTORY_SORT.has(field)))
-      )
+      const isDirectoryQuery =
+        Object.keys(filter).every((key) => DIRECTORY_FILTERS.has(key)) &&
+        sort.every(({ field }) => DIRECTORY_SORT.has(field))
+      if (!access.canRead && !isDirectoryQuery)
         return forbidden("Missing permission users:read")
+      // Лише підпис: за входом чи статусом вилученої людини шукати не можна й із `users:read`.
+      const former =
+        "id" in filter && isDirectoryQuery && access.companyId !== null
+          ? mockFormerMembers(access.companyId)
+          : []
       const people = recordsOf(
-        access.members,
+        [...access.members, ...former],
         languageOf(request),
         access.companyId,
       )
@@ -230,8 +243,11 @@ export function createUsersMocks({
       ).map(fromFilter)
       const start = (page - 1) * perPage
       const pageRows = found.slice(start, start + perPage)
+      const isFormer = (id: string) => former.some((user) => user.id === id)
       return json({
-        data: access.canRead ? pageRows : pageRows.map(directoryEntry),
+        data: pageRows.map((row) =>
+          access.canRead && !isFormer(row.id) ? row : directoryEntry(row),
+        ),
         total: found.length,
       })
     }),

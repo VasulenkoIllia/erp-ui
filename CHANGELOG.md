@@ -4,6 +4,30 @@
 
 ## [Unreleased]
 
+Крок A2c3b (ADR-0041): вилучити людину з компанії. Що помітить проект:
+
+- Новий маршрут `POST /users/:id/remove-from-company` і поле `canRemove` у `GET /users/:id/access`. Бекенд без поля нічого не помічає: кнопки немає. Щоб увімкнути дію, бекенд додає маршрут і поле. Поле `boolean` чи відсутнє, `null` схема не приймає.
+- `AdminApi` отримав обов'язковий метод `removeFromCompany`: адаптер, що пише `AdminApi` сам, а не бере `createAdminApi`, додає його.
+- `UserAccessAction` отримав `removeFromCompany`. Власний `onAction` чи `switch` за цим типом додає гілку, інакше кнопка нічого не зробить.
+- Власна панель на `useUserAccessActions` передає `onRemoved`: після вилучення доступ і запис людини вже 404, тож вона йде зі сторінки й оновлює список сама. `useUserAccessSheet` закривається сам і приймає `returnFocus`: рядка, з якого відкрили шторку, більше немає.
+- Людині без компаній `GET /users` віддає порожній список, а вилучену людину `GET /users?id=…` віддає записом довідника. Бекенд без цього показує на записах «Запис не знайдено»: дані цілі, але імені немає.
+- Нові рядки кіта `audit.actions.users.removed_from_company`, `userAccess.removeFromCompany`, `removeTitle`, `removeTitleIn`, `removeDescription`, `removed`, `removedAlready`, `removeDenied`: проект зі своїм мовним пакетом кіта додає їх.
+- Нові елементи `erp/remove-member-dialog`, `lib/mock-membership`: ставляться разом із тими, що їх використовують.
+
+### Додано — A2c3b (ADR-0041)
+
+- `erp/remove-member-dialog`: `RemoveMemberDialog`, назва компанії в заголовку, пароль ще раз, 404 як «людини вже немає», 403 і 409 перечитують доступ.
+- Кнопка «Вилучити з компанії» в `UserAccessButtons`: на картці людини й у шторці доступу; `false` у `canRemove` — неактивна зі своєю причиною.
+- `lib/mock-membership`: маршрут зі сценаріями, `canRemoveMember`; `leaveMockCompany`, `mockFormerMembers` у `lib/mock-server`, `withoutAssignedRoles` у `lib/mock-company-roles`, `revokeMockCompanyTokens` у `lib/mock-account`. Вилучення лежать у `erp-ui:mock-left-companies:v1`.
+- `ConfirmDialog`: `lockWhileBusy`, поки дія триває, діалог не закривається.
+- `e2e/remove-member.spec.ts`, `src/kit/remove-member.test.ts`, `src/kit/remove-member-dialog.test.tsx`.
+
+### Змінено — A2c3b
+
+- Сесія «Увійти як…» закінчується (401), коли того, хто ввійшов, вилучили з компанії, де її почали.
+- Людина без компаній у застосунку з компаніями не бачить у `GET /users` інших людей без компаній.
+- `useRefreshAccess` розділено: `useRefreshCompanyAccess` оновлює журнал і сесії без доступу людини.
+
 Крок A2c3 (ADR-0040): запрошення людині з обліковим записом. Що помітить проект:
 
 - Адміністратор вводить пароль ще раз перед «Запросити колегу», «Надіслати ще раз» і збереженням ролі зі зміненими правами. Бекенд відповідає 403 `reauth_required` останньою перевіркою, усе після «стелі» й 422; секції кіта вже відкривають діалог підтвердження, свої кнопки над цими запитами — у `useReauth().guard`.

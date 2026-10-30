@@ -9,9 +9,11 @@ import {
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useReauth } from "@/registry/erp/reauth-dialog"
+import { RemoveMemberDialog } from "@/registry/erp/remove-member-dialog"
 import { useResetFactors } from "@/registry/erp/reset-factors"
 import {
   useRefreshAccess,
+  useRefreshAfterRemoval,
   type AccessTarget,
 } from "@/registry/erp/user-access-data"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -39,25 +41,34 @@ import { Textarea } from "@/registry/ui/textarea"
  * Дії адміністратора над доступом людини (ADR-0013): вийти на всіх пристроях, скинути другий крок,
  * заблокувати з причиною чи розблокувати — з підтвердженням, а блокування й розблокування — ще й з
  * повторним підтвердженням. Людині з правами, яких немає в адміністратора, — нічого з цього
- * («стеля», ADR-0034): `useAccessCeiling` з `erp/user-access-data` і `deniedReason`.
+ * («стеля», ADR-0034): `useAccessCeiling` з `erp/user-access-data` і `deniedReason`. «Вилучити з
+ * компанії» (ADR-0041) вирішує окреме поле сервера `canRemove`: дія не чіпає інших компаній людини,
+ * тож їй не заважає те, через що неактивні решта дій.
  *
  *   const actions = useUserAccessActions(target, { onChange })
  *   <UserAccessButtons access={access} onAction={actions.start} />{actions.dialogs}
  */
 
-export type UserAccessAction = "signOut" | "resetFactors" | "block" | "unblock"
+export type UserAccessAction =
+  "signOut" | "resetFactors" | "block" | "unblock" | "removeFromCompany"
 
 type Confirm = Exclude<UserAccessAction, "resetFactors"> | null
 
 /**
  * Діалоги дій над доступом. `onChange` — після блокування, розблокування чи виходу всюди, щоб
- * проект оновив свій список користувачів.
+ * проект оновив свій список користувачів. `onRemoved` — людини більше немає в компанії: її картки
+ * чи панелі теж немає, тож проект іде зі сторінки чи закриває панель і оновлює список; без нього
+ * викликається `onChange`.
  */
 export function useUserAccessActions(
   target: AccessTarget,
-  { onChange }: { onChange?: () => void } = {},
+  {
+    onChange,
+    onRemoved,
+  }: { onChange?: () => void; onRemoved?: () => void } = {},
 ) {
   const refresh = useRefreshAccess()
+  const refreshAfterRemoval = useRefreshAfterRemoval()
   const [confirm, setConfirm] = React.useState<Confirm>(null)
   const reset = useResetFactors({
     onDone: () => {
@@ -76,11 +87,24 @@ export function useUserAccessActions(
     void refresh(target.id)
     onChange?.()
   }
+  const removed = () => {
+    setConfirm(null)
+    // Без `refresh`: доступ людини тепер 404, панель показала б помилку ще до переходу.
+    void refreshAfterRemoval()
+    ;(onRemoved ?? onChange)?.()
+  }
   const dialogs = (
     <>
       {reset.dialog}
       {confirm === "block" ? (
         <BlockDialog target={target} onClose={close} onDone={done} />
+      ) : confirm === "removeFromCompany" ? (
+        <RemoveMemberDialog
+          target={target}
+          onClose={close}
+          onRemoved={removed}
+          onStale={done}
+        />
       ) : confirm ? (
         <AccessConfirm
           kind={confirm}
@@ -99,6 +123,7 @@ export function useUserAccessActions(
  * понад «стелю» (`deniedReason`, ADR-0034) — дії неактивні з причиною в описі кнопок і над ними
  * (`showReason={false}` — причину над діями показує батько один раз на панель; SPEC §8.4);
  * `checking` — ще невідомо, чи можна (`useAccessCeiling`): дії неактивні, не міняються під пальцем.
+ * «Вилучити з компанії» — лише коли сервер дав `canRemove`; `false` — неактивна зі своєю причиною.
  */
 export function UserAccessButtons({
   access,
@@ -115,6 +140,8 @@ export function UserAccessButtons({
 }) {
   const t = useErpUiT()
   const blocked = access.status === "blocked"
+  const removeDenied =
+    access.canRemove === false ? t("userAccess.removeDenied") : undefined
   const actions: {
     id: UserAccessAction
     label: string
@@ -139,14 +166,25 @@ export function UserAccessButtons({
     blocked
       ? { id: "unblock", label: t("userAccess.unblock"), variant: "outline" }
       : { id: "block", label: t("userAccess.block"), variant: "destructive" },
+    ...(access.canRemove === undefined
+      ? []
+      : [
+          {
+            id: "removeFromCompany" as const,
+            label: t("userAccess.removeFromCompany"),
+            variant: "destructive" as const,
+          },
+        ]),
   ]
   const buttons = (
     <div className="flex flex-wrap gap-2">
-      {actions.map((action) =>
-        deniedReason ? (
+      {actions.map((action) => {
+        const denied =
+          action.id === "removeFromCompany" ? removeDenied : deniedReason
+        return denied ? (
           <DeniedAction
             key={action.id}
-            reason={deniedReason}
+            reason={denied}
             variant={action.variant}
           >
             {action.label}
@@ -162,13 +200,20 @@ export function UserAccessButtons({
           >
             {action.label}
           </Button>
-        ),
-      )}
+        )
+      })}
     </div>
   )
-  return deniedReason && showReason ? (
+  const notes = [showReason ? deniedReason : undefined, removeDenied].filter(
+    (note) => note !== undefined,
+  )
+  return notes.length ? (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">{deniedReason}</p>
+      {notes.map((note) => (
+        <p key={note} className="text-sm text-muted-foreground">
+          {note}
+        </p>
+      ))}
       {buttons}
     </div>
   ) : (

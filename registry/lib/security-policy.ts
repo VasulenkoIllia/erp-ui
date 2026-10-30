@@ -33,6 +33,12 @@ import { z } from "zod"
 import { accountSessionSchema, SETUP_FACTORS } from "@/registry/lib/account"
 import { listResultSchema, type ApiClient } from "@/registry/lib/api"
 
+/**
+ * Межа часу вилучення з компанії: поки запит летить, діалог не закривається (ADR-0041), тож сервер,
+ * що мовчить, не може тримати в ньому людину. Повтор безпечний: другий запит дає 404.
+ */
+export const REMOVE_MEMBER_TIMEOUT_MS = 30_000
+
 /* --------------------------------- Схеми --------------------------------- */
 
 /** Обов'язковий другий крок: ні, для вибраних ролей, для всіх. */
@@ -139,6 +145,11 @@ export const userAccessSchema = z.object({
    * заблокувати, скинути другий крок. Немає поля — вирішує «стеля» за каталогом ролей (ADR-0034).
    */
   canManage: z.boolean().optional(),
+  /**
+   * Чи може той, хто питає, вилучити людину з компанії запиту (ADR-0041): інші компанії людини цій
+   * дії не заважають, тож це не `canManage`. Немає поля — сервер цього не вміє, кнопки немає.
+   */
+  canRemove: z.boolean().optional(),
   /** Налаштовані способи другого кроку. */
   factors: z.array(z.enum(SETUP_FACTORS)),
   lastSignInAt: z.string().nullable(),
@@ -167,6 +178,8 @@ export interface AdminApi {
   signOutUser: (userId: string) => Promise<void>
   blockUser: (userId: string, reason: string) => Promise<void>
   unblockUser: (userId: string) => Promise<void>
+  /** Вилучити людину з компанії запиту; інші її компанії й обліковий запис не змінюються. */
+  removeFromCompany: (userId: string) => Promise<void>
 }
 
 export function createAdminApi(client: ApiClient): AdminApi {
@@ -213,6 +226,13 @@ export function createAdminApi(client: ApiClient): AdminApi {
     },
     async unblockUser(userId) {
       await client.post(`/users/${encodeURIComponent(userId)}/unblock`)
+    },
+    async removeFromCompany(userId) {
+      await client.post(
+        `/users/${encodeURIComponent(userId)}/remove-from-company`,
+        undefined,
+        { timeoutMs: REMOVE_MEMBER_TIMEOUT_MS },
+      )
     },
   }
 }

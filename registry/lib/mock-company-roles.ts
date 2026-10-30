@@ -245,6 +245,30 @@ export function withAssignedRoles(
 }
 
 /**
+ * Людину вилучено з компанії (ADR-0041): ролі там зникають, в інших компаніях лишаються. `user` —
+ * уже без цієї компанії. Людина без жодної компанії — без ролей: інакше `GET /me` показав би ролі,
+ * які задав проект, а політика другого кроку рахувала б їх.
+ */
+export function withoutAssignedRoles(
+  state: MockUserRolesState,
+  user: Pick<MockUser, "id" | "companies">,
+  companyId: string,
+): MockUserRolesState {
+  const assigned = assignedOf(state, user.id)
+  const rest = isList(assigned)
+    ? Object.fromEntries(user.companies.map((c) => [c.id, assigned]))
+    : Object.fromEntries(
+        Object.entries(assigned ?? {}).filter(([key]) => key !== companyId),
+      )
+  return {
+    ...state,
+    [user.id]: user.companies.length
+      ? rest
+      : { ...rest, [companyKey(null)]: [] },
+  }
+}
+
+/**
  * Права людини в компанії — об'єднання прав її ролей у цій компанії. Роль, якої тут немає
  * (схована тут чи іншої компанії), і роль лише для назви прав не дають. Права з `MockUser`
  * (`base`) — лише коли проект не описав прав жодної ролі людини (без ролей, ролі лише для назви

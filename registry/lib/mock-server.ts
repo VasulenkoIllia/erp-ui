@@ -123,6 +123,11 @@ const ADDED_USERS_KEY = "erp-ui:mock-users:v1"
  * у сховищі немає, а без цього запису нова компанія зникла б після F5.
  */
 const JOINED_COMPANIES_KEY = "erp-ui:mock-joined-companies:v1"
+/**
+ * Компанії, звідки людину вилучили (ADR-0041): початкових людей у сховищі немає, а без цього запису
+ * вилучена компанія повернулась би після F5.
+ */
+const LEFT_COMPANIES_KEY = "erp-ui:mock-left-companies:v1"
 
 const isStoredUser = (value: unknown): value is MockUser =>
   meSchema.safeParse(value).success &&
@@ -154,20 +159,45 @@ function persistAddedUsers(): void {
 const isStoredCompanies = (value: unknown): value is MockUser["companies"] =>
   meSchema.shape.companies.safeParse(value).success
 
-function readJoinedCompanies(): Record<string, MockUser["companies"]> {
+/** Сховище «людина → список»: зіпсований запис — як порожній. */
+function readPerUser<T>(
+  key: string,
+  isStored: (value: unknown) => value is T[],
+): Record<string, T[]> {
   try {
-    const raw = globalThis.localStorage?.getItem(JOINED_COMPANIES_KEY)
+    const raw = globalThis.localStorage?.getItem(key)
     const parsed: unknown = raw ? JSON.parse(raw) : {}
     const entries = Object.entries(parsed ?? {}) as [string, unknown][]
     return Object.fromEntries(
-      entries.filter((entry): entry is [string, MockUser["companies"]] =>
-        isStoredCompanies(entry[1]),
-      ),
+      entries.filter((entry): entry is [string, T[]] => isStored(entry[1])),
     )
   } catch {
     return {}
   }
 }
+
+const ownEntry = <T>(record: Record<string, T[]>, id: string): T[] =>
+  Object.hasOwn(record, id) ? (record[id] ?? []) : []
+
+function changePerUser<T>(
+  key: string,
+  isStored: (value: unknown) => value is T[],
+  userId: string,
+  change: (list: T[]) => T[],
+): void {
+  const stored = readPerUser(key, isStored)
+  try {
+    globalThis.localStorage?.setItem(
+      key,
+      JSON.stringify({ ...stored, [userId]: change(ownEntry(stored, userId)) }),
+    )
+  } catch {
+    // Без сховища зміна живе до перезавантаження.
+  }
+}
+
+const isStoredIds = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((id) => typeof id === "string")
 
 /** Людина з обліковим записом працює тепер і в цій компанії (ADR-0040). */
 export function joinMockCompany(
@@ -176,21 +206,58 @@ export function joinMockCompany(
 ): void {
   if (user.companies.some((item) => item.id === company.id)) return
   user.companies = [...user.companies, company]
-  if (!seededIds.has(user.id)) {
-    persistAddedUsers()
-    return
-  }
-  const joined = readJoinedCompanies()
-  try {
-    globalThis.localStorage?.setItem(
-      JOINED_COMPANIES_KEY,
-      JSON.stringify({
-        ...joined,
-        [user.id]: [...(joined[user.id] ?? []), company],
-      }),
+  user.companyId ??= company.id
+  if (seededIds.has(user.id))
+    changePerUser(JOINED_COMPANIES_KEY, isStoredCompanies, user.id, (list) => [
+      ...list,
+      company,
+    ])
+  else persistAddedUsers()
+  changePerUser(LEFT_COMPANIES_KEY, isStoredIds, user.id, (list) =>
+    list.filter((id) => id !== company.id),
+  )
+}
+
+/** Людину вилучено з компанії (ADR-0041): поточна стає перша з решти; без решти — без компанії. */
+export function leaveMockCompany(user: MockUser, companyId: string): void {
+  user.companies = user.companies.filter((item) => item.id !== companyId)
+  if (user.companyId === companyId)
+    user.companyId = user.companies[0]?.id ?? null
+  if (seededIds.has(user.id))
+    changePerUser(JOINED_COMPANIES_KEY, isStoredCompanies, user.id, (list) =>
+      list.filter((item) => item.id !== companyId),
     )
-  } catch {
-    // Без сховища нова компанія живе до перезавантаження.
+  else persistAddedUsers()
+  changePerUser(LEFT_COMPANIES_KEY, isStoredIds, user.id, (list) => [
+    ...list,
+    companyId,
+  ])
+}
+
+/** Люди, вилучені з компанії: їхні імена лишаються на записах, де вони відповідальні (ADR-0041). */
+export function mockFormerMembers(companyId: string): MockUser[] {
+  const left = readPerUser(LEFT_COMPANIES_KEY, isStoredIds)
+  return mockUsers.filter((user) => ownEntry(left, user.id).includes(companyId))
+}
+
+/** Початкова людина зі збереженими змінами її компаній. */
+function withStoredCompanies(
+  user: MockUser,
+  joined: MockUser["companies"],
+  left: readonly string[],
+): MockUser {
+  if (!joined.length && !left.length) return user
+  const companies = [
+    ...user.companies,
+    ...joined.filter(
+      (company) => !user.companies.some((c) => c.id === company.id),
+    ),
+  ].filter((company) => !left.includes(company.id))
+  const isCurrentLeft = user.companyId && left.includes(user.companyId)
+  return {
+    ...user,
+    companies,
+    companyId: isCurrentLeft ? (companies[0]?.id ?? null) : user.companyId,
   }
 }
 
@@ -198,20 +265,15 @@ export function joinMockCompany(
 export function setMockUsers(users: MockUser[]): void {
   seededIds = new Set(users.map((u) => u.id))
   seededCompanies = users.some((u) => u.companies.length > 0)
-  const joined = readJoinedCompanies()
+  const joined = readPerUser(JOINED_COMPANIES_KEY, isStoredCompanies)
+  const left = readPerUser(LEFT_COMPANIES_KEY, isStoredIds)
   mockUsers = [
     ...users.map((user) =>
-      Object.hasOwn(joined, user.id)
-        ? {
-            ...user,
-            companies: [
-              ...user.companies,
-              ...(joined[user.id] ?? []).filter(
-                (company) => !user.companies.some((c) => c.id === company.id),
-              ),
-            ],
-          }
-        : user,
+      withStoredCompanies(
+        user,
+        ownEntry(joined, user.id),
+        ownEntry(left, user.id),
+      ),
     ),
     ...readAddedUsers().filter((u) => !seededIds.has(u.id)),
   ]
@@ -371,6 +433,18 @@ function sessionHeaders(): Record<string, string> {
     : {}
 }
 
+/** Того, хто ввійшов як людина, вилучили з компанії: «Увійти як…» там більше не діє (ADR-0041). */
+function impersonatorLeft(session: MockSession): boolean {
+  const { impersonatorId, impersonationCompanyId } = session
+  const admin = mockUsers.find((user) => user.id === impersonatorId)
+  return (
+    admin !== undefined &&
+    impersonationCompanyId !== undefined &&
+    admin.isPlatformAdmin !== true &&
+    !admin.companies.some((company) => company.id === impersonationCompanyId)
+  )
+}
+
 /**
  * Користувач поточної сесії; запит продовжує сесію, прострочена — закривається.
  * `request` із `X-Background-Request: 1` (опитування) сесію не продовжує.
@@ -378,7 +452,7 @@ function sessionHeaders(): Record<string, string> {
 export function currentMockUser(request?: Request): MockUser | null {
   const session = readSession()
   if (session?.stage !== "authenticated") return null
-  if (session.expiresAt <= Date.now()) {
+  if (session.expiresAt <= Date.now() || impersonatorLeft(session)) {
     writeMockSession(null)
     return null
   }

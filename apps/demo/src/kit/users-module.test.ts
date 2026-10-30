@@ -7,6 +7,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
 } from "vitest"
 
 import { createApiClient, isApiError } from "@/registry/lib/api"
@@ -14,6 +15,7 @@ import { createAuthProvider } from "@/registry/lib/auth"
 import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
+import { mockUsersList, setMockUsers } from "@/registry/lib/mock-server"
 import { applyMockRoles } from "@/registry/lib/mock-team"
 import {
   createPlatformHandlers,
@@ -178,6 +180,46 @@ describe("моки A2: users", () => {
   })
   afterEach(() => {
     server.resetHandlers()
+  })
+
+  it("вилучена людина — лише за id і довідником (ADR-0041)", async () => {
+    const seeded = mockUsersList()
+    onTestFinished(() => {
+      localStorage.clear()
+      setMockUsers(seeded)
+    })
+    setMockUsers(seeded.map((user) => ({ ...user })))
+    await auth.reauthenticate({ password: "demo-password" })
+    await auth.admin.removeFromCompany("u2")
+    expect((await list()).data.map((row) => row.id)).not.toContain("u2")
+    const byId = await list({ id: "u2" })
+    expect(byId.data).toEqual([
+      {
+        id: "u2",
+        version: expect.any(Number) as number,
+        name: "Іван Петренко",
+        email: "u2@test.example",
+      },
+    ])
+    expect(await statusOf(provider.getOne("users", { id: "u2" }))).toBe(404)
+    // Шукати за станом її облікового запису не можна: рядок сам був би відповіддю.
+    expect((await list({ id: "u2", status: "active" })).data).toEqual([])
+  })
+
+  it("людина без компаній не бачить інших людей без компаній (ADR-0041)", async () => {
+    const seeded = mockUsersList()
+    onTestFinished(() => {
+      setMockUsers(seeded)
+    })
+    setMockUsers([
+      ...seeded,
+      person("o1", "Без компанії", ["sales"], []),
+      person("o2", "Теж без компанії", ["sales"], []),
+    ])
+    applyMockRoles()
+    signInMock("o1")
+    setCompanyId(null)
+    expect(await list()).toMatchObject({ data: [], total: 0 })
   })
 
   it("з `users:read` — повні записи людей компанії за контрактом, з полем розширення", async () => {

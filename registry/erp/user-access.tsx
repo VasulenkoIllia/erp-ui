@@ -33,8 +33,8 @@ import {
 
 /**
  * Доступ користувачів для адміністратора (ADR-0013, PF01/A2): стан акаунта, двоетапна перевірка,
- * сесії; вийти на всіх пристроях, скинути другий крок, заблокувати чи розблокувати; активні сесії
- * всієї компанії.
+ * сесії; вийти на всіх пристроях, скинути другий крок, заблокувати чи розблокувати, вилучити з
+ * компанії (ADR-0041); активні сесії всієї компанії.
  *
  *   const access = useUserAccessSheet()
  *   <Button onClick={() => access.open({ id, name, email })}>Доступ</Button>{access.sheet}
@@ -58,13 +58,20 @@ export function UserBlockedBadge({ userId }: { userId: string }) {
 
 /**
  * Панель доступу користувача. `onChange` — після змін ролей чи блокування, щоб проект оновив
- * свій список користувачів.
+ * свій список користувачів. Людину вилучили з компанії — панель закривається сама, а кнопки, з якої
+ * її відкрили, разом із рядком більше немає: фокус іде на `returnFocus` (як у `ConfirmDialog`).
  */
 export function useUserAccessSheet({
   onChange,
-}: { onChange?: () => void } = {}) {
+  returnFocus,
+}: {
+  onChange?: () => void
+  returnFocus?: () => HTMLElement | null
+} = {}) {
   const [target, setTarget] = React.useState<AccessTarget | null>(null)
+  const removed = React.useRef(false)
   const open = React.useCallback((user: AccessTarget) => {
+    removed.current = false
     setTarget(user)
   }, [])
   const sheet = (
@@ -73,10 +80,23 @@ export function useUserAccessSheet({
       onOpenChange={(next) => {
         if (!next) setTarget(null)
       }}
+      // Не `finalFocus`: вкладений діалог закривається разом зі шторкою, і фокус туди не доходить.
+      onOpenChangeComplete={(next) => {
+        if (!next && removed.current) returnFocus?.()?.focus()
+      }}
     >
       <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-lg">
         {target ? (
-          <AccessPanel key={target.id} target={target} onChange={onChange} />
+          <AccessPanel
+            key={target.id}
+            target={target}
+            onChange={onChange}
+            onRemoved={() => {
+              removed.current = true
+              setTarget(null)
+              onChange?.()
+            }}
+          />
         ) : null}
       </SheetContent>
     </Sheet>
@@ -215,13 +235,15 @@ function AccessDetails({
 function AccessPanel({
   target,
   onChange,
+  onRemoved,
 }: {
   target: AccessTarget
   onChange?: () => void
+  onRemoved: () => void
 }) {
   const t = useErpUiT()
   const { data: me } = useMe()
-  const actions = useUserAccessActions(target, { onChange })
+  const actions = useUserAccessActions(target, { onChange, onRemoved })
   const self = me?.id === target.id
 
   const body = (

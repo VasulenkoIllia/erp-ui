@@ -1,4 +1,5 @@
 import { useGetList } from "ra-core"
+import { useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 
@@ -57,10 +58,12 @@ export function UsersPage() {
       void navigate(ROUTES.data)
     },
   })
+  const list = useRef<HTMLUListElement>(null)
   const access = useUserAccessSheet({
     onChange: () => {
       void refetch()
     },
+    returnFocus: () => list.current,
   })
   const canImpersonate = me
     ? hasPermission(me.permissions, "users", "impersonate")
@@ -94,7 +97,12 @@ export function UsersPage() {
     body = (
       <Card>
         <CardContent className="@container">
-          <ul className="divide-y" aria-label={t("listLabel")}>
+          <ul
+            ref={list}
+            tabIndex={-1}
+            className="divide-y focus-visible:outline-none"
+            aria-label={t("listLabel")}
+          >
             {(data ?? []).map((user) => (
               <li
                 key={user.id}
