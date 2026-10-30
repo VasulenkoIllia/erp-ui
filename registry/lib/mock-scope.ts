@@ -12,9 +12,11 @@ import {
   type MockUser,
 } from "@/registry/lib/mock-server"
 import {
+  kitAction,
   RECORD_DENIAL_REASONS,
   type RecordDeniedActions,
 } from "@/registry/lib/record-access"
+import { permissionScope } from "@/registry/lib/roles"
 
 /**
  * Застосунок без компаній (за початковими людьми): дані й події видно всі, і людині, що
@@ -95,6 +97,17 @@ export function withMockDeniedActions<
   const denied = mockDeniedActions(actor, record.companyId)
   return denied ? { ...row, deniedActions: denied } : row
 }
+
+/**
+ * Чи дає набір прав дію над записами ресурсу моків. «Свої» (`<ресурс>:<дія>:own`, ADR-0038) моки поки
+ * не розрізняють: у записах ще немає відповідального (A2c2b2), тож дія лише над своїми — відмова, а не
+ * доступ до всіх записів. Так само токен API отримує лише дію над усіма.
+ */
+export const mockGrantsAllRecords = (
+  permissions: readonly string[],
+  resource: string,
+  action: string,
+) => permissionScope(permissions, resource, kitAction(action)) === "all"
 
 /**
  * Лише своєї компанії: підписки й токени (ADR-0036). Без компанії — підписка застосунку: її в

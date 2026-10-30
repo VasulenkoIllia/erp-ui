@@ -103,11 +103,15 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Організації", en: "Organizations" },
     group: SALES,
     actions: ["read", "create", "update", "delete"],
+    // «Свої / Усі» (A2c2b1): записи, де людина відповідальна; створений запис і так свій.
+    own: ["read", "update", "delete"],
   },
   contacts: {
     label: { uk: "Контакти", en: "Contacts" },
     group: SALES,
     actions: ["read", "create", "update", "delete"],
+    // «Свої / Усі» (A2c2b1): записи, де людина відповідальна; створений запис і так свій.
+    own: ["read", "update", "delete"],
   },
   segments: {
     label: { uk: "Сегменти", en: "Segments" },

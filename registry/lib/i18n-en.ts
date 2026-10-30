@@ -1026,6 +1026,13 @@ export const en = {
     all: "All",
     allFor: "All: {{resource}}",
     actionFor: "{{action}}: {{resource}}",
+    scopeFor: "Which records: {{action}}, {{resource}}",
+    scopeOwn: "Own",
+    scopeAll: "All",
+    scopeCeilingHint:
+      "Only someone who has “All” can grant it, narrow it to “Own” or remove it.",
+    scopeHint:
+      "“Own”: records the person is responsible for. “All”: all the company’s records.",
     unsavedTitle: "Changes to “{{name}}” aren't saved",
     unsavedDescription: "They'll be lost if you switch to another role.",
     unsavedBack: "Back to the role",

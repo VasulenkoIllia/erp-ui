@@ -75,6 +75,7 @@ import {
   canChangePermissions,
   canChangeRoles,
   canGrant,
+  isCatalogPermission,
   permissionsOfRoles,
   type Role,
 } from "@/registry/lib/roles"
@@ -102,6 +103,8 @@ export interface MockPermissionResource {
   label: LocalizedText
   group?: LocalizedText
   actions?: string[]
+  /** Дії з вибором «Свої / Усі» (`<ресурс>:<дія>:own`, A2c2b1); за замовчуванням — жодної. */
+  own?: string[]
 }
 
 /** Назви дій, які знає мок; інші — як є. */
@@ -115,6 +118,18 @@ const ACTION_LABELS: Record<string, LocalizedText> = {
   impersonate: { uk: "«Увійти як…»", en: "“Sign in as…”" },
 }
 const CRUD = ["read", "create", "update", "delete"]
+/**
+ * Ресурси кіта без «Свої / Усі» (ADR-0038): їхні дії — службові, «своїх» записів немає, тож `own` у
+ * каталозі проекту для них не діє.
+ */
+const KIT_RESOURCES_WITHOUT_OWN = new Set([
+  "users",
+  "roles",
+  "security",
+  "audit",
+  "webhooks",
+  "company",
+])
 /** Ресурс сценаріїв моків для `/roles` (панель розробника). */
 const ROLES_RESOURCE = "roles"
 
@@ -207,23 +222,11 @@ export function createTeamHandlers({
       actions: (resource.actions ?? CRUD).map((action) => ({
         id: action,
         label: localizedText(ACTION_LABELS[action], language) ?? action,
+        ...(resource.own?.includes(action) && !KIT_RESOURCES_WITHOUT_OWN.has(id)
+          ? { own: true }
+          : {}),
       })),
     }))
-
-  /** Права ролі — лише з каталогу: `<ресурс>:<дія>`, `<ресурс>:*` або `*`. */
-  const validPermission = (permission: string) => {
-    if (permission === "*") return true
-    const [resource = "", action = "", ...rest] = permission.split(":")
-    // `Object.hasOwn`: інакше `constructor:read` чи `__proto__:read` пройшли б як ресурс.
-    const known = Object.hasOwn(resources, resource)
-      ? resources[resource]
-      : undefined
-    return Boolean(
-      known &&
-      !rest.length &&
-      (action === "*" || (known.actions ?? CRUD).includes(action)),
-    )
-  }
 
   const publicRole = (
     role: MockRole,
@@ -286,9 +289,13 @@ export function createTeamHandlers({
       const list = Array.isArray(body.permissions)
         ? (body.permissions as unknown[])
         : null
+      // Права ролі — лише з каталогу: `*`, `<ресурс>:*`, дія, дія `:own` з вибором (ADR-0038).
+      const known = catalog(language)
       if (
         !list ||
-        list.some((p) => typeof p !== "string" || !validPermission(p))
+        list.some(
+          (p) => typeof p !== "string" || !isCatalogPermission(p, known),
+        )
       )
         fields.permissions = "invalid"
     }

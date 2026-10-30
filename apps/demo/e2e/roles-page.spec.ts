@@ -6,7 +6,8 @@ import { expectNoA11yViolations, openWith, USERS } from "./helpers"
  * Крок A2b2b1 (ADR-0033): сторінка «Ролі й права» модуля A2 — список ролей і права вибраної поруч
  * (на телефоні — список над правами), роль в адресі (`?role=`), незбережені зміни, галочки лише
  * для перегляду в порядку Tab з причиною, роль щойно змінив інший адміністратор (сценарій
- * `conflict`), ролі в межах компанії, пункт навігації з правом `roles:read`.
+ * `conflict`), ролі в межах компанії, пункт навігації з правом `roles:read`. Крок A2c2b1 — перемикач
+ * «Свої | Усі» поруч з увімкненою дією з вибором.
  */
 const ROLES = "/#/m/A2/roles"
 
@@ -128,6 +129,64 @@ test.describe("A2: ролі й права", () => {
     await expect(
       page.getByRole("checkbox", { name: "Видалення: Користувачі" }),
     ).toBeFocused()
+    // Перемикач «Свої | Усі» — одна зупинка Tab на вибраному, лише для перегляду з причиною.
+    await page.getByRole("checkbox", { name: "Зміна: Організації" }).focus()
+    await page.keyboard.press("Tab")
+    const scope = page.getByRole("radiogroup", {
+      name: "Які записи: Зміна, Організації",
+    })
+    await expect(scope).toHaveAttribute("aria-readonly", "true")
+    await expect(scope.getByRole("radio", { name: "Усі" })).toBeFocused()
+    await expect(scope).toHaveAccessibleDescription(new RegExp(hint))
+    await page.keyboard.press("Tab")
+    await expect(
+      page.getByRole("checkbox", { name: "Видалення: Організації" }),
+    ).toBeFocused()
+    await expectNoA11yViolations(page)
+  })
+
+  test("«Свої / Усі»: перемикач поруч з увімкненою дією, клавіатура, збереження", async ({
+    page,
+  }) => {
+    await openWith(page, {}, `${ROLES}?role=sales`)
+    await expect(
+      page.getByText(
+        "«Свої»: записи, за які людина відповідальна. «Усі»: усі записи компанії.",
+      ),
+    ).toBeVisible()
+    const scope = (action: string) =>
+      page.getByRole("radiogroup", {
+        name: `Які записи: ${action}, Організації`,
+      })
+    await expect(
+      scope("Перегляд").getByRole("radio", { name: "Усі" }),
+    ).toBeChecked()
+    await expect(scope("Зміна")).toHaveCount(0)
+    // Дія без вибору (рахунки) — без перемикача.
+    await expect(
+      page.getByRole("radiogroup", { name: /Рахунки$/ }),
+    ).toHaveCount(0)
+    await scope("Перегляд").getByRole("radio", { name: "Свої" }).click()
+
+    // Нова дія — «Усі»; стрілкою — «Свої».
+    await page.getByRole("checkbox", { name: "Зміна: Організації" }).check()
+    const all = scope("Зміна").getByRole("radio", { name: "Усі" })
+    await expect(all).toBeChecked()
+    await all.focus()
+    await page.keyboard.press("ArrowLeft")
+    await expect(
+      scope("Зміна").getByRole("radio", { name: "Свої" }),
+    ).toBeChecked()
+    await page.getByRole("button", { name: "Зберегти" }).click()
+    await expect(toast(page, "Роль збережено")).toBeVisible()
+
+    await page.reload()
+    await expect(
+      scope("Перегляд").getByRole("radio", { name: "Свої" }),
+    ).toBeChecked()
+    await expect(
+      scope("Зміна").getByRole("radio", { name: "Свої" }),
+    ).toBeChecked()
     await expectNoA11yViolations(page)
   })
 
@@ -234,11 +293,19 @@ test.describe("A2: ролі на телефоні", () => {
 })
 
 test.describe("A2: ролі, axe", () => {
-  for (const theme of ["light", "dark"] as const)
-    test(`1440 ${theme}`, async ({ page }) => {
+  // Вбудована роль — перемикачі лише для перегляду; «Менеджер з продажу» — редаговані.
+  for (const [theme, role] of [
+    ["light", "sales"],
+    ["dark", "sales"],
+    ["dark", "owner"],
+  ] as const)
+    test(`1440 ${theme} ${role}`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
-      await openWith(page, { theme }, `${ROLES}?role=sales`)
-      await expect(roleHeading(page)).toHaveText("Менеджер з продажу")
+      const owner = role === "owner"
+      await openWith(page, { theme }, `${ROLES}?role=${role}`)
+      await expect(roleHeading(page)).toHaveText(
+        owner ? "Власник" : "Менеджер з продажу",
+      )
       await expectNoA11yViolations(page)
     })
 

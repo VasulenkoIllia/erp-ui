@@ -7,14 +7,19 @@
  *   - роль — id, назва, опис, `system` (вбудована: не змінюється й не видаляється), права, скільки
  *     користувачів її мають;
  *   - `resources` — каталог прав проекту: ресурс із назвою, розділом і своїми діями (`read`,
- *     `create`, `update`, `delete`, `impersonate`, `export`…) мовою `Accept-Language`.
+ *     `create`, `update`, `delete`, `impersonate`, `export`…) мовою `Accept-Language`; дія з
+ *     `own: true` має вибір «Свої / Усі» (A2c2b1).
+ * - «Свої / Усі»: `<ресурс>:<дія>:own` — дія лише над своїми записами (де людина відповідальна),
+ *   `<ресурс>:<дія>` — над усіма; `:own` — лише для дії каталогу з `own: true`, інакше 422
+ *   `permissions: invalid`. Що з конкретним записом, каже позначка сервера `deniedActions` (ADR-0037).
  * - `POST /roles` { name, description, permissions } → роль; `PATCH /roles/:id` → роль;
  *   `DELETE /roles/:id` → 204. Помилки — 422 `fieldErrors` (`name`: `required` / `taken`,
  *   `permissions`: `invalid`); вбудована роль — 403; роль із користувачами не видаляється — 409.
  * - `PUT /users/:id/roles` { roles } → 204: ролі користувача (право `users:update`, повторне
  *   підтвердження; хоча б одна роль; свої ролі — ні, щоб не втратити доступ).
  * - «Стеля» (ADR-0032): дати, змінити, скопіювати чи видалити можна лише права, які людина має сама
- *   в компанії запиту (`canGrant`, `canChangePermissions`, `canChangeRoles`); сильнішу роль не
+ *   в компанії запиту (`canGrant`, `canChangePermissions`, `canChangeRoles`); «Свої» дає той, хто має
+ *   дію хоч на свої, а «Усі» дає, забирає чи звужує до «Свої» лише той, хто має «Усі»; сильнішу роль не
  *   змінити зовсім, зокрема назву; порушення — 403 `forbidden`. Права в `GET /me` і ролях —
  *   стиснені: усі дії ресурсу — `<ресурс>:*` (як `togglePermission`), інакше «стеля» вважатиме
  *   роль із `<ресурс>:*` сильнішою. Людина `PUT /users/:id/roles` — лише з компанії запиту
@@ -41,7 +46,17 @@ export const permissionResourceSchema = z.object({
   id: z.string(),
   label: z.string(),
   group: z.string().optional(),
-  actions: z.array(z.object({ id: z.string(), label: z.string() })).min(1),
+  actions: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        /** Дія має вибір «Свої / Усі»: роль може дати її лише над своїми записами. */
+        // Не того типу (`null`, рядок) — вибору немає, а не збій усієї відповіді `GET /roles`.
+        own: z.boolean().optional().catch(undefined),
+      }),
+    )
+    .min(1),
 })
 export type PermissionResource = z.infer<typeof permissionResourceSchema>
 
@@ -89,44 +104,107 @@ export const ROLES_QUERY_KEYS = {
 
 /* ------------------------------ Матриця прав ------------------------------ */
 
-/** Чи дає набір прав дію над ресурсом (`*`, `<ресурс>:*`, `<ресурс>:<дія>`). */
+/** Над якими записами дія (A2c2b1): лише свої (де людина відповідальна) чи всі. */
+export type PermissionScope = "own" | "all"
+
+/** Суфікс права лише на свої записи: `organizations:update:own`. */
+const OWN_SCOPE = "own"
+
+/** Порядок обсягів: немає < свої < усі. */
+const scopeRank = (scope: PermissionScope | null) =>
+  scope === "all" ? 2 : scope === "own" ? 1 : 0
+
+/**
+ * Обсяг дії над ресурсом у наборі прав: `all` — `*`, `<ресурс>:*` чи `<ресурс>:<дія>`; `own` — лише
+ * `<ресурс>:<дія>:own`; `null` — дії немає. Ширше перемагає: права людини — об'єднання її ролей.
+ * Порожній ресурс чи дія або з `:` — `null`: інакше дія `update:own` збіглася б із рядком «Свої» як «Усі».
+ */
+export function permissionScope(
+  permissions: readonly string[],
+  resource: string,
+  action: string,
+): PermissionScope | null {
+  if (!resource || !action || resource.includes(":") || action.includes(":"))
+    return null
+  const exact = `${resource}:${action}`
+  let scope: PermissionScope | null = null
+  for (const p of permissions) {
+    if (p === "*" || p === `${resource}:*` || p === exact) return "all"
+    if (p === `${exact}:${OWN_SCOPE}`) scope = "own"
+  }
+  return scope
+}
+
+/** Чи дає набір прав дію над ресурсом — над усіма записами чи лише своїми. */
 export function grants(
   permissions: readonly string[],
   resource: string,
   action: string,
 ): boolean {
-  return permissions.some(
-    (p) => p === "*" || p === `${resource}:*` || p === `${resource}:${action}`,
-  )
+  return permissionScope(permissions, resource, action) !== null
 }
 
 /**
- * Увімкнути чи вимкнути дію ресурсу в наборі прав. Усі дії ресурсу разом стискаються до
- * `<ресурс>:*`; вимкнення однієї з `*` розгортає решту явно.
+ * Обсяг дії ресурсу в наборі прав: `null` — зняти. Усі дії ресурсу над усіма записами разом
+ * стискаються до `<ресурс>:*`; зміна однієї з `*` розгортає решту явно, «Свої» — `<ресурс>:<дія>:own`
+ * і лише для дії каталогу з `own: true` (інша вибору не має — «Усі», як вимагає сервер).
+ */
+export function setPermissionScope(
+  permissions: readonly string[],
+  resource: PermissionResource,
+  action: string,
+  scope: PermissionScope | null,
+): string[] {
+  const scopes = resource.actions.map(({ id, own }) => ({
+    id,
+    scope:
+      id !== action
+        ? permissionScope(permissions, resource.id, id)
+        : scope === "own" && !own
+          ? "all"
+          : scope,
+  }))
+  const rest = permissions.filter((p) => !p.startsWith(`${resource.id}:`))
+  if (scopes.every((item) => item.scope === "all"))
+    return [...rest, `${resource.id}:*`]
+  return [
+    ...rest,
+    ...scopes.flatMap(({ id, scope: itemScope }) =>
+      itemScope === null
+        ? []
+        : [
+            itemScope === "all"
+              ? `${resource.id}:${id}`
+              : `${resource.id}:${id}:${OWN_SCOPE}`,
+          ],
+    ),
+  ]
+}
+
+/**
+ * Увімкнути чи вимкнути дію ресурсу в наборі прав. Увімкнена вже дія лишає свій обсяг, нова — `scope`
+ * (за замовчуванням — над усіма записами). Стискання й розгортання — як у `setPermissionScope`.
  */
 export function togglePermission(
   permissions: readonly string[],
   resource: PermissionResource,
   action: string,
   on: boolean,
+  scope: PermissionScope = "all",
 ): string[] {
-  const own = (p: string) => p.startsWith(`${resource.id}:`)
-  const current = resource.actions
-    .map((a) => a.id)
-    .filter((id) => grants(permissions, resource.id, id))
-  const next = on
-    ? [...new Set([...current, action])]
-    : current.filter((id) => id !== action)
-  const rest = permissions.filter((p) => !own(p))
-  if (next.length === resource.actions.length)
-    return [...rest, `${resource.id}:*`]
-  return [...rest, ...next.map((id) => `${resource.id}:${id}`)]
+  const current = permissionScope(permissions, resource.id, action)
+  return setPermissionScope(
+    permissions,
+    resource,
+    action,
+    on ? (current ?? scope) : null,
+  )
 }
 
 /**
  * Свої незбережені зміни поверх свіжих прав ролі (одночасна зміна, 409, ADR-0033): дії каталогу, які
- * людина змінила відносно `base` (права, з яких почала), — як у `mine`, решта — як у `theirs`
- * (свіжі з сервера); права поза каталогом — з `theirs`.
+ * людина змінила відносно `base` (права, з яких почала), — як у `mine` (з обсягом), решта — як у
+ * `theirs` (свіжі з сервера); права поза каталогом — з `theirs`.
  */
 export function rebasePermissions(
   base: readonly string[],
@@ -137,10 +215,10 @@ export function rebasePermissions(
   return resources.reduce(
     (result, resource) =>
       resource.actions.reduce((next, { id }) => {
-        const on = grants(mine, resource.id, id)
-        return on === grants(base, resource.id, id)
+        const scope = permissionScope(mine, resource.id, id)
+        return scope === permissionScope(base, resource.id, id)
           ? next
-          : togglePermission(next, resource, id, on)
+          : setPermissionScope(next, resource, id, scope)
       }, result),
     [...theirs],
   )
@@ -150,16 +228,22 @@ export function rebasePermissions(
 
 /**
  * Чи покриває набір прав `own` одне право («стеля», ADR-0032): `*` — лише `*`; `<ресурс>:*` — `*`
- * або `<ресурс>:*`; `<ресурс>:<дія>` — будь-що з трьох.
+ * або `<ресурс>:*`; `<ресурс>:<дія>` — дія над усіма записами; `<ресурс>:<дія>:own` — дія хоч над
+ * своїми; інший рядок — лише `*` чи той самий рядок.
  */
 export function coversPermission(
   own: readonly string[],
   permission: string,
 ): boolean {
-  if (permission === "*") return own.includes("*")
-  const [resource = "", action = ""] = permission.split(":")
-  if (action === "*") return own.includes("*") || own.includes(`${resource}:*`)
-  return grants(own, resource, action)
+  // `*` покриває будь-який рядок, і той, якого немає в каталозі: його власник може прибрати з ролі.
+  if (own.includes("*")) return true
+  if (permission === "*") return false
+  const [resource = "", action = "", ...rest] = permission.split(":")
+  if (rest.length > 1 || (rest.length === 1 && rest[0] !== OWN_SCOPE))
+    return own.includes(permission)
+  if (action === "*") return own.includes(`${resource}:*`)
+  const needed = rest.length ? "own" : "all"
+  return scopeRank(permissionScope(own, resource, action)) >= scopeRank(needed)
 }
 
 /** Чи може людина з правами `own` дати набір прав: кожне право — в межах її власних. */
@@ -170,24 +254,31 @@ export function canGrant(
   return permissions.every((permission) => coversPermission(own, permission))
 }
 
-/** Право описує ресурс і дію каталогу (`<ресурс>:*` — будь-який ресурс каталогу). */
-function inCatalog(
+/**
+ * Право з каталогу: `*`, `<ресурс>:*` ресурсу каталогу, `<ресурс>:<дія>` його дії чи
+ * `<ресурс>:<дія>:own` дії з вибором «Свої / Усі» (`own: true`). Інше сервер відхиляє 422.
+ */
+export function isCatalogPermission(
   permission: string,
   resources: readonly PermissionResource[],
 ): boolean {
+  if (permission === "*") return true
   const [resource = "", action = "", ...rest] = permission.split(":")
   const known = resources.find((item) => item.id === resource)
+  if (!known) return false
+  if (action === "*") return !rest.length
+  const catalogAction = known.actions.find(({ id }) => id === action)
+  if (!catalogAction) return false
   return (
-    known !== undefined &&
-    !rest.length &&
-    (action === "*" || known.actions.some(({ id }) => id === action))
+    !rest.length ||
+    (rest.length === 1 && rest[0] === OWN_SCOPE && catalogAction.own === true)
   )
 }
 
 /**
  * Чи може людина з правами `own` змінити права ролі з `before` на `next`: кожна дія каталогу, яку
- * зміна вмикає чи вимикає, — у межах `own`; право поза каталогом — так само рядком; `*` додає чи
- * прибирає лише той, хто має `*`.
+ * зміна вмикає, вимикає чи переводить між «Свої» й «Усі», — у межах `own` за ширшим з обсягів (до й
+ * після); право поза каталогом — так само рядком; `*` додає чи прибирає лише той, хто має `*`.
  */
 export function canChangePermissions(
   own: readonly string[],
@@ -201,14 +292,36 @@ export function canChangePermissions(
   const changedOutside = [
     ...next.filter((p) => !before.includes(p)),
     ...before.filter((p) => !next.includes(p)),
-  ].filter((p) => p !== "*" && !inCatalog(p, resources))
+  ].filter((p) => !isCatalogPermission(p, resources))
   if (!canGrant(own, changedOutside)) return false
   return resources.every((resource) =>
-    resource.actions.every(
-      ({ id }) =>
-        grants(before, resource.id, id) === grants(next, resource.id, id) ||
-        grants(own, resource.id, id),
+    resource.actions.every(({ id }) =>
+      canChangeScope(
+        own,
+        resource.id,
+        id,
+        permissionScope(before, resource.id, id),
+        permissionScope(next, resource.id, id),
+      ),
     ),
+  )
+}
+
+/**
+ * Чи може людина з правами `own` змінити обсяг дії ролі з `from` на `to`: її власний обсяг цієї дії —
+ * не менший за ширший з двох (забрати чи звузити «Усі» може лише той, хто має «Усі»).
+ */
+export function canChangeScope(
+  own: readonly string[],
+  resource: string,
+  action: string,
+  from: PermissionScope | null,
+  to: PermissionScope | null,
+): boolean {
+  return (
+    from === to ||
+    scopeRank(permissionScope(own, resource, action)) >=
+      Math.max(scopeRank(from), scopeRank(to))
   )
 }
 

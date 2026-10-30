@@ -7,7 +7,6 @@
 import { useCanAccess } from "ra-core"
 import { useCallback } from "react"
 
-import { kitAction } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { isKnownDenialReason, recordDenial } from "@/registry/lib/record-access"
 
@@ -31,7 +30,7 @@ export function useRecordDenialReason(): (
   const t = useErpUiT()
   return useCallback(
     (record, action) => {
-      const code = recordDenial(record, kitAction(action))
+      const code = recordDenial(record, action)
       if (code === undefined) return undefined
       return isKnownDenialReason(code)
         ? t(`recordAccess.${code}`)

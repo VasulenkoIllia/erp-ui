@@ -580,7 +580,7 @@ export const CODE_ITEMS = {
   "lib/mock-scope": {
     title: "Чиї дані й події в моках",
     description:
-      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037).",
+      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037); mockGrantsAllRecords — дія над усіма записами для записів, масових дій і токенів API (ADR-0038).",
     status: "beta",
     demo: "data",
     spec: ["A2", "§17"],
@@ -684,7 +684,7 @@ export const CODE_ITEMS = {
   "lib/roles": {
     title: "Ролі й права",
     description:
-      "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці; «стеля» — canGrant, canChangePermissions, canChangeRoles, impersonationBlock (ADR-0032) — provider.roles.",
+      "Контракт ролей (назва, опис, вбудована, права <ресурс>:<дія>), каталог прав із сервера, ролі користувача; grants і togglePermission для матриці; «стеля» — canGrant, canChangePermissions, canChangeRoles, impersonationBlock (ADR-0032); «Свої / Усі» — право <ресурс>:<дія>:own, permissionScope, setPermissionScope, canChangeScope, isCatalogPermission (ADR-0038) — provider.roles.",
     status: "beta",
     demo: "roles",
     spec: ["A2", "PF01"],
@@ -1379,7 +1379,7 @@ export const CODE_ITEMS = {
   "erp/role-matrix": {
     title: "Матриця прав",
     description:
-      "RoleMatrix: ресурси каталогу прав за розділами, «Усе» для ресурсу (частково — «−») і окремі дії; усі дії ресурсу стискаються до <ресурс>:*; галочки, яких не змінити, — лише для перегляду в порядку Tab з причиною (ADR-0033).",
+      "RoleMatrix: ресурси каталогу прав за розділами, «Усе» для ресурсу (частково — «−») і окремі дії; усі дії ресурсу стискаються до <ресурс>:*; галочки, яких не змінити, — лише для перегляду в порядку Tab з причиною (ADR-0033); перемикач «Свої | Усі» поруч з увімкненою дією, яку каталог позначає own (ADR-0038).",
     status: "beta",
     demo: "roles",
     spec: ["A2", "PF01"],

@@ -17,7 +17,6 @@ import { http, type HttpHandler } from "msw/http"
 import { z } from "zod"
 
 import { API_PREFIX, type FilterValue } from "@/registry/lib/api"
-import { hasPermission } from "@/registry/lib/auth"
 import {
   JOB_FAILURE_SAMPLE,
   JOBS_PATH,
@@ -36,7 +35,10 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { isMockSharedLocked } from "@/registry/lib/mock-scope"
+import {
+  isMockSharedLocked,
+  mockGrantsAllRecords,
+} from "@/registry/lib/mock-scope"
 import type { MockRecord, MockResourceDb } from "@/registry/lib/mocks"
 
 /** Ресурс для сценаріїв опитування задач у панелі розробника. */
@@ -279,7 +281,7 @@ export function createBulkHandlers<T extends MockRecord>({
           })
         const access = mockRequestPermissions(request, user)
         if (access instanceof Response) return access
-        if (!hasPermission(access.permissions, resource, actionName))
+        if (!mockGrantsAllRecords(access.permissions, resource, actionName))
           return errorResponse(403, {
             code: "forbidden",
             message: `Missing permission ${resource}:${actionName}`,
@@ -351,7 +353,7 @@ export function createJobHandlers({
       if (owned instanceof Response) return owned
       const { job } = owned
       // Право могли забрати, поки задача йшла.
-      if (!hasPermission(owned.permissions, job.resource, job.action))
+      if (!mockGrantsAllRecords(owned.permissions, job.resource, job.action))
         return errorResponse(403, {
           code: "forbidden",
           message: `Missing permission ${job.resource}:${job.action}`,

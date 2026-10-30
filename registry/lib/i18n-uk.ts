@@ -1041,6 +1041,13 @@ export const uk = {
     all: "Усе",
     allFor: "Усе: {{resource}}",
     actionFor: "{{action}}: {{resource}}",
+    scopeFor: "Які записи: {{action}}, {{resource}}",
+    scopeOwn: "Свої",
+    scopeAll: "Усі",
+    scopeCeilingHint:
+      "Дати «Усі», звузити до «Свої» чи зняти їх може лише той, хто сам має «Усі».",
+    scopeHint:
+      "«Свої»: записи, за які людина відповідальна. «Усі»: усі записи компанії.",
     unsavedTitle: "Зміни ролі «{{name}}» не збережено",
     unsavedDescription: "Якщо перейти до іншої ролі, їх буде втрачено.",
     unsavedBack: "Повернутися до ролі",

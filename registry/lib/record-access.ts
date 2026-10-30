@@ -15,6 +15,18 @@
  *   загальний текст.
  */
 
+/** Дії ra-core (`useCanAccess`, вбудовані контролери) → дії прав erp-ui; `Map` — без ключів прототипу. */
+const RA_ACTIONS = new Map([
+  ["list", "read"],
+  ["show", "read"],
+  ["export", "read"],
+  ["edit", "update"],
+])
+
+/** Дія прав erp-ui для дії ra-core (`edit` → `update`), своя — як є. */
+export const kitAction = (action: string): string =>
+  RA_ACTIONS.get(action) ?? action
+
 /** Позначка сервера на записі: дія → код причини. */
 export type RecordDeniedActions = Readonly<Record<string, string>>
 
@@ -29,7 +41,7 @@ export type RecordDenialReason =
 
 /**
  * Код причини, з якої сервер забороняє дію `action` над записом, або `undefined` — запис не
- * забороняє. `action` — дія з прав (`update`), не ra-core (`edit`): її зводить `kitAction` з lib/auth.
+ * забороняє. `action` — дія з прав (`update`) чи ra-core (`edit`): її зводить `kitAction`.
  * Запис будь-якої форми: без поля чи з полем не того типу — заборони немає.
  */
 export function recordDenial(
@@ -39,9 +51,10 @@ export function recordDenial(
   if (typeof record !== "object" || record === null) return undefined
   const denied: unknown = (record as { deniedActions?: unknown }).deniedActions
   if (typeof denied !== "object" || denied === null) return undefined
+  const key = kitAction(action)
   // Лише власні ключі: `constructor` з прототипу — не дія.
-  if (!Object.hasOwn(denied, action)) return undefined
-  const code: unknown = (denied as Record<string, unknown>)[action]
+  if (!Object.hasOwn(denied, key)) return undefined
+  const code: unknown = (denied as Record<string, unknown>)[key]
   return typeof code === "string" && code ? code : undefined
 }
 

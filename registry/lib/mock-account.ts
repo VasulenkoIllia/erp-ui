@@ -25,7 +25,6 @@ import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import {
   AUTH_FACTORS,
-  hasPermission,
   localizedText,
   type AuthFactor,
   type LocalizedText,
@@ -67,7 +66,11 @@ import {
   writeMockSession,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { ownedByMockCompany, withoutMockScope } from "@/registry/lib/mock-scope"
+import {
+  mockGrantsAllRecords,
+  ownedByMockCompany,
+  withoutMockScope,
+} from "@/registry/lib/mock-scope"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
 export { CURRENT_IP, mockUserSessions, recordSignIn, setMockAccountSeeds }
@@ -272,8 +275,9 @@ export function createAccountHandlers({
    */
   const tokenScopes = (permissions: readonly string[], language: string) =>
     Object.entries(apiResources).flatMap(([resource, label]) =>
+      // Токен — лише дії над усіма записами: обсягу «Свої» токен не має (ADR-0038).
       TOKEN_ACTIONS.filter(({ action }) =>
-        hasPermission(permissions, resource, action),
+        mockGrantsAllRecords(permissions, resource, action),
       ).map(({ action, label: actionLabel }) => ({
         id: `${resource}:${action}`,
         label: localizedText(actionLabel, language) ?? action,

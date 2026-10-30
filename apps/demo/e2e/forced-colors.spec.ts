@@ -84,6 +84,21 @@ test.describe("forced-colors і зменшений рух", () => {
     expect(selected).not.toBe("none")
   })
 
+  test("перемикач «Свої | Усі»: вибраний підкреслено, бо тло зникає", async ({
+    page,
+  }) => {
+    await openWith(page, {}, "/#/m/A2/roles?role=owner")
+    const scope = page.getByRole("radiogroup", {
+      name: "Які записи: Зміна, Організації",
+    })
+    const decoration = (name: string) =>
+      scope
+        .getByRole("radio", { name })
+        .evaluate((element) => getComputedStyle(element).textDecorationLine)
+    expect(await decoration("Усі")).toBe("underline")
+    expect(await decoration("Свої")).toBe("none")
+  })
+
   test("підсвічений пункт меню має контур", async ({ page }) => {
     await openWith(page, {}, "/#/fields")
     const menu = page.getByRole("button", { name: /Меню користувача/ })

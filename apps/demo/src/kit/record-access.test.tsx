@@ -32,7 +32,10 @@ import {
   signInMock,
   type MockUser,
 } from "@/registry/lib/mocks"
-import { recordDenial } from "@/registry/lib/record-access"
+import {
+  kitAction as recordAccessKitAction,
+  recordDenial,
+} from "@/registry/lib/record-access"
 
 /**
  * Крок A2c2a (ADR-0037): позначка сервера на записі `deniedActions` — що з цим записом не можна тому,
@@ -140,6 +143,10 @@ describe("kitAction", () => {
     expect(kitAction("approve")).toBe("approve")
     expect(kitAction("constructor")).toBe("constructor")
   })
+
+  it("живе в lib/record-access, lib/auth віддає той самий", () => {
+    expect(kitAction).toBe(recordAccessKitAction)
+  })
 })
 
 describe("recordDenial", () => {
@@ -157,6 +164,10 @@ describe("recordDenial", () => {
     )
     // Ключ із прототипу — не дія.
     expect(recordDenial({ deniedActions: {} }, "constructor")).toBeUndefined()
+  })
+
+  it("дію ra-core зводить сам: edit — update", () => {
+    expect(recordDenial({ deniedActions: SHARED }, "edit")).toBe("shared")
   })
 })
 

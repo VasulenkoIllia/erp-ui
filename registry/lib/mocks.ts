@@ -27,7 +27,7 @@ import {
   type SortField,
 } from "@/registry/lib/api"
 import type { AuditValue } from "@/registry/lib/audit"
-import { hasPermission, type LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/auth"
 import type { MockAccountSeed } from "@/registry/lib/mock-account"
 import {
   auditChanges,
@@ -61,6 +61,7 @@ import {
 import {
   inMockCompany,
   isMockSharedLocked,
+  mockGrantsAllRecords,
   withMockDeniedActions,
 } from "@/registry/lib/mock-scope"
 import { pinnedFirst } from "@/registry/lib/pins"
@@ -418,7 +419,7 @@ export function createResourceHandlers<T extends MockRecord>({
     }
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    if (!hasPermission(access.permissions, resource, action)) {
+    if (!mockGrantsAllRecords(access.permissions, resource, action)) {
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing permission ${resource}:${action}`,

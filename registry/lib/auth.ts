@@ -72,8 +72,8 @@ import {
 import { inviteChecker } from "@/registry/lib/invite-check"
 import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
-import { recordDenial } from "@/registry/lib/record-access"
-import { createRolesApi, type RolesApi } from "@/registry/lib/roles"
+import { kitAction, recordDenial } from "@/registry/lib/record-access"
+import { createRolesApi, grants, type RolesApi } from "@/registry/lib/roles"
 import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
 import { createWebhooksApi, type WebhooksApi } from "@/registry/lib/webhooks"
@@ -269,32 +269,21 @@ export const ME_QUERY_KEY = ["erp-ui", "me"] as const
 /** Скільки чекати на `POST /auth/logout`, перш ніж вважати вихід невдалим. */
 const LOGOUT_TIMEOUT_MS = 10_000
 
-/** Дії ra-core (`useCanAccess`, вбудовані контролери) → дії прав erp-ui; `Map` — без ключів прототипу. */
-const RA_ACTIONS = new Map([
-  ["list", "read"],
-  ["show", "read"],
-  ["export", "read"],
-  ["edit", "update"],
-])
-
-/** Дія прав erp-ui для дії ra-core (`edit` → `update`), своя — як є. */
-export const kitAction = (action: string): string =>
-  RA_ACTIONS.get(action) ?? action
+// Перекладач назв дій живе в lib/record-access (ADR-0037); старі імпорти з цього файлу працюють.
+export { kitAction }
 
 /**
- * Чи дозволяє набір прав дію: точний збіг, `<ресурс>:*` або `*`.
- * Дії ra-core (`list`, `show`, `edit`) зводяться до `read` і `update`.
+ * Чи дозволяє набір прав дію: точний збіг, `<ресурс>:*`, `*` або дія лише над своїми записами
+ * (`<ресурс>:<дія>:own`, `grants` з lib/roles). Дії ra-core (`list`, `show`, `edit`) зводяться до
+ * `read` і `update`. «Свої» — право ролі: що з конкретним записом, каже позначка сервера
+ * `deniedActions` (ADR-0037).
  */
 export function hasPermission(
   permissions: readonly string[],
   resource: string,
   action: string,
 ): boolean {
-  const normalized = kitAction(action)
-  return permissions.some(
-    (p) =>
-      p === "*" || p === `${resource}:*` || p === `${resource}:${normalized}`,
-  )
+  return grants(permissions, resource, kitAction(action))
 }
 
 /* --------------------------------- Помилки --------------------------------- */
@@ -794,7 +783,7 @@ export function createAuthProvider(
     },
 
     async canAccess({ resource, action, record }) {
-      if (recordDenial(record, kitAction(action))) return false
+      if (recordDenial(record, action)) return false
       return hasPermission((await loadMe()).permissions, resource, action)
     },
   }

@@ -136,7 +136,8 @@ export async function waitForMenuFocus(page: Page): Promise<void> {
 /**
  * Пункт підменю (мова, палітра…) клавіатурою; меню вже відкрите. `click()` Playwright «стрибає» на
  * пункт без руху вказівника, і на завантаженій машині (CI) підменю, що ще з'являється, закривається;
- * клавіатура від таймінгу не залежить.
+ * клавіатура від таймінгу не залежить. Вказівник, що лишився над меню після кліку по пункті, при
+ * перемальовуванні (зміна теми) підсвічує пункт під собою й забирає фокус у підменю — відводимо його.
  */
 export async function chooseInSubmenu(
   page: Page,
@@ -144,6 +145,7 @@ export async function chooseInSubmenu(
   item: string,
 ): Promise<void> {
   await waitForMenuFocus(page)
+  await page.mouse.move(0, 0)
   await page.getByRole("menuitem", { name: submenu }).focus()
   await page.keyboard.press("ArrowRight")
   await page.getByRole("menuitemradio", { name: item }).focus()

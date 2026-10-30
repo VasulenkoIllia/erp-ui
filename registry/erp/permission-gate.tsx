@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { useHasPermission, useMe } from "@/registry/hooks/use-me"
-import { kitAction } from "@/registry/lib/auth"
 import { recordDenial } from "@/registry/lib/record-access"
 import { Button } from "@/registry/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
@@ -37,7 +36,7 @@ export function PermissionGate({
   const { isPending } = useMe()
   const allowed =
     useHasPermission(resource, action) &&
-    recordDenial(record, kitAction(action)) === undefined
+    recordDenial(record, action) === undefined
   if (isPending) return <>{loading}</>
   return <>{allowed ? children : fallback}</>
 }
