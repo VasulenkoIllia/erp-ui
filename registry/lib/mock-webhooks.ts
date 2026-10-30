@@ -14,11 +14,7 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
-import {
-  hasPermission,
-  localizedText,
-  type LocalizedText,
-} from "@/registry/lib/auth"
+import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
@@ -39,6 +35,7 @@ import {
 } from "@/registry/lib/mock-server"
 import {
   inMockScope,
+  mockGrantsService,
   ownedByMockCompany,
   withoutMockScope,
 } from "@/registry/lib/mock-scope"
@@ -324,7 +321,7 @@ export function createWebhookHandlers({
     if (!user) return unauthenticated()
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    if (!hasPermission(access.permissions, "webhooks", action))
+    if (!mockGrantsService(access.permissions, "webhooks", action))
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing webhooks:${action}`,

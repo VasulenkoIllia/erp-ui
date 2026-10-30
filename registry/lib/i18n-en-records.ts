@@ -54,6 +54,7 @@ export const enRecords = {
   },
   recordAccess: {
     shared: "Shared record: only a platform administrator can change it",
+    own: "This record is assigned to someone else: you can only change your own records",
     denied: "This action isn't allowed for this record",
   },
   recordForm: {

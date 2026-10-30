@@ -11,8 +11,7 @@ import { contactsMockExtension } from "./B1-contacts-fields"
  * проекту `src/extensions/B1-contacts.ts`. Файли модуля (`registry/modules/B1-contacts`, у проекті —
  * `src/modules/B1-contacts`) для цього не змінювались:
  * - організації: поле «Платник ПДВ» — колонка після коду, фільтр, поле шапки картки й прапорець у
- *   формі після коду; «Відповідальний менеджер» — запис із довідника користувачів: колонка, фільтр,
- *   поле шапки й вибір у формі з пошуком на сервері; статус «Призупинена» — бейдж, вкладка списку й вибір у формі, а статус модуля
+ *   формі після коду; статус «Призупинена» — бейдж, вкладка списку й вибір у формі, а статус модуля
  *   «Неактивна» — інша назва без заміни (`change`, `B1-contacts-fields.ts`); вкладка проекту
  *   «Нотатки» в картці після «Реквізитів»; колонка «Місто» — інша назва, а поле форми — підказка без
  *   заміни (`change`);
@@ -25,7 +24,6 @@ const organizations: OrganizationsExtension = {
   columns: {
     add: [
       { id: "vatPayer", place: { after: "code" }, minWidth: 8, priority: 4 },
-      { id: "manager", place: { after: "city" }, minWidth: 12, priority: 6 },
     ],
     // Колонка модуля без заміни: інша назва, вміст і поведінка — від модуля.
     change: [
@@ -33,10 +31,7 @@ const organizations: OrganizationsExtension = {
     ],
   },
   form: {
-    add: [
-      { id: "vatPayer", place: { after: "code" } },
-      { id: "manager", place: { after: "segments" } },
-    ],
+    add: [{ id: "vatPayer", place: { after: "code" } }],
     change: [
       {
         id: "city",
@@ -47,9 +42,9 @@ const organizations: OrganizationsExtension = {
       },
     ],
   },
-  filters: { add: [{ id: "vatPayer" }, { id: "manager" }] },
+  filters: { add: [{ id: "vatPayer" }] },
   recordFields: {
-    add: [{ id: "vatPayer", place: { after: "type" } }, { id: "manager" }],
+    add: [{ id: "vatPayer", place: { after: "type" } }],
   },
   sections: {
     add: [

@@ -66,11 +66,8 @@ import {
   writeMockSession,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import {
-  mockGrantsAllRecords,
-  ownedByMockCompany,
-  withoutMockScope,
-} from "@/registry/lib/mock-scope"
+import { ownedByMockCompany, withoutMockScope } from "@/registry/lib/mock-scope"
+import { permissionScope } from "@/registry/lib/roles"
 
 // erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
 export { CURRENT_IP, mockUserSessions, recordSignIn, setMockAccountSeeds }
@@ -244,6 +241,8 @@ const TOKEN_ACTIONS: { action: string; label: LocalizedText }[] = [
   { action: "update", label: { uk: "Зміна", en: "Update" } },
   { action: "delete", label: { uk: "Видалення", en: "Delete" } },
 ]
+/** Позначка дії токена лише над своїми записами власника. */
+const OWN_TOKEN_SCOPE: LocalizedText = { uk: "лише свої", en: "own only" }
 
 /** Токен без секрету — те, що бачить список. */
 const publicToken = (token: MockApiToken): ApiToken => {
@@ -275,14 +274,22 @@ export function createAccountHandlers({
    */
   const tokenScopes = (permissions: readonly string[], language: string) =>
     Object.entries(apiResources).flatMap(([resource, label]) =>
-      // Токен — лише дії над усіма записами: обсягу «Свої» токен не має (ADR-0038).
-      TOKEN_ACTIONS.filter(({ action }) =>
-        mockGrantsAllRecords(permissions, resource, action),
-      ).map(({ action, label: actionLabel }) => ({
-        id: `${resource}:${action}`,
-        label: localizedText(actionLabel, language) ?? action,
-        group: localizedText(label, language) ?? resource,
-      })),
+      // Токен не ширший за людину: на «Свої» — лише записи, де вона відповідальна (ADR-0039).
+      TOKEN_ACTIONS.flatMap(({ action, label: actionLabel }) => {
+        const scope = permissionScope(permissions, resource, action)
+        if (!scope) return []
+        const group = localizedText(label, language) ?? resource
+        const name = localizedText(actionLabel, language) ?? action
+        return scope === "all"
+          ? [{ id: `${resource}:${action}`, label: name, group }]
+          : [
+              {
+                id: `${resource}:${action}:own`,
+                label: `${name} (${localizedText(OWN_TOKEN_SCOPE, language) ?? ""})`,
+                group,
+              },
+            ]
+      }),
     )
 
   return [

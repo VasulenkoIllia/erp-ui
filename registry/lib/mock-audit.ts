@@ -19,11 +19,7 @@ import {
   type AuditEvent,
   type AuditValue,
 } from "@/registry/lib/audit"
-import {
-  hasPermission,
-  localizedText,
-  type LocalizedText,
-} from "@/registry/lib/auth"
+import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
@@ -40,7 +36,11 @@ import {
   unauthenticated,
   type MockScope,
 } from "@/registry/lib/mock-server"
-import { inMockScope, withoutMockScope } from "@/registry/lib/mock-scope"
+import {
+  inMockScope,
+  mockGrantsService,
+  withoutMockScope,
+} from "@/registry/lib/mock-scope"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 
 /* ----------------------------------- Стан ----------------------------------- */
@@ -275,7 +275,7 @@ export function createAuditHandlers({
     if (!user) return unauthenticated()
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    if (!hasPermission(access.permissions, "audit", "read"))
+    if (!mockGrantsService(access.permissions, "audit", "read"))
       return errorResponse(403, {
         code: "forbidden",
         message: "Missing audit:read",

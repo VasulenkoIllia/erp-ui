@@ -5,13 +5,15 @@
  */
 import { edrpouCheckDigit, rnokppCheckDigit } from "@/lib/ua-ids"
 
-import type {
-  Address,
-  BankAccount,
-  Contact,
-  Organization,
-  OrganizationDetail,
-  Segment,
+import {
+  CONTACTS,
+  ORGANIZATIONS,
+  type Address,
+  type BankAccount,
+  type Contact,
+  type Organization,
+  type OrganizationDetail,
+  type Segment,
 } from "./contract"
 import {
   BANKS,
@@ -34,6 +36,15 @@ export interface ContactsFixtureOptions {
   readonly locale?: FixtureLocale
   /** Компанія користувача (тенант) запису № i; за замовчуванням — спільний для всіх (`null`). */
   readonly companyOf?: (index: number) => string | null
+  /**
+   * Відповідальний запису № i (`id` людини компанії запису); за замовчуванням — нікого (`null`).
+   * `resource` — організації чи контакти: щоб контакт міг належати не тому, кому його організація.
+   */
+  readonly responsibleOf?: (
+    index: number,
+    companyId: string | null,
+    resource: typeof ORGANIZATIONS | typeof CONTACTS,
+  ) => string | null
 }
 
 export interface ContactsFixtures {
@@ -122,6 +133,7 @@ function contactsFor(
   organizations: readonly Organization[],
   locale: FixtureLocale,
   companyOf: (index: number) => string | null,
+  responsibleOf: NonNullable<ContactsFixtureOptions["responsibleOf"]>,
 ): Contact[] {
   return Array.from({ length: CONTACT_COUNT }, (_, i) => {
     const first = at(FIRST_NAMES, i)
@@ -131,6 +143,9 @@ function contactsFor(
     const name =
       locale === "uk" ? `${first} ${last}` : `${latin(first)} ${latin(last)}`
     const login = `${latin(first).toLowerCase()}.${latin(last).toLowerCase()}`
+    const companyId = organization
+      ? (organization.companyId ?? null)
+      : companyOf(i)
     return {
       id: `contact-${pad(i + 1, 3)}`,
       version: 1,
@@ -142,7 +157,8 @@ function contactsFor(
         ? `${login}@${domainOf(at(ORGANIZATION_NAMES, i))}`
         : `${login}@example.com`,
       segments: i % 4 === 0 ? ["seg-key"] : [],
-      companyId: organization ? (organization.companyId ?? null) : companyOf(i),
+      companyId,
+      responsibleId: responsibleOf(i, companyId, CONTACTS),
     }
   })
 }
@@ -150,6 +166,7 @@ function contactsFor(
 export function createContactsFixtures({
   locale = "uk",
   companyOf = () => null,
+  responsibleOf = () => null,
 }: ContactsFixtureOptions = {}): ContactsFixtures {
   const segments: Segment[] = SEGMENTS.map((segment) => ({
     id: segment.id,
@@ -177,6 +194,7 @@ export function createContactsFixtures({
       status: statusOf(i),
       segments: segmentsOf(i),
       companyId: companyOf(i),
+      responsibleId: responsibleOf(i, companyOf(i), ORGANIZATIONS),
     }
     details.set(organization.id, detailOf(organization, i, locale))
     return organization
@@ -185,6 +203,6 @@ export function createContactsFixtures({
     segments,
     organizations,
     details,
-    contacts: contactsFor(organizations, locale, companyOf),
+    contacts: contactsFor(organizations, locale, companyOf, responsibleOf),
   }
 }

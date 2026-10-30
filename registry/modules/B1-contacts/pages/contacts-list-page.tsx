@@ -18,6 +18,7 @@ import { isPinned } from "@/lib/pins"
 import { AccessAction, useOpener } from "../components/access-action"
 import { useContactColumns } from "../components/contact-columns"
 import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
+import { useAnnounceHandover, useResponsible } from "../components/responsible"
 import { useSegmentFilter } from "../components/segments"
 import { CONTACTS, type Contact } from "../contract"
 import type { ContactColumnId, ContactIds, ContactTabId } from "../extension"
@@ -52,6 +53,7 @@ export function ContactsListPage() {
   const t = useContactsT()
   const { paths } = useContactsModule()
   const navigate = useNavigate()
+  const announceHandover = useAnnounceHandover(CONTACTS)
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("contacts.title"))
@@ -94,7 +96,8 @@ export function ContactsListPage() {
           }}
           onSaved={(contact) => {
             setCreating(false)
-            void navigate(paths.contact(String(contact.id)))
+            if (!announceHandover(contact))
+              void navigate(paths.contact(String(contact.id)))
           }}
         />
       ) : null}
@@ -108,9 +111,10 @@ function ContactList() {
   const [searchParams, setSearchParams] = useSearchParams()
   const columns = useContactColumns()
   const segmentFilter = useSegmentFilter(t("contacts.filters.segments"))
+  const { filter: responsibleFilter } = useResponsible()
   const filters = useMemo(
-    () => [{ ...segmentFilter, id: "segments" as const }],
-    [segmentFilter],
+    () => [{ ...segmentFilter, id: "segments" as const }, responsibleFilter],
+    [segmentFilter, responsibleFilter],
   )
   const tabs = useMemo(
     () =>

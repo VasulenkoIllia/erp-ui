@@ -133,7 +133,7 @@ test.describe("скриншоти кроку 1.4b2b @screenshots", () => {
           seed,
           width,
           `${TWO_ACCOUNTS}?tab=bankAccounts`,
-          USERS.sales,
+          USERS.lead,
         )
         await expect(
           page.getByRole("button", { name: "Додати рахунок" }),

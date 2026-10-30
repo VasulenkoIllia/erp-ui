@@ -110,7 +110,7 @@ test.describe("B1: контакти", () => {
     page,
   }) => {
     await openWith(page, {}, "/#/m/B1/contacts/contact-001", {
-      user: USERS.sales,
+      user: USERS.lead,
     })
     const field = page.getByRole("textbox", { name: "Організація контакту" })
     await expect(field).toHaveAttribute("readonly")

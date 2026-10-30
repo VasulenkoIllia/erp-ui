@@ -24,8 +24,9 @@ import {
 
 /**
  * Крок A2c2b1 (ADR-0038): «Свої / Усі» в моках ролей — каталог з `own`, `:own` лише для дії з
- * вибором (ресурси кіта вибору не мають), «стеля» з обсягом, `GET /me`. Записи моків до A2c2b2
- * відповідального не мають, тож дія лише над своїми — 403, а токен API — лише дії над усіма.
+ * вибором (ресурси кіта вибору не мають), «стеля» з обсягом, `GET /me`. Ресурс без відповідального
+ * «своїх» записів не має, тож дія лише над своїми в ньому — 403 (`notes`). Записи з відповідальним —
+ * `own-records-mocks.test.ts`.
  */
 
 const BASE = "http://erp.test/api/v1"
@@ -229,7 +230,7 @@ describe("моки ролей: «Свої / Усі»", () => {
     ).toBe(false)
   })
 
-  it("до відповідального в записах дія лише над своїми — 403, а не всі записи", async () => {
+  it("ресурс без відповідального: дія лише над своїми — 403, а не всі записи", async () => {
     signInMock("m1")
     expect(await statusOf(client.get("/notes"))).toBe(403)
     expect(
@@ -264,9 +265,9 @@ describe("моки ролей: «Свої / Усі»", () => {
     expect(await statusOf(client.post(`/jobs/${jobId}/retry`))).toBe(403)
   })
 
-  it("токен API — лише дії над усіма записами", async () => {
+  it("токен API не ширший за людину: на «Свої» — лише дія над своїми", async () => {
     signInMock("u2")
-    expect(await tokenScopes()).toEqual(["notes:read"])
+    expect(await tokenScopes()).toEqual(["notes:read", "notes:update:own"])
     await auth.reauthenticate({ password: "demo-password" })
     expect(
       await statusOf(

@@ -308,7 +308,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -580,7 +580,23 @@ export const CODE_ITEMS = {
   "lib/mock-scope": {
     title: "Чиї дані й події в моках",
     description:
-      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037); mockGrantsAllRecords — дія над усіма записами для записів, масових дій і токенів API (ADR-0038).",
+      "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон запису для того, хто питає (ADR-0037); «свої» записи й правила проекту: mockGrantsRecords, mockSeesRecord, mockDeniedAction; mockGrantsService — службове право лише «Усі» (ADR-0038).",
+    status: "beta",
+    demo: "data",
+    spec: ["A2", "§17"],
+  },
+  "lib/mock-responsible": {
+    title: "Відповідальний у моках",
+    description:
+      "Автор під час створення й перевірка, кому можна передати запис: людина компанії запису, активна, з правом бачити ресурс (ADR-0039).",
+    status: "beta",
+    demo: "data",
+    spec: ["A2", "§17"],
+  },
+  "lib/mock-catalog-check": {
+    title: "Звірка прав моків із каталогом",
+    description:
+      "Попередження в консолі про право поза каталогом у початкових ролях, MockUser.permissions і ролях із localStorage (ADR-0039).",
     status: "beta",
     demo: "data",
     spec: ["A2", "§17"],

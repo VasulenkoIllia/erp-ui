@@ -24,6 +24,10 @@ import {
 import type { ContactDetailRowId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
+import {
+  useContactOrganization,
+  useHiddenOrganizationText,
+} from "./contact-organization"
 import { RequisiteList, type Requisite } from "./requisite-list"
 import { RecordSegments } from "./segments"
 
@@ -107,6 +111,14 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
   const fieldId = useId()
   const reasonId = useId()
   const describe = useOrganizationDescription()
+  const hiddenText = useHiddenOrganizationText()
+  const linked = useContactOrganization(contact.organizationId)
+  // Прихованої організації не відкрити: посилання на її картку привело б до «не знайдено».
+  const isHidden =
+    hiddenText !== undefined &&
+    !linked.organization &&
+    !linked.isPending &&
+    !linked.isError
   return (
     <div className="max-w-md space-y-3">
       {/* Поле не вимикається на час збереження: інакше фокус з нього зникає (WCAG 2.4.3). */}
@@ -130,6 +142,7 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
             searchPlaceholder={t("contact.organization.searchPlaceholder")}
             clearable
             readOnly={!canAccess}
+            missingLabel={hiddenText}
             aria-describedby={recordReason ? reasonId : undefined}
           />
         )}
@@ -137,7 +150,7 @@ export function ContactOrganizationSection({ contact }: { contact: Contact }) {
           <FieldDescription id={reasonId}>{recordReason}</FieldDescription>
         ) : null}
       </Field>
-      {contact.organizationId ? (
+      {isHidden ? null : contact.organizationId ? (
         <RecordLink
           to={paths.organization(contact.organizationId)}
           preload={preload}

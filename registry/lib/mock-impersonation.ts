@@ -6,7 +6,6 @@
  */
 import { http, type HttpHandler } from "msw/http"
 
-import { hasPermission } from "@/registry/lib/auth"
 import {
   actorOf,
   recordSignIn,
@@ -27,6 +26,7 @@ import {
   unauthenticated,
   writeMockSession,
 } from "@/registry/lib/mock-server"
+import { mockGrantsService } from "@/registry/lib/mock-scope"
 import { impersonationBlock } from "@/registry/lib/roles"
 
 export interface ImpersonationMockOptions {
@@ -52,7 +52,7 @@ export function createImpersonationHandlers({
       // Права обох — у компанії запиту (ADR-0034).
       const access = mockRequestPermissions(request, admin)
       if (access instanceof Response) return access
-      if (!hasPermission(access.permissions, "users", "impersonate"))
+      if (!mockGrantsService(access.permissions, "users", "impersonate"))
         return errorResponse(403, {
           code: "forbidden",
           message: "Missing users:impersonate",

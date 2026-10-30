@@ -16,6 +16,7 @@ import type { OrganizationColumnId } from "../extension"
 import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { cellText } from "./cell-text"
+import { useResponsible } from "./responsible"
 import { SegmentBadges, useSegments } from "./segments"
 
 type OrganizationColumn = DataTableColumn<Organization> & {
@@ -31,7 +32,7 @@ export const codeLabelKey = (type: OrganizationType) =>
 
 /**
  * Колонки списку організацій: закріплення, назва-посилання на картку, статус, код, сегменти, місто,
- * телефон; на телефоні — картки (назва, статус-бейдж). Ключі — `OrganizationColumnId`.
+ * відповідальний, телефон; на телефоні — картки (назва, статус-бейдж). Ключі — `OrganizationColumnId`.
  */
 export function useOrganizationColumns(
   statuses: ResolvedStatuses,
@@ -39,6 +40,7 @@ export function useOrganizationColumns(
   const t = useContactsT()
   const { paths, preload } = useContactsModule()
   const segments = useSegments()
+  const { column: responsible } = useResponsible()
   const pin = usePinColumn<Organization>({
     resource: ORGANIZATIONS,
     name: organizationName,
@@ -105,6 +107,7 @@ export function useOrganizationColumns(
         priority: 5,
         overflow: "wrap",
       },
+      responsible,
       {
         id: "phone",
         header: t("organizations.columns.phone"),
@@ -118,6 +121,6 @@ export function useOrganizationColumns(
         overflow: "wrap",
       },
     ],
-    [t, pin, paths, preload, segments, statuses],
+    [t, pin, paths, preload, segments, statuses, responsible],
   )
 }

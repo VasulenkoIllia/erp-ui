@@ -89,7 +89,7 @@ test.describe("скриншоти кроку 1.3a @screenshots", () => {
 
   test("picker create denied sapphire light 1440", async ({ page }) => {
     test.skip(skip())
-    await open(page, { palette: "sapphire", theme: "light" }, 1440, USERS.sales)
+    await open(page, { palette: "sapphire", theme: "light" }, 1440, USERS.lead)
     await company(page).click()
     await expect(
       page.getByRole("option", { name: /Створити новий…/ }),

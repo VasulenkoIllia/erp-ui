@@ -28,15 +28,23 @@ import type { Contact, Organization, OrganizationStatus } from "./contract"
 import type ukMessages from "./i18n/uk.json"
 
 export type OrganizationColumnId =
-  "pin" | "name" | "status" | "code" | "segments" | "city" | "phone"
-export type OrganizationFilterId = "type" | "segments"
+  | "pin"
+  | "name"
+  | "status"
+  | "code"
+  | "segments"
+  | "city"
+  | "responsibleId"
+  | "phone"
+export type OrganizationFilterId = "type" | "segments" | "responsibleId"
 /**
  * Вкладки списку організацій: «Усі» і статуси. Статус розширення — теж вкладка з його ключем, тож
  * ключ вкладки — будь-який рядок; підказки редактора — ключі модуля.
  */
 export type OrganizationTabId = "all" | OrganizationStatus | (string & {})
 /** Ключові поля шапки картки організації. */
-export type OrganizationFieldId = "code" | "type" | "city" | "phone"
+export type OrganizationFieldId =
+  "code" | "type" | "city" | "phone" | "responsibleId"
 /** Рядки вкладки «Реквізити» картки організації. */
 export type OrganizationDetailRowId =
   "code" | "iban" | "phone" | "email" | "city" | "segments"
@@ -46,13 +54,29 @@ export type OrganizationSectionId =
 export type OrganizationActionId = "edit" | "pin"
 /** Поля форми організації (ключ — ім'я поля запису). */
 export type OrganizationFormFieldId =
-  "name" | "type" | "code" | "status" | "phone" | "email" | "city" | "segments"
+  | "name"
+  | "type"
+  | "code"
+  | "status"
+  | "phone"
+  | "email"
+  | "city"
+  | "segments"
+  | "responsibleId"
 
 export type ContactColumnId =
-  "pin" | "name" | "organization" | "position" | "phone" | "email" | "segments"
-export type ContactFilterId = "segments"
+  | "pin"
+  | "name"
+  | "organization"
+  | "responsibleId"
+  | "position"
+  | "phone"
+  | "email"
+  | "segments"
+export type ContactFilterId = "segments" | "responsibleId"
 export type ContactTabId = "all" | "representatives" | "private"
-export type ContactFieldId = "organization" | "position" | "phone" | "email"
+export type ContactFieldId =
+  "organization" | "position" | "phone" | "email" | "responsibleId"
 /** Рядки секції «Подробиці» картки контакту. */
 export type ContactDetailRowId = "phone" | "email" | "position" | "segments"
 /** Секції картки контакту. */
@@ -60,7 +84,13 @@ export type ContactSectionId = "details" | "organization"
 export type ContactActionId = "edit" | "pin"
 /** Поля форми контакту (ключ — ім'я поля запису). */
 export type ContactFormFieldId =
-  "name" | "organizationId" | "position" | "phone" | "email" | "segments"
+  | "name"
+  | "organizationId"
+  | "position"
+  | "phone"
+  | "email"
+  | "segments"
+  | "responsibleId"
 
 /** Ключі модуля для однієї сутності: список і картка. */
 interface EntityIds {

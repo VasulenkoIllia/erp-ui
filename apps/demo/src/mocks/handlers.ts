@@ -18,7 +18,7 @@ import {
   makeInvoices,
   type Invoice,
 } from "@/data/invoices"
-import { organizationCompanyOf } from "@/data/organizations"
+import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 import { COMPANIES } from "@/fixtures"
@@ -112,6 +112,7 @@ const invoiceBulk = createBulkHandlers<Invoice>({
 const contacts = createContactsMocks({
   extension: contactsMockExtension,
   companyOf: organizationCompanyOf,
+  responsibleOf,
 })
 
 /**

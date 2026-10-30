@@ -22,6 +22,7 @@ import {
   usePreloadForm,
 } from "../components/form-dialogs"
 import { useOrganizationStatuses } from "../components/organization-statuses"
+import { useAnnounceHandover, useResponsible } from "../components/responsible"
 import { useSegmentFilter } from "../components/segments"
 import {
   ORGANIZATION_TYPES,
@@ -44,14 +45,16 @@ const LOCKED_COLUMNS: readonly OrganizationColumnId[] = ["name"]
 
 /**
  * Список організацій на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0024): вкладки за
- * статусом (зі статусами розширення), фільтри «Тип» і «Сегменти», пошук за назвою чи кодом,
+ * статусом (зі статусами розширення), фільтри «Тип», «Сегменти» й «Відповідальний», пошук за назвою чи кодом,
  * закріплення вгорі, запам'ятаний розмір сторінки; назва — посилання на картку з вкладками.
- * «Створити організацію» — форма в діалозі (ADR-0026), після створення — картка нової організації.
+ * «Створити організацію» — форма в діалозі (ADR-0026), після створення — картка нової організації,
+ * а створена на колегу людиною, що бачить лише свої, лишає її в списку (ADR-0039).
  */
 export function OrganizationsListPage() {
   const t = useContactsT()
   const { paths } = useContactsModule()
   const navigate = useNavigate()
+  const announceHandover = useAnnounceHandover(ORGANIZATIONS)
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("organizations.title"))
@@ -95,7 +98,8 @@ export function OrganizationsListPage() {
           }}
           onSaved={(organization) => {
             setCreating(false)
-            void navigate(paths.organization(String(organization.id)))
+            if (!announceHandover(organization))
+              void navigate(paths.organization(String(organization.id)))
           }}
         />
       ) : null}
@@ -110,6 +114,7 @@ function OrganizationList() {
   const statuses = useOrganizationStatuses()
   const columns = useOrganizationColumns(statuses)
   const segmentFilter = useSegmentFilter(t("organizations.filters.segments"))
+  const { filter: responsibleFilter } = useResponsible()
   const filters = useMemo(
     () => [
       {
@@ -123,8 +128,9 @@ function OrganizationList() {
         })),
       },
       { ...segmentFilter, id: "segments" as const },
+      responsibleFilter,
     ],
-    [t, segmentFilter],
+    [t, segmentFilter, responsibleFilter],
   )
   const tabs = useMemo(
     () => [

@@ -235,6 +235,36 @@
 - `erp/role-matrix`: «Усе», якого не змінити лише через обсяг, — з причиною `roles.scopeCeilingHint`; пунктир рамки перемикача — від `aria-readonly`.
 - `tools/e2e`: `chooseInSubmenu` відводить вказівник перед клавіатурою (тест меню користувача в оболонці падав 4 з 5 на завантаженому Mac).
 
+Крок A2c2b2 (ADR-0039): «Свої записи». Публічний API — лише доповнення, крім нових полів модуля B1. Що помітить проект:
+
+- **Модуль B1 отримав поле «Відповідальний»** (`responsibleId`): колонка й фільтр у списках організацій і контактів, поле шапки картки, вибір у формі. Поле читає довідник `users`. Проект без `users` чи без цього поля ховає його файлом розширення ключем `responsibleId` у `columns`, `filters`, `recordFields` і `form` (`hide`) організацій і контактів, інакше побачить «—» чи помилку вибору в цьому полі.
+- `responsibleId` тепер ім'я поля модуля: поле розширення з таким `id` дає помилку `extendSchema` під час збирання схеми. Перейменуйте своє поле.
+- Форма B1 під час створення надсилає `responsibleId: null`, якщо людина не вибрала колегу: бекенд ставить автора чи ігнорує поле.
+- Бекенд із «своїми» записами: `responsibleId` у рядках списку, картці, `POST`, `PATCH` і `current` 409; автор під час створення; перевірка передачі; `read:own` на всіх шляхах читання (чужа картка — 404); позначка `deniedActions` з кодом `own` і 403 на дію; токен API в межах обсягу людини (`docs/SPEC.md`, §17).
+- `useRecordForm` після 403 чи 404 під час збереження перечитує записи ресурсу: доступ береться з картки, а не з запису форми.
+- Моки: запис без жодного права `read` прихований (`PATCH`, `DELETE` — 404, масова дія — `not_found`), раніше дія проходила. Службові перевірки моків беруть лише «Усі»: рядок `:own` у `users`, `roles`, `security`, `audit`, `webhooks`, `company` нічого не дає.
+- `MockResourceDb` має новий `accessOf`, тож `MockResourceDb<Invoice>` більше не присвоюється `MockResourceDb<MockRecord>`. `db.select(filter, companyId)` працює, як раніше.
+- `mockGrantsAllRecords` прибрано (його не було у випуску).
+- Нові рядки кіта `recordAccess.own`, `responsible.*` і `contact.organization.hidden` у просторі імен `B1-contacts`: проект зі своїм мовним пакетом кіта додає їх.
+- Демо: роль «Менеджер з продажу» працює лише зі своїми клієнтами; перевірки «лише дивиться» в e2e перейшли на людину `USERS.lead`.
+
+### Додано — A2c2b2 (ADR-0039)
+
+- Модуль `modules/B1-contacts`: `RESPONSIBLE_ID`, `responsibleExtensionField`, поле `responsibleId` у схемах організації й контакту, `components/responsible` (`useResponsible`, `useResponsibleForm`, `useOwnScope`, `useAnnounceHandover`, `useLeaveAfterTransfer`), «Організація прихована» в колонці, шапці й полі вибору.
+- `createResourceHandlers`: опції `responsibleField` (поле відповідального: «свої» записи для `<ресурс>:<дія>:own`, автор під час створення, передача) і `deniedActions` (свій код проекту: `(actor, record) => RecordDeniedActions | undefined`).
+- `lib/mock-responsible`: `withMockResponsible`, `mockResponsibleErrors`. `lib/mock-catalog-check`: `warnOutsideMockCatalog` — попередження про право поза каталогом.
+- `lib/mock-scope`: `MockRecordAccess`, `MockRecordRules`, `MockDeniedRule`, `MockScopedRecord`, `mockGrantsRecords`, `mockSeesRecord`, `mockDeniedAction`, `mockGrantsService`; `withMockDeniedActions` приймає третім аргументом рядок відповіді.
+- `lib/record-access`: код `own`. `erp/record-picker`: проп `missingLabel`.
+- Демо: відповідальні в засіві (`responsibleOf`), права ролі «Менеджер з продажу» лише на свої.
+- Тести: `src/kit/own-records-mocks.test.ts`, `src/kit/own-records-bulk-mocks.test.ts`, спільне `src/kit/own-records-fixture.ts`, «Відповідальний» у `src/kit/contacts-card-extension.test.tsx`, `e2e/own-records.spec.ts`.
+
+### Змінено — A2c2b2
+
+- `lib/mocks`, `lib/mock-jobs`: обсяг `read:own` на всіх шляхах читання, 403 `own` раніше за 409 і 422, масова дія перевіряє обсяг на кожен запис, повтор бере права на момент повтору.
+- `lib/mock-account`: токени API в обсязі людини (`<ресурс>:<дія>:own`, «лише свої»).
+- `lib/mock-team`, `lib/mock-admin`, `lib/mock-audit`, `lib/mock-webhooks`, `lib/mock-company`, `lib/mock-impersonation`, `lib/mock-invitation-store`, `modules/A2-users`: службові перевірки через `mockGrantsService`.
+- Демо-поле «Відповідальний менеджер» стало полем модуля B1.
+
 ## [1.0.1] — 2026-10-21
 
 Патч-версія (крок fix-kit-deps, ADR-0029, доповнення fix-kit-deps): команда оновлення кіта більше не змінює залежностей проекту. Публічний API не змінився, файли розширення й адаптера змінювати не треба.

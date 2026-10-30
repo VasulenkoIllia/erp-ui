@@ -148,7 +148,7 @@ test.describe("A2: ролі й права", () => {
   test("«Свої / Усі»: перемикач поруч з увімкненою дією, клавіатура, збереження", async ({
     page,
   }) => {
-    await openWith(page, {}, `${ROLES}?role=sales`)
+    await openWith(page, {}, `${ROLES}?role=lead`)
     await expect(
       page.getByText(
         "«Свої»: записи, за які людина відповідальна. «Усі»: усі записи компанії.",

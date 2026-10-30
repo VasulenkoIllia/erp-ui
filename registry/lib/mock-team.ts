@@ -21,11 +21,7 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
-import {
-  hasPermission,
-  localizedText,
-  type LocalizedText,
-} from "@/registry/lib/auth"
+import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import { auditChanges, recordAudit } from "@/registry/lib/mock-audit"
 import {
   applyMockRoles,
@@ -47,6 +43,7 @@ import {
   withoutCompanyRole,
 } from "@/registry/lib/mock-company-roles"
 import { beyondCeiling } from "@/registry/lib/mock-account-state"
+import { warnOutsideMockCatalog } from "@/registry/lib/mock-catalog-check"
 import {
   acceptMockInvitation,
   findMockInvitation,
@@ -71,6 +68,7 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { mockGrantsService } from "@/registry/lib/mock-scope"
 import {
   canChangePermissions,
   canChangeRoles,
@@ -183,7 +181,7 @@ export function createTeamHandlers({
   ): MockUser | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
-    if (!hasPermission(permissions ?? user.permissions, resource, action))
+    if (!mockGrantsService(permissions ?? user.permissions, resource, action))
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing ${resource}:${action}`,
@@ -227,6 +225,7 @@ export function createTeamHandlers({
           : {}),
       })),
     }))
+  warnOutsideMockCatalog(catalog("uk"))
 
   const publicRole = (
     role: MockRole,

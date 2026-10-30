@@ -49,6 +49,7 @@ function useValueText<T extends RaRecord>(
   current: RecordById<T>,
   value: string | null,
   optionLabel: (record: T) => string,
+  missingLabel: string | undefined,
 ): { label: string; muted: boolean } {
   const t = useErpUiT()
   if (value === null) return { label: "", muted: true }
@@ -57,7 +58,7 @@ function useValueText<T extends RaRecord>(
   if (current.isPending)
     return { label: t("recordPicker.loadingValue"), muted: true }
   if (current.isMissing)
-    return { label: t("recordPicker.missing"), muted: true }
+    return { label: missingLabel ?? t("recordPicker.missing"), muted: true }
   // Як підпис у списку й шапці (`RecordLabel`): немає права читати довідник — не «збій».
   if (isApiError(current.error) && current.error.status === 403)
     return { label: t("recordPicker.valueForbidden"), muted: true }
@@ -239,6 +240,7 @@ export function useRecordPicker<T extends RaRecord>({
   sort,
   perPage,
   create,
+  missingLabel,
   readOnly,
   disabled,
   onBlur,
@@ -270,7 +272,7 @@ export function useRecordPicker<T extends RaRecord>({
     () => (current.record ? { kind: "record", record: current.record } : null),
     [current.record],
   )
-  const text = useValueText(current, valueId, optionLabel)
+  const text = useValueText(current, valueId, optionLabel, missingLabel)
 
   // Закрити список — вийти з поля (перевірка форми), крім «Створити…»: людина ще заповнює поле.
   // Base UI закриває список після вибору ще раз — його вже закрив `select`.

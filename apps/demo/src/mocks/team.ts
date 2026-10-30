@@ -41,13 +41,17 @@ export const ROLES: MockRole[] = [
     id: "sales",
     name: { uk: "Менеджер з продажу", en: "Sales manager" },
     description: {
-      uk: "Бачить рахунки своїх клієнтів",
-      en: "Sees their clients' invoices",
+      uk: "Бачить і змінює лише своїх клієнтів, може створювати нових",
+      en: "Sees and changes only their own clients, can add new ones",
     },
     permissions: [
       "invoices:read",
-      "organizations:read",
-      "contacts:read",
+      "organizations:read:own",
+      "organizations:create",
+      "organizations:update:own",
+      "contacts:read:own",
+      "contacts:create",
+      "contacts:update:own",
       "segments:read",
     ],
   },
@@ -103,14 +107,14 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Організації", en: "Organizations" },
     group: SALES,
     actions: ["read", "create", "update", "delete"],
-    // «Свої / Усі» (A2c2b1): записи, де людина відповідальна; створений запис і так свій.
+    // «Свої / Усі» (ADR-0038): записи, де людина відповідальна; створений запис і так свій.
     own: ["read", "update", "delete"],
   },
   contacts: {
     label: { uk: "Контакти", en: "Contacts" },
     group: SALES,
     actions: ["read", "create", "update", "delete"],
-    // «Свої / Усі» (A2c2b1): записи, де людина відповідальна; створений запис і так свій.
+    // «Свої / Усі» (ADR-0038): записи, де людина відповідальна; створений запис і так свій.
     own: ["read", "update", "delete"],
   },
   segments: {

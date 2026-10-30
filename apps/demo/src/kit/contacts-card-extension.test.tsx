@@ -9,7 +9,12 @@ import {
   createContactsModule,
   type ContactsExtension,
 } from "@/registry/modules/B1-contacts"
+import { ME_QUERY_KEY } from "@/registry/lib/auth"
 import { useContactColumns } from "@/registry/modules/B1-contacts/components/contact-columns"
+import {
+  useAnnounceHandover,
+  useResponsibleForm,
+} from "@/registry/modules/B1-contacts/components/responsible"
 import { createContactsFixtures } from "@/registry/modules/B1-contacts/fixtures"
 import {
   ContactsModuleContext,
@@ -140,27 +145,101 @@ describe("картка організації B1: ті самі точки ро�
   })
 })
 
+/** Хуки модуля поза сторінкою: контекст модуля без розширення. */
+const moduleWrapper = ({
+  children,
+  queryClient = new QueryClient(),
+}: {
+  children: ReactNode
+  queryClient?: QueryClient
+}) => (
+  <MemoryRouter>
+    <CoreAdminContext dataProvider={dataProvider} queryClient={queryClient}>
+      <ContactsModuleContext.Provider
+        value={{
+          extension: {},
+          paths: contactsPaths(""),
+          preload: () => undefined,
+        }}
+      >
+        {children}
+      </ContactsModuleContext.Provider>
+    </CoreAdminContext>
+  </MemoryRouter>
+)
+
+describe("«Відповідальний» B1 (ADR-0039)", () => {
+  it("у шапці картки; без значення — «—»; `recordFields.hide` ховає поле", async () => {
+    const { unmount } = await renderCard(`/contacts/${CONTACT.id}`)
+    await screen.findByRole("region", { name: "Подробиці" })
+    const label = screen.getByText("Відповідальний")
+    expect(label.parentElement).toHaveTextContent(/—/)
+    unmount()
+    await renderCard(`/contacts/${CONTACT.id}`, {
+      contacts: { recordFields: { hide: ["responsibleId"] } },
+    })
+    await screen.findByRole("region", { name: "Подробиці" })
+    expect(screen.queryByText("Відповідальний")).not.toBeInTheDocument()
+  })
+
+  it("форма: поле модуля стає в кінець, `form.hide` його прибирає, чужі зміни лишаються", () => {
+    const hint = (isNew: boolean, hide: readonly "responsibleId"[]) =>
+      renderHook(
+        () =>
+          useResponsibleForm<"responsibleId" | "segments">(
+            [],
+            { hide },
+            { resource: "contacts", isNew, after: "segments" },
+          ),
+        { wrapper: moduleWrapper },
+      ).result.current
+    expect(hint(true, []).changes?.add).toEqual([
+      {
+        id: "responsibleId",
+        place: { after: "segments" },
+        description: "Якщо не вибрати, відповідальним станете ви.",
+      },
+    ])
+    expect(hint(true, []).fields?.map((field) => field.id)).toEqual([
+      "responsibleId",
+    ])
+    expect(hint(false, []).changes?.add?.[0]?.description).toBeUndefined()
+    expect(hint(true, ["responsibleId"]).fields).toEqual([])
+    expect(hint(true, ["responsibleId"]).changes?.add).toBeUndefined()
+  })
+
+  it("передача: лише тому, хто бачить свої, і лише коли поле є у відповіді", () => {
+    const announcedBy = (permissions: string[]) => {
+      const queryClient = new QueryClient()
+      queryClient.setQueryData(ME_QUERY_KEY, {
+        id: "u1",
+        name: "Іван",
+        email: "i@example.com",
+        roles: [],
+        permissions,
+        companies: [],
+        companyId: null,
+        factors: [],
+      })
+      return renderHook(() => useAnnounceHandover("contacts"), {
+        wrapper: ({ children }) => moduleWrapper({ children, queryClient }),
+      }).result.current
+    }
+    const ownOnly = announcedBy(["contacts:read:own"])
+    expect(ownOnly({ responsibleId: "u2" })).toBe(true)
+    expect(ownOnly({ responsibleId: null })).toBe(true)
+    expect(ownOnly({ responsibleId: "u1" })).toBe(false)
+    // Бекенд без поля «своє» визначає інакше: людина лишається на картці.
+    expect(ownOnly({})).toBe(false)
+    expect(announcedBy(["contacts:read"])({ responsibleId: "u2" })).toBe(false)
+  })
+})
+
 describe("список контактів B1: порожні значення", () => {
   it("порожній телефон — «—», як порожній email", () => {
-    const wrapper = ({ children }: { children: ReactNode }) => (
-      <MemoryRouter>
-        <CoreAdminContext
-          dataProvider={dataProvider}
-          queryClient={new QueryClient()}
-        >
-          <ContactsModuleContext.Provider
-            value={{
-              extension: {},
-              paths: contactsPaths(""),
-              preload: () => undefined,
-            }}
-          >
-            {children}
-          </ContactsModuleContext.Provider>
-        </CoreAdminContext>
-      </MemoryRouter>
-    )
-    const { result } = renderHook(() => useContactColumns(), { wrapper })
+    const { result } = renderHook(() => useContactColumns(), {
+      wrapper: moduleWrapper,
+    })
     const cell = (id: string) =>
       result.current
         .find((column) => column.id === id)

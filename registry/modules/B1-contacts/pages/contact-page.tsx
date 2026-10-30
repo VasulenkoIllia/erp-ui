@@ -34,6 +34,10 @@ import {
   ContactDetails,
   ContactOrganizationSection,
 } from "../components/contact-sections"
+import {
+  useLeaveAfterTransfer,
+  useResponsible,
+} from "../components/responsible"
 import { CONTACTS, type Contact } from "../contract"
 import type {
   ContactActionId,
@@ -62,6 +66,7 @@ export function ContactPage() {
 function ContactCard({ id }: { id: string }) {
   const t = useContactsT()
   const { extension, paths } = useContactsModule()
+  const leaveAfterTransfer = useLeaveAfterTransfer(CONTACTS, paths.contacts)
   const card = useCardRecord<Contact>(CONTACTS, id)
   const contact = card.record
   useHistoryRefresh(contact?.version)
@@ -131,8 +136,9 @@ function ContactCard({ id }: { id: string }) {
           onClose={() => {
             setEditing(false)
           }}
-          onSaved={() => {
+          onSaved={(saved) => {
             setEditing(false)
+            leaveAfterTransfer(saved)
           }}
         />
       ) : null}
@@ -140,7 +146,7 @@ function ContactCard({ id }: { id: string }) {
   )
 }
 
-/** Шапка: ім'я, «Приватна особа», організація, посада, телефон, email і поля розширення. */
+/** Шапка: ім'я, «Приватна особа», організація, посада, телефон, email, відповідальний і поля розширення. */
 function useContactHeader(
   contact: Contact | undefined,
   slotActions: KeyedChanges<ObjectPageAction, ContactActionId> | undefined,
@@ -149,6 +155,7 @@ function useContactHeader(
   const t = useContactsT()
   const { extension } = useContactsModule()
   const extensionFields = useExtensionFields(extension.contacts?.fields)
+  const { headerField } = useResponsible()
   if (!contact) return undefined
   const fields: (RecordField & { id: ContactFieldId })[] = [
     {
@@ -167,6 +174,7 @@ function useContactHeader(
       value: formatPhone(contact.phone),
     },
     { id: "email", label: t("contact.fields.email"), value: contact.email },
+    headerField(contact),
   ]
   const actions: (ObjectPageAction & { id: ContactActionId })[] = [
     {

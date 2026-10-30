@@ -30,7 +30,10 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { useContactChannelItems } from "./contact-channel-fields"
 import { useSegmentItem } from "./segment-field"
-import { ContactOrganization } from "./contact-organization"
+import {
+  ContactOrganization,
+  useHiddenOrganizationText,
+} from "./contact-organization"
 import {
   ORGANIZATION_SORT,
   useOrganizationDescription,
@@ -41,6 +44,7 @@ import {
   useContactFieldSchemas,
 } from "./form-schema"
 import { OrganizationFormDialog } from "./organization-form"
+import { useAnnounceHandover, useResponsibleForm } from "./responsible"
 
 /**
  * Форма контакту в діалозі (ADR-0026): створення зі списку і зміна з картки. Поля модуля — ім'я,
@@ -98,6 +102,7 @@ function useOrganizationItem(
 ): RecordFormItem & { id: "organizationId" } {
   const t = useContactsT()
   const describe = useOrganizationDescription()
+  const hiddenText = useHiddenOrganizationText()
   return {
     id: "organizationId",
     label: t("contact.form.fields.organizationId"),
@@ -130,6 +135,7 @@ function useOrganizationItem(
             sort={ORGANIZATION_SORT}
             searchPlaceholder={t("contact.organization.searchPlaceholder")}
             clearable
+            missingLabel={hiddenText}
             create={{
               onCreate,
               deniedReason: t("organizations.createDenied"),
@@ -236,7 +242,13 @@ export function ContactFormDialog({
   const kitT = useErpUiT()
   const { extension } = useContactsModule()
   const form = extension.contacts?.form
-  const ext = useExtensionForm(extension.contacts?.fields, form)
+  const announceHandover = useAnnounceHandover(ORGANIZATIONS)
+  const responsible = useResponsibleForm(extension.contacts?.fields, form, {
+    resource: CONTACTS,
+    isNew: !contact,
+    after: "segments",
+  })
+  const ext = useExtensionForm(responsible.fields, responsible.changes)
   const hidden = useMemo(() => hiddenFormFields(form, LOCKED_FIELDS), [form])
   const schema = useContactFormSchema(ext.shape, hidden)
   // Конфлікт: `current` розбирає схема з полями розширення — їх видно в порівнянні.
@@ -294,6 +306,7 @@ export function ContactFormDialog({
           }}
           onSaved={(organization) => {
             setCreating(null)
+            announceHandover(organization)
             state.form.setValue("organizationId", String(organization.id), {
               shouldDirty: true,
               shouldTouch: true,

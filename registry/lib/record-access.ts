@@ -34,6 +34,8 @@ export type RecordDeniedActions = Readonly<Record<string, string>>
 export const RECORD_DENIAL_REASONS = {
   /** Спільний запис (без компанії): змінює лише адміністратор платформи (ADR-0036). */
   shared: "shared",
+  /** Чужий запис для дії лише над своїми (`<ресурс>:<дія>:own`, ADR-0038). */
+  own: "own",
 } as const
 
 export type RecordDenialReason =

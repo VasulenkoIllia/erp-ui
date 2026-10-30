@@ -294,7 +294,7 @@ test.describe("B1: адреси й рахунки в картці", () => {
     page,
   }) => {
     await openWith(page, {}, `${TWO_ACCOUNTS}?tab=bankAccounts`, {
-      user: USERS.sales,
+      user: USERS.lead,
     })
     const add = page.getByRole("button", { name: "Додати рахунок" })
     await expect(add).toHaveAttribute("aria-disabled", "true")

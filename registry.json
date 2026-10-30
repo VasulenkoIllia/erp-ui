@@ -1112,6 +1112,11 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -1160,6 +1165,11 @@
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
         },
         {
           "path": "registry/lib/mock-scope.ts",
@@ -1983,6 +1993,11 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -2031,6 +2046,11 @@
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -2973,6 +2993,11 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -3021,6 +3046,11 @@
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -3421,6 +3451,11 @@
           "path": "registry/modules/B1-contacts/components/requisite-list.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B1-contacts/components/requisite-list.tsx"
+        },
+        {
+          "path": "registry/modules/B1-contacts/components/responsible.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B1-contacts/components/responsible.tsx"
         },
         {
           "path": "registry/modules/B1-contacts/components/segment-field.tsx",
@@ -7075,6 +7110,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -7304,6 +7344,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -7537,6 +7582,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -7766,6 +7816,11 @@
           "path": "registry/lib/mock-admin.ts",
           "type": "registry:lib",
           "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -8004,6 +8059,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -8145,6 +8205,242 @@
       }
     },
     {
+      "name": "lib/mock-catalog-check",
+      "type": "registry:lib",
+      "title": "Звірка прав моків із каталогом",
+      "description": "Попередження в консолі про право поза каталогом у початкових ролях, MockUser.permissions і ролях із localStorage (ADR-0039).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "A2",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/mock-company-roles",
       "type": "registry:lib",
       "title": "Ролі компанії в моках",
@@ -8263,6 +8559,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-factors.ts",
@@ -8494,6 +8795,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -8737,6 +9043,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -8966,6 +9277,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -9365,6 +9681,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -9594,6 +9915,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -9842,6 +10168,11 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -9890,6 +10221,11 @@
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",
@@ -10288,6 +10624,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -10571,6 +10912,247 @@
       }
     },
     {
+      "name": "lib/mock-responsible",
+      "type": "registry:lib",
+      "title": "Відповідальний у моках",
+      "description": "Автор під час створення й перевірка, кому можна передати запис: людина компанії запису, активна, з правом бачити ресурс (ADR-0039).",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "devDependencies": [
+        "msw@^3.0.3"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-account.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account.ts"
+        },
+        {
+          "path": "registry/lib/mock-account-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-account-state.ts"
+        },
+        {
+          "path": "registry/lib/mock-admin.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-admin.ts"
+        },
+        {
+          "path": "registry/lib/mock-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
+          "path": "registry/lib/mock-company-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-company-roles.ts"
+        },
+        {
+          "path": "registry/lib/mock-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-factors.ts"
+        },
+        {
+          "path": "registry/lib/mock-impersonation.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-impersonation.ts"
+        },
+        {
+          "path": "registry/lib/mock-inbox.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-inbox.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitation-store.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitation-store.ts"
+        },
+        {
+          "path": "registry/lib/mock-invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-scenarios.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scenarios.ts"
+        },
+        {
+          "path": "registry/lib/mock-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-scope.ts"
+        },
+        {
+          "path": "registry/lib/mock-server.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-in-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-in-flow.ts"
+        },
+        {
+          "path": "registry/lib/mock-sign-up.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-sign-up.ts"
+        },
+        {
+          "path": "registry/lib/mock-team.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "A2",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/mock-scenarios",
       "type": "registry:lib",
       "title": "Сценарії моків",
@@ -10596,7 +11178,7 @@
       "name": "lib/mock-scope",
       "type": "registry:lib",
       "title": "Чиї дані й події в моках",
-      "description": "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон спільного запису для того, хто питає (ADR-0037); mockGrantsAllRecords — дія над усіма записами для записів, масових дій і токенів API (ADR-0038).",
+      "description": "Компанія запиту бачить свої й спільні записи, події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої; спільне в застосунку з компаніями змінює лише адміністратор платформи (ADR-0036); mockDeniedActions і withMockDeniedActions — позначка заборон запису для того, хто питає (ADR-0037); «свої» записи й правила проекту: mockGrantsRecords, mockSeesRecord, mockDeniedAction; mockGrantsService — службове право лише «Усі» (ADR-0038).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -11029,6 +11611,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -11260,6 +11847,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -11489,6 +12081,11 @@
           "path": "registry/lib/mock-audit.ts",
           "type": "registry:lib",
           "target": "@lib/mock-audit.ts"
+        },
+        {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
         },
         {
           "path": "registry/lib/mock-company-roles.ts",
@@ -11888,6 +12485,11 @@
           "target": "@lib/mock-audit.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company-roles.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company-roles.ts"
@@ -12007,7 +12609,7 @@
       "name": "lib/mocks",
       "type": "registry:lib",
       "title": "Мок-сервер MSW",
-      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -12134,6 +12736,11 @@
           "target": "@lib/mock-auth.ts"
         },
         {
+          "path": "registry/lib/mock-catalog-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-catalog-check.ts"
+        },
+        {
           "path": "registry/lib/mock-company.ts",
           "type": "registry:lib",
           "target": "@lib/mock-company.ts"
@@ -12182,6 +12789,11 @@
           "path": "registry/lib/mock-notifications.ts",
           "type": "registry:lib",
           "target": "@lib/mock-notifications.ts"
+        },
+        {
+          "path": "registry/lib/mock-responsible.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-responsible.ts"
         },
         {
           "path": "registry/lib/mock-scenarios.ts",

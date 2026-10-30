@@ -41,6 +41,7 @@ import {
 } from "./form-schema"
 import { codeLabelKey } from "./organization-columns"
 import { useOrganizationStatuses } from "./organization-statuses"
+import { useResponsibleForm } from "./responsible"
 
 /**
  * Форма організації в діалозі (ADR-0026): створення зі списку чи з «Створити…» у виборі організації
@@ -332,8 +333,13 @@ export function OrganizationFormDialog({
   const kitT = useErpUiT()
   const { extension } = useContactsModule()
   const statuses = useOrganizationStatuses()
-  const form = extension.organizations?.form
-  const ext = useExtensionForm(extension.organizations?.fields, form)
+  const { fields, form } = extension.organizations ?? {}
+  const responsible = useResponsibleForm(fields, form, {
+    resource: ORGANIZATIONS,
+    isNew: !organization,
+    after: "segments",
+  })
+  const ext = useExtensionForm(responsible.fields, responsible.changes)
   const hidden = useMemo(() => hiddenFormFields(form, LOCKED_FIELDS), [form])
   const schema = useOrganizationFormSchema(ext.shape, hidden)
   // Конфлікт: `current` розбирає схема з полями й статусами розширення — їх видно в порівнянні.

@@ -8,7 +8,8 @@
  * - `createResourceHandlers` — CRUD ресурсу з фільтрами, сортуванням, пагінацією, правами,
  *   версіями (409) і прив'язкою до компанії запиту (`X-Company-Id` за членством, права — у ній,
  *   запис іншої компанії — 404, A2c1), позначкою заборон на записі для того, хто питає
- *   (`deniedActions`, ADR-0037); кожна зміна — у журнал аудиту
+ *   (`deniedActions`, ADR-0037), «своїми» записами (`responsibleField`, ADR-0039: чужий на `read:own`
+ *   — 404, на `update:own` — 403, правила — lib/mock-scope); кожна зміна — у журнал аудиту
  *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
  *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018). `pins` — закріплення записів
  *   (lib/mock-lists, ADR-0024).
@@ -36,6 +37,10 @@ import {
 } from "@/registry/lib/mock-audit"
 import { createPinHandlers, mockPinStore } from "@/registry/lib/mock-lists"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
+import {
+  mockResponsibleErrors,
+  withMockResponsible,
+} from "@/registry/lib/mock-responsible"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -49,7 +54,6 @@ import {
   emitMockEvent,
   errorResponse,
   json,
-  mockCompanyOrForbidden,
   noContent,
   signInMock,
   subscribeMockEvents,
@@ -60,9 +64,12 @@ import {
 } from "@/registry/lib/mock-server"
 import {
   inMockCompany,
-  isMockSharedLocked,
-  mockGrantsAllRecords,
+  mockDeniedAction,
+  mockGrantsRecords,
+  mockSeesRecord,
   withMockDeniedActions,
+  type MockDeniedRule,
+  type MockRecordAccess,
 } from "@/registry/lib/mock-scope"
 import { pinnedFirst } from "@/registry/lib/pins"
 
@@ -137,8 +144,16 @@ export interface MockResourceOptions<T extends MockRecord> {
   /**
    * Поля, значення яких не повторюються в компанії (назва сегмента): створення й зміна з тим самим
    * значенням, без урахування регістру й пробілів на краях, — 422 з кодом `duplicate` (ADR-0027).
+   * Дивиться на всі записи компанії, зокрема невидимі на `read:own`.
    */
   unique?: readonly (keyof T & string)[]
+  /**
+   * Поле відповідального з `id` людини (ADR-0039): «свої» записи для `<ресурс>:<дія>:own`, автор під
+   * час створення, передача колезі. Без нього дія лише над своїми — 403.
+   */
+  responsibleField?: keyof T & string
+  /** Свої заборони проекту на записі: зводяться з правилами кіта (`lib/mock-scope`). */
+  deniedActions?: MockDeniedRule<T>
 }
 
 /**
@@ -365,6 +380,8 @@ export function createResourceHandlers<T extends MockRecord>({
   auditValue,
   pins = false,
   unique = [],
+  responsibleField,
+  deniedActions,
 }: MockResourceOptions<T>) {
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
@@ -399,6 +416,18 @@ export function createResourceHandlers<T extends MockRecord>({
   /** Записи, для яких сценарій conflict уже імітував чуже збереження. */
   const bumped = new Set<string>()
   const url = `${baseUrl}/${resource}`
+  const accessOf = (
+    actor: MockUser,
+    permissions: readonly string[],
+  ): MockRecordAccess<T> => ({
+    actor,
+    permissions,
+    resource,
+    responsibleField,
+    // Той самий запис, що в картці: позначка й перевірка дії не розходяться.
+    deniedActions:
+      deniedActions && ((who, record) => deniedActions(who, full(record))),
+  })
 
   /**
    * Сценарій, сесія, компанія запиту й право в ній (A2c1): компанія (`null` — застосунок без
@@ -407,7 +436,10 @@ export function createResourceHandlers<T extends MockRecord>({
   async function guard(
     request: Request,
     action: string,
-  ): Promise<{ user: MockUser; companyId: string | null } | Response> {
+  ): Promise<
+    | { user: MockUser; companyId: string | null; rules: MockRecordAccess<T> }
+    | Response
+  > {
     const early = await applyScenario(scenarioFor(resource))
     if (early) return early
     const user = currentMockUser()
@@ -419,43 +451,52 @@ export function createResourceHandlers<T extends MockRecord>({
     }
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    if (!mockGrantsAllRecords(access.permissions, resource, action)) {
+    const rules = accessOf(user, access.permissions)
+    if (!mockGrantsRecords(rules, action)) {
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing permission ${resource}:${action}`,
       })
     }
-    return { user, companyId: access.companyId }
+    return { user, companyId: access.companyId, rules }
   }
 
-  /** Спільний запис змінює лише адміністратор платформи (ADR-0036): 403 або `null` — можна. */
-  const sharedLocked = (
-    access: { user: MockUser; companyId: string | null },
-    record: T,
-  ) =>
-    isMockSharedLocked(access.user, record.companyId)
+  /** Запис забороняє дію (спільний, чужий, правило проекту): 403 або `null` — можна. */
+  const deniedBy = (rules: MockRecordAccess<T>, record: T, action: string) => {
+    const code = mockDeniedAction(rules, record, action)
+    return code
       ? errorResponse(403, {
           code: "forbidden",
-          message: `${resource}: shared record`,
+          message: `${resource}: ${code}`,
         })
       : null
+  }
 
-  /** Запис компанії запиту (чи без компанії) за id; іншої компанії — як невідомий. */
-  const findIn = (companyId: string | null, id: unknown) =>
+  /** Запис компанії запиту (чи без компанії) за id; іншої компанії й чужий на `read:own` — як невідомий. */
+  const findIn = (
+    companyId: string | null,
+    rules: MockRecordAccess<T>,
+    id: unknown,
+  ) =>
     all().find(
       (record) =>
-        record.id === id && inMockCompany(record.companyId, companyId),
+        record.id === id &&
+        inMockCompany(record.companyId, companyId) &&
+        mockSeesRecord(rules, record),
     )
 
-  /** Записи списку: компанія, пошук `q` і плоскі фільтри ADR-0002, у порядку `sort`. */
+  /** Записи списку: компанія, видимі людині, пошук `q` і плоскі фільтри ADR-0002, у порядку `sort`. */
   const select = (
     filter: Record<string, FilterValue>,
     companyId: string | null,
+    rules: MockRecordAccess<T> | undefined,
     sort: SortField[] = [],
   ): T[] =>
     filterMockRecords(
-      sortedBy(sort).filter((record) =>
-        inMockCompany(record.companyId, companyId),
+      sortedBy(sort).filter(
+        (record) =>
+          inMockCompany(record.companyId, companyId) &&
+          (!rules || mockSeesRecord(rules, record)),
       ),
       filter,
       searchFields,
@@ -531,6 +572,19 @@ export function createResourceHandlers<T extends MockRecord>({
     emitMockEvent(`${resource}.${verb}`, { ...record }, scope)
   }
 
+  const responsibleOf = (record: T) =>
+    responsibleField ? record[responsibleField] : undefined
+
+  /** Кому передали запис: колега компанії запису; `previous` — значення, яке не перевіряємо. */
+  const responsibleErrors = (record: T, previous: unknown) =>
+    mockResponsibleErrors({
+      field: responsibleField,
+      resource,
+      companyId: record.companyId ?? null,
+      value: responsibleOf(record),
+      previous,
+    })
+
   /** Зміна запису без перевірки версії: схема, нова версія, журнал і подія; null — запису немає. */
   const patch = (
     id: string,
@@ -552,12 +606,13 @@ export function createResourceHandlers<T extends MockRecord>({
     if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
     const record = withCompany(parsed.data, latest.companyId)
     // Лише змінені поля: повтор, що вже є в даних, не блокує зміну інших полів запису.
-    const duplicates = duplicateFields(
-      all(),
-      record,
-      unique.filter((field) => field in changes),
-    )
-    if (duplicates) return { fieldErrors: duplicates }
+    const invalid =
+      duplicateFields(
+        all(),
+        record,
+        unique.filter((field) => field in changes),
+      ) ?? responsibleErrors(record, responsibleOf(latest))
+    if (invalid) return { fieldErrors: invalid }
     update(index, record)
     changed("updated", record, latest)
     return { record }
@@ -573,7 +628,7 @@ export function createResourceHandlers<T extends MockRecord>({
       )
       const pinned = pinnedIds()
       const filtered = pinnedFirst(
-        select(filter, access.companyId, sort),
+        select(filter, access.companyId, access.rules, sort),
         pinned,
       )
       const start = (page - 1) * perPage
@@ -582,7 +637,8 @@ export function createResourceHandlers<T extends MockRecord>({
           .slice(start, start + perPage)
           .map((record) =>
             withMockDeniedActions(
-              access.user,
+              access.rules,
+              record,
               withPin(listRow(record), pinned),
             ),
           ),
@@ -593,11 +649,11 @@ export function createResourceHandlers<T extends MockRecord>({
     http.get(`${url}/:id`, async ({ params, request }) => {
       const access = await guard(request, "read")
       if (access instanceof Response) return access
-      const record = findIn(access.companyId, params.id)
+      const record = findIn(access.companyId, access.rules, params.id)
       return record
         ? json(
             withMockDeniedActions(
-              access.user,
+              access.rules,
               full(withPin(record, pinnedIds())),
             ),
           )
@@ -608,25 +664,25 @@ export function createResourceHandlers<T extends MockRecord>({
       const access = await guard(request, "create")
       if (access instanceof Response) return access
       // Позначку заборон (ADR-0037) веде сервер: з тіла запиту її не беремо.
-      const { deniedActions, ...body } = (await request.json()) as Record<
-        string,
-        unknown
-      >
-      void deniedActions
+      const { deniedActions: clientDenied, ...body } =
+        (await request.json()) as Record<string, unknown>
+      void clientDenied
       // Компанію, як `id` і `version`, задає сервер: запис — компанії запиту.
       const parsed = schema.safeParse({
-        ...body,
+        ...withMockResponsible(body, responsibleField, access.user),
         id: newId(),
         version: 1,
         companyId: access.companyId,
       })
       if (!parsed.success) return validationError(fieldErrors(parsed.error))
       const record = withCompany(parsed.data, access.companyId ?? undefined)
-      const duplicates = duplicateFields(all(), record, unique)
-      if (duplicates) return validationError(duplicates)
+      const invalid =
+        duplicateFields(all(), record, unique) ??
+        responsibleErrors(record, access.user.id)
+      if (invalid) return validationError(invalid)
       replace([record, ...all()])
       changed("created", record)
-      return json(withMockDeniedActions(access.user, full(record)), {
+      return json(withMockDeniedActions(access.rules, full(record)), {
         status: 201,
       })
     }),
@@ -634,14 +690,17 @@ export function createResourceHandlers<T extends MockRecord>({
     http.patch(`${url}/:id`, async ({ params, request }) => {
       const access = await guard(request, "update")
       if (access instanceof Response) return access
-      const current = findIn(access.companyId, params.id)
+      const current = findIn(access.companyId, access.rules, params.id)
       if (!current) return notFound()
-      const locked = sharedLocked(access, current)
-      if (locked) return locked
+      const denied = deniedBy(access.rules, current, "update")
+      if (denied) return denied
       const index = all().indexOf(current)
-      const { version, deniedActions, ...changes } =
-        (await request.json()) as Record<string, unknown>
-      void deniedActions
+      const {
+        version,
+        deniedActions: clientDenied,
+        ...changes
+      } = (await request.json()) as Record<string, unknown>
+      void clientDenied
       // Сценарій conflict імітує, що інший користувач зберіг запис перед нами — один раз
       // на запис, тож «Зберегти мої зміни» з новою версією після цього проходить.
       if (scenarioFor(resource) === "conflict" && !bumped.delete(current.id)) {
@@ -653,22 +712,22 @@ export function createResourceHandlers<T extends MockRecord>({
         return errorResponse(409, {
           code: "conflict",
           message: "Record was changed by someone else",
-          current: withMockDeniedActions(access.user, full(latest)),
+          current: withMockDeniedActions(access.rules, full(latest)),
         })
       }
       const result = patch(latest.id, changes)
       if (!result) return notFound()
       if ("fieldErrors" in result) return validationError(result.fieldErrors)
-      return json(withMockDeniedActions(access.user, full(result.record)))
+      return json(withMockDeniedActions(access.rules, full(result.record)))
     }),
 
     http.delete(`${url}/:id`, async ({ params, request }) => {
       const access = await guard(request, "delete")
       if (access instanceof Response) return access
-      const removed = findIn(access.companyId, params.id)
+      const removed = findIn(access.companyId, access.rules, params.id)
       if (!removed) return notFound()
-      const locked = sharedLocked(access, removed)
-      if (locked) return locked
+      const denied = deniedBy(access.rules, removed, "delete")
+      if (denied) return denied
       replace(all().filter((r) => r.id !== params.id))
       pinStore?.forget(removed.id)
       changed("deleted", removed)
@@ -685,9 +744,16 @@ export function createResourceHandlers<T extends MockRecord>({
           exists: (id, request) => {
             const user = currentMockUser()
             if (!user) return false
-            const companyId = mockCompanyOrForbidden(request, user)
+            const scoped = mockRequestPermissions(request, user)
             return (
-              !(companyId instanceof Response) && Boolean(findIn(companyId, id))
+              !(scoped instanceof Response) &&
+              Boolean(
+                findIn(
+                  scoped.companyId,
+                  accessOf(user, scoped.permissions),
+                  id,
+                ),
+              )
             )
           },
         })
@@ -702,9 +768,14 @@ export function createResourceHandlers<T extends MockRecord>({
         sorted.clear()
         return all()
       },
-      /** Записи за фільтром списку в компанії — для масових дій (lib/mock-jobs). */
-      select: (filter: Record<string, FilterValue>, companyId: string | null) =>
-        select(filter, companyId),
+      /** Хто питає про записи ресурсу: його права й правила ресурсу (lib/mock-scope). */
+      accessOf,
+      /** Записи компанії за фільтром; з `rules` — лише видимі людині, для відповіді клієнту. */
+      select: (
+        filter: Record<string, FilterValue>,
+        companyId: string | null,
+        rules?: MockRecordAccess<T>,
+      ) => select(filter, companyId, rules),
       /** Зміна запису з новою версією, журналом і подією — як PATCH, але без перевірки версії. */
       patch,
       reset: () => {

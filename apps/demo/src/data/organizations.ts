@@ -12,6 +12,24 @@ export type { Organization } from "@/registry/modules/B1-contacts/contract"
  */
 export const SHARED_ORGANIZATION_INDEX = 10
 
+/** Хто відповідає за клієнтів першої компанії: по черзі, серед них є й запис без відповідального. */
+const ZORIANA_RESPONSIBLE = ["u-olena", "u-ivan", null, "u-marta"] as const
+
+/**
+ * Відповідальний за запис № i (ADR-0039): у першій компанії — по черзі, у другій — Олена (Іван і
+ * Марта там не працюють), спільний запис — нічий. Кожен третій контакт зсунуто на людину: він
+ * належить не тому, кому його організація (організація людині «прихована»).
+ */
+export function responsibleOf(
+  index: number,
+  companyId: string | null,
+  resource: "organizations" | "contacts",
+): string | null {
+  if (companyId !== "zoriana") return companyId ? "u-olena" : null
+  const shifted = resource === "contacts" && index % 3 === 0 ? index + 1 : index
+  return ZORIANA_RESPONSIBLE[shifted % ZORIANA_RESPONSIBLE.length] ?? null
+}
+
 /** Компанія користувача демо для організації № i: кожна п'ята — друга компанія, одна — спільна. */
 export const organizationCompanyOf = (index: number) =>
   index === SHARED_ORGANIZATION_INDEX

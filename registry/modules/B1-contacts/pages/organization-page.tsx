@@ -31,6 +31,7 @@ import {
   type DetailState,
 } from "../components/organization-sections"
 import { useOrganizationStatuses } from "../components/organization-statuses"
+import { useLeaveAfterTransfer } from "../components/responsible"
 import {
   ORGANIZATIONS,
   type Organization,
@@ -67,6 +68,10 @@ export function OrganizationPage() {
 function OrganizationCard({ id }: { id: string }) {
   const t = useContactsT()
   const { extension, paths } = useContactsModule()
+  const leaveAfterTransfer = useLeaveAfterTransfer(
+    ORGANIZATIONS,
+    paths.organizations,
+  )
   const card = useCardRecord<OrganizationCardRecord>(ORGANIZATIONS, id)
   const organization = card.record
   const heading = usePageHeading(
@@ -174,8 +179,9 @@ function OrganizationCard({ id }: { id: string }) {
           onClose={() => {
             setEditing(false)
           }}
-          onSaved={() => {
+          onSaved={(saved) => {
             setEditing(false)
+            leaveAfterTransfer(saved)
           }}
         />
       ) : null}

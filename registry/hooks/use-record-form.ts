@@ -96,6 +96,9 @@ export interface RecordFormState<TValues extends FieldValues> {
   readonly dismissConflict: () => void
 }
 
+/** Відповіді, після яких доступ до запису міг змінитись: 403 — чужий, 404 — чужого вже не видно. */
+const DENIED_STATUSES: ReadonlySet<number> = new Set([403, 404])
+
 /** Коди 422 `fieldErrors` із текстом у кіті; решта — «Сервер не прийняв це значення». */
 const SERVER_ERROR_KEYS: Readonly<Record<string, ErpUiKey>> = {
   required: "validation.required",
@@ -287,6 +290,9 @@ export function useRecordForm<
       const current = target && conflictRecord(failure, options.recordSchema)
       if (current) setPending({ record: current, values, keys })
       else if (!serverFieldErrors(failure)) setError(errorMessage(failure))
+      // Запис передали чи заборонили: доступ — із перечитаної картки, а не з запису форми.
+      if (isApiError(failure) && DENIED_STATUSES.has(failure.status))
+        void queryClient.invalidateQueries({ queryKey: [resource] })
     } finally {
       savingRef.current = false
       setSaving(false)

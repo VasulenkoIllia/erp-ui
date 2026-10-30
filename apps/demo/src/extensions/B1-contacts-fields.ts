@@ -6,10 +6,6 @@ import type {
 /**
  * Дані розширення модуля B1 без компонентів (розширення — `B1-contacts.ts`): нові поля й статус.
  * Окремим файлом: моки беруть лише їх, а не компоненти слотів (як `K2-invoices-fields.ts`).
- *
- * «Відповідальний менеджер» — запис із довідника сервера (крок A2a): у записі — `id` користувача,
- * підпис — його ім'я з `GET /users`, у формі — вибір із пошуком на сервері. Довідник читає той, хто
- * має право `users:read`; інші бачать «Немає доступу».
  */
 
 const organizationStatuses: OrganizationsExtension["statuses"] = {
@@ -41,15 +37,6 @@ export const contactsMockExtension = {
         type: "boolean",
         label: { uk: "Платник ПДВ", en: "VAT payer" },
         mockValues: [true, true, false],
-      },
-      {
-        id: "manager",
-        type: "record",
-        label: { uk: "Відповідальний менеджер", en: "Account manager" },
-        resource: "users",
-        labelField: "name",
-        descriptionField: "email",
-        mockValues: ["u-olena", "u-ivan", null, "u-marta"],
       },
     ],
     statuses: organizationStatuses,

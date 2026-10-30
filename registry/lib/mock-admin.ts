@@ -15,11 +15,7 @@ import { http, type HttpHandler } from "msw/http"
 
 import { SETUP_FACTORS } from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
-import {
-  hasPermission,
-  localizedText,
-  type LocalizedText,
-} from "@/registry/lib/auth"
+import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import {
   endAllMockUserSessions,
   endMockUserSession,
@@ -63,7 +59,7 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { mockCompanyIdsOf } from "@/registry/lib/mock-scope"
+import { mockCompanyIdsOf, mockGrantsService } from "@/registry/lib/mock-scope"
 import { canGrant } from "@/registry/lib/roles"
 import {
   ipAllowed,
@@ -230,7 +226,7 @@ type AccessAction = Pick<MockCeilingDenial, "action" | "category">
  * У своїй компанії платформа діє за своєю роллю там, як і `PUT`.
  */
 const canUpdatePolicy = ({ user, permissions }: AdminActor) =>
-  hasPermission(permissions, "security", "update") &&
+  mockGrantsService(permissions, "security", "update") &&
   (user.isPlatformAdmin === true || !hasMockCompanies())
 
 /**
@@ -266,7 +262,7 @@ const managesRecoveryOf = (admin: MockUser, user: MockUser) =>
   mockCompanyIdsOf(user).some(
     (companyId) =>
       isMockCompanyMember(admin, companyId) &&
-      hasPermission(mockPermissionsIn(admin, companyId), "users", "update"),
+      mockGrantsService(mockPermissionsIn(admin, companyId), "users", "update"),
   )
 
 export function createAdminHandlers({
@@ -289,7 +285,7 @@ export function createAdminHandlers({
     if (!user) return unauthenticated()
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    if (!hasPermission(access.permissions, resource, action))
+    if (!mockGrantsService(access.permissions, resource, action))
       return forbidden(`Missing ${resource}:${action}`)
     const actor = { user, ...access }
     if (level === "read") return actor

@@ -138,7 +138,7 @@ test.describe("скриншоти кроку 1.4b1 @screenshots", () => {
       { palette: "sapphire", theme: "light" },
       1440,
       ORGANIZATIONS,
-      USERS.sales,
+      USERS.lead,
     )
     await page.getByRole("button", { name: "Створити організацію" }).focus()
     await expect(page.locator('[data-slot="tooltip-content"]')).toBeVisible()

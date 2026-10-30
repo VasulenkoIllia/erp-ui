@@ -235,6 +235,7 @@
     "organization": {
       "none": "Does not represent an organization: a private person.",
       "missing": "Organization not found: it may have been deleted.",
+      "hidden": "Organization hidden",
       "unavailable": "Could not load the organization",
       "open": "Open the organization card",
       "label": "Contact organization",
@@ -276,5 +277,11 @@
       "created": "Segment created: {{name}}",
       "saved": "Changes saved: {{name}}"
     }
+  },
+  "responsible": {
+    "label": "Responsible",
+    "createHint": "If you leave this empty, you become responsible.",
+    "transferHint": "If you hand this record to a colleague or clear the field, it will no longer be yours.",
+    "transferred": "This record is not assigned to you, so it is not in your list."
   }
 }

@@ -25,7 +25,7 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX, fromSearchParams } from "@/lib/api"
-import { hasPermission, localizedText } from "@/lib/auth"
+import { localizedText } from "@/lib/auth"
 import { withMockValues } from "@/lib/extension-fields"
 import { mockAccessSummary, mockBlocked, mockProfile } from "@/lib/mock-account"
 import { scenarioFor } from "@/lib/mock-scenarios"
@@ -44,6 +44,7 @@ import {
   mockRequestPermissions,
   mockUserRolesIn,
 } from "@/lib/mock-company-roles"
+import { mockGrantsService } from "@/lib/mock-scope"
 import {
   filterMockRecords,
   registerMockRecords,
@@ -191,7 +192,7 @@ export function createUsersMocks({
     return {
       // Права в компанії запиту: `users:read` в одній компанії не відкриває повних записів іншої,
       // людина поза компаніями в застосунку з компаніями — без прав (ADR-0036).
-      canRead: hasPermission(access.permissions, USERS, "read"),
+      canRead: mockGrantsService(access.permissions, USERS, "read"),
       companyId,
       members: mockUsersList().filter((user) =>
         isMockCompanyMember(user, companyId),

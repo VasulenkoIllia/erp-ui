@@ -686,7 +686,7 @@
       "name": "Full name",
       "organization": "Company",
       "organizationRequired": "Select a company",
-      "createDenied": "The Accountant role can create organizations",
+      "createDenied": "The Accountant and Sales manager roles can create organizations",
       "owner": "Owner",
       "ownerHint": "Optional: a user of the company",
       "submit": "Save contact",

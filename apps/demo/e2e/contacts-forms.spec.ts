@@ -80,7 +80,7 @@ test.describe("B1: форми", () => {
       "email",
       "city",
       "segments",
-      "manager",
+      "responsibleId",
     ])
     await expect(
       form.getByRole("textbox", { name: "Місто" }),
@@ -242,7 +242,7 @@ test.describe("B1: форми", () => {
   test("без права: «Створити» і «Змінити» неактивні з причиною", async ({
     page,
   }) => {
-    await openWith(page, {}, ORGANIZATIONS, { user: USERS.sales })
+    await openWith(page, {}, ORGANIZATIONS, { user: USERS.lead })
     const create = page.getByRole("button", { name: "Створити організацію" })
     await expect(create).toHaveAttribute("aria-disabled", "true")
     await expect(create).toHaveAccessibleDescription(

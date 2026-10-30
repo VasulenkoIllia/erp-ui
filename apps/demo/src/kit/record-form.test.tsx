@@ -1,5 +1,11 @@
 import { QueryClient } from "@tanstack/react-query"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CoreAdminContext, type DataProvider } from "ra-core"
 import { useCallback, useMemo } from "react"
@@ -114,7 +120,7 @@ function renderForm(dataProvider: Record<string, unknown>, record?: Org) {
       <OrgForm record={record} onSaved={onSaved} onClose={onClose} />
     </CoreAdminContext>,
   )
-  return { onSaved, onClose, user: userEvent.setup() }
+  return { onSaved, onClose, queryClient, user: userEvent.setup() }
 }
 
 const saveButton = () => screen.getByRole("button", { name: "Зберегти" })
@@ -249,6 +255,28 @@ describe("RecordFormDialog + useRecordForm", () => {
       data: { limit: 50, version: 4 },
       previousData: current,
     })
+  })
+
+  it("403 чи 404 при збереженні: запис перечитується, введене лишається (ADR-0039)", async () => {
+    for (const status of [403, 404]) {
+      const update = vi.fn(() =>
+        Promise.reject(new ApiError(status, { code: "x", message: "no" })),
+      )
+      const { user, queryClient } = renderForm({ update }, ORG)
+      const invalidate = vi.spyOn(queryClient, "invalidateQueries")
+      await user.type(
+        screen.getByRole("textbox", { name: "Назва клієнта" }),
+        "!",
+      )
+      await user.click(saveButton())
+      await waitFor(() => {
+        expect(invalidate).toHaveBeenCalledWith({ queryKey: ["orgs"] })
+      })
+      expect(
+        screen.getByRole("textbox", { name: "Назва клієнта" }),
+      ).toHaveValue(`${ORG.name}!`)
+      cleanup()
+    }
   })
 
   it("поки йде запит, повторна відправка нічого не надсилає", async () => {

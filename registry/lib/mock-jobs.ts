@@ -10,8 +10,10 @@
  * - Сценарій запуску — ресурсу (`invoices`), опитування й повтору — ресурсу `jobs` (панель
  *   розробника): так видно і відмову запуску, і збій зв'язку посеред задачі.
  * - Задачі живуть у пам'яті до перезавантаження сторінки; бачить лише той, хто запустив, і лише в
- *   компанії, де запустив (інша — 404); право й вибір — у компанії запиту, повтор перевіряє право ще
- *   раз (A2c1).
+ *   компанії, де запустив (інша — 404), окремого права хід задачі не вимагає; право й вибір — у
+ *   компанії запиту, повтор перевіряє право ще раз (A2c1).
+ * - Обсяг дії — на кожен запис (ADR-0039): дія лише над своїми запускається, чужий запис — невдача
+ *   `forbidden`, невидимий (`read:own`) — `not_found`, вибір «усе, крім» — лише видимі записи.
  */
 import { http, type HttpHandler } from "msw/http"
 import { z } from "zod"
@@ -35,10 +37,7 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import {
-  isMockSharedLocked,
-  mockGrantsAllRecords,
-} from "@/registry/lib/mock-scope"
+import { mockDeniedAction, mockGrantsRecords } from "@/registry/lib/mock-scope"
 import type { MockRecord, MockResourceDb } from "@/registry/lib/mocks"
 
 /** Ресурс для сценаріїв опитування задач у панелі розробника. */
@@ -77,8 +76,10 @@ interface MockJob {
   perSecond: number
   /** Обробити записи: для кожного null — успіх, інакше відмова з назвою запису. */
   process: (ids: string[]) => (FailureReason | null)[]
-  /** Нова задача для невдач, які можна повторити. */
-  retry: (ids: string[]) => MockJob
+  /** Чи дають права цю дію: перевірка перед повтором (право могли забрати). */
+  grants: (permissions: readonly string[]) => boolean
+  /** Нова задача для невдач, які можна повторити: права — на момент повтору. */
+  retry: (ids: string[], permissions: readonly string[]) => MockJob
   /** Задача повтору: повторний запит повертає її ж, а не дублює. */
   retriedBy?: string
 }
@@ -198,7 +199,9 @@ export function createBulkHandlers<T extends MockRecord>({
     actionName: string,
     action: MockBulkAction<T>,
     ids: string[],
+    permissions: readonly string[],
   ): MockJob => {
+    const rules = db.accessOf(user, permissions)
     const job: MockJob = {
       id: `job-${randomToken().slice(0, 12)}`,
       userId: user.id,
@@ -215,18 +218,19 @@ export function createBulkHandlers<T extends MockRecord>({
         if (!batch.length) return []
         // Один прохід по записах компанії на партію, а не пошук на кожен запис.
         const byId = new Map(
-          db.select({}, companyId).map((record) => [record.id, record]),
+          db.select({}, companyId, rules).map((record) => [record.id, record]),
         )
         const notFound = { code: "not_found", message: "Not found" }
         return batch.map((id) => {
           const record = byId.get(id)
           if (!record) return { ...notFound, retryable: false }
           const title = titleField ? String(record[titleField]) : undefined
-          // Спільний запис змінює лише адміністратор платформи (ADR-0036).
-          if (isMockSharedLocked(user, record.companyId))
+          // Спільний, чужий на дію лише над своїми чи заборонений проектом (ADR-0036, ADR-0039).
+          const denial = mockDeniedAction(rules, record, actionName)
+          if (denial)
             return {
               code: "forbidden",
-              message: "Shared record",
+              message: `Denied: ${denial}`,
               retryable: false,
               title,
             }
@@ -258,7 +262,9 @@ export function createBulkHandlers<T extends MockRecord>({
           }
         })
       },
-      retry: (failed) => start(user, companyId, actionName, action, failed),
+      grants: (next) => mockGrantsRecords(db.accessOf(user, next), actionName),
+      retry: (failed, next) =>
+        start(user, companyId, actionName, action, failed, next),
     }
     jobs.set(job.id, job)
     return job
@@ -281,7 +287,8 @@ export function createBulkHandlers<T extends MockRecord>({
           })
         const access = mockRequestPermissions(request, user)
         if (access instanceof Response) return access
-        if (!mockGrantsAllRecords(access.permissions, resource, actionName))
+        const rules = db.accessOf(user, access.permissions)
+        if (!mockGrantsRecords(rules, actionName))
           return errorResponse(403, {
             code: "forbidden",
             message: `Missing permission ${resource}:${actionName}`,
@@ -299,12 +306,20 @@ export function createBulkHandlers<T extends MockRecord>({
             .select(
               parsed.data.filter as Record<string, FilterValue>,
               companyId,
+              rules,
             )
             .map((record) => record.id)
             .filter((id) => !excluded.has(id))
         }
         if (!ids.length) return validation("selection", "empty")
-        const job = start(user, companyId, actionName, action, ids)
+        const job = start(
+          user,
+          companyId,
+          actionName,
+          action,
+          ids,
+          access.permissions,
+        )
         return json({ jobId: job.id }, { status: 202 })
       },
     ),
@@ -353,7 +368,7 @@ export function createJobHandlers({
       if (owned instanceof Response) return owned
       const { job } = owned
       // Право могли забрати, поки задача йшла.
-      if (!mockGrantsAllRecords(owned.permissions, job.resource, job.action))
+      if (!job.grants(owned.permissions))
         return errorResponse(403, {
           code: "forbidden",
           message: `Missing permission ${job.resource}:${job.action}`,
@@ -366,7 +381,7 @@ export function createJobHandlers({
         .filter((group) => group.retryable)
         .flatMap((group) => group.ids)
       if (!failed.length) return validation("job", "nothing_to_retry")
-      job.retriedBy = job.retry(failed).id
+      job.retriedBy = job.retry(failed, owned.permissions).id
       return json({ jobId: job.retriedBy }, { status: 202 })
     }),
   ]

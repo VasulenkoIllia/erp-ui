@@ -161,19 +161,21 @@ test.describe("вибір запису: поведінка", () => {
     await expect(companyField(page)).toBeFocused()
   })
 
-  // Без `users:read` список відповідальних — довідник колег: імена активних, без заблокованих (ADR-0031).
-  test("менеджер: «Створити» неактивне з причиною, відповідальні — довідник колег", async ({
+  test("без права створювати: «Створити» неактивне з причиною", async ({
     page,
   }) => {
-    await openWith(page, {}, PATH, { user: USERS.sales })
+    await openWith(page, {}, PATH, { user: USERS.lead })
     await companyField(page).click()
     const create = page.getByRole("option", { name: /Створити новий…/ })
     await expect(create).toHaveAttribute("aria-disabled", "true")
     await expect(create).toContainText(
-      "Створювати організації може роль «Бухгалтер»",
+      "Створювати організації можуть ролі «Бухгалтер» і «Менеджер з продажу»",
     )
-    await page.keyboard.press("Escape")
+  })
 
+  // Без `users:read` список відповідальних — довідник колег: імена активних, без заблокованих (ADR-0031).
+  test("менеджер: відповідальні — довідник колег", async ({ page }) => {
+    await openWith(page, {}, PATH, { user: USERS.sales })
     await contact(page)
       .getByRole("combobox", { name: "Відповідальний" })
       .click()

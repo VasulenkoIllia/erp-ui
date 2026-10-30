@@ -11,6 +11,7 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { ContactOrganization } from "./contact-organization"
 import { cellText } from "./cell-text"
+import { useResponsible } from "./responsible"
 import { SegmentBadges, useSegments } from "./segments"
 
 type ContactColumn = DataTableColumn<Contact> & { id: ContactColumnId }
@@ -18,13 +19,15 @@ type ContactColumn = DataTableColumn<Contact> & { id: ContactColumnId }
 export const contactName = (contact: Contact) => contact.name
 
 /**
- * Колонки списку контактів: закріплення, ім'я-посилання на картку, організація-посилання, посада,
- * телефон, email, сегменти; на телефоні — картки з ім'ям. Ключі — `ContactColumnId`.
+ * Колонки списку контактів: закріплення, ім'я-посилання на картку, організація-посилання,
+ * відповідальний, посада, телефон, email, сегменти; на телефоні — картки з ім'ям. Ключі —
+ * `ContactColumnId`.
  */
 export function useContactColumns(): readonly ContactColumn[] {
   const t = useContactsT()
   const { paths, preload } = useContactsModule()
   const segments = useSegments()
+  const { column: responsible } = useResponsible()
   const pin = usePinColumn<Contact>({ resource: CONTACTS, name: contactName })
   return useMemo(
     () => [
@@ -50,6 +53,7 @@ export function useContactColumns(): readonly ContactColumn[] {
         minWidth: 12,
         grow: 2,
       },
+      responsible,
       {
         id: "position",
         header: t("contacts.columns.position"),
@@ -89,6 +93,6 @@ export function useContactColumns(): readonly ContactColumn[] {
         overflow: "wrap",
       },
     ],
-    [t, pin, paths, preload, segments],
+    [t, pin, paths, preload, segments, responsible],
   )
 }

@@ -8,11 +8,14 @@
  *   setupWorker(...platform, ...contacts.handlers)
  *
  * Поля й статуси розширення проекту (`ContactsMockExtension`) — у схемі й у фікстурах: проект з
- * розширенням працює на моках так само, як на бекенді.
+ * розширенням працює на моках так само, як на бекенді. Відповідальний — у записах організацій і
+ * контактів: «свої» записи на правах `:own`, автор під час створення, передача колезі (ADR-0039);
+ * засів — `responsibleOf`.
  */
 import { z } from "zod"
 
 import { extensionAuditOptions, withMockValues } from "@/lib/extension-fields"
+import type { MockDeniedRule } from "@/lib/mock-scope"
 import { createResourceHandlers, mockRecordTitle } from "@/lib/mocks"
 import type { ExtensionStatusChanges } from "@/lib/statuses"
 import { formatIban, normalizeIban, validateUaId } from "@/lib/ua-ids"
@@ -24,11 +27,14 @@ import {
   contactSchemaFor,
   ORGANIZATIONS,
   organizationCardSchemaFor,
+  RESPONSIBLE_ID,
+  responsibleExtensionField,
   SEGMENTS,
   segmentSchema,
   type Address,
   type AddressKind,
   type BankAccount,
+  type Contact,
   type Organization,
   type OrganizationCard,
   type OrganizationSchemaExtension,
@@ -47,7 +53,18 @@ export interface ContactsMocksOptions extends ContactsFixtureOptions {
   readonly extension?: ContactsMockExtension
   /** Початок адрес API, як у `createResourceHandlers` (за замовчуванням `/api/v1`). */
   readonly baseUrl?: string
+  /** Свої заборони проекту на записі (`deniedActions`, ADR-0037): код зі своєю причиною. */
+  readonly deniedActions?: {
+    readonly organizations?: MockDeniedRule<OrganizationCard>
+    readonly contacts?: MockDeniedRule<Contact>
+  }
 }
+
+/** Підпис відповідального в журналі змін; сам показ — іменем людини, а не `id`. */
+const RESPONSIBLE_AUDIT_FIELD = responsibleExtensionField({
+  uk: "Відповідальний",
+  en: "Responsible",
+})
 
 /** Новий елемент колекції приходить без `id`: його дає сервер. */
 const itemId = z.string().default(() => crypto.randomUUID())
@@ -167,6 +184,7 @@ function withMockStatuses<T extends Organization>(
 export function createContactsMocks({
   extension,
   baseUrl,
+  deniedActions,
   ...fixtureOptions
 }: ContactsMocksOptions = {}) {
   // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, закріплення).
@@ -176,12 +194,12 @@ export function createContactsMocks({
   // Поля розширення в журналі — підписом, значенням зі списку й назвою запису довідника, а не ключем.
   const organizationAudit = extensionAuditOptions(
     locale,
-    extension?.organizations?.fields,
+    [RESPONSIBLE_AUDIT_FIELD, ...(extension?.organizations?.fields ?? [])],
     mockRecordTitle,
   )
   const contactAudit = extensionAuditOptions(
     locale,
-    extension?.contacts?.fields,
+    [RESPONSIBLE_AUDIT_FIELD, ...(extension?.contacts?.fields ?? [])],
     mockRecordTitle,
   )
   // Адреси й рахунки — у записі організації: PATCH змінює їх разом із версією (ADR-0028).
@@ -226,6 +244,8 @@ export function createContactsMocks({
       bankAccounts: accountText(locale),
     },
     pins: true,
+    responsibleField: RESPONSIBLE_ID,
+    deniedActions: deniedActions?.organizations,
   })
 
   const contacts = createResourceHandlers({
@@ -246,6 +266,8 @@ export function createContactsMocks({
     },
     auditValue: contactAudit.auditValue,
     pins: true,
+    responsibleField: RESPONSIBLE_ID,
+    deniedActions: deniedActions?.contacts,
   })
 
   const segments = createResourceHandlers({

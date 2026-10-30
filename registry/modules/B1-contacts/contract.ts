@@ -13,7 +13,12 @@
  *   «хоч один із»).
  * - Закріплення угорі списку — `PUT`/`DELETE /<ресурс>/:id/pin` для організацій і контактів
  *   (ADR-0024); розмір сторінки списку — `/me/list-settings/<ресурс>`.
- * - Права — `<ресурс>:<дія>`: `read`, `create`, `update`, `delete` (ADR-0014).
+ * - Права — `<ресурс>:<дія>`: `read`, `create`, `update`, `delete` (ADR-0014); організації й контакти —
+ *   ще й `read:own`, `update:own`, `delete:own`, лише свої записи (ADR-0039).
+ * - Відповідальний — `responsibleId` організації й контакту: `id` людини з довідника `users` чи `null`
+ *   (нічий запис). `POST` без нього — автор; `PATCH` з іншим значенням — передача колезі, окремого
+ *   права немає; чужа компанія, заблокована людина чи людина без права бачити ресурс — 422
+ *   `responsibleId: invalid`. Бекенд без поля працює: у списку й картці «—», розширення ховає поле.
  *
  * Поля й статуси розширення проекту (ADR-0020) входять у схему через `organizationSchemaFor` і
  * `contactSchemaFor`: без них zod відкинув би нові поля відповіді. Ця ж схема розбирає `current`
@@ -31,6 +36,7 @@
 import { z } from "zod"
 
 import { recordBaseSchema } from "@/lib/api"
+import type { LocalizedText } from "@/lib/auth"
 import {
   extendSchema,
   type ExtensionField,
@@ -64,6 +70,25 @@ const recordShape = {
   pinned: z.boolean().optional(),
 }
 
+/** Ключ поля відповідального: той самий у колонці, фільтрі, шапці картки й формі. */
+export const RESPONSIBLE_ID = "responsibleId" as const
+
+/** Поле відповідального — запис із довідника `users`, як поле-запис розширення (ADR-0030). */
+export const responsibleExtensionField = (label: LocalizedText) =>
+  ({
+    id: RESPONSIBLE_ID,
+    type: "record",
+    label,
+    resource: "users",
+    labelField: "name",
+    descriptionField: "email",
+  }) satisfies ExtensionField
+
+/** Організація й контакт мають відповідального: «свої» записи (ADR-0039); сегмент — ні. */
+const responsibleShape = {
+  [RESPONSIBLE_ID]: z.string().nullable().optional(),
+}
+
 export const segmentSchema = recordBaseSchema.extend({
   name: z.string().trim().min(1),
   companyId: recordShape.companyId,
@@ -72,6 +97,7 @@ export type Segment = z.infer<typeof segmentSchema>
 
 const organizationShape = recordBaseSchema.extend({
   ...recordShape,
+  ...responsibleShape,
   name: z.string().trim().min(1),
   type: z.enum(ORGANIZATION_TYPES),
   /** ЄДРПОУ чи РНОКПП; порожній — не вказано. */
@@ -119,6 +145,7 @@ export type OrganizationDetail = z.infer<typeof organizationDetailSchema>
 
 const contactShape = recordBaseSchema.extend({
   ...recordShape,
+  ...responsibleShape,
   name: z.string().trim().min(1),
   /** Посада в організації. */
   position: z.string(),

@@ -22,10 +22,12 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { AccessAction } from "./access-action"
 import { codeLabelKey, organizationName } from "./organization-columns"
+import { useResponsible } from "./responsible"
 
 /**
- * Шапка картки організації: назва, статус, ключові поля (код, тип, місто, телефон) з полями
- * розширення, «Змінити» (форма в діалозі), «Закріпити вгорі» й дії розширення; без запису — немає.
+ * Шапка картки організації: назва, статус, ключові поля (код, тип, місто, телефон, відповідальний) з
+ * полями розширення, «Змінити» (форма в діалозі), «Закріпити вгорі» й дії розширення; без запису —
+ * немає.
  */
 export function useOrganizationHeader(
   organization: Organization | undefined,
@@ -36,6 +38,7 @@ export function useOrganizationHeader(
   const t = useContactsT()
   const { extension } = useContactsModule()
   const extensionFields = useExtensionFields(extension.organizations?.fields)
+  const { headerField } = useResponsible()
   if (!organization) return undefined
   const fields: (RecordField & { id: OrganizationFieldId })[] = [
     {
@@ -60,6 +63,7 @@ export function useOrganizationHeader(
       label: t("organization.fields.phone"),
       value: formatPhone(organization.phone),
     },
+    headerField(organization),
   ]
   const actions: (ObjectPageAction & { id: OrganizationActionId })[] = [
     {

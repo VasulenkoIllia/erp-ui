@@ -2,7 +2,8 @@
  * Чиї дані й події в моках (ADR-0036): компанія запиту бачить свої й спільні (без компанії) записи,
  * події своєї компанії, облікових записів своїх людей і застосунку; підписки й токени — лише свої;
  * спільне в застосунку з компаніями змінює лише адміністратор платформи. У застосунку без компаній
- * усе спільне, як до ADR-0036. Позначка заборон на записі для того, хто питає (ADR-0037). Без MSW.
+ * усе спільне, як до ADR-0036. Позначка заборон на записі для того, хто питає (ADR-0037), «свої»
+ * записи (`<ресурс>:<дія>:own`, ADR-0038) і правила запису проекту. Без MSW.
  */
 import {
   hasMockCompanies,
@@ -14,6 +15,7 @@ import {
 import {
   kitAction,
   RECORD_DENIAL_REASONS,
+  recordDenial,
   type RecordDeniedActions,
 } from "@/registry/lib/record-access"
 import { permissionScope } from "@/registry/lib/roles"
@@ -71,39 +73,145 @@ export const isMockSharedLocked = (
   ownerId: string | null | undefined,
 ) => ownerId == null && actor.isPlatformAdmin !== true && !isNoCompanyApp()
 
+/** Запис ресурсу моків для правил доступу: поле відповідального задає ресурс. */
+export interface MockScopedRecord {
+  readonly companyId?: string | null
+}
+
 /**
- * Позначка сервера на записі (`deniedActions`, ADR-0037): спільний запис у застосунку з компаніями
- * змінює й видаляє лише адміністратор платформи, решті `update` і `delete` заборонені з причиною
- * `shared`; `undefined` — запис нічого не забороняє.
+ * Свої заборони проекту на записі (закритий період, проведений документ): та сама позначка, що й у
+ * кіта (ADR-0037); дія з кодом — 403 на запит і `forbidden` у масовій дії.
  */
-export function mockDeniedActions(
+export type MockDeniedRule<T> = (
   actor: MockUser,
-  ownerId: string | null | undefined,
+  record: T,
+) => RecordDeniedActions | undefined
+
+/** Правила запису ресурсу: опції `createResourceHandlers`. */
+export interface MockRecordRules<T> {
+  /** Поле відповідального: без нього «своїх» записів у ресурсі немає. */
+  readonly responsibleField?: string
+  /** Свої заборони проекту: `createResourceHandlers` дає їм запис, як у картці. */
+  readonly deniedActions?: MockDeniedRule<T>
+}
+
+/** Хто питає про записи ресурсу: його права в компанії запиту й правила ресурсу. */
+export interface MockRecordAccess<T> extends MockRecordRules<T> {
+  readonly actor: MockUser
+  readonly permissions: readonly string[]
+  readonly resource: string
+}
+
+/** Дії, які моки мітять на записі: масова дія проекту перевіряється на кожному запису окремо. */
+const MARKED_ACTIONS = ["update", "delete"] as const
+
+const scopeOf = <T>(access: MockRecordAccess<T>, action: string) =>
+  permissionScope(access.permissions, access.resource, kitAction(action))
+
+const isOwnRecord = <T extends MockScopedRecord>(
+  access: MockRecordAccess<T>,
+  record: T,
+) =>
+  access.responsibleField !== undefined &&
+  (record as Record<string, unknown>)[access.responsibleField] ===
+    access.actor.id
+
+/**
+ * Чи дає роль дію над записами ресурсу: усі записи чи свої, коли ресурс знає відповідального; без
+ * нього `:own` — відмова, а не доступ до всіх записів (ADR-0038).
+ */
+export function mockGrantsRecords<T>(
+  access: MockRecordAccess<T>,
+  action: string,
+) {
+  const scope = scopeOf(access, action)
+  return (
+    scope === "all" ||
+    (scope === "own" && access.responsibleField !== undefined)
+  )
+}
+
+/**
+ * Чи видно запис: на `read:own` — лише свої, без права перегляду — жодного. Прихованого запису сервер
+ * не показує й не підтверджує (404), зокрема в `current` конфлікту й у назвах масової дії.
+ */
+export function mockSeesRecord<T extends MockScopedRecord>(
+  access: MockRecordAccess<T>,
+  record: T,
+) {
+  const scope = scopeOf(access, "read")
+  return scope === "all" || (scope === "own" && isOwnRecord(access, record))
+}
+
+/** Код правила кіта для дії: спільний запис — будь-яка дія, чужий — дія лише над своїми. */
+function kitDenial<T extends MockScopedRecord>(
+  access: MockRecordAccess<T>,
+  record: T,
+  action: string,
+) {
+  if (isMockSharedLocked(access.actor, record.companyId))
+    return RECORD_DENIAL_REASONS.shared
+  return scopeOf(access, action) === "own" && !isOwnRecord(access, record)
+    ? RECORD_DENIAL_REASONS.own
+    : undefined
+}
+
+/**
+ * Чому дію над записом не можна (сервер перевіряє кожен запит, а позначка лише підказує
+ * інтерфейсу): код кіта, потім правило проекту; `undefined` — можна.
+ */
+export function mockDeniedAction<T extends MockScopedRecord>(
+  access: MockRecordAccess<T>,
+  record: T,
+  action: string,
+): string | undefined {
+  return (
+    kitDenial(access, record, action) ??
+    recordDenial(
+      { deniedActions: access.deniedActions?.(access.actor, record) },
+      action,
+    )
+  )
+}
+
+/**
+ * Позначка сервера на записі (`deniedActions`, ADR-0037): `update` і `delete` з кодом кіта (`shared`,
+ * `own`) поверх правила проекту; `undefined` — запис нічого не забороняє.
+ */
+export function mockDeniedActions<T extends MockScopedRecord>(
+  access: MockRecordAccess<T>,
+  record: T,
 ): RecordDeniedActions | undefined {
-  if (!isMockSharedLocked(actor, ownerId)) return undefined
-  const { shared } = RECORD_DENIAL_REASONS
-  return { update: shared, delete: shared }
+  const denied: Record<string, string> = {
+    ...access.deniedActions?.(access.actor, record),
+  }
+  for (const action of MARKED_ACTIONS) {
+    const code = kitDenial(access, record, action)
+    if (code) denied[action] = code
+  }
+  return Object.keys(denied).length ? denied : undefined
 }
 
 /**
  * Запис для відповіді тому, хто питає: позначку заборон обчислює сервер щоразу, а збереженої (з
- * засіву, зі схеми без суворих полів) не віддає.
+ * засіву, зі схеми без суворих полів) не віддає. `row` — що йде у відповідь, якщо це не весь запис:
+ * рядок списку без вкладених колекцій.
  */
 export function withMockDeniedActions<
-  T extends { companyId?: string | null; deniedActions?: unknown },
->(actor: MockUser, record: T): T {
-  const row = { ...record }
-  delete row.deniedActions
-  const denied = mockDeniedActions(actor, record.companyId)
-  return denied ? { ...row, deniedActions: denied } : row
+  T extends MockScopedRecord,
+  R extends object = T,
+>(access: MockRecordAccess<T>, record: T, row?: R): R {
+  const reply = { ...(row ?? record) } as Record<string, unknown>
+  delete reply.deniedActions
+  const denied = mockDeniedActions(access, record)
+  return (denied ? { ...reply, deniedActions: denied } : reply) as R
 }
 
 /**
- * Чи дає набір прав дію над записами ресурсу моків. «Свої» (`<ресурс>:<дія>:own`, ADR-0038) моки поки
- * не розрізняють: у записах ще немає відповідального (A2c2b2), тож дія лише над своїми — відмова, а не
- * доступ до всіх записів. Так само токен API отримує лише дію над усіма.
+ * Службове право (`users`, `roles`, `audit`, `webhooks`…): «своїх» записів там немає (ADR-0038), тож
+ * рядок `:own` із початкової ролі чи localStorage нічого не дає.
  */
-export const mockGrantsAllRecords = (
+export const mockGrantsService = (
   permissions: readonly string[],
   resource: string,
   action: string,

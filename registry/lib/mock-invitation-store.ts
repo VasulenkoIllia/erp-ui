@@ -8,7 +8,6 @@
  * - Подія шини `users.joined` { id, name, email, roles, companyId } оновлює список користувачів
  *   проекту.
  */
-import { hasPermission } from "@/registry/lib/auth"
 import type { Invitation } from "@/registry/lib/invitations"
 import { mockBlocked } from "@/registry/lib/mock-account"
 import { recordAudit } from "@/registry/lib/mock-audit"
@@ -24,6 +23,7 @@ import {
   type MockUser,
 } from "@/registry/lib/mock-server"
 import type { MockInvite } from "@/registry/lib/mock-sign-up"
+import { mockGrantsService } from "@/registry/lib/mock-scope"
 import { canChangeRoles, permissionsOfRoles } from "@/registry/lib/roles"
 
 const INVITES_KEY = "erp-ui:mock-invitations"
@@ -73,7 +73,7 @@ function inviterCanGrant(invite: StoredMockInvitation): boolean {
     return false
   const permissions = mockPermissionsIn(inviter, invite.companyId)
   return (
-    hasPermission(permissions, "users", "create") &&
+    mockGrantsService(permissions, "users", "create") &&
     canChangeRoles(
       permissions,
       [],

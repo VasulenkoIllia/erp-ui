@@ -10,7 +10,6 @@ import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
-import { hasPermission } from "@/registry/lib/auth"
 import {
   COMPANY_IMAGE_MAX_BYTES,
   COMPANY_IMAGE_TYPES,
@@ -32,6 +31,7 @@ import {
   unauthenticated,
   type MockUser,
 } from "@/registry/lib/mock-server"
+import { mockGrantsService } from "@/registry/lib/mock-scope"
 import { validateUaId, type UaIdKind } from "@/registry/lib/ua-ids"
 
 const KEY = (companyId: string) => `erp-ui:mock-company:${companyId}`
@@ -120,7 +120,7 @@ export function createCompanyHandlers({
         message: "Not a member of this company",
       })
     if (change) {
-      if (!hasPermission(scoped.permissions, "company", "update"))
+      if (!mockGrantsService(scoped.permissions, "company", "update"))
         return errorResponse(403, {
           code: "forbidden",
           message: "Missing company:update",

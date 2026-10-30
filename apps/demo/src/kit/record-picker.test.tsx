@@ -255,6 +255,15 @@ describe("RecordPicker: пошук на сервері й вибір", () => {
         screen.getByRole("combobox", { name: "Компанія" }),
       ).toHaveTextContent("Запис не знайдено")
     })
+    // Чужий запис сервер теж не віддає: `missingLabel` — текст проекту замість «не знайдено».
+    cleanupAndRender(server, "org-999", {
+      missingLabel: "Організація прихована",
+    })
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Компанія" }),
+      ).toHaveTextContent("Організація прихована")
+    })
     // Немає права читати довідник — як підпис у списку (A2a), а не «збій».
     server.getOne.mockImplementation(() =>
       Promise.reject(new ApiError(403, { code: "forbidden", message: "no" })),
