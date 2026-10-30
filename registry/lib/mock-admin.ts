@@ -33,8 +33,10 @@ import {
   type MockCeilingDenial,
 } from "@/registry/lib/mock-audit"
 import {
+  mockManagesCompany,
+  mockManagesUserElsewhere,
+  mockManagesUserIn,
   mockPermissionsAcross,
-  mockPermissionsIn,
   mockRequestPermissions,
   mockRolesAcross,
   mockUserRolesIn,
@@ -231,20 +233,28 @@ const canUpdatePolicy = ({ user, permissions }: AdminActor) =>
 
 /**
  * «Стеля» доступу (ADR-0034): вийти, завершити сесію, заблокувати, розблокувати чи скинути другий
- * крок — лише людині, усі права якої адміністратор має сам у компанії запиту; рівного — можна.
- * Права людини — в усіх її компаніях разом: обліковий запис і сесії в неї одні на всі компанії.
- * Адміністратора платформи — лише інший адміністратор платформи (ADR-0036).
+ * крок — лише людині, якою адміністратор керує в кожній її компанії (ADR-0040): обліковий запис і
+ * сесії в неї одні на всі компанії. Адміністратор платформи — поза цим правилом, його «стеля» —
+ * права в компанії запиту проти всіх прав людини. Самого адміністратора платформи — лише інший
+ * адміністратор платформи (ADR-0036).
  */
+const canManageTarget = (
+  { user, permissions, companyId }: AdminActor,
+  target: MockUser,
+) =>
+  user.isPlatformAdmin === true
+    ? canGrant(permissions, mockPermissionsAcross(target))
+    : target.isPlatformAdmin !== true &&
+      mockManagesUserIn(user, target, companyId) &&
+      mockManagesUserElsewhere(user, target, companyId)
+
+/** Дія над людиною понад «стелю»: у журнал і 403; `null` — можна. */
 const withinCeiling = (
   actor: AdminActor,
   target: MockUser,
   attempted: AccessAction,
 ) => {
-  if (
-    (target.isPlatformAdmin !== true || actor.user.isPlatformAdmin === true) &&
-    canGrant(actor.permissions, mockPermissionsAcross(target))
-  )
-    return null
+  if (canManageTarget(actor, target)) return null
   recordCeilingDenied({
     ...attempted,
     companyId: actor.companyId,
@@ -259,10 +269,8 @@ const withinCeiling = (
  */
 const managesRecoveryOf = (admin: MockUser, user: MockUser) =>
   admin.id !== user.id &&
-  mockCompanyIdsOf(user).some(
-    (companyId) =>
-      isMockCompanyMember(admin, companyId) &&
-      mockGrantsService(mockPermissionsIn(admin, companyId), "users", "update"),
+  mockCompanyIdsOf(user).some((companyId) =>
+    mockManagesCompany(admin, companyId),
   )
 
 export function createAdminHandlers({
@@ -464,11 +472,14 @@ export function createAdminHandlers({
       const actor = admin(request, "users", "update")
       if (actor instanceof Response) return actor
       // Уже розібраний запит — 204, як і раніше (ідемпотентно); запит людини іншої компанії — 404.
-      // «Стелі» немає: розібраний запит доступу не змінює (ADR-0034).
+      // «Стелі» в компанії запиту немає: розібраний запит доступу не змінює (ADR-0034). Але запит
+      // один на всі компанії людини, тож чужа компанія не прибирає його в інших (ADR-0040).
       const entry = readRequests().find((r) => r.id === params.id)
       if (!entry) return noContent()
       const target = mockCompanyTarget(request, actor.user, entry.userId)
       if (target instanceof Response) return target
+      if (!mockManagesUserElsewhere(actor.user, target, actor.companyId))
+        return forbidden("The request also belongs to other companies")
       write(
         RECOVERY_KEY,
         readRequests().filter((r) => r.id !== params.id),
@@ -529,6 +540,9 @@ export function createAdminHandlers({
         blocked,
         // Ролі людини в компанії запиту: за ними клієнт показує «стелю» (ADR-0034).
         roles: mockUserRolesIn(target, actor.companyId),
+        // Те саме правило, що й у дій: кнопки знають відмову до запиту (ADR-0040).
+        canManage:
+          target.id === actor.user.id || canManageTarget(actor, target),
         ...mockAccessSummary(target),
         sessions: mockUserSessions(target, language).map((session) => ({
           ...session,

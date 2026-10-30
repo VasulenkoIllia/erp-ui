@@ -77,6 +77,8 @@ export interface LoginScreenProps {
   ssoReturnUrl?: (next: string) => string
   /** Початкові значення (напр. «Увійти як» у демо); зміна `key` скидає форму. */
   defaultValues?: { email?: string; password?: string; identifier?: string }
+  /** Що робити після входу замість переходу: екран прийняття запрошення (ADR-0040). */
+  onSignedIn?: () => Promise<void>
 }
 
 /**
@@ -97,6 +99,7 @@ export function LoginScreen({
   renderCaptcha,
   ssoReturnUrl,
   defaultValues,
+  onSignedIn,
 }: LoginScreenProps) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
@@ -109,7 +112,8 @@ export function LoginScreen({
   const handle = async (action: () => Promise<void>) => {
     try {
       await action()
-      done()
+      if (onSignedIn) await onSignedIn()
+      else done()
     } catch (failure) {
       if (isChallengeRequired(failure)) {
         setStep({ kind: "challenge", challenge: failure.challenge })
@@ -216,7 +220,10 @@ export function LoginScreen({
         <MethodsError onRetry={() => void methods.refetch()} />
       ) : (
         <LoginStart
-          methods={methods.data}
+          // На сторінці запрошення запис уже є: реєстрація лише вивела б людину зі сторінки.
+          methods={
+            onSignedIn ? { ...methods.data, signUp: false } : methods.data
+          }
           paths={paths}
           renderCaptcha={renderCaptcha}
           defaultValues={defaultValues}

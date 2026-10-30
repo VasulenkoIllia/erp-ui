@@ -3,6 +3,8 @@
  * пароля, перевірка й прийняття запрошення (токен у тілі, застарілий `GET` — для сервера без
  * `POST`), реєстрація нової компанії з кодом із листа. Обробники бере `createPlatformHandlers`
  * (`lib/mock-auth`); запрошення адміністраторів — `lib/mock-invitations`, їх сховище — `lib/mock-invitation-store`.
+ * Адреса з обліковим записом приймає запрошення входом, а не новим паролем (ADR-0040): `account` у
+ * перевірці каже екрану, що показати, а прийняття — лише в сесії цього облікового запису.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -10,7 +12,11 @@ import { passwordChanged, recordSignIn } from "@/registry/lib/mock-account"
 import {
   addMockUser,
   authenticate,
+  currentMockUser,
   errorResponse,
+  findMockUserByEmail,
+  impersonationForbidden,
+  isMockCompanyMember,
   json,
   mockUsersList,
   noContent,
@@ -23,6 +29,8 @@ import type { SignInFlow } from "@/registry/lib/mock-sign-in-flow"
 import {
   acceptMockInvitation,
   findMockInvitation,
+  joinMockInvitedCompany,
+  mockInviteAccount,
 } from "@/registry/lib/mock-invitation-store"
 
 export interface MockInvite {
@@ -76,21 +84,53 @@ export function createSignUpHandlers({
   } = flow
   const usedInvites = new Set<string>()
 
-  /** Запрошення за токеном листа; невідоме, прийняте чи прострочене — 410. */
-  const inviteCheck = (value: string | null) => {
+  /**
+   * Запрошення за токеном листа й обліковий запис його адреси; невідоме, прийняте, прострочене чи
+   * людина вже в цій компанії — немає.
+   */
+  const liveInvite = (value: unknown) => {
+    if (typeof value !== "string" || !value) return null
     const invite =
-      invites.find((i) => i.token === value) ??
-      (value ? findMockInvitation(value) : undefined)
-    if (!invite || usedInvites.has(invite.token))
-      return errorResponse(410, {
-        code: "token_expired",
-        message: "Invite expired",
-      })
+      invites.find((i) => i.token === value) ?? findMockInvitation(value)
+    if (!invite || usedInvites.has(invite.token)) return null
+    const owner = findMockUserByEmail(invite.email)
+    return owner && isMockCompanyMember(owner, invite.user.companyId)
+      ? null
+      : { invite, owner }
+  }
+
+  const inviteExpired = () =>
+    errorResponse(410, { code: "token_expired", message: "Invite expired" })
+
+  const inviteCheck = (value: string | null) => {
+    const found = liveInvite(value)
+    if (!found) return inviteExpired()
+    const { invite, owner } = found
     return json({
       email: invite.email,
       name: invite.name,
       companyName: invite.companyName,
       invitedBy: invite.invitedBy,
+      account: mockInviteAccount(owner),
+    })
+  }
+
+  /**
+   * Адреса вже має обліковий запис: приймає лише він сам, у своїй сесії. Ні гість із новим паролем,
+   * ні інший обліковий запис: 409, екран перечитує перевірку й показує, що робити.
+   */
+  const acceptByAccount = (invite: MockInvite, owner: MockUser) => {
+    if (currentMockUser()?.id !== owner.id)
+      return errorResponse(409, {
+        code: "conflict",
+        message: "Sign in to the account of the invited address",
+      })
+    usedInvites.add(invite.token)
+    joinMockInvitedCompany(owner, invite.user)
+    acceptMockInvitation(invite.token, owner, invite.user.roles)
+    return json({
+      status: "authenticated",
+      companyId: invite.user.companyId ?? undefined,
     })
   }
 
@@ -153,14 +193,12 @@ export function createSignUpHandlers({
         name?: string
         password?: string
       }
-      const invite =
-        invites.find((i) => i.token === body.token) ??
-        (body.token ? findMockInvitation(body.token) : undefined)
-      if (!invite || usedInvites.has(invite.token))
-        return errorResponse(410, {
-          code: "token_expired",
-          message: "Invite expired",
-        })
+      const found = liveInvite(body.token)
+      if (!found) return inviteExpired()
+      const denied = impersonationForbidden()
+      if (denied) return denied
+      const { invite, owner } = found
+      if (owner) return acceptByAccount(invite, owner)
       if (!body.name?.trim()) return validation({ name: "required" })
       if (weakPassword(body.password)) return validation({ password: "weak" })
       usedInvites.add(invite.token)
@@ -195,7 +233,7 @@ export function createSignUpHandlers({
       const fields: Record<string, string> = {}
       if (!body.name?.trim()) fields.name = "required"
       if (!body.email?.includes("@")) fields.email = "invalid"
-      else if (findUser(body.email)) fields.email = "taken"
+      else if (findMockUserByEmail(body.email)) fields.email = "taken"
       if (weakPassword(body.password)) fields.password = "weak"
       if (!body.company?.name?.trim()) fields["company.name"] = "required"
       if (Object.keys(fields).length) return validation(fields)

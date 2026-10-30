@@ -12,7 +12,8 @@
  *   — 404, на `update:own` — 403, правила — lib/mock-scope); кожна зміна — у журнал аудиту
  *   (lib/mock-audit) і на шину подій (вебхуки, lib/mock-webhooks). `db.select` і `db.patch` —
  *   для масових дій фоновою задачею (lib/mock-jobs, ADR-0018). `pins` — закріплення записів
- *   (lib/mock-lists, ADR-0024).
+ *   (lib/mock-lists, ADR-0024). Фільтри, сортування, унікальні поля й обгортки доступу —
+ *   lib/mock-records.
  * - Основа (lib/mock-server) — сесія з ковзним терміном, «надіслані» SMS і листи, сценарії.
  * - Кожен обробник ресурсу поважає сценарій із lib/mock-scenarios.
  * - Мок сам перевіряє права, як справжній сервер (SPEC: приховування в UI — лише косметика).
@@ -23,7 +24,6 @@ import type { z } from "zod"
 import {
   API_PREFIX,
   fromSearchParams,
-  parseFilterKey,
   type FilterValue,
   type SortField,
 } from "@/registry/lib/api"
@@ -38,9 +38,15 @@ import {
 import { createPinHandlers, mockPinStore } from "@/registry/lib/mock-lists"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import {
-  mockResponsibleErrors,
-  withMockResponsible,
-} from "@/registry/lib/mock-responsible"
+  duplicateFields,
+  fieldErrors,
+  filterMockRecords,
+  mockResourceAccess,
+  sortMockRecords,
+  withCompany,
+  type MockRecord,
+} from "@/registry/lib/mock-records"
+import { withMockResponsible } from "@/registry/lib/mock-responsible"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -64,7 +70,6 @@ import {
 } from "@/registry/lib/mock-server"
 import {
   inMockCompany,
-  mockDeniedAction,
   mockGrantsRecords,
   mockSeesRecord,
   withMockDeniedActions,
@@ -79,7 +84,9 @@ export {
   currentMockUser,
   DEFAULT_MOCK_METHODS,
   errorResponse,
+  filterMockRecords,
   signInMock,
+  sortMockRecords,
   subscribeMockEvents,
   subscribeMockMessages,
 }
@@ -88,18 +95,12 @@ export type {
   MockAuditEvent,
   MockInvite,
   MockMessage,
+  MockRecord,
   MockUser,
   PlatformMockOptions,
 }
 
 /* ---------------------------------- Ресурси ---------------------------------- */
-
-export interface MockRecord {
-  id: string
-  version: number
-  companyId?: string | null
-  [key: string]: unknown
-}
 
 export interface MockResourceOptions<T extends MockRecord> {
   /** Сегмент шляху й назва для сценаріїв і прав: "invoices". */
@@ -194,139 +195,6 @@ export function mockRecordTitle(
   return typeof title === "string" && title ? title : undefined
 }
 
-const uniqueKey = (value: unknown) =>
-  typeof value === "string" ? value.trim().toLocaleLowerCase("uk") : value
-
-/**
- * Компанія запису після схеми (ADR-0036): схема ресурсу без поля `companyId` його відкидає, і запис
- * компанії став би спільним. `undefined` — компанії немає, запис як є.
- */
-function withCompany<T extends MockRecord>(
-  record: T,
-  companyId: string | null | undefined,
-): T {
-  return companyId === undefined ? record : { ...record, companyId }
-}
-
-/** Поля `unique`, значення яких уже має інший запис тієї самої компанії; порожні не перевіряються. */
-function duplicateFields<T extends MockRecord>(
-  records: readonly T[],
-  candidate: T,
-  unique: readonly (keyof T & string)[],
-): Record<string, string> | null {
-  const companyId = candidate.companyId ?? null
-  const fields = unique.filter((field) => {
-    const value = uniqueKey(candidate[field])
-    if (value === "" || value === null || value === undefined) return false
-    return records.some(
-      (record) =>
-        record.id !== candidate.id &&
-        (!companyId ||
-          record.companyId == null ||
-          record.companyId === companyId) &&
-        uniqueKey(record[field]) === value,
-    )
-  })
-  return fields.length
-    ? Object.fromEntries(fields.map((field) => [field, "duplicate"]))
-    : null
-}
-
-function matches(value: unknown, op: string, raw: FilterValue): boolean {
-  const wanted = Array.isArray(raw) ? raw : [raw]
-  // Поле-список (сегменти запису): «рівне» — хоч одне з вибраних є в списку.
-  if (Array.isArray(value)) {
-    const listed = wanted.map(String)
-    const has = value.some((item) => listed.includes(String(item)))
-    return op === "eq" ? has : op === "ne" ? !has : true
-  }
-  const cast = (v: unknown) =>
-    typeof value === "number"
-      ? Number(v)
-      : typeof value === "boolean"
-        ? v === "true" || v === true
-        : v === "null"
-          ? null
-          : String(v)
-  const first = cast(wanted[0])
-  switch (op) {
-    case "eq":
-      return wanted.some((w) => cast(w) === (value ?? null))
-    case "ne":
-      return wanted.every((w) => cast(w) !== (value ?? null))
-    case "gte":
-      return value != null && first != null && value >= first
-    case "lte":
-      return value != null && first != null && value <= first
-    case "gt":
-      return value != null && first != null && value > first
-    case "lt":
-      return value != null && first != null && value < first
-    default:
-      return true
-  }
-}
-
-/**
- * Записи за плоскими фільтрами списку (ADR-0002), як їх фільтрує `createResourceHandlers`: `q` —
- * підрядок у `searchFields` без урахування регістру, решта — `<поле>[_<оп>]=значення`; поле-список —
- * «хоч одне з».
- */
-export function filterMockRecords<T extends MockRecord>(
-  records: readonly T[],
-  filter: Record<string, FilterValue>,
-  searchFields: readonly (keyof T & string)[],
-): T[] {
-  const { q, ...rest } = filter
-  const query = typeof q === "string" ? q.trim().toLocaleLowerCase("uk") : ""
-  return records.filter((record) => {
-    if (
-      query &&
-      !searchFields.some((field) =>
-        String(record[field] ?? "")
-          .toLocaleLowerCase("uk")
-          .includes(query),
-      )
-    )
-      return false
-    return Object.entries(rest).every(([key, value]) => {
-      const { field, op } = parseFilterKey(key)
-      return matches(record[field], op, value)
-    })
-  })
-}
-
-const collator = new Intl.Collator("uk", { numeric: true, sensitivity: "base" })
-
-function compare(a: unknown, b: unknown): number {
-  if (a == null) return b == null ? 0 : 1
-  if (b == null) return -1
-  if (typeof a === "number" && typeof b === "number") return a - b
-  const text = (v: unknown) => (typeof v === "string" ? v : JSON.stringify(v))
-  return collator.compare(text(a), text(b))
-}
-
-/** Записи в порядку `sort` списку (ADR-0002): `null` — останніми, рядки — за абеткою `uk`. */
-export function sortMockRecords<T extends MockRecord>(
-  records: readonly T[],
-  sort: readonly SortField[],
-): T[] {
-  if (!sort.length) return [...records]
-  return [...records].sort((a, b) => {
-    for (const { field, order } of sort) {
-      const diff = compare(a[field], b[field])
-      if (diff) return order === "desc" ? -diff : diff
-    }
-    return 0
-  })
-}
-
-function fieldErrors(error: z.ZodError): Record<string, string> {
-  return Object.fromEntries(
-    error.issues.map((issue) => [issue.path.join(".") || "_", issue.message]),
-  )
-}
-
 /** «Було → стало» для журналу: що змінилось — за самими значеннями, показ — через `auditValue`. */
 function readableChanges<T extends MockRecord>(
   previous: T,
@@ -416,18 +284,12 @@ export function createResourceHandlers<T extends MockRecord>({
   /** Записи, для яких сценарій conflict уже імітував чуже збереження. */
   const bumped = new Set<string>()
   const url = `${baseUrl}/${resource}`
-  const accessOf = (
-    actor: MockUser,
-    permissions: readonly string[],
-  ): MockRecordAccess<T> => ({
-    actor,
-    permissions,
-    resource,
-    responsibleField,
-    // Той самий запис, що в картці: позначка й перевірка дії не розходяться.
-    deniedActions:
-      deniedActions && ((who, record) => deniedActions(who, full(record))),
-  })
+  /** Запис, яким його бачить картка. */
+  // Поля самого запису (id, version) — головніші: деталі лише додають вкладене.
+  const full = (record: T) =>
+    detail ? { ...detail(record), ...record } : record
+  const { accessOf, deniedBy, responsibleOf, responsibleErrors } =
+    mockResourceAccess({ resource, responsibleField, deniedActions, full })
 
   /**
    * Сценарій, сесія, компанія запиту й право в ній (A2c1): компанія (`null` — застосунок без
@@ -459,17 +321,6 @@ export function createResourceHandlers<T extends MockRecord>({
       })
     }
     return { user, companyId: access.companyId, rules }
-  }
-
-  /** Запис забороняє дію (спільний, чужий, правило проекту): 403 або `null` — можна. */
-  const deniedBy = (rules: MockRecordAccess<T>, record: T, action: string) => {
-    const code = mockDeniedAction(rules, record, action)
-    return code
-      ? errorResponse(403, {
-          code: "forbidden",
-          message: `${resource}: ${code}`,
-        })
-      : null
   }
 
   /** Запис компанії запиту (чи без компанії) за id; іншої компанії й чужий на `read:own` — як невідомий. */
@@ -521,11 +372,6 @@ export function createResourceHandlers<T extends MockRecord>({
     return row
   }
 
-  /** Запис, яким його бачить картка. */
-  // Поля самого запису (id, version) — головніші: деталі лише додають вкладене.
-  const full = (record: T) =>
-    detail ? { ...detail(record), ...record } : record
-
   /** Зміна запису → журнал аудиту й шина подій (вебхуки, далі реальний час). */
   const changed = (
     verb: "created" | "updated" | "deleted",
@@ -571,19 +417,6 @@ export function createResourceHandlers<T extends MockRecord>({
     })
     emitMockEvent(`${resource}.${verb}`, { ...record }, scope)
   }
-
-  const responsibleOf = (record: T) =>
-    responsibleField ? record[responsibleField] : undefined
-
-  /** Кому передали запис: колега компанії запису; `previous` — значення, яке не перевіряємо. */
-  const responsibleErrors = (record: T, previous: unknown) =>
-    mockResponsibleErrors({
-      field: responsibleField,
-      resource,
-      companyId: record.companyId ?? null,
-      value: responsibleOf(record),
-      previous,
-    })
 
   /** Зміна запису без перевірки версії: схема, нова версія, журнал і подія; null — запису немає. */
   const patch = (

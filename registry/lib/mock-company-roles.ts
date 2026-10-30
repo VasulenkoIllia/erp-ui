@@ -27,8 +27,9 @@ import {
   mockUsersList,
   type MockUser,
 } from "@/registry/lib/mock-server"
-import { mockCompanyIdsOf } from "@/registry/lib/mock-scope"
+import { mockCompanyIdsOf, mockGrantsService } from "@/registry/lib/mock-scope"
 import type { MockRole } from "@/registry/lib/mock-team"
+import { canGrant } from "@/registry/lib/roles"
 
 /** Ролі однієї компанії поверх ролей проекту. */
 export interface MockCompanyRoles {
@@ -374,6 +375,41 @@ export function mockPermissionsAcross(user: MockUser): string[] {
     ),
   ]
 }
+
+/** Право керувати людьми цієї компанії в ній самій, а не в активній компанії адміністратора. */
+export const mockManagesCompany = (
+  admin: MockUser,
+  companyId: string | null,
+): boolean =>
+  isMockCompanyMember(admin, companyId) &&
+  mockGrantsService(mockPermissionsIn(admin, companyId), "users", "update")
+
+/** Керує людиною в цій компанії: має там `users:update` і всі її права там; рівного — можна. */
+export const mockManagesUserIn = (
+  admin: MockUser,
+  target: MockUser,
+  companyId: string | null,
+): boolean =>
+  mockManagesCompany(admin, companyId) &&
+  canGrant(
+    mockPermissionsIn(admin, companyId),
+    mockPermissionsIn(target, companyId),
+  )
+
+/**
+ * Запис людини один на всі її компанії: чи керує нею адміністратор і в решті, крім `companyId`
+ * (ADR-0040). Інакше компанія, куди людину запросили, діяла б і в інших. Адміністратор платформи —
+ * поза цим правилом.
+ */
+export const mockManagesUserElsewhere = (
+  admin: MockUser,
+  target: MockUser,
+  companyId: string | null,
+): boolean =>
+  admin.isPlatformAdmin === true ||
+  mockCompanyIdsOf(target).every(
+    (id) => id === companyId || mockManagesUserIn(admin, target, id),
+  )
 
 /** Ролі людини в усіх її компаніях разом: для політики безпеки облікового запису (A2c1). */
 export function mockRolesAcross(user: MockUser): string[] {

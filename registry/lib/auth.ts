@@ -17,7 +17,8 @@
  * - `POST /auth/password/forgot` { email } → 204 завжди (не розкриваємо, чи є такий акаунт);
  *   `POST /auth/password/reset` { token, password } → результат входу.
  * - `POST /auth/invite/check` { token } → запрошення (`lib/invite-check`); `POST /auth/invite/accept`.
- *   Обидва — 410, коли термін минув або той, хто запросив, уже не може дати ці ролі (ADR-0035).
+ *   Обидва — 410, коли термін минув або той, хто запросив, уже не може дати ці ролі (ADR-0035);
+ *   адреса з обліковим записом приймає запрошення входом (ADR-0040, `lib/invitations`).
  * - `POST /auth/signup` { name, email, password, company } → challenge (підтвердити email).
  * - `{ status: "password_change_required" }` — тимчасовий чи скинутий пароль: спершу новий,
  *   `POST /auth/password/change-required` { password } → результат входу.
@@ -69,7 +70,12 @@ import {
   createInvitationsApi,
   type InvitationsApi,
 } from "@/registry/lib/invitations"
-import { inviteChecker } from "@/registry/lib/invite-check"
+import {
+  inviteChecker,
+  inviteSchema,
+  type Invite,
+  type InviteAccount,
+} from "@/registry/lib/invite-check"
 import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
 import { kitAction, recordDenial } from "@/registry/lib/record-access"
@@ -187,7 +193,11 @@ export const PASSWORD_CHANGE_REASONS = [
 export type PasswordChangeReason = (typeof PASSWORD_CHANGE_REASONS)[number]
 
 export const loginResultSchema = z.discriminatedUnion("status", [
-  z.object({ status: z.literal("authenticated") }),
+  z.object({
+    status: z.literal("authenticated"),
+    /** Компанія, до якої людину щойно додали (запрошення, ADR-0040): стає поточною. */
+    companyId: z.string().nullish(),
+  }),
   z.object({ status: z.literal("challenge"), challenge: challengeSchema }),
   z.object({
     status: z.literal("password_change_required"),
@@ -232,14 +242,6 @@ export const meSchema = z.object({
 })
 export type Me = z.infer<typeof meSchema>
 
-export const inviteSchema = z.object({
-  email: z.string(),
-  name: z.string().optional(),
-  companyName: z.string(),
-  invitedBy: z.string().optional(),
-})
-export type Invite = z.infer<typeof inviteSchema>
-
 export const signUpRequestSchema = z.object({
   name: z.string().min(1),
   email: z.email(),
@@ -270,7 +272,8 @@ export const ME_QUERY_KEY = ["erp-ui", "me"] as const
 const LOGOUT_TIMEOUT_MS = 10_000
 
 // Перекладач назв дій живе в lib/record-access (ADR-0037); старі імпорти з цього файлу працюють.
-export { kitAction }
+export { inviteSchema, kitAction }
+export type { Invite, InviteAccount }
 
 /**
  * Чи дозволяє набір прав дію: точний збіг, `<ресурс>:*`, `*` або дія лише над своїми записами
@@ -399,6 +402,8 @@ export interface ErpAuthProvider extends AuthProvider {
     token: string,
     data: { name: string; password: string },
   ) => Promise<void>
+  /** Прийняти запрошення обліковим записом, що вже увійшов (ADR-0040). */
+  joinInvite: (token: string) => Promise<void>
   signUp: (data: SignUpRequest) => Promise<void>
   changePassword: (
     currentPassword: string,
@@ -550,6 +555,7 @@ export function createAuthProvider(
       throw new PasswordChangeRequiredError(result.reason)
     if (result.status === "factor_setup_required")
       throw new FactorSetupRequiredError(result.factors)
+    if (result.companyId) setCompanyId(result.companyId)
     me = null
     await loadMe()
     broadcastAuthEvent({ type: "login" })
@@ -618,6 +624,8 @@ export function createAuthProvider(
 
     acceptInvite: (token, data) =>
       post("/auth/invite/accept", { token, ...data }),
+
+    joinInvite: (token) => post("/auth/invite/accept", { token }),
 
     signUp: (data) => post("/auth/signup", data),
 

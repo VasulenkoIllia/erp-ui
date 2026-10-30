@@ -173,7 +173,7 @@ function AccessDetails({
   onChange?: () => void
 }) {
   const t = useErpUiT()
-  const ceiling = useAccessCeiling(access.roles, !self)
+  const ceiling = useAccessCeiling(access.roles, !self, access.canManage)
   return (
     <div className="space-y-6">
       <UserAccessSummary access={access} />

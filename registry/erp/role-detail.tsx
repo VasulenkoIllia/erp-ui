@@ -9,6 +9,7 @@ import {
   useFieldError,
 } from "@/registry/erp/auth-layout"
 import { DeniedAction } from "@/registry/erp/permission-gate"
+import { useReauth } from "@/registry/erp/reauth-dialog"
 import { RoleMatrix } from "@/registry/erp/role-matrix"
 import { useRoleDraft } from "@/registry/hooks/use-role-draft"
 import { isApiError } from "@/registry/lib/api"
@@ -67,6 +68,7 @@ export function RoleDetail({
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
+  const { guard, dialog: reauthDialog } = useReauth()
   const errorText = useAuthErrorText()
   const queryClient = useQueryClient()
   const ids = React.useId()
@@ -119,8 +121,7 @@ export function RoleDetail({
       description: description.trim(),
       permissions,
     }
-    provider.roles
-      .update(role.id, input)
+    guard(() => provider.roles.update(role.id, input))
       .then(() => {
         setConflict(null)
         markSaved(input)
@@ -228,7 +229,12 @@ export function RoleDetail({
         <div className="flex flex-wrap gap-2">
           {role.system || beyond ? null : (
             <>
-              <Button disabled={!dirty || busy} onClick={save}>
+              <Button
+                disabled={!dirty || busy}
+                focusableWhenDisabled={busy}
+                aria-busy={busy || undefined}
+                onClick={save}
+              >
                 {busy ? <Spinner aria-hidden /> : null}
                 {t("roles.save")}
               </Button>
@@ -348,6 +354,7 @@ export function RoleDetail({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {reauthDialog}
     </section>
   )
 }

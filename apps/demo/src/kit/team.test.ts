@@ -280,6 +280,7 @@ describe("ролі (ADR-0014)", () => {
     ).rejects.toMatchObject({ status: 403 })
 
     // Права ролі змінились — змінились і права Івана.
+    await auth.reauthenticate({ password: "demo-password" })
     await auth.roles.update("sales", { permissions: ["notes:*"] })
     signInMock("u2")
     expect((await auth.getMe()).permissions).toEqual(["notes:*"])

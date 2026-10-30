@@ -309,6 +309,13 @@ export const en = {
       invalidTitle: "Invitation is not valid",
       pendingTitle: "Invitation",
       loading: "Loading the invitation…",
+      signInHint: "Sign in to accept the invitation.",
+      hasAccount: "This address already has an account",
+      accept: "Accept the invitation",
+      otherAccount:
+        "You're signed in with another account. Sign out to accept the invitation for {{email}}.",
+      signOut: "Sign out",
+      joined: "You joined {{company}}",
     },
     signUpPage: {
       title: "Sign up",
@@ -990,7 +997,7 @@ export const en = {
     unblockDescription: "They will be able to sign in again.",
     unblocked: "Account unblocked",
     beyondCeiling:
-      "This person has permissions you don't have: only someone with all of them can change their access.",
+      "Only someone with all of this person's permissions who manages all of their companies can change their access.",
     allSessionsLabel: "Active user sessions",
     searchLabel: "Search by name or email",
     shown: "Showing {{shown}} of {{total}}",

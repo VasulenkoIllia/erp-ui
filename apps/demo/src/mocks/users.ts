@@ -91,7 +91,10 @@ export const MOCK_USERS: MockUser[] = [
   },
 ]
 
-/** Запрошення в демо: посилання `#/login/invite?token=demo-invite`. */
+/**
+ * Запрошення в демо: посилання `#/login/invite?token=demo-invite` — нова адреса,
+ * `demo-invite-account` — Іван, що вже працює в іншій компанії: приймає входом (ADR-0040).
+ */
 export const MOCK_INVITES: MockInvite[] = [
   {
     token: "demo-invite",
@@ -103,6 +106,18 @@ export const MOCK_INVITES: MockInvite[] = [
       permissions: ["invoices:read"],
       companies: COMPANIES.slice(0, 1),
       companyId: "zoriana",
+    },
+  },
+  {
+    token: "demo-invite-account",
+    email: "ivan@zoriana.example",
+    companyName: "ФОП Коваленко О. В.",
+    invitedBy: "Олена Коваль",
+    user: {
+      roles: ["sales"],
+      permissions: ["invoices:read"],
+      companies: COMPANIES.slice(1, 2),
+      companyId: "kovalenko",
     },
   },
 ]

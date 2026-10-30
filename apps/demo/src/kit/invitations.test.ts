@@ -129,11 +129,19 @@ const userById = (id: string) => {
   return user
 }
 
+/** Увійти з уже підтвердженим паролем: сам пароль ще раз — `invitations-account.test`. */
+function signIn(id: string) {
+  signInMock(id)
+  const session = getMockSession()
+  if (!session) throw new Error("no mock session")
+  writeMockSession({ ...session, reauthUntil: Date.now() + 60_000 })
+}
+
 /** Запросити від імені `by` і повернути запрошення й токен з листа. */
 async function invite(by: string, email: string, roles: string[]) {
   const messages: MockMessage[] = []
   const stop = subscribeMockMessages((m) => messages.push(m))
-  signInMock(by)
+  signIn(by)
   const invitation = await auth.invitations.create({ email, roles })
   stop()
   const link = (messages.at(-1)?.link ?? "").replace("#/", "")
@@ -251,7 +259,7 @@ describe("права того, хто запросив, у момент прий
   })
 
   it("роль запрошення видалили в компанії — 410; відкликати можна, повтор — 422", async () => {
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c1")
     const extra = await auth.roles.create({
       name: "Тимчасова",
@@ -277,7 +285,7 @@ describe("права того, хто запросив, у момент прий
     ])
     // Повтор частіше ніж раз на хвилину — 429: запрошення надіслано «дві хвилини тому».
     sentEarlier()
-    signInMock("a6")
+    signIn("a6")
     setCompanyId("c1")
     expect(await auth.invitations.resend(invitation.id)).toMatchObject({
       invitedBy: "a6",
@@ -331,7 +339,7 @@ describe("«стеля» на повтор і відкликання", () => {
     const { invitation } = await invite("o3", "finance@zoriana.example", [
       "finance",
     ])
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c1")
     for (const action of [
       () => auth.invitations.resend(invitation.id),
@@ -352,7 +360,7 @@ describe("«стеля» на повтор і відкликання", () => {
       }),
     ])
     // Той, хто має ці права, — як раніше: повтор лише раз на хвилину, відкликання проходить.
-    signInMock("o3")
+    signIn("o3")
     expect(await errorOf(auth.invitations.resend(invitation.id))).toMatchObject(
       { status: 429 },
     )
@@ -367,7 +375,7 @@ describe("компанія запиту й «Увійти як…»", () => {
       "finance",
     ])
     // a1 працює в обох компаніях; у c2 запрошення з c1 для нього не існує.
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c2")
     for (const action of [
       () => auth.invitations.resend(invitation.id),
@@ -385,7 +393,7 @@ describe("компанія запиту й «Увійти як…»", () => {
       "sales",
     ])
     sentEarlier()
-    signInMock("p0")
+    signIn("p0")
     setCompanyId("c1")
     for (const action of [
       () => auth.invitations.list(),
@@ -393,14 +401,14 @@ describe("компанія запиту й «Увійти як…»", () => {
       () => auth.invitations.revoke(invitation.id),
     ])
       expect(await errorOf(action())).toMatchObject({ status: 403 })
-    signInMock("a1")
+    signIn("a1")
     expect(await auth.invitations.list()).toHaveLength(1)
   })
 
   it("під «Увійти як…» — лише перегляд: надіслати, повторити й відкликати — 403", async () => {
     const { invitation } = await invite("a1", "imp@zoriana.example", ["sales"])
     sentEarlier()
-    signInMock("a6")
+    signIn("a6")
     const session = getMockSession()
     if (!session) throw new Error("no mock session")
     writeMockSession({
@@ -428,7 +436,7 @@ describe("компанія запиту й «Увійти як…»", () => {
 
 describe("тіло запиту й порядок відповідей", () => {
   it("поля не тих типів — 422 біля полів, а не 500", async () => {
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c1")
     expect(
       await errorOf(
@@ -456,7 +464,7 @@ describe("тіло запиту й порядок відповідей", () => {
   })
 
   it("нове запрошення замінює прострочене лише в своїй компанії", async () => {
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c2")
     await auth.invitations.create({
       email: "twice@zoriana.example",
@@ -478,7 +486,7 @@ describe("тіло запиту й порядок відповідей", () => {
   })
 
   it("зникла роль — 422 раніше за conflict; conflict — раніше за частоту повтору", async () => {
-    signInMock("a1")
+    signIn("a1")
     setCompanyId("c1")
     const extra = await auth.roles.create({
       name: "Тимчасова",

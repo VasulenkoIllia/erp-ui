@@ -6,6 +6,7 @@ import {
   useErpAuthProvider,
 } from "@/registry/erp/auth-layout"
 import { DeniedAction } from "@/registry/erp/permission-gate"
+import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useRolesCeiling } from "@/registry/erp/user-access-data"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -107,12 +108,14 @@ export function InvitationActions({
 /**
  * Повтор і відкликання запрошень списку (ADR-0035): які повтори ще йдуть (кожне запрошення
  * окремо), що відкликаємо, відмови сервера. `refresh` — перечитати список; 404 і 409 — тост
- * «щойно змінилось» і свіжий список, 422 повтору — роль запрошення вже видалили.
+ * «щойно змінилось» і свіжий список, 422 повтору — роль запрошення вже видалили. Повтор — із
+ * паролем ще раз (ADR-0040): `reauthDialog` рендерить секція.
  */
 export function useInvitationActions(refresh: () => Promise<unknown>) {
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
+  const { guard, dialog: reauthDialog } = useReauth()
   const [resending, setResending] = React.useState<ReadonlySet<string>>(
     () => new Set(),
   )
@@ -150,11 +153,11 @@ export function useInvitationActions(refresh: () => Promise<unknown>) {
     resending,
     revoking,
     revokeOpen,
+    reauthDialog,
     resend: (invitation: Pick<Invitation, "id">) => {
       if (resending.has(invitation.id)) return
       markResending(invitation.id, true)
-      provider.invitations
-        .resend(invitation.id)
+      guard(() => provider.invitations.resend(invitation.id))
         .then(() => {
           toast.success(t("invitations.resent"))
           return refresh()

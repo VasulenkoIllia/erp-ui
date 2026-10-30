@@ -85,16 +85,20 @@ export function useRolesCeiling(enabled = true): RolesCeiling {
  * за каталогом ролей (`roles:read`). З `deniedReason` вийти, завершити сесію, заблокувати,
  * розблокувати чи скинути другий крок сервер не дасть. Без права на каталог чи з його помилкою —
  * без причини: вирішує сервер, відмову показує тост. Результат — пропси `UserAccessButtons` і
- * `UserSessionsList`.
+ * `UserSessionsList`. `canManage` — відповідь сервера (`GET /users/:id/access`, ADR-0040): він
+ * знає й те, чого немає в каталозі (адміністратор платформи, інші компанії людини), тож вирішує
+ * замість каталогу. `null` — відповідь ще йде: каталог запитуємо, лише якщо поля так і не буде.
  */
 export function useAccessCeiling(
   roleIds: readonly string[],
   enabled = true,
+  canManage?: boolean | null,
 ): AccessCeiling {
   const t = useErpUiT()
-  const ceiling = useRolesCeiling(enabled)
-  if (ceiling.checking) return { checking: true }
-  return ceiling.exceeds(roleIds)
+  const ceiling = useRolesCeiling(enabled && canManage === undefined)
+  if ((enabled && canManage === null) || ceiling.checking)
+    return { checking: true }
+  return (enabled && canManage === false) || ceiling.exceeds(roleIds)
     ? { deniedReason: t("userAccess.beyondCeiling"), checking: false }
     : { checking: false }
 }

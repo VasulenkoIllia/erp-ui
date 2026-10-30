@@ -202,6 +202,7 @@ describe("моки ролей: «Свої / Усі»", () => {
     const { roles } = await auth.roles.list()
     const mine = roles.find((role) => role.name === "Мої")
     expect(mine).toBeDefined()
+    await auth.reauthenticate({ password: "demo-password" })
     expect(
       await statusOf(
         auth.roles.update(mine?.id ?? "", {

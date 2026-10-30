@@ -13,6 +13,7 @@ import {
 } from "@/registry/lib/mock-account-state"
 import { recordAudit, recordCeilingDenied } from "@/registry/lib/mock-audit"
 import {
+  mockManagesUserElsewhere,
   mockPermissionsIn,
   mockRequestPermissions,
 } from "@/registry/lib/mock-company-roles"
@@ -66,13 +67,16 @@ export function createImpersonationHandlers({
       if (target.id === admin.id) return validation({ userId: "invalid" })
       // Іншого адміністратора, адміністратора платформи чи людину з правами, яких немає в
       // адміністратора, — ні: інакше «Увійти як…» обходить розподіл прав («стеля», ADR-0032,
-      // ADR-0036). До повторного підтвердження: слабшого не просять пароль, щоб потім відмовити.
+      // ADR-0036). Людину, що працює ще там, де він нею не керує, теж: її сесія показує входи й
+      // фактори всіх компаній (ADR-0040). До повторного підтвердження: слабшого не просять пароль,
+      // щоб потім відмовити.
       if (
         target.isPlatformAdmin === true ||
         impersonationBlock(
           access.permissions,
           mockPermissionsIn(target, access.companyId),
-        )
+        ) ||
+        !mockManagesUserElsewhere(admin, target, access.companyId)
       ) {
         recordCeilingDenied({
           action: "auth.impersonation_started",

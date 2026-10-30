@@ -118,6 +118,11 @@ let persistOnLeave = false
  * міграції старих записів.
  */
 const ADDED_USERS_KEY = "erp-ui:mock-users:v1"
+/**
+ * Компанії, куди людина з обліковим записом приєдналась за запрошенням (ADR-0040): початкових людей
+ * у сховищі немає, а без цього запису нова компанія зникла б після F5.
+ */
+const JOINED_COMPANIES_KEY = "erp-ui:mock-joined-companies:v1"
 
 const isStoredUser = (value: unknown): value is MockUser =>
   meSchema.safeParse(value).success &&
@@ -146,12 +151,68 @@ function persistAddedUsers(): void {
   }
 }
 
+const isStoredCompanies = (value: unknown): value is MockUser["companies"] =>
+  meSchema.shape.companies.safeParse(value).success
+
+function readJoinedCompanies(): Record<string, MockUser["companies"]> {
+  try {
+    const raw = globalThis.localStorage?.getItem(JOINED_COMPANIES_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : {}
+    const entries = Object.entries(parsed ?? {}) as [string, unknown][]
+    return Object.fromEntries(
+      entries.filter((entry): entry is [string, MockUser["companies"]] =>
+        isStoredCompanies(entry[1]),
+      ),
+    )
+  } catch {
+    return {}
+  }
+}
+
+/** Людина з обліковим записом працює тепер і в цій компанії (ADR-0040). */
+export function joinMockCompany(
+  user: MockUser,
+  company: MockUser["companies"][number],
+): void {
+  if (user.companies.some((item) => item.id === company.id)) return
+  user.companies = [...user.companies, company]
+  if (!seededIds.has(user.id)) {
+    persistAddedUsers()
+    return
+  }
+  const joined = readJoinedCompanies()
+  try {
+    globalThis.localStorage?.setItem(
+      JOINED_COMPANIES_KEY,
+      JSON.stringify({
+        ...joined,
+        [user.id]: [...(joined[user.id] ?? []), company],
+      }),
+    )
+  } catch {
+    // Без сховища нова компанія живе до перезавантаження.
+  }
+}
+
 /** Початкові користувачі; збережені з реєстрації й запрошень додаються до них. */
 export function setMockUsers(users: MockUser[]): void {
   seededIds = new Set(users.map((u) => u.id))
   seededCompanies = users.some((u) => u.companies.length > 0)
+  const joined = readJoinedCompanies()
   mockUsers = [
-    ...users,
+    ...users.map((user) =>
+      Object.hasOwn(joined, user.id)
+        ? {
+            ...user,
+            companies: [
+              ...user.companies,
+              ...(joined[user.id] ?? []).filter(
+                (company) => !user.companies.some((c) => c.id === company.id),
+              ),
+            ],
+          }
+        : user,
+    ),
     ...readAddedUsers().filter((u) => !seededIds.has(u.id)),
   ]
   if (!persistOnLeave && typeof window !== "undefined") {
@@ -275,8 +336,8 @@ export function writeMockSession(session: MockSession | null): void {
 
 export const newExpiry = () => Date.now() + sessionMinutes * 60_000
 
-export const randomToken = () =>
-  Array.from(globalThis.crypto.getRandomValues(new Uint8Array(12)), (b) =>
+export const randomToken = (bytes = 12) =>
+  Array.from(globalThis.crypto.getRandomValues(new Uint8Array(bytes)), (b) =>
     b.toString(16).padStart(2, "0"),
   ).join("")
 
@@ -350,6 +411,12 @@ export function mockRequestCompany(
     user.companies.some((company) => company.id === id) ||
     user.isPlatformAdmin === true
   return member ? id : null
+}
+
+/** Людина за точною адресою: `findUser` входу збігається ще й за цифрами телефону. */
+export const findMockUserByEmail = (email: string): MockUser | undefined => {
+  const address = email.trim().toLowerCase()
+  return mockUsers.find((user) => user.email.toLowerCase() === address)
 }
 
 /**

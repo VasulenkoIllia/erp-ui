@@ -9,9 +9,26 @@
  * За контрактом невідомий, використаний чи прострочений токен — 410 `token_expired`, а не 404:
  * інакше перша перевірка повторить токен у `GET`.
  */
-import type { z } from "zod"
+import { z } from "zod"
 
 import { isApiError, type ApiClient } from "@/registry/lib/api"
+
+/**
+ * Хто відкрив запрошення (ADR-0040): `new` — адреса без облікового запису, ім'я й пароль; `existing`
+ * — запис є, людина не ввійшла; `current` — увійшла цим записом; `other` — увійшла іншим.
+ */
+export const INVITE_ACCOUNTS = ["new", "existing", "current", "other"] as const
+export type InviteAccount = (typeof INVITE_ACCOUNTS)[number]
+
+export const inviteSchema = z.object({
+  email: z.string(),
+  name: z.string().optional(),
+  companyName: z.string(),
+  invitedBy: z.string().optional(),
+  /** Немає поля (сервер до ADR-0040) чи значення новішого сервера — `new`. */
+  account: z.enum(INVITE_ACCOUNTS).optional().catch(undefined),
+})
+export type Invite = z.infer<typeof inviteSchema>
 
 /** Маршруту немає: бекенд ще не знає `POST /auth/invite/check`. */
 function isMissingRoute(error: unknown): boolean {

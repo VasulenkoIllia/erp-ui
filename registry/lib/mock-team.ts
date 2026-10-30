@@ -163,6 +163,12 @@ const notFound = () =>
 const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
+/** Той самий набір значень: порядок у матриці прав нічого не змінює. */
+const sameItems = (a: readonly string[], b: readonly string[] = []) => {
+  const items = new Set(a)
+  return items.size === new Set(b).size && b.every((item) => items.has(item))
+}
+
 export function createTeamHandlers({
   baseUrl = API_PREFIX,
   roles = [],
@@ -176,7 +182,7 @@ export function createTeamHandlers({
   const allowed = (
     resource: string,
     action: string,
-    level: "read" | "change" | "sensitive" = "read",
+    level: "read" | "change" = "read",
     permissions?: readonly string[],
   ): MockUser | Response => {
     const user = currentMockUser()
@@ -187,9 +193,7 @@ export function createTeamHandlers({
         message: `Missing ${resource}:${action}`,
       })
     if (level === "read") return user
-    const denied = impersonationForbidden()
-    if (denied) return denied
-    return level === "sensitive" ? (reauthRequired() ?? user) : user
+    return impersonationForbidden() ?? user
   }
 
   /** Право в компанії запиту, де людина працює: за її ролями в цій компанії (ADR-0033). */
@@ -197,7 +201,7 @@ export function createTeamHandlers({
     request: Request,
     resource: string,
     action: string,
-    level: "read" | "change" | "sensitive" = "read",
+    level: "read" | "change" = "read",
   ): CompanyAccess | Response => {
     const user = currentMockUser()
     if (!user) return unauthenticated()
@@ -428,6 +432,15 @@ export function createTeamHandlers({
         return beyondCeiling(attempted)
       const conflict = conflictFor(companyId, current.id)
       if (conflict) return conflict
+      // Нові права ролі одразу діють на всіх її людей: пароль ще раз, як під час призначення ролі
+      // (ADR-0040). Останньою перевіркою: кому відмовлять, пароль не просять.
+      if (
+        body.permissions &&
+        !sameItems(body.permissions, current.permissions)
+      ) {
+        const reauth = reauthRequired()
+        if (reauth) return reauth
+      }
       const name = body.name?.trim()
       const description = body.description?.trim()
       const next: MockRole = {
@@ -517,7 +530,7 @@ export function createTeamHandlers({
     }),
 
     http.put(`${baseUrl}/users/:id/roles`, async ({ params, request }) => {
-      const access = allowedIn(request, "users", "update", "sensitive")
+      const access = allowedIn(request, "users", "update", "change")
       if (access instanceof Response) return access
       const { user, companyId, permissions } = access
       const target = mockCompanyTarget(request, user, params.id)
@@ -547,6 +560,8 @@ export function createTeamHandlers({
           companyId,
           target: { type: "users", id: target.id, name: target.name },
         })
+      const reauth = reauthRequired()
+      if (reauth) return reauth
       const after = [...new Set(next)]
       saveMockUserRoles(
         withAssignedRoles(readMockUserRoles(), target, companyId, after),
@@ -567,6 +582,11 @@ export function createTeamHandlers({
       return noContent()
     }),
 
-    ...createInvitationHandlers({ baseUrl, inviteLink, allowedIn }),
+    ...createInvitationHandlers({
+      baseUrl,
+      inviteLink,
+      allowedIn,
+      reauthRequired,
+    }),
   ]
 }

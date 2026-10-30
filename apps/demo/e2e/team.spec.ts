@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  confirmWithPassword,
+  expectNoA11yViolations,
+  openWith,
+  USERS,
+} from "./helpers"
 
 const ROLES = "/#/settings/roles"
 const USERS_PAGE = "/#/settings/users"
@@ -8,14 +13,6 @@ const COMPANY = "/#/settings/company"
 
 const toast = (page: Page, text: RegExp | string) =>
   page.locator("[data-sonner-toast]").filter({ hasText: text }).last()
-
-async function confirmWithPassword(page: Page) {
-  const reauth = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
-  await expect(reauth).toBeVisible()
-  await reauth.getByLabel("Пароль", { exact: true }).fill("demo")
-  await reauth.getByRole("button", { name: "Підтвердити", exact: true }).click()
-  await expect(reauth).toBeHidden()
-}
 
 test.describe("ролі й права (ADR-0014)", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -51,6 +48,7 @@ test.describe("ролі й права (ADR-0014)", () => {
     await allInvoices.check()
     await expect(page.getByText("Дозволів: 7")).toBeVisible()
     await page.getByRole("button", { name: "Зберегти", exact: true }).click()
+    await confirmWithPassword(page)
     await expect(toast(page, "Роль збережено")).toBeVisible()
 
     await page.getByRole("button", { name: "Копіювати" }).click()
@@ -141,6 +139,7 @@ test.describe("запрошення (ADR-0014)", () => {
     await dialog.getByLabel("Ім'я (необов'язково)").fill("Ольга Коваленко")
     await expectNoA11yViolations(page)
     await send.click()
+    await confirmWithPassword(page)
     await expect(
       toast(page, "Запрошення надіслано на olha@zoriana.example"),
     ).toBeVisible()
@@ -169,6 +168,8 @@ test.describe("запрошення (ADR-0014)", () => {
         name: "Приєднатися до ТОВ «Зоряна логістика»",
       }),
     ).toBeVisible()
+    // Посилання відкрито в сесії Олени: спершу вийти, чужий запис сюди не підставиться (ADR-0040).
+    await page.getByRole("button", { name: "Вийти", exact: true }).click()
     await page.getByLabel("Ваше ім'я").fill("Ольга Коваленко")
     await page
       .getByLabel("Новий пароль", { exact: true })
@@ -198,6 +199,7 @@ test.describe("запрошення (ADR-0014)", () => {
     await dialog.getByLabel("Email").fill("petro@zoriana.example")
     await dialog.getByRole("checkbox", { name: "Аудитор" }).check()
     await dialog.getByRole("button", { name: "Надіслати запрошення" }).click()
+    await confirmWithPassword(page)
     await expect(
       toast(page, "Запрошення надіслано на petro@zoriana.example"),
     ).toBeVisible()

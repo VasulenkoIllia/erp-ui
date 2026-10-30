@@ -5,6 +5,8 @@
  * - Сховище, права того, хто запросив, перевірка й прийняття — `lib/mock-invitation-store`.
  * - Повтор — від імені того, хто повторив (подія журналу `users.invitation_resent`); повтор і
  *   відкликання запрошення з ролями понад свої права — 403 («стеля», ADR-0032).
+ * - `taken` і `invited` — лише в компанії запиту (ADR-0040): людина з іншої компанії приймає
+ *   запрошення входом; надсилання й повтор — пароль ще раз, останньою перевіркою.
  * - Сценарії ресурсу `invitations` (`lib/mock-scenarios`) — для `GET`, `POST`, повтору й
  *   відкликання; `conflict` — перший повтор чи відкликання кожного запрошення — 409.
  * - Обробники бере `createTeamHandlers` (`lib/mock-team`) зі своєю перевіркою права в компанії
@@ -32,6 +34,7 @@ import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,
   errorResponse,
+  isMockCompanyMember,
   json,
   mockUsersList,
   noContent,
@@ -50,6 +53,8 @@ const INVITATIONS_RESOURCE = "invitations"
 /** Повтор — не частіше ніж раз на хвилину (429). */
 const RESEND_INTERVAL_MS = 60_000
 const DAY_MS = 86_400_000
+/** 256 біт випадковості: токен — це доступ до компанії з ролями запрошення (ADR-0040). */
+const INVITE_TOKEN_BYTES = 32
 
 /** Хто діє, у якій компанії запиту й з якими правами в ній (ADR-0033). */
 export interface MockCompanyAccess {
@@ -67,8 +72,10 @@ export interface InvitationMockOptions {
     request: Request,
     resource: string,
     action: string,
-    level?: "read" | "change" | "sensitive",
+    level?: "read" | "change",
   ) => MockCompanyAccess | Response
+  /** Пароль ще раз (ADR-0040): 403 `reauth_required` або `null` — підтверджено. */
+  reauthRequired: () => Response | null
 }
 
 /** Спільне для обробників: адреса, лист, право з урахуванням сценарію, конфлікт сценарію. */
@@ -80,6 +87,7 @@ interface HandlerContext {
     level: "read" | "change",
   ) => Promise<MockCompanyAccess | Response>
   conflictFor: (id: string) => Response | null
+  reauthRequired: () => Response | null
 }
 
 const emailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -118,7 +126,8 @@ const text = (value: unknown) => (typeof value === "string" ? value.trim() : "")
 
 /**
  * Тіло `POST /invitations`: значення й помилки полів (422). Не рядок чи не список — як порожнє чи
- * невідоме, а не 500. «Зайнята» й «запрошена» адреса — поки в усіх компаніях (A2c).
+ * невідоме, а не 500. «Зайнята» й «запрошена» адреса — лише в цій компанії: відповідь не каже, чи є
+ * адреса в інших (ADR-0040).
  */
 function readInvitationInput(body: unknown, companyId: string | null) {
   const raw: Record<string, unknown> =
@@ -129,11 +138,19 @@ function readInvitationInput(body: unknown, companyId: string | null) {
   const fields: Record<string, string> = {}
   if (!email) fields.email = "required"
   else if (!emailValid(email)) fields.email = "invalid"
-  else if (mockUsersList().some((u) => u.email.toLowerCase() === email))
+  else if (
+    mockUsersList().some(
+      (u) =>
+        u.email.toLowerCase() === email && isMockCompanyMember(u, companyId),
+    )
+  )
     fields.email = "taken"
   else if (
     readMockInvitations().some(
-      (i) => i.email === email && Date.parse(i.expiresAt) > Date.now(),
+      (i) =>
+        i.email === email &&
+        i.companyId === companyId &&
+        Date.parse(i.expiresAt) > Date.now(),
     )
   )
     fields.email = "invited"
@@ -163,7 +180,12 @@ function listHandler({ baseUrl, access }: HandlerContext) {
   })
 }
 
-function createHandler({ baseUrl, inviteLink, access }: HandlerContext) {
+function createHandler({
+  baseUrl,
+  inviteLink,
+  access,
+  reauthRequired,
+}: HandlerContext) {
   return http.post(`${baseUrl}/invitations`, async ({ request }) => {
     const allowed = await access(request, "change")
     if (allowed instanceof Response) return allowed
@@ -180,11 +202,13 @@ function createHandler({ baseUrl, inviteLink, access }: HandlerContext) {
         companyId,
         target: { type: "invitations", id: email, name: email },
       })
+    const reauth = reauthRequired()
+    if (reauth) return reauth
     const company = user.companies.find((c) => c.id === companyId)
     const now = new Date().toISOString()
     const invite: StoredMockInvitation = {
       id: `inv-${randomToken().slice(0, 10)}`,
-      token: randomToken(),
+      token: randomToken(INVITE_TOKEN_BYTES),
       email,
       ...(input.name ? { name: input.name } : {}),
       roles,
@@ -227,6 +251,7 @@ function resendHandler({
   inviteLink,
   access,
   conflictFor,
+  reauthRequired,
 }: HandlerContext) {
   return http.post(
     `${baseUrl}/invitations/:id/resend`,
@@ -254,6 +279,8 @@ function resendHandler({
           code: "rate_limited",
           message: "Wait a minute before sending again",
         })
+      const reauth = reauthRequired()
+      if (reauth) return reauth
       const sentAt = new Date().toISOString()
       // Повтор — від імені того, хто повторив: його права перевіряться при прийнятті.
       const next: StoredMockInvitation = {
@@ -322,12 +349,14 @@ export function createInvitationHandlers({
   baseUrl,
   inviteLink,
   allowedIn,
+  reauthRequired,
 }: InvitationMockOptions): HttpHandler[] {
   /** Сценарій `conflict`: «запрошення щойно змінив інший адміністратор» — раз на запрошення. */
   const changedByOther = new Set<string>()
   const context: HandlerContext = {
     baseUrl,
     inviteLink,
+    reauthRequired,
     // Сценарій ресурсу `invitations`, право `users:create` і компанія запиту.
     async access(request, level) {
       const scenario = scenarioFor(INVITATIONS_RESOURCE)

@@ -6,7 +6,6 @@ import { toast } from "sonner"
 import {
   useAuthErrorText,
   useErpAuthProvider,
-  useFieldError,
 } from "@/registry/erp/auth-layout"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import {
@@ -14,45 +13,25 @@ import {
   useInvitationActions,
   useInvitationCeiling,
 } from "@/registry/erp/invitation-actions"
+import { InviteDialog } from "@/registry/erp/invite-dialog"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
-import { RolePicker, useRoles } from "@/registry/erp/role-picker"
+import { useRoles } from "@/registry/erp/role-picker"
 import { useCompanyId } from "@/registry/hooks/use-company"
-import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
-import {
-  INVITATION_QUERY_KEYS,
-  type Invitation,
-} from "@/registry/lib/invitations"
-import { ROLES_QUERY_KEYS, type Role } from "@/registry/lib/roles"
-import { Alert, AlertDescription } from "@/registry/ui/alert"
+import { INVITATION_QUERY_KEYS } from "@/registry/lib/invitations"
+import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/registry/ui/dialog"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/registry/ui/field"
-import { Input } from "@/registry/ui/input"
-import { Spinner } from "@/registry/ui/spinner"
-import { Textarea } from "@/registry/ui/textarea"
 
 /**
  * Запрошення колег (ADR-0014, PF01/A2): хто чекає на прийняття, «Запросити колегу» з ролями,
  * надіслати ще раз, відкликати. Людина приймає запрошення на `AcceptInviteScreen` (ADR-0010).
  * Право `users:create`; ролі для вибору — `roles:read`. Запрошення з ролями понад свої права —
  * дії неактивні з причиною; щойно змінене чи зникле (409, 404) — свіжий список (ADR-0035).
+ * Надіслати й надіслати ще раз — із паролем ще раз (ADR-0040).
  */
 export function InvitationsSection() {
   const t = useErpUiT()
@@ -219,181 +198,7 @@ export function InvitationsSection() {
         onClose={actions.closeRevoke}
         onConfirm={actions.confirmRevoke}
       />
+      {actions.reauthDialog}
     </div>
-  )
-}
-
-function InviteDialog({
-  roles,
-  rolesError,
-  onClose,
-  onSent,
-}: {
-  roles: Role[] | undefined
-  rolesError: string | null
-  onClose: () => void
-  onSent: (invitation: Invitation) => void
-}) {
-  const t = useErpUiT()
-  const provider = useErpAuthProvider()
-  const fieldError = useFieldError()
-  const errorText = useAuthErrorText()
-  const ids = React.useId()
-  const ceiling = useMe().data?.permissions
-  const [email, setEmail] = React.useState("")
-  const [name, setName] = React.useState("")
-  const [selected, setSelected] = React.useState<string[]>([])
-  const [message, setMessage] = React.useState("")
-  const [emailError, setEmailError] = React.useState<string>()
-  const [rolesInvalid, setRolesInvalid] = React.useState<string>()
-  const [error, setError] = React.useState<string | null>(null)
-  const [busy, setBusy] = React.useState(false)
-
-  const emailText = (failure: unknown) => {
-    const code = isApiError(failure) ? failure.fieldErrors?.email : undefined
-    if (code === "taken") return t("invitations.emailTaken")
-    if (code === "invited") return t("invitations.emailInvited")
-    return fieldError(failure, "email") ?? undefined
-  }
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
-      <DialogContent>
-        <form
-          className="grid gap-4"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault()
-            const nextEmail = email.trim()
-            const emailMissing = !nextEmail
-            setEmailError(
-              emailMissing ? t("auth.fieldErrors.required") : undefined,
-            )
-            setRolesInvalid(
-              selected.length ? undefined : t("invitations.rolesRequired"),
-            )
-            if (emailMissing || !selected.length) return
-            setError(null)
-            setBusy(true)
-            provider.invitations
-              .create({
-                email: nextEmail,
-                ...(name.trim() ? { name: name.trim() } : {}),
-                roles: selected,
-                ...(message.trim() ? { message: message.trim() } : {}),
-              })
-              .then(onSent)
-              .catch((failure: unknown) => {
-                const emailIssue = emailText(failure)
-                const rolesIssue = fieldError(failure, "roles")
-                if (emailIssue) setEmailError(emailIssue)
-                if (rolesIssue) setRolesInvalid(t("invitations.rolesRequired"))
-                if (!emailIssue && !rolesIssue) setError(errorText(failure))
-              })
-              .finally(() => {
-                setBusy(false)
-              })
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{t("invitations.inviteTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("invitations.description")}
-            </DialogDescription>
-          </DialogHeader>
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <Field data-invalid={emailError ? true : undefined}>
-            <FieldLabel htmlFor={`${ids}-email`}>
-              {t("invitations.emailLabel")}
-            </FieldLabel>
-            <Input
-              id={`${ids}-email`}
-              type="email"
-              inputMode="email"
-              autoComplete="off"
-              value={email}
-              aria-invalid={emailError ? true : undefined}
-              aria-describedby={emailError ? `${ids}-email-error` : undefined}
-              onChange={(event) => {
-                setEmail(event.target.value)
-              }}
-            />
-            {emailError ? (
-              <FieldError id={`${ids}-email-error`}>{emailError}</FieldError>
-            ) : null}
-          </Field>
-          <Field>
-            <FieldLabel htmlFor={`${ids}-name`}>
-              {t("invitations.nameLabel")}
-            </FieldLabel>
-            <Input
-              id={`${ids}-name`}
-              autoComplete="off"
-              value={name}
-              maxLength={100}
-              onChange={(event) => {
-                setName(event.target.value)
-              }}
-            />
-          </Field>
-          {roles ? (
-            <RolePicker
-              roles={roles}
-              value={selected}
-              legend={t("invitations.rolesLabel")}
-              error={rolesInvalid}
-              disabled={busy}
-              ceiling={ceiling}
-              onChange={(next) => {
-                setSelected(next)
-                setRolesInvalid(undefined)
-              }}
-            />
-          ) : rolesError ? (
-            <Alert variant="destructive">
-              <AlertDescription>{rolesError}</AlertDescription>
-            </Alert>
-          ) : (
-            <SectionSkeleton rows={2} />
-          )}
-          <Field>
-            <FieldLabel htmlFor={`${ids}-message`}>
-              {t("invitations.messageLabel")}
-            </FieldLabel>
-            <Textarea
-              id={`${ids}-message`}
-              rows={2}
-              value={message}
-              maxLength={500}
-              aria-describedby={`${ids}-message-hint`}
-              onChange={(event) => {
-                setMessage(event.target.value)
-              }}
-            />
-            <FieldDescription id={`${ids}-message-hint`}>
-              {t("invitations.messageHint")}
-            </FieldDescription>
-          </Field>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t("auth.account.cancel")}
-            </Button>
-            <Button type="submit" disabled={busy || !roles}>
-              {busy ? <Spinner aria-hidden /> : null}
-              {t("invitations.send")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }

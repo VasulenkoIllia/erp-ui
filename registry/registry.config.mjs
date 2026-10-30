@@ -313,6 +313,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§17"],
   },
+  "lib/mock-records": {
+    title: "Записи мок-ресурсу",
+    description:
+      "Фільтри й сортування списку за ADR-0002, унікальні поля, компанія запису, обгортки доступу до ресурсу (ADR-0037, ADR-0039); чисті функції для createResourceHandlers.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17"],
+  },
   "hooks/use-me": {
     title: "useMe",
     description:
@@ -1187,7 +1195,7 @@ export const CODE_ITEMS = {
   "erp/account-recovery": {
     title: "Відновлення доступу",
     description:
-      "«Забули пароль?», новий пароль за посиланням, прийняття запрошення, вхід за посиланням із листа, повернення з SSO.",
+      "«Забули пароль?», новий пароль за посиланням, прийняття запрошення (адреса з обліковим записом — erp/invite-account, ADR-0040), вхід за посиланням із листа, повернення з SSO.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
@@ -1422,6 +1430,22 @@ export const CODE_ITEMS = {
       "InvitationsSection: хто чекає, «Запросити колегу» з ролями й повідомленням, надіслати ще раз, відкликати; запрошення з ролями понад свої права — дії неактивні з причиною, щойно змінене чи зникле (409, 404) — свіжий список (ADR-0035).",
     status: "beta",
     demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/invite-dialog": {
+    title: "Діалог запрошення",
+    description:
+      "InviteDialog: адреса, ім'я, ролі й кілька слів у лист; надсилання — із паролем ще раз (ADR-0040), помилки біля полів. Частина erp/invitations-section.",
+    status: "beta",
+    demo: "users",
+    spec: ["PF01", "A2"],
+  },
+  "erp/invite-account": {
+    title: "Запрошення наявним обліковим записом",
+    description:
+      "InviteAccountScreen: адреса вже має обліковий запис, тож вхід прямо на екрані запрошення й прийняття, одна кнопка для того, хто вже ввійшов, вихід для того, хто ввійшов іншим записом (ADR-0040). Частина AcceptInviteScreen.",
+    status: "beta",
+    demo: "login",
     spec: ["PF01", "A2"],
   },
   "erp/invitation-actions": {

@@ -41,6 +41,18 @@ export async function openWith(
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
 }
 
+/** Пароль ще раз перед чутливою дією (`useReauth`): демо-пароль за замовчуванням. */
+export async function confirmWithPassword(
+  page: Page,
+  password = "demo",
+): Promise<void> {
+  const reauth = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+  await expect(reauth).toBeVisible()
+  await reauth.getByLabel("Пароль", { exact: true }).fill(password)
+  await reauth.getByRole("button", { name: "Підтвердити", exact: true }).click()
+  await expect(reauth).toBeHidden()
+}
+
 /** Мова з меню користувача. */
 export async function chooseLanguage(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: /Меню користувача/ }).click()

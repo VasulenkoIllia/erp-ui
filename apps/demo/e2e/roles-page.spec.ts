@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  confirmWithPassword,
+  expectNoA11yViolations,
+  openWith,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок A2b2b1 (ADR-0033): сторінка «Ролі й права» модуля A2 — список ролей і права вибраної поруч
@@ -178,6 +183,7 @@ test.describe("A2: ролі й права", () => {
       scope("Зміна").getByRole("radio", { name: "Свої" }),
     ).toBeChecked()
     await page.getByRole("button", { name: "Зберегти" }).click()
+    await confirmWithPassword(page)
     await expect(toast(page, "Роль збережено")).toBeVisible()
 
     await page.reload()
@@ -206,6 +212,7 @@ test.describe("A2: ролі й права", () => {
     await expect(exportInvoices).toBeChecked()
     await expectNoA11yViolations(page)
     await save.click()
+    await confirmWithPassword(page)
     await expect(toast(page, "Роль збережено")).toBeVisible()
     await expect(conflict).toBeHidden()
     await expect(exportInvoices).toBeChecked()

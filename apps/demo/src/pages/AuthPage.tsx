@@ -298,6 +298,14 @@ export function AuthPage({
                         {t("invite")}
                       </a>
                     </li>
+                    <li>
+                      <a
+                        href={`#${AUTH_ROUTES.invite}?token=demo-invite-account`}
+                        className="inline-flex min-h-touch items-center text-primary underline-offset-4 hover:underline"
+                      >
+                        {t("inviteAccount")}
+                      </a>
+                    </li>
                   </ul>
                 </CardContent>
               </Card>

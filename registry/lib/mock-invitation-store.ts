@@ -5,20 +5,30 @@
  *   адміністратора — `lib/mock-invitations`, перевірка й прийняття — мок входу (`lib/mock-sign-up`).
  * - Перевірка й прийняття — лише поки той, хто запросив (після повтору — той, хто повторив), досі
  *   може дати ролі запрошення (`inviterCanGrant`); інакше запрошення як прострочене (410).
+ * - Адреса з обліковим записом приймає запрошення входом (ADR-0040): `mockInviteAccount` каже
+ *   екрану, що показати, `joinMockInvitedCompany` додає людину до компанії, роль — лише в ній.
  * - Подія шини `users.joined` { id, name, email, roles, companyId } оновлює список користувачів
  *   проекту.
  */
 import type { Invitation } from "@/registry/lib/invitations"
+import type { InviteAccount } from "@/registry/lib/invite-check"
 import { mockBlocked } from "@/registry/lib/mock-account"
 import { recordAudit } from "@/registry/lib/mock-audit"
 import {
+  applyMockRoles,
   mockPermissionsIn,
   mockRoleGrants,
+  readMockUserRoles,
+  saveMockUserRoles,
+  withAssignedRoles,
 } from "@/registry/lib/mock-company-roles"
 import { pushMockNotification } from "@/registry/lib/mock-inbox"
 import {
+  currentMockUser,
   emitMockEvent,
+  getMockSession,
   isMockCompanyMember,
+  joinMockCompany,
   mockUsersList,
   type MockUser,
 } from "@/registry/lib/mock-server"
@@ -110,8 +120,44 @@ export function findMockInvitation(token: string): MockInvite | undefined {
   }
 }
 
-/** Запрошення прийнято: прибрати його, повідомити того, хто запрошував. */
-export function acceptMockInvitation(token: string, user: MockUser): void {
+/**
+ * Що показати тому, хто відкрив посилання (ADR-0040): `owner` — обліковий запис адреси запрошення.
+ * Під «Увійти як…» — `other`: приймати за людину не можна, як і змінювати щось від її імені.
+ */
+export function mockInviteAccount(owner: MockUser | undefined): InviteAccount {
+  const session = currentMockUser()
+  if (!session) return owner ? "existing" : "new"
+  return session.id === owner?.id && !getMockSession()?.impersonatorId
+    ? "current"
+    : "other"
+}
+
+/** Людина з обліковим записом у компанії запрошення: ролі лише там, інші компанії як були. */
+export function joinMockInvitedCompany(
+  user: MockUser,
+  invited: MockInvite["user"],
+): void {
+  for (const company of invited.companies) joinMockCompany(user, company)
+  saveMockUserRoles(
+    withAssignedRoles(
+      readMockUserRoles(),
+      user,
+      invited.companyId,
+      invited.roles,
+    ),
+  )
+  applyMockRoles()
+}
+
+/**
+ * Запрошення прийнято: прибрати його, повідомити того, хто запрошував. `roles` — ролі запрошення:
+ * у людини з обліковим записом `user.roles` — ролі активної компанії, а не цієї.
+ */
+export function acceptMockInvitation(
+  token: string,
+  user: MockUser,
+  roles: readonly string[] = user.roles,
+): void {
   const invite = readMockInvitations().find((i) => i.token === token)
   if (!invite) return
   writeMockInvitations(readMockInvitations().filter((i) => i.token !== token))
@@ -121,8 +167,8 @@ export function acceptMockInvitation(token: string, user: MockUser): void {
       id: user.id,
       name: user.name,
       email: user.email,
-      roles: user.roles,
-      companyId: user.companyId,
+      roles: [...roles],
+      companyId: invite.companyId,
     },
     { companyId: invite.companyId },
   )

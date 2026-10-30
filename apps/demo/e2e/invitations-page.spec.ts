@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  confirmWithPassword,
+  expectNoA11yViolations,
+  openWith,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок A2b2b2b (ADR-0035): сторінка «Запрошення» модуля A2 — пункт навігації з правом
@@ -116,6 +121,7 @@ test.describe("A2: запрошення", () => {
     await dialog.getByLabel("Email").fill("petro@zoriana.example")
     await dialog.getByRole("checkbox", { name: "Аудитор" }).check()
     await dialog.getByRole("button", { name: "Надіслати запрошення" }).click()
+    await confirmWithPassword(page)
     await expect(
       toast(page, "Запрошення надіслано на petro@zoriana.example"),
     ).toBeVisible()
@@ -150,6 +156,59 @@ test.describe("A2: запрошення", () => {
     await expectNoA11yViolations(page)
   })
 
+  test("надіслати ще раз: пароль, тост, спінер не лишається", async ({
+    page,
+  }) => {
+    await seedInvitations(page)
+    await openWith(page, {}, INVITATIONS)
+    await resendButton(page, SALES_INVITE).click()
+    await confirmWithPassword(page)
+    await expect(toast(page, "Запрошення надіслано ще раз")).toBeVisible()
+    await expect(resendButton(page, SALES_INVITE)).toBeEnabled()
+    await expect(resendButton(page, SALES_INVITE)).not.toHaveAttribute(
+      "aria-busy",
+      "true",
+    )
+  })
+
+  test("пароль скасовано: запрошення не надіслано, введене лишилось", async ({
+    page,
+  }) => {
+    await openWith(page, {}, INVITATIONS)
+    await page.getByRole("button", { name: "Запросити колегу" }).click()
+    const dialog = page.getByRole("dialog", { name: "Запросити колегу" })
+    await dialog.getByLabel("Email").fill("later@zoriana.example")
+    await dialog.getByRole("checkbox", { name: "Аудитор" }).check()
+    await dialog.getByRole("button", { name: "Надіслати запрошення" }).click()
+    const reauth = page.getByRole("dialog", { name: "Підтвердьте, що це ви" })
+    await reauth.getByRole("button", { name: "Скасувати" }).click()
+    await expect(reauth).toBeHidden()
+    await expect(
+      dialog.getByText("Дію не виконано: підтвердження скасовано"),
+    ).toBeVisible()
+    await expect(dialog.getByLabel("Email")).toHaveValue(
+      "later@zoriana.example",
+    )
+    await expect(
+      dialog.getByRole("button", { name: "Надіслати запрошення" }),
+    ).toBeEnabled()
+  })
+
+  test("зайнята адреса — лише в цій компанії: без пароля біля поля", async ({
+    page,
+  }) => {
+    await openWith(page, {}, INVITATIONS)
+    await page.getByRole("button", { name: "Запросити колегу" }).click()
+    const dialog = page.getByRole("dialog", { name: "Запросити колегу" })
+    await dialog.getByLabel("Email").fill("ivan@zoriana.example")
+    await dialog.getByRole("checkbox", { name: "Аудитор" }).check()
+    await dialog.getByRole("button", { name: "Надіслати запрошення" }).click()
+    await expect(dialog.getByText("Ця людина вже в компанії")).toBeVisible()
+    await expect(
+      page.getByRole("dialog", { name: "Підтвердьте, що це ви" }),
+    ).toHaveCount(0)
+  })
+
   test("того, хто запросив, понизили — посилання з листа не діє", async ({
     page,
   }) => {
@@ -159,6 +218,7 @@ test.describe("A2: запрошення", () => {
     await dialog.getByLabel("Email").fill("nadia@zoriana.example")
     await dialog.getByRole("checkbox", { name: "Менеджер з продажу" }).check()
     await dialog.getByRole("button", { name: "Надіслати запрошення" }).click()
+    await confirmWithPassword(page)
     await expect(
       toast(page, "Запрошення надіслано на nadia@zoriana.example"),
     ).toBeVisible()
@@ -226,6 +286,29 @@ test.describe("A2: запрошення", () => {
     await expect(
       page.getByRole("button", { name: "Запросити колегу" }),
     ).toBeFocused()
+  })
+
+  test("повільний сервер: Esc під час запиту не закриває діалог, пароль усе одно просимо", async ({
+    page,
+  }) => {
+    test.slow()
+    await withInvitationsScenario(page, "slow")
+    await openWith(page, {}, INVITATIONS)
+    await page.getByRole("button", { name: "Запросити колегу" }).click()
+    const dialog = page.getByRole("dialog", { name: "Запросити колегу" })
+    await dialog.getByLabel("Email").fill("olha@zoriana.example")
+    await dialog.getByRole("checkbox", { name: "Аудитор" }).check()
+    const send = dialog.getByRole("button", { name: "Надіслати запрошення" })
+    await send.click()
+    await expect(send).toHaveAttribute("aria-busy", "true")
+    await page.keyboard.press("Escape")
+    await expect(dialog).toBeVisible()
+    await expect(
+      dialog.getByRole("button", { name: "Скасувати" }),
+    ).toBeDisabled()
+    await expect(
+      page.getByRole("dialog", { name: "Підтвердьте, що це ви" }),
+    ).toBeVisible({ timeout: 15_000 })
   })
 
   test("повтор: 409 і 404 — тост «щойно змінилось» і свіжий список", async ({

@@ -16,6 +16,7 @@ import {
   isReauthRequired,
 } from "@/registry/lib/auth"
 import { getCompanyId, setCompanyId } from "@/registry/lib/company-scope"
+import { mockUsersList } from "@/registry/lib/mock-server"
 import { applyMockRoles } from "@/registry/lib/mock-team"
 import {
   createPlatformHandlers,
@@ -228,6 +229,106 @@ describe("«стеля» доступу (ADR-0034)", () => {
     await auth.admin.signOutUser("a1")
   })
 
+  it("поле canManage: те саме правило, що й у дій (ADR-0040)", async () => {
+    signInMock("a1")
+    setCompanyId("c1")
+    expect((await auth.admin.getUserAccess("u2")).canManage).toBe(true)
+    expect((await auth.admin.getUserAccess("a6")).canManage).toBe(true)
+    expect((await auth.admin.getUserAccess("f5")).canManage).toBe(false)
+    expect((await auth.admin.getUserAccess("a1")).canManage).toBe(true)
+  })
+
+  it("поле canManage: права людини в іншій її компанії", async () => {
+    localStorage.setItem(
+      USER_ROLES_KEY,
+      JSON.stringify({ u9: { c1: ["sales"], c2: ["finance"] } }),
+    )
+    applyMockRoles()
+    signInMock("a1")
+    setCompanyId("c1")
+    expect((await auth.admin.getUserAccess("u9")).canManage).toBe(false)
+  })
+
+  it("поле canManage: адміністратор платформи в компанії", async () => {
+    const platform = mockUsersList().find((user) => user.id === "p0")
+    if (!platform) throw new Error("no mock user p0")
+    const { companies } = platform
+    platform.companies = COMPANIES.slice(0, 1)
+    signInMock("a1")
+    setCompanyId("c1")
+    expect((await auth.admin.getUserAccess("p0")).canManage).toBe(false)
+    platform.companies = companies
+  })
+
+  it("людина ще в іншій компанії: обліковим записом керує лише той, хто керує обома (ADR-0040)", async () => {
+    signInMock("a6")
+    setCompanyId("c1")
+    expect((await auth.admin.getUserAccess("u9")).canManage).toBe(false)
+    for (const action of [
+      () => auth.admin.signOutUser("u9"),
+      () => auth.admin.blockUser("u9", "Звільнення"),
+      () => auth.admin.resetFactors("u9", "Втратив телефон"),
+    ])
+      expect(await errorOf(action())).toMatchObject({
+        status: 403,
+        code: "forbidden",
+      })
+
+    signInMock("a1")
+    setCompanyId("c1")
+    expect((await auth.admin.getUserAccess("u9")).canManage).toBe(true)
+    signInMock("p0")
+    expect((await auth.admin.getUserAccess("u9")).canManage).toBe(true)
+  })
+
+  it("«стеля» — у кожній компанії людини, а не лише в компанії запиту (ADR-0040)", async () => {
+    seedRoles({
+      a1: { c1: ["admin"], c2: ["platform"] },
+      u9: { c1: ["finance"], c2: ["sales"] },
+    })
+    signInMock("a1")
+    setCompanyId("c2")
+    expect((await auth.admin.getUserAccess("u9")).canManage).toBe(false)
+    expect(await errorOf(auth.admin.signOutUser("u9"))).toMatchObject({
+      status: 403,
+      code: "forbidden",
+    })
+  })
+
+  it("«Увійти як…»: людина ще в компанії, де адміністратор нею не керує, — 403 (ADR-0040)", async () => {
+    signInMock("a6")
+    setCompanyId("c1")
+    expect(await errorOf(auth.impersonate("u9", "Перевірка"))).toMatchObject({
+      status: 403,
+      code: "forbidden",
+    })
+  })
+
+  it("запит на відновлення людини з кількох компаній прибирає лише той, хто керує всіма (ADR-0040)", async () => {
+    localStorage.setItem(
+      "erp-ui:mock-recovery-requests",
+      JSON.stringify([
+        {
+          id: "r1",
+          userId: "u9",
+          userName: "u9",
+          email: "u9@zoriana.example",
+          requestedAt: "2026-10-30T09:00:00.000Z",
+        },
+      ]),
+    )
+    signInMock("a6")
+    setCompanyId("c1")
+    const [entry] = await auth.admin.getRecoveryRequests()
+    if (!entry) throw new Error("no recovery request")
+    expect(
+      await errorOf(auth.admin.declineRecoveryRequest(entry.id)),
+    ).toMatchObject({ status: 403, code: "forbidden" })
+    signInMock("a1")
+    await auth.admin.declineRecoveryRequest(entry.id)
+    expect(await auth.admin.getRecoveryRequests()).toEqual([])
+  })
+
   it("ролі людини в панелі доступу — у компанії запиту", async () => {
     seedRoles({ u9: { c1: ["sales"], c2: ["finance"] } })
     signInMock("a1")
@@ -279,12 +380,12 @@ describe("права в компанії запиту (ADR-0034)", () => {
       code: "forbidden",
     })
     expect(
-      isReauthRequired(await errorOf(auth.impersonate("u9", "Перевірка"))),
+      isReauthRequired(await errorOf(auth.impersonate("u2", "Перевірка"))),
     ).toBe(true)
   })
 
   it("«Увійти як…» діє лише в компанії, де його почали", async () => {
-    seedRoles({ u9: { c1: ["sales"], c2: ["finance"] } })
+    seedRoles({ u9: { c1: ["sales"], c2: ["sales"] } })
     signInMock("a1")
     setCompanyId("c1")
     await auth.reauthenticate({ password: "demo-password" })

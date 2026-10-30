@@ -2,6 +2,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { MailCheckIcon } from "lucide-react"
 import { LinkBase, useHandleAuthCallback } from "ra-core"
+import { toast } from "sonner"
 
 import {
   AUTH_PATHS,
@@ -16,6 +17,7 @@ import {
 import { TurnstileCaptcha, type CaptchaRenderer } from "@/registry/erp/captcha"
 import { ChallengeForm } from "@/registry/erp/challenge-form"
 import { FactorSetupStep } from "@/registry/erp/factor-setup"
+import { InviteAccountScreen } from "@/registry/erp/invite-account"
 import { NewPasswordForm } from "@/registry/erp/login-screen"
 import type { SetupFactor } from "@/registry/lib/account"
 import { isApiError } from "@/registry/lib/api"
@@ -355,24 +357,43 @@ export function AcceptInviteScreen({
     : invalid
       ? t("auth.invite.invalidTitle")
       : t("auth.invite.pendingTitle")
+  const lead =
+    invite.data &&
+    (invite.data.invitedBy
+      ? t("auth.invite.lead", {
+          inviter: invite.data.invitedBy,
+          company: invite.data.companyName,
+          email: invite.data.email,
+        })
+      : t("auth.invite.leadNoInviter", {
+          company: invite.data.companyName,
+          email: invite.data.email,
+        }))
+
+  if (
+    token &&
+    lead &&
+    invite.data &&
+    !invite.isError &&
+    (invite.data.account ?? "new") !== "new"
+  )
+    return (
+      <InviteAccountScreen
+        token={token}
+        invite={invite.data}
+        description={lead}
+        onChanged={() => invite.refetch().then((result) => result.data)}
+        logo={logo}
+        footer={footer}
+        paths={paths}
+        afterLogin={afterLogin}
+      />
+    )
 
   return (
     <AuthLayout
       title={stepTitle ? t(stepTitle) : title}
-      description={
-        invite.data && !challengeForm
-          ? invite.data.invitedBy
-            ? t("auth.invite.lead", {
-                inviter: invite.data.invitedBy,
-                company: invite.data.companyName,
-                email: invite.data.email,
-              })
-            : t("auth.invite.leadNoInviter", {
-                company: invite.data.companyName,
-                email: invite.data.email,
-              })
-          : undefined
-      }
+      description={lead && !challengeForm ? lead : undefined}
       logo={logo}
       footer={footer}
     >
@@ -418,11 +439,20 @@ export function AcceptInviteScreen({
               setNameError(null)
               await handle(() =>
                 provider.acceptInvite(token, { name: name.trim(), password }),
-              ).catch((failure: unknown) => {
+              ).catch(async (failure: unknown) => {
                 const message = fieldError(failure, "name")
                 if (message) {
                   setNameError(message)
                   return
+                }
+                // Адреса щойно отримала обліковий запис: екран покаже вхід, а не новий пароль. На
+                // сервері без поля `account` форма лишається, тож 409 — звичайна помилка.
+                if (isApiError(failure) && failure.status === 409) {
+                  const { data } = await invite.refetch()
+                  if ((data?.account ?? "new") !== "new") {
+                    toast(t("auth.invite.hasAccount"))
+                    return
+                  }
                 }
                 throw failure
               })

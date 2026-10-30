@@ -512,6 +512,7 @@
     "lead": "Team lead: sees people and roles, changes nothing and can't see history; password demo",
     "platform": "Platform administrator outside companies: changes the app's security policy; password demo",
     "invite": "Open a colleague's invitation",
+    "inviteAccount": "Open an invitation for an existing account (Ivan)",
     "language": "Interface language",
     "captcha": "Demo “not a bot” check (projects use Cloudflare Turnstile)",
     "smsToast": "SMS to {{to}}: code {{code}}",

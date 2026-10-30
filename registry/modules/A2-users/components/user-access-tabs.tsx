@@ -8,6 +8,7 @@ import {
 } from "@/components/erp/user-access-actions"
 import {
   useAccessCeiling,
+  useUserAccess,
   type AccessTarget,
 } from "@/components/erp/user-access-data"
 import { UserRolesSection } from "@/components/erp/user-roles-section"
@@ -21,9 +22,10 @@ import { UserRoleBadges } from "./user-roles"
 /**
  * Вкладки «Доступ», «Ролі» й «Сесії» картки людини — частини панелі доступу кіта (ADR-0013,
  * ADR-0014): стан і дії з `GET /users/:id/access`, ролі — `PUT /users/:id/roles`. Свій доступ
- * людина тут не змінює (ні блокування, ні ролей), лише бачить. Людині з правами, яких у вас немає, —
- * дії неактивні з причиною («стеля», ADR-0034). `onChange` — після зміни ролей чи доступу: картка й
- * список перечитують запис (статус, ролі, версія для «Історії»).
+ * людина тут не змінює (ні блокування, ні ролей), лише бачить. Людині, якою керувати не можна, —
+ * дії неактивні з причиною: вирішує сервер (`canManage`, ADR-0040), без цього поля — «стеля» за
+ * каталогом ролей (ADR-0034). `onChange` — після зміни ролей чи доступу: картка й список
+ * перечитують запис (статус, ролі, версія для «Історії»).
  */
 
 const targetOf = (user: User): AccessTarget => ({
@@ -36,12 +38,15 @@ function useIsSelf(user: User): boolean {
   return useMe().data?.id === user.id
 }
 
-/** «Стеля» доступу (ADR-0034): ролі людини в компанії запиту — з `GET /users/:id`. */
-const useUserCeiling = (user: User, self: boolean) =>
-  useAccessCeiling(
+/** «Стеля» доступу: відповідь сервера, а без неї — ролі людини в компанії запиту з картки. */
+const useUserCeiling = (user: User, self: boolean) => {
+  const access = useUserAccess(user.id, !self)
+  return useAccessCeiling(
     user.roles.map((role) => role.id),
     !self,
+    access.isPending ? null : access.data?.canManage,
   )
+}
 
 export function UserAccessTab({
   user,

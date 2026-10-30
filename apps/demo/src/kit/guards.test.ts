@@ -287,7 +287,7 @@ describe("«стеля» в моках (ADR-0032)", () => {
   })
 
   it("запрошення: лише ролі в межах своїх прав", async () => {
-    signInMock("a1")
+    await asAdmin()
     expect(
       await errorOf(
         auth.invitations.create({
@@ -356,7 +356,7 @@ describe("ціль дії — лише людина компанії запит�
   })
 
   it("запрошення іншої компанії не видно, не повторити й не відкликати", async () => {
-    signInMock("a1")
+    await asAdmin()
     const invitation = await auth.invitations.create({
       email: "first@zoriana.example",
       roles: ["sales"],
@@ -475,7 +475,7 @@ describe("перевірка запрошення: POST з токеном у т�
   async function inviteToken(email: string) {
     const messages: MockMessage[] = []
     const stop = subscribeMockMessages((m) => messages.push(m))
-    signInMock("a1")
+    await asAdmin()
     await auth.invitations.create({ email, roles: ["sales"] })
     stop()
     signInMock(null)
