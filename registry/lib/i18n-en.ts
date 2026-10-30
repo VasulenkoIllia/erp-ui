@@ -4,6 +4,7 @@
  */
 import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
+import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
 export const en = {
@@ -1405,4 +1406,5 @@ export const en = {
   },
   ...enLists,
   ...enRecords,
+  ...enShortcuts,
 } satisfies ErpUiTranslation

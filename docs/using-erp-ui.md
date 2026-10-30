@@ -119,7 +119,7 @@ node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/form,erp/date-input,erp/numb
 ## 4. Оболонка застосунку
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/user-menu,erp/company-switcher,erp/notification-inbox
+node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/shortcuts-help,erp/user-menu,erp/company-switcher,erp/notification-inbox
 ```
 
 Застосунок — брама сесії навколо оболонки, екрани входу поруч (розділ 6):
@@ -156,9 +156,13 @@ useRoutes([
       {page}
     </AppShell>
     <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
+    <ShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
   </TooltipProvider>
 </IconProvider>
 ```
+
+- Гарячі клавіші (ADR-0042): усі клавіші кіта — у `SHORTCUTS` з `lib/shortcuts`. Довідка `erp/shortcuts-help` відкривається клавішею `useShortcut(SHORTCUTS.help, openHelp)` (`hooks/use-shortcut`, `openHelp` — стабільна функція в `useCallback`) і командою палітри `{ id: "shortcuts-help", label: kitT("shortcuts.items.help"), onSelect: openHelp, … }`. Команда обов'язкова: людина може вимкнути «?» у самій довідці (WCAG 2.1.4), і палітра лишається єдиним способом увімкнути її назад. Вибір зберігається в цьому браузері, а не на сервері.
+- Своя клавіша проекту: константа модуля `const CREATE = { keys: [{ key: "i", mod: true }] }` (`mod` — ⌘ на Mac, Ctrl деінде; працює й на українській розкладці), `useShortcut(CREATE, onPress)` і підпис у довідці: `<ShortcutsHelp extra={[{ ...CREATE, id: "invoice", label: t("…") }]} … />`. Клавіша-символ без модифікатора (`{ key: "n" }`) сама поважає вимикач довідки, поля, меню й діалоги. Клавіші всередині свого компонента обробляйте в компоненті.
 
 - Компанія: `const [companyId, switchCompany] = useCompany()` з `hooks/use-company` (пакунок `data`). Перемикання скасовує запити, скидає дані попередньої компанії й перечитує профіль; свої `useQuery` з даними компанії додають у кінець ключа `companyScope(useCompanyId())` з `lib/company-scope`. Компанія з іншого джерела (напр. з адреси сторінки) — через `setCompanyId` з `lib/company-scope`: `X-Company-Id` і ключі кешу беруться лише звідти.
 - Крихти: остання без `href` — поточна сторінка, з `href` — посилання (список над карткою запису, як у прикладі), тож крихті поточної сторінки `href` не давайте; інша крихта без `href` — підпис групи. На телефоні видно лише останню.

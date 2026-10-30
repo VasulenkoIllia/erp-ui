@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   Database,
   Inbox,
+  Keyboard,
   KeySquare,
   Languages,
   LayoutTemplate,
@@ -48,12 +49,14 @@ import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback, PageStateMain } from "@/registry/erp/page-state"
 import { SessionGuard } from "@/registry/erp/session-guard"
+import { ShortcutsHelp } from "@/registry/erp/shortcuts-help"
 import { InboxBell } from "@/registry/erp/notification-inbox"
 import { UserMenu } from "@/registry/erp/user-menu"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
 import { useCompany } from "@/registry/hooks/use-company"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useMe } from "@/registry/hooks/use-me"
+import { useShortcut } from "@/registry/hooks/use-shortcut"
 import {
   DENSITIES,
   PALETTES,
@@ -65,6 +68,7 @@ import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { whenIdle } from "@/registry/lib/lazy"
 import type { MockMessage } from "@/registry/lib/mock-server"
 import { syncPreferences } from "@/registry/lib/preferences"
+import { SHORTCUTS, type ProjectShortcut } from "@/registry/lib/shortcuts"
 import {
   ACTION_ICONS,
   IconProvider,
@@ -80,6 +84,7 @@ import { TooltipProvider } from "@/registry/ui/tooltip"
 
 import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
+import { OpenHelpContext } from "@/help-context"
 import {
   kitModuleNavId,
   kitModuleNavItems,
@@ -116,6 +121,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   forms: ClipboardCheck,
   pickers: TextSearch,
   icons: Shapes,
+  shortcuts: Keyboard,
   states: LayoutTemplate,
   data: Database,
   organizations: Building,
@@ -352,6 +358,13 @@ function Shell({
     setPaletteOpen(true)
   }, [])
   useCommandPaletteShortcut(openPalette)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [helpExtra, setHelpExtra] = useState<readonly ProjectShortcut[]>()
+  const openHelp = useCallback((extra?: readonly ProjectShortcut[]) => {
+    setHelpExtra(extra)
+    setHelpOpen(true)
+  }, [])
+  useShortcut(SHORTCUTS.help, openHelp)
   // Екран входу — заздалегідь: вихід чи кінець сесії не показують спінер на весь екран.
   useEffect(
     () =>
@@ -413,6 +426,14 @@ function Shell({
     )
     const actions: PaletteCommand[] = [
       {
+        id: "shortcuts-help",
+        label: kitT("shortcuts.items.help"),
+        group: t("commands.actions"),
+        icon: SHELL_ICONS.shortcuts,
+        keywords: ["?", "довідка", "клавіші", "help", "shortcuts", "keyboard"],
+        onSelect: openHelp,
+      },
+      {
         id: "create-invoice",
         label: t("commands.createInvoice"),
         group: t("commands.actions"),
@@ -468,7 +489,7 @@ function Shell({
       })),
     ]
     return [...pages, ...actions, ...appearance]
-  }, [nav, t, kitT, navigate])
+  }, [nav, t, kitT, navigate, openHelp])
 
   // Картка запису — частина своєї сторінки-списку («Дані й моки», «Організації»): та сама
   // позначка в навігації.
@@ -627,19 +648,21 @@ function Shell({
       >
         {/* Стан помилки замінює всю сторінку з її h1 — тож сам h1. */}
         <ErrorBoundary key={pageKey(location, pathname)} headingLevel={1}>
-          <Suspense fallback={<LoadingFallback />}>
-            {location.route === "module" ? (
-              <ModulePage moduleId={location.moduleId} />
-            ) : kitModule ? (
-              <KitModuleRoutes moduleKey={kitModule.moduleKey} />
-            ) : location.route === "invoice" ? (
-              <InvoicePage id={location.id} />
-            ) : location.route === "organization" ? (
-              <OrganizationPage id={location.id} />
-            ) : (
-              <Page />
-            )}
-          </Suspense>
+          <OpenHelpContext value={openHelp}>
+            <Suspense fallback={<LoadingFallback />}>
+              {location.route === "module" ? (
+                <ModulePage moduleId={location.moduleId} />
+              ) : kitModule ? (
+                <KitModuleRoutes moduleKey={kitModule.moduleKey} />
+              ) : location.route === "invoice" ? (
+                <InvoicePage id={location.id} />
+              ) : location.route === "organization" ? (
+                <OrganizationPage id={location.id} />
+              ) : (
+                <Page />
+              )}
+            </Suspense>
+          </OpenHelpContext>
         </ErrorBoundary>
       </AppShell>
       {me ? <SessionGuard /> : null}
@@ -647,6 +670,11 @@ function Shell({
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         commands={commands}
+      />
+      <ShortcutsHelp
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        extra={helpExtra}
       />
     </>
   )

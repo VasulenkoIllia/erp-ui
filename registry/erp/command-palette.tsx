@@ -3,12 +3,18 @@ import { SearchIcon, type LucideIcon } from "lucide-react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback } from "@/registry/erp/page-state"
+import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
+import { useShortcut } from "@/registry/hooks/use-shortcut"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { lazyWithPreload, whenIdle } from "@/registry/lib/lazy"
+import {
+  ariaKeyShortcuts,
+  isMacPlatform,
+  SHORTCUTS,
+} from "@/registry/lib/shortcuts"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/registry/ui/dialog"
-import { Kbd } from "@/registry/ui/kbd"
 
 /**
  * Палітра команд UI15 (SPEC §7, PF06): Cmd/Ctrl+K з будь-якого місця, пошук розділів і дій.
@@ -38,12 +44,8 @@ const CommandPaletteList = lazyWithPreload(() =>
   import("./command-palette-list").then((m) => m.CommandPaletteList),
 )
 
-export function isMacPlatform(): boolean {
-  return (
-    typeof navigator !== "undefined" &&
-    /Mac|iP(hone|ad)/.test(navigator.userAgent)
-  )
-}
+// Переїхав у lib/shortcuts; цей експорт лишається, бо проекти могли брати його звідси.
+export { isMacPlatform }
 
 /** Ctrl+K або ⌘K відкриває палітру — також із поля вводу, як у більшості застосунків. */
 export function useCommandPaletteShortcut(onOpen: () => void) {
@@ -60,16 +62,13 @@ export function useCommandPaletteShortcut(onOpen: () => void) {
       // Ctrl чи ⌘ натиснули — K, найімовірніше, наступна: список уже в дорозі.
       if (event.key === "Control" || event.key === "Meta")
         void CommandPaletteList.preload()
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault()
-        onOpen()
-      }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => {
       window.removeEventListener("keydown", onKeyDown)
     }
-  }, [onOpen])
+  }, [])
+  useShortcut(SHORTCUTS.palette, onOpen)
 }
 
 type ButtonProps = React.ComponentProps<typeof Button>
@@ -93,14 +92,14 @@ export function CommandPaletteTrigger({
       onFocus?.(event)
     },
   }
-  const shortcut = isMacPlatform() ? "⌘K" : "Ctrl K"
+  const keyShortcuts = ariaKeyShortcuts(SHORTCUTS.palette, isMacPlatform())
   if (compact) {
     return (
       <Button
         variant="ghost"
         size="icon"
         aria-label={t("commandPalette.open")}
-        aria-keyshortcuts={isMacPlatform() ? "Meta+K" : "Control+K"}
+        aria-keyshortcuts={keyShortcuts}
         className={className}
         {...props}
         {...preload}
@@ -112,7 +111,7 @@ export function CommandPaletteTrigger({
   return (
     <Button
       variant="outline"
-      aria-keyshortcuts={isMacPlatform() ? "Meta+K" : "Control+K"}
+      aria-keyshortcuts={keyShortcuts}
       className={cn(
         "justify-start gap-2 font-normal text-muted-foreground",
         className,
@@ -122,7 +121,7 @@ export function CommandPaletteTrigger({
     >
       <SearchIcon aria-hidden />
       <span className="flex-1 text-left">{t("commandPalette.open")}</span>
-      <Kbd>{shortcut}</Kbd>
+      <ShortcutKeys shortcut={SHORTCUTS.palette} />
     </Button>
   )
 }

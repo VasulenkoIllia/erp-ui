@@ -5,7 +5,9 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/registry/lib/utils"
 
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
+import { useShortcut } from "@/registry/hooks/use-shortcut"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { SHORTCUTS } from "@/registry/lib/shortcuts"
 import { Button } from "@/registry/ui/button"
 import { Separator } from "@/registry/ui/separator"
 import {
@@ -28,7 +30,6 @@ const SIDEBAR_WIDTH_MOBILE = "18rem"
 // erp-ui: вузька панель = пункт (висота контрола, але не менше цілі дотику) + відступи.
 const SIDEBAR_WIDTH_ICON =
   "calc(max(var(--control-h), var(--touch-min)) + 1rem)"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 function readStoredOpen(): boolean | null {
   try {
@@ -45,15 +46,6 @@ function storeOpen(open: boolean) {
   } catch {
     // Сховище недоступне: стан просто не запам'ятовується.
   }
-}
-
-/** Поле вводу чи редактор у фокусі — гарячі клавіші оболонки їм не заважають (Ctrl+B у редакторі — жирний). */
-function isEditable(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable ||
-      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-  )
 }
 
 type SidebarContextProps = {
@@ -123,22 +115,8 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
-  // Adds a keyboard shortcut to toggle the sidebar.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey) &&
-        !isEditable(event.target)
-      ) {
-        event.preventDefault()
-        toggleSidebar()
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [toggleSidebar])
+  // erp-ui: клавіша — з єдиного реєстру (lib/shortcuts, ADR-0042).
+  useShortcut(SHORTCUTS.sidebar, toggleSidebar)
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.

@@ -16,6 +16,8 @@ import {
 } from "@tanstack/react-table"
 import type { ReactNode } from "react"
 
+import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
+
 /** Можливості TanStack Table 9 у таблиці кіта: сортування (на сервері) і видимість колонок. */
 export const DATA_TABLE_FEATURES = tableFeatures({
   rowSortingFeature,
@@ -240,19 +242,14 @@ export interface GridBounds {
   pageRows: number
 }
 
-const NAVIGATION_KEYS = new Set([
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "Home",
-  "End",
-  "PageUp",
-  "PageDown",
-])
+const NAVIGATION_SHORTCUTS = [
+  SHORTCUTS.gridMove,
+  SHORTCUTS.gridRowEdge,
+  SHORTCUTS.gridPage,
+]
 
 export function isGridNavigationKey(key: string): boolean {
-  return NAVIGATION_KEYS.has(key)
+  return NAVIGATION_SHORTCUTS.some((shortcut) => isShortcutKey(shortcut, key))
 }
 
 /** Куди перейти з `from` за клавішею (W3C APG Grid); null — клавіша не для навігації. */

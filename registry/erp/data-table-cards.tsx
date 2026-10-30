@@ -10,6 +10,7 @@ import type {
   RowWindowState,
 } from "@/registry/lib/data-table-core"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 import { cn } from "@/registry/lib/utils"
 import {
   Select,
@@ -45,6 +46,12 @@ export interface DataTableCardsProps<T> {
   isPinned?: (row: T) => boolean
 }
 
+/** Крок між картками за клавішею; 0 — клавіша не для стрічки. */
+function feedStep(key: string): -1 | 0 | 1 {
+  if (isShortcutKey(SHORTCUTS.cardsNext, key)) return 1
+  return isShortcutKey(SHORTCUTS.cardsPrevious, key) ? -1 : 0
+}
+
 const CARD_ESTIMATE_PX = 120
 const GAP_PX = 8
 /**
@@ -53,13 +60,6 @@ const GAP_PX = 8
  */
 const CLIP = "-mx-3 -my-1.5 truncate px-3 py-1.5"
 const OVERSCAN = 4
-const FEED_KEYS: Record<string, -1 | 1> = {
-  PageDown: 1,
-  ArrowDown: 1,
-  PageUp: -1,
-  ArrowUp: -1,
-}
-
 type CardRole = NonNullable<DataTableColumn<unknown>["card"]>
 
 function roleOf<T>(column: DataTableColumn<T>, index: number): CardRole {
@@ -109,7 +109,7 @@ export function DataTableCards<T>({
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    const step = FEED_KEYS[event.key]
+    const step = feedStep(event.key)
     const target = event.target as HTMLElement
     const isCard = target.dataset.card !== undefined
     // Усередині картки стрілки лишаються елементам; PageUp/PageDown — завжди між картками.

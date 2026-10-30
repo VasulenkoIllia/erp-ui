@@ -2,6 +2,7 @@ import * as React from "react"
 import { ImageUpIcon, Trash2Icon } from "lucide-react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/avatar"
 import { Button } from "@/registry/ui/button"
@@ -337,10 +338,10 @@ function CropDialog({
                   y: current.y + move[1],
                 }),
               )
-            } else if (event.key === "+" || event.key === "=") {
+            } else if (isShortcutKey(SHORTCUTS.avatarZoomIn, event.key)) {
               event.preventDefault()
               zoomTo(Math.min(MAX_ZOOM, crop.zoom + 0.1))
-            } else if (event.key === "-") {
+            } else if (isShortcutKey(SHORTCUTS.avatarZoomOut, event.key)) {
               event.preventDefault()
               zoomTo(Math.max(1, crop.zoom - 0.1))
             }

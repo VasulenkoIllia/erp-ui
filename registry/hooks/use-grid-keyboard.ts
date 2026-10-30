@@ -20,6 +20,7 @@ import {
   moveInGrid,
   type GridPosition,
 } from "@/registry/lib/data-table-core"
+import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 
 /** `data-grid-skip` — фокусоване лише програмно (оболонка редактора), не зупинка Tab клітинки. */
 const FOCUSABLE =
@@ -171,14 +172,14 @@ export function useGridKeyboard({
     const inWidget = target !== cell
     if (inWidget && targetOf(cell) !== target) {
       // Клітинка з кількома елементами: Tab ходить між ними, Esc — назад на клітинку.
-      if (event.key === "Escape") {
+      if (isShortcutKey(SHORTCUTS.gridExit, event.key)) {
         event.preventDefault()
         setCellStops(cell, false)
         cell.focus()
       }
       return
     }
-    if (!inWidget && (event.key === "Enter" || event.key === "F2")) {
+    if (!inWidget && isShortcutKey(SHORTCUTS.gridEnter, event.key)) {
       const first = widgetsIn(cell)[0]
       if (first) {
         event.preventDefault()

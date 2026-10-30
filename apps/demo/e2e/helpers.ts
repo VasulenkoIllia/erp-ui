@@ -13,6 +13,7 @@ export {
   cellOf,
   chooseInSubmenu,
   expectNoA11yViolations,
+  expectNoHorizontalScroll,
   waitForMenuFocus,
   type AppearanceSeed,
 } from "../../../registry/tools/e2e"

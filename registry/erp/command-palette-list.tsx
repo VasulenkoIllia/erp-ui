@@ -3,8 +3,9 @@ import { Autocomplete } from "@base-ui/react/autocomplete"
 import { SearchIcon } from "lucide-react"
 
 import type { PaletteCommand } from "@/registry/erp/command-palette"
+import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
-import { Kbd } from "@/registry/ui/kbd"
+import { SHORTCUTS } from "@/registry/lib/shortcuts"
 
 /**
  * Пошук і список палітри команд (erp/command-palette) на Base UI Autocomplete. Окремий файл, бо
@@ -134,16 +135,15 @@ export function CommandPaletteList({
         className="hidden items-center gap-3 border-t px-3 py-2 text-xs text-muted-foreground sm:flex"
       >
         <span className="flex items-center gap-1">
-          <Kbd>↑</Kbd>
-          <Kbd>↓</Kbd>
+          <ShortcutKeys shortcut={SHORTCUTS.paletteMove} />
           {t("commandPalette.navigate")}
         </span>
         <span className="flex items-center gap-1">
-          <Kbd>Enter</Kbd>
+          <ShortcutKeys shortcut={SHORTCUTS.paletteRun} />
           {t("commandPalette.run")}
         </span>
         <span className="flex items-center gap-1">
-          <Kbd>Esc</Kbd>
+          <ShortcutKeys shortcut={SHORTCUTS.paletteClose} />
           {t("commandPalette.close")}
         </span>
       </div>

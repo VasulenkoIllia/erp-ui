@@ -12,6 +12,7 @@ export const ROUTES = {
   forms: "/forms",
   pickers: "/pickers",
   icons: "/icons",
+  shortcuts: "/shortcuts",
   states: "/states",
   data: "/data",
   organizations: "/organizations",

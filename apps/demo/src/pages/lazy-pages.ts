@@ -23,6 +23,9 @@ export const PAGES = {
   primitives: lazyWithPreload(() =>
     import("./PrimitivesPage").then((m) => m.PrimitivesPage),
   ),
+  shortcuts: lazyWithPreload(() =>
+    import("./ShortcutsPage").then((m) => m.ShortcutsPage),
+  ),
   // Поле телефону тягне дані libphonenumber (~120 КБ gzip).
   formats: lazyWithPreload(() =>
     import("./FormatsPage").then((m) => m.FormatsPage),

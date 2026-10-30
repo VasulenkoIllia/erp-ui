@@ -5,6 +5,7 @@
  */
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
+import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 
 export const uk = {
   common: {
@@ -1420,6 +1421,7 @@ export const uk = {
   },
   ...ukLists,
   ...ukRecords,
+  ...ukShortcuts,
 }
 
 export type ErpUiMessages = typeof uk

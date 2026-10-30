@@ -6,6 +6,7 @@
       "primitives": "Primitives",
       "formats": "Languages & formats",
       "icons": "Icons",
+      "shortcuts": "Keyboard shortcuts",
       "states": "Page states",
       "data": "Data & mocks",
       "organizations": "Organizations",
@@ -776,5 +777,21 @@
       "cancel": "Cancel",
       "submit": "Create"
     }
+  },
+  "shortcutsPage": {
+    "lead": "All the keys of the kit live in one registry. The help, the palette hints and this list read it.",
+    "helpTitle": "Help",
+    "helpDescription": "Opens with the ? key outside input fields and with the Show keyboard shortcuts command in the palette (Ctrl K). The button below shows the help with a project key, as a separate group at the end.",
+    "open": "Open the help",
+    "listTitle": "List with project keys",
+    "listDescription": "A wide container shows two columns. The switch at the bottom turns the ? key off in this browser; the help stays in the palette.",
+    "narrowTitle": "Narrow container",
+    "narrowDescription": "The same help in a narrow container: one column, and the keys are not cut off.",
+    "statesTitle": "States",
+    "statesDescription": "The list loads as a separate chunk: an indicator first and, if the chunk fails, a message with Try again.",
+    "loading": "Loading",
+    "failed": "Failed to load",
+    "retried": "The real help would load the list here",
+    "projectKey": "Create an invoice"
   }
 }

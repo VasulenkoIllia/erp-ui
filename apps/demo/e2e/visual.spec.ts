@@ -60,6 +60,7 @@ const SHOT_PAGES = {
   forms: "/#/forms",
   pickers: "/#/pickers",
   icons: "/#/icons",
+  shortcuts: "/#/shortcuts",
   states: "/#/states",
   module: "/#/m/K2",
   data: "/#/data",

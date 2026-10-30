@@ -73,6 +73,22 @@ export const CODE_ITEMS = {
     demo: "pickers",
     spec: ["§11"],
   },
+  "lib/i18n-uk-shortcuts": {
+    title: "Рядки клавіш uk",
+    description:
+      "Рядки довідки гарячих клавіш українською: групи, підписи, слова для скрінрідера; входять у простір імен erp-ui через lib/i18n-uk.",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["§11"],
+  },
+  "lib/i18n-en-shortcuts": {
+    title: "Рядки клавіш en",
+    description:
+      "Ті самі рядки довідки клавіш англійською; паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["§11"],
+  },
   "lib/i18n-en-records": {
     title: "Рядки вибору запису en",
     description:
@@ -80,6 +96,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "pickers",
     spec: ["§11"],
+  },
+  "lib/shortcuts": {
+    title: "Реєстр клавіш",
+    description:
+      "Єдиний перелік гарячих клавіш кіта: поєднання, групи, перевірка натискання (з фізичною клавішею на нелатинській розкладці), вимикач символьних клавіш (WCAG 2.1.4), підписи й aria-keyshortcuts (ADR-0042).",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["PF06", "§10"],
   },
   "lib/lazy": {
     title: "Ліниві компоненти",
@@ -320,6 +344,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§17"],
+  },
+  "hooks/use-shortcut": {
+    title: "useShortcut",
+    description:
+      "Клавіша на весь застосунок із реєстру lib/shortcuts: слухає вікно, поважає поле вводу й вимикач символьних клавіш.",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["PF06", "§10"],
   },
   "hooks/use-me": {
     title: "useMe",
@@ -951,6 +983,30 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "appearance",
     spec: ["UI15"],
+  },
+  "erp/shortcut-keys": {
+    title: "Клавіші поєднання",
+    description:
+      "Клавіші запису реєстру: символи на екрані, слова для скрінрідера, ⌘ на Mac і Ctrl деінде.",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["PF06", "§10"],
+  },
+  "erp/shortcuts-help": {
+    title: "Довідка гарячих клавіш",
+    description:
+      "Діалог за клавішею «?» і командою палітри: усі клавіші з реєстру, клавіші проекту окремою групою, перемикач «?». Список вантажиться при відкритті (ADR-0042).",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["PF06", "§10"],
+  },
+  "erp/shortcuts-help-list": {
+    title: "Перелік гарячих клавіш",
+    description:
+      "Групи клавіш і перемикач «?»; одна колонка у вузькому контейнері, дві в широкому. Окремий файл, щоб довідка вантажила його лише при відкритті. Ставиться разом з erp/shortcuts-help.",
+    status: "beta",
+    demo: "shortcuts",
+    spec: ["PF06", "§9", "§10"],
   },
   "erp/user-menu": {
     title: "Меню користувача",

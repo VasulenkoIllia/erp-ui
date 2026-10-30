@@ -3,6 +3,7 @@ import { toast } from "sonner"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -176,7 +177,8 @@ export function EditableCell<V>({
         issueId={issueId}
         onKeyDown={(event) => {
           // Поле обробило Escape само; тут — поки поле вантажиться (фокус на оболонці).
-          if (event.key !== "Escape" || event.defaultPrevented) return
+          if (!isShortcutKey(SHORTCUTS.cellCancel, event.key)) return
+          if (event.defaultPrevented) return
           event.preventDefault()
           close(true)
         }}
@@ -207,10 +209,13 @@ export function EditableCell<V>({
             "aria-describedby": issue ? issueId : undefined,
             onKeyDown: (event) => {
               // Enter під час набору через IME підтверджує набір, а не значення.
-              if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              if (
+                isShortcutKey(SHORTCUTS.cellSave, event.key) &&
+                !event.nativeEvent.isComposing
+              ) {
                 event.preventDefault()
                 commit(true)
-              } else if (event.key === "Escape") {
+              } else if (isShortcutKey(SHORTCUTS.cellCancel, event.key)) {
                 event.preventDefault()
                 close(true)
               }
@@ -247,7 +252,7 @@ export function EditableCell<V>({
         setEditing(true)
       }}
       onKeyDown={(event) => {
-        if (event.key !== "F2") return
+        if (!isShortcutKey(SHORTCUTS.cellEdit, event.key)) return
         event.preventDefault()
         event.currentTarget.click()
       }}
