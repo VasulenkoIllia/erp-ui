@@ -72,7 +72,7 @@ const contacts = createContactsMocks({ extension: contactsMockExtension, locale:
 setupWorker(...platformHandlers, ...createSavedViewHandlers(), ...createListSettingsHandlers(), ...contacts.handlers)
 ```
 
-- Фікстури (`fixtures.ts`) — українською чи англійською (`locale`), коди ЄДРПОУ й РНОКПП і IBAN з дійсними контрольними цифрами; `companyOf` — компанія користувача для запису.
+- Фікстури (`fixtures.ts`) — українською чи англійською (`locale`), коди ЄДРПОУ й РНОКПП і IBAN з дійсними контрольними цифрами; `companyOf` — компанія користувача для запису: без нього в застосунку з компаніями запис спільний, його змінює лише адміністратор платформи, а в решти «Змінити» неактивна (ADR-0036). Сегменти засіву лишаються спільними: `companyOf` їх не зачіпає, нові сегменти створюються в компанії.
 - Сценарії `success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline` — для кожного ресурсу окремо (`setScenario(scenario, "contacts")`, панель розробника `DevPanel`).
 - Адреси й рахунки моки зберігають разом з організацією (`detailFields`): нові елементи отримують `id`, IBAN перевіряється, основний рахунок і `iban` рахуються, у журналі «було → стало» колекції показано рядками з позначкою основного рахунку.
 - Поля розширення в журналі «було → стало» — з підписом поля, значення зі списку — підписом мовою фікстур, запис із довідника (`type: "record"`) — назвою з довідника моків (`extensionAuditOptions` з `lib/extension-fields`, `mockRecordTitle` з `lib/mocks`).

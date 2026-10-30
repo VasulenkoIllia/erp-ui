@@ -19,13 +19,13 @@ pnpm add -D tailwindcss @tailwindcss/vite
 # "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@latest init -b base -p nova
 # package.json: "shadcn": "4.22.0" без ^ — та сама CLI для встановлення й оновлення (розділ 8)
-pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.0.1
+pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.1.0
 pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
-git add -A && git commit -m "erp-ui: base v1.0.1"   # команда кіта пише лише в чисте дерево
-node scripts/erp-ui-kit.mjs update v1.0.1 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
+git add -A && git commit -m "erp-ui: base v1.1.0"   # команда кіта пише лише в чисте дерево
+node scripts/erp-ui-kit.mjs update v1.1.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
 ```
 
-Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.0.1 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
+Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.1.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
 
 Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
@@ -48,7 +48,7 @@ node scripts/erp-ui-kit.mjs update v1.0.1 --items base,data,mocks,auth,erp/app-g
 ## 2. Компоненти
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add ui/button,ui/dialog
+node scripts/erp-ui-kit.mjs update v1.1.0 --add ui/button,ui/dialog
 npx shadcn@latest list VasulenkoIllia/erp-ui              # усе, що є
 npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 ```
@@ -92,7 +92,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ```
 
 - Мова даних (назви компаній, документи) — окремо від мови інтерфейсу: форматери з `lib/format` приймають локаль явно.
-- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
+- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 - Вибір запису з пошуком на сервері (компанія контакту, відповідальний) — `erp/record-picker` (ADR-0023): значення — `id`, `optionLabel` і `sort` від проекту, «Створити…» — `create.onCreate(query)` відкриває форму проекту, а новий запис проект сам ставить у значення. Реквізити в картці з «Копіювати» — `erp/copyable-value` (`kind`: `code`, `iban`, `phone`, `email`, `url`).
 - Кілька значень із короткого довідника (сегменти, теги, ролі) — `MultiSelect` з `erp/multi-select` (ADR-0027): `options` — `{ value, label, description? }[]` (поки довідник вантажиться — не задавайте; не завантажився — `error` і `onRetry`), значення — масив ключів (`value`, `onValueChange`), `clearable`; на телефоні — шторка з «Готово». Ключ, якого вже немає в довіднику, лишається міткою, і його можна зняти. У `FormField` — `{...control}`, `value={field.value}`, `onValueChange={field.onChange}`, `onBlur={field.onBlur}`. Довідник на сотні записів і пошук на сервері — не сюди: мультивибору з пошуком на сервері ще немає.
@@ -100,7 +100,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ### Форми, дати, суми й підтвердження (ADR-0015)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
+node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
 ```
 
 - Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
@@ -119,7 +119,7 @@ node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/form,erp/date-input,erp/numb
 ## 4. Оболонка застосунку
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/user-menu,erp/company-switcher,erp/notification-inbox
+node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/user-menu,erp/company-switcher,erp/notification-inbox
 ```
 
 Застосунок — брама сесії навколо оболонки, екрани входу поруч (розділ 6):
@@ -202,7 +202,7 @@ useRoutes([
 Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add data,mocks,lib/mock-views,lib/query-client
+node scripts/erp-ui-kit.mjs update v1.1.0 --add data,mocks,lib/mock-views,lib/query-client
 npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
 
@@ -372,7 +372,7 @@ export const invoicesExtension: InvoicesExtension = {
 ### Модуль у проекті (ADR-0025)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add modules/B1-contacts
+node scripts/erp-ui-kit.mjs update v1.1.0 --add modules/B1-contacts
 ```
 
 Мінімальний набір для проекту з модулем на моках (тестовий проект `erp-ui-pilot`): `base`, `data`, `mocks`, `auth`, `lib/mock-views`, `lib/query-client`, `erp/app-gate`, `erp/auth-routes`, `erp/app-shell`, `erp/user-menu`, `ui/sonner`, `tools/e2e` і сам модуль — усі з одного тегу. Команда кіта ставить модуль з тегу одним запитом (§8): напряму з приватного GitHub CLI робить на модуль сотні й тисячі запитів API, кожен з тайм-аутом 15 с і без повтору (ліміт — 5 000 на годину для особистого токена).
@@ -474,6 +474,7 @@ setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExten
 - **Перемикач.** Моки лишаються за замовчуванням: `VITE_BACKEND=mocks|<бекенд>` у `.env.local` (ключ — у `.env.example`), з бекендом MSW не запускайте й панель сценаріїв сховайте. Бекенд — через проксі Vite на тому ж домені (`server.proxy` і `preview.proxy`, адреса — зі змінної середовища), тоді CORS не потрібен.
 - **Транспорт.** Свій `fetch` для `createApiClient`: `Authorization: Bearer`, одне спільне оновлення токена на всі паралельні 401 і один повтор запиту, помилки бекенду → `{ code, message, fieldErrors? }` кіта (`ApiError`, `Retry-After` зберігайте). Відповіді бекенду перевіряйте zod-схемами: розбіжність — явна помилка `server`, не тихі порожні дані.
 - **Вхід, вихід і профіль.** Поки в `createAuthProvider` немає опцій (ADR-0021), вхід перекладає міст: окремий `fetch` для клієнта кіта відповідає на `/auth/methods`, `/auth/login`, `/auth/logout` і `/me` у форматі кіта, а сам іде в бекенд. Профіль бекенду → `Me` з правами `<ресурс>:<дія>`; способи входу, яких бекенд не має, вимикає відповідь `/auth/methods`.
+- **Провайдер.** Беріть `createAuthProvider` і перевизначайте своє: `{ ...kitAuth, logout }`, під-API — `{ ...kitAuth, admin: { ...kitAuth.admin, blockUser } }`. Тоді новий метод кіта приходить сам, це мінорна версія (CLAUDE.md кіта, правило 8; ADR-0021, доповнення A2c4). Написаний повністю вручну провайдер додає метод за `CHANGELOG.md`.
 - **Дані.** Обгортка над `createDataProvider`: перевизначте лише ресурси й методи, що відрізняються (`getList`, `getOne`, `create`, `update`, `delete`…); `id` — рядком; немає `version` — стала `version: 1`, і бекенду її не шліть. Чого бекенд не має (ресурси, поля, вкладки), ховайте окремим файлом розширення модуля поверх розширення проекту (`withPilotApiContacts` у тестовому проекті), а не показуйте порожнім; рядки «Подробиць» картки — `detailRows: { hide }`, журнал змін, якого бекенд не веде, — `history: false` (з v0.3.0).
 - **Токени.** Лише в пам'яті вкладки, не в `localStorage` (ADR-0021, п. 5). Якщо бекенд віддає refresh лише в тілі відповіді, після перезавантаження сторінки — вхід заново (кіт поверне на ту саму адресу), або httpOnly cookie через проксі чи доробку бекенду (рішення власника).
 - **Перевірка.** Модульні тести адаптера на підставному `fetch`; контрактні тести zod-схемами проти запущеної копії бекенду (окремий скрипт, напр. `pnpm test:pilot-api`) і e2e з бекендом (`pnpm e2e:pilot-api`) — окремо від звичайних `pnpm test`, `pnpm e2e` і CI. Локальна копія бекенду — Docker з тестовими даними й скриптом наповнення, порти лише на `127.0.0.1`.
@@ -482,7 +483,7 @@ setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExten
 ## 6. Вхід і акаунт
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.0.1 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
+node scripts/erp-ui-kit.mjs update v1.1.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
 ```
 
 Що показати на сторінці входу, вирішує бекенд (`GET /auth/methods`, ADR-0010): пароль, код на email чи в SMS, ключ доступу, Google, Apple, будь-який OIDC, реєстрація, відновлення. Маршрути — поза брамою сесії (розділ 4), усі одним викликом `createAuthRoutes` з `erp/auth-routes` (ADR-0029):
@@ -545,6 +546,7 @@ useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
 - Клієнт API: `createApiClient({ getLanguage: () => getAppearance().language })` — сервер пише листи й місця входу мовою інтерфейсу.
 - Після зміни власних ролей чи «Увійти як…» профіль перечитує `useRefreshMe()` з `hooks/use-me`: `invalidateQueries(ME_QUERY_KEY)` для цього не годиться, authProvider кешує профіль.
 - Моки: `createPlatformHandlers({ …, securityPolicy, roles, permissionResources, apiResources, auditSeeds, webhookEvents, webhookSeeds, notificationChannels, notificationEvents, inboxSeeds, companyProfiles })`; `subscribeMockEvents` — `users.roles_changed` і `users.joined`, щоб оновити свій список людей; `createResourceHandlers({ …, label, fieldLabels })` — зміни записів ідуть у журнал аудиту й на вебхуки.
+- Записи модуля в застосунку з компаніями: передайте компанію (`createContactsMocks({ companyOf })`), бо запис без компанії спільний, його змінює лише адміністратор платформи, а в решти «Змінити» неактивна (ADR-0036). Сегменти засіву лишаються спільними: `companyOf` їх не зачіпає, нові сегменти створюються в компанії.
 - Компанія запиту в моках (ADR-0036): ресурси, масові дії, журнал, вебхуки, налаштування компанії й токени API беруть права в компанії запиту, а компанію — за членством: `X-Company-Id` компанії, де людина не працює, — 403, без заголовка — компанія сесії; запис, задача, підписка й токен іншої компанії — 404; `companyId` у тілі `POST` і `PATCH` не діє. Запис без компанії — спільний: компанії його бачать, а змінює лише адміністратор платформи — людина з `isPlatformAdmin: true` у `MockUser` (`*` у ролі компанії дає всі права лише в ній); фікстурам модуля B1 у застосунку з компаніями передайте `companyOf`. Застосунок з компаніями — за початковими людьми моків (`createPlatformHandlers({ users })`): засів, де є люди з компаніями й без, — застосунок з компаніями, і люди поза компаніями в ньому без прав (вхід і профіль працюють). Тести для застосунку без компаній засівають лише людей без компаній. Адміністратор платформи у своїй компанії діє за роллю там; заблокувати його, змінити ролі чи «Увійти як…» у нього адміністратор компанії не може. Журнал компанії — її події, події облікових записів її людей (входи, пароль, другий крок, вихід, блокування) і події застосунку (політика). Засів журналу й вебхуків у застосунку з компаніями позначайте: `auditSeeds: [{ …, companyId: "my-co" }]` чи `{ …, accountId: "u-1" }` для входів, `webhookSeeds: [{ …, companyId: "my-co" }]`; журнал без позначки бачать усі компанії, підписку без позначки (застосунку) — лише платформа. Відмова «стелі» з'являється в журналі невдалою подією (`details.code: "beyond_ceiling"`).
 - Політика безпеки — одна на застосунок (ADR-0036): у застосунку з компаніями її змінює лише адміністратор платформи з `security:update` у компанії запиту, `SecurityPolicyForm` для решти — лише перегляд із поясненням (сервер каже `canUpdate` у `GET /security-policy`, без поля — за правом `security:update`). e2e змін політики входять людиною з `isPlatformAdmin: true`.
 - Бекенд: `X-Session-Expires-At` у кожній відповіді (і в `Access-Control-Expose-Headers`, якщо API на іншому домені); Turnstile перевіряється на сервері; «Увійти як…» і скидання другого кроку пишуться в аудит із причиною; токени API зберігаються лише хешем; політика (другий крок, пароль, адреси) перевіряється на сервері; журнал аудиту пише сервер і віддає його в межах компанії, відмову «стелі» теж пише; вебхуки — підписки компанії, з підписом HMAC і повторами (ADR-0013, ADR-0036); запис, задача, підписка й токен іншої компанії — 404, компанія запиту — за членством; адміністратор платформи — позначка облікового запису, а не роль компанії: лише він заходить у чужу компанію, змінює спільне (записи й підписки без компанії) і політику (ADR-0036); заблокований не входить жодним способом; що з конкретним записом не можна, сервер каже полем `deniedActions` і однаково відмовляє 403 (ADR-0037); «Свої / Усі»: `:own` у ролях лише для дій каталогу з `own: true`, «стеля» з обсягом (ADR-0038); права перевіряються з ролей на кожному запиті, вбудовані й свої ролі не змінюються, токен запрошення зберігається хешем, реквізити перевіряються як на клієнті (ADR-0014).
@@ -584,17 +586,17 @@ node scripts/erp-ui-kit.mjs check                     # файли кіта не
 - Файлів, яких у новій версії немає, команда не видаляє, а називає (`? шлях`): видаліть сам, якщо не потрібен.
 - Залежності (з v1.0.1, крок fix-kit-deps): залежності, які вже є в `package.json` проекту, команда не змінює — ні діапазон, ні встановлену версію в lock-файлі. Ставить лише ті, яких у проекті немає (новий елемент чи нова залежність елемента), з діапазоном кіта, менеджером пакетів проекту (за lock-файлом). Якщо встановлена версія не в діапазоні кіта (напр. кіт перейшов на нову мажорну бібліотеки), звіт називає її (`! назва: кіт чекає …`) і лишає версію проекту: оновіть її самі, якщо збірка чи тести впадуть, — що змінилось, каже `CHANGELOG.md` кіта. Причина: CLI shadcn 4.22.0 під час `add` ставить кожну залежність елемента з версією заново (`pnpm add назва@діапазон`), навіть наявну, і переписує діапазон проекту (у кроці 1.9 — `~4.14.0` → `^4.14.0`), а версію поза діапазоном кіта підняв би, зокрема до нової мажорної. Тому команда забирає залежності з елементів перед `add` і ставить їх сама. Менеджер пакетів — з поля `packageManager` у `package.json`, інакше за найближчим lock-файлом (у проекті чи вище — корінь воркспейсу, але не вище кореня git-репозиторію); не вдалося визначити, а ставити треба, — зупинка до запису файлів (npm команда не вгадує). Зупиняється команда й тоді, коли звіт `--dry-run` обіцяє залежності, коли `add` усе ж змінив `package.json` чи lock-файл (інша версія CLI) і коли після встановлення наявний діапазон змінився чи нова залежність не встановилась. Попередження про версії поза діапазоном кіта команда повторює наприкінці.
 - З v1.0.0 на v1.0.1 — командою v1.0.1: три її файли з тегу в тимчасову теку й запуск звідти, як нижче для першого запуску, але `update v1.0.1` без `--items` (список уже в `kit-files.json`). Команда v1.0.0 ще віддає залежності CLI shadcn і переписала б діапазони. Далі — `node scripts/erp-ui-kit.mjs update vX.Y.Z`, як звичайно.
-- Після оновлення — `pnpm typecheck`, `pnpm lint`, тести, збірка й e2e; що змінилось — `CHANGELOG.md` кіта. Мажорна версія — лише при зміні токенів чи публічного API (CLAUDE.md кіта, правило 8). У мінорній і патч-версії файли розширення й адаптера змінювати не треба, крім названого в `CHANGELOG.md` (як у v0.3.0: стара анотація типу статусів і точні назви кнопок у тестах).
+- Після оновлення — `pnpm typecheck`, `pnpm lint`, тести, збірка й e2e; що змінилось — `CHANGELOG.md` кіта. Мажорна версія — лише при несумісній зміні токенів чи публічного API (CLAUDE.md кіта, правило 8). У мінорній і патч-версії файли розширення й адаптера змінювати не треба, крім названого в `CHANGELOG.md` (як у v0.3.0: стара анотація типу статусів і точні назви кнопок у тестах).
 - Перший раз у проекті без команди (кіт до v1.0.0): завантажте її з тегу в тимчасову теку й запустіть звідти — вона сама стане у `scripts/` разом із `base`. Список `--items` — елементи, які стоять у проекті (README проекту):
 
   ```sh
   git status --short   # чисте дерево
   T="$(mktemp -d)"
   for f in erp-ui-kit erp-ui-kit-lib erp-ui-kit-deps; do
-    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.0.1" \
+    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.1.0" \
       -H "Accept: application/vnd.github.raw" > "$T/$f.mjs"
   done
-  node "$T/erp-ui-kit.mjs" update v1.0.1 --items base,data,mocks,auth,modules/B1-contacts
+  node "$T/erp-ui-kit.mjs" update v1.1.0 --items base,data,mocks,auth,modules/B1-contacts
   rm -rf "$T"
   ```
 

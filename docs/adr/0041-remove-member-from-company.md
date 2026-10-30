@@ -61,8 +61,8 @@ ADR-0040, п. 9 залишив дії над обліковим записом �
 ## Наслідки
 
 - `UserAccessAction` отримав `removeFromCompany`, `AdminApi` — обов'язковий метод: адаптер, що пише
-  `AdminApi` сам, а не бере `createAdminApi`, додає його. Версію випуску рахує A2c4 разом із
-  `joinInvite` (правило 8). `useUserAccessActions` приймає `onRemoved`: після вилучення доступ і запис
+  `AdminApi` сам, а не бере `createAdminApi`, додає його. Версія — мінорна разом із
+  `joinInvite` (ADR-0021, доповнення A2c4). `useUserAccessActions` приймає `onRemoved`: після вилучення доступ і запис
   людини вже 404, тож він іде зі сторінки й оновлює список сам. `useUserAccessSheet` приймає
   `returnFocus`: рядка, з якого відкрили шторку, після вилучення немає. `ConfirmDialog` отримав
   `lockWhileBusy`: незворотну дію, що вже летить, не можна «скасувати». Тому запит має межу 30 с
