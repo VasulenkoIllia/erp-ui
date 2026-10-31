@@ -11,6 +11,8 @@ import { useRecordForm } from "@/registry/hooks/use-record-form"
 import { ApiError } from "@/registry/lib/api"
 import { Input } from "@/registry/ui/input"
 
+import { waitForDialogFocus } from "@/test/dialog-focus"
+
 /**
  * Крок 1.4b2b (ADR-0028): форма одного елемента вкладеної колекції (адреса, рахунок) на
  * `useRecordForm` — колекцію будує з запису, до якого застосовують зміну, а помилку сервера з шляхом
@@ -68,7 +70,7 @@ function TagForm({ onSaved }: { onSaved: () => void }) {
   )
 }
 
-function renderForm(update: ReturnType<typeof vi.fn>) {
+async function renderForm(update: ReturnType<typeof vi.fn>) {
   const onSaved = vi.fn()
   render(
     <CoreAdminContext
@@ -78,6 +80,7 @@ function renderForm(update: ReturnType<typeof vi.fn>) {
       <TagForm onSaved={onSaved} />
     </CoreAdminContext>,
   )
+  await waitForDialogFocus()
   return { onSaved, user: userEvent.setup() }
 }
 
@@ -92,7 +95,7 @@ describe("useRecordForm: елемент вкладеної колекції", ()
       .mockImplementation((_resource: string, { data }: { data: object }) =>
         Promise.resolve({ data: { ...current, ...data, version: 5 } }),
       )
-    const { onSaved, user } = renderForm(update)
+    const { onSaved, user } = await renderForm(update)
     await user.type(screen.getByRole("textbox", { name: "Тег" }), "mine")
     await user.click(screen.getByRole("button", { name: "Додати" }))
     expect(update.mock.calls[0]?.[1]).toMatchObject({
@@ -120,7 +123,7 @@ describe("useRecordForm: елемент вкладеної колекції", ()
         fieldErrors: { "tags.1": "duplicate" },
       }),
     )
-    const { user } = renderForm(update)
+    const { user } = await renderForm(update)
     const tag = screen.getByRole("textbox", { name: "Тег" })
     await user.type(tag, "a")
     await user.click(screen.getByRole("button", { name: "Додати" }))

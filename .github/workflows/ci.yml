@@ -122,10 +122,62 @@ jobs:
           path: apps/demo/playwright-report
           retention-days: 7
 
+  # Нові й змінені spec-файли ×10: тест, що падає раз на кілька прогонів, не доходить до main.
+  # Без perf (своя задача в один потік) і visual (660 тестів ×10 не вміщаються в час задачі):
+  # їх перевіряють задачі perf і e2e.
+  e2e-repeat:
+    name: e2e ×10 (нові й змінені файли)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Find new and changed spec files
+        id: specs
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          files=$(git diff --name-only --no-renames --diff-filter=AM "origin/$BASE_REF...HEAD" -- 'apps/demo/e2e/*.spec.ts' ':!apps/demo/e2e/perf.spec.ts' ':!apps/demo/e2e/visual.spec.ts' | sed 's#^apps/demo/##' | tr '\n' ' ')
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v6
+        if: steps.specs.outputs.files != ''
+
+      - uses: actions/setup-node@v7
+        if: steps.specs.outputs.files != ''
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: steps.specs.outputs.files != ''
+
+      - name: Install Playwright Chromium
+        if: steps.specs.outputs.files != ''
+        run: pnpm --filter @erp-ui/demo exec playwright install --with-deps chromium
+
+      - name: Repeat spec files
+        if: steps.specs.outputs.files != ''
+        env:
+          FILES: ${{ steps.specs.outputs.files }}
+        run: pnpm e2e:repeat $FILES --workers=2
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-repeat
+          path: apps/demo/playwright-report
+          retention-days: 7
+
   # Підсумок під старою назвою: правило «перевірки мають пройти» дивиться на неї.
   checks:
     name: typecheck · lint · test · e2e
-    needs: [static, e2e, perf, consumer]
+    needs: [static, e2e, e2e-repeat, perf, consumer]
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -133,6 +185,7 @@ jobs:
         run: |
           test "${{ needs.static.result }}" = success
           test "${{ needs.e2e.result }}" = success
+          test "${{ needs.e2e-repeat.result }}" = success
           test "${{ needs.perf.result }}" = success
           test "${{ needs.consumer.result }}" = success
 
