@@ -1,7 +1,10 @@
 import { useDataProvider } from "ra-core"
 import * as React from "react"
-import { toast } from "sonner"
 
+import {
+  useImportDownloads,
+  useImportErrorText,
+} from "@/registry/hooks/use-import-downloads"
 import { useWizard, type WizardApi } from "@/registry/hooks/use-wizard"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
@@ -10,13 +13,11 @@ import {
   applicableRows,
   buildRows,
   countActions,
-  errorReportRows,
   headerRowIndex,
   mappingIssues,
   mergeCheck,
   sheetIssue,
   suggestMapping,
-  templateRows,
   type CheckedRow,
   type ImportCounts,
   type ImportMapping,
@@ -34,10 +35,7 @@ import {
 } from "@/registry/lib/imports"
 import {
   readSpreadsheet,
-  saveFile,
-  spreadsheetFileName,
   SpreadsheetError,
-  writeSpreadsheet,
   type SpreadsheetErrorCode,
   type SpreadsheetSheet,
 } from "@/registry/lib/spreadsheet"
@@ -49,8 +47,9 @@ import {
  * - Файл читається одразу після вибору: помилку й аркуші видно на першому кроці. Новий файл скасовує
  *   читання попереднього.
  * - «Далі» на кроці колонок запитує перевірку сервера: збій лишає людину на кроці, зіставлення ціле.
- * - `requestId` новий на кожну перевірку: зміни в колонках дають новий запуск, а повтор після
- *   загубленої відповіді — той самий.
+ * - Зміна файла, аркуша, колонок чи дії з дублями скидає перевірку й `requestId`: це вже інший імпорт.
+ *   Без змін ключ той самий, тож повтор після загубленої відповіді не створює записи двічі.
+ * - Кроки перевірки й перегляду без перевірки недоступні (`blocked`): запускати нічого.
  * - Після запуску назад не можна (`locked`): задача вже йде на сервері.
  */
 export type ImportFileError = "required" | SpreadsheetErrorCode | SheetIssue
@@ -84,6 +83,16 @@ const INITIAL_STATE: ImportState = {
   requestId: "",
   jobId: null,
 }
+
+const NOT_CHECKED = {
+  checked: [],
+  requestId: "",
+} satisfies Partial<ImportState>
+
+type FileRead = Pick<ImportState, "sheets" | "readError">
+type SetImportState = React.Dispatch<React.SetStateAction<ImportState>>
+
+const NOTHING_READ: FileRead = { sheets: [], readError: null }
 
 export interface ImportWizardOptions {
   readonly target: ImportTarget
@@ -124,33 +133,8 @@ const mappingOf = (
       )
     : {}
 
-/** Текст помилки рядка: код модуля, код кіта, інакше сам код. */
-export function useImportErrorText(target: ImportTarget) {
-  const t = useErpUiT()
-  return React.useCallback(
-    (error: ImportRowError) => {
-      const message =
-        target.errorLabel?.(error.code) ??
-        (error.code === "required" ||
-        error.code === "invalid" ||
-        error.code === "duplicate" ||
-        error.code === "ambiguous_number"
-          ? t(`importWizard.errors.${error.code}`)
-          : t("importWizard.errors.unknown", { code: error.code }))
-      const field = target.fields.find((item) => item.key === error.field)
-      return field
-        ? t("importWizard.errors.withField", { field: field.label, message })
-        : message
-    },
-    [t, target],
-  )
-}
-
-/** Файл → аркуші з даними, або код помилки. */
-async function readSheets(
-  file: File,
-  maxRows: number,
-): Promise<Pick<ImportState, "sheets" | "readError">> {
+/** Файл → аркуші з даними, або код помилки. Причину бачить людина, тож відмови тут не лишається. */
+async function readSheets(file: File, maxRows: number): Promise<FileRead> {
   try {
     const sheets = await readSpreadsheet(file, { maxRows: maxRows + 1 })
     return {
@@ -158,121 +142,171 @@ async function readSheets(
       readError: null,
     }
   } catch (cause) {
-    if (cause instanceof SpreadsheetError)
-      return { sheets: [], readError: cause.code }
-    throw cause
+    return {
+      sheets: [],
+      readError: cause instanceof SpreadsheetError ? cause.code : "unreadable",
+    }
   }
 }
 
-function useDownloads({
+/** Вибір людини на кроках файла й колонок. `reading` — результат останнього читання файла. */
+function useImportChoices({
   target,
-  sheet,
-  state,
-  errorText,
+  maxRows,
+  setState,
 }: {
   target: ImportTarget
-  sheet: SpreadsheetSheet | undefined
-  state: ImportState
-  errorText: (error: ImportRowError) => string
+  maxRows: number
+  setState: SetImportState
 }) {
-  const t = useErpUiT()
-  const save = (
-    rows: Parameters<typeof writeSpreadsheet>[0]["rows"],
-    name: string,
-    failure: string,
-  ) => {
-    writeSpreadsheet({ format: "xlsx", rows, sheetName: name })
-      .then((blob) => {
-        saveFile(blob, spreadsheetFileName(name, "xlsx"))
-      })
-      .catch(() => {
-        toast.error(failure)
-      })
-  }
+  const reading = React.useRef<Promise<FileRead>>(Promise.resolve(NOTHING_READ))
+  const readRun = React.useRef(0)
   return {
-    downloadTemplate: () => {
-      save(
-        templateRows(target.fields),
-        `${target.resource}-${t("importWizard.file.templateName")}`,
-        t("importWizard.file.templateFailed"),
-      )
+    reading,
+    chooseFile: (file: File | null) => {
+      readRun.current += 1
+      const run = readRun.current
+      setState({ ...INITIAL_STATE, file, isReading: file !== null })
+      if (!file) {
+        reading.current = Promise.resolve(NOTHING_READ)
+        return
+      }
+      reading.current = readSheets(file, maxRows).then((result) => {
+        if (run === readRun.current)
+          setState((current) => ({
+            ...current,
+            ...result,
+            isReading: false,
+            mapping: mappingOf(result.sheets[0], target),
+          }))
+        return result
+      })
     },
-    downloadErrors: () => {
-      save(
-        errorReportRows(
-          sheet?.rows ?? [],
-          state.checked,
-          errorText,
-          t("importWizard.check.errorColumn"),
-        ),
-        t("importWizard.check.downloadName"),
-        t("importWizard.check.downloadFailed"),
-      )
+    chooseSheet: (index: number) => {
+      setState((current) => ({
+        ...current,
+        ...NOT_CHECKED,
+        sheetIndex: index,
+        mapping: mappingOf(current.sheets[index], target),
+        showMappingIssues: false,
+      }))
+    },
+    mapColumn: (column: number, key: string | null) => {
+      setState((current) => {
+        const mapping = { ...current.mapping }
+        if (key === null) delete mapping[column]
+        else mapping[column] = key
+        return { ...current, ...NOT_CHECKED, mapping }
+      })
+    },
+    setOnDuplicate: (onDuplicate: ImportDuplicateMode) => {
+      setState((current) => ({ ...current, ...NOT_CHECKED, onDuplicate }))
     },
   }
 }
 
-export function useImportWizard({
+const importRequest = (
+  state: ImportState,
+  target: ImportTarget,
+  rows: readonly ImportRow[],
+  requestId: string,
+): ImportRequest => ({
+  requestId,
+  fileName: state.file?.name,
+  matchField: target.matchField,
+  onDuplicate: target.matchField ? state.onDuplicate : undefined,
+  rows: [...rows],
+})
+
+interface ImportStepsOptions {
+  readonly target: ImportTarget
+  readonly maxRows: number
+  readonly state: ImportState
+  readonly setState: SetImportState
+  readonly reading: React.RefObject<Promise<FileRead>>
+  readonly issues: MappingIssues
+  readonly applyCount: number
+}
+
+/** Що робить «Далі» на кроках: чекає файл, перевіряє рядки, запускає імпорт. */
+function useImportActions({
   target,
-  maxRows = IMPORT_MAX_ROWS,
-  onDone,
-}: ImportWizardOptions): ImportWizardApi {
-  const t = useErpUiT()
-  const format = useFormat()
+  maxRows,
+  state,
+  setState,
+  reading,
+  issues,
+  applyCount,
+}: ImportStepsOptions) {
   const dataProvider = useDataProvider<ErpDataProvider>()
-  const [state, setState] = React.useState(INITIAL_STATE)
   const patch = (next: Partial<ImportState>) => {
     setState((current) => ({ ...current, ...next }))
   }
-  const reading = React.useRef<Promise<void>>(Promise.resolve())
-  const readRun = React.useRef(0)
-  const sheet = state.sheets[state.sheetIndex]
-  const issues = mappingIssues(state.mapping, target.fields)
-  const counts = countActions(state.checked)
-  const errorText = useImportErrorText(target)
 
-  const issue = sheet ? sheetIssue(sheet, maxRows) : null
-  const fileError: ImportFileError | null =
-    state.readError ?? issue ?? (state.isFileMissing ? "required" : null)
-
-  const request = (rows: readonly ImportRow[], requestId: string) =>
-    ({
-      requestId,
-      fileName: state.file?.name,
-      matchField: target.matchField,
-      onDuplicate: target.matchField ? state.onDuplicate : undefined,
-      rows: [...rows],
-    }) satisfies ImportRequest
+  const fileReady = async () => {
+    if (!state.file) {
+      patch({ isFileMissing: true })
+      return false
+    }
+    // Читання могло ще тривати: стан цього рендера його результату не знає.
+    const { sheets, readError } = await reading.current
+    const chosen = sheets[state.sheetIndex]
+    return !readError && chosen !== undefined && !sheetIssue(chosen, maxRows)
+  }
 
   const checkRows = async () => {
-    if (issues.missing.length || issues.repeated.size || !hasMapping(state)) {
+    const hasMapping = Object.keys(state.mapping).length > 0
+    if (issues.missing.length || issues.repeated.size || !hasMapping) {
       patch({ showMappingIssues: true })
       return false
     }
-    const built = buildRows(sheet?.rows ?? [], state.mapping, target.fields)
-    const requestId = newImportRequestId()
+    const rows = state.sheets[state.sheetIndex]?.rows ?? []
+    const built = buildRows(rows, state.mapping, target.fields)
+    const requestId = state.requestId || newImportRequestId()
     const check = built.rows.length
       ? await dataProvider.checkImport(
           target.resource,
-          request(built.rows, requestId),
+          importRequest(state, target, built.rows, requestId),
         )
       : { rows: [] }
     patch({ checked: mergeCheck(built, check), requestId })
     return true
   }
 
-  const applyCount = counts.create + counts.update
-  const wizard = useWizard({
+  const startRun = async () => {
+    if (!applyCount) return false
+    const { jobId } = await dataProvider.startImport(
+      target.resource,
+      importRequest(
+        state,
+        target,
+        applicableRows(state.checked),
+        state.requestId,
+      ),
+    )
+    patch({ jobId })
+    return true
+  }
+
+  return { fileReady, checkRows, startRun }
+}
+
+function useImportSteps({
+  onDone,
+  ...options
+}: ImportStepsOptions & { onDone: () => void }): WizardApi {
+  const t = useErpUiT()
+  const format = useFormat()
+  const { state, applyCount } = options
+  const { fileReady, checkRows, startRun } = useImportActions(options)
+
+  return useWizard({
     steps: [
       {
         id: "file",
         label: t("importWizard.steps.file"),
         description: t("importWizard.descriptions.file"),
-        onNext: async () => {
-          await reading.current
-          if (!state.file) patch({ isFileMissing: true })
-          return Boolean(state.file) && !fileError && Boolean(sheet)
-        },
+        onNext: fileReady,
       },
       {
         id: "mapping",
@@ -284,23 +318,19 @@ export function useImportWizard({
         id: "check",
         label: t("importWizard.steps.check"),
         description: t("importWizard.descriptions.check"),
+        blocked: state.checked.length === 0,
         onNext: () => applyCount > 0,
       },
       {
         id: "preview",
         label: t("importWizard.steps.preview"),
         description: t("importWizard.descriptions.preview"),
+        blocked: applyCount === 0,
         nextLabel: t("importWizard.preview.apply", {
           count: applyCount,
           formatted: format.number(applyCount),
         }),
-        onNext: async () => {
-          const { jobId } = await dataProvider.startImport(
-            target.resource,
-            request(applicableRows(state.checked), state.requestId),
-          )
-          patch({ jobId })
-        },
+        onNext: startRun,
       },
       {
         id: "report",
@@ -311,64 +341,53 @@ export function useImportWizard({
     ],
     onFinish: onDone,
   })
+}
 
-  const { downloadTemplate, downloadErrors } = useDownloads({
+export function useImportWizard({
+  target,
+  maxRows = IMPORT_MAX_ROWS,
+  onDone,
+}: ImportWizardOptions): ImportWizardApi {
+  const [state, setState] = React.useState(INITIAL_STATE)
+  const sheet = state.sheets[state.sheetIndex]
+  const issues = mappingIssues(state.mapping, target.fields)
+  const counts = countActions(state.checked)
+  const errorText = useImportErrorText(target)
+  const { reading, ...choices } = useImportChoices({
+    target,
+    maxRows,
+    setState,
+  })
+  const wizard = useImportSteps({
+    target,
+    maxRows,
+    onDone,
+    state,
+    setState,
+    reading,
+    issues,
+    applyCount: counts.create + counts.update,
+  })
+  const downloads = useImportDownloads({
     target,
     sheet,
-    state,
+    checked: state.checked,
     errorText,
   })
-
+  const issue = sheet ? sheetIssue(sheet, maxRows) : null
   return {
     wizard,
     target,
     maxRows,
     state,
     sheet,
-    fileError,
+    fileError:
+      state.readError ?? issue ?? (state.isFileMissing ? "required" : null),
     issues,
     counts,
     dirty: state.file !== null && state.jobId === null,
-    chooseFile: (file) => {
-      readRun.current += 1
-      const run = readRun.current
-      setState({ ...INITIAL_STATE, file, isReading: file !== null })
-      if (!file) {
-        reading.current = Promise.resolve()
-        return
-      }
-      reading.current = readSheets(file, maxRows).then((result) => {
-        if (run !== readRun.current) return
-        patch({
-          ...result,
-          isReading: false,
-          mapping: mappingOf(result.sheets[0], target),
-        })
-      })
-    },
-    chooseSheet: (index) => {
-      patch({
-        sheetIndex: index,
-        mapping: mappingOf(state.sheets[index], target),
-        showMappingIssues: false,
-        checked: [],
-      })
-    },
-    mapColumn: (column, key) => {
-      setState((current) => {
-        const mapping = { ...current.mapping }
-        if (key === null) delete mapping[column]
-        else mapping[column] = key
-        return { ...current, mapping, checked: [] }
-      })
-    },
-    setOnDuplicate: (onDuplicate) => {
-      patch({ onDuplicate, checked: [] })
-    },
-    downloadTemplate,
-    downloadErrors,
+    ...choices,
+    ...downloads,
     errorText,
   }
 }
-
-const hasMapping = (state: ImportState) => Object.keys(state.mapping).length > 0

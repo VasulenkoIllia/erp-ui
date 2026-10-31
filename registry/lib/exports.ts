@@ -8,7 +8,8 @@ import type {
  * Збір записів для файла експорту (PF07, ADR-0049). Браузер проходить сторінки звичайного
  * `GET /<ресурс>`, тож експорт працює на будь-якому бекенді, а обсяг `read:own` діє сам.
  *
- * - Над межею `EXPORT_MAX_ROWS` файл не збирається: обрізаний експорт виглядав би повним.
+ * - Над межею `EXPORT_MAX_ROWS` файл не збирається: обрізаний експорт виглядав би повним. З тієї ж
+ *   причини файл не збирається, коли сервер віддав менше записів, ніж пообіцяв.
  * - Сторінки йдуть послідовно: паралельні запити вперлися б у ліміт сервера.
  * - Запис, доданий під час збору, може зсунути сторінки. Для файла це прийнятно: експорт — знімок
  *   «приблизно зараз», а не транзакція.
@@ -45,6 +46,19 @@ export class ExportLimitError extends Error {
   }
 }
 
+/** Сервер обіцяв більше записів, ніж віддав: неповний файл виглядав би повним. */
+export class ExportIncompleteError extends Error {
+  readonly done: number
+  readonly total: number
+
+  constructor(done: number, total: number) {
+    super(`Export: ${done} of ${total} rows returned`)
+    this.name = "ExportIncompleteError"
+    this.done = done
+    this.total = total
+  }
+}
+
 /** Усі записи джерела. `onProgress` — після кожної сторінки. */
 export async function collectRecords<T>(
   source: ExportSource<T>,
@@ -68,8 +82,9 @@ export async function collectRecords<T>(
     if (total > maxRows) throw new ExportLimitError(total)
     records.push(...data)
     onProgress?.(records.length, total)
-    // Порожня сторінка раніше за `total`: записи видалили під час збору.
-    if (records.length >= total || !data.length) return records
+    if (records.length >= total) return records
+    // Видалені під час збору записи зменшують `total`, тож сюди приводить лише розбіжність сервера.
+    if (!data.length) throw new ExportIncompleteError(records.length, total)
   }
 }
 

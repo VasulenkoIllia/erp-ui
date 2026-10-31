@@ -3,12 +3,13 @@
  *
  * - Перевірка нічого не пише: новий рядок проходить ті самі схему й унікальність, що й `POST`, рядок
  *   із наявним значенням `matchField` — `skip` чи `update`. Другий рядок із тим самим значенням
- *   бачить перший.
+ *   бачить перший: `skip`, а при оновленні — `duplicate`, бо перезаписав би його мовчки.
  * - Застосування — фонова задача `lib/mock-jobs`, `items[].id` — номер рядка файла. Той самий
- *   `requestId` повертає ту саму задачу.
+ *   `requestId` повертає ту саму задачу. Повтор бере права на момент повтору.
  * - Сценарії — ресурсу, як і масові дії; опитування — ресурсу `jobs`.
  * - Права: `<ресурс>:create`, для `onDuplicate: "update"` ще й `<ресурс>:update`. Запис, якого людина
- *   не бачить (`read:own`), не знаходиться: рядок стає новим записом.
+ *   не бачить (`read:own`), не знаходиться: рядок стає новим записом. Запис, який вона не може
+ *   змінити, — помилка рядка `forbidden`.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -22,6 +23,7 @@ import {
 } from "@/registry/lib/mock-jobs"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
+  mockDeniedAction,
   mockGrantsRecords,
   type MockRecordAccess,
 } from "@/registry/lib/mock-scope"
@@ -47,7 +49,6 @@ export interface MockImportOptions<T extends MockRecord> {
 interface Scope<T extends MockRecord> {
   user: MockUser
   companyId: string | null
-  permissions: string[]
   rules: MockRecordAccess<T>
 }
 
@@ -58,6 +59,9 @@ const keyOf = (value: unknown) => textOf(value).trim().toLowerCase()
 
 /** Схема дає текст zod, а контракт — код: для людини це просто «значення не підходить». */
 const errorCode = (text: string) => (/^[a-z_]+$/.test(text) ? text : "invalid")
+
+const neededActions = ({ onDuplicate }: ImportRequest) =>
+  onDuplicate === "update" ? ["create", "update"] : ["create"]
 
 /** Наявні записи за полем збігу: лише видимі людині. */
 function existingBy<T extends MockRecord>(
@@ -74,6 +78,129 @@ function existingBy<T extends MockRecord>(
         record,
       ]),
   )
+}
+
+function checkRows<T extends MockRecord>(
+  db: MockResourceDb<T>,
+  scope: Scope<T>,
+  { rows, matchField, onDuplicate }: ImportRequest,
+) {
+  const existing = existingBy(db, scope, matchField)
+  const seen = new Set<string>()
+  const isUpdate = onDuplicate === "update"
+  return rows.map(({ row, values }) => {
+    const key = matchField ? keyOf(values[matchField]) : ""
+    if (seen.has(key))
+      return isUpdate
+        ? {
+            row,
+            action: "invalid",
+            errors: [{ field: matchField, code: "duplicate" }],
+          }
+        : { row, action: "skip" }
+    if (key) seen.add(key)
+    const found = key ? existing.get(key) : undefined
+    if (found && !isUpdate) return { row, action: "skip" }
+    if (found)
+      return mockDeniedAction(scope.rules, found, "update")
+        ? { row, action: "invalid", errors: [{ code: "forbidden" }] }
+        : { row, action: "update" }
+    const prepared = db.prepare(values, scope.companyId, scope.user)
+    return "record" in prepared
+      ? { row, action: "create" }
+      : {
+          row,
+          action: "invalid",
+          errors: Object.entries(prepared.fieldErrors).map(([field, text]) => ({
+            field,
+            code: errorCode(text),
+          })),
+        }
+  })
+}
+
+function startImportJob<T extends MockRecord>(
+  {
+    resource,
+    db,
+    perSecond,
+    now,
+  }: Required<Omit<MockImportOptions<T>, "baseUrl">>,
+  body: ImportRequest,
+  scope: Scope<T>,
+): string {
+  const { rows, matchField, onDuplicate } = body
+  const outcomes = { created: 0, updated: 0, skipped: 0 }
+  const byRow = new Map(rows.map((item) => [String(item.row), item]))
+  const written = new Set<string>()
+  const failure = (fieldErrors: Record<string, string>, title: string) => ({
+    code: errorCode(Object.values(fieldErrors)[0] ?? "invalid"),
+    message: `Invalid: ${JSON.stringify(fieldErrors)}`,
+    retryable: false,
+    title,
+  })
+  const apply = (id: string, existing: Map<string, T>, current: Scope<T>) => {
+    const values = byRow.get(id)?.values ?? {}
+    const title = (matchField && textOf(values[matchField])) || id
+    const key = matchField ? keyOf(values[matchField]) : ""
+    if (onDuplicate === "update" && written.has(key))
+      return failure({ [matchField ?? "row"]: "duplicate" }, title)
+    const found = key ? existing.get(key) : undefined
+    if (found && onDuplicate !== "update") {
+      outcomes.skipped += 1
+      return null
+    }
+    if (found) {
+      const denial = mockDeniedAction(current.rules, found, "update")
+      if (denial)
+        return {
+          code: "forbidden",
+          message: `Denied: ${denial}`,
+          retryable: false,
+          title,
+        }
+      const result = db.patch(found.id, values)
+      if (!result || !("record" in result))
+        return failure(result?.fieldErrors ?? { row: "not_found" }, title)
+      written.add(key)
+      outcomes.updated += 1
+      return null
+    }
+    const inserted = db.insert(values, current.companyId, current.user)
+    if ("fieldErrors" in inserted) return failure(inserted.fieldErrors, title)
+    if (key) {
+      written.add(key)
+      existing.set(key, inserted.record)
+    }
+    outcomes.created += 1
+    return null
+  }
+  const accessFor = (permissions: readonly string[]) =>
+    db.accessOf(scope.user, permissions)
+  const specFor = (current: Scope<T>, ids: string[]): MockJobSpec => ({
+    userId: current.user.id,
+    companyId: current.companyId,
+    resource,
+    action: "import",
+    ids,
+    perSecond,
+    process: (batch) => {
+      // Один прохід по записах на партію; записане в партії видно наступним рядкам.
+      const existing = existingBy(db, current, matchField)
+      return batch.map((id) => apply(id, existing, current))
+    },
+    grants: (permissions) =>
+      neededActions(body).every((action) =>
+        mockGrantsRecords(accessFor(permissions), action),
+      ),
+    retry: (failed, permissions) =>
+      registerMockJob(
+        specFor({ ...current, rules: accessFor(permissions) }, failed),
+        now(),
+      ),
+    outcomes: () => outcomes,
+  })
+  return registerMockJob(specFor(scope, [...byRow.keys()]), now()).id
 }
 
 export function createImportHandlers<T extends MockRecord>({
@@ -104,91 +231,18 @@ export function createImportHandlers<T extends MockRecord>({
         message: "Validation failed",
         fieldErrors: { rows: "invalid" },
       })
-    const needed =
-      body.data.onDuplicate === "update" ? ["create", "update"] : ["create"]
-    const denied = needed.find((action) => !mockGrantsRecords(rules, action))
+    const denied = neededActions(body.data).find(
+      (action) => !mockGrantsRecords(rules, action),
+    )
     if (denied)
       return errorResponse(403, {
         code: "forbidden",
         message: `Missing permission ${resource}:${denied}`,
       })
-    const { companyId, permissions } = access
     return {
-      scope: { user, companyId, permissions, rules },
+      scope: { user, companyId: access.companyId, rules },
       body: body.data,
     }
-  }
-
-  const check = (
-    { rows, matchField, onDuplicate }: ImportRequest,
-    scope: Scope<T>,
-  ) => {
-    const existing = existingBy(db, scope, matchField)
-    const seen = new Set<string>()
-    return rows.map(({ row, values }) => {
-      const key = matchField ? keyOf(values[matchField]) : ""
-      if (key && (existing.has(key) || seen.has(key)))
-        return { row, action: onDuplicate === "update" ? "update" : "skip" }
-      if (key) seen.add(key)
-      const prepared = db.prepare(values, scope.companyId, scope.user)
-      return "record" in prepared
-        ? { row, action: "create" }
-        : {
-            row,
-            action: "invalid",
-            errors: Object.entries(prepared.fieldErrors).map(
-              ([field, text]) => ({ field, code: errorCode(text) }),
-            ),
-          }
-    })
-  }
-
-  const start = (body: ImportRequest, scope: Scope<T>) => {
-    const { rows, matchField, onDuplicate } = body
-    const outcomes = { created: 0, updated: 0, skipped: 0 }
-    const byRow = new Map(rows.map((item) => [String(item.row), item]))
-    const failure = (fieldErrors: Record<string, string>, title: string) => ({
-      code: errorCode(Object.values(fieldErrors)[0] ?? "invalid"),
-      message: `Invalid: ${JSON.stringify(fieldErrors)}`,
-      retryable: false,
-      title,
-    })
-    const apply = (id: string) => {
-      const values = byRow.get(id)?.values ?? {}
-      const title = (matchField && textOf(values[matchField])) || id
-      const key = matchField ? keyOf(values[matchField]) : ""
-      const found = key ? existingBy(db, scope, matchField).get(key) : undefined
-      if (found && onDuplicate !== "update") {
-        outcomes.skipped += 1
-        return null
-      }
-      if (found) {
-        const result = db.patch(found.id, values)
-        if (result && "record" in result) {
-          outcomes.updated += 1
-          return null
-        }
-        return failure(result?.fieldErrors ?? { row: "not_found" }, title)
-      }
-      const inserted = db.insert(values, scope.companyId, scope.user)
-      if ("fieldErrors" in inserted) return failure(inserted.fieldErrors, title)
-      outcomes.created += 1
-      return null
-    }
-    const spec: MockJobSpec = {
-      userId: scope.user.id,
-      companyId: scope.companyId,
-      resource,
-      action: "import",
-      ids: [...byRow.keys()],
-      perSecond,
-      process: (batch) => batch.map(apply),
-      grants: (permissions) =>
-        mockGrantsRecords(db.accessOf(scope.user, permissions), "create"),
-      retry: (ids) => registerMockJob({ ...spec, ids }, now()),
-      outcomes: () => outcomes,
-    }
-    return registerMockJob(spec, now()).id
   }
 
   const url = `${baseUrl}/${resource}/import`
@@ -196,14 +250,16 @@ export function createImportHandlers<T extends MockRecord>({
     http.post(`${url}/check`, async ({ request }) => {
       const opened = await open(request)
       if (opened instanceof Response) return opened
-      return json({ rows: check(opened.body, opened.scope) })
+      return json({ rows: checkRows(db, opened.scope, opened.body) })
     }),
     http.post(url, async ({ request }) => {
       const opened = await open(request)
       if (opened instanceof Response) return opened
       const { body, scope } = opened
       const key = `${scope.user.id}:${scope.companyId}:${body.requestId}`
-      const jobId = started.get(key) ?? start(body, scope)
+      const jobId =
+        started.get(key) ??
+        startImportJob({ resource, db, perSecond, now }, body, scope)
       started.set(key, jobId)
       return json({ jobId }, { status: 202 })
     }),

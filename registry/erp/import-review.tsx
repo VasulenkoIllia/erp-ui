@@ -200,58 +200,66 @@ export function ImportReportStep({ api }: { api: ImportWizardApi }) {
   const finished = job && !isJobActive(job) ? job : null
   const lost = error && isJobStatusLost(error) ? error : null
   const title = t("importWizard.report.title", { target: target.label })
+  const carriedFailed = run.carried.reduce((sum, { count }) => sum + count, 0)
   const summary = (done: Job) => {
     const outcomes = done.outcomes ?? NO_OUTCOMES
+    const failed = done.failed + carriedFailed
     const values = {
       created: format.number(run.earlier.created + outcomes.created),
       updated: format.number(run.earlier.updated + outcomes.updated),
       skipped: format.number(run.earlier.skipped + outcomes.skipped),
     }
-    return done.failed
+    return failed
       ? t("importWizard.report.partial", {
           ...values,
-          failed: format.number(done.failed),
+          failed: format.number(failed),
         })
       : t("importWizard.report.summary", values)
   }
   return (
     <div className="space-y-4">
-      <div
-        data-slot="import-report"
-        className="grid gap-2 rounded-lg border p-3"
-      >
-        {lost ? (
-          <JobLost error={lost} />
-        ) : finished ? (
-          <JobResult
-            jobId={run.jobId}
-            job={finished}
-            title={title}
-            carried={[...run.carried]}
-            summary={summary}
-            failureLabel={target.errorLabel}
-            onRetried={(jobId, from) => {
-              setRun({
-                jobId,
-                carried: [
-                  ...run.carried,
-                  ...from.failures.filter((group) => !group.retryable),
-                ],
-                earlier: {
-                  created: run.earlier.created + (from.outcomes?.created ?? 0),
-                  updated: run.earlier.updated + (from.outcomes?.updated ?? 0),
-                  skipped: run.earlier.skipped + (from.outcomes?.skipped ?? 0),
-                },
-              })
-            }}
-          />
-        ) : (
-          <JobRunning
-            job={job}
-            title={title}
-            pollFailed={isJobPollFailing(query)}
-          />
+      <div data-slot="import-report" className="rounded-lg border p-3">
+        {lost || finished ? null : (
+          <div className="grid gap-2">
+            <JobRunning
+              job={job}
+              title={title}
+              pollFailed={isJobPollFailing(query)}
+            />
+          </div>
         )}
+        {/* Стоїть на сторінці від початку, інакше скрінрідер не оголосить підсумок; прогрес поза ним. */}
+        <div role="status" className="grid gap-2">
+          {lost ? <JobLost error={lost} /> : null}
+          {finished && !lost ? (
+            <JobResult
+              jobId={run.jobId}
+              job={finished}
+              title={title}
+              carried={[...run.carried]}
+              // Сервер без лічильників: загальний текст задачі кращий за «створено 0».
+              summary={finished.outcomes ? summary : undefined}
+              failureLabel={target.errorLabel}
+              onRetried={(jobId, from) => {
+                setRun({
+                  jobId,
+                  carried: [
+                    ...run.carried,
+                    ...from.failures.filter((group) => !group.retryable),
+                  ],
+                  earlier: {
+                    created:
+                      run.earlier.created + (from.outcomes?.created ?? 0),
+                    updated:
+                      run.earlier.updated + (from.outcomes?.updated ?? 0),
+                    skipped:
+                      run.earlier.skipped + (from.outcomes?.skipped ?? 0),
+                  },
+                })
+              }}
+            />
+          ) : null}
+        </div>
       </div>
       {counts.invalid ? (
         <div className="space-y-2">

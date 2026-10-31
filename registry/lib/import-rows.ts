@@ -7,6 +7,7 @@ import {
 } from "@/registry/lib/imports"
 import {
   hasValue,
+  isEmptyCell,
   type SpreadsheetCell,
   type SpreadsheetRow,
   type SpreadsheetSheet,
@@ -60,9 +61,6 @@ export interface ImportTarget {
 export type ImportMapping = Readonly<Record<number, string>>
 
 export type SheetIssue = "too_many_rows" | "too_many_columns" | "no_rows"
-
-const isEmptyCell = (cell: SpreadsheetCell | undefined) =>
-  cell === null || cell === undefined || cell === ""
 
 export interface ImportValueText {
   readonly yes: string
@@ -314,12 +312,20 @@ export interface CheckedRow {
   readonly values?: ImportRow["values"]
 }
 
-/** Перевірка браузера й сервера разом, у порядку файла. */
+/**
+ * Перевірка браузера й сервера разом, у порядку файла. Рядок без відповіді сервера не застосовується
+ * наосліп: він стає помилкою, яку людина бачить. Зайві відповіді нічого не змінюють.
+ */
 export function mergeCheck(built: BuiltRows, check: ImportCheck): CheckedRow[] {
   const answers = new Map(check.rows.map((item) => [item.row, item]))
   const fromServer = built.rows.map((sent): CheckedRow => {
     const answer = answers.get(sent.row)
-    if (!answer) throw new Error(`Import check: no answer for row ${sent.row}`)
+    if (!answer)
+      return {
+        row: sent.row,
+        action: "invalid",
+        errors: [{ code: "no_answer" }],
+      }
     return {
       row: sent.row,
       action: answer.action,
@@ -363,8 +369,9 @@ export function errorReportRows(
   const invalid = checked.filter(({ action }) => action === "invalid")
   return [
     [...header, errorHeader],
+    // Рядки CSV бувають коротші за шапку: помилка має лишитись у своїй колонці.
     ...invalid.map(({ row, errors }) => [
-      ...(fileRows[row - 1] ?? []),
+      ...header.map((_, column) => fileRows[row - 1]?.[column] ?? null),
       errors.map(errorText).join("; "),
     ]),
   ]

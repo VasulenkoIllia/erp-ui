@@ -106,6 +106,8 @@ export const enImport = {
       required: "required field is empty",
       invalid: "the value does not fit",
       duplicate: "this value already exists",
+      forbidden: "you may not change this record",
+      no_answer: "the server did not answer about this row, try again",
       ambiguous_number: "unclear number: thousands or a decimal part?",
       unknown: "error {{code}}",
       withField: "{{field}}: {{message}}",
@@ -134,6 +136,8 @@ export const enImport = {
     nothing: "There are no records to export",
     done_one: "Exported {{formatted}} record",
     done_other: "Exported {{formatted}} records",
+    incomplete:
+      "The server returned {{done}} of {{total}} records, so the file was not saved. Try again.",
     fileFailed: "Could not create the file. Try again.",
   },
 }

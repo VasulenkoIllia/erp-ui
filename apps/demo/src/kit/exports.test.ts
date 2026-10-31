@@ -5,6 +5,7 @@ import {
   EXPORT_PAGE_SIZE,
   ExportLimitError,
   exportRows,
+  type ExportSource,
 } from "@/registry/lib/exports"
 
 const signal = new AbortController().signal
@@ -41,9 +42,24 @@ describe("collectRecords", () => {
     expect(source.fetchPage).toHaveBeenCalledTimes(1)
   })
 
-  it("записи зникли під час збору: зупиняється, а не йде без кінця", async () => {
+  it("сервер віддав менше, ніж обіцяв: файла немає, а не тихо неповний", async () => {
     const source = sourceOf(EXPORT_PAGE_SIZE * 2, EXPORT_PAGE_SIZE)
-    const records = await collectRecords(source, { signal })
+    await expect(collectRecords(source, { signal })).rejects.toMatchObject({
+      name: "ExportIncompleteError",
+      done: EXPORT_PAGE_SIZE,
+      total: EXPORT_PAGE_SIZE * 2,
+    })
+  })
+
+  it("записи зникли під час збору: `total` менший, файл із тим, що лишилось", async () => {
+    const fetchPage = vi
+      .fn<ExportSource<number>["fetchPage"]>()
+      .mockResolvedValueOnce({
+        data: Array.from({ length: EXPORT_PAGE_SIZE }, (_, index) => index),
+        total: EXPORT_PAGE_SIZE + 5,
+      })
+      .mockResolvedValueOnce({ data: [], total: EXPORT_PAGE_SIZE })
+    const records = await collectRecords({ fetchPage }, { signal })
     expect(records).toHaveLength(EXPORT_PAGE_SIZE)
   })
 })

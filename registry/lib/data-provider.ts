@@ -43,7 +43,7 @@ import {
   type JobStarted,
 } from "@/registry/lib/jobs"
 import {
-  IMPORT_CHECK_TIMEOUT_MS,
+  IMPORT_REQUEST_TIMEOUT_MS,
   importCheckSchema,
   type ImportCheck,
   type ImportRequest,
@@ -242,12 +242,13 @@ export function createDataProvider(
     checkImport: (resource, request) =>
       client.post(`${path(resource)}/import/check`, request, {
         schema: importCheckSchema,
-        timeoutMs: IMPORT_CHECK_TIMEOUT_MS,
+        timeoutMs: IMPORT_REQUEST_TIMEOUT_MS,
       }),
 
     startImport: (resource, request) =>
       client.post(`${path(resource)}/import`, request, {
         schema: jobStartedSchema,
+        timeoutMs: IMPORT_REQUEST_TIMEOUT_MS,
       }),
 
     setPinned: async (resource, id, pinned) => {

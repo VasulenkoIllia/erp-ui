@@ -106,6 +106,7 @@ function ImportFileStep({ api }: { api: ImportWizardApi }) {
         maxBytes={SPREADSHEET_MAX_BYTES}
         file={state.file}
         status={status}
+        disabled={api.wizard.busy}
         error={
           fileError
             ? t(`importWizard.fileErrors.${fileError}`, {
@@ -128,6 +129,7 @@ function ImportFileStep({ api }: { api: ImportWizardApi }) {
             id={selectId}
             items={sheetItems}
             value={String(state.sheetIndex)}
+            disabled={api.wizard.busy}
             onValueChange={(value) => {
               api.chooseSheet(Number(value))
             }}
@@ -186,6 +188,7 @@ function ImportMappingStep({ api }: { api: ImportWizardApi }) {
             sample={columnSample(rows, column)}
             items={fieldItems}
             value={state.mapping[column] ?? null}
+            disabled={api.wizard.busy}
             repeated={
               state.showMappingIssues &&
               issues.repeated.has(state.mapping[column] ?? "")
@@ -214,6 +217,7 @@ function ImportMappingStep({ api }: { api: ImportWizardApi }) {
               },
             ]}
             value={state.onDuplicate}
+            disabled={api.wizard.busy}
             onValueChange={api.setOnDuplicate}
           />
         </Field>
@@ -227,6 +231,7 @@ function ImportColumnRow({
   sample,
   items,
   value,
+  disabled,
   repeated,
   onChange,
 }: {
@@ -234,6 +239,7 @@ function ImportColumnRow({
   sample: string
   items: readonly { value: string | null; label: string }[]
   value: string | null
+  disabled: boolean
   repeated: boolean
   onChange: (key: string | null) => void
 }) {
@@ -258,6 +264,7 @@ function ImportColumnRow({
           id={selectId}
           items={items}
           value={value}
+          disabled={disabled}
           aria-invalid={repeated || undefined}
           aria-describedby={repeated ? errorId : undefined}
           onValueChange={onChange}

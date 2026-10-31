@@ -24252,6 +24252,205 @@
       }
     },
     {
+      "name": "hooks/use-export-run",
+      "type": "registry:hook",
+      "title": "useExportRun",
+      "description": "Збір файла експорту зі сторінок списку: прогрес, скасування, причина збою, збереження файла.",
+      "dependencies": [
+        "hucre@^1.3.0",
+        "i18next@^26.4.4",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-export-run.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-export-run.ts"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-provider.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-provider.ts"
+        },
+        {
+          "path": "registry/lib/exports.ts",
+          "type": "registry:lib",
+          "target": "@lib/exports.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/imports.ts",
+          "type": "registry:lib",
+          "target": "@lib/imports.ts"
+        },
+        {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/list-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-settings.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/pins.ts",
+          "type": "registry:lib",
+          "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/spreadsheet.ts",
+          "type": "registry:lib",
+          "target": "@lib/spreadsheet.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "importExport",
+        "spec": [
+          "PF07"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-extended-list",
       "type": "registry:hook",
       "title": "Список модуля з розширенням",
@@ -24627,6 +24826,169 @@
       }
     },
     {
+      "name": "hooks/use-import-downloads",
+      "type": "registry:hook",
+      "title": "useImportDownloads",
+      "description": "Текст помилки рядка імпорту, файл-шаблон і файл помилок, який людина править і завантажує знову.",
+      "dependencies": [
+        "hucre@^1.3.0",
+        "i18next@^26.4.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-import-downloads.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-import-downloads.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/import-rows.ts",
+          "type": "registry:lib",
+          "target": "@lib/import-rows.ts"
+        },
+        {
+          "path": "registry/lib/imports.ts",
+          "type": "registry:lib",
+          "target": "@lib/imports.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/spreadsheet.ts",
+          "type": "registry:lib",
+          "target": "@lib/spreadsheet.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "importExport",
+        "spec": [
+          "PF07"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-import-wizard",
       "type": "registry:hook",
       "title": "useImportWizard",
@@ -24653,6 +25015,11 @@
           "path": "registry/erp/stepper.tsx",
           "type": "registry:component",
           "target": "@components/erp/stepper.tsx"
+        },
+        {
+          "path": "registry/hooks/use-import-downloads.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-import-downloads.ts"
         },
         {
           "path": "registry/hooks/use-wizard.ts",
@@ -36566,6 +36933,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-export-run.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-export-run.ts"
+        },
+        {
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
@@ -39230,6 +39602,11 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
+          "path": "registry/hooks/use-import-downloads.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-import-downloads.ts"
+        },
+        {
           "path": "registry/hooks/use-import-wizard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-import-wizard.ts"
@@ -39529,6 +39906,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-import-downloads.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-import-downloads.ts"
         },
         {
           "path": "registry/hooks/use-import-wizard.ts",

@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   hasValue,
+  isEmptyCell,
+  isSpreadsheetLoadFailure,
   readSpreadsheet,
+  saveFile,
   sheetName,
   spreadsheetFileName,
   SpreadsheetError,
@@ -21,6 +24,98 @@ const codeOf = async (file: File) => {
   }
   return null
 }
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
+
+describe("межі читання", () => {
+  it("мільйони порожніх рядків не вішають вкладку й не роблять файл завеликим", async () => {
+    const [sheet] = await readSpreadsheet(
+      fileOf(`Код\n1\n${"\n".repeat(20_000_000)}`, "дані.csv"),
+      { maxRows: 11 },
+    )
+    expect(sheet?.truncated).toBe(false)
+    expect(sheet?.rows.filter(hasValue)).toHaveLength(2)
+  })
+
+  it("значення за порожніми рядками не губиться мовчки", async () => {
+    const [sheet] = await readSpreadsheet(
+      fileOf(`Код\n1\n${"\n".repeat(100)}2\n`, "дані.csv"),
+      { maxRows: 11 },
+    )
+    expect(sheet?.truncated).toBe(true)
+  })
+
+  it("перенос у лапках запису не закінчує", async () => {
+    const [sheet] = await readSpreadsheet(
+      fileOf('Код;Опис\n1;"два\nрядки"\n2;x\n', "дані.csv"),
+      { maxRows: 3 },
+    )
+    expect(sheet?.truncated).toBe(false)
+    expect(sheet?.rows[1]).toEqual(["1", "два\nрядки"])
+  })
+
+  it("рівно на межі файл не обрізаний, на рядок більше — обрізаний", async () => {
+    const text = "a\nb\nc\n"
+    const [exact] = await readSpreadsheet(fileOf(text, "дані.csv"), {
+      maxRows: 3,
+    })
+    const [over] = await readSpreadsheet(fileOf(text, "дані.csv"), {
+      maxRows: 2,
+    })
+    expect(exact?.truncated).toBe(false)
+    expect(over?.truncated).toBe(true)
+    expect(over?.rows).toHaveLength(2)
+  })
+
+  it("файл, якого вже немає, дає причину, а не вічне читання", async () => {
+    const file = fileOf("a;b\n", "дані.csv")
+    file.arrayBuffer = () => Promise.reject(new Error("gone"))
+    expect(await codeOf(file)).toBe("unreadable")
+  })
+})
+
+describe("порожні клітинки", () => {
+  it("пробіли — теж порожньо", () => {
+    expect(isEmptyCell("   ")).toBe(true)
+    expect(isEmptyCell(undefined)).toBe(true)
+    expect(isEmptyCell(0)).toBe(false)
+    expect(isEmptyCell(false)).toBe(false)
+    expect(hasValue(["  ", null])).toBe(false)
+  })
+})
+
+describe("saveFile", () => {
+  it("тримає посилання, доки Safari почне завантаження", () => {
+    vi.useFakeTimers()
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:test")
+    const revoke = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => undefined)
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined)
+    saveFile(new Blob(["x"]), "дані.csv")
+    expect(click).toHaveBeenCalledTimes(1)
+    expect(revoke).not.toHaveBeenCalled()
+    vi.runAllTimers()
+    expect(revoke).toHaveBeenCalledWith("blob:test")
+  })
+})
+
+describe("isSpreadsheetLoadFailure", () => {
+  it("відрізняє незавантажений чанк від інших збоїв", () => {
+    expect(isSpreadsheetLoadFailure(new SpreadsheetError("load_failed"))).toBe(
+      true,
+    )
+    expect(isSpreadsheetLoadFailure(new SpreadsheetError("unreadable"))).toBe(
+      false,
+    )
+    expect(isSpreadsheetLoadFailure(new Error("x"))).toBe(false)
+  })
+})
 
 describe("readSpreadsheet: CSV", () => {
   it("лишає рядки рядками: нулі на початку не губляться", async () => {

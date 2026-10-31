@@ -115,6 +115,8 @@ export const ukImport = {
       required: "обов'язкове поле порожнє",
       invalid: "значення не підходить",
       duplicate: "таке значення вже є",
+      forbidden: "немає права змінювати цей запис",
+      no_answer: "сервер не відповів про цей рядок, спробуйте ще раз",
       ambiguous_number: "незрозуміле число: це тисячі чи дробова частина?",
       unknown: "помилка {{code}}",
       withField: "{{field}}: {{message}}",
@@ -147,6 +149,8 @@ export const ukImport = {
     done_few: "Експортовано {{formatted}} записи",
     done_many: "Експортовано {{formatted}} записів",
     done_other: "Експортовано {{formatted}} запису",
+    incomplete:
+      "Сервер віддав {{done}} із {{total}} записів, тож файл не збережено. Спробуйте ще раз.",
     fileFailed: "Не вдалося створити файл. Спробуйте ще раз.",
   },
 }

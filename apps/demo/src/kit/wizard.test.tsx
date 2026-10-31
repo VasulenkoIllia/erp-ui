@@ -47,6 +47,35 @@ describe("useWizard: дія вже виконана", () => {
     expect(result.current.step.id).toBe("two")
   })
 
+  it("blocked закриває крок, доки дані не готові, і відкриває його знову", async () => {
+    const onFinish = vi.fn()
+    const { result, rerender } = renderHook(
+      ({ blocked }) =>
+        useWizard({
+          steps: [
+            { id: "one", label: "Перший" },
+            { id: "two", label: "Другий", blocked },
+            { id: "three", label: "Третій" },
+          ],
+          onFinish,
+        }),
+      { initialProps: { blocked: false } },
+    )
+    await act(() => result.current.next())
+    await act(() => result.current.next())
+    act(() => {
+      result.current.goTo("one")
+    })
+    rerender({ blocked: true })
+    expect(result.current.reachedIndex).toBe(0)
+    act(() => {
+      result.current.goTo("three")
+    })
+    expect(result.current.step.id).toBe("one")
+    rerender({ blocked: false })
+    expect(result.current.reachedIndex).toBe(2)
+  })
+
   it("шаблон ховає «Назад» і переходи степера", async () => {
     function Host() {
       const wizard = useWizard({ steps: locked, onFinish: vi.fn() })

@@ -50,16 +50,27 @@ const DONE_JOB: Job = {
   outcomes: { created: 2, updated: 1, skipped: 0 },
 }
 
+function deferred<T>() {
+  let resolve: (value: T) => void = () => undefined
+  const promise = new Promise<T>((done) => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
 function setup({
   checkImport = vi.fn((_: string, request: ImportRequest) =>
     Promise.resolve(answerAll(request)),
   ),
   getJob = vi.fn(() => Promise.resolve(DONE_JOB)),
+  startImport = vi.fn(() => Promise.resolve({ jobId: "job-1" })),
+  retryJob = vi.fn(() => Promise.resolve({ jobId: "job-2" })),
 }: {
   checkImport?: ErpDataProvider["checkImport"]
   getJob?: ErpDataProvider["getJob"]
+  startImport?: ErpDataProvider["startImport"]
+  retryJob?: ErpDataProvider["retryJob"]
 } = {}) {
-  const startImport = vi.fn(() => Promise.resolve({ jobId: "job-1" }))
   const onDone = vi.fn()
   const router = createMemoryRouter([
     {
@@ -71,6 +82,7 @@ function setup({
     checkImport,
     startImport,
     getJob,
+    retryJob,
   } as unknown as ErpDataProvider
   render(
     <CoreAdminContext dataProvider={dataProvider}>
@@ -203,13 +215,10 @@ describe("ImportWizard", () => {
     expect(screen.getByText("Перші 3 із 3 записів")).toBeInTheDocument()
     await next("Імпортувати 3 записи")
     await screen.findByRole("heading", { level: 2, name: /Звіт/ })
-    const [, sent] = vi.mocked(startImport).mock.calls[0] as unknown as [
-      string,
-      ImportRequest,
-    ]
-    expect(sent.rows.map(({ row }) => row)).toEqual([2, 4, 5])
-    expect(sent.fileName).toBe("товари.csv")
-    expect(sent.requestId).not.toBe("")
+    const sent = vi.mocked(startImport).mock.calls[0]?.[1]
+    expect(sent?.rows.map(({ row }) => row)).toEqual([2, 4, 5])
+    expect(sent?.fileName).toBe("товари.csv")
+    expect(sent?.requestId).not.toBe("")
     expect(
       await screen.findByText("Створено 2, оновлено 1, пропущено 0"),
     ).toBeInTheDocument()
@@ -222,6 +231,197 @@ describe("ImportWizard", () => {
       expect(onDone).toHaveBeenCalledTimes(1)
     })
     expect(startImport).toHaveBeenCalledTimes(1)
+  })
+
+  it("«Далі» під час читання файла дочікується результату", async () => {
+    const bytes = await FILE.arrayBuffer()
+    const reading = deferred<ArrayBuffer>()
+    const file = new File([bytes], "товари.csv")
+    file.arrayBuffer = () => reading.promise
+    setup()
+    await userEvent.upload(screen.getByTestId("file-drop-input"), file)
+    await next()
+    reading.resolve(bytes)
+    await screen.findByRole("heading", { level: 2, name: /Колонки/ })
+  })
+
+  it("файл, що не прочитався, не лишає вічного «Читаємо файл»", async () => {
+    const file = new File(["x"], "товари.csv")
+    file.arrayBuffer = () => Promise.reject(new Error("gone"))
+    setup()
+    await userEvent.upload(screen.getByTestId("file-drop-input"), file)
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Не вдалося прочитати файл",
+    )
+    expect(screen.queryByText("Читаємо файл…")).not.toBeInTheDocument()
+  })
+
+  it("новий файл закриває перегляд: порожній імпорт не запустити", async () => {
+    const { startImport } = setup()
+    await toCheckStep()
+    await next()
+    await screen.findByRole("heading", { level: 2, name: /Перегляд/ })
+    await userEvent.click(screen.getByRole("button", { name: /Файл/ }))
+    await screen.findByRole("heading", { level: 2, name: /Файл/ })
+    await chooseFile(new File([FILE], "нові.csv"))
+    expect(
+      screen.queryByRole("button", { name: /Перегляд/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Перевірка/ }),
+    ).not.toBeInTheDocument()
+    expect(startImport).not.toHaveBeenCalled()
+  })
+
+  it("під час перевірки вибір колонок заблоковано", async () => {
+    const answer = deferred<ImportCheck>()
+    setup({ checkImport: vi.fn(() => answer.promise) })
+    await chooseFile()
+    await next()
+    const column = await screen.findByRole("combobox", {
+      name: "Поле для колонки Ціна",
+    })
+    expect(column).not.toHaveAttribute("data-disabled")
+    await next()
+    expect(column).toHaveAttribute("data-disabled")
+    answer.resolve({ rows: [] })
+    await screen.findByRole("heading", { level: 2, name: /Перевірка/ })
+  })
+
+  it("повтор без змін несе той самий ключ, нова дія з дублями — новий", async () => {
+    const startImport = vi
+      .fn<ErpDataProvider["startImport"]>()
+      .mockRejectedValueOnce(
+        new ApiError(503, { code: "server", message: "Down" }),
+      )
+      .mockRejectedValueOnce(
+        new ApiError(503, { code: "server", message: "Down" }),
+      )
+      .mockResolvedValue({ jobId: "job-1" })
+    setup({ startImport })
+    const apply = async () => {
+      await screen.findByRole("heading", { level: 2, name: /Перевірка/ })
+      await next()
+      await screen.findByRole("heading", { level: 2, name: /Перегляд/ })
+      await next("Імпортувати 3 записи")
+    }
+    const backToMapping = async () => {
+      await screen.findByRole("alert")
+      await next("Назад")
+      await next("Назад")
+      await screen.findByRole("heading", { level: 2, name: /Колонки/ })
+    }
+    await toCheckStep()
+    await next()
+    await next("Імпортувати 3 записи")
+    await backToMapping()
+    await next()
+    await apply()
+    await backToMapping()
+    await userEvent.click(screen.getByRole("combobox", { name: /Якщо запис/ }))
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Оновити запис" }),
+    )
+    await next()
+    await apply()
+    await screen.findByRole("heading", { level: 2, name: /Звіт/ })
+    const keys = startImport.mock.calls.map(([, sent]) => sent.requestId)
+    expect(keys[1]).toBe(keys[0])
+    expect(keys[2]).not.toBe(keys[0])
+  })
+
+  it("помилка рядка від сервера має свій текст", async () => {
+    const checkImport = vi.fn((_: string, request: ImportRequest) =>
+      Promise.resolve<ImportCheck>({
+        rows: request.rows.map(({ row }) => ({
+          row,
+          action: "invalid",
+          errors: [{ code: "forbidden" }],
+        })),
+      }),
+    )
+    setup({ checkImport })
+    await toCheckStep()
+    expect(screen.getByText("Рядок 2").closest("li")).toHaveTextContent(
+      "немає права змінювати цей запис",
+    )
+  })
+
+  async function toReport() {
+    await toCheckStep()
+    await next()
+    await screen.findByRole("heading", { level: 2, name: /Перегляд/ })
+    await next("Імпортувати 3 записи")
+    await screen.findByRole("heading", { level: 2, name: /Звіт/ })
+  }
+
+  it("підсумок оголошується, а прогрес ні", async () => {
+    const job = deferred<Job>()
+    setup({ getJob: vi.fn(() => job.promise) })
+    await toReport()
+    expect(screen.getByRole("status")).toBeEmptyDOMElement()
+    job.resolve(DONE_JOB)
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Створено 2, оновлено 1, пропущено 0",
+      )
+    })
+  })
+
+  it("сервер без лічильників: загальний текст, а не «створено 0»", async () => {
+    setup({
+      getJob: vi.fn(() =>
+        Promise.resolve<Job>({ ...DONE_JOB, outcomes: undefined }),
+      ),
+    })
+    await toReport()
+    expect(await screen.findByText("Готово: 3")).toBeInTheDocument()
+  })
+
+  it("підсумок після повтору рахує невдачі попередньої задачі", async () => {
+    const getJob = vi.fn((id: string) =>
+      Promise.resolve<Job>(
+        id === "job-1"
+          ? {
+              ...DONE_JOB,
+              succeeded: 1,
+              failed: 2,
+              outcomes: { created: 1, updated: 0, skipped: 0 },
+              failures: [
+                {
+                  code: "conflict",
+                  count: 1,
+                  retryable: false,
+                  items: [{ id: "5" }],
+                },
+                {
+                  code: "server",
+                  count: 1,
+                  retryable: true,
+                  items: [{ id: "4" }],
+                },
+              ],
+            }
+          : {
+              ...DONE_JOB,
+              id: "job-2",
+              total: 1,
+              processed: 1,
+              succeeded: 1,
+              outcomes: { created: 1, updated: 0, skipped: 0 },
+            },
+      ),
+    ) as unknown as ErpDataProvider["getJob"]
+    setup({ getJob })
+    await toReport()
+    await userEvent.click(
+      await screen.findByRole("button", { name: /Повторити/ }),
+    )
+    expect(
+      await screen.findByText(
+        "Створено 2, оновлено 0, пропущено 0. Не вдалося: 1",
+      ),
+    ).toBeInTheDocument()
   })
 
   it("звіт показує невдачі під час запису", async () => {

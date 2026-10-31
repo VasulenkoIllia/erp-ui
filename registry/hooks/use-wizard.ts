@@ -19,6 +19,8 @@ import type { WizardProgress } from "@/registry/lib/wizard-progress"
  *   а друге «Завершити» створило б запис ще раз. Почати спочатку — новим `key`.
  * - `locked` кроку: дія вже виконана (імпорт пішов на сервер), повернення до попередніх кроків немає,
  *   бо «Далі» повторило б її.
+ * - `blocked` кроку: дані для нього застаріли (людина змінила файл), відкриті кроки закінчуються
+ *   перед ним, доки «Далі» не підготує їх знову.
  */
 export interface WizardStep extends StepperStep {
   /** Пояснення під заголовком кроку. */
@@ -30,6 +32,8 @@ export interface WizardStep extends StepperStep {
   readonly nextLabel?: string
   /** З цього кроку назад не можна: дія вже виконана. */
   readonly locked?: boolean
+  /** Даних для кроку ще немає: зі степера на нього не перейти. */
+  readonly blocked?: boolean
 }
 
 export interface WizardOptions {
@@ -101,6 +105,11 @@ export function useWizard({
   const step = steps[index]
   if (!step) throw new Error("useWizard: steps must not be empty")
   const isLast = index === steps.length - 1
+  const blockedIndex = steps.findIndex((item) => item.blocked)
+  const reachedIndex =
+    blockedIndex < 0
+      ? position.reachedIndex
+      : Math.max(Math.min(position.reachedIndex, blockedIndex - 1), index)
 
   const move = (target: number) => {
     const stepId = steps[target]?.id
@@ -154,7 +163,7 @@ export function useWizard({
 
   const goTo = (stepId: string) => {
     const target = steps.findIndex((item) => item.id === stepId)
-    if (running.current || target < 0 || target > position.reachedIndex) return
+    if (running.current || target < 0 || target > reachedIndex) return
     if (step.locked && target < index) return
     if (target > index)
       void runStep(() => {
@@ -169,7 +178,7 @@ export function useWizard({
     ),
     step,
     index,
-    reachedIndex: position.reachedIndex,
+    reachedIndex,
     isFirst: index === 0,
     isLast,
     busy,

@@ -1016,6 +1016,14 @@ export const CODE_ITEMS = {
     demo: "importExport",
     spec: ["§11", "PF07", "UI11"],
   },
+  "hooks/use-import-downloads": {
+    title: "useImportDownloads",
+    description:
+      "Текст помилки рядка імпорту, файл-шаблон і файл помилок, який людина править і завантажує знову.",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07"],
+  },
   "hooks/use-import-wizard": {
     title: "useImportWizard",
     description:
@@ -1047,6 +1055,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "importExport",
     spec: ["PF07", "§8.1"],
+  },
+  "hooks/use-export-run": {
+    title: "useExportRun",
+    description:
+      "Збір файла експорту зі сторінок списку: прогрес, скасування, причина збою, збереження файла.",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07"],
   },
   "erp/export-dialog": {
     title: "Діалог експорту",

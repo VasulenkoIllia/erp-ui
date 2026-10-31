@@ -147,6 +147,34 @@ describe("ExportDialog", () => {
     expect(saved).toHaveLength(0)
   })
 
+  it("сервер віддав менше, ніж обіцяв: файла немає, причина видна", async () => {
+    const { onOpenChange } = setup({
+      getList: vi.fn(() =>
+        Promise.resolve({ data: [], total: 5 }),
+      ) as unknown as ErpDataProvider["getList"],
+    })
+    await waitForDialogFocus()
+    await submit()
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Сервер віддав 0 із 5 записів",
+    )
+    expect(saved).toHaveLength(0)
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
+
+  it("закриття прибирає стару помилку", async () => {
+    setup({
+      getList: vi.fn(() =>
+        Promise.resolve({ data: [], total: 5 }),
+      ) as unknown as ErpDataProvider["getList"],
+    })
+    await waitForDialogFocus()
+    await submit()
+    await screen.findByRole("alert")
+    await userEvent.click(screen.getByRole("button", { name: "Скасувати" }))
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+  })
+
   it("збій сервера показує причину, а діалог лишається", async () => {
     const { onOpenChange } = setup({
       getList: vi.fn(() =>

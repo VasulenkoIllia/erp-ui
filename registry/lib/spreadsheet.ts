@@ -22,6 +22,20 @@ export const SPREADSHEET_ACCEPT =
 /** Більший файл браузер читає надто довго, і вкладка завмирає. */
 export const SPREADSHEET_MAX_BYTES = 20 * 1024 * 1024
 
+/**
+ * Найбільше, що може розпакуватись одна частина `.xlsx`. 10 000 рядків по 100 колонок — близько
+ * 40 МБ XML, решта — запас на довгі тексти. Більше — zip-бомба чи таблиця, якої імпорт не візьме.
+ */
+const XLSX_MAX_UNPACKED_BYTES = 128 * 1024 * 1024
+/** Межа прямокутника аркуша: одна клітинка в XFD1048576 не виділяє пам'ять на мільярди. */
+const XLSX_MAX_CELLS = 5_000_000
+
+const QUOTE_CODE = 34
+const NEWLINE_CODE = 10
+
+/** Скільки тримати посилання на файл: Safari починає завантаження не одразу. */
+const OBJECT_URL_TTL_MS = 40_000
+
 /** Найбільше символів, які Excel тримає в клітинці: довший текст файл псує. */
 const EXCEL_MAX_CELL_CHARS = 32_767
 /** Найдовша назва аркуша в Excel. */
@@ -93,6 +107,8 @@ async function readXlsxSheets(
   const { readXlsx } = await loadChunk(() => import("hucre/xlsx"))
   const book = await readXlsx(new Uint8Array(bytes), {
     sheets: (info) => !info.hidden && !info.veryHidden,
+    maxDecompressedBytes: XLSX_MAX_UNPACKED_BYTES,
+    maxTotalCells: XLSX_MAX_CELLS,
     ...(limit === undefined ? {} : { maxRows: limit + 1 }),
   })
   return book.sheets.map((sheet) => ({
@@ -102,18 +118,41 @@ async function readXlsxSheets(
   }))
 }
 
+/**
+ * Початок тексту CSV на `records` записів; перенос у лапках запису не закінчує. Опція `maxRows`
+ * бібліотеки не рятує: файл із 20 млн порожніх рядків забирає 4 ГБ, бо спершу розбирається весь.
+ */
+function csvHead(text: string, records: number): string {
+  let isQuoted = false
+  let count = 0
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index)
+    if (code === QUOTE_CODE) isQuoted = !isQuoted
+    else if (code === NEWLINE_CODE && !isQuoted) {
+      count += 1
+      if (count === records) return text.slice(0, index)
+    }
+  }
+  return text
+}
+
 async function readCsvSheets(
   file: File,
   bytes: ArrayBuffer,
   limit: number | undefined,
 ): Promise<SpreadsheetSheet[]> {
   const { parseCsv } = await loadChunk(() => import("hucre/csv"))
-  const rows = parseCsv(decodeText(bytes))
+  const text = decodeText(bytes)
+  const head = limit === undefined ? text : csvHead(text, limit + 1)
+  const rows = parseCsv(head)
   return [
     {
       name: file.name,
       rows: limit === undefined ? rows : rows.slice(0, limit),
-      truncated: limit !== undefined && rows.length > limit,
+      // Порожні рядки в кінці розбір відкидає, тож дивимось ще й на те, що лишилось за межею.
+      truncated:
+        limit !== undefined &&
+        (rows.length > limit || /\S/.test(text.slice(head.length))),
     },
   ]
 }
@@ -128,16 +167,16 @@ export async function readSpreadsheet(
   if (!(SPREADSHEET_FORMATS as readonly string[]).includes(extension))
     throw new SpreadsheetError("unsupported")
   if (file.size === 0) throw new SpreadsheetError("empty")
-  const bytes = await file.arrayBuffer()
   let sheets: SpreadsheetSheet[]
   try {
+    const bytes = await file.arrayBuffer()
     sheets =
       extension === "csv"
         ? await readCsvSheets(file, bytes, maxRows)
         : await readXlsxSheets(bytes, maxRows)
   } catch (cause) {
     if (cause instanceof SpreadsheetError) throw cause
-    // Биті байти, файл із паролем чи перейменований `.xls`: для людини це один випадок.
+    // Биті байти, пароль, перейменований `.xls` чи файл, якого вже немає: для людини це один випадок.
     throw new SpreadsheetError("unreadable", { cause })
   }
   if (!sheets.some((sheet) => sheet.rows.some(hasValue)))
@@ -145,10 +184,20 @@ export async function readSpreadsheet(
   return sheets
 }
 
+/** Клітинка без значення: пробіли людина теж бачить як порожнечу. */
+export function isEmptyCell(cell: SpreadsheetCell | undefined): boolean {
+  if (typeof cell === "string") return cell.trim() === ""
+  return cell === null || cell === undefined
+}
+
 /** Рядок не порожній: порожні рядки посеред файла трапляються, але даних не несуть. */
 export function hasValue(row: SpreadsheetRow): boolean {
-  return row.some((cell) => cell !== null && cell !== "")
+  return row.some((cell) => !isEmptyCell(cell))
 }
+
+/** Чанк бібліотеки не завантажився: причину людині не виправити повтором на цій самій сторінці. */
+export const isSpreadsheetLoadFailure = (error: unknown): boolean =>
+  error instanceof SpreadsheetError && error.code === "load_failed"
 
 const safeCsvCell = (cell: SpreadsheetCell): SpreadsheetCell =>
   typeof cell === "string" && FORMULA_START.test(cell) ? `'${cell}` : cell
@@ -223,5 +272,7 @@ export function saveFile(blob: Blob, name: string): void {
   link.href = url
   link.download = name
   link.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => {
+    URL.revokeObjectURL(url)
+  }, OBJECT_URL_TTL_MS)
 }

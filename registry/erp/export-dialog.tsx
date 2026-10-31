@@ -1,32 +1,16 @@
 import * as React from "react"
 import type { RaRecord } from "ra-core"
-import { useDataProvider } from "ra-core"
-import { toast } from "sonner"
 
 import { FormSelect } from "@/registry/erp/form-select"
-import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import {
-  isApiError,
-  type FilterValue,
-  type SortField,
-} from "@/registry/lib/api"
-import type { ErpDataProvider } from "@/registry/lib/data-provider"
-import {
-  collectRecords,
-  EXPORT_MAX_ROWS,
-  ExportLimitError,
-  exportRows,
-  type ExportColumn,
-  type ExportSource,
-} from "@/registry/lib/exports"
+  useExportRun,
+  type ExportProgress,
+} from "@/registry/hooks/use-export-run"
+import type { FilterValue, SortField } from "@/registry/lib/api"
+import { EXPORT_MAX_ROWS, type ExportColumn } from "@/registry/lib/exports"
 import { useFormat } from "@/registry/lib/format"
-import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
-import {
-  saveFile,
-  spreadsheetFileName,
-  writeSpreadsheet,
-  type SpreadsheetFormat,
-} from "@/registry/lib/spreadsheet"
+import { useErpUiT } from "@/registry/lib/i18n"
+import type { SpreadsheetFormat } from "@/registry/lib/spreadsheet"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
@@ -77,33 +61,6 @@ export interface ExportDialogProps<T extends RaRecord> {
 
 type ExportScope = "selected" | "all"
 
-interface ExportProgress {
-  readonly done: number
-  readonly total: number
-}
-
-function useExportSource<T extends RaRecord>(
-  resource: string,
-  filter: Record<string, FilterValue> | undefined,
-  sort: SortField | undefined,
-): (ids: readonly string[] | null) => ExportSource<T> {
-  const dataProvider = useDataProvider<ErpDataProvider>()
-  return (ids) => ({
-    fetchPage: async (page, perPage, signal) => {
-      const { data, total } = await dataProvider.getList<T>(resource, {
-        pagination: { page, perPage },
-        sort: {
-          field: sort?.field ?? "",
-          order: sort?.order === "desc" ? "DESC" : "ASC",
-        },
-        filter: ids ? { id: [...ids] } : (filter ?? {}),
-        signal,
-      })
-      return { data, total: total ?? data.length }
-    },
-  })
-}
-
 export function ExportDialog<T extends RaRecord>({
   open,
   onOpenChange,
@@ -118,102 +75,47 @@ export function ExportDialog<T extends RaRecord>({
 }: ExportDialogProps<T>) {
   const t = useErpUiT()
   const format = useFormat()
-  const { language } = useLanguage()
-  const errorMessage = useApiErrorMessage()
-  const sourceFor = useExportSource<T>(resource, filter, sort)
   const [scope, setScope] = React.useState<ExportScope>("selected")
   const [fileFormat, setFileFormat] = React.useState<SpreadsheetFormat>("xlsx")
   const [chosen, setChosen] = React.useState<ReadonlySet<string>>(
     () =>
       new Set(columns.filter((item) => !item.optional).map((item) => item.id)),
   )
-  const [progress, setProgress] = React.useState<ExportProgress | null>(null)
-  const [isBusy, setBusy] = React.useState(false)
-  const [message, setMessage] = React.useState<string | null>(null)
   const [noColumns, setNoColumns] = React.useState(false)
-  const run = React.useRef<AbortController | null>(null)
+  const { progress, isBusy, message, start, cancel } = useExportRun<T>({
+    resource,
+    filter,
+    sort,
+    title,
+    fileName,
+    maxRows,
+    onDone: () => {
+      onOpenChange(false)
+    },
+  })
   const columnsLabelId = React.useId()
   const scopeId = React.useId()
   const formatId = React.useId()
   const hasSelection = selectedIds.length > 0
 
-  React.useEffect(() => () => run.current?.abort(), [])
-
-  const failureText = (error: unknown) => {
-    if (error instanceof ExportLimitError)
-      return t("exportDialog.tooMany", {
-        total: format.number(error.total),
-        max: format.number(maxRows),
-      })
-    return isApiError(error)
-      ? errorMessage(error)
-      : t("exportDialog.fileFailed")
-  }
-
-  const start = async () => {
+  const submit = () => {
     const selected = columns.filter((column) => chosen.has(column.id))
     if (!selected.length) {
       setNoColumns(true)
       return
     }
-    run.current?.abort()
-    const controller = new AbortController()
-    run.current = controller
-    setBusy(true)
-    setMessage(null)
-    setProgress(null)
-    try {
-      const ids = hasSelection && scope === "selected" ? selectedIds : null
-      const records = await collectRecords(sourceFor(ids), {
-        maxRows,
-        signal: controller.signal,
-        onProgress: (done, total) => {
-          setProgress({ done, total })
-        },
-      })
-      if (controller.signal.aborted) return
-      if (!records.length) {
-        setMessage(t("exportDialog.nothing"))
-        return
-      }
-      const blob = await writeSpreadsheet({
-        format: fileFormat,
-        rows: exportRows(records, selected),
-        sheetName: title,
-        delimiter: language === "uk" ? ";" : ",",
-      })
-      if (controller.signal.aborted) return
-      saveFile(blob, spreadsheetFileName(fileName, fileFormat))
-      toast.success(
-        t("exportDialog.done", {
-          count: records.length,
-          formatted: format.number(records.length),
-        }),
-      )
-      onOpenChange(false)
-    } catch (error) {
-      if (!controller.signal.aborted) setMessage(failureText(error))
-    } finally {
-      if (run.current === controller) {
-        setBusy(false)
-        setProgress(null)
-      }
-    }
+    void start({
+      columns: selected,
+      ids: hasSelection && scope === "selected" ? selectedIds : null,
+      format: fileFormat,
+    })
   }
 
   const close = () => {
-    run.current?.abort()
-    setBusy(false)
-    setProgress(null)
+    cancel()
+    setNoColumns(false)
     onOpenChange(false)
   }
-
-  const progressText = progress
-    ? t("exportDialog.progress", {
-        done: format.number(progress.done),
-        total: format.number(progress.total),
-      })
-    : t("exportDialog.preparing")
 
   return (
     <Dialog
@@ -235,7 +137,7 @@ export function ExportDialog<T extends RaRecord>({
           data-testid="export-form"
           onSubmit={(event) => {
             event.preventDefault()
-            if (!isBusy) void start()
+            if (!isBusy) submit()
           }}
         >
           {hasSelection ? (
@@ -288,20 +190,7 @@ export function ExportDialog<T extends RaRecord>({
             }}
           />
           {isBusy ? (
-            <div className="grid gap-1">
-              <Progress
-                aria-label={t("exportDialog.title", { target: title })}
-                value={
-                  progress?.total
-                    ? (progress.done / progress.total) * 100
-                    : null
-                }
-                getAriaValueText={() => progressText}
-              />
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {progressText}
-              </span>
-            </div>
+            <ExportProgressBar title={title} progress={progress} />
           ) : null}
           {message ? (
             <Alert variant="destructive" role="alert">
@@ -320,6 +209,33 @@ export function ExportDialog<T extends RaRecord>({
         </form>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function ExportProgressBar({
+  title,
+  progress,
+}: {
+  title: string
+  progress: ExportProgress | null
+}) {
+  const t = useErpUiT()
+  const format = useFormat()
+  const text = progress
+    ? t("exportDialog.progress", {
+        done: format.number(progress.done),
+        total: format.number(progress.total),
+      })
+    : t("exportDialog.preparing")
+  return (
+    <div className="grid gap-1">
+      <Progress
+        aria-label={t("exportDialog.title", { target: title })}
+        value={progress?.total ? (progress.done / progress.total) * 100 : null}
+        getAriaValueText={() => text}
+      />
+      <span className="text-sm text-muted-foreground tabular-nums">{text}</span>
+    </div>
   )
 }
 
@@ -356,11 +272,14 @@ function ExportColumns<T>({
             onChange(new Set(checked ? columns.map((column) => column.id) : []))
           }}
         />
-        <FieldLabel htmlFor={`${labelId}-all`}>
+        <FieldLabel
+          htmlFor={`${labelId}-all`}
+          className="min-h-touch flex-1 items-center"
+        >
           {t("exportDialog.allColumns")}
         </FieldLabel>
       </Field>
-      <div className="grid max-h-56 gap-2 overflow-y-auto pl-1">
+      <div className="grid max-h-56 overflow-y-auto pl-1">
         {columns.map((column) => (
           <Field key={column.id} orientation="horizontal">
             <Checkbox
@@ -373,7 +292,10 @@ function ExportColumns<T>({
                 onChange(next)
               }}
             />
-            <FieldLabel htmlFor={`${labelId}-${column.id}`}>
+            <FieldLabel
+              htmlFor={`${labelId}-${column.id}`}
+              className="min-h-touch flex-1 items-center"
+            >
               {column.label}
             </FieldLabel>
           </Field>

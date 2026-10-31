@@ -1,7 +1,6 @@
 import { useGetList } from "ra-core"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 
 import { ExportDialog } from "@/registry/erp/export-dialog"
 import { FileDrop } from "@/registry/erp/file-drop"
@@ -118,6 +117,7 @@ export function ImportExportPage() {
   const { target, columns } = useProductDefinitions()
   const [run, setRun] = useState(0)
   const [exporting, setExporting] = useState<"all" | "selected" | null>(null)
+  const count = useRef<HTMLParagraphElement>(null)
   const { total } = useGetList(PRODUCTS, {
     pagination: { page: 1, perPage: 1 },
   })
@@ -196,14 +196,20 @@ export function ImportExportPage() {
         title={t("importExportPage.importTitle")}
         description={t("importExportPage.importDescription")}
       >
-        <p className="mb-4 text-sm text-muted-foreground" data-testid="count">
+        <p
+          ref={count}
+          tabIndex={-1}
+          className="mb-4 text-sm text-muted-foreground outline-none"
+          data-testid="count"
+        >
           {t("importExportPage.count", { count: format.number(total ?? 0) })}
         </p>
         <ImportWizard
           key={run}
           target={target}
           onDone={() => {
-            toast.success(t("importExportPage.imported"))
+            // Майстер монтується заново, а кнопка «Готово» зникає разом із фокусом.
+            count.current?.focus()
             setRun((current) => current + 1)
           }}
         />

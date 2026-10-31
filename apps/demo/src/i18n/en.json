@@ -861,8 +861,7 @@
     "examples": {
       "sku": "SKU-100",
       "name": "Coffee set"
-    },
-    "imported": "Import finished"
+    }
   },
   "wizardPage": {
     "lead": "The Wizard template and the UI06 stepper: steps with checks and saving, a read-only final review.",

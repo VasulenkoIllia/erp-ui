@@ -191,9 +191,48 @@ describe("рядки файла", () => {
     expect(applicableRows(checked).map(({ row }) => row)).toEqual([3])
   })
 
-  it("сервер пропустив рядок: це збій, а не тихий успіх", () => {
+  it("сервер пропустив рядок: це помилка рядка, а не тихий успіх", () => {
     const built = buildRows(rows, mapping, FIELDS)
-    expect(() => mergeCheck(built, { rows: [] })).toThrow(/no answer/)
+    const checked = mergeCheck(built, {
+      rows: [
+        { row: 3, action: "create" },
+        { row: 99, action: "create" },
+      ],
+    })
+    expect(checked.map(({ row, action }) => [row, action])).toEqual([
+      [3, "create"],
+      [5, "invalid"],
+      [6, "invalid"],
+    ])
+    expect(checked[2]?.errors).toEqual([{ code: "no_answer" }])
+    expect(applicableRows(checked).map(({ row }) => row)).toEqual([3])
+  })
+
+  it("пробіли в клітинці не стирають поле запису", () => {
+    const built = buildRows(
+      [
+        ["Назва", "Пошта", "Ціна"],
+        ["Кава", "   ", " "],
+      ],
+      mapping,
+      FIELDS,
+    )
+    expect(built.rows).toEqual([{ row: 2, values: { name: "Кава" } }])
+  })
+
+  it("короткий рядок CSV: помилка лишається у своїй колонці", () => {
+    const short = [["Назва", "Пошта", "Ціна"], ["abc"]]
+    expect(
+      errorReportRows(
+        short,
+        [{ row: 2, action: "invalid", errors: [{ code: "invalid" }] }],
+        (error) => error.code,
+        "Помилка",
+      ),
+    ).toEqual([
+      ["Назва", "Пошта", "Ціна", "Помилка"],
+      ["abc", null, null, "invalid"],
+    ])
   })
 
   it("файл помилок несе початкові клітинки й текст", () => {

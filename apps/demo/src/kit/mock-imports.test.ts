@@ -36,6 +36,7 @@ type Product = z.infer<typeof productSchema>
 const seed = (): Product[] => [
   { id: "p1", version: 1, sku: "A-1", name: "Кава" },
   { id: "p2", version: 1, sku: "A-2", name: "Чай" },
+  { id: "p3", version: 1, sku: "LOCKED", name: "Закритий" },
 ]
 
 const user = (id: string, permissions: string[]): MockUser => ({
@@ -58,6 +59,8 @@ const products = createResourceHandlers<Product>({
   data: seed,
   label: { uk: "Товари", en: "Products" },
   unique: ["sku"],
+  deniedActions: (_, record) =>
+    record.sku === "LOCKED" ? { update: "closed_period" } : undefined,
 })
 
 let clock = 1_000_000
@@ -132,7 +135,41 @@ describe("перевірка", () => {
         errors: [{ field: "name", code: "invalid" }],
       },
     ])
-    expect(products.db.all()).toHaveLength(2)
+    expect(products.db.all()).toHaveLength(3)
+  })
+
+  it("при оновленні дубль у файлі — помилка: який рядок правильний, файл не каже", async () => {
+    const { rows } = await dataProvider.checkImport(
+      "products",
+      request({
+        onDuplicate: "update",
+        rows: [
+          { row: 2, values: { sku: "A-1", name: "Перша" } },
+          { row: 3, values: { sku: "a-1 ", name: "Друга" } },
+        ],
+      }),
+    )
+    expect(rows).toEqual([
+      { row: 2, action: "update" },
+      {
+        row: 3,
+        action: "invalid",
+        errors: [{ field: "sku", code: "duplicate" }],
+      },
+    ])
+  })
+
+  it("запис, який не можна змінити, — помилка рядка", async () => {
+    const { rows } = await dataProvider.checkImport(
+      "products",
+      request({
+        onDuplicate: "update",
+        rows: [{ row: 2, values: { sku: "LOCKED", name: "Нова" } }],
+      }),
+    )
+    expect(rows).toEqual([
+      { row: 2, action: "invalid", errors: [{ code: "forbidden" }] },
+    ])
   })
 
   it("оновлення вимагає права update", async () => {
@@ -191,7 +228,39 @@ describe("застосування", () => {
     )
     const job = await finished(jobId)
     expect(job.outcomes).toEqual({ created: 1, updated: 0, skipped: 2 })
-    expect(products.db.all()).toHaveLength(3)
+    expect(products.db.all()).toHaveLength(4)
+  })
+
+  it("оновлення не пише той самий запис двічі", async () => {
+    const { jobId } = await dataProvider.startImport(
+      "products",
+      request({
+        onDuplicate: "update",
+        rows: [
+          { row: 2, values: { sku: "A-1", name: "Перша" } },
+          { row: 3, values: { sku: "A-1", name: "Друга" } },
+        ],
+      }),
+    )
+    const job = await finished(jobId)
+    expect(job.outcomes).toEqual({ created: 0, updated: 1, skipped: 0 })
+    expect(job.failures[0]).toMatchObject({ code: "duplicate", count: 1 })
+    const stored = products.db.all().find((item) => item.sku === "A-1")
+    expect(stored?.name).toBe("Перша")
+  })
+
+  it("заборонений запис не оновлюється й під час запису", async () => {
+    const { jobId } = await dataProvider.startImport(
+      "products",
+      request({
+        onDuplicate: "update",
+        rows: [{ row: 2, values: { sku: "LOCKED", name: "Нова" } }],
+      }),
+    )
+    const job = await finished(jobId)
+    expect(job.failures[0]).toMatchObject({ code: "forbidden", count: 1 })
+    const stored = products.db.all().find((item) => item.sku === "LOCKED")
+    expect(stored?.name).toBe("Закритий")
   })
 
   it("рядок, що не пройшов під час запису, — невдача з номером рядка", async () => {
@@ -214,7 +283,7 @@ describe("застосування", () => {
     const second = await dataProvider.startImport("products", body)
     expect(second.jobId).toBe(first.jobId)
     await finished(first.jobId)
-    expect(products.db.all()).toHaveLength(3)
+    expect(products.db.all()).toHaveLength(4)
   })
 
   it("тіло не за контрактом — 422", async () => {
