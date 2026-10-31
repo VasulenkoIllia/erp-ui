@@ -605,7 +605,7 @@ const target: ImportTarget = {
 
 - Типи полів: `text`, `number`, `integer`, `boolean`, `date`, `enum` з `options`. Свій розбір клітинки
   (телефон, ЄДРПОУ) — `parse`: він повертає `{ value }` або `{ code }`.
-- Текст коду модуля — `errorLabel` цілі; `required`, `invalid`, `duplicate` кіт знає сам.
+- Текст коду модуля — `errorLabel` цілі; `required`, `invalid`, `duplicate`, `forbidden` кіт знає сам.
 - Сервер проекту реалізує `POST /<ресурс>/import/check` і `POST /<ресурс>/import` (`lib/imports`).
   Адаптер, де їх немає, перевизначає `checkImport` і `startImport`. Межа JSON має вміщати
   `IMPORT_MAX_ROWS` рядків. Моки: `createImportHandlers({ resource, db })` з `lib/mock-imports`.

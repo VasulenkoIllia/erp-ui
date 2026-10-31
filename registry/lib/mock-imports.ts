@@ -52,6 +52,12 @@ interface Scope<T extends MockRecord> {
   rules: MockRecordAccess<T>
 }
 
+interface Outcomes {
+  created: number
+  updated: number
+  skipped: number
+}
+
 const textOf = (value: unknown) =>
   typeof value === "string" || typeof value === "number" ? String(value) : ""
 
@@ -130,7 +136,6 @@ function startImportJob<T extends MockRecord>(
   scope: Scope<T>,
 ): string {
   const { rows, matchField, onDuplicate } = body
-  const outcomes = { created: 0, updated: 0, skipped: 0 }
   const byRow = new Map(rows.map((item) => [String(item.row), item]))
   const written = new Set<string>()
   const failure = (fieldErrors: Record<string, string>, title: string) => ({
@@ -139,7 +144,12 @@ function startImportJob<T extends MockRecord>(
     retryable: false,
     title,
   })
-  const apply = (id: string, existing: Map<string, T>, current: Scope<T>) => {
+  const apply = (
+    id: string,
+    existing: Map<string, T>,
+    current: Scope<T>,
+    outcomes: Outcomes,
+  ) => {
     const values = byRow.get(id)?.values ?? {}
     const title = (matchField && textOf(values[matchField])) || id
     const key = matchField ? keyOf(values[matchField]) : ""
@@ -177,29 +187,33 @@ function startImportJob<T extends MockRecord>(
   }
   const accessFor = (permissions: readonly string[]) =>
     db.accessOf(scope.user, permissions)
-  const specFor = (current: Scope<T>, ids: string[]): MockJobSpec => ({
-    userId: current.user.id,
-    companyId: current.companyId,
-    resource,
-    action: "import",
-    ids,
-    perSecond,
-    process: (batch) => {
-      // Один прохід по записах на партію; записане в партії видно наступним рядкам.
-      const existing = existingBy(db, current, matchField)
-      return batch.map((id) => apply(id, existing, current))
-    },
-    grants: (permissions) =>
-      neededActions(body).every((action) =>
-        mockGrantsRecords(accessFor(permissions), action),
-      ),
-    retry: (failed, permissions) =>
-      registerMockJob(
-        specFor({ ...current, rules: accessFor(permissions) }, failed),
-        now(),
-      ),
-    outcomes: () => outcomes,
-  })
+  const specFor = (current: Scope<T>, ids: string[]): MockJobSpec => {
+    // Свої лічильники кожній задачі: звіт сам додає результат попередньої до повтору.
+    const outcomes: Outcomes = { created: 0, updated: 0, skipped: 0 }
+    return {
+      userId: current.user.id,
+      companyId: current.companyId,
+      resource,
+      action: "import",
+      ids,
+      perSecond,
+      process: (batch) => {
+        // Один прохід по записах на партію; записане в партії видно наступним рядкам.
+        const existing = existingBy(db, current, matchField)
+        return batch.map((id) => apply(id, existing, current, outcomes))
+      },
+      grants: (permissions) =>
+        neededActions(body).every((action) =>
+          mockGrantsRecords(accessFor(permissions), action),
+        ),
+      retry: (failed, permissions) =>
+        registerMockJob(
+          specFor({ ...current, rules: accessFor(permissions) }, failed),
+          now(),
+        ),
+      outcomes: () => outcomes,
+    }
+  }
   return registerMockJob(specFor(scope, [...byRow.keys()]), now()).id
 }
 

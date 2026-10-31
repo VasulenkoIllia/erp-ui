@@ -115,7 +115,7 @@ export function FileDrop({
           "flex flex-col items-center gap-3 rounded-lg border border-dashed p-6 text-center transition-colors",
           "data-dragging:border-primary data-dragging:bg-accent",
           "data-invalid:border-destructive",
-          disabled && "opacity-60",
+          disabled && "bg-muted/50",
         )}
         onDragOver={(event) => {
           if (disabled) return
@@ -168,9 +168,11 @@ export function FileDrop({
             <p id={labelId} className="font-medium">
               {label}
             </p>
-            <p className="hidden text-sm text-muted-foreground @md:block">
-              {t("fileDrop.dragHere")}
-            </p>
+            {disabled ? null : (
+              <p className="hidden text-sm text-muted-foreground @md:block">
+                {t("fileDrop.dragHere")}
+              </p>
+            )}
             {hint ? (
               <p className="text-sm text-muted-foreground">{hint}</p>
             ) : null}

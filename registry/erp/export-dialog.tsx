@@ -274,12 +274,12 @@ function ExportColumns<T>({
         />
         <FieldLabel
           htmlFor={`${labelId}-all`}
-          className="min-h-touch flex-1 items-center"
+          className="flex-1 items-center pointer-coarse:min-h-touch"
         >
           {t("exportDialog.allColumns")}
         </FieldLabel>
       </Field>
-      <div className="grid max-h-56 overflow-y-auto pl-1">
+      <div className="grid max-h-56 gap-2 overflow-y-auto pl-1 pointer-coarse:gap-0">
         {columns.map((column) => (
           <Field key={column.id} orientation="horizontal">
             <Checkbox
@@ -294,7 +294,7 @@ function ExportColumns<T>({
             />
             <FieldLabel
               htmlFor={`${labelId}-${column.id}`}
-              className="min-h-touch flex-1 items-center"
+              className="flex-1 items-center pointer-coarse:min-h-touch"
             >
               {column.label}
             </FieldLabel>
