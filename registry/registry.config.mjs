@@ -2478,6 +2478,21 @@ export const MODULE_ITEMS = {
       "3) Права ролей: taxes, units, payment-terms, tags, reasons (read, create, update), dictionary-defaults (read, update). Докладно — src/modules/A6-dictionaries/README.md.",
     ].join("\n"),
   },
+  "modules/A4-import-export": {
+    title: "Імпорт і експорт (A4)",
+    description:
+      "Модуль: цілі імпорту й експорту (контакти й організації B1, довідники A6, свої цілі проекту) з діями за правами, майстер імпорту на адресі цілі, експорт у файл із тими самими назвами колонок, історія запусків на List Report (фільтри цілі й стану, подробиці з причинами невдач); контракт import-runs, моки зі сценаріями, фікстури, рядки uk/en; фабрика createImportExportModule з маршрутами, навігацією й правами, тип розширення ImportExportExtension (ADR-0020, ADR-0025, ADR-0049, ADR-0050).",
+    status: "beta",
+    demo: "importExportModule",
+    spec: ["§7", "§14", "§17", "A4", "PF07", "UI11"],
+    docs: [
+      "Модуль A4 встановлено в src/modules/A4-import-export. Файли модуля не правте: зміни під клієнта — у src/extensions/A4-import-export.ts (тип ImportExportExtension).",
+      "1) createImportExportModule({ basePath, extension }) з @/modules/A4-import-export: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).",
+      "2) Цілі без модуля в проекті сховайте: extension.targets.hide. Свої цілі: extension.targets.add.",
+      "3) Моки: createImportExportMocks({ companies, targets }) з @/modules/A4-import-export/mocks, ціль — importTargetMock({ resource, db }): handlers у setupWorker після createPlatformHandlers.",
+      "4) Права ролей: import-runs (read, read:own). Імпорт цілі — <ресурс>:create і для оновлення <ресурс>:update, експорт — <ресурс>:read. Докладно — src/modules/A4-import-export/README.md.",
+    ].join("\n"),
+  },
   "modules/A5-audit": {
     title: "Аудит та історія (A5)",
     description:

@@ -1,0 +1,69 @@
+{
+  "targets": {
+    "title": "Імпорт і експорт",
+    "lead": "Завантажте записи з таблиці або збережіть їх у файл.",
+    "listLabel": "Що можна імпортувати й експортувати",
+    "import": "Імпортувати",
+    "importLabel": "Імпортувати: {{target}}",
+    "importDenied": "Немає права додавати ці записи",
+    "export": "Експортувати",
+    "exportLabel": "Експортувати: {{target}}",
+    "exportDenied": "Немає права бачити ці записи",
+    "history": "Історія імпорту"
+  },
+  "run": {
+    "title": "Імпорт: {{target}}",
+    "back": "До імпорту й експорту"
+  },
+  "history": {
+    "title": "Історія імпорту",
+    "lead": "Що, коли й ким було завантажено.",
+    "search": "Пошук за назвою файла",
+    "tableLabel": "Запуски імпорту",
+    "count_one": "{{value}} запуск",
+    "count_few": "{{value}} запуски",
+    "count_many": "{{value}} запусків",
+    "count_other": "{{value}} запуску",
+    "noFile": "Без назви",
+    "open": "Подробиці запуску: {{name}}",
+    "columns": {
+      "fileName": "Файл",
+      "target": "Що імпортовано",
+      "status": "Стан",
+      "startedAt": "Запущено",
+      "startedBy": "Хто запустив",
+      "created": "Створено",
+      "updated": "Оновлено",
+      "skipped": "Пропущено",
+      "failed": "З помилками"
+    },
+    "status": {
+      "running": "Виконується",
+      "done": "Готово",
+      "partial": "Частково",
+      "failed": "Не виконано"
+    },
+    "empty": {
+      "title": "Імпорту ще не було",
+      "description": "Тут з'являться завантажені файли."
+    },
+    "details": {
+      "subtitle": "{{target}}, {{name}}, {{date}}",
+      "failed": "Імпорт не виконався. Записи могли не змінитись: перевірте список і запустіть його знову.",
+      "failures": "Чому не пройшли рядки",
+      "failureCount_one": "{{value}} рядок",
+      "failureCount_few": "{{value}} рядки",
+      "failureCount_many": "{{value}} рядків",
+      "failureCount_other": "{{value}} рядка",
+      "rows": "Рядки у файлі: {{rows}}",
+      "rowsMore": "Рядки у файлі: {{rows}} і ще {{value}}",
+      "counts": {
+        "total": "Рядків на запис",
+        "created": "Створено",
+        "updated": "Оновлено",
+        "skipped": "Пропущено",
+        "failed": "З помилками"
+      }
+    }
+  }
+}

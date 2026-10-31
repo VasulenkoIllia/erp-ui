@@ -1,0 +1,65 @@
+{
+  "targets": {
+    "title": "Import and export",
+    "lead": "Upload records from a table or save them to a file.",
+    "listLabel": "What you can import and export",
+    "import": "Import",
+    "importLabel": "Import: {{target}}",
+    "importDenied": "You have no permission to add these records",
+    "export": "Export",
+    "exportLabel": "Export: {{target}}",
+    "exportDenied": "You have no permission to see these records",
+    "history": "Import history"
+  },
+  "run": {
+    "title": "Import: {{target}}",
+    "back": "Back to import and export"
+  },
+  "history": {
+    "title": "Import history",
+    "lead": "What was uploaded, when and by whom.",
+    "search": "Search by file name",
+    "tableLabel": "Import runs",
+    "count_one": "{{value}} run",
+    "count_other": "{{value}} runs",
+    "noFile": "Untitled",
+    "open": "Run details: {{name}}",
+    "columns": {
+      "fileName": "File",
+      "target": "Imported into",
+      "status": "State",
+      "startedAt": "Started",
+      "startedBy": "Started by",
+      "created": "Created",
+      "updated": "Updated",
+      "skipped": "Skipped",
+      "failed": "With errors"
+    },
+    "status": {
+      "running": "Running",
+      "done": "Done",
+      "partial": "Partly done",
+      "failed": "Failed"
+    },
+    "empty": {
+      "title": "No imports yet",
+      "description": "Uploaded files will appear here."
+    },
+    "details": {
+      "subtitle": "{{target}}, {{name}}, {{date}}",
+      "failed": "The import did not run. Records may be unchanged: check the list and run it again.",
+      "failures": "Why rows did not go through",
+      "failureCount_one": "{{value}} row",
+      "failureCount_other": "{{value}} rows",
+      "rows": "Rows in the file: {{rows}}",
+      "rowsMore": "Rows in the file: {{rows}} and {{value}} more",
+      "counts": {
+        "total": "Rows to write",
+        "created": "Created",
+        "updated": "Updated",
+        "skipped": "Skipped",
+        "failed": "With errors"
+      }
+    }
+  }
+}

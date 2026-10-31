@@ -561,6 +561,53 @@ setupWorker(...createPlatformHandlers({}), ...dictionaries.handlers)
 - Вимкнення прибирає значення з типових: це робить сервер у тій самій транзакції. «Скасувати» типового не повертає, тому значення з позначкою «Типове» перед вимкненням питає (потрібне право `dictionary-defaults:read`).
 - Розширення — кожен довідник: `page: false`, `fields`, `columns`, `filters`, `form`; `reasons.kinds` (види причин проекту); `defaults: { page: false }`; `strings`.
 
+### Модуль A4 «Імпорт і експорт» (ADR-0050)
+
+```ts
+// src/modules.ts
+import { createImportExportModule } from "@/modules/A4-import-export"
+import { importExportExtension } from "@/extensions/A4-import-export"
+
+export const importExportModule = createImportExportModule({ basePath: "/settings", extension: importExportExtension })
+
+// src/extensions/A4-import-export.ts — цілі під проект
+export const importExportExtension: ImportExportExtension = {
+  targets: {
+    hide: ["taxes", "units", "tags", "reasons"], // A6 у проекті немає
+    add: [
+      {
+        id: "products", // ресурс API
+        label: { uk: "Товари", en: "Products" },
+        matchField: "sku",
+        fields: [
+          { key: "sku", label: { uk: "Артикул", en: "SKU" }, required: true },
+          { key: "price", label: { uk: "Ціна", en: "Price" }, type: "number" },
+        ],
+      },
+    ],
+  },
+}
+
+// src/mocks/handlers.ts — цілі на записах своїх моків
+import { createImportExportMocks, importTargetMock } from "@/modules/A4-import-export/mocks"
+const importExport = createImportExportMocks({
+  companies: ["my-company"],
+  targets: [
+    importTargetMock({ resource: "contacts", db: contacts.db.contacts }),
+    importTargetMock({ resource: "products", db: products.db }),
+  ],
+})
+setupWorker(...createPlatformHandlers({}), ...importExport.handlers)
+```
+
+- Сторінки: «Імпорт і експорт», майстер на адресі цілі, «Історія імпорту». Адреси в `importExportModule.paths`, `basePath` веде на цілі.
+- Кнопка на своєму списку: `importRunPath(importExportModule.paths, "contacts")` веде на майстер цілі.
+- Права: `import-runs` має `read` і `read:own` (лише свої запуски). Імпорт просить `<ресурс>:create`, оновлення ще й `<ресурс>:update`, експорт `<ресурс>:read`. Окремого права немає.
+- Бекенд реалізує контракт `lib/imports` для кожної цілі й історію `GET /import-runs`, `GET /import-runs/:id`: запуск створює сам сервер у `POST /<ресурс>/import`. Без історії — `history: { page: false }`.
+- Цілі з коробки: контакти й організації B1, податки, одиниці, теги й причини A6. Без цих модулів сховайте їх: ціль без модуля бачив би той, хто має `*`. Умов оплати немає: частини оплати не лягають на рядок таблиці. Контакт приходить без організації.
+- Нове поле в цілі модуля: `targets: { change: [{ id: "contacts", fields: [...CONTACTS_TARGET.fields, { key: "source", label: "Джерело" }] }] }`, дані цілей — у `targets.ts` модуля.
+- Розширення — `targets`, `history` (`page: false`, `columns`, `filters`), `strings`. Сценарії — `import-runs` і кожна ціль окремо.
+
 ### Майстер (ADR-0043)
 
 ```tsx
@@ -606,6 +653,8 @@ const target: ImportTarget = {
 - Типи полів: `text`, `number`, `integer`, `boolean`, `date`, `enum` з `options`. Свій розбір клітинки
   (телефон, ЄДРПОУ) — `parse`: він повертає `{ value }` або `{ code }`.
 - Текст коду модуля — `errorLabel` цілі; `required`, `invalid`, `duplicate`, `forbidden` кіт знає сам.
+- Файл із шапкою над таблицею: людина вибирає рядок із назвами колонок на першому кроці, серед перших 20
+  заповнених рядків. Код сторінки для цього нічого не робить (ADR-0050).
 - Сервер проекту реалізує `POST /<ресурс>/import/check` і `POST /<ресурс>/import` (`lib/imports`).
   Адаптер, де їх немає, перевизначає `checkImport` і `startImport`. Межа JSON має вміщати
   `IMPORT_MAX_ROWS` рядків. Моки: `createImportHandlers({ resource, db })` з `lib/mock-imports`.

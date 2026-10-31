@@ -57,11 +57,14 @@ export function useImportErrorText(target: ImportTarget) {
 export function useImportDownloads({
   target,
   sheet,
+  headerRow,
   checked,
   errorText,
 }: {
   target: ImportTarget
   sheet: SpreadsheetSheet | undefined
+  /** Рядок заголовків, який вибрала людина; немає — перший заповнений. */
+  headerRow: number | undefined
   checked: readonly CheckedRow[]
   errorText: (error: ImportRowError) => string
 }) {
@@ -98,6 +101,7 @@ export function useImportDownloads({
           checked,
           errorText,
           t("importWizard.check.errorColumn"),
+          headerRow,
         ),
         t("importWizard.check.downloadName"),
         t("importWizard.check.downloadFailed"),

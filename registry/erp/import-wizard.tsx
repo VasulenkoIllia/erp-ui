@@ -19,7 +19,7 @@ import {
   cellText,
   columnSample,
   dataRowCount,
-  headerRowIndex,
+  headerRowChoices,
 } from "@/registry/lib/import-rows"
 import { IMPORT_MAX_COLUMNS } from "@/registry/lib/imports"
 import {
@@ -83,16 +83,27 @@ function ImportStep({ api }: { api: ImportWizardApi }) {
 function ImportFileStep({ api }: { api: ImportWizardApi }) {
   const t = useErpUiT()
   const format = useFormat()
-  const { state, sheet, fileError, maxRows } = api
+  const { state, sheet, headerRow, fileError, maxRows } = api
   const selectId = React.useId()
+  const headerId = React.useId()
+  const rowCount = sheet ? dataRowCount(sheet.rows, headerRow) : 0
   const status = state.isReading
     ? t("importWizard.file.reading")
     : sheet
       ? t("importWizard.file.rows", {
-          count: dataRowCount(sheet.rows),
-          formatted: format.number(dataRowCount(sheet.rows)),
+          count: rowCount,
+          formatted: format.number(rowCount),
         })
       : undefined
+  const headerItems = headerRowChoices(sheet?.rows ?? []).map(
+    ({ index, preview }) => ({
+      value: String(index),
+      label: t("importWizard.file.headerRowItem", {
+        row: format.number(index + 1),
+        cells: preview,
+      }),
+    }),
+  )
   const sheetItems = state.sheets.map((item, index) => ({
     value: String(index),
     label: item.name,
@@ -136,6 +147,22 @@ function ImportFileStep({ api }: { api: ImportWizardApi }) {
           />
         </Field>
       ) : null}
+      {headerItems.length > 1 ? (
+        <Field>
+          <FieldLabel htmlFor={headerId}>
+            {t("importWizard.file.headerRow")}
+          </FieldLabel>
+          <FormSelect
+            id={headerId}
+            items={headerItems}
+            value={String(headerRow)}
+            disabled={api.wizard.busy}
+            onValueChange={(value) => {
+              api.chooseHeaderRow(Number(value))
+            }}
+          />
+        </Field>
+      ) : null}
       <Button type="button" variant="link" onClick={api.downloadTemplate}>
         <DownloadIcon aria-hidden />
         {t("importWizard.file.template")}
@@ -146,10 +173,10 @@ function ImportFileStep({ api }: { api: ImportWizardApi }) {
 
 function ImportMappingStep({ api }: { api: ImportWizardApi }) {
   const t = useErpUiT()
-  const { state, sheet, target, issues } = api
+  const { state, sheet, headerRow, target, issues } = api
   const duplicatesId = React.useId()
   const rows = sheet?.rows ?? []
-  const headers = rows[headerRowIndex(rows)] ?? []
+  const headers = rows[headerRow] ?? []
   const fieldItems = [
     { value: null, label: t("importWizard.mapping.skip") },
     ...target.fields.map((field) => ({
@@ -185,7 +212,7 @@ function ImportMappingStep({ api }: { api: ImportWizardApi }) {
               cellText(header) ||
               t("importWizard.mapping.noHeader", { index: column + 1 })
             }
-            sample={columnSample(rows, column)}
+            sample={columnSample(rows, column, headerRow)}
             items={fieldItems}
             value={state.mapping[column] ?? null}
             disabled={api.wizard.busy}

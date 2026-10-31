@@ -122,6 +122,14 @@ export function resetMockJobs(): void {
   jobs.clear()
 }
 
+/** Задача для інших моків (історія імпорту): той самий стан, що бачить `GET /jobs/:id`. */
+export function readMockJob(id: string, at: number): Job | undefined {
+  const job = jobs.get(id)
+  if (!job) return undefined
+  advance(job, at)
+  return toJob(job, at)
+}
+
 const filterValueSchema = z.union([
   z.string(),
   z.number(),

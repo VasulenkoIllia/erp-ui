@@ -13,6 +13,7 @@ import {
   applicableRows,
   buildRows,
   countActions,
+  HEADER_ROW_CHOICES,
   headerRowIndex,
   mappingIssues,
   mergeCheck,
@@ -47,8 +48,9 @@ import {
  * - Файл читається одразу після вибору: помилку й аркуші видно на першому кроці. Новий файл скасовує
  *   читання попереднього.
  * - «Далі» на кроці колонок запитує перевірку сервера: збій лишає людину на кроці, зіставлення ціле.
- * - Зміна файла, аркуша, колонок чи дії з дублями скидає перевірку й `requestId`: це вже інший імпорт.
- *   Без змін ключ той самий, тож повтор після загубленої відповіді не створює записи двічі.
+ * - Зміна файла, аркуша, рядка заголовків, колонок чи дії з дублями скидає перевірку й `requestId`: це
+ *   вже інший імпорт. Без змін ключ той самий, тож повтор після загубленої відповіді не створює записи
+ *   двічі.
  * - Кроки перевірки й перегляду без перевірки недоступні (`blocked`): запускати нічого.
  * - Після запуску назад не можна (`locked`): задача вже йде на сервері.
  */
@@ -61,6 +63,8 @@ interface ImportState {
   readonly isFileMissing: boolean
   readonly sheets: readonly SpreadsheetSheet[]
   readonly sheetIndex: number
+  /** Рядок заголовків, який вибрала людина; немає — перший заповнений. */
+  readonly headerRow: number | undefined
   readonly mapping: ImportMapping
   readonly showMappingIssues: boolean
   readonly onDuplicate: ImportDuplicateMode
@@ -76,6 +80,7 @@ const INITIAL_STATE: ImportState = {
   isFileMissing: false,
   sheets: [],
   sheetIndex: 0,
+  headerRow: undefined,
   mapping: {},
   showMappingIssues: false,
   onDuplicate: "skip",
@@ -108,6 +113,8 @@ export interface ImportWizardApi {
   readonly maxRows: number
   readonly state: ImportState
   readonly sheet: SpreadsheetSheet | undefined
+  /** Індекс рядка заголовків у рядках аркуша. */
+  readonly headerRow: number
   readonly fileError: ImportFileError | null
   readonly issues: MappingIssues
   readonly counts: ImportCounts
@@ -115,6 +122,7 @@ export interface ImportWizardApi {
   readonly dirty: boolean
   readonly chooseFile: (file: File | null) => void
   readonly chooseSheet: (index: number) => void
+  readonly chooseHeaderRow: (index: number) => void
   readonly mapColumn: (column: number, key: string | null) => void
   readonly setOnDuplicate: (mode: ImportDuplicateMode) => void
   readonly downloadTemplate: () => void
@@ -125,18 +133,16 @@ export interface ImportWizardApi {
 const mappingOf = (
   sheet: SpreadsheetSheet | undefined,
   target: ImportTarget,
-) =>
-  sheet
-    ? suggestMapping(
-        sheet.rows[headerRowIndex(sheet.rows)] ?? [],
-        target.fields,
-      )
-    : {}
+  header: number = headerRowIndex(sheet?.rows ?? []),
+) => (sheet ? suggestMapping(sheet.rows[header] ?? [], target.fields) : {})
 
 /** Файл → аркуші з даними, або код помилки. Причину бачить людина, тож відмови тут не лишається. */
 async function readSheets(file: File, maxRows: number): Promise<FileRead> {
   try {
-    const sheets = await readSpreadsheet(file, { maxRows: maxRows + 1 })
+    // Запас на шапку над таблицею: рядок заголовків може стояти нижче першого.
+    const sheets = await readSpreadsheet(file, {
+      maxRows: maxRows + HEADER_ROW_CHOICES + 1,
+    })
     return {
       sheets: sheets.filter((sheet) => headerRowIndex(sheet.rows) >= 0),
       readError: null,
@@ -187,7 +193,17 @@ function useImportChoices({
         ...current,
         ...NOT_CHECKED,
         sheetIndex: index,
+        headerRow: undefined,
         mapping: mappingOf(current.sheets[index], target),
+        showMappingIssues: false,
+      }))
+    },
+    chooseHeaderRow: (index: number) => {
+      setState((current) => ({
+        ...current,
+        ...NOT_CHECKED,
+        headerRow: index,
+        mapping: mappingOf(current.sheets[current.sheetIndex], target, index),
         showMappingIssues: false,
       }))
     },
@@ -251,7 +267,11 @@ function useImportActions({
     // Читання могло ще тривати: стан цього рендера його результату не знає.
     const { sheets, readError } = await reading.current
     const chosen = sheets[state.sheetIndex]
-    return !readError && chosen !== undefined && !sheetIssue(chosen, maxRows)
+    return (
+      !readError &&
+      chosen !== undefined &&
+      !sheetIssue(chosen, maxRows, state.headerRow)
+    )
   }
 
   const checkRows = async () => {
@@ -261,7 +281,7 @@ function useImportActions({
       return false
     }
     const rows = state.sheets[state.sheetIndex]?.rows ?? []
-    const built = buildRows(rows, state.mapping, target.fields)
+    const built = buildRows(rows, state.mapping, target.fields, state.headerRow)
     const requestId = state.requestId || newImportRequestId()
     const check = built.rows.length
       ? await dataProvider.checkImport(
@@ -371,16 +391,18 @@ export function useImportWizard({
   const downloads = useImportDownloads({
     target,
     sheet,
+    headerRow: state.headerRow,
     checked: state.checked,
     errorText,
   })
-  const issue = sheet ? sheetIssue(sheet, maxRows) : null
+  const issue = sheet ? sheetIssue(sheet, maxRows, state.headerRow) : null
   return {
     wizard,
     target,
     maxRows,
     state,
     sheet,
+    headerRow: state.headerRow ?? headerRowIndex(sheet?.rows ?? []),
     fileError:
       state.readError ?? issue ?? (state.isFileMissing ? "required" : null),
     issues,

@@ -9,6 +9,8 @@ import {
   dataRowCount,
   errorReportRows,
   fieldValueText,
+  HEADER_ROW_CHOICES,
+  headerRowChoices,
   headerRowIndex,
   mappingIssues,
   mergeCheck,
@@ -256,6 +258,72 @@ describe("рядки файла", () => {
     expect(dataRowCount(rows)).toBe(3)
     expect(columnSample(rows, 1)).toBe("a@b.example")
     expect(columnSample(rows, 2)).toBe("12,5")
+  })
+})
+
+describe("шапка над таблицею", () => {
+  const report = [
+    ["Звіт за жовтень", null, null],
+    [null, null, null],
+    ["Назва", "Пошта", "Ціна"],
+    ["Кава", "a@b.example", "12,5"],
+    ["", "c@d.example", "abc"],
+  ]
+  const fields = [
+    { key: "name", label: "Назва", required: true },
+    { key: "email", label: "Пошта" },
+    { key: "price", label: "Ціна", type: "number" as const },
+  ]
+  const mapping = { 0: "name", 1: "email", 2: "price" }
+
+  it("пропонує заповнені рядки з номером і клітинками", () => {
+    expect(headerRowChoices(report).slice(0, 2)).toEqual([
+      { index: 0, preview: "Звіт за жовтень" },
+      { index: 2, preview: "Назва, Пошта, Ціна" },
+    ])
+  })
+
+  it("показує лише перші рядки й обрізає довгі", () => {
+    const long = Array.from({ length: HEADER_ROW_CHOICES + 5 }, () => [
+      "x".repeat(80),
+    ])
+    const choices = headerRowChoices(long)
+    expect(choices).toHaveLength(HEADER_ROW_CHOICES)
+    expect(choices[0]?.preview).toHaveLength(61)
+  })
+
+  it("дані йдуть лише під вибраним рядком, номер лишається з Excel", () => {
+    const built = buildRows(report, mapping, fields, 2)
+    expect(built.rows).toEqual([
+      { row: 4, values: { name: "Кава", email: "a@b.example", price: 12.5 } },
+    ])
+    expect([...built.invalid.keys()]).toEqual([5])
+  })
+
+  it("без вибору заголовок лишається першим заповненим рядком", () => {
+    expect(dataRowCount(report)).toBe(3)
+    expect(dataRowCount(report, 2)).toBe(2)
+    expect(columnSample(report, 2)).toBe("Ціна")
+    expect(columnSample(report, 2, 2)).toBe("12,5")
+  })
+
+  it("межі рахуються від вибраного рядка", () => {
+    const sheet = { name: "A", rows: report, truncated: false }
+    expect(sheetIssue(sheet, 2, 2)).toBeNull()
+    expect(sheetIssue(sheet, 2)).toBe("too_many_rows")
+    expect(sheetIssue(sheet, 10, 4)).toBe("no_rows")
+  })
+
+  it("файл помилок несе вибраний заголовок, а не шапку", () => {
+    const checked = [
+      { row: 5, action: "invalid" as const, errors: [{ code: "required" }] },
+    ]
+    expect(
+      errorReportRows(report, checked, (error) => error.code, "Помилка", 2),
+    ).toEqual([
+      ["Назва", "Пошта", "Ціна", "Помилка"],
+      ["", "c@d.example", "abc", "required"],
+    ])
   })
 })
 
