@@ -5,6 +5,7 @@
 import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
+import { enImport } from "@/registry/lib/i18n-en-import"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
@@ -1415,4 +1416,5 @@ export const en = {
   ...enSetup,
   ...enPush,
   ...enWizard,
+  ...enImport,
 } satisfies ErpUiTranslation

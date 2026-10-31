@@ -961,6 +961,101 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["PF15", "§8.1", "§17"],
   },
+  "lib/spreadsheet": {
+    title: "Читання й запис таблиць",
+    description:
+      "Єдине місце, де кіт торкається hucre (лінивий чанк, SPEC §20 №2, ADR-0049): readSpreadsheet (.xlsx, .csv, UTF-8, UTF-16, windows-1251, приховані аркуші не читаються, межі файла й рядків, SpreadsheetError з кодом), writeSpreadsheet (типи клітинок, захист від формул, заголовок закріплено), saveFile.",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "UI11"],
+  },
+  "lib/imports": {
+    title: "Імпорт: контракт",
+    description:
+      "POST /<ресурс>/import/check (перевірка без запису: що станеться з кожним рядком) і POST /<ресурс>/import → 202 { jobId } (фонова задача ADR-0018), requestId для ідемпотентності, межі рядків і колонок, zod-схеми (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "§17"],
+  },
+  "lib/import-rows": {
+    title: "Імпорт: рядки файла",
+    description:
+      "Чисті функції імпорту: ImportField і ImportTarget, зіставлення колонок за назвами, розбір клітинок за типом (число, дата, так/ні, перелік, свій parse), рядки контракту, об'єднання перевірки браузера й сервера, файл помилок, шаблон (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07"],
+  },
+  "lib/exports": {
+    title: "Експорт: збір записів",
+    description:
+      "collectRecords проходить сторінки GET /<ресурс> послідовно до межі EXPORT_MAX_ROWS (ExportLimitError, а не обрізаний файл), exportRows будує рядки за вибраними колонками ExportColumn (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07"],
+  },
+  "lib/mock-imports": {
+    title: "Мок імпорту",
+    description:
+      "createImportHandlers: перевірка без запису й застосування фоновою задачею lib/mock-jobs, збіг за полем, ідемпотентність requestId, сценарії ресурсу, права create і update (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "§17"],
+  },
+  "lib/i18n-uk-import": {
+    title: "Рядки імпорту й експорту uk",
+    description:
+      "Рядки вибору файла, майстра імпорту й діалогу експорту українською (ADR-0049): окремий файл простору імен erp-ui.",
+    status: "beta",
+    demo: "importExport",
+    spec: ["§11", "PF07", "UI11"],
+  },
+  "lib/i18n-en-import": {
+    title: "Рядки імпорту й експорту en",
+    description: "Ті самі рядки англійською; паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "importExport",
+    spec: ["§11", "PF07", "UI11"],
+  },
+  "hooks/use-import-wizard": {
+    title: "useImportWizard",
+    description:
+      "Стан майстра імпорту: читання файла й аркуші, зіставлення колонок, перевірка сервера, запуск задачі, файл помилок і шаблон; useImportErrorText — текст помилки рядка (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07"],
+  },
+  "erp/file-drop": {
+    title: "Вибір файла",
+    description:
+      "FileDrop (частина UI11): перетягування або кнопка, перевірка типу й розміру біля поля, один файл, «Прибрати» з поверненням фокуса; matchesAccept (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["UI11", "§8.3", "§9", "§10"],
+  },
+  "erp/import-wizard": {
+    title: "Майстер імпорту",
+    description:
+      "ImportWizard на templates/wizard: файл, колонки, перевірка, перегляд, звіт; поля й дії задає ImportTarget (PF07, ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "UI06", "§8.2", "§9", "§10"],
+  },
+  "erp/import-review": {
+    title: "Кроки майстра імпорту після перевірки",
+    description:
+      "ImportCheckStep (лічильники, рядки з помилками, файл помилок), ImportPreviewStep (перші записи), ImportReportStep (прогрес, підсумок, причини невдач, повтор на частинах erp/job-progress) (ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "§8.1"],
+  },
+  "erp/export-dialog": {
+    title: "Діалог експорту",
+    description:
+      "ExportDialog: вибрані чи всі за фільтром, .xlsx чи .csv, колонки, прогрес збору, скасування, межа рядків із поясненням (PF07, ADR-0049).",
+    status: "beta",
+    demo: "importExport",
+    spec: ["PF07", "§8.2", "§9", "§10"],
+  },
   "lib/company": {
     title: "Налаштування компанії",
     description:

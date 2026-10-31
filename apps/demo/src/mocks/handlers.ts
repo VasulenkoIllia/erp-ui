@@ -3,6 +3,7 @@ import {
   createPlatformHandlers,
   createResourceHandlers,
 } from "@/registry/lib/mocks"
+import { createImportHandlers } from "@/registry/lib/mock-imports"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
@@ -23,6 +24,7 @@ import {
   type Invoice,
 } from "@/data/invoices"
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
+import { makeProducts, productSchema, type Product } from "@/data/products"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
@@ -80,6 +82,20 @@ const LOCKED_EVERY = 24
  * Масове погодження (ADR-0018): лише чернетки; сума в гривнях понад ліміт — до директора;
  * кожен 24-й рахунок зайнятий іншим користувачем — повтор пройде.
  */
+// Товари сторінки «Імпорт і експорт» (ADR-0049).
+const products = createResourceHandlers<Product>({
+  resource: "products",
+  schema: productSchema,
+  data: makeProducts,
+  searchFields: ["sku", "name"],
+  label: { uk: "Товари", en: "Products" },
+  unique: ["sku"],
+})
+const productImport = createImportHandlers<Product>({
+  resource: "products",
+  db: products.db,
+})
+
 const invoiceBulk = createBulkHandlers<Invoice>({
   resource: "invoices",
   db: invoices.db,
@@ -185,6 +201,8 @@ export const handlers = [
   ...createListSettingsHandlers(),
   ...createJobHandlers(),
   ...invoiceBulk,
+  ...productImport,
+  ...products.handlers,
   ...invoices.handlers,
   ...contacts.handlers,
   ...users.handlers,

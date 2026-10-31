@@ -6,6 +6,13 @@
 
 ### Додано
 
+- **Майстер імпорту** `erp/import-wizard` (PF07, ADR-0049): файл, колонки, перевірка, перегляд, звіт на `templates/wizard`. Поля й дії задає `ImportTarget` з `lib/import-rows`. Файл `.xlsx` чи `.csv` читає браузер, файл помилок людина завантажує й виправляє. Контракт `lib/imports`, мок `lib/mock-imports`.
+- **Діалог експорту** `erp/export-dialog` (PF07, ADR-0049): вибрані чи всі за фільтром, `.xlsx` чи `.csv`, колонки, прогрес, скасування, межа рядків. Збирає браузер зі сторінок `GET /<ресурс>`.
+- **Вибір файла** `erp/file-drop` (частина UI11, ADR-0049): перетягування або кнопка, перевірка типу й розміру біля поля.
+- **Читання й запис таблиць** `lib/spreadsheet` (SPEC §20, №2, ADR-0049): єдине місце, де кіт торкається нової залежності `hucre`, яка вантажиться окремим чанком.
+- `ErpDataProvider`: нові методи `checkImport` і `startImport`. Адаптер на `createDataProvider` отримує їх сам, написаний повністю вручну додає їх поверх своїх методів.
+- `useWizard`: `locked` кроку прибирає повернення після виконаної дії, `nextLabel` називає наслідок кроку. Схема задачі: необов'язкове `outcomes`. `erp/job-progress` експортує `JobRunning`, `JobLost`, `JobResult`. `MockResourceDb`: `prepare` і `insert`.
+
 - **Модуль A6 «Довідники»** `modules/A6-dictionaries` (ADR-0047): податки, одиниці виміру, умови оплати, теги, причини й типові значення для нових документів, окрема сторінка й пункт навігації на кожен довідник. Значення лише вимикаються, вимкнене перестає бути типовим: значення з позначкою «Типове» спершу питає. Розширення `DictionariesExtension`: `page: false`, `fields`, `columns`, `filters`, `form`, `reasons.kinds`, `strings`.
 - **Повторювані рядки** `erp/repeating-rows` і `erp/repeating-row-actions` (UI42, ADR-0047): додати, вилучити з «Повернути» в рядку, порядок кнопками, межа кількості, помилка групи й помилка поля рядка.
 - **Поле «ключ-значення»** `erp/key-value-field` і `lib/key-value` (UI42, ADR-0047): `keyValueRows`, `keyValueRecord`, `keyValueSchema`, `keyValueText`.

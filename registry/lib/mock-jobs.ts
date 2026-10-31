@@ -82,6 +82,37 @@ interface MockJob {
   retry: (ids: string[], permissions: readonly string[]) => MockJob
   /** Задача повтору: повторний запит повертає її ж, а не дублює. */
   retriedBy?: string
+  /** Імпорт: що сталося з рядками, що вдалися. */
+  outcomes?: () => NonNullable<Job["outcomes"]>
+}
+
+/** Опис задачі для інших фонових дій моків (lib/mock-imports). */
+export type MockJobSpec = Pick<
+  MockJob,
+  | "userId"
+  | "companyId"
+  | "resource"
+  | "action"
+  | "ids"
+  | "perSecond"
+  | "process"
+  | "grants"
+  | "retry"
+  | "outcomes"
+>
+
+/** Нова задача: її бачить `GET /jobs/:id` (`createJobHandlers`). */
+export function registerMockJob(spec: MockJobSpec, startedAt: number): MockJob {
+  const job: MockJob = {
+    ...spec,
+    id: `job-${randomToken().slice(0, 12)}`,
+    startedAt,
+    processed: 0,
+    succeeded: 0,
+    failures: new Map(),
+  }
+  jobs.set(job.id, job)
+  return job
 }
 
 const jobs = new Map<string, MockJob>()
@@ -167,6 +198,7 @@ function toJob(job: MockJob, at: number): Job {
         items,
       }),
     ),
+    ...(job.outcomes ? { outcomes: job.outcomes() } : {}),
   }
 }
 

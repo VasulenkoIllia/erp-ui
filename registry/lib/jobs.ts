@@ -63,6 +63,14 @@ export const jobSchema = z
     succeeded: z.number().int().min(0),
     failed: z.number().int().min(0),
     failures: z.array(jobFailureGroupSchema),
+    /** Імпорт (lib/imports): що сталося з рядками, що вдалися. */
+    outcomes: z
+      .object({
+        created: z.number().int().min(0),
+        updated: z.number().int().min(0),
+        skipped: z.number().int().min(0),
+      })
+      .optional(),
     /** Задача не виконалась зовсім (не окремі записи): код і текст помилки. */
     error: z.object({ code: z.string(), message: z.string() }).optional(),
   })

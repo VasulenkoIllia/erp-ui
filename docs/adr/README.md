@@ -52,6 +52,7 @@
 | [0046](0046-web-push-tab-counter-notifications-module.md) | Web push, лічильник у вкладці й модуль N5 | прийнято |
 | [0047](0047-repeating-rows-save-bar-dictionaries-module.md) | Повторювані рядки, липка панель збереження й модуль A6 | прийнято |
 | [0048](0048-public-source-repository.md) | Відкритий код кіта: новий репозиторій, усі права застережено | прийнято |
+| [0049](0049-spreadsheet-import-wizard-export-dialog.md) | Бібліотека xlsx, вибір файла, майстер імпорту й діалог експорту | прийнято |
 
 ## Шаблон
 

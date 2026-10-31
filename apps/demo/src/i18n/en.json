@@ -8,6 +8,7 @@
       "icons": "Icons",
       "shortcuts": "Keyboard shortcuts",
       "wizard": "Wizard",
+      "importExport": "Import and export",
       "setup": "Get started",
       "states": "Page states",
       "data": "Data & mocks",
@@ -825,6 +826,43 @@
     "actionDone": "Action done",
     "actionDenied": "Sample blocked action",
     "actionReason": "Available to the Accountant role"
+  },
+  "importExportPage": {
+    "title": "Import and export",
+    "description": "File selection, the import wizard and the export dialog. The demo runs on mock products: imported rows show up in the counter.",
+    "fileTitle": "File selection",
+    "fileDescription": "Field states: empty, file chosen, error, disabled.",
+    "fileEmpty": "Contract file",
+    "fileChosen": "File chosen",
+    "fileError": "File with an error",
+    "fileDisabled": "Disabled field",
+    "fileErrorText": "Could not read the file",
+    "exportTitle": "Export",
+    "exportDescription": "All records or the selection, format and columns.",
+    "exportAll": "Export all products",
+    "exportSelected": "Export two selected",
+    "importTitle": "Import",
+    "importDescription": "Five steps: file, columns, check, preview, report. Try downloading the template, filling it in and uploading it back.",
+    "count": "Products in mocks: {{count}}",
+    "products": "Products",
+    "fields": {
+      "sku": "SKU",
+      "name": "Name",
+      "price": "Price",
+      "stock": "Stock",
+      "category": "Category",
+      "active": "Active",
+      "released": "Release date"
+    },
+    "categories": {
+      "goods": "Goods",
+      "service": "Service"
+    },
+    "examples": {
+      "sku": "SKU-100",
+      "name": "Coffee set"
+    },
+    "imported": "Import finished"
   },
   "wizardPage": {
     "lead": "The Wizard template and the UI06 stepper: steps with checks and saving, a read-only final review.",

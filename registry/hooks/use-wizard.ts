@@ -17,6 +17,8 @@ import type { WizardProgress } from "@/registry/lib/wizard-progress"
  *   відкритих — через `onNext` поточного кроку, як «Далі».
  * - Після успішного `onFinish` майстер більше нічого не запускає: сторінка могла лишитись відкритою,
  *   а друге «Завершити» створило б запис ще раз. Почати спочатку — новим `key`.
+ * - `locked` кроку: дія вже виконана (імпорт пішов на сервер), повернення до попередніх кроків немає,
+ *   бо «Далі» повторило б її.
  */
 export interface WizardStep extends StepperStep {
   /** Пояснення під заголовком кроку. */
@@ -24,6 +26,10 @@ export interface WizardStep extends StepperStep {
   readonly onNext?: () => boolean | void | Promise<boolean | void>
   /** Крок пропущено: приберіть введене на ньому, далі воно не йде. */
   readonly onSkip?: () => void
+  /** Кнопка «Далі» з наслідком: «Імпортувати 120 записів» (SPEC §8.2). */
+  readonly nextLabel?: string
+  /** З цього кроку назад не можна: дія вже виконана. */
+  readonly locked?: boolean
 }
 
 export interface WizardOptions {
@@ -149,6 +155,7 @@ export function useWizard({
   const goTo = (stepId: string) => {
     const target = steps.findIndex((item) => item.id === stepId)
     if (running.current || target < 0 || target > position.reachedIndex) return
+    if (step.locked && target < index) return
     if (target > index)
       void runStep(() => {
         move(target)
@@ -169,7 +176,7 @@ export function useWizard({
     error,
     next,
     back: () => {
-      if (!running.current) move(index - 1)
+      if (!running.current && !step.locked) move(index - 1)
     },
     skip: () => {
       if (running.current) return

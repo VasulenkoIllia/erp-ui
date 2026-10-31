@@ -30,6 +30,10 @@ export const PAGES = {
   wizard: lazyWithPreload(() =>
     import("./WizardPage").then((m) => m.WizardPage),
   ),
+  // Майстер імпорту й діалог експорту; бібліотека xlsx вантажиться окремо, коли потрібен файл.
+  importExport: lazyWithPreload(() =>
+    import("./ImportExportPage").then((m) => m.ImportExportPage),
+  ),
   setup: lazyWithPreload(() => import("./SetupPage").then((m) => m.SetupPage)),
   // Поле телефону тягне дані libphonenumber (~120 КБ gzip).
   formats: lazyWithPreload(() =>
