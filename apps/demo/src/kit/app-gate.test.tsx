@@ -27,6 +27,7 @@ import { SessionGuard } from "@/registry/erp/session-guard"
 import { ApiError, createApiClient } from "@/registry/lib/api"
 import { createAuthProvider, ME_QUERY_KEY } from "@/registry/lib/auth"
 import { setCompanyId } from "@/registry/lib/company-scope"
+import { forgetDevicePush } from "@/registry/lib/push-device"
 import {
   createPlatformHandlers,
   signInMock,
@@ -38,6 +39,11 @@ import { createQueryClient } from "@/registry/lib/query-client"
 
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }),
+}))
+
+vi.mock("@/registry/lib/push-device", async (original) => ({
+  ...(await original<typeof import("@/registry/lib/push-device")>()),
+  forgetDevicePush: vi.fn(() => Promise.resolve()),
 }))
 
 const BASE = "http://erp.test/api/v1"
@@ -244,6 +250,28 @@ describe("useSignOut", () => {
       expect(toast).toHaveBeenCalledWith("Ви вийшли")
     })
     expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it("людина вийшла сама: web push на пристрої скасовується", async () => {
+    signInMock("u1")
+    const user = userEvent.setup()
+    renderApp(<SignOutButton />)
+    await user.click(screen.getByRole("button", { name: "Вийти" }))
+    await vi.waitFor(() => {
+      expect(forgetDevicePush).toHaveBeenCalledOnce()
+    })
+  })
+
+  it("вихід не вдався: підписка лишається", async () => {
+    signInMock("u1")
+    server.use(http.post(`${BASE}/auth/logout`, () => HttpResponse.error()))
+    const user = userEvent.setup()
+    renderApp(<SignOutButton />)
+    await user.click(screen.getByRole("button", { name: "Вийти" }))
+    await vi.waitFor(() => {
+      expect(toast.error).toHaveBeenCalled()
+    })
+    expect(forgetDevicePush).not.toHaveBeenCalled()
   })
 
   it("сервер не завершив сесію — помилка, а не «Ви вийшли»", async () => {

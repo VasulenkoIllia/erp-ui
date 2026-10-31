@@ -513,6 +513,29 @@ setupWorker(...createPlatformHandlers({ auditSeeds: audit.seeds }))
 - Розширення — `journal`: `actionLabels` (назви дій проекту мовами, важливіші за `actionLabel` від сервера), `export: false` (бекенд без `GET /audit-events/export`); `strings`.
 - Шухляда на картках — спільна частина кіта, модуль для неї не потрібен: блок «Історія» на картках A1, A2 і B1 уже з кнопкою «Уся історія». Сценарії моків — ресурс `audit`.
 
+### Модуль N5 «Сповіщення» (ADR-0046)
+
+```ts
+// src/modules.ts
+import { createNotificationsModule } from "@/modules/N5-notifications"
+import { notificationsExtension } from "@/extensions/N5-notifications"
+
+export const notificationsModule = createNotificationsModule({ extension: notificationsExtension })
+
+// src/mocks/handlers.ts — адреси дають моки платформи, модуль додає початкові сповіщення
+import { createNotificationsMocks } from "@/modules/N5-notifications/mocks"
+const notifications = createNotificationsMocks({ users: ["u-1"] })
+setupWorker(...createPlatformHandlers({ inboxSeeds: notifications.seeds }))
+```
+
+- Сторінки: «Сповіщення» (`<basePath>/inbox`) і «Налаштування сповіщень» (`<basePath>/notification-settings`), `basePath` веде на першу. Прав немає: людина бачить лише своє.
+- `InboxBell` в оболонці дає лічильник у назві вкладки («(3) Рахунки», `tabCounter={false}` вимикає) і реакцію на push. Вони працюють і без модуля. Тест проекту, що порівнює назву вкладки повністю, має врахувати лічильник.
+- Push: сервер проекту тримає пару ключів VAPID і реалізує контракт `lib/web-push`, докладно в README модуля. Блок «Push на цьому пристрої» видно, якщо сервер має канал `push`. Працює на комп'ютері й Android; на iPhone і iPad потрібен застосунок на головному екрані, тобто PWA.
+- Фоновий файл `public/erp-ui-push-sw.js` приходить разом із блоком push (пакунок `auth`, модуль чи `erp/push-device-section` окремо), не правте його. Застосунок має стояти в корені домену.
+- Підписку скасовує «Вийти», а не автовихід: push потрібен і після простою. Тому сервер прибирає запис під час «вийти всюди», зміни пароля, блокування й вилучення з компанії. Перелік перевірок сервера, зокрема проти SSRF: README модуля, «Що перевіряє сервер». Без них підключати push не можна.
+- Адаптер, що будує `inbox` вручну, додає `push`: `createPushApi(client)` з `lib/web-push` або свої чотири методи.
+- Розширення — `inbox.perPage`, `strings`. Сценарії — ресурс `notifications`.
+
 ### Майстер (ADR-0043)
 
 ```tsx

@@ -248,6 +248,16 @@ function build() {
     }
   }
 
+  /** Файл елемента й те, що йде лише разом із ним поза src/ (фоновий файл у public/, ADR-0046). */
+  const fileEntries = (name) => [
+    fileEntry(name),
+    ...(CODE_ITEMS[name]?.files ?? []).map((f) => {
+      if (!existsSync(path.join(root, f.path)))
+        problems.push(`${name}: файлу ${f.path} немає`)
+      return { path: f.path, type: "registry:file", target: f.target }
+    }),
+  ]
+
   /** dependencies елемента: усе, крім пакетів для розробки. */
   const dependencies = (packages) =>
     [...packages]
@@ -301,7 +311,7 @@ function build() {
           type: "registry:file",
           target: f.target,
         })),
-        ...names.map(fileEntry),
+        ...names.flatMap(fileEntries),
       ],
       ...(cfg.docs ? { docs: cfg.docs } : {}),
       // Збірні елементи — кожен сам собі шар; `tools/*` — шар інструментів проекту.
@@ -312,7 +322,7 @@ function build() {
     ...moduleItems({
       problems,
       closure,
-      fileEntry,
+      fileEntries,
       dependencies,
       devDependencies,
       meta,
@@ -329,7 +339,7 @@ function build() {
       description: cfg.description,
       dependencies: dependencies(packages),
       ...devDependencies(packages),
-      files: names.map(fileEntry),
+      files: names.flatMap(fileEntries),
       meta: meta(f.dir, cfg),
     })
   }
@@ -434,7 +444,7 @@ function sharedImportProblems(files) {
 function moduleItems({
   problems,
   closure,
-  fileEntry,
+  fileEntries,
   dependencies,
   devDependencies,
   meta,
@@ -465,7 +475,7 @@ function moduleItems({
       dependencies: dependencies(packages),
       ...devDependencies(packages),
       files: [
-        ...names.map(fileEntry),
+        ...names.flatMap(fileEntries),
         ...files.map((rel) => ({
           path: `${base}/${rel}`,
           type: "registry:file",

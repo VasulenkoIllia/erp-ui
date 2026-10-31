@@ -9,11 +9,13 @@
  *   продовжує ним ковзну сесію;
  * - `PATCH /notifications/:id` { read } → сповіщення; `POST /notifications/read-all` → 204;
  * - сповіщення: тип (подія з налаштувань), заголовок і текст мовою `Accept-Language`, важливість,
- *   хто спричинив, `link` — шлях у застосунку, куди веде клік.
+ *   хто спричинив, `link` — шлях у застосунку, куди веде клік;
+ * - підписка пристрою на web push — `inbox.push`, контракт у `lib/web-push` (ADR-0046).
  */
 import { z } from "zod"
 
 import type { ApiClient } from "@/registry/lib/api"
+import { createPushApi, type PushApi } from "@/registry/lib/web-push"
 
 export const NOTIFICATION_SEVERITIES = [
   "info",
@@ -55,6 +57,8 @@ export interface InboxApi {
   unreadCount: () => Promise<number>
   markRead: (id: string, read: boolean) => Promise<AppNotification>
   markAllRead: () => Promise<void>
+  /** Web push на цьому пристрої. */
+  push: PushApi
 }
 
 export function createInboxApi(client: ApiClient): InboxApi {
@@ -80,6 +84,7 @@ export function createInboxApi(client: ApiClient): InboxApi {
     async markAllRead() {
       await client.post("/notifications/read-all")
     },
+    push: createPushApi(client),
   }
 }
 

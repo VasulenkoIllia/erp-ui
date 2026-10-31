@@ -1,0 +1,10 @@
+{
+  "inbox": {
+    "title": "Notifications",
+    "lead": "Everything that concerns you: mentions, tasks, payments, security."
+  },
+  "settings": {
+    "title": "Notification settings",
+    "lead": "Which events and channels to notify about, quiet hours, push on this device."
+  }
+}

@@ -80,6 +80,9 @@ test.describe("вибір запису: поведінка", () => {
     await expect(companyField(page)).toHaveAccessibleDescription(
       "Виберіть компанію",
     )
+    // react-hook-form ставить фокус на перше поле з помилкою двічі, вдруге через setTimeout. Під
+    // навантаженням таймер спізнюється й забирає фокус із щойно відкритого пошуку.
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve)))
 
     await companyField(page).focus()
     await page.keyboard.press("Enter")

@@ -97,7 +97,7 @@ test.describe("дані: список рахунків", () => {
     // Заголовок шаблону List Report після перевірки сесії, а не заголовок на час перевірки.
     await expect(count(page)).toHaveText("10 000 рахунків")
     await expect(heading).toBeFocused()
-    await expect(page).toHaveTitle("Дані й моки · erp-ui")
+    await expect(page).toHaveTitle("(3) Дані й моки · erp-ui")
   })
 
   test("редагування зберігає з версією", async ({ page }) => {

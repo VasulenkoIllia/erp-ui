@@ -66,6 +66,28 @@ test.describe("журнал аудиту (ADR-0013)", () => {
 test.describe("вебхуки (ADR-0013)", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
+  test("на телефоні журнал доставок на всю ширину, закриття лишається на місці", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 780 })
+    await openWith(page, {}, INTEGRATIONS)
+    await page
+      .getByRole("button", {
+        name: "Дії: https://1c.zoriana.example/hooks/erp",
+      })
+      .click()
+    await page.getByRole("menuitem", { name: "Журнал доставок" }).click()
+    const sheet = page.getByRole("dialog", { name: "Журнал доставок" })
+    const deliveries = sheet.getByRole("list", { name: "Доставки" })
+    await expect(deliveries.getByRole("listitem").first()).toBeVisible()
+    await expect.poll(async () => (await sheet.boundingBox())?.width).toBe(360)
+    await deliveries.getByRole("listitem").last().scrollIntoViewIfNeeded()
+    await expect(
+      sheet.getByRole("button", { name: "Закрити" }),
+    ).toBeInViewport()
+    await expectNoA11yViolations(page)
+  })
+
   test("створення з перевіркою адреси, секрет один раз, тест, журнал доставок, видалення", async ({
     page,
   }) => {

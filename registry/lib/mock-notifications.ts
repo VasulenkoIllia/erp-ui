@@ -3,12 +3,16 @@
  *
  * - Вибір кожного користувача живе в localStorage (`erp-ui:mock-notifications:<id>`).
  * - Назви подій і розділів — мовами; мок віддає їх мовою `Accept-Language`.
+ * - Сценарії — ресурс `notifications` (`notificationsScenario`). Події дає проект, тож `empty` тут
+ *   працює як `success`.
  */
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
+  applyScenario,
   currentMockUser,
   errorResponse,
   json,
@@ -65,8 +69,21 @@ interface StoredSettings {
 const KEY = (userId: string) => `erp-ui:mock-notifications:${userId}`
 const DEFAULT_QUIET: QuietHours = { enabled: false, from: "22:00", to: "08:00" }
 
-const languageOf = (request: Request) =>
+export const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
+
+/** Ресурс сценаріїв: центр сповіщень, їх налаштування й підписка push. */
+export const NOTIFICATIONS_RESOURCE = "notifications"
+
+/** Відповідь сценарію або `null`; `conflict` діє лише на запис. */
+export async function notificationsScenario(
+  { write }: { write: boolean } = { write: false },
+): Promise<Response | null> {
+  const scenario = scenarioFor(NOTIFICATIONS_RESOURCE)
+  if (write && scenario === "conflict")
+    return errorResponse(409, { code: "conflict", message: "Mock: conflict" })
+  return applyScenario(scenario)
+}
 
 /** Події проекту — і для обробників, і для інших моків (центр сповіщень). */
 let configured: MockNotificationEvent[] = DEFAULT_MOCK_NOTIFICATION_EVENTS
@@ -134,13 +151,17 @@ export function createNotificationHandlers({
   }
 
   return [
-    http.get(`${baseUrl}/me/notification-settings`, ({ request }) => {
+    http.get(`${baseUrl}/me/notification-settings`, async ({ request }) => {
+      const early = await notificationsScenario()
+      if (early) return early
       const user = currentMockUser()
       if (!user) return unauthenticated()
       return response(user, languageOf(request))
     }),
 
     http.put(`${baseUrl}/me/notification-settings`, async ({ request }) => {
+      const early = await notificationsScenario({ write: true })
+      if (early) return early
       const user = currentMockUser()
       if (!user) return unauthenticated()
       const body = (await request.json()) as Partial<StoredSettings>

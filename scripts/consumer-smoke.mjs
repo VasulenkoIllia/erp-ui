@@ -208,11 +208,15 @@ async function fullInstall(source) {
   await exec("pnpm", ["build"])
 }
 
+/** Модулі, а також фоновий файл web push: браузер не зареєструє його, якщо файл загубився. */
+const VERBATIM_TARGETS = ["~/src/modules/", "~/public/"]
+
 /** Файли модулів у проекті — ті самі, що в робочій копії: shadcn нічого в них не переписав. */
 function checkModulesVerbatim(dir) {
   for (const item of modules)
     for (const file of item.files) {
-      if (!file.target?.startsWith("~/src/modules/")) continue
+      if (!VERBATIM_TARGETS.some((prefix) => file.target?.startsWith(prefix)))
+        continue
       const installed = readFileSync(
         path.join(dir, file.target.slice(2)),
         "utf8",

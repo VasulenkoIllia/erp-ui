@@ -553,6 +553,22 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["§10"],
   },
+  "hooks/use-tab-counter": {
+    title: "Лічильник у вкладці",
+    description:
+      "useTabCounter(count): «(3) Рахунки» в назві вкладки, повертає лічильник, коли сторінка міняє назву сама (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19"],
+  },
+  "hooks/use-push-sync": {
+    title: "Web push у вкладці",
+    description:
+      "usePushSync(onNavigate): звірка підписки під час запуску, оновлення лічильника з push, перехід за натиснутим сповіщенням (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19"],
+  },
   "hooks/use-page-heading": {
     title: "h1 сторінки модуля",
     description:
@@ -844,10 +860,50 @@ export const CODE_ITEMS = {
   "lib/notifications": {
     title: "Центр сповіщень",
     description:
-      "Контракт сповіщень у застосунку: список із фільтром непрочитаних, лічильник для дзвіника, позначки прочитаного, «Прочитати все» — provider.inbox.",
+      "Контракт сповіщень у застосунку: список із фільтром непрочитаних, лічильник для дзвіника, позначки прочитаного, «Прочитати все» — provider.inbox; підписка push — provider.inbox.push.",
     status: "beta",
     demo: "inbox",
     spec: ["PF10", "UI02"],
+  },
+  "lib/web-push": {
+    title: "Web push: контракт",
+    description:
+      "Контракт підписки пристрою: відкритий ключ, збереження й вилучення підписки, перевірочний push, формат push від сервера, повтори (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19"],
+  },
+  "lib/push-device": {
+    title: "Web push у браузері",
+    description:
+      "Дозвіл браузера лише з натискання, фоновий файл у власній області, підписка, звірка під час запуску, скасування під час явного виходу (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19"],
+  },
+  "lib/mock-push": {
+    title: "Мок підписки push",
+    description:
+      "Підписки кожного користувача в localStorage, відкритий ключ, перевірочний push через реєстрацію фонового файла; сценарії ресурсу notifications (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19", "§17"],
+  },
+  "lib/i18n-uk-push": {
+    title: "Рядки push українською",
+    description:
+      "Рядки блоку «Push на цьому пристрої» (ADR-0046): окремий файл простору імен erp-ui.",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19", "§11"],
+  },
+  "lib/i18n-en-push": {
+    title: "Рядки push англійською",
+    description:
+      "Ті самі рядки блоку «Push на цьому пристрої» англійською; паритет ключів перевіряє тест.",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19", "§11"],
   },
   "lib/saved-views": {
     title: "Збережені види: контракт",
@@ -1555,10 +1611,25 @@ export const CODE_ITEMS = {
   "erp/notification-settings-form": {
     title: "Налаштування сповіщень",
     description:
-      "NotificationSettingsForm: матриця подій і каналів (на телефоні — картки), обов'язкові сповіщення безпеки, тихі години, дозвіл push у браузері.",
+      "NotificationSettingsForm: матриця подій і каналів (на телефоні — картки), обов'язкові сповіщення безпеки, тихі години, push на цьому пристрої.",
     status: "beta",
     demo: "notifications",
     spec: ["PF10"],
+  },
+  "erp/push-device-section": {
+    title: "Push на цьому пристрої",
+    description:
+      "PushDeviceSection: увімкнути й вимкнути push на пристрої, надіслати перевірку; браузер без push чи із забороною пояснює, що робити, бекенд без адрес push блоку не має; разом іде фоновий файл public/erp-ui-push-sw.js (ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["PF19"],
+    // Лише в public/ проекту, інакше браузер його не зареєструє.
+    files: [
+      {
+        path: "registry/public/erp-ui-push-sw.js",
+        target: "~/public/erp-ui-push-sw.js",
+      },
+    ],
   },
   "erp/permission-gate": {
     title: "Перевірка права",
@@ -1643,7 +1714,7 @@ export const CODE_ITEMS = {
   "erp/notification-inbox": {
     title: "Центр сповіщень",
     description:
-      "InboxBell (лічильник і останні сповіщення), NotificationInbox (усі / непрочитані, позначки, «Прочитати все», ще), useUnreadNotifications.",
+      "InboxBell (лічильник у дзвінику й у назві вкладки, останні сповіщення, реакція на web push), NotificationInbox (усі / непрочитані, позначки, «Прочитати все», ще), useUnreadNotifications.",
     status: "beta",
     demo: "inbox",
     spec: ["PF10", "UI02"],
@@ -2218,6 +2289,20 @@ export const MODULE_ITEMS = {
       "1) createCompanyModule({ basePath, extension }) з @/modules/A1-company: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).",
       "2) Моки: createCompanyMocks({ extension, companies }) з @/modules/A1-company/mocks — handlers у setupWorker після createPlatformHandlers.",
       "3) Права ролей: company (update), currencies (read, create, update), exchange-rates (read, create, update, delete). Докладно — src/modules/A1-company/README.md.",
+    ].join("\n"),
+  },
+  "modules/N5-notifications": {
+    title: "Сповіщення (N5)",
+    description:
+      "Модуль: сторінка «Сповіщення» (усі й непрочитані, позначки, «Прочитати все», «Показати ще») і «Налаштування сповіщень» (події й канали, тихі години, push на цьому пристрої); контракт lib/notifications, lib/notification-settings і підписки lib/web-push, фоновий файл public/erp-ui-push-sw.js, моки платформи зі сценаріями ресурсу notifications, фікстури, рядки uk/en; фабрика createNotificationsModule з маршрутами й навігацією, тип розширення NotificationsExtension (ADR-0013, ADR-0014, ADR-0020, ADR-0025, ADR-0046).",
+    status: "beta",
+    demo: "notificationsModule",
+    spec: ["§7", "§14", "§17", "N5", "PF10", "PF19", "UI02"],
+    docs: [
+      "Модуль N5 встановлено в src/modules/N5-notifications, фоновий файл web push — у public/erp-ui-push-sw.js. Файли модуля не правте: зміни під клієнта — у src/extensions/N5-notifications.ts (тип NotificationsExtension).",
+      "1) createNotificationsModule({ basePath, extension }) з @/modules/N5-notifications: routes — у роутер, nav — у навігацію.",
+      "2) У топбарі — <InboxBell onNavigate onShowAll /> з @/components/erp/notification-inbox: дзвіник, лічильник у вкладці, реакція на push.",
+      "3) Моки: createNotificationsMocks({ users }) з @/modules/N5-notifications/mocks — seeds в inboxSeeds createPlatformHandlers. Докладно — src/modules/N5-notifications/README.md.",
     ].join("\n"),
   },
   "modules/A5-audit": {

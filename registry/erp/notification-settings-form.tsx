@@ -7,13 +7,15 @@ import {
   useErpAuthProvider,
 } from "@/registry/erp/auth-layout"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
+import { PushDeviceSection } from "@/registry/erp/push-device-section"
 import { ACCOUNT_QUERY_KEYS } from "@/registry/lib/account"
+import { errorStateKind } from "@/registry/lib/api"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
 import type {
   NotificationSettings,
   QuietHours,
 } from "@/registry/lib/notification-settings"
-import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
+import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
 import {
@@ -49,27 +51,26 @@ export function NotificationSettingsForm() {
     queryKey: ACCOUNT_QUERY_KEYS.notifications,
     queryFn: () => provider.account.getNotificationSettings(),
   })
-  if (query.isPending) return <SectionSkeleton rows={4} />
+  const retry = () => {
+    void query.refetch()
+  }
+  if (query.isPending)
+    // Без мережі запит на паузі, помилки немає: інакше скелетон лишився б назавжди.
+    return query.fetchStatus === "paused" ? (
+      <PageState kind="offline" className="min-h-40" onRetry={retry} />
+    ) : (
+      <SectionSkeleton rows={4} />
+    )
   if (query.isError)
     return (
       <PageState
-        kind="error"
+        kind={errorStateKind(query.error)}
         className="min-h-40"
-        onRetry={() => {
-          void query.refetch()
-        }}
+        onRetry={retry}
       />
     )
   // Без key за часом оновлення: фонове оновлення не стирає введене (SPEC §8.3).
   return <Editor data={query.data} />
-}
-
-type Permission = NotificationPermission | "unsupported"
-
-function browserPermission(): Permission {
-  return typeof Notification === "undefined"
-    ? "unsupported"
-    : Notification.permission
 }
 
 function Editor({ data }: { data: NotificationSettings }) {
@@ -83,7 +84,6 @@ function Editor({ data }: { data: NotificationSettings }) {
   const [quietError, setQuietError] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
-  const [permission, setPermission] = React.useState(browserPermission)
 
   const dirty =
     JSON.stringify(settings) !== JSON.stringify(data.settings) ||
@@ -97,9 +97,6 @@ function Editor({ data }: { data: NotificationSettings }) {
     return text === key ? id : text
   }
   const columns = COLUMNS[data.channels.length] ?? COLUMNS[6]
-  const pushChosen = Object.values(settings).some((list) =>
-    list.includes("push"),
-  )
 
   const toggle = (eventId: string, channel: string, on: boolean) => {
     setSettings((current) => {
@@ -147,31 +144,8 @@ function Editor({ data }: { data: NotificationSettings }) {
         </Alert>
       ) : null}
 
-      {pushChosen &&
-      permission !== "granted" &&
-      permission !== "unsupported" ? (
-        <Alert>
-          <AlertTitle>{t("notificationSettings.pushTitle")}</AlertTitle>
-          <AlertDescription className="space-y-2">
-            {permission === "denied" ? (
-              <p>{t("notificationSettings.pushDenied")}</p>
-            ) : (
-              <>
-                <p>{t("notificationSettings.pushDescription")}</p>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    void Notification.requestPermission().then(setPermission)
-                  }}
-                >
-                  {t("notificationSettings.pushAllow")}
-                </Button>
-              </>
-            )}
-          </AlertDescription>
-        </Alert>
+      {data.channels.some((channel) => channel.id === "push") ? (
+        <PushDeviceSection />
       ) : null}
 
       {groups.map((group) => (

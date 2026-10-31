@@ -25,6 +25,8 @@ import companyEn from "@/registry/modules/A1-company/i18n/en.json"
 import companyUk from "@/registry/modules/A1-company/i18n/uk.json"
 import auditEn from "@/registry/modules/A5-audit/i18n/en.json"
 import auditUk from "@/registry/modules/A5-audit/i18n/uk.json"
+import notificationsEn from "@/registry/modules/N5-notifications/i18n/en.json"
+import notificationsUk from "@/registry/modules/N5-notifications/i18n/uk.json"
 import contactsEn from "@/registry/modules/B1-contacts/i18n/en.json"
 import contactsUk from "@/registry/modules/B1-contacts/i18n/uk.json"
 import usersEn from "@/registry/modules/A2-users/i18n/en.json"
@@ -108,6 +110,12 @@ describe("паритет рядків uk/en", () => {
 
   it("рядки модуля A5", () => {
     expect(checkParity({ uk: auditUk, en: auditEn })).toEqual([])
+  })
+
+  it("рядки модуля N5", () => {
+    expect(checkParity({ uk: notificationsUk, en: notificationsEn })).toEqual(
+      [],
+    )
   })
 
   it("перевірка ловить пропущену форму множини", () => {

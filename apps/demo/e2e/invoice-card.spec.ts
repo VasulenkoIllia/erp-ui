@@ -35,7 +35,7 @@ test.describe("картка рахунку: десктоп", () => {
 
     await expect(heading(page)).toHaveText(`Рахунок № ${FIRST}`)
     await expect(heading(page)).toBeFocused()
-    await expect(page).toHaveTitle(`Рахунок № ${FIRST} · erp-ui`)
+    await expect(page).toHaveTitle(`(3) Рахунок № ${FIRST} · erp-ui`)
     await expect(currentStep(page)).toHaveText("Чернетка")
     await expect(lineRows(page).first()).toBeVisible()
     await expect(page.getByRole("region", { name: "Рядки" })).toContainText(

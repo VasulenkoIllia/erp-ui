@@ -12,6 +12,7 @@ import { SessionGuard } from "@/registry/erp/session-guard"
 import { useMe } from "@/registry/hooks/use-me"
 import { errorStateKind } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { forgetDevicePush } from "@/registry/lib/push-device"
 
 export interface SessionGateProps {
   children: React.ReactNode
@@ -86,6 +87,8 @@ export function SessionGate({
  * Вихід із повідомленням для меню користувача: «Ви вийшли», а якщо сервер не завершив сесію
  * (офлайн, 5xx, 10 с без відповіді), — помилка, щоб людина не думала, що вийшла. Повторне
  * натискання, поки вихід іде, нічого не робить. Потрібен `<Toaster />` з ui/sonner у корені.
+ * Людина йде сама: web push на цьому пристрої скасовується (ADR-0046). Автовихід за бездіяльністю
+ * його не чіпає: push потрібен саме тоді, коли застосунок закрито.
  *
  *   const signOut = useSignOut()
  *   <UserMenu user={…} onSignOut={signOut} />
@@ -101,6 +104,8 @@ export function useSignOut(): () => void {
       .then(
         () => {
           toast(t("auth.session.signedOut"))
+          // Збій не важить для виходу: чужу підписку скасує вхід наступної людини.
+          forgetDevicePush().catch(() => undefined)
         },
         () => {
           toast.error(t("auth.session.signOutFailed"))

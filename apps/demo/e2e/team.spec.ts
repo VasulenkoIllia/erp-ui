@@ -76,6 +76,24 @@ test.describe("ролі й права (ADR-0014)", () => {
     await expect(roles.getByRole("listitem")).toHaveCount(6)
   })
 
+  test("на телефоні панель доступу на всю ширину, закриття лишається на місці", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 780 })
+    await openWith(page, {}, USERS_PAGE)
+    await page.getByRole("button", { name: "Доступ: Іван Петренко" }).click()
+    const sheet = page.getByRole("dialog", { name: "Доступ: Іван Петренко" })
+    const sessions = sheet.getByRole("heading", { name: "Активні сесії" })
+    await expect(sessions).toBeVisible()
+    await expect.poll(async () => (await sheet.boundingBox())?.width).toBe(360)
+    await sessions.scrollIntoViewIfNeeded()
+    await expect(sessions).toBeInViewport()
+    await expect(
+      sheet.getByRole("button", { name: "Закрити" }),
+    ).toBeInViewport()
+    await expectNoA11yViolations(page)
+  })
+
   test("ролі користувача в панелі доступу: з підтвердженням, список оновлюється", async ({
     page,
   }) => {

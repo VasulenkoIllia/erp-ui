@@ -61,6 +61,7 @@ import {
   createNotificationHandlers,
   type MockNotificationEvent,
 } from "@/registry/lib/mock-notifications"
+import { createPushHandlers } from "@/registry/lib/mock-push"
 import {
   createWebhookHandlers,
   setMockWebhookSeeds,
@@ -542,6 +543,8 @@ export function createPlatformHandlers({
     }),
 
     ...createInboxHandlers({ baseUrl }),
+
+    ...createPushHandlers({ baseUrl }),
 
     ...createCompanyHandlers({ baseUrl, profiles: companyProfiles }),
 

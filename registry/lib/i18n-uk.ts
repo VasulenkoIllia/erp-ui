@@ -6,6 +6,7 @@
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
+import { ukPush } from "@/registry/lib/i18n-uk-push"
 import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
@@ -977,11 +978,6 @@ export const uk = {
     quietFrom: "З",
     quietTo: "До",
     quietInvalid: "Вкажіть час, наприклад 22:00",
-    pushTitle: "Дозвольте сповіщення в браузері",
-    pushDescription: "Інакше push не з'являтимуться на цьому пристрої.",
-    pushAllow: "Дозволити",
-    pushDenied:
-      "Сповіщення заборонено в налаштуваннях браузера. Дозвольте їх для цього сайту.",
     save: "Зберегти",
     saved: "Налаштування сповіщень збережено",
     reset: "Повернути типові",
@@ -1433,6 +1429,7 @@ export const uk = {
   ...ukRecords,
   ...ukShortcuts,
   ...ukSetup,
+  ...ukPush,
   ...ukWizard,
 }
 

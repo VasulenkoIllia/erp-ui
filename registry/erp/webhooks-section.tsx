@@ -718,6 +718,9 @@ function DeliveriesSheet({
   onChanged: () => void
 }) {
   const t = useErpUiT()
+  // Вебхук лишається й після закриття: панель виїжджає зі своїм умістом, а не порожньою.
+  const [shown, setShown] = React.useState(webhook)
+  if (webhook && webhook !== shown) setShown(webhook)
   return (
     <Sheet
       open={webhook !== null}
@@ -725,20 +728,23 @@ function DeliveriesSheet({
         if (!next) onClose()
       }}
     >
-      <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-xl">
-        <SheetHeader>
+      <SheetContent className="data-[side=right]:w-full data-[side=right]:sm:max-w-xl">
+        <SheetHeader className="pe-12">
           <SheetTitle>{t("webhooks.deliveriesTitle")}</SheetTitle>
           <SheetDescription className="font-mono break-all">
-            {webhook?.url}
+            {shown?.url}
           </SheetDescription>
         </SheetHeader>
-        {webhook ? (
-          <DeliveriesList
-            webhook={webhook}
-            events={events}
-            onChanged={onChanged}
-          />
-        ) : null}
+        {/* Прокручується вміст, а не панель: кнопка закриття лишається на місці. */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {shown ? (
+            <DeliveriesList
+              webhook={shown}
+              events={events}
+              onChanged={onChanged}
+            />
+          ) : null}
+        </div>
       </SheetContent>
     </Sheet>
   )

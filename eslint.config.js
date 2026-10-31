@@ -23,6 +23,11 @@ export default defineConfig(
     languageOptions: { globals: globals.node },
   },
   {
+    // Фоновий файл web push (ADR-0046): виконується в браузері, а не в Node.
+    files: ["**/public/erp-ui-push-sw.js"],
+    languageOptions: { globals: globals.serviceworker },
+  },
+  {
     files: ["**/*.{ts,tsx}"],
     extends: [
       js.configs.recommended,

@@ -5,6 +5,7 @@
 import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
+import { enPush } from "@/registry/lib/i18n-en-push"
 import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -962,12 +963,6 @@ export const en = {
     quietFrom: "From",
     quietTo: "To",
     quietInvalid: "Enter a time such as 22:00",
-    pushTitle: "Allow browser notifications",
-    pushDescription:
-      "Otherwise push notifications won't appear on this device.",
-    pushAllow: "Allow",
-    pushDenied:
-      "Notifications are blocked in your browser settings. Allow them for this site.",
     save: "Save",
     saved: "Notification settings saved",
     reset: "Restore defaults",
@@ -1418,5 +1413,6 @@ export const en = {
   ...enRecords,
   ...enShortcuts,
   ...enSetup,
+  ...enPush,
   ...enWizard,
 } satisfies ErpUiTranslation

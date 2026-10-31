@@ -68,24 +68,25 @@ export function useUserAccessSheet({
   onChange?: () => void
   returnFocus?: () => HTMLElement | null
 } = {}) {
+  // Людина лишається й після закриття: панель виїжджає зі своїм умістом, а не порожньою.
   const [target, setTarget] = React.useState<AccessTarget | null>(null)
+  const [isOpen, setIsOpen] = React.useState(false)
   const removed = React.useRef(false)
   const open = React.useCallback((user: AccessTarget) => {
     removed.current = false
     setTarget(user)
+    setIsOpen(true)
   }, [])
   const sheet = (
     <Sheet
-      open={target !== null}
-      onOpenChange={(next) => {
-        if (!next) setTarget(null)
-      }}
+      open={isOpen}
+      onOpenChange={setIsOpen}
       // Не `finalFocus`: вкладений діалог закривається разом зі шторкою, і фокус туди не доходить.
       onOpenChangeComplete={(next) => {
         if (!next && removed.current) returnFocus?.()?.focus()
       }}
     >
-      <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-lg">
+      <SheetContent className="data-[side=right]:w-full data-[side=right]:sm:max-w-lg">
         {target ? (
           <AccessPanel
             key={target.id}
@@ -93,7 +94,7 @@ export function useUserAccessSheet({
             onChange={onChange}
             onRemoved={() => {
               removed.current = true
-              setTarget(null)
+              setIsOpen(false)
               onChange?.()
             }}
           />
@@ -262,11 +263,14 @@ function AccessPanel({
 
   return (
     <>
-      <SheetHeader>
+      <SheetHeader className="pe-12">
         <SheetTitle>{t("userAccess.title", { name: target.name })}</SheetTitle>
         <SheetDescription>{target.email}</SheetDescription>
       </SheetHeader>
-      <div className="@container px-4 pb-4">{body}</div>
+      {/* Прокручується вміст, а не панель: кнопка закриття лишається на місці. */}
+      <div className="@container min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        {body}
+      </div>
       {actions.dialogs}
     </>
   )

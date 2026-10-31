@@ -22,6 +22,10 @@ import {
 import { NotificationBell } from "@/registry/erp/notification-bell"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { usePushSync } from "@/registry/hooks/use-push-sync"
+import { useTabCounter } from "@/registry/hooks/use-tab-counter"
+import { errorStateKind } from "@/registry/lib/api"
+import { safeRedirectPath } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -48,8 +52,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/registry/ui/tabs"
  *   <NotificationInbox onNavigate={navigate} />
  *
  * `onNavigate(link)` — перехід за `link` сповіщення роутером застосунку; без нього — звичайне
- * посилання. Лічильник оновлюється раз на хвилину й при поверненні у вкладку (подія реального
- * часу — крок 0.5c).
+ * посилання. Лічильник оновлюється раз на хвилину, при поверненні у вкладку й коли прийшов web push
+ * (подія реального часу — крок N1). Його видно й у назві вкладки (ADR-0046).
  */
 
 type Status = "all" | "unread"
@@ -118,6 +122,9 @@ function useInboxActions() {
 
 /* ------------------------------ Одне сповіщення ------------------------------ */
 
+/** Лише шлях цього застосунку, як і в push: у `link` сервер міг покласти що завгодно. */
+const appLink = ({ link }: AppNotification) => safeRedirectPath(link, "")
+
 function NotificationItem({
   notification,
   compact,
@@ -139,7 +146,7 @@ function NotificationItem({
       {notification.title}
     </span>
   )
-  const link = notification.link
+  const link = appLink(notification)
 
   return (
     <li
@@ -247,6 +254,7 @@ export function NotificationInbox({
   const t = useErpUiT()
   const provider = useErpAuthProvider()
   const actions = useInboxActions()
+  const errorText = useAuthErrorText()
   const [status, setStatus] = React.useState<Status>("all")
   const [markingAll, setMarkingAll] = React.useState(false)
   const companyId = useCompanyId()
@@ -269,19 +277,30 @@ export function NotificationInbox({
 
   const open = (notification: AppNotification) => {
     if (notification.readAt === null) void actions.markRead(notification, true)
-    if (notification.link) onNavigate?.(notification.link)
+    const link = appLink(notification)
+    if (link) onNavigate?.(link)
+  }
+
+  // Збій «Показати ще» повторює саме цю сторінку: `refetch` перечитав би лише показані.
+  const retry = () => {
+    void (query.isFetchNextPageError ? query.fetchNextPage() : query.refetch())
   }
 
   let body: React.ReactNode
-  if (query.isPending) body = <SectionSkeleton rows={4} />
-  else if (query.isError)
+  if (query.isPending)
+    // Без мережі запит на паузі, помилки немає: інакше скелетон лишився б назавжди.
+    body =
+      query.fetchStatus === "paused" ? (
+        <PageState kind="offline" className="min-h-40" onRetry={retry} />
+      ) : (
+        <SectionSkeleton rows={4} />
+      )
+  else if (!query.data)
     body = (
       <PageState
-        kind="error"
+        kind={errorStateKind(query.error)}
         className="min-h-40"
-        onRetry={() => {
-          void query.refetch()
-        }}
+        onRetry={retry}
       />
     )
   else if (!items.length)
@@ -340,6 +359,22 @@ export function NotificationInbox({
             </Button>
           ) : null}
         </div>
+        {query.isError ? (
+          <div className="flex flex-wrap items-center gap-3" role="alert">
+            <p className="text-sm text-destructive-foreground">
+              {errorText(query.error)}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={query.isFetching}
+              onClick={retry}
+            >
+              {query.isFetching ? <Spinner aria-hidden /> : null}
+              {t("pageState.error.retry")}
+            </Button>
+          </div>
+        ) : null}
       </div>
     )
 
@@ -437,7 +472,8 @@ export function NotificationPreview({
                   ? (item) => {
                       if (item.readAt === null)
                         void actions.markRead(item, true)
-                      if (item.link) onNavigate(item.link)
+                      const link = appLink(item)
+                      if (link) onNavigate(link)
                     }
                   : undefined
               }
@@ -478,16 +514,25 @@ export function NotificationPreview({
   )
 }
 
-/** Дзвіник із лічильником непрочитаних і останніми сповіщеннями; закривається після переходу. */
+/**
+ * Дзвіник із лічильником непрочитаних і останніми сповіщеннями; закривається після переходу.
+ * Той самий лічильник — у назві вкладки (`tabCounter={false}` вимикає). Клік за web push теж іде
+ * через `onNavigate` (ADR-0046). Дзвіник один на застосунок: другий дав би ще одного слухача push,
+ * а один клік за сповіщенням — два переходи.
+ */
 export function InboxBell({
   onNavigate,
   onShowAll,
+  tabCounter = true,
 }: {
   onNavigate?: (link: string) => void
   onShowAll?: () => void
+  tabCounter?: boolean
 }) {
   const [open, setOpen] = React.useState(false)
   const { data: count = 0 } = useUnreadNotifications()
+  useTabCounter(tabCounter ? count : 0)
+  usePushSync(onNavigate)
   return (
     <NotificationBell count={count} open={open} onOpenChange={setOpen}>
       {open ? (

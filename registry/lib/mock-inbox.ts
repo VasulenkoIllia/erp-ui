@@ -5,12 +5,19 @@
  * - `pushMockNotification` — інші моки повідомляють користувачів (запит на відновлення доступу,
  *   прийняте запрошення); поважає налаштування «У застосунку» (lib/mock-notifications).
  * - Заголовки й тексти — мовами; мок віддає їх мовою `Accept-Language`.
+ * - Сценарії — ресурс `notifications`: `empty` дає порожній список і нуль непрочитаних.
  */
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
-import { mockChannelEnabled } from "@/registry/lib/mock-notifications"
+import {
+  languageOf,
+  mockChannelEnabled,
+  NOTIFICATIONS_RESOURCE,
+  notificationsScenario,
+} from "@/registry/lib/mock-notifications"
+import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   currentMockUser,
   errorResponse,
@@ -74,9 +81,6 @@ export function pushMockNotification(
   ])
 }
 
-const languageOf = (request: Request) =>
-  (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
-
 function localize(item: MockInboxItem, language: string): AppNotification {
   const { title, body, ...rest } = item
   const text = localizedText(body, language)
@@ -87,22 +91,31 @@ function localize(item: MockInboxItem, language: string): AppNotification {
   }
 }
 
+const isEmpty = () => scenarioFor(NOTIFICATIONS_RESOURCE) === "empty"
+
 export function createInboxHandlers({
   baseUrl = API_PREFIX,
 }: { baseUrl?: string } = {}): HttpHandler[] {
   return [
-    http.get(`${baseUrl}/notifications/unread-count`, ({ request }) => {
+    http.get(`${baseUrl}/notifications/unread-count`, async ({ request }) => {
+      const early = await notificationsScenario()
+      if (early) return early
       // Опитування дзвіника — фоновий запит: сесію не продовжує.
       const user = currentMockUser(request)
       if (!user) return unauthenticated()
       return json({
-        count: read(user.id).filter((item) => !item.readAt).length,
+        count: isEmpty()
+          ? 0
+          : read(user.id).filter((item) => !item.readAt).length,
       })
     }),
 
-    http.get(`${baseUrl}/notifications`, ({ request }) => {
+    http.get(`${baseUrl}/notifications`, async ({ request }) => {
+      const early = await notificationsScenario()
+      if (early) return early
       const user = currentMockUser()
       if (!user) return unauthenticated()
+      if (isEmpty()) return json({ data: [], total: 0, unread: 0 })
       const params = new URL(request.url).searchParams
       const page = Math.max(1, Number(params.get("page")) || 1)
       const perPage = Math.min(
@@ -126,6 +139,8 @@ export function createInboxHandlers({
     }),
 
     http.patch(`${baseUrl}/notifications/:id`, async ({ params, request }) => {
+      const early = await notificationsScenario({ write: true })
+      if (early) return early
       const user = currentMockUser()
       if (!user) return unauthenticated()
       const { read: isRead } = (await request.json()) as { read?: boolean }
@@ -138,7 +153,9 @@ export function createInboxHandlers({
       return json(localize(item, languageOf(request)))
     }),
 
-    http.post(`${baseUrl}/notifications/read-all`, () => {
+    http.post(`${baseUrl}/notifications/read-all`, async () => {
+      const early = await notificationsScenario({ write: true })
+      if (early) return early
       const user = currentMockUser()
       if (!user) return unauthenticated()
       const now = new Date().toISOString()

@@ -9,6 +9,7 @@ import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
 import { createAuditMocks } from "@/registry/modules/A5-audit/mocks"
+import { createNotificationsMocks } from "@/registry/modules/N5-notifications/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
 
@@ -139,6 +140,9 @@ const company = createCompanyMocks({
 /** Модуль A5 «Аудит та історія» (ADR-0045): історія договору в журналі кожної компанії демо. */
 const audit = createAuditMocks({ companies: COMPANIES.map(({ id }) => id) })
 
+/** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
+const notifications = createNotificationsMocks({ users: ["u-taras"] })
+
 export const handlers = [
   ...createPlatformHandlers({
     users: [...MOCK_USERS, ...team.users],
@@ -147,7 +151,7 @@ export const handlers = [
     accountSeeds: { ...ACCOUNT_SEEDS, ...team.accountSeeds },
     roles: ROLES,
     permissionResources: PERMISSION_RESOURCES,
-    inboxSeeds: INBOX_SEEDS,
+    inboxSeeds: { ...INBOX_SEEDS, ...notifications.seeds },
     companyProfiles: COMPANY_PROFILES,
     apiResources: {
       invoices: { uk: "Рахунки", en: "Invoices" },
