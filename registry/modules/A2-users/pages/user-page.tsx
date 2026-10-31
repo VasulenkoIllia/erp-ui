@@ -3,8 +3,8 @@ import { useAuthenticated, useCanAccess } from "ra-core"
 import { useCallback } from "react"
 import { useNavigate, useParams } from "react-router"
 
-import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { RecordHistory } from "@/components/erp/record-history"
 import { BackToList } from "@/components/erp/record-link"
 import {
   ObjectPage,
@@ -205,11 +205,8 @@ function UserCard({ id }: { id: string }) {
             : {
                 label: t("user.history"),
                 content: (
-                  <AuditLog
-                    filter={{ targetType: USERS, targetId: id }}
-                    filters={false}
-                    exportable={false}
-                    perPage={10}
+                  <RecordHistory
+                    target={{ type: USERS, id, name: user?.name }}
                   />
                 ),
               }

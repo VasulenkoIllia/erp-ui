@@ -287,7 +287,11 @@ export function createAuditHandlers({
     http.get(`${baseUrl}/audit-events/export`, async ({ request }) => {
       const access = await guard(request)
       if (access instanceof Response) return access
-      return new HttpResponse(auditToCsv(filtered(request, access.companyId)), {
+      const events =
+        scenarioFor("audit") === "empty"
+          ? []
+          : filtered(request, access.companyId)
+      return new HttpResponse(auditToCsv(events), {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": 'attachment; filename="audit.csv"',

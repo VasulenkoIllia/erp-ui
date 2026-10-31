@@ -2,10 +2,10 @@ import { useAuthenticated } from "ra-core"
 import { useState, type MouseEvent } from "react"
 import { useParams } from "react-router"
 
-import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton } from "@/components/erp/page-state"
 import { PinToggle } from "@/components/erp/pin-toggle"
 import type { RecordField } from "@/components/erp/record-header"
+import { RecordHistory } from "@/components/erp/record-history"
 import { BackToList } from "@/components/erp/record-link"
 import {
   ObjectPage,
@@ -141,11 +141,8 @@ function ContactCard({ id }: { id: string }) {
             : {
                 label: t("contact.history"),
                 content: (
-                  <AuditLog
-                    filter={{ targetType: CONTACTS, targetId: id }}
-                    filters={false}
-                    exportable={false}
-                    perPage={10}
+                  <RecordHistory
+                    target={{ type: CONTACTS, id, name: contact?.name }}
                   />
                 ),
               }

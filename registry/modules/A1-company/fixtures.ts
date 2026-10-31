@@ -3,6 +3,8 @@
  * навколо реальних значень: USD і EUR ніби завантажив сервер з НБУ, PLN ввели вручну. Дати — відносно
  * сьогодні, щоб таблиця завжди мала свіжий курс. Вони ж — шаблон даних для першого запуску (PF12).
  */
+import { addDays, todayIn } from "@/lib/dates"
+
 import {
   MANUAL_RATE_SOURCE,
   type Currency,
@@ -19,7 +21,6 @@ export interface CompanyFixtures {
   readonly rates: ExchangeRate[]
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const AUTO_RATE_DAYS = 30
 const MANUAL_RATE_DAYS = 10
 
@@ -36,9 +37,6 @@ const SERIES = [
 /** Вимкнена валюта без курсів: стан «немає курсу» в списку. */
 const DISABLED_CODE = "GBP"
 
-const dateOf = (today: Date, daysAgo: number) =>
-  new Date(today.getTime() - daysAgo * DAY_MS).toISOString().slice(0, 10)
-
 /** Коливання курсу в межах 1%, однакове від запуску до запуску. */
 const rateOn = (base: number, day: number) =>
   Math.round(base * (1 + Math.sin(day / 3) * 0.01) * 10_000) / 10_000
@@ -46,7 +44,8 @@ const rateOn = (base: number, day: number) =>
 export function createCompanyFixtures({
   companies = [null],
 }: CompanyFixtureOptions = {}): CompanyFixtures {
-  const today = new Date()
+  // Як форма курсу: календарна дата, а не дата UTC, інакше після півночі вони розходяться на добу.
+  const today = todayIn()
   const scope = (companyId: string | null) => companyId ?? "shared"
   const currencies: Currency[] = []
   const rates: ExchangeRate[] = []
@@ -59,10 +58,10 @@ export function createCompanyFixtures({
         code,
         active: true,
         latestRate: rateOn(base, 0),
-        latestRateDate: dateOf(today, 0),
+        latestRateDate: today,
       })
       for (let day = 0; day < days; day += 1) {
-        const date = dateOf(today, day)
+        const date = addDays(today, -day)
         rates.push({
           id: `rate-${scope(companyId)}-${code}-${date}`,
           version: 1,

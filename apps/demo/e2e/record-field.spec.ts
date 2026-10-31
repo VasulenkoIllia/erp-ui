@@ -101,8 +101,10 @@ test.describe("поле-запис: десктоп", () => {
       .getByRole("button", { name: "Подробиці: Організації: зміна" })
       .click()
     await expect(
-      history.getByRole("row", { name: /Відповідальний/ }),
-    ).toHaveText(/Іван Петренко\s*Марта Шевчук/)
+      history
+        .locator('[data-slot="audit-change"]')
+        .filter({ hasText: "Відповідальний" }),
+    ).toContainText("БулоІван ПетренкоСталоМарта Шевчук")
 
     await edit.click()
     await form.getByRole("button", { name: "Очистити: Відповідальний" }).click()

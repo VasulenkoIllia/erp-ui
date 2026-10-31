@@ -3,10 +3,10 @@ import { useCallback, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useLocation as useRouterLocation, useSearchParams } from "react-router"
 
-import { AuditLog } from "@/registry/erp/audit-log"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { PinToggle } from "@/registry/erp/pin-toggle"
 import type { RecordField } from "@/registry/erp/record-header"
+import { RecordHistory } from "@/registry/erp/record-history"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
 import { companyScope } from "@/registry/lib/company-scope"
@@ -149,11 +149,8 @@ function OrganizationCard({
       aside={{
         label: t("history"),
         content: (
-          <AuditLog
-            filter={{ targetType: ORGANIZATIONS, targetId: id }}
-            filters={false}
-            exportable={false}
-            perPage={10}
+          <RecordHistory
+            target={{ type: ORGANIZATIONS, id, name: data?.name }}
           />
         ),
       }}

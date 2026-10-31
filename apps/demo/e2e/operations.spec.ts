@@ -27,25 +27,28 @@ test.describe("журнал аудиту (ADR-0013)", () => {
   }) => {
     await openWith(page, {}, AUDIT)
     const list = page.getByRole("list", { name: "Події журналу аудиту" })
-    await expect(list.getByRole("listitem")).toHaveCount(6)
-    await expect(page.getByText("Показано 6 з 6")).toBeVisible()
+    const events = list.locator('[data-slot="audit-event"]')
+    await expect(events).toHaveCount(10)
+    await expect(page.getByText("Показано 10 з 10")).toBeVisible()
 
     await page.getByRole("combobox", { name: "Розділ" }).click()
     await page.getByRole("option", { name: "Безпека" }).click()
-    await expect(list.getByRole("listitem")).toHaveCount(1)
+    await expect(events).toHaveCount(1)
     await page
       .getByRole("button", { name: "Подробиці: Зміна політики безпеки" })
       .click()
-    const changes = page.getByRole("table", { name: "Що змінилося" })
+    const changes = page.getByRole("list", { name: "Що змінилося" })
     await expect(
-      changes.getByRole("row", { name: /Мінімальна довжина пароля 8 10/ }),
-    ).toBeVisible()
+      changes
+        .getByRole("listitem")
+        .filter({ hasText: "Мінімальна довжина пароля" }),
+    ).toContainText("Було8Стало10")
     await expectNoA11yViolations(page)
 
     await page.getByLabel("Пошук у журналі").fill("немає такого")
     await expect(page.getByText("За цими умовами подій немає.")).toBeVisible()
     await page.getByRole("button", { name: "Скинути фільтри" }).click()
-    await expect(list.getByRole("listitem")).toHaveCount(6)
+    await expect(events).toHaveCount(10)
 
     const download = page.waitForEvent("download")
     await page.getByRole("button", { name: "Експорт CSV" }).click()

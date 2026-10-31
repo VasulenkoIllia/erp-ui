@@ -761,6 +761,14 @@ export const CODE_ITEMS = {
     demo: "securityPolicy",
     spec: ["PF01", "§17"],
   },
+  "lib/value-diff": {
+    title: "Різниця значень",
+    description:
+      "diffText (за словами, з межею на довжину), diffList (за елементами), diffAuditValues — чистий розрахунок для «було → стало» (ADR-0045).",
+    status: "beta",
+    demo: "audit",
+    spec: ["A5", "PF05"],
+  },
   "lib/audit": {
     title: "Журнал аудиту",
     description:
@@ -1515,10 +1523,26 @@ export const CODE_ITEMS = {
   "erp/audit-log": {
     title: "Журнал аудиту",
     description:
-      "AuditLog: пошук, розділ, період, подробиці («було → стало», причина, пристрій), експорт CSV; filter — історія одного запису.",
+      "AuditLog: пошук, розділ, період, подробиці («було → стало», причина, пристрій), експорт CSV; filter — історія одного запису; expanded, onAllHistory, onRecordHistory — для шухляди історії (ADR-0045).",
     status: "beta",
     demo: "audit",
     spec: ["A5", "PF01"],
+  },
+  "erp/audit-changes": {
+    title: "Що змінилося",
+    description:
+      "AuditChanges: рядки «Було» і «Стало» одне під одним, змінені слова виділено (ADR-0045).",
+    status: "beta",
+    demo: "audit",
+    spec: ["A5", "PF05"],
+  },
+  "erp/record-history": {
+    title: "Шухляда історії запису",
+    description:
+      "RecordHistory: блок «Історія» на картці з кнопкою «Уся історія»; useRecordHistorySheet: шухляда з усіма змінами запису й різницею значень, своя кнопка чи рядок журналу (ADR-0045).",
+    status: "beta",
+    demo: "organizations",
+    spec: ["A5", "PF05"],
   },
   "erp/webhooks-section": {
     title: "Вебхуки",
@@ -2194,6 +2218,20 @@ export const MODULE_ITEMS = {
       "1) createCompanyModule({ basePath, extension }) з @/modules/A1-company: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).",
       "2) Моки: createCompanyMocks({ extension, companies }) з @/modules/A1-company/mocks — handlers у setupWorker після createPlatformHandlers.",
       "3) Права ролей: company (update), currencies (read, create, update), exchange-rates (read, create, update, delete). Докладно — src/modules/A1-company/README.md.",
+    ].join("\n"),
+  },
+  "modules/A5-audit": {
+    title: "Аудит та історія (A5)",
+    description:
+      "Модуль: журнал аудиту компанії (пошук, розділ, період, подробиці з різницею значень, експорт CSV) і перехід із рядка події до шухляди історії запису; контракт журналу lib/audit, моки платформи зі сценаріями ресурсу audit, фікстури, рядки uk/en; фабрика createAuditModule з маршрутом, навігацією й правом, тип розширення AuditExtension (ADR-0013, ADR-0020, ADR-0025, ADR-0045).",
+    status: "beta",
+    demo: "auditModule",
+    spec: ["§7", "§14", "§17", "A5"],
+    docs: [
+      "Модуль A5 встановлено в src/modules/A5-audit. Файли модуля не правте: зміни під клієнта — у src/extensions/A5-audit.ts (тип AuditExtension).",
+      "1) createAuditModule({ basePath, extension }) з @/modules/A5-audit: routes — у роутер, nav — у навігацію (пункт із access — лише тому, хто має це право).",
+      "2) Моки: createAuditMocks({ companies }) з @/modules/A5-audit/mocks — seeds в auditSeeds createPlatformHandlers.",
+      "3) Право ролей: audit (read). Докладно — src/modules/A5-audit/README.md.",
     ].join("\n"),
   },
   "modules/A2-users": {

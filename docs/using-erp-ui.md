@@ -293,7 +293,7 @@ createRoot(root).render(
       actions: [{ id: "edit", node: <EditButton invoice={invoice} /> }] }}
     statusBar={invoice && <RecordStatusBar label={t("steps")} steps={steps} current={invoice.status} />}
     sections={invoice ? [{ id: "lines", title: t("lines"), content: <InvoiceLines invoice={invoice} /> }] : []}
-    aside={{ label: t("history"), content: <AuditLog filter={{ targetType: "invoices", targetId: id }} /> }} />
+    aside={{ label: t("history"), content: <RecordHistory target={{ type: "invoices", id, name: invoice?.number }} /> }} />
   ```
 
   Ключові поля, дії й секції — списки з ключами, як у List Report. Поки запису немає, `header` не передається: h1 — прихований `title`. Дані — `useGetOne` з `meta` компанії: шапка одразу з кешу списку, детальний запис (рядки документа) — з `GET /<ресурс>/:id` (у моках — опція `detail`; поле, значення якого не повторюється в компанії, — `unique: ["name"]`, сервер відповідає 422 `duplicate`); помилку запису передавай лише коли запису немає, інакше це стан секції. Повний приклад — `src/pages/InvoicePage.tsx` у демо.
@@ -493,6 +493,26 @@ setupWorker(...platformHandlers, ...createCompanyMocks({ extension: companyMockE
 
 - Перший запуск (ADR-0044): майстер — `companyModule.paths.setup`. Щоб відкривати його після реєстрації: `createAuthRoutes({ afterSignUp: companyModule.paths.setup })`. Чек-лист «Почніть роботу» — `{companyModule.setupChecklist}` на головній сторінці проекту. Обидва бачить лише той, хто має `company:update`. Пункт і крок «Колеги» потребують `users:create`; проект без запрошень ховає їх: `setup: { hide: ["team"] }`, без логотипа — `hide: ["logo"]`, свій онбординг замість майстра — `setup: { page: false }`. Свій чек-лист — `SetupChecklist` з `erp/setup-checklist`.
 
+### Модуль A5 «Аудит та історія» (ADR-0045)
+
+```ts
+// src/modules.ts
+import { createAuditModule } from "@/modules/A5-audit"
+import { auditExtension } from "@/extensions/A5-audit"
+
+export const auditModule = createAuditModule({ basePath: "/settings", extension: auditExtension })
+
+// src/mocks/handlers.ts — журнал дають моки платформи, модуль додає початкові події
+import { createAuditMocks } from "@/modules/A5-audit/mocks"
+const audit = createAuditMocks({ companies: ["my-company"] })
+setupWorker(...createPlatformHandlers({ auditSeeds: audit.seeds }))
+```
+
+- Сторінка: журнал (`<basePath>/audit`), `basePath` веде на нього. Пункт навігації — з `access`, сторінка без права каже «Немає доступу» без запиту.
+- Право — `audit:read`. Додайте його у свої ролі. Журнал пише сервер, клієнт лише читає.
+- Розширення — `journal`: `actionLabels` (назви дій проекту мовами, важливіші за `actionLabel` від сервера), `export: false` (бекенд без `GET /audit-events/export`); `strings`.
+- Шухляда на картках — спільна частина кіта, модуль для неї не потрібен: блок «Історія» на картках A1, A2 і B1 уже з кнопкою «Уся історія». Сценарії моків — ресурс `audit`.
+
 ### Майстер (ADR-0043)
 
 ```tsx
@@ -574,6 +594,7 @@ useEffect(() => whenIdle(() => auth.preload()), [auth])   // auth — у useMemo
 - Сповіщення: `NotificationSettingsForm` з `erp/notification-settings-form` (події й канали дає бекенд).
 - Адміністратору (ADR-0013):
   - `AuditLog` з `erp/audit-log` (право `audit:read`); `<AuditLog filter={{ targetType: "invoices", targetId }} />` — історія запису;
+  - історія на картці (ADR-0045): `<RecordHistory target={{ type: "invoices", id, name }} />` з `erp/record-history` — блок з кнопкою «Уся історія», що відкриває шухляду з усіма змінами й виділеними словами. Своя кнопка чи рядок журналу: `const history = useRecordHistorySheet({ actionLabels })`, `history.open(target)`, `{history.sheet}`, у журналі — `<AuditLog onRecordHistory={history.open} />`. Показ змін окремо — `AuditChanges` з `erp/audit-changes`, розрахунок — `diffAuditValues` з `lib/value-diff`. Бекенд пише `target` у кожну зміну запису й віддає `changes[].from` і `to`, різницю кіт рахує сам;
   - `WebhooksSection` з `erp/webhooks-section` (права `webhooks:*`);
   - у списку користувачів — `useUserAccessSheet({ onChange, returnFocus })` і `UserBlockedBadge`, на сторінці — `ActiveSessionsSection` з `erp/user-access`; у панелі доступу — і ролі людини. `returnFocus` — куди піти фокусу, коли людину вилучили й рядка більше немає;
   - «Вилучити з компанії» (ADR-0041): кнопка з'являється сама, коли бекенд віддає `canRemove` у `GET /users/:id/access`. Людина лишається в інших своїх компаніях, обліковий запис і другий крок не змінюються; остання компанія лишає запис без компаній. Своя панель на `useUserAccessActions` передає `onRemoved`, бо картки людини більше немає.

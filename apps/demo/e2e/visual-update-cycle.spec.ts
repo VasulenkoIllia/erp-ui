@@ -79,10 +79,10 @@ test.describe("скриншоти кроку 1.7a @screenshots", () => {
         await page
           .getByRole("button", { name: "Подробиці: Контакти: зміна" })
           .click()
-        const change = page.getByRole("row", {
-          name: "Зручний канал Телефон Telegram",
-        })
-        await expect(change).toBeVisible()
+        const change = page
+          .locator('[data-slot="audit-change"]')
+          .filter({ hasText: "Зручний канал" })
+        await expect(change).toContainText("БулоТелефонСталоTelegram")
         // Тост «Зміни збережено» не закриває рядок журналу на знімку.
         await page
           .getByRole("region", { name: /^Notifications/ })

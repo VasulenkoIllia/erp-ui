@@ -2,8 +2,8 @@ import { useAuthenticated } from "ra-core"
 import { useMemo, useState } from "react"
 import { useParams } from "react-router"
 
-import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton } from "@/components/erp/page-state"
+import { RecordHistory } from "@/components/erp/record-history"
 import { BackToList } from "@/components/erp/record-link"
 import {
   ObjectPage,
@@ -191,11 +191,12 @@ function OrganizationCard({ id }: { id: string }) {
             : {
                 label: t("organization.history"),
                 content: (
-                  <AuditLog
-                    filter={{ targetType: ORGANIZATIONS, targetId: id }}
-                    filters={false}
-                    exportable={false}
-                    perPage={10}
+                  <RecordHistory
+                    target={{
+                      type: ORGANIZATIONS,
+                      id,
+                      name: organization?.name,
+                    }}
                   />
                 ),
               }

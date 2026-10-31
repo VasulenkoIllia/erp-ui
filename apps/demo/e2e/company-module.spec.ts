@@ -228,6 +228,24 @@ test.describe("A1: курси", () => {
     await expect(rows(page, "Курси валют").first()).toContainText("Договір 7")
   })
 
+  test.describe("після півночі за Києвом", () => {
+    test.use({ timezoneId: "Europe/Kyiv" })
+
+    test("зайнята дата та сама, що у формі: у UTC ще вчора", async ({
+      page,
+    }) => {
+      await page.clock.setFixedTime(new Date("2026-10-30T22:30:00Z"))
+      await openWith(page, {}, RATES)
+      await page.getByRole("button", { name: "Додати курс" }).click()
+      const dialog = page.getByRole("dialog", { name: "Новий курс" })
+      await dialog.getByLabel(/^Курс:/).fill("41,25")
+      await dialog.getByRole("button", { name: "Створити" }).click()
+      await expect(dialog.locator('[data-slot="field-error"]')).toHaveText(
+        "Таке значення вже є в іншого запису",
+      )
+    })
+  })
+
   test("зміна й видалення ручного курсу: підтвердження, найновіший курс валюти оновлено", async ({
     page,
   }) => {

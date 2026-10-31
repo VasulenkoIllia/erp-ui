@@ -47,6 +47,8 @@ describe("тексти інтерфейсу без довгих тире", () =>
         "A1-company/i18n/en.json",
         "A2-users/i18n/uk.json",
         "A2-users/i18n/en.json",
+        "A5-audit/i18n/uk.json",
+        "A5-audit/i18n/en.json",
         "B1-contacts/i18n/uk.json",
         "B1-contacts/i18n/en.json",
       ]),

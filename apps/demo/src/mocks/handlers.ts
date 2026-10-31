@@ -8,6 +8,7 @@ import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
+import { createAuditMocks } from "@/registry/modules/A5-audit/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
 
@@ -135,6 +136,9 @@ const company = createCompanyMocks({
   companies: COMPANIES.map(({ id }) => id),
 })
 
+/** Модуль A5 «Аудит та історія» (ADR-0045): історія договору в журналі кожної компанії демо. */
+const audit = createAuditMocks({ companies: COMPANIES.map(({ id }) => id) })
+
 export const handlers = [
   ...createPlatformHandlers({
     users: [...MOCK_USERS, ...team.users],
@@ -154,7 +158,7 @@ export const handlers = [
       currencies: { uk: "Валюти", en: "Currencies" },
       "exchange-rates": { uk: "Курси валют", en: "Exchange rates" },
     },
-    auditSeeds: AUDIT_SEEDS,
+    auditSeeds: [...AUDIT_SEEDS, ...audit.seeds],
     webhookEvents: WEBHOOK_EVENTS,
     webhookSeeds: WEBHOOK_SEEDS,
     notificationChannels: NOTIFICATION_CHANNELS,

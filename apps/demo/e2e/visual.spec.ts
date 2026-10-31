@@ -584,7 +584,7 @@ test.describe("скриншоти кроків 0.5b4 @screenshots", () => {
       await page
         .getByRole("button", { name: "Подробиці: Зміна політики безпеки" })
         .click()
-      await page.getByRole("table", { name: "Що змінилося" }).waitFor()
+      await page.getByRole("list", { name: "Що змінилося" }).waitFor()
       await expectNoA11yViolations(page)
       await page.screenshot({
         path: path.join(

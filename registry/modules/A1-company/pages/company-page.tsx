@@ -1,13 +1,13 @@
 import { useState } from "react"
 import { useAuthenticated } from "ra-core"
 
-import { AuditLog } from "@/components/erp/audit-log"
 import {
   CompanyBranchesSection,
   CompanyImages,
   CompanyProfileForm,
 } from "@/components/erp/company-settings"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { RecordHistory } from "@/components/erp/record-history"
 import {
   ObjectPage,
   useRecordSlots,
@@ -144,11 +144,8 @@ function CompanyCard({
           : {
               label: t("company.history"),
               content: (
-                <AuditLog
-                  filter={{ targetType: COMPANY, targetId: profile.id }}
-                  filters={false}
-                  exportable={false}
-                  perPage={10}
+                <RecordHistory
+                  target={{ type: COMPANY, id: profile.id, name: profile.name }}
                 />
               ),
             }

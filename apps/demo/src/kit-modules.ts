@@ -14,6 +14,9 @@ import { companyModule } from "@/company-module"
 import { contactsModule } from "@/contacts-module"
 import type { KitModuleKey } from "@/router"
 import { usersModule } from "@/users-module"
+// Останнім: першим у цьому списку модуль міняє порядок виконання, і збирач розбиває вхідний чанк на
+// дрібні шматки (плюс 5,7 КБ gzip і 23 попередні завантаження). Перевірено збіркою, ADR-0045.
+import { auditModule } from "@/audit-module"
 
 /**
  * Модулі кіта в демо (ADR-0025): так проект ставить модуль — фабрика з адресою й розширенням
@@ -37,9 +40,10 @@ export const KIT_MODULES = {
   contacts: contactsModule,
   usersModule,
   companyModule,
+  auditModule,
 } as const satisfies Record<KitModuleKey, KitModule>
 
-/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/A2`, `/m/A1`); інший розділ — заглушка. */
+/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/A2`, `/m/A1`, `/m/A5`); інший розділ — заглушка. */
 export function kitModuleOf(id: ModuleId): KitModule | undefined {
   return Object.values(KIT_MODULES).find((module) => module.id === id)
 }

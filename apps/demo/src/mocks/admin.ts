@@ -26,6 +26,32 @@ const IPHONE = { type: "mobile", browser: "Safari", os: "iOS" } as const
  */
 export const AUDIT_SEEDS: MockAuditEvent[] = [
   {
+    id: "aud-seed-org",
+    companyId: "zoriana",
+    at: ago(40),
+    action: "organizations.updated",
+    category: "data",
+    actionLabel: { uk: "Організації: зміна", en: "Organizations: updated" },
+    actor: OLENA,
+    target: {
+      type: "organizations",
+      id: "org-001",
+      name: "ТОВ «Дніпро Трейд»",
+    },
+    ip: "192.0.2.24",
+    location: KYIV,
+    device: MAC,
+    reason: "Клієнт надіслав нові реквізити",
+    changes: [
+      {
+        field: "address",
+        label: { uk: "Юридична адреса", en: "Legal address" },
+        from: "м. Київ, вул. Хрещатик, 12, офіс 5",
+        to: "м. Львів, вул. Хрещатик, 12, офіс 7",
+      },
+    ],
+  },
+  {
     id: "aud-seed-6",
     companyId: "zoriana",
     at: ago(60 * 3),

@@ -85,6 +85,9 @@ export const auditEventSchema = z.object({
 })
 export type AuditEvent = z.infer<typeof auditEventSchema>
 
+/** Над чим дія: те, що показує шухляда історії запису (ADR-0045). */
+export type AuditTarget = NonNullable<AuditEvent["target"]>
+
 const auditPageSchema = listResultSchema(auditEventSchema)
 export type AuditPage = z.infer<typeof auditPageSchema>
 

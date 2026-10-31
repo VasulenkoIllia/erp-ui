@@ -11,11 +11,11 @@ import {
 import { useTranslation } from "react-i18next"
 import { useLocation as useRouterLocation } from "react-router"
 
-import { AuditLog } from "@/registry/erp/audit-log"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RecordStatusBar, type RecordField } from "@/registry/erp/record-header"
+import { RecordHistory } from "@/registry/erp/record-history"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
 import { ApiError, isApiError } from "@/registry/lib/api"
@@ -219,7 +219,13 @@ function InvoiceCard({
         }
         aside={{
           label: t("history"),
-          content: <InvoiceHistory id={id} version={invoice?.version} />,
+          content: (
+            <InvoiceHistory
+              id={id}
+              name={invoice?.number}
+              version={invoice?.version}
+            />
+          ),
         }}
         sections={applyKeyedChanges(sections, slots.sections)}
       />
@@ -407,7 +413,15 @@ function ApproveAction({
  * Місце стрічки запису (UI01, хвиля 1): історія змін рахунку з журналу аудиту й поле коментаря, яке
  * поки неактивне й пояснює чому.
  */
-function InvoiceHistory({ id, version }: { id: string; version?: number }) {
+function InvoiceHistory({
+  id,
+  name,
+  version,
+}: {
+  id: string
+  name?: string
+  version?: number
+}) {
   const t = useCardT()
   const queryClient = useQueryClient()
   // Рахунок змінився (збереження, погодження задачею) — у журналі вже є подія: перечитати.
@@ -431,12 +445,7 @@ function InvoiceHistory({ id, version }: { id: string; version?: number }) {
           {t("commentSoon")}
         </FieldDescription>
       </Field>
-      <AuditLog
-        filter={{ targetType: RESOURCE, targetId: id }}
-        filters={false}
-        exportable={false}
-        perPage={10}
-      />
+      <RecordHistory target={{ type: RESOURCE, id, name }} />
     </div>
   )
 }
