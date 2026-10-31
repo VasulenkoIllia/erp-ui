@@ -117,12 +117,12 @@ export function printReport(kit, files, oldFiles, projectOwned) {
 /** Невдалий `gh api`: повторити (мережа, 5xx, 429) чи зупинитись із поясненням. */
 export function classifyDownloadFailure(stderr, timedOut) {
   if (timedOut) return { retry: true, message: "тайм-аут завантаження" }
-  // Приватний репозиторій: 404 і на відсутній тег, і на токен без доступу до репозиторію.
+  // 404: немає тегу, а в приватного репозиторію ще й токен без доступу.
   if (/HTTP 404|Not Found/.test(stderr))
     return {
       retry: false,
       message:
-        "немає такого тегу, гілки чи коміту або доступу до приватного репозиторію (gh auth status)",
+        "немає такого тегу, гілки чи коміту або доступу до репозиторію (gh auth status)",
     }
   if (/HTTP 401|Bad credentials|gh auth login/.test(stderr))
     return {

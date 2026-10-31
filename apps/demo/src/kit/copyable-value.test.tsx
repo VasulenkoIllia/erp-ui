@@ -56,7 +56,9 @@ describe("CopyableValue", () => {
       </>,
     )
     expect(screen.queryByRole("link")).not.toBeInTheDocument()
-    expect(screen.getByText("a@b.example?bcc=x@evil.example")).toBeInTheDocument()
+    expect(
+      screen.getByText("a@b.example?bcc=x@evil.example"),
+    ).toBeInTheDocument()
   })
 
   it("телефон і email — посилання; показ телефону — від проекту, у буфер — +380…", async () => {
@@ -69,7 +71,11 @@ describe("CopyableValue", () => {
           value="+380671204310"
           display="+380 67 120 43 10"
         />
-        <CopyableValue label="Email" kind="email" value="office@zoria.example" />
+        <CopyableValue
+          label="Email"
+          kind="email"
+          value="office@zoria.example"
+        />
       </>,
     )
     expect(

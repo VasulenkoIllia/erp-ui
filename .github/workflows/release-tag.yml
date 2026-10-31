@@ -1,7 +1,7 @@
 name: Release tag
 
 # Тег vX.Y.Z ставиться автоматично, коли в main потрапляє нова версія з package.json
-# (порядок випуску — docs/dev-setup.md). Проекти закріплюють версію через …#vX.Y.Z.
+# Проекти закріплюють версію через …#vX.Y.Z.
 on:
   push:
     branches: [main]

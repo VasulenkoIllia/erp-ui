@@ -1,6 +1,6 @@
 # Changelog
 
-Формат — [Keep a Changelog](https://keepachangelog.com/uk/1.1.0/), версії — `vX.Y.Z` (CLAUDE.md, правило 8).
+Формат — [Keep a Changelog](https://keepachangelog.com/uk/1.1.0/), версії — `vX.Y.Z`.
 
 ## [Unreleased]
 
@@ -50,6 +50,9 @@
 - `Ctrl/⌘+K` і `Ctrl/⌘+B` не спрацьовували на нелатинській розкладці (українська, інша кирилиця): браузер передавав «л» і «и». Тепер нелатинська літера порівнюється за фізичною клавішею.
 
 ### Змінено
+
+- **Кіт відкрито для читання** (ADR-0048): код видно, усі права застережено (`LICENSE`), чужий код — у `THIRD-PARTY-NOTICES.md`. Для `shadcn add` токен більше не потрібен, для `erp-ui-kit update` лишається `gh auth login`. Запуск репозиторію — `docs/development.md`. Домени пошти й сайтів у фікстурах стали `.example`, тимчасовий пароль демо змінено.
+- `pnpm check:registry` порівнює копію скіла лише там, де є `.claude/skills/erp-ui/`.
 
 - `Card`: `overflow-clip` замість `overflow-hidden`, інакше `sticky` усередині картки не липне (ADR-0047).
 - **`InboxApi.push` обов'язковий.** Адаптер на `createAuthProvider` нічого не додає. Хто будує `inbox` вручну, додає `push`: `createPushApi(client)` з `lib/web-push` або свої чотири методи.

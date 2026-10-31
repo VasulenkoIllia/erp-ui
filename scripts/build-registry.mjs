@@ -358,12 +358,14 @@ function build() {
     }
   }
 
-  // Скіл для роботи в самому репозиторії — копія скіла, що ставиться в проекти.
+  // Скіл для роботи в самому репозиторії — копія скіла, що ставиться в проекти. Лише локально:
+  // `.claude/` у відкритому репозиторії немає (ADR-0048).
   const skill = "registry/claude/skills/erp-ui/SKILL.md"
   const localSkill = ".claude/skills/erp-ui/SKILL.md"
   if (
+    existsSync(path.join(root, localSkill)) &&
     readFileSync(path.join(root, skill), "utf8") !==
-    readFileSync(path.join(root, localSkill), "utf8")
+      readFileSync(path.join(root, localSkill), "utf8")
   ) {
     problems.push(
       `${localSkill} розійшовся з ${skill}: правте ${skill} і скопіюйте`,

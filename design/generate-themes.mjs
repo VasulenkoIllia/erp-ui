@@ -3,7 +3,7 @@
  * Генератор design/themes.css з design/palette-tokens.json (джерело правди для кольорів).
  *   node design/generate-themes.mjs          — перезаписати themes.css
  *   node design/generate-themes.mjs --check  — перевірити, що themes.css актуальний (для CI)
- * Руками themes.css не правимо (CLAUDE.md, правило 4).
+ * Руками themes.css не правимо.
  */
 import { readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"

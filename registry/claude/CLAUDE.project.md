@@ -1,8 +1,8 @@
 ## UI: реєстр erp-ui
 
-Цей проект використовує приватний реєстр **erp-ui** (shadcn-реєстр на GitHub). Специфікація: `docs/erp-ui/SPEC.md`. Для будь-якої роботи з інтерфейсом використовуй скіл `erp-ui`.
+Цей проект використовує реєстр **erp-ui** (shadcn-реєстр на GitHub). Специфікація: `docs/erp-ui/SPEC.md`. Для будь-якої роботи з інтерфейсом використовуй скіл `erp-ui`.
 
-- Що є в кіті — `docs/erp-ui/CATALOG.md`. Елементи ставляться й оновлюються лише командою кіта в проекті: `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>` (наприклад, `ui/button`) — у `src/components/ui/`, утиліти — у `src/lib/`, хуки — у `src/hooks/`, стилі — у `src/styles/erp-ui/`. Доступ до приватного реєстру — `gh auth login` або `GH_TOKEN` (лише читання).
+- Що є в кіті — `docs/erp-ui/CATALOG.md`. Елементи ставляться й оновлюються лише командою кіта в проекті: `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>` (наприклад, `ui/button`) — у `src/components/ui/`, утиліти — у `src/lib/`, хуки — у `src/hooks/`, стилі — у `src/styles/erp-ui/`. Команді кіта потрібен `gh auth login` або `GH_TOKEN` (лише читання).
 - Оновлення кіта (ADR-0029 erp-ui): `node scripts/erp-ui-kit.mjs update vX.Y.Z --dry-run` (що зміниться), потім `update vX.Y.Z` — усі встановлені елементи з тегу одним запитом, закріпленою CLI shadcn, з новими відбитками `kit-files.json`; `node scripts/erp-ui-kit.mjs check` (у `pnpm lint`) — файли кіта не правлені. Посібник — https://github.com/VasulenkoIllia/erp-ui/blob/main/docs/using-erp-ui.md, розділ 8. Мажорна версія з несумісною зміною типу розширення: після `update` `pnpm typecheck` показує місця у файлі розширення — правиш лише його за розділом «Як оновити розширення» в `CHANGELOG.md` кіта, файли модуля не чіпаєш.
 - Застосунок зібраний із частин кіта: `SessionGate` і `useSignOut` (`src/components/erp/app-gate.tsx`), екрани входу — `createAuthRoutes` (`src/components/erp/auth-routes.tsx`), `createQueryClient` (`src/lib/query-client.ts`); e2e — помічники `e2e/erp-ui.ts`.
 - Не пиши аналогів компонентів реєстру. Бракує — запропонуй додати в erp-ui.

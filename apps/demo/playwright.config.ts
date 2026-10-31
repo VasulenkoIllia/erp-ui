@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test"
 const isCI = Boolean(process.env.CI)
 // Шлях до браузера можна задати змінною PW_CHROMIUM_PATH.
 const executablePath = process.env.PW_CHROMIUM_PATH
-// Mac власника лишається вільним (`docs/dev-setup.md`, «Тихий режим»); CI — усі ядра раннера.
+// Локально лишаємо ядра вільними; CI — усі ядра раннера.
 const LOCAL_WORKERS = 4
 
 export default defineConfig({
