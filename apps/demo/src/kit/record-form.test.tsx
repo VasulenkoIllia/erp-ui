@@ -25,6 +25,7 @@ import { useErpUiT } from "@/registry/lib/i18n"
 import { Input } from "@/registry/ui/input"
 
 import { FIELDS, FORM } from "@/kit/extension-form.fixtures"
+import { waitForDialogFocus } from "@/test/dialog-focus"
 
 /** Крок 1.4b1 (ADR-0026): поля розширення у формі й збереження форми запису. */
 
@@ -106,7 +107,7 @@ function OrgForm({
 }
 
 /** Лише потрібні тесту методи: решту ra-core не викликає. */
-function renderForm(dataProvider: Record<string, unknown>, record?: Org) {
+async function renderForm(dataProvider: Record<string, unknown>, record?: Org) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -120,6 +121,7 @@ function renderForm(dataProvider: Record<string, unknown>, record?: Org) {
       <OrgForm record={record} onSaved={onSaved} onClose={onClose} />
     </CoreAdminContext>,
   )
+  await waitForDialogFocus()
   return { onSaved, onClose, queryClient, user: userEvent.setup() }
 }
 
@@ -128,8 +130,8 @@ const errorSummary = () =>
   document.querySelector<HTMLElement>("[data-slot=form-error-summary]")
 
 describe("RecordFormDialog + useRecordForm", () => {
-  it("поля розширення стоять у формі з підказкою; підпис поля модуля змінено без заміни", () => {
-    renderForm({})
+  it("поля розширення стоять у формі з підказкою; підпис поля модуля змінено без заміни", async () => {
+    await renderForm({})
     const dialog = screen.getByRole("dialog", { name: "Нова" })
     const labels = within(dialog)
       .getAllByText(/Ліміт|Назва клієнта|Платник ПДВ/)
@@ -144,7 +146,7 @@ describe("RecordFormDialog + useRecordForm", () => {
     const create = vi.fn((_resource: string, { data }: { data: object }) =>
       Promise.resolve({ data: { ...data, id: "o9", version: 1 } }),
     )
-    const { onSaved, user } = renderForm({ create })
+    const { onSaved, user } = await renderForm({ create })
     await user.type(
       screen.getByRole("textbox", { name: "Назва клієнта" }),
       "ПП «Світанок»",
@@ -175,7 +177,7 @@ describe("RecordFormDialog + useRecordForm", () => {
     const update = vi.fn((_resource: string, { data }: { data: object }) =>
       Promise.resolve({ data: { ...ORG, ...data, version: 4 } }),
     )
-    const { onSaved, onClose, user } = renderForm({ update }, ORG)
+    const { onSaved, onClose, user } = await renderForm({ update }, ORG)
     await user.click(saveButton())
     expect(onClose).toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
@@ -206,7 +208,7 @@ describe("RecordFormDialog + useRecordForm", () => {
       .mockImplementation((_resource: string, { data }: { data: object }) =>
         Promise.resolve({ data: { ...current, ...data, version: 5 } }),
       )
-    const { onSaved, user } = renderForm({ update }, ORG)
+    const { onSaved, user } = await renderForm({ update }, ORG)
     await user.click(screen.getByRole("checkbox", { name: "Платник ПДВ" }))
     await user.click(saveButton())
 
@@ -237,7 +239,7 @@ describe("RecordFormDialog + useRecordForm", () => {
       .mockImplementation((_resource: string, { data }: { data: object }) =>
         Promise.resolve({ data: { ...current, ...data, version: 5 } }),
       )
-    const { onSaved, user } = renderForm({ update }, ORG)
+    const { onSaved, user } = await renderForm({ update }, ORG)
     const name = screen.getByRole("textbox", { name: "Назва клієнта" })
     await user.clear(name)
     await user.type(name, "ТОВ «Мій»")
@@ -262,7 +264,7 @@ describe("RecordFormDialog + useRecordForm", () => {
       const update = vi.fn(() =>
         Promise.reject(new ApiError(status, { code: "x", message: "no" })),
       )
-      const { user, queryClient } = renderForm({ update }, ORG)
+      const { user, queryClient } = await renderForm({ update }, ORG)
       const invalidate = vi.spyOn(queryClient, "invalidateQueries")
       await user.type(
         screen.getByRole("textbox", { name: "Назва клієнта" }),
@@ -287,7 +289,7 @@ describe("RecordFormDialog + useRecordForm", () => {
           finish = resolve
         }),
     )
-    const { onSaved, user } = renderForm({ update }, ORG)
+    const { onSaved, user } = await renderForm({ update }, ORG)
     const name = screen.getByRole("textbox", { name: "Назва клієнта" })
     await user.type(name, "!{Enter}")
     await user.type(name, "{Enter}")
@@ -310,7 +312,7 @@ describe("RecordFormDialog + useRecordForm", () => {
         fieldErrors: { name: "duplicate", unknown: "invalid" },
       }),
     )
-    const { onSaved, user } = renderForm({ update }, ORG)
+    const { onSaved, user } = await renderForm({ update }, ORG)
     const name = screen.getByRole("textbox", { name: "Назва клієнта" })
     await user.type(name, " 2")
     await user.click(saveButton())
@@ -333,7 +335,7 @@ describe("RecordFormDialog + useRecordForm", () => {
   })
 
   it("закрити зі зміненими полями — спершу «Закрити без збереження?»", async () => {
-    const { onClose, user } = renderForm({}, ORG)
+    const { onClose, user } = await renderForm({}, ORG)
     await user.type(screen.getByRole("textbox", { name: "Назва клієнта" }), "!")
     await user.keyboard("{Escape}")
     const confirm = await screen.findByRole("alertdialog", {
