@@ -11,6 +11,8 @@
  *   → `POST /<ресурс>/bulk/<дія>`, `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
  *   перевіряється схемою, чекає до `JOB_POLL_TIMEOUT_MS`), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
  *   `useDataProvider<ErpDataProvider>()`.
+ * - Імпорт з файла (lib/imports, ADR-0049): `checkImport` → `POST /<ресурс>/import/check`,
+ *   `startImport` → `POST /<ресурс>/import`.
  * - Закріплення й налаштування списку (ADR-0024): `setPinned` → `PUT`/`DELETE /<ресурс>/:id/pin`
  *   (lib/pins), `getListSettings`/`saveListSettings` → `GET`/`PATCH /me/list-settings/<ресурс>`
  *   (lib/list-settings; читання чекає до `LIST_SETTINGS_TIMEOUT_MS`). Провайдер, написаний
@@ -40,6 +42,12 @@ import {
   type Job,
   type JobStarted,
 } from "@/registry/lib/jobs"
+import {
+  IMPORT_REQUEST_TIMEOUT_MS,
+  importCheckSchema,
+  type ImportCheck,
+  type ImportRequest,
+} from "@/registry/lib/imports"
 import { PIN_PATH } from "@/registry/lib/pins"
 
 /** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
@@ -69,7 +77,20 @@ export interface ListDataProvider {
     settings: ListSettingsPatch,
   ) => Promise<ListSettings>
 }
-export type ErpDataProvider = DataProvider & BulkDataProvider & ListDataProvider
+/** Імпорт з файла (lib/imports, ADR-0049). */
+export interface ImportDataProvider {
+  /** Перевірка без запису: що станеться з кожним рядком. */
+  checkImport: (
+    resource: string,
+    request: ImportRequest,
+  ) => Promise<ImportCheck>
+  /** Застосувати: фонова задача, той самий `requestId` — та сама задача. */
+  startImport: (resource: string, request: ImportRequest) => Promise<JobStarted>
+}
+export type ErpDataProvider = DataProvider &
+  BulkDataProvider &
+  ListDataProvider &
+  ImportDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -216,6 +237,18 @@ export function createDataProvider(
     retryJob: (id) =>
       client.post(`${jobPath(id)}/retry`, undefined, {
         schema: jobStartedSchema,
+      }),
+
+    checkImport: (resource, request) =>
+      client.post(`${path(resource)}/import/check`, request, {
+        schema: importCheckSchema,
+        timeoutMs: IMPORT_REQUEST_TIMEOUT_MS,
+      }),
+
+    startImport: (resource, request) =>
+      client.post(`${path(resource)}/import`, request, {
+        schema: jobStartedSchema,
+        timeoutMs: IMPORT_REQUEST_TIMEOUT_MS,
       }),
 
     setPinned: async (resource, id, pinned) => {

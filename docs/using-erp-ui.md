@@ -583,6 +583,60 @@ const wizard = useWizard({
 - `initial` читається раз, під час монтування: прогрес із сервера дочекайтесь до рендеру майстра.
 - Прогрес у браузері — `loadWizardProgress(key)`, `saveWizardProgress(key, { ...progress, draft })` в `onProgress` і `clearWizardProgress(key)` після успіху. Сервер, що зберігає кроки, цього не потребує: передайте `initial`.
 
+### Імпорт і експорт (ADR-0049)
+
+Майстер імпорту знає про ресурс лише те, що йому описали:
+
+```tsx
+const target: ImportTarget = {
+  resource: "contacts",
+  label: t("contacts"),
+  matchField: "email", // без нього кожен рядок стає новим записом
+  fields: [
+    { key: "name", label: t("name"), required: true },
+    { key: "email", label: t("email"), aliases: ["e-mail", "пошта"] },
+    { key: "birthday", label: t("birthday"), type: "date" },
+    { key: "phone", label: t("phone"), parse: parsePhoneCell },
+  ],
+}
+
+<ImportWizard target={target} title={t("import")} onDone={() => navigate(list)} />
+```
+
+- Типи полів: `text`, `number`, `integer`, `boolean`, `date`, `enum` з `options`. Свій розбір клітинки
+  (телефон, ЄДРПОУ) — `parse`: він повертає `{ value }` або `{ code }`.
+- Текст коду модуля — `errorLabel` цілі; `required`, `invalid`, `duplicate`, `forbidden` кіт знає сам.
+- Сервер проекту реалізує `POST /<ресурс>/import/check` і `POST /<ресурс>/import` (`lib/imports`).
+  Адаптер, де їх немає, перевизначає `checkImport` і `startImport`. Межа JSON має вміщати
+  `IMPORT_MAX_ROWS` рядків. Моки: `createImportHandlers({ resource, db })` з `lib/mock-imports`.
+
+Експорт збирає браузер зі сторінок списку, тож серверу нічого не треба:
+
+```tsx
+const columns: ExportColumn<Contact>[] = [
+  { id: "name", label: t("name"), value: (row) => row.name },
+  { id: "balance", label: t("balance"), value: (row) => row.balance },
+  { id: "note", label: t("note"), value: (row) => row.note ?? null, optional: true },
+]
+
+<ExportDialog
+  open={open}
+  onOpenChange={setOpen}
+  resource="contacts"
+  title={t("contacts")}
+  fileName="contacts"
+  columns={columns}
+  filter={filter}
+  selectedIds={selectedIds}
+/>
+```
+
+- Числа й дати віддавайте типами: Excel рахуватиме їх, а не бачитиме текст.
+- `optional: true` — колонка спочатку не вибрана. Межа — `EXPORT_MAX_ROWS`, її міняє `maxRows`.
+
+`hucre` напряму не імпортуйте: лише через `lib/spreadsheet`, вона має лишатись окремим чанком. Вибір файла
+для власних сценаріїв — `FileDrop` з `erp/file-drop`.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

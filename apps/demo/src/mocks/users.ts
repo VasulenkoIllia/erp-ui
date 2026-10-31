@@ -20,6 +20,7 @@ export const MOCK_USERS: MockUser[] = [
     roles: ["accountant", "admin"],
     permissions: [
       "invoices:*",
+      "products:*",
       "organizations:*",
       "users:*",
       "security:*",

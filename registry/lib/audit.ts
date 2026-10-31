@@ -172,7 +172,7 @@ function plain(value: unknown): string {
 }
 
 /** Початок клітинки, який Excel і LibreOffice читають як формулу (OWASP CSV Injection). */
-const FORMULA_START = /^[=+\-@\t\r]/
+export const FORMULA_START = /^[=+\-@\t\r]/
 
 const csvCell = (value: unknown): string => {
   const raw = plain(value)

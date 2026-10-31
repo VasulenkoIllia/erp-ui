@@ -456,6 +456,27 @@ export function createResourceHandlers<T extends MockRecord>({
     return { record }
   }
 
+  /** Новий запис без збереження: схема, унікальність, відповідальний. */
+  const prepare = (
+    body: Record<string, unknown>,
+    companyId: string | null,
+    user: MockUser,
+  ): { record: T } | { fieldErrors: Record<string, string> } => {
+    // Компанію, як `id` і `version`, задає сервер: запис — компанії запиту.
+    const parsed = schema.safeParse({
+      ...withMockResponsible(body, responsibleField, user),
+      id: newId(),
+      version: 1,
+      companyId,
+    })
+    if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
+    const record = withCompany(parsed.data, companyId ?? undefined)
+    const invalid =
+      duplicateFields(all(), record, unique) ??
+      responsibleErrors(record, user.id)
+    return invalid ? { fieldErrors: invalid } : { record }
+  }
+
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {
       const access = await guard(request, "read")
@@ -505,19 +526,10 @@ export function createResourceHandlers<T extends MockRecord>({
       const { deniedActions: clientDenied, ...body } =
         (await request.json()) as Record<string, unknown>
       void clientDenied
-      // Компанію, як `id` і `version`, задає сервер: запис — компанії запиту.
-      const parsed = schema.safeParse({
-        ...withMockResponsible(body, responsibleField, access.user),
-        id: newId(),
-        version: 1,
-        companyId: access.companyId,
-      })
-      if (!parsed.success) return validationError(fieldErrors(parsed.error))
-      const record = withCompany(parsed.data, access.companyId ?? undefined)
-      const invalid =
-        duplicateFields(all(), record, unique) ??
-        responsibleErrors(record, access.user.id)
-      if (invalid) return validationError(invalid)
+      const prepared = prepare(body, access.companyId, access.user)
+      if ("fieldErrors" in prepared)
+        return validationError(prepared.fieldErrors)
+      const { record } = prepared
       replace([record, ...all()])
       changed("created", record)
       return json(withMockDeniedActions(access.rules, full(record)), {
@@ -616,6 +628,21 @@ export function createResourceHandlers<T extends MockRecord>({
       ) => select(filter, companyId, rules),
       /** Зміна запису з новою версією, журналом і подією — як PATCH, але без перевірки версії. */
       patch,
+      /** Перевірити новий запис, нічого не зберігаючи: для `import/check`. */
+      prepare,
+      /** Новий запис із журналом і подією — як POST (імпорт, lib/mock-imports). */
+      insert: (
+        body: Record<string, unknown>,
+        companyId: string | null,
+        user: MockUser,
+      ) => {
+        const prepared = prepare(body, companyId, user)
+        if ("record" in prepared) {
+          replace([prepared.record, ...all()])
+          changed("created", prepared.record)
+        }
+        return prepared
+      },
       reset: () => {
         stored = null
         sorted.clear()

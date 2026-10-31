@@ -3,6 +3,7 @@
  * Англійський переклад — `i18n-en.ts` з тими самими ключами; паритет перевіряє тест.
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
@@ -1431,6 +1432,7 @@ export const uk = {
   ...ukSetup,
   ...ukPush,
   ...ukWizard,
+  ...ukImport,
 }
 
 export type ErpUiMessages = typeof uk

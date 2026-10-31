@@ -30,6 +30,97 @@ afterEach(() => {
   localStorage.clear()
 })
 
+describe("useWizard: дія вже виконана", () => {
+  const locked: WizardStep[] = [
+    { id: "one", label: "Перший" },
+    { id: "two", label: "Другий", locked: true },
+    { id: "three", label: "Третій" },
+  ]
+
+  it("з кроку locked назад не можна ні кнопкою, ні степером", async () => {
+    const { result } = wizardOf({}, locked)
+    await act(() => result.current.next())
+    act(() => {
+      result.current.back()
+      result.current.goTo("one")
+    })
+    expect(result.current.step.id).toBe("two")
+  })
+
+  it("blocked закриває крок, доки дані не готові, і відкриває його знову", async () => {
+    const onFinish = vi.fn()
+    const { result, rerender } = renderHook(
+      ({ blocked }) =>
+        useWizard({
+          steps: [
+            { id: "one", label: "Перший" },
+            { id: "two", label: "Другий", blocked },
+            { id: "three", label: "Третій" },
+          ],
+          onFinish,
+        }),
+      { initialProps: { blocked: false } },
+    )
+    await act(() => result.current.next())
+    await act(() => result.current.next())
+    act(() => {
+      result.current.goTo("one")
+    })
+    rerender({ blocked: true })
+    expect(result.current.reachedIndex).toBe(0)
+    act(() => {
+      result.current.goTo("three")
+    })
+    expect(result.current.step.id).toBe("one")
+    rerender({ blocked: false })
+    expect(result.current.reachedIndex).toBe(2)
+  })
+
+  it("шаблон ховає «Назад» і переходи степера", async () => {
+    function Host() {
+      const wizard = useWizard({ steps: locked, onFinish: vi.fn() })
+      return (
+        <MemoryRouter>
+          <Wizard wizard={wizard} finishLabel="Готово">
+            <p>Вміст</p>
+          </Wizard>
+        </MemoryRouter>
+      )
+    }
+    render(<Host />)
+    await userEvent.click(screen.getByRole("button", { name: "Далі" }))
+    expect(
+      screen.queryByRole("button", { name: "Назад" }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Перший/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it("nextLabel називає наслідок кроку", () => {
+    function Host() {
+      const wizard = useWizard({
+        steps: [
+          { id: "one", label: "Перший", nextLabel: "Імпортувати 3 записи" },
+          { id: "two", label: "Другий" },
+        ],
+        onFinish: vi.fn(),
+      })
+      return (
+        <MemoryRouter>
+          <Wizard wizard={wizard} finishLabel="Готово">
+            <p>Вміст</p>
+          </Wizard>
+        </MemoryRouter>
+      )
+    }
+    render(<Host />)
+    expect(
+      screen.getByRole("button", { name: "Імпортувати 3 записи" }),
+    ).toBeInTheDocument()
+  })
+})
+
 describe("useWizard", () => {
   it("іде кроками й запам'ятовує найдальший", async () => {
     const onProgress = vi.fn()

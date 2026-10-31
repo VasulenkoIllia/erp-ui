@@ -197,7 +197,7 @@ function JobToast({
   )
 }
 
-function JobRunning({
+export function JobRunning({
   job,
   title,
   pollFailed,
@@ -235,7 +235,7 @@ function JobRunning({
 }
 
 /** Стан задачі не дізнатись: причина; задача могла завершитись — список варто перечитати. */
-function JobLost({ error }: { error: unknown }) {
+export function JobLost({ error }: { error: unknown }) {
   const t = useErpUiT()
   const errorMessage = useApiErrorMessage()
   return (
@@ -246,7 +246,7 @@ function JobLost({ error }: { error: unknown }) {
   )
 }
 
-function JobResult({
+export function JobResult({
   job,
   carried,
   onRetried,

@@ -98,7 +98,7 @@ export function Wizard({
         steps={wizard.steps}
         currentId={step.id}
         reachedIndex={wizard.reachedIndex}
-        onStepSelect={wizard.goTo}
+        onStepSelect={step.locked ? undefined : wizard.goTo}
       />
       <form
         noValidate
@@ -143,7 +143,7 @@ export function Wizard({
           data-slot="wizard-footer"
           className="flex flex-wrap items-center justify-between gap-2 border-t pt-4"
         >
-          {wizard.isFirst ? (
+          {wizard.isFirst || step.locked ? (
             <span />
           ) : (
             <Button
@@ -177,7 +177,9 @@ export function Wizard({
               onMouseDown={keepFieldFocus}
             >
               {wizard.busy ? <Spinner aria-hidden /> : null}
-              {wizard.isLast ? finishLabel : t("wizard.next")}
+              {wizard.isLast
+                ? finishLabel
+                : (step.nextLabel ?? t("wizard.next"))}
             </Button>
           </div>
         </div>
