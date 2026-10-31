@@ -148,11 +148,12 @@ test.describe("модуль A4: імпорт", () => {
     await expectNoA11yViolations(page)
   })
 
-  test("невідома ціль — не знайдено, ціль без права — немає доступу", async ({
-    page,
-  }) => {
+  test("невідома ціль — не знайдено", async ({ page }) => {
     await openWith(page, {}, `${TARGETS}/unknown`)
     await expect(heading(page)).toHaveText("Сторінку не знайдено")
+  })
+
+  test("ціль без права створювати — немає доступу", async ({ page }) => {
     await openWith(page, {}, `${TARGETS}/taxes`, { user: USERS.sales })
     await expect(heading(page)).toHaveText("Немає доступу")
   })
@@ -197,7 +198,9 @@ test.describe("модуль A4: експорт", () => {
     await expect(stepHeading(page, "Колонки")).toBeFocused()
     await next(page)
     await expect(stepHeading(page, "Перевірка")).toBeFocused()
-    await expect(wizard(page).getByText("Пропустити")).toBeVisible()
+    await expect(
+      wizard(page).getByText("Пропустити", { exact: true }),
+    ).toBeVisible()
   })
 
   test("Escape закриває діалог і повертає фокус на кнопку цілі", async ({

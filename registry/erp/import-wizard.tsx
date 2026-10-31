@@ -29,7 +29,12 @@ import {
 import { Wizard } from "@/registry/templates/wizard"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
-import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/registry/ui/field"
 
 /**
  * Майстер імпорту (PF07, ADR-0049) на `templates/wizard`: файл → колонки → перевірка → перегляд →
@@ -244,9 +249,14 @@ function ImportMappingStep({ api }: { api: ImportWizardApi }) {
               },
             ]}
             value={state.onDuplicate}
-            disabled={api.wizard.busy}
+            disabled={api.wizard.busy || !api.canUpdate}
             onValueChange={api.setOnDuplicate}
           />
+          {api.canUpdate ? null : (
+            <FieldDescription>
+              {t("importWizard.mapping.updateDenied")}
+            </FieldDescription>
+          )}
         </Field>
       ) : null}
     </div>

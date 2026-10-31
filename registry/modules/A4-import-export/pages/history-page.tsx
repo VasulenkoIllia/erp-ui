@@ -1,6 +1,6 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
 import { HistoryIcon } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
@@ -45,7 +45,10 @@ function RunsList() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [details, setDetails] = useState<ImportRun | null>(null)
   const [isDetailsOpen, setDetailsOpen] = useState(false)
-  const onOpen = useCallback((run: ImportRun) => {
+  // Safari кнопку кліком не фокусує: куди повернути фокус, беремо з самого кліку.
+  const opener = useRef<HTMLElement | null>(null)
+  const onOpen = useCallback((run: ImportRun, button: HTMLElement) => {
+    opener.current = button
     setDetails(run)
     setDetailsOpen(true)
   }, [])
@@ -110,9 +113,11 @@ function RunsList() {
       />
       {details ? (
         <RunDetails
+          key={details.id}
           run={details}
           open={isDetailsOpen}
           onOpenChange={setDetailsOpen}
+          finalFocus={opener}
         />
       ) : null}
     </>
@@ -138,6 +143,13 @@ export function HistoryPage() {
       />
       {isPending || access.isPending ? (
         <PageSkeleton rows={6} />
+      ) : access.error ? (
+        <PageState
+          kind="error"
+          onRetry={() => {
+            void access.refetch()
+          }}
+        />
       ) : access.canAccess ? (
         <RunsList />
       ) : (

@@ -7,7 +7,7 @@ import {
   type AppearanceSeed,
 } from "./helpers"
 
-// Крок A4b (ADR-0050): цілі, вибір рядка заголовків, діалог експорту, історія й подробиці запуску.
+// Модуль A4 (ADR-0050): цілі, вибір рядка заголовків, діалог експорту, історія й подробиці запуску.
 // Набір — як у visual.spec.ts (SCREENSHOT_PAGES=import-export-module, SCREENSHOTS_DIR).
 const repoRoot = path.resolve(import.meta.dirname, "../../..")
 const shotsDir = path.resolve(

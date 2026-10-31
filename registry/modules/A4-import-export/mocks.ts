@@ -41,10 +41,14 @@ import {
   type ImportExportFixtureOptions,
 } from "./fixtures"
 
-type RunStarted = NonNullable<MockImportOptions<MockRecord>["onStarted"]>
+/** Що ціль бере від моків модуля: історія, адреси й годинник спільні. */
+type TargetContext = Pick<
+  MockImportOptions<MockRecord>,
+  "baseUrl" | "now" | "onStarted"
+>
 
 export interface ImportTargetMock {
-  readonly handlers: (onStarted: RunStarted) => HttpHandler[]
+  readonly handlers: (context: TargetContext) => HttpHandler[]
 }
 
 /** Поля форми, які в рядку можуть бути порожніми: для цілей модулів кіта. */
@@ -58,11 +62,11 @@ export function importTargetMock<T extends MockRecord>(
   options: Omit<MockImportOptions<T>, "onStarted">,
 ): ImportTargetMock {
   return {
-    handlers: (onStarted) =>
+    handlers: (context) =>
       createImportHandlers<T>({
+        ...context,
         ...options,
         defaults: options.defaults ?? TARGET_DEFAULTS[options.resource],
-        onStarted,
       }),
   }
 }
@@ -155,7 +159,9 @@ export function createImportExportMocks({
       http.get(url, syncRuns),
       http.get(`${url}/:id`, syncRuns),
       ...runs.handlers,
-      ...targets.flatMap((target) => target.handlers(recordRun)),
+      ...targets.flatMap((target) =>
+        target.handlers({ baseUrl, now, onStarted: recordRun }),
+      ),
     ],
     db: { runs: runs.db },
   }

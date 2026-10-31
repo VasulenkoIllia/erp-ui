@@ -1,3 +1,6 @@
+import { useGetOne } from "ra-core"
+import type { RefObject } from "react"
+
 import { StatusBadge } from "@/components/erp/status-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -11,7 +14,7 @@ import { useImportErrorText } from "@/hooks/use-import-downloads"
 import { useFormat } from "@/lib/format"
 import type { JobFailureGroup } from "@/lib/jobs"
 
-import type { ImportRun } from "../contract"
+import { IMPORT_RUNS, type ImportRun } from "../contract"
 import { useImportExportT } from "../use-import-export-t"
 import { useImportExportTargets } from "../use-targets"
 import { useRunStatus, useRunTargetLabel } from "./run-columns"
@@ -55,18 +58,24 @@ function RunFailure({
 /**
  * Подробиці запуску: лічильники й причини невдач. Файла запуску сервер не зберігає, тож файл помилок
  * доступний лише в майстрі: тут видно номери рядків, а виправлений файл людина завантажує знову.
+ * Рядок списку — лише перший показ: запуск міг іти, тож свіжий запис береться окремо.
  */
 export function RunDetails({
-  run,
+  run: listed,
   open,
   onOpenChange,
+  finalFocus,
 }: {
   run: ImportRun
   open: boolean
   onOpenChange: (open: boolean) => void
+  finalFocus: RefObject<HTMLElement | null>
 }) {
   const t = useImportExportT()
   const format = useFormat()
+  const { data: run = listed } = useGetOne<ImportRun>(IMPORT_RUNS, {
+    id: listed.id,
+  })
   const statusOf = useRunStatus()
   const labelOf = useRunTargetLabel()
   const target = useImportExportTargets().find(
@@ -77,7 +86,10 @@ export function RunDetails({
   )
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+      <SheetContent
+        className="data-[side=right]:w-full data-[side=right]:sm:max-w-md"
+        finalFocus={finalFocus}
+      >
         <SheetHeader className="pe-12">
           <SheetTitle className="break-words">
             {run.fileName || t("history.noFile")}

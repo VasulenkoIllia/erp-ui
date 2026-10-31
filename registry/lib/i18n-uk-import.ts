@@ -71,6 +71,8 @@ export const ukImport = {
       duplicates: "Якщо запис із таким значенням поля «{{field}}» уже є",
       skipDuplicate: "Пропустити рядок",
       updateDuplicate: "Оновити запис",
+      updateDenied:
+        "Немає права змінювати ці записи, тому дублі пропускаються.",
     },
     check: {
       create: "Нових записів",

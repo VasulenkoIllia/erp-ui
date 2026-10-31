@@ -54,7 +54,9 @@ export function useRunTargetLabel() {
 }
 
 /** Колонки історії: файл відкриває подробиці, лічильники на телефоні лишаються полями картки. */
-export function useRunColumns(onOpen: (run: ImportRun) => void) {
+export function useRunColumns(
+  onOpen: (run: ImportRun, opener: HTMLElement) => void,
+) {
   const t = useImportExportT()
   const format = useFormat()
   const statusOf = useRunStatus()
@@ -70,8 +72,8 @@ export function useRunColumns(onOpen: (run: ImportRun) => void) {
           aria-label={t("history.open", {
             name: run.fileName || t("history.noFile"),
           })}
-          onClick={() => {
-            onOpen(run)
+          onClick={(event) => {
+            onOpen(run, event.currentTarget)
           }}
         >
           {run.fileName || t("history.noFile")}

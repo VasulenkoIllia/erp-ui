@@ -57,6 +57,8 @@ export interface ExportDialogProps<T extends RaRecord> {
   /** Вибрані записи: з ними з'являється вибір обсягу. */
   readonly selectedIds?: readonly string[]
   readonly maxRows?: number
+  /** Кнопка, що відкрила діалог: Safari кнопку кліком не фокусує. */
+  readonly finalFocus?: React.RefObject<HTMLElement | null>
 }
 
 type ExportScope = "selected" | "all"
@@ -72,6 +74,7 @@ export function ExportDialog<T extends RaRecord>({
   sort,
   selectedIds = [],
   maxRows = EXPORT_MAX_ROWS,
+  finalFocus,
 }: ExportDialogProps<T>) {
   const t = useErpUiT()
   const format = useFormat()
@@ -124,7 +127,7 @@ export function ExportDialog<T extends RaRecord>({
         if (!next) close()
       }}
     >
-      <DialogContent>
+      <DialogContent finalFocus={finalFocus}>
         <DialogHeader>
           <DialogTitle>
             {t("exportDialog.title", { target: title })}

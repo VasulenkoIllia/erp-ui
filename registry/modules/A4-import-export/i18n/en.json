@@ -9,7 +9,11 @@
     "export": "Export",
     "exportLabel": "Export: {{target}}",
     "exportDenied": "You have no permission to see these records",
-    "history": "Import history"
+    "history": "Import history",
+    "empty": {
+      "title": "No import or export here",
+      "description": "This app has no record types turned on for files."
+    }
   },
   "run": {
     "title": "Import: {{target}}",

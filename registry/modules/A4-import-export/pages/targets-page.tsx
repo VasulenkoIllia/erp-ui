@@ -1,5 +1,5 @@
 import { useAuthenticated } from "ra-core"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState, type MouseEvent } from "react"
 import { Link } from "react-router"
 
 import { ExportDialog } from "@/components/erp/export-dialog"
@@ -34,7 +34,7 @@ function TargetRow({
   target: ImportTarget
   canImport: boolean
   canExport: boolean
-  onExport: (target: ImportTarget) => void
+  onExport: (target: ImportTarget, event: MouseEvent<HTMLElement>) => void
 }) {
   const t = useImportExportT()
   const { paths } = useImportExportModule()
@@ -72,8 +72,8 @@ function TargetRow({
           <Button
             variant="outline"
             aria-label={exportLabel}
-            onClick={() => {
-              onExport(target)
+            onClick={(event) => {
+              onExport(target, event)
             }}
           >
             {t("targets.export")}
@@ -98,6 +98,7 @@ function useAllowedTargets() {
   const permissions = me.data?.permissions
   return {
     ...me,
+    hasTargets: targets.length > 0,
     rows: permissions
       ? targets.flatMap((target) => {
           const canImport = hasPermission(
@@ -127,9 +128,11 @@ export function TargetsPage() {
   const heading = usePageHeading(t("targets.title"))
   const { paths, extension } = useImportExportModule()
   const { isPending } = useAuthenticated()
-  const { rows, canSeeHistory, isError, refetch, data } = useAllowedTargets()
+  const { rows, hasTargets, canSeeHistory, isError, refetch, data } =
+    useAllowedTargets()
   const [exporting, setExporting] = useState<ImportTarget | null>(null)
   const [isExportOpen, setExportOpen] = useState(false)
+  const opener = useRef<HTMLElement | null>(null)
   const columns = useMemo(
     () => (exporting ? targetColumns(exporting) : []),
     [exporting],
@@ -176,15 +179,22 @@ export function TargetsPage() {
             <TargetRow
               key={row.target.resource}
               {...row}
-              onExport={(target) => {
+              onExport={(target, event) => {
+                opener.current = event.currentTarget
                 setExporting(target)
                 setExportOpen(true)
               }}
             />
           ))}
         </ul>
-      ) : (
+      ) : hasTargets ? (
         <PageState kind="forbidden" />
+      ) : (
+        <PageState
+          kind="empty"
+          title={t("targets.empty.title")}
+          description={t("targets.empty.description")}
+        />
       )}
       {exporting ? (
         <ExportDialog
@@ -195,6 +205,7 @@ export function TargetsPage() {
           title={exporting.label}
           fileName={exporting.resource}
           columns={columns}
+          finalFocus={opener}
         />
       ) : null}
     </div>

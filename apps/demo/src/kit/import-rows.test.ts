@@ -292,6 +292,15 @@ describe("шапка над таблицею", () => {
     expect(choices[0]?.preview).toHaveLength(61)
   })
 
+  it("порожні рядки рахуються: вибір не йде нижче запасу читання", () => {
+    const sparse = Array.from({ length: HEADER_ROW_CHOICES * 2 }, (_, index) =>
+      index % 2 ? [] : ["шапка"],
+    )
+    const choices = headerRowChoices(sparse)
+    expect(choices.at(-1)?.index).toBeLessThan(HEADER_ROW_CHOICES)
+    expect(choices).toHaveLength(HEADER_ROW_CHOICES / 2)
+  })
+
   it("дані йдуть лише під вибраним рядком, номер лишається з Excel", () => {
     const built = buildRows(report, mapping, fields, 2)
     expect(built.rows).toEqual([

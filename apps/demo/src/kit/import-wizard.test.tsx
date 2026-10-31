@@ -65,7 +65,9 @@ function setup({
   getJob = vi.fn(() => Promise.resolve(DONE_JOB)),
   startImport = vi.fn(() => Promise.resolve({ jobId: "job-1" })),
   retryJob = vi.fn(() => Promise.resolve({ jobId: "job-2" })),
+  canUpdate,
 }: {
+  canUpdate?: boolean
   checkImport?: ErpDataProvider["checkImport"]
   getJob?: ErpDataProvider["getJob"]
   startImport?: ErpDataProvider["startImport"]
@@ -75,7 +77,9 @@ function setup({
   const router = createMemoryRouter([
     {
       path: "/",
-      element: <ImportWizard target={TARGET} onDone={onDone} />,
+      element: (
+        <ImportWizard target={TARGET} canUpdate={canUpdate} onDone={onDone} />
+      ),
     },
   ])
   const dataProvider = {
@@ -203,6 +207,21 @@ describe("ImportWizard", () => {
         screen.queryByRole("combobox", { name: "Рядок із назвами колонок" }),
       ).not.toBeInTheDocument()
     })
+  })
+
+  it("без права змінювати дублі лише пропускаються, вибір пояснює чому", async () => {
+    setup({ canUpdate: false })
+    await chooseFile()
+    await next()
+    await screen.findByRole("heading", { level: 2, name: /Колонки/ })
+    expect(
+      screen.getByRole("combobox", { name: /Якщо запис із таким значенням/ }),
+    ).toBeDisabled()
+    expect(
+      screen.getByText(
+        "Немає права змінювати ці записи, тому дублі пропускаються.",
+      ),
+    ).toBeVisible()
   })
 
   it("не йде далі без обов'язкової колонки", async () => {

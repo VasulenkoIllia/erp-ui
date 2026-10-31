@@ -66,6 +66,8 @@ export const enImport = {
       duplicates: "If a record with this “{{field}}” already exists",
       skipDuplicate: "Skip the row",
       updateDuplicate: "Update the record",
+      updateDenied:
+        "You have no permission to change these records, so duplicates are skipped.",
     },
     check: {
       create: "New records",

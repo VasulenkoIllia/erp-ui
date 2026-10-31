@@ -103,6 +103,8 @@ export interface ImportWizardOptions {
   readonly target: ImportTarget
   /** Межа рядків за раз: `IMPORT_MAX_ROWS` за замовчуванням. */
   readonly maxRows?: number
+  /** Право `<ресурс>:update`: без нього дублі лише пропускаються. Типово є. */
+  readonly canUpdate?: boolean
   /** Людина натиснула «Готово». */
   readonly onDone: () => void
 }
@@ -111,6 +113,7 @@ export interface ImportWizardApi {
   readonly wizard: WizardApi
   readonly target: ImportTarget
   readonly maxRows: number
+  readonly canUpdate: boolean
   readonly state: ImportState
   readonly sheet: SpreadsheetSheet | undefined
   /** Індекс рядка заголовків у рядках аркуша. */
@@ -366,6 +369,7 @@ function useImportSteps({
 export function useImportWizard({
   target,
   maxRows = IMPORT_MAX_ROWS,
+  canUpdate = true,
   onDone,
 }: ImportWizardOptions): ImportWizardApi {
   const [state, setState] = React.useState(INITIAL_STATE)
@@ -400,6 +404,7 @@ export function useImportWizard({
     wizard,
     target,
     maxRows,
+    canUpdate,
     state,
     sheet,
     headerRow: state.headerRow ?? headerRowIndex(sheet?.rows ?? []),

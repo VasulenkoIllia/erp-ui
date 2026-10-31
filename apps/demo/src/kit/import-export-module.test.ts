@@ -94,11 +94,9 @@ const mocks = createImportExportMocks({
       now: () => clock,
     }),
     importTargetMock({
-      baseUrl: BASE,
       resource: "taxes",
       db: dictionaries.db.taxes,
       perSecond: RATE,
-      now: () => clock,
     }),
   ],
 })

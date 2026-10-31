@@ -82,7 +82,10 @@ export function fieldValueText(
   return field.options?.find((item) => item.value === value)?.label ?? value
 }
 
-/** Скільки перших заповнених рядків пропонувати як заголовки: шапка над таблицею коротка. */
+/**
+ * Серед скількох перших рядків файла шукати заголовки: шапка над таблицею коротка. Рахуємо й порожні
+ * рядки, бо читання файла бере рівно такий запас понад межу.
+ */
 export const HEADER_ROW_CHOICES = 20
 /** Скільки клітинок і символів рядка видно у виборі: досить, щоб упізнати рядок. */
 const HEADER_PREVIEW_CELLS = 4
@@ -99,13 +102,12 @@ export function headerRowIndex(rows: readonly SpreadsheetRow[]): number {
   return rows.findIndex(hasValue)
 }
 
-/** Рядки, які людина може вибрати заголовками: перші заповнені, у порядку файла. */
+/** Рядки, які людина може вибрати заголовками: заповнені серед перших, у порядку файла. */
 export function headerRowChoices(
   rows: readonly SpreadsheetRow[],
 ): HeaderRowChoice[] {
   const choices: HeaderRowChoice[] = []
-  for (const [index, row] of rows.entries()) {
-    if (choices.length === HEADER_ROW_CHOICES) break
+  for (const [index, row] of rows.slice(0, HEADER_ROW_CHOICES).entries()) {
     if (!hasValue(row)) continue
     const preview = row
       .map(cellText)

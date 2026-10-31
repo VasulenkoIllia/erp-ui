@@ -59,7 +59,7 @@ export const importExportModule = createImportExportModule({ basePath: "/setting
 Історія:
 
 - `GET /import-runs` (фільтри `target`, `status`, пошук `q` за назвою файла, сортування `startedAt`), `GET /import-runs/:id`.
-- Запуск створює сервер у `POST /<ресурс>/import`: один запис на один `requestId`.
+- Запуск створює сервер у `POST /<ресурс>/import`: один запис на один `requestId`. Повтор задачі — той самий запуск, результат додається до лічильників.
 - Поля: `target`, `fileName`, `status` (`running`, `done`, `partial`, `failed`), `total`, `created`, `updated`, `skipped`, `failed`, `failures` (форма невдач задачі ADR-0018, `items[].id` — номер рядка файла), `startedBy`, `startedByName`, `startedAt`, `finishedAt`.
 
 ## Моки
