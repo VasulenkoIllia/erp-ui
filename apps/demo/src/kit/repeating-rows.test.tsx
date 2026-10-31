@@ -132,7 +132,9 @@ describe("erp/repeating-rows", () => {
     await waitFor(() => {
       expect(button("Вилучити: Позиція 2")).toHaveFocus()
     })
-    expect(screen.getByText(/Вилучено: Позиція 2/)).toBeVisible()
+    expect(
+      screen.getByText(/Вилучено: Позиція 2/, { selector: "p" }),
+    ).toBeVisible()
     await user.click(button("Повернути"))
     expect(titles()).toEqual(["А", "Б", "В"])
     await waitFor(() => {
