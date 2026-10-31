@@ -137,6 +137,14 @@ export const CODE_ITEMS = {
     demo: "companyModule",
     spec: ["PF02", "§11"],
   },
+  "lib/key-value": {
+    title: "Значення «ключ–значення»",
+    description:
+      "Рядки форми й об'єкт запиту: keyValueRows, keyValueRecord без порожніх рядків, keyValueSchema (помилка біля клітинки, дублікати ключів без урахування регістру), keyValueText для порівняння при конфлікті (UI42, ADR-0047).",
+    status: "beta",
+    demo: "forms",
+    spec: ["UI42"],
+  },
   "lib/wizard-progress": {
     title: "Прогрес майстра",
     description:
@@ -1967,6 +1975,46 @@ export const CODE_ITEMS = {
     demo: "contacts",
     spec: ["§7", "§8.2", "§8.3", "§9", "§10"],
   },
+  "erp/record-form-page": {
+    title: "Форма запису на сторінці",
+    description:
+      "RecordFormPage: той самий useRecordForm і ті самі поля, що в RecordFormDialog, на сторінці з липкою панеллю збереження: зведення помилок, помилка над формою, порівняння при конфлікті, захист незбережених змін, режим лише для читання (PF11, ADR-0047).",
+    status: "beta",
+    demo: "dictionariesModule",
+    spec: ["PF11", "§8.2", "§8.3", "§10"],
+  },
+  "erp/save-bar": {
+    title: "Липка панель збереження",
+    description:
+      "SaveBar: стан форми живим регіоном, «Скасувати зміни» з підтвердженням, «Зберегти», який ніколи не вимикається; липне до низу екрана, на телефоні над нижньою панеллю, не перекриває елемент у фокусі (PF11, ADR-0047).",
+    status: "beta",
+    demo: "forms",
+    spec: ["PF11", "§8.3", "§9", "§10"],
+  },
+  "erp/repeating-row-actions": {
+    title: "Кнопки повторюваного рядка",
+    description:
+      "RepeatingRowActions: підняти, опустити й вилучити рядок erp/repeating-rows; неактивні лишаються у фокусі, утримана клавіша не вилучає наступні рядки.",
+    status: "beta",
+    demo: "forms",
+    spec: ["UI42", "§8.2", "§10"],
+  },
+  "erp/repeating-rows": {
+    title: "Повторювані рядки",
+    description:
+      "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері й картки на вузькому, лише для читання (UI42, ADR-0047).",
+    status: "beta",
+    demo: "forms",
+    spec: ["UI42", "§8.2", "§8.3", "§9", "§10"],
+  },
+  "erp/key-value-field": {
+    title: "Поле «ключ–значення»",
+    description:
+      "KeyValueField на erp/repeating-rows: пари ключ і значення, підписи колонок, порожній стан, межа рядків, лише для читання; перевірка й перетворення на об'єкт запиту — lib/key-value (UI42, ADR-0047).",
+    status: "beta",
+    demo: "forms",
+    spec: ["UI42", "§8.3", "§9", "§10"],
+  },
   "erp/extension-field-input": {
     title: "Поле розширення у формі",
     description:
@@ -2303,6 +2351,20 @@ export const MODULE_ITEMS = {
       "1) createNotificationsModule({ basePath, extension }) з @/modules/N5-notifications: routes — у роутер, nav — у навігацію.",
       "2) У топбарі — <InboxBell onNavigate onShowAll /> з @/components/erp/notification-inbox: дзвіник, лічильник у вкладці, реакція на push.",
       "3) Моки: createNotificationsMocks({ users }) з @/modules/N5-notifications/mocks — seeds в inboxSeeds createPlatformHandlers. Докладно — src/modules/N5-notifications/README.md.",
+    ].join("\n"),
+  },
+  "modules/A6-dictionaries": {
+    title: "Довідники (A6)",
+    description:
+      "Модуль: п'ять довідників на List Report (податки, одиниці виміру, умови оплати з частинами оплати, теги, причини з видами), форми в діалозі, вимкнення в рядку з «Скасувати», зовнішні коди значення; сторінка «Типові значення» з липкою панеллю збереження; контракт, моки зі сценаріями, фікстури, рядки uk/en; фабрика createDictionariesModule з маршрутами, навігацією й правами, тип розширення DictionariesExtension (ADR-0020, ADR-0025, ADR-0047).",
+    status: "beta",
+    demo: "dictionariesModule",
+    spec: ["§7", "§14", "§17", "A6", "PF11", "UI42"],
+    docs: [
+      "Модуль A6 встановлено в src/modules/A6-dictionaries. Файли модуля не правте: зміни під клієнта — у src/extensions/A6-dictionaries.ts (тип DictionariesExtension).",
+      "1) createDictionariesModule({ basePath, extension }) з @/modules/A6-dictionaries: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має це право).",
+      "2) Моки: createDictionariesMocks({ extension, companies }) з @/modules/A6-dictionaries/mocks — handlers у setupWorker після createPlatformHandlers.",
+      "3) Права ролей: taxes, units, payment-terms, tags, reasons (read, create, update), dictionary-defaults (read, update). Докладно — src/modules/A6-dictionaries/README.md.",
     ].join("\n"),
   },
   "modules/A5-audit": {

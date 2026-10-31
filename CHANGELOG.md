@@ -6,6 +6,15 @@
 
 ### Додано
 
+- **Модуль A6 «Довідники»** `modules/A6-dictionaries` (ADR-0047): податки, одиниці виміру, умови оплати, теги, причини й типові значення для нових документів, окрема сторінка й пункт навігації на кожен довідник. Значення лише вимикаються, вимкнене перестає бути типовим: значення з позначкою «Типове» спершу питає. Розширення `DictionariesExtension`: `page: false`, `fields`, `columns`, `filters`, `form`, `reasons.kinds`, `strings`.
+- **Повторювані рядки** `erp/repeating-rows` і `erp/repeating-row-actions` (UI42, ADR-0047): додати, вилучити з «Повернути» в рядку, порядок кнопками, межа кількості, помилка групи й помилка поля рядка.
+- **Поле «ключ-значення»** `erp/key-value-field` і `lib/key-value` (UI42, ADR-0047): `keyValueRows`, `keyValueRecord`, `keyValueSchema`, `keyValueText`.
+- **Липка панель збереження** `erp/save-bar` (PF11, ADR-0047): над нижньою панеллю оболонки, стан форми живим регіоном, «Скасувати зміни» з підтвердженням.
+- `useRecordForm`: необов'язковий `followRecord` (форма на сторінці бере перечитаний запис, поки змін немає) і `discard` у стані форми (ADR-0047).
+- **Форма запису на сторінці** `erp/record-form-page` (ADR-0047): `RecordFormPage` на тому самому `useRecordForm`. `erp/record-form` експортує `RecordFormFields`, `useConflictFields`, `useFormMessage`, `erp/extension-field-input` експортує `BooleanFormField`.
+- `FormErrorSummary`: показує помилки всередині рядків.
+- Токени: `--bottom-nav-height` і більший `scroll-padding-bottom`, поки на екрані є панель збереження.
+
 - **Модуль N5 «Сповіщення»** `modules/N5-notifications` (ADR-0046): сторінки «Сповіщення» й «Налаштування сповіщень», пункти навігації, фікстури, тип розширення `NotificationsExtension`, `createNotificationsMocks`. Сценарії — ресурс `notifications` у моках платформи.
 - **Web push** (ADR-0046): контракт `lib/web-push` під `provider.inbox.push` (`GET /me/push/public-key`, `POST /me/push/subscriptions`, `POST /me/push/subscriptions/remove`, `POST /me/push/test`), браузерна частина `lib/push-device`, блок «Push на цьому пристрої» `erp/push-device-section` у формі налаштувань, фоновий файл `public/erp-ui-push-sw.js` у пакунку `auth` і в модулі. Працює на комп'ютері й Android. На iPhone і iPad блок пояснює, що потрібен застосунок на головному екрані: це прийде з PWA.
 - **Лічильник у вкладці** `hooks/use-tab-counter` (ADR-0046): «(3) Рахунки». Ставить `InboxBell`, `tabCounter={false}` вимикає.
@@ -42,6 +51,7 @@
 
 ### Змінено
 
+- `Card`: `overflow-clip` замість `overflow-hidden`, інакше `sticky` усередині картки не липне (ADR-0047).
 - **`InboxApi.push` обов'язковий.** Адаптер на `createAuthProvider` нічого не додає. Хто будує `inbox` вручну, додає `push`: `createPushApi(client)` з `lib/web-push` або свої чотири методи.
 - **Лічильник у назві вкладки ввімкнено за замовчуванням.** Тест проекту, що порівнює назву повністю, має врахувати `(3) `, або `tabCounter={false}`.
 - **Блок push тепер залежить від каналу сервера:** видно, якщо сервер має канал `push`, а не лише коли канал обрано. Бекенд без адрес push (404 на `GET /me/push/public-key`) блоку не має.

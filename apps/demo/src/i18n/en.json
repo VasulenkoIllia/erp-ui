@@ -675,6 +675,29 @@
       "deleteCompanyConfirm": "Delete the company for good",
       "word": "DELETE",
       "companyDeleted": "Company deleted (demo)"
+    },
+    "rows": {
+      "title": "Repeating rows and the save bar",
+      "description": "Rows are added, removed with a restore option and reordered with buttons. The sticky bar at the bottom of the form stays in view while you scroll, and Save is never disabled.",
+      "readOnly": "Read-only",
+      "steps": "Stages",
+      "stepsHint": "From {{min}} to {{max}} stages, 30 days in total at most.",
+      "step": "Stage {{index}}",
+      "stepTitle": "Name",
+      "stepDays": "Days",
+      "addStep": "Add a stage",
+      "terms": "Offer terms",
+      "termsHint": "Optional. Empty rows aren't saved.",
+      "termKey": "Term",
+      "termValue": "Value",
+      "tooLong": "Stages take more than 30 days in total",
+      "saved": "Saved",
+      "sample": {
+        "draft": "Contract draft",
+        "approval": "Approval",
+        "warrantyKey": "Warranty",
+        "warranty": "12 months"
+      }
     }
   },
   "pickersPage": {

@@ -25,6 +25,7 @@ import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
 
 import { PageHeader } from "./PageHeader"
+import { RepeatingRowsSection } from "./repeating-rows-section"
 import { Section } from "./Section"
 
 const usePageT = () => useTranslation("demo", { keyPrefix: "formsPage" }).t
@@ -145,6 +146,7 @@ function InvoiceForm() {
 
   return (
     <form
+      data-testid="invoice-form"
       className="space-y-4"
       noValidate
       onSubmit={(event) => {
@@ -350,6 +352,7 @@ export function FormsPage() {
       <Section title={t("form.title")} description={t("form.description")}>
         <InvoiceForm />
       </Section>
+      <RepeatingRowsSection />
       <ConfirmSection />
     </div>
   )

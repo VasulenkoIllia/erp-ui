@@ -182,7 +182,7 @@ function OptionsInput({
 }
 
 /** Так/ні — прапорець із підписом праворуч (`Field orientation="horizontal"`). */
-function BooleanFormField({
+export function BooleanFormField({
   control,
   name,
   label,

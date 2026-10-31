@@ -164,6 +164,23 @@
     }
   }
 
+  /* Панель збереження (erp/save-bar) липне над нижньою панеллю телефона й теж не перекриває фокус:
+   * на телефоні її кнопки переносяться в другий ряд, тож відступ більший. */
+  html:has([data-slot="bottom-nav"]) {
+    --bottom-nav-height: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+  html:has([data-slot="save-bar"]) {
+    scroll-padding-bottom: calc(var(--bottom-nav-height, 0px) + 8.5rem);
+  }
+  @media (min-width: 48rem) {
+    html:has([data-slot="bottom-nav"]) {
+      --bottom-nav-height: 0px;
+    }
+    html:has([data-slot="save-bar"]) {
+      scroll-padding-bottom: 5.5rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

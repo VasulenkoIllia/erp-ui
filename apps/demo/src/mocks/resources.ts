@@ -19,4 +19,10 @@ export const MOCK_RESOURCES = [
   "company",
   "currencies",
   "exchange-rates",
+  "taxes",
+  "units",
+  "payment-terms",
+  "tags",
+  "reasons",
+  "dictionary-defaults",
 ]

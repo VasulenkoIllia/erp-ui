@@ -1,0 +1,224 @@
+{
+  "common": {
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "filters": {
+      "active": "Status"
+    },
+    "disable": "Disable",
+    "enable": "Enable",
+    "disableFor": "Disable: {{name}}",
+    "enableFor": "Enable: {{name}}",
+    "disabled": "Disabled: {{name}}",
+    "enabled": "Enabled: {{name}}",
+    "undoFailed": "Could not enable {{name}}: {{reason}}",
+    "defaultBadge": "Default",
+    "disableDefault": {
+      "title": "Disable the default value?",
+      "description": "{{name}} will no longer be filled in on new documents until someone picks another default. Undo enables the value again, but you will have to set it as the default again.",
+      "confirm": "Disable and clear default"
+    },
+    "conflict": "Someone else has just changed this value. Check it and try again.",
+    "edit": "Edit: {{name}}",
+    "editShort": "Edit",
+    "yes": "Yes",
+    "no": "No",
+    "form": {
+      "name": "Name",
+      "tooLong": "No more than {{max}} characters",
+      "externalCodes": "External codes",
+      "externalCodesHint": "This value's code in other systems, such as your accounting software.",
+      "externalSystem": "System",
+      "externalCode": "Code",
+      "externalAdd": "Add a code",
+      "externalEmpty": "No codes yet"
+    }
+  },
+  "taxes": {
+    "title": "Taxes",
+    "lead": "Rates people choose in invoices and documents.",
+    "create": "Add a tax",
+    "createDenied": "You don't have permission to add taxes",
+    "search": "Search by name",
+    "tableLabel": "Taxes",
+    "count_one": "{{value}} tax",
+    "count_other": "{{value}} taxes",
+    "empty": {
+      "title": "No taxes yet",
+      "description": "Add a rate to choose it in documents."
+    },
+    "columns": {
+      "rate": "Rate",
+      "included": "Included in price"
+    },
+    "form": {
+      "createTitle": "New tax",
+      "editTitle": "Edit tax",
+      "created": "Tax added: {{name}}",
+      "saved": "Tax saved: {{name}}",
+      "rate": "Rate",
+      "rateRange": "The rate must be between 0 and 100",
+      "included": "Tax is included in the price"
+    }
+  },
+  "units": {
+    "title": "Units",
+    "lead": "Units of quantity for goods and services.",
+    "create": "Add a unit",
+    "createDenied": "You don't have permission to add units",
+    "search": "Search by name or short name",
+    "tableLabel": "Units",
+    "count_one": "{{value}} unit",
+    "count_other": "{{value}} units",
+    "empty": {
+      "title": "No units yet",
+      "description": "Add a unit to enter quantities in documents."
+    },
+    "columns": {
+      "shortName": "Short name",
+      "decimals": "Decimal places"
+    },
+    "form": {
+      "createTitle": "New unit",
+      "editTitle": "Edit unit",
+      "created": "Unit added: {{name}}",
+      "saved": "Unit saved: {{name}}",
+      "shortName": "Short name",
+      "shortNameHint": "How the unit looks in documents: kg, pcs.",
+      "decimals": "Decimal places",
+      "decimalsHint": "How many decimals a quantity can have: 0 for pieces, 3 for kilograms.",
+      "decimalsRange": "From 0 to {{max}}"
+    }
+  },
+  "paymentTerms": {
+    "title": "Payment terms",
+    "lead": "When and how much a client pays: in one payment or in parts.",
+    "create": "Add terms",
+    "createDenied": "You don't have permission to add payment terms",
+    "search": "Search by name",
+    "tableLabel": "Payment terms",
+    "count_one": "{{value}} record",
+    "count_other": "{{value}} records",
+    "empty": {
+      "title": "No payment terms yet",
+      "description": "Add terms to choose them in invoices."
+    },
+    "columns": {
+      "parts": "Parts"
+    },
+    "bases": {
+      "invoice": "invoice",
+      "delivery": "delivery"
+    },
+    "part_one": "{{percent}} {{count}} day after {{base}}",
+    "part_other": "{{percent}} {{count}} days after {{base}}",
+    "partNow": "{{percent}} on {{base}}",
+    "form": {
+      "createTitle": "New payment terms",
+      "editTitle": "Edit payment terms",
+      "created": "Payment terms added: {{name}}",
+      "saved": "Payment terms saved: {{name}}",
+      "parts": "Payment parts",
+      "partsHint": "All parts must add up to 100%.",
+      "part": "Part {{index}}",
+      "addPart": "Add a part",
+      "percent": "Percent",
+      "days": "Days",
+      "base": "Counted from",
+      "bases": {
+        "invoice": "Invoice date",
+        "delivery": "Delivery date"
+      },
+      "percentRange": "From 0.01 to 100",
+      "daysRange": "From 0 to {{max}}",
+      "partsRequired": "Add at least one part",
+      "total": "Total: {{total}}",
+      "totalInvalid": "Parts must add up to 100%, now {{total}}"
+    }
+  },
+  "tags": {
+    "title": "Tags",
+    "lead": "Labels for marking records.",
+    "create": "Add a tag",
+    "createDenied": "You don't have permission to add tags",
+    "search": "Search by name",
+    "tableLabel": "Tags",
+    "count_one": "{{value}} tag",
+    "count_other": "{{value}} tags",
+    "empty": {
+      "title": "No tags yet",
+      "description": "Add a tag to mark records with it."
+    },
+    "columns": {
+      "preview": "Appearance"
+    },
+    "tones": {
+      "neutral": "Grey",
+      "info": "Blue",
+      "success": "Green",
+      "warning": "Yellow",
+      "destructive": "Red"
+    },
+    "form": {
+      "createTitle": "New tag",
+      "editTitle": "Edit tag",
+      "created": "Tag added: {{name}}",
+      "saved": "Tag saved: {{name}}",
+      "tone": "Colour"
+    }
+  },
+  "reasons": {
+    "title": "Reasons",
+    "lead": "Why a document was cancelled, rejected or returned.",
+    "create": "Add a reason",
+    "createDenied": "You don't have permission to add reasons",
+    "search": "Search by name",
+    "tableLabel": "Reasons",
+    "count_one": "{{value}} reason",
+    "count_other": "{{value}} reasons",
+    "empty": {
+      "title": "No reasons yet",
+      "description": "Add a reason so that people can choose it from a list."
+    },
+    "columns": {
+      "kind": "Used for",
+      "commentRequired": "Comment required"
+    },
+    "filters": {
+      "kind": "Used for"
+    },
+    "kinds": {
+      "cancel": "Cancellation",
+      "reject": "Rejection",
+      "return": "Return",
+      "other": "Other"
+    },
+    "form": {
+      "createTitle": "New reason",
+      "editTitle": "Edit reason",
+      "created": "Reason added: {{name}}",
+      "saved": "Reason saved: {{name}}",
+      "kind": "Used for",
+      "commentRequired": "Require a comment",
+      "commentRequiredHint": "This reason can only be chosen together with a comment."
+    }
+  },
+  "defaults": {
+    "title": "Default values",
+    "lead": "These values are filled in on new documents. People can change them in the document itself.",
+    "tax": "Default tax",
+    "unit": "Default unit",
+    "paymentTerm": "Default payment terms",
+    "hint": "Active values only. A disabled value stops being a default.",
+    "saved": "Default values saved",
+    "readOnly": "Only people with the right permission can change default values.",
+    "notSet": "Not set"
+  }
+}

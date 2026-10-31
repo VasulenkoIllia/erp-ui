@@ -50,6 +50,7 @@
 | [0044](0044-onboarding-palette-actions.md) | Майстер першого запуску після реєстрації, чек-лист «Почніть роботу» з «Не потрібно», дії відкритого запису в палітрі (`usePaletteActions`) | прийнято |
 | [0045](0045-record-history-value-diff-audit-module.md) | Шухляда історії запису, різниця значень і модуль A5 | прийнято |
 | [0046](0046-web-push-tab-counter-notifications-module.md) | Web push, лічильник у вкладці й модуль N5 | прийнято |
+| [0047](0047-repeating-rows-save-bar-dictionaries-module.md) | Повторювані рядки, липка панель збереження й модуль A6 | прийнято |
 
 ## Шаблон
 

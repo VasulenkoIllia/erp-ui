@@ -25,6 +25,12 @@ export const ROLES: MockRole[] = [
       "segments:*",
       "currencies:*",
       "exchange-rates:*",
+      "taxes:*",
+      "units:*",
+      "payment-terms:*",
+      "tags:*",
+      "reasons:*",
+      "dictionary-defaults:*",
     ],
   },
   {
@@ -44,6 +50,12 @@ export const ROLES: MockRole[] = [
       "company:*",
       "currencies:*",
       "exchange-rates:*",
+      "taxes:*",
+      "units:*",
+      "payment-terms:*",
+      "tags:*",
+      "reasons:*",
+      "dictionary-defaults:*",
     ],
   },
   {
@@ -64,6 +76,12 @@ export const ROLES: MockRole[] = [
       "segments:read",
       "currencies:read",
       "exchange-rates:read",
+      "taxes:read",
+      "units:read",
+      "payment-terms:read",
+      "tags:read",
+      "reasons:read",
+      "dictionary-defaults:read",
     ],
   },
   {
@@ -91,6 +109,12 @@ export const ROLES: MockRole[] = [
       "roles:read",
       "currencies:read",
       "exchange-rates:read",
+      "taxes:read",
+      "units:read",
+      "payment-terms:read",
+      "tags:read",
+      "reasons:read",
+      "dictionary-defaults:read",
     ],
   },
   // Сильніша за адміністратора й нікому не призначена: «стеля» в демо (ADR-0032) — Олена її не дасть,
@@ -109,6 +133,8 @@ export const ROLES: MockRole[] = [
 
 const SALES: LocalizedText = { uk: "Продажі", en: "Sales" }
 const ADMIN: LocalizedText = { uk: "Адміністрування", en: "Administration" }
+const DICTIONARIES: LocalizedText = { uk: "Довідники", en: "Dictionaries" }
+const DICTIONARY_ACTIONS = ["read", "create", "update"]
 
 export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
   invoices: {
@@ -174,6 +200,36 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Курси валют", en: "Exchange rates" },
     group: ADMIN,
     actions: ["read", "create", "update", "delete"],
+  },
+  taxes: {
+    label: { uk: "Податки", en: "Taxes" },
+    group: DICTIONARIES,
+    actions: DICTIONARY_ACTIONS,
+  },
+  units: {
+    label: { uk: "Одиниці виміру", en: "Units" },
+    group: DICTIONARIES,
+    actions: DICTIONARY_ACTIONS,
+  },
+  "payment-terms": {
+    label: { uk: "Умови оплати", en: "Payment terms" },
+    group: DICTIONARIES,
+    actions: DICTIONARY_ACTIONS,
+  },
+  tags: {
+    label: { uk: "Теги", en: "Tags" },
+    group: DICTIONARIES,
+    actions: DICTIONARY_ACTIONS,
+  },
+  reasons: {
+    label: { uk: "Причини", en: "Reasons" },
+    group: DICTIONARIES,
+    actions: DICTIONARY_ACTIONS,
+  },
+  "dictionary-defaults": {
+    label: { uk: "Типові значення", en: "Default values" },
+    group: DICTIONARIES,
+    actions: ["read", "update"],
   },
 }
 

@@ -54,12 +54,13 @@ export const MODULE_ROUTES = {
   companyModule: "/m/A1",
   auditModule: "/m/A5",
   notificationsModule: "/m/N5",
+  dictionariesModule: "/m/A6",
 } as const
 export type KitModuleKey = keyof typeof MODULE_ROUTES
 
 /**
  * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
- * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users, /m/A1/currencies, /m/A5/audit, /m/N5/inbox — маршрути модуля) або заглушка
+ * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users, /m/A1/currencies, /m/A5/audit, /m/N5/inbox, /m/A6/taxes — маршрути модуля) або заглушка
  * модуля ERP (/m/K2).
  */
 export type Location =

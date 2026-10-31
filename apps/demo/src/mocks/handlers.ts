@@ -9,6 +9,7 @@ import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
 import { createAuditMocks } from "@/registry/modules/A5-audit/mocks"
+import { createDictionariesMocks } from "@/registry/modules/A6-dictionaries/mocks"
 import { createNotificationsMocks } from "@/registry/modules/N5-notifications/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
@@ -24,6 +25,7 @@ import {
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
+import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
@@ -140,6 +142,12 @@ const company = createCompanyMocks({
 /** Модуль A5 «Аудит та історія» (ADR-0045): історія договору в журналі кожної компанії демо. */
 const audit = createAuditMocks({ companies: COMPANIES.map(({ id }) => id) })
 
+/** Модуль A6 «Довідники» (ADR-0047): значення довідників кожної компанії демо. */
+const dictionaries = createDictionariesMocks({
+  extension: dictionariesMockExtension,
+  companies: COMPANIES.map(({ id }) => id),
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -161,6 +169,11 @@ export const handlers = [
       users: { uk: "Користувачі", en: "Users" },
       currencies: { uk: "Валюти", en: "Currencies" },
       "exchange-rates": { uk: "Курси валют", en: "Exchange rates" },
+      taxes: { uk: "Податки", en: "Taxes" },
+      units: { uk: "Одиниці виміру", en: "Units" },
+      "payment-terms": { uk: "Умови оплати", en: "Payment terms" },
+      tags: { uk: "Теги", en: "Tags" },
+      reasons: { uk: "Причини", en: "Reasons" },
     },
     auditSeeds: [...AUDIT_SEEDS, ...audit.seeds],
     webhookEvents: WEBHOOK_EVENTS,
@@ -176,4 +189,5 @@ export const handlers = [
   ...contacts.handlers,
   ...users.handlers,
   ...company.handlers,
+  ...dictionaries.handlers,
 ]

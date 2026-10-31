@@ -49,6 +49,8 @@ describe("тексти інтерфейсу без довгих тире", () =>
         "A2-users/i18n/en.json",
         "A5-audit/i18n/uk.json",
         "A5-audit/i18n/en.json",
+        "A6-dictionaries/i18n/uk.json",
+        "A6-dictionaries/i18n/en.json",
         "B1-contacts/i18n/uk.json",
         "B1-contacts/i18n/en.json",
         "N5-notifications/i18n/uk.json",

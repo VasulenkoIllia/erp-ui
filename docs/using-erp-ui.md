@@ -114,6 +114,9 @@ node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/form,erp/date-input,erp/numb
 - Підтвердження: зворотна дія — `useUndoToast()`; видалення — `ConfirmDialog` з кнопкою, що називає наслідок; критична дія — ще й `confirmWord`.
 - Календар (react-day-picker і date-fns) і react-hook-form важать помітно: вантажте сторінки з формами окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 - Форма запису ресурсу (створення й зміна) — `RecordFormDialog` з `erp/record-form` і `useRecordForm` з `hooks/use-record-form` (ADR-0026): `const state = useRecordForm({ resource, record, schema, defaultValues, recordSchema, toPayload, toValues, onSaved })` створює форму з налаштуваннями вище (`state.form`), `POST` усіх полів, `PATCH` лише змінених з `version`, 409 — порівняння змінених полів («Зберегти мої зміни», «Взяти збережене»; `current` розбирає `recordSchema` — схема контракту з полями розширення), 422 — біля полів і в зведенні (поле, якого у формі немає, — над формою), «Закрити без збереження?» для зміненої форми. `finalFocus` — кнопка, що відкрила форму (Safari кнопку кліком не фокусує); форма поверх іншої форми — `nested`. Поля — `RecordFormItem` (`{ id, label, description?, wide?, render, text? }`, ключ — ім'я поля форми), вибір зі списку — `FormSelect` з `erp/form-select`. Діалог монтуйте, лише поки він відкритий (`{editing ? <Форма /> : null}`); `onSaved` викликається після рендера зі скинутою формою, тож перехід на картку нового запису в ньому не зупиняє `UnsavedChangesGuard`. Форма тягне react-hook-form і поля вводу: у сторінку її ставте лінивим чанком (`lazyWithPreload`, попереднє завантаження через `whenIdle`), поки чанк вантажиться чи не завантажився — діалог із назвою форми, спінером чи «Спробувати ще» (так у B1, `components/form-dialogs.tsx`).
+- Повторювані рядки — `RepeatingRows` з `erp/repeating-rows` (ADR-0047): `control`, `name`, `label`, `rowLabel`, `addLabel`, `newRow`, `renderRow`, за потреби `minRows`, `maxRows`, `canReorder`. Поля рядка — `FormField` з іменем `` `${name}.${index}.поле` ``, `rowLabel` підписує рядок і його кнопки для скрінрідера. Порядок міняють кнопки, перетягування кіт не дає. Помилку всієї групи (сума частин) пишіть у `superRefine` схеми масиву, вона стане під рядками.
+- Пари «назва, значення» — `KeyValueField` з `erp/key-value-field`: значення форми — масив рядків, `keyValueRows` і `keyValueRecord` з `lib/key-value` перетворюють його на об'єкт API й назад, `keyValueSchema` дає перевірку.
+- Довга форма на сторінці — `RecordFormPage` з `erp/record-form-page` (ADR-0047): ті самі `useRecordForm` і поля, що в `RecordFormDialog`, плюс `SaveBar` з `erp/save-bar`. Запис, який сторінка перечитує, передавайте з `followRecord: true`: форма візьме свіжі значення й версію, поки в ній немає змін. Свою форму без запису можна поставити на `SaveBar` напряму: останньою всередині `<form>`, у картці панель теж липне.
 - Елемент вкладеної колекції запису (адреса, банківський рахунок, ADR-0028) — та сама форма запису: `PATCH` запису з усією колекцією й `version`, тож чужа зміна колекції дає 409, а не губиться. `toPayload(values, keys, target)` застосовує зміну до `target` — збереженого запису, а після «Зберегти мої зміни» — того, що збережений зараз; `id` нового елемента дає сервер. Помилка сервера зі шляхом елемента (`bankAccounts.1.iban`) стає біля поля форми через `fieldOfServerError: (field) => field.replace(/^bankAccounts\.\d+\./, "")`. У моках `createResourceHandlers` такі колекції — `detailFields` (зберігаються разом із записом, у список не йдуть), показ у журналі «було → стало» — `auditValue`. Зразок — форми адреси й рахунку в B1 (`components/address-form.tsx`, `components/bank-account-form.tsx`).
 
 ## 4. Оболонка застосунку
@@ -535,6 +538,28 @@ setupWorker(...createPlatformHandlers({ inboxSeeds: notifications.seeds }))
 - Підписку скасовує «Вийти», а не автовихід: push потрібен і після простою. Тому сервер прибирає запис під час «вийти всюди», зміни пароля, блокування й вилучення з компанії. Перелік перевірок сервера, зокрема проти SSRF: README модуля, «Що перевіряє сервер». Без них підключати push не можна.
 - Адаптер, що будує `inbox` вручну, додає `push`: `createPushApi(client)` з `lib/web-push` або свої чотири методи.
 - Розширення — `inbox.perPage`, `strings`. Сценарії — ресурс `notifications`.
+
+### Модуль A6 «Довідники» (ADR-0047)
+
+```ts
+// src/modules.ts
+import { createDictionariesModule } from "@/modules/A6-dictionaries"
+import { dictionariesExtension } from "@/extensions/A6-dictionaries"
+
+export const dictionariesModule = createDictionariesModule({ basePath: "/settings", extension: dictionariesExtension })
+
+// src/mocks/handlers.ts — усі адреси дає модуль
+import { createDictionariesMocks } from "@/modules/A6-dictionaries/mocks"
+import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
+const dictionaries = createDictionariesMocks({ extension: dictionariesMockExtension, companies: ["my-company"] })
+setupWorker(...createPlatformHandlers({}), ...dictionaries.handlers)
+```
+
+- Сторінки: «Податки», «Одиниці виміру», «Умови оплати», «Теги», «Причини», «Типові значення», адреси в `dictionariesModule.paths`, `basePath` веде на першу сторінку.
+- Права: `taxes`, `units`, `payment-terms`, `tags`, `reasons` мають `read`, `create`, `update`; `dictionary-defaults` має `read`, `update`. Додайте їх у свої ролі. Форма типових значень бере перелік значень, тож тому, хто її змінює, потрібне ще `read` на довідники.
+- Значення не видаляються: «Вимкнути» прибирає його з нових виборів. Вибір у документі — `RecordPicker` із `filter={{ active: true }}`.
+- Вимкнення прибирає значення з типових: це робить сервер у тій самій транзакції. «Скасувати» типового не повертає, тому значення з позначкою «Типове» перед вимкненням питає (потрібне право `dictionary-defaults:read`).
+- Розширення — кожен довідник: `page: false`, `fields`, `columns`, `filters`, `form`; `reasons.kinds` (види причин проекту); `defaults: { page: false }`; `strings`.
 
 ### Майстер (ADR-0043)
 

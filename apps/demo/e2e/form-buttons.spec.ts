@@ -17,7 +17,10 @@ test.describe("форми: перший клік кнопки", () => {
     await page
       .getByRole("textbox", { name: "Номер рахунку", exact: true })
       .click()
-    await page.getByRole("button", { name: "Зберегти" }).click()
+    await page
+      .getByTestId("invoice-form")
+      .getByRole("button", { name: "Зберегти" })
+      .click()
     const summary = page.locator("[data-slot=form-error-summary]")
     await expect(summary).toBeFocused()
     await expect(summary).toContainText("Виправте 3 помилки")

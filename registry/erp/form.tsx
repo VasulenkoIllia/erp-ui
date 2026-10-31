@@ -157,6 +157,21 @@ interface FormErrorSummaryProps<TValues extends FieldValues> {
   className?: string
 }
 
+/**
+ * Перший текст помилки поля. Поле з рядками (`erp/repeating-rows`) зберігає помилки вкладено: у
+ * `root` чи в полях рядків. `ref` — вузол DOM, а не частина помилки.
+ */
+function firstErrorMessage(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) return undefined
+  const { message } = error as { message?: unknown }
+  if (typeof message === "string") return message
+  for (const [key, value] of Object.entries(error)) {
+    const nested = key === "ref" ? undefined : firstErrorMessage(value)
+    if (nested) return nested
+  }
+  return undefined
+}
+
 /** Зведення помилок угорі довгої форми з переходом до поля (SPEC §8.3). */
 function FormErrorSummary<TValues extends FieldValues>({
   errors,
@@ -170,7 +185,7 @@ function FormErrorSummary<TValues extends FieldValues>({
     .map((name) => ({
       name,
       label: labels[name],
-      message: (get(errors, name) as { message?: string } | undefined)?.message,
+      message: firstErrorMessage(get(errors, name)),
     }))
     .filter((item) => item.message)
   // Спроба, після якої помилок уже не було (успішна відправка чи все виправлено): помилка, що
@@ -232,6 +247,8 @@ function FormErrorSummary<TValues extends FieldValues>({
  * в іншому роутері лишається `beforeunload`, як у `Form` з ra-core.
  * `when` тримайте увімкненим і під час збереження: після успіху (`reset`) перехід, на який
  * чекав діалог, відбудеться сам, а збій лишить користувача на сторінці з введеним.
+ * Один на сторінку: роутер перевіряє лише останній блокувальник, навіть вимкнений, тож другий
+ * захист під чистою формою вимкнув би перший.
  */
 function UnsavedChangesGuard({ when }: { when: boolean }) {
   const canBlock = useCanBlock()

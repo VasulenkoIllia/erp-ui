@@ -1,6 +1,7 @@
 /**
  * Рядки кіта для вибору запису, значень із «Копіювати» (ADR-0023), форми запису (ADR-0026),
- * мультивибору з довідника (ADR-0027) і причин заборони дії над записом (ADR-0037) англійською —
+ * мультивибору з довідника (ADR-0027), причин заборони дії над записом (ADR-0037), повторюваних рядків
+ * і панелі збереження (ADR-0047) англійською —
  * ті самі ключі, що в `i18n-uk-records.ts`.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -75,5 +76,38 @@ export const enRecords = {
       tooLong: "The value is too long",
       invalid: "The server didn't accept this value. Please check it.",
     },
+  },
+  repeatingRows: {
+    moveUp: "Move up: {{row}}",
+    moveDown: "Move down: {{row}}",
+    remove: "Remove: {{row}}",
+    removed: "Removed: {{row}}",
+    removedHint: "Removed: {{row}}. The Restore button is below the rows.",
+    restored: "Restored: {{row}}",
+    restore: "Restore",
+    moved: "{{row}}: now in place {{place}}",
+    limit_one: "No more than {{count}} row",
+    limit_other: "No more than {{count}} rows",
+  },
+  keyValue: {
+    add: "Add a row",
+    row: "Row {{index}}",
+    key: "Key",
+    value: "Value",
+    empty: "No rows yet",
+    duplicate: "This key already exists",
+    tooLong: "The value is too long",
+  },
+  saveBar: {
+    label: "Save the form",
+    clean: "No changes",
+    dirty: "You have unsaved changes",
+    saving: "Saving…",
+    save: "Save",
+    discard: "Discard changes",
+    discardTitle: "Discard changes?",
+    discardDescription: "Everything you changed in this form will be lost.",
+    discardConfirm: "Discard changes",
+    discardCancel: "Back to the form",
   },
 } satisfies ErpUiTranslation<typeof ukRecords>

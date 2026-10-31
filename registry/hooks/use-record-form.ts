@@ -46,6 +46,11 @@ export interface RecordFormOptions<
   readonly resource: string
   /** Запис, який змінюємо; без нього — створення. */
   readonly record?: TRecord
+  /**
+   * Форма на сторінці живе довше за запит: перечитаний запис замінює значення й версію, поки людина
+   * нічого не змінила. Зі змінами форма лишається на своїй версії, збереження покаже конфлікт.
+   */
+  readonly followRecord?: boolean
   /** Схема форми: поля модуля й розширення. Тексти помилок — мовою інтерфейсу (`useMemo`). */
   readonly schema: z.ZodType<TValues, TValues>
   /** Початкові значення: із запису чи порожні для створення. */
@@ -94,6 +99,8 @@ export interface RecordFormState<TValues extends FieldValues> {
   /** «Взяти збережене»: значення сервера у формі. */
   readonly reload: () => void
   readonly dismissConflict: () => void
+  /** Повернути збережені значення й прибрати помилку над формою. */
+  readonly discard: () => void
 }
 
 /** Відповіді, після яких доступ до запису міг змінитись: 403 — чужий, 404 — чужого вже не видно. */
@@ -237,6 +244,22 @@ function useSavedCallback<TRecord>(
   }
 }
 
+/** Нова версія запису — у `apply`, коли форма без змін. Зі змінами версія дочекається їх скасування. */
+function useFollowedRecord<TRecord extends RaRecord>(
+  record: TRecord | undefined,
+  isDirty: boolean,
+  apply: (record: TRecord) => void,
+) {
+  const version = record ? versionOf(record) : undefined
+  const seenRef = React.useRef(version)
+  const follow = React.useEffectEvent(apply)
+  React.useEffect(() => {
+    if (!record || isDirty || seenRef.current === version) return
+    seenRef.current = version
+    follow(record)
+  }, [record, version, isDirty])
+}
+
 export function useRecordForm<
   TValues extends FieldValues,
   TRecord extends RaRecord,
@@ -265,6 +288,16 @@ export function useRecordForm<
   const dirtyFields: Readonly<Record<string, unknown>> =
     form.formState.dirtyFields
   const saved = useSavedCallback(form.formState.isDirty, options.onSaved)
+  useFollowedRecord(
+    options.followRecord ? record : undefined,
+    form.formState.isDirty,
+    (fresh) => {
+      // Лише новіша за базу: власне збереження й «Взяти збережене» вже стали нею.
+      if (base && Number(versionOf(fresh)) <= Number(versionOf(base))) return
+      setBase(fresh)
+      form.reset(toValues(fresh))
+    },
+  )
 
   const run = async (
     values: TValues,
@@ -342,6 +375,10 @@ export function useRecordForm<
     },
     dismissConflict: () => {
       setPending(null)
+    },
+    discard: () => {
+      form.reset()
+      setError(null)
     },
   }
 }

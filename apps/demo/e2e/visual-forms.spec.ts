@@ -90,7 +90,10 @@ test.describe("скриншоти кроку 0.5d @screenshots", () => {
       await page
         .getByRole("textbox", { name: "Сума", exact: true })
         .fill("48600")
-      await page.getByRole("button", { name: "Зберегти" }).click()
+      await page
+        .getByTestId("invoice-form")
+        .getByRole("button", { name: "Зберегти" })
+        .click()
       await expect(page.getByText("Виправте 2 помилки")).toBeVisible()
       await expectNoA11yViolations(page)
       await page.screenshot({

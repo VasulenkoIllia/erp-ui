@@ -73,7 +73,11 @@ export interface RecordFormItem extends Keyed {
 export type RecordFormItemChange = Pick<RecordFormItem, "label" | "description">
 
 /** Поля форми сіткою: одна колонка на вузькому контейнері, дві — від 36rem. */
-function RecordFormFields({ items }: { items: readonly RecordFormItem[] }) {
+export function RecordFormFields({
+  items,
+}: {
+  items: readonly RecordFormItem[]
+}) {
   return (
     <FieldGroup className="@container">
       <div className="grid gap-4 @xl:grid-cols-2">
@@ -154,7 +158,7 @@ export interface RecordFormDialogProps<TValues extends FieldValues> {
 }
 
 /** Порівняння конфлікту лишається, поки діалог зникає: інакше таблиця порожніє посеред анімації. */
-function useConflictFields<TValues extends FieldValues>(
+export function useConflictFields<TValues extends FieldValues>(
   state: RecordFormState<TValues>,
   items: readonly RecordFormItem[],
 ): ConflictField[] {
@@ -175,7 +179,7 @@ function useConflictFields<TValues extends FieldValues>(
  * Помилка над формою: запиту (не поля) чи полів, яких у формі немає (розширення сховало поле, а
  * сервер його не прийняв). Отримує фокус, щойно з'являється: на телефоні вона вгорі довгої форми.
  */
-function useFormMessage<TValues extends FieldValues>(
+export function useFormMessage<TValues extends FieldValues>(
   state: RecordFormState<TValues>,
   labels: Readonly<Record<string, string>>,
 ) {

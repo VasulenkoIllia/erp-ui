@@ -25,6 +25,8 @@ import companyEn from "@/registry/modules/A1-company/i18n/en.json"
 import companyUk from "@/registry/modules/A1-company/i18n/uk.json"
 import auditEn from "@/registry/modules/A5-audit/i18n/en.json"
 import auditUk from "@/registry/modules/A5-audit/i18n/uk.json"
+import dictionariesEn from "@/registry/modules/A6-dictionaries/i18n/en.json"
+import dictionariesUk from "@/registry/modules/A6-dictionaries/i18n/uk.json"
 import notificationsEn from "@/registry/modules/N5-notifications/i18n/en.json"
 import notificationsUk from "@/registry/modules/N5-notifications/i18n/uk.json"
 import contactsEn from "@/registry/modules/B1-contacts/i18n/en.json"
@@ -110,6 +112,10 @@ describe("паритет рядків uk/en", () => {
 
   it("рядки модуля A5", () => {
     expect(checkParity({ uk: auditUk, en: auditEn })).toEqual([])
+  })
+
+  it("рядки модуля A6", () => {
+    expect(checkParity({ uk: dictionariesUk, en: dictionariesEn })).toEqual([])
   })
 
   it("рядки модуля N5", () => {
