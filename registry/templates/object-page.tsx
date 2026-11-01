@@ -405,7 +405,9 @@ export function useRecordSlots<
  */
 function failedAction(_retry: () => void, error: unknown) {
   return isChunkLoadError(error) ? (
-    <ReloadPageAction size="sm" variant="outline" />
+    <div className="flex max-w-64 flex-wrap justify-end gap-2 empty:hidden">
+      <ReloadPageAction size="sm" variant="outline" />
+    </div>
   ) : null
 }
 
