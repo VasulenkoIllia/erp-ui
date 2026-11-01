@@ -1,7 +1,11 @@
 import * as React from "react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import { PageState, useLoadingAnnouncement } from "@/registry/erp/page-state"
+import {
+  PageState,
+  SectionSkeleton,
+  useLoadingAnnouncement,
+} from "@/registry/erp/page-state"
 import { PermissionGate } from "@/registry/erp/permission-gate"
 import { RecordHeader, type RecordField } from "@/registry/erp/record-header"
 import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
@@ -12,6 +16,7 @@ import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Skeleton } from "@/registry/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { useKeptContent } from "@/registry/templates/object-page-aside"
 import {
   OBJECT_PAGE_ASIDE_TAB,
   ObjectPageTabStrip,
@@ -35,7 +40,8 @@ export type { ObjectPageTabs }
  *   стрічка (`@container`, а не вікно: та сама картка на весь екран і в колонці FCL). Тіло з'являється
  *   після виміру ширини (до першого кадру): інакше на телефоні спершу змонтувалась би широка розкладка
  *   зі стрічкою, і її запити пішли б даремно. Перетин межі (поворот екрана) і перемикання вкладок
- *   перемонтовують секції — стан, що має пережити це, тримайте над шаблоном.
+ *   перемонтовують секції — стан, що має пережити це, тримайте над шаблоном. Стрічка з `keepMounted`
+ *   цього не боїться: монтується, коли її вперше показали, і живе, доки відкрита картка (ADR-0054).
  * - Стани: первинне завантаження — скелетон у формі картки; помилка, офлайн (з повтором), немає
  *   доступу, не знайдено — `PageState`. «Назад» видно в кожному стані, а h1 є завжди: прихований
  *   `title`, поки запису немає, далі — назва запису в шапці.
@@ -49,6 +55,8 @@ export interface ObjectPageAside {
   /** Назва стрічки: вкладка на вузькому контейнері й заголовок колонки на широкому. */
   label: string
   content: React.ReactNode
+  /** Написане не зникає з вкладкою чи поворотом екрана: чернетка й захист незбережених змін лишаються. */
+  keepMounted?: boolean
 }
 
 /** Дія в шапці запису. */
@@ -132,6 +140,8 @@ export function ObjectPage({
   )
 
   const showsRecord = !error && !isPending && header !== undefined
+  const keptAside = useKeptContent(aside?.content, aside?.keepMounted === true)
+  const shownAside = aside && { ...aside, content: keptAside.slot }
   let content: React.ReactNode
   if (error) {
     // Запису немає (видалили, інша компанія) — «не знайдено», а не повтор.
@@ -182,7 +192,7 @@ export function ObjectPage({
         ) : null}
         {notice}
         {statusBar}
-        {aside ? (
+        {shownAside ? (
           narrow === null ? null : narrow && tabs ? (
             // Вузько й вкладками — стрічка остання вкладка, а не окремі «Подробиці / Історія».
             <ObjectPageTabStrip
@@ -190,14 +200,14 @@ export function ObjectPage({
                 ...sections,
                 {
                   id: OBJECT_PAGE_ASIDE_TAB,
-                  title: aside.label,
-                  content: aside.content,
+                  title: shownAside.label,
+                  content: shownAside.content,
                 },
               ]}
               {...tabs}
             />
           ) : (
-            <ObjectPageBody aside={aside} narrow={narrow}>
+            <ObjectPageBody aside={shownAside} narrow={narrow}>
               {body}
             </ObjectPageBody>
           )
@@ -221,6 +231,7 @@ export function ObjectPage({
         </h1>
       )}
       {content}
+      {showsRecord ? keptAside.portal : null}
     </div>
   )
 }
@@ -239,7 +250,7 @@ function ObjectPageBody({
   if (narrow) {
     return (
       <Tabs defaultValue="details">
-        <TabsList className="w-full">
+        <TabsList className="w-full" aria-label={t("objectPage.tabs")}>
           <TabsTrigger value="details">{t("objectPage.details")}</TabsTrigger>
           <TabsTrigger value="aside">{aside.label}</TabsTrigger>
         </TabsList>
@@ -285,6 +296,19 @@ export interface ExtensionSection<T> {
   readonly component: React.ComponentType<RecordSlotProps<T>>
 }
 
+/**
+ * Стрічка картки з компонентом проекту: стає на місце блоку модуля, праворуч чи вкладкою. Вміст
+ * живе, доки відкрита картка (`keepMounted`), бо в слоті буває чернетка.
+ */
+export interface ExtensionAside<T> {
+  readonly label: LocalizedText
+  /**
+   * Функція, а не `ComponentType`: один слот на всі картки підходить будь-якому запису з `id`. Лише
+   * стала функція з модуля: нова на кожен рендер перемонтує слот і знищить чернетку в ньому.
+   */
+  readonly component: (props: RecordSlotProps<T>) => React.ReactNode
+}
+
 /** Дія в шапці картки з компонентом проекту. */
 export interface ExtensionAction<T> {
   readonly id: string
@@ -298,7 +322,7 @@ export interface ExtensionAction<T> {
 }
 
 /**
- * Секції й дії розширення для картки (ADR-0020): компонент проекту в слоті отримує запис і ресурс,
+ * Секції, дії й стрічка розширення для картки (ADR-0020): компонент проекту в слоті отримує запис і ресурс,
  * кожен — у власній межі помилок: збій слота проекту не валить картку модуля (секція показує помилку
  * з повтором, дія зникає). Дія з `access` видна лише з правом, і коли запис її не забороняє
  * (`PermissionGate` з позначкою сервера `deniedActions`, ADR-0037). Поки запису немає,
@@ -313,19 +337,37 @@ export function useRecordSlots<
   resource,
   sections,
   actions,
+  aside,
 }: {
   record: T | undefined
   resource: string
   sections?: KeyedChanges<ExtensionSection<T>, S>
   actions?: KeyedChanges<ExtensionAction<T>, A>
+  aside?: ExtensionAside<T>
 }): {
   sections?: KeyedChanges<ObjectPageSectionItem, S>
   actions?: KeyedChanges<ObjectPageAction, A>
+  aside?: ObjectPageAside
 } {
   const { language } = useLanguage()
   return React.useMemo(() => {
     if (record === undefined) return {}
+    const AsideSlot = aside?.component
     return {
+      aside:
+        aside && AsideSlot
+          ? {
+              label: localizedText(aside.label, language) ?? "",
+              keepMounted: true,
+              content: (
+                <ErrorBoundary>
+                  <React.Suspense fallback={<SectionSkeleton />}>
+                    <AsideSlot record={record} resource={resource} />
+                  </React.Suspense>
+                </ErrorBoundary>
+              ),
+            }
+          : undefined,
       sections: mapKeyedChanges(sections, ({ id, title, component: Slot }) => ({
         id,
         title: localizedText(title, language) ?? id,
@@ -353,7 +395,7 @@ export function useRecordSlots<
         }
       }),
     }
-  }, [record, resource, sections, actions, language])
+  }, [record, resource, sections, actions, aside, language])
 }
 
 /** Дія проекту, що впала, зникає з шапки (React пише помилку в консоль, `onError` — немає). */

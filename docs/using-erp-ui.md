@@ -825,6 +825,46 @@ node scripts/erp-ui-kit.mjs update <версія кіта> --add erp/record-time
 - Моки: `createTimelineHandlers({ targets: [timelineTargetMock({ resource, db })], seeds })`. Сценарії — ресурс `timeline` у панелі
   розробника.
 
+### Модуль стрічки й «Мої справи» (ADR-0054)
+
+Модуль N1 збирає стрічку в картки через слот і додає сторінку з діями людини через усі записи. Проект вмикає це сам: без слота картка
+лишається з «Історією» й не звертається до адрес стрічки.
+
+```sh
+node scripts/erp-ui-kit.mjs update <версія кіта> --add modules/N1-timeline
+```
+
+```ts
+// src/extensions/N1-timeline.ts
+export const timelineExtension: TimelineExtension = {
+  myActivities: {
+    perPage: 20,
+    recordHref: ({ resource, id }) => `/${resource}/${encodeURIComponent(id)}`,
+  },
+  // Проект без пошти: лишаються нотатки.
+  card: { messages: false },
+}
+
+// src/extensions/B1-contacts.ts
+export const contactsExtension: ContactsExtension = {
+  organizations: { aside: timelineModule.aside },
+  contacts: { aside: timelineModule.aside },
+}
+```
+
+- Своя картка на Object Page бере той самий слот: `useRecordSlots({ aside: extension.aside })`, далі `aside={slots.aside ?? …}`.
+- Сторінці модуля потрібна адреса `GET /me/activities` (шапка `lib/timeline`): лише дії цієї людини на записах, які вона бачить, найближчий
+  термін першим. `dueFrom` і `dueTo` — календарні дати включно, їх рахує клієнт. Бекенду без цієї адреси ставте `myActivities: false`:
+  зникнуть сторінка й пункт навігації, стрічка на картках лишиться.
+- `recordHref` дає адресу картки: модуль не знає сусідніх модулів. Без нього назва запису показується текстом. Без `title` у рядку видно `id`.
+  `resource` приходить із відповіді сервера: шукаючи адресу в об'єкті, перевіряйте `Object.hasOwn`. `perPage` — до 100.
+- `component` слота — стала функція з модуля. Нова функція на кожен рендер перемонтує стрічку разом із чернеткою.
+- Вузька картка показує стрічку вкладкою. Чернетка живе, поки людина перемикає вкладки чи повертає телефон, і захист незбережених змін
+  спрацьовує з прихованої вкладки.
+- Лінива сторінка не імпортує `timelineModule` напряму, якщо модуль є у вхідному графі: збирач перебудує спільні шматки, і вхідний чанк виросте.
+  Беріть слот із файлу розширення, який вантажить вхід (ADR-0054, п. 7).
+- Моки: `createTimelineMocks({ targets: [timelineTargetMock({ resource, db, title })], seeds })`, фікстури `createTimelineFixtures({ records, people })`.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

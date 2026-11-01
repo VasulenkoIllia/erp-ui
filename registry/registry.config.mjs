@@ -1434,7 +1434,7 @@ export const CODE_ITEMS = {
   "templates/object-page": {
     title: "Картка запису (Object Page)",
     description:
-      "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції й дії розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом; секції одна під одною чи вкладками з вибраною в адресі (templates/object-page-tabs) (SPEC §7, ADR-0019, ADR-0020, ADR-0024).",
+      "Шаблон картки: «Назад до списку», шапка (назва, статус, ключові поля й дії), етапи, секції й стрічка запису (UI01) праворуч чи вкладкою за шириною контейнера; скелетон, помилка з повтором, офлайн, немає доступу, не знайдено. Поля, дії й секції — списки з ключами; секції, дії й стрічка розширення — компоненти проекту в слотах (useRecordSlots): запис і ресурс, своя межа помилок, дія з правом; секції одна під одною чи вкладками з вибраною в адресі (templates/object-page-tabs) (SPEC §7, ADR-0019, ADR-0020, ADR-0024, ADR-0054).",
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
@@ -1446,6 +1446,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "organizations",
     spec: ["§7", "§9", "§10"],
+  },
+  "templates/object-page-aside": {
+    title: "Стрічка картки, що не зникає",
+    description:
+      "Частина templates/object-page: вміст з keepMounted монтується, коли його вперше показали, і живе, доки відкрита картка, тож вкладка й поворот екрана не стирають написане. Ставиться разом із templates/object-page (ADR-0054).",
+    status: "beta",
+    demo: "data",
+    spec: ["§7", "§9"],
   },
   "templates/list-report": {
     title: "Список (List Report)",
@@ -2766,6 +2774,21 @@ export const MODULE_ITEMS = {
       "1) createNotificationsModule({ basePath, extension }) з @/modules/N5-notifications: routes — у роутер, nav — у навігацію.",
       "2) У топбарі — <InboxBell onNavigate onShowAll /> з @/components/erp/notification-inbox: дзвіник, лічильник у вкладці, реакція на push.",
       "3) Моки: createNotificationsMocks({ users }) з @/modules/N5-notifications/mocks — seeds в inboxSeeds createPlatformHandlers. Докладно — src/modules/N5-notifications/README.md.",
+    ].join("\n"),
+  },
+  "modules/N1-timeline": {
+    title: "Стрічка запису (N1)",
+    description:
+      "Модуль: сторінка «Мої справи» (заплановані дії людини через усі записи, вкладки за терміном, виконати, змінити, скасувати в рядку, «Показати ще») і стрічка на картках через слот aside; контракт lib/timeline і адреса GET /me/activities, моки зі сценаріями ресурсу timeline, фікстури, рядки uk/en; фабрика createTimelineModule з маршрутом, навігацією, компонентом Timeline і слотом aside, тип розширення TimelineExtension: вимкнути повідомлення, файли, підписників, дії, сторінку (ADR-0020, ADR-0025, ADR-0053, ADR-0054).",
+    status: "beta",
+    demo: "timelineModule",
+    spec: ["§7", "§14", "§17", "N1", "PF05", "UI01"],
+    docs: [
+      "Модуль N1 встановлено в src/modules/N1-timeline. Файли модуля не правте: зміни під клієнта — у src/extensions/N1-timeline.ts (тип TimelineExtension).",
+      "1) createTimelineModule({ basePath, extension }) з @/modules/N1-timeline: routes — у роутер, nav — у навігацію.",
+      "2) На картку стрічку ставить проект: aside: timelineModule.aside у розширенні модуля картки чи <timelineModule.Timeline resource id /> на своїй. Без цього картка не робить запитів стрічки.",
+      "3) Проект без пошти: card: { messages: false }. Бекенд без GET /me/activities: myActivities: false.",
+      "4) Моки: createTimelineMocks({ targets, seeds }) з @/modules/N1-timeline/mocks — handlers у setupWorker після createPlatformHandlers. Докладно — src/modules/N1-timeline/README.md.",
     ].join("\n"),
   },
   "modules/A6-dictionaries": {

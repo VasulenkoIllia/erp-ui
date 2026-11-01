@@ -91,10 +91,10 @@ test.describe("скриншоти кроку 0.6d @screenshots", () => {
       await ready(page)
       await expectNoA11yViolations(page)
       await shot(page, `card-draft-sapphire-${theme}-390`)
-      await page.getByRole("tab", { name: "Історія" }).click()
+      await page.getByRole("tab", { name: "Стрічка" }).click()
       await expect(
-        page.getByRole("tabpanel", { name: "Історія" }),
-      ).toContainText("Подій ще немає.")
+        page.getByRole("tabpanel", { name: "Стрічка" }),
+      ).toContainText("У стрічці ще нічого немає")
       await shot(page, `card-history-sapphire-${theme}-390`)
     })
 

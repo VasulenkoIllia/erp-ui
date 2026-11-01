@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test"
+import { expect, type Locator, type Page } from "@playwright/test"
 
 import {
   chooseInSubmenu,
@@ -59,6 +59,10 @@ export async function chooseLanguage(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: /Меню користувача/ }).click()
   await chooseInSubmenu(page, /Мова/, name)
 }
+
+/** Записи змін полів у стрічці запису (ADR-0054). */
+export const timelineChanges = (scope: Page | Locator) =>
+  scope.locator('[data-slot="timeline-entry"][data-kind="change"]')
 
 /** Сценарій моків для всіх ресурсів через панель розробника. */
 export async function chooseScenario(page: Page, name: string): Promise<void> {

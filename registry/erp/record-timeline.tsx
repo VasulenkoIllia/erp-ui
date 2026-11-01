@@ -8,6 +8,7 @@ import { TimelineComposer } from "@/registry/erp/timeline-composer"
 import { FeedLoadState, TimelineFeed } from "@/registry/erp/timeline-feed"
 import { TimelineFollowers } from "@/registry/erp/timeline-followers"
 import {
+  useFeedRefreshState,
   useTimelineActions,
   useTimelineFeed,
   useTimelineRealtime,
@@ -58,24 +59,6 @@ export interface RecordTimelineProps {
   /** Назва області для читача екрана: кілька стрічок на сторінці мають відрізнятись. */
   label?: string
   className?: string
-}
-
-/** Менше за секунду індикатор лише блимав би (SPEC §8.2). */
-const REFRESH_INDICATOR_DELAY_MS = 1_000
-
-function useDelayed(value: boolean, delayMs: number): boolean {
-  const [isShown, setIsShown] = React.useState(false)
-  React.useEffect(() => {
-    if (!value) return
-    const timer = setTimeout(() => {
-      setIsShown(true)
-    }, delayMs)
-    return () => {
-      clearTimeout(timer)
-      setIsShown(false)
-    }
-  }, [value, delayMs])
-  return value && isShown
 }
 
 function FilterSelect({
@@ -141,17 +124,7 @@ function TimelineBody({
   const [isReady, setIsReady] = React.useState(false)
   if (feed.query.data && !isReady) setIsReady(true)
   const { query } = feed
-  // Без мережі запит нового фільтра на паузі: `isFetching` мовчить, а список ще попередній.
-  const isRefreshing = useDelayed(
-    (query.isFetching && !query.isPending && !query.isFetchingNextPage) ||
-      query.isPlaceholderData,
-    REFRESH_INDICATOR_DELAY_MS,
-  )
-  // Новий фільтр ще не прийшов; без мережі запит на паузі, і приглушувати список немає чого чекати.
-  const isSwitching = useDelayed(
-    query.isPlaceholderData && query.fetchStatus === "fetching",
-    REFRESH_INDICATOR_DELAY_MS,
-  )
+  const { isRefreshing, isSwitching } = useFeedRefreshState(query)
   if (!isReady) return <FeedLoadState query={query} />
   return (
     <>

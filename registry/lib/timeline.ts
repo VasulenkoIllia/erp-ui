@@ -23,6 +23,10 @@
  * - `POST /<ресурс>/<id>/activities` { requestId, type, title, dueDate, assigneeId } → дія, 201.
  * - `PATCH /<ресурс>/<id>/activities/<activityId>` { version, ... } → дія; `status: "done"` чи
  *   `"cancelled"` закриває її й дописує запис `activity` у стрічку. Чужа версія — 409 із `current`.
+ * - `GET /me/activities?dueFrom=&dueTo=&page=&perPage=` → { data, total }: відкриті дії людини, що ввійшла,
+ *   через усі записи, які вона бачить, найближчий термін першим. `perPage` до 100. Рядок — дія, разом з `assignee`,
+ *   і `record: { resource, id, title? }`. `dueFrom` і `dueTo` — календарні дати включно: який сьогодні день у
+ *   людини, рахує клієнт. Змінюють дію адреси її запису, окремих адрес запису тут немає (модуль N1, ADR-0054).
  * - Подія `<ресурс>.timeline` каналу реального часу (ADR-0051) обов'язкова, щойно канал є: опитування
  *   тоді вимкнено. З `id` — перечитати стрічку цього запису, без `id` — усі стрічки ресурсу.
  * - Запит, що не дочекався відповіді, міг дійти. Повтор `PATCH` дасть 409, `DELETE` дасть 404: кіт вважає
@@ -49,6 +53,8 @@ import { richTextSchema, type RichTextDoc } from "@/registry/lib/rich-text"
 export const TIMELINE_SCENARIO_RESOURCE = "timeline"
 /** Записів на сторінку стрічки. */
 export const TIMELINE_PER_PAGE = 20
+/** Стеля `perPage` у контракті: більше сервер не віддасть, і рахунок сторінок розійшовся б. */
+export const TIMELINE_MAX_PER_PAGE = 100
 /** Опитування, коли каналу реального часу немає. */
 export const TIMELINE_POLL_MS = 60_000
 /** Найбільший файл за замовчуванням; сервер проекту має свою межу. */
@@ -225,6 +231,28 @@ export const timelineActivitySchema = z.object({
 })
 export type TimelineActivity = z.output<typeof timelineActivitySchema>
 
+/** Рядок «Моїх справ»: дія й запис, до якого вона належить. */
+export const timelineMyActivitySchema = timelineActivitySchema.extend({
+  record: z.object({
+    resource: z.string(),
+    id: z.string(),
+    title: optionalTextSchema,
+  }),
+})
+export type TimelineMyActivity = z.output<typeof timelineMyActivitySchema>
+
+const myActivitiesPageSchema = z.object({
+  data: rowsOf(timelineMyActivitySchema),
+  total: z.number().int().min(0),
+})
+export type TimelineMyActivitiesPage = z.output<typeof myActivitiesPageSchema>
+
+/** Межі терміну «Моїх справ»: календарні дати включно. */
+export interface TimelineDueRange {
+  readonly dueFrom?: string
+  readonly dueTo?: string
+}
+
 export const timelineActivityInputSchema = z.object({
   type: z.string().min(1),
   title: z.string().trim().min(1),
@@ -308,6 +336,12 @@ export interface TimelineApi {
     activityId: string,
     patch: TimelineActivityPatch,
   ) => Promise<TimelineActivity>
+  myActivities: (
+    range: TimelineDueRange,
+    page: number,
+    perPage: number,
+    signal?: AbortSignal,
+  ) => Promise<TimelineMyActivitiesPage>
 }
 
 const recordPath = ({ resource, id }: TimelineTarget, tail: string) =>
@@ -400,6 +434,13 @@ export function createTimelineApi(client: ApiClient): TimelineApi {
         patch,
         { ...WRITE, schema: timelineActivitySchema },
       ),
+    myActivities: (range, page, perPage, signal) =>
+      client.get("/me/activities", {
+        ...READ,
+        signal,
+        query: { ...range, page: String(page), perPage: String(perPage) },
+        schema: myActivitiesPageSchema,
+      }),
   }
 }
 
@@ -409,3 +450,6 @@ export function createTimelineApi(client: ApiClient): TimelineApi {
  */
 export const timelineQueryKey = ({ resource, id }: TimelineTarget) =>
   [resource, "timeline", id] as const
+
+/** Ключ «Моїх справ»: дії приходять з усіх ресурсів, тож ключ не починається з ресурсу. */
+export const TIMELINE_MY_ACTIVITIES_KEY = ["timeline", "my-activities"] as const

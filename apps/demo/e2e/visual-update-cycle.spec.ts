@@ -73,17 +73,14 @@ test.describe("скриншоти кроку 1.7a @screenshots", () => {
         await page.getByRole("option", { name: "Telegram" }).click()
         await form.getByRole("button", { name: "Зберегти" }).click()
         await expect(form).toBeHidden()
-        // Вузька картка показує журнал вкладкою, широка — панеллю поруч.
-        const historyTab = page.getByRole("tab", { name: "Історія" })
-        if (await historyTab.isVisible()) await historyTab.click()
-        await page
-          .getByRole("button", { name: "Подробиці: Контакти: зміна" })
-          .click()
+        // Вузька картка показує стрічку вкладкою, широка — панеллю поруч.
+        const timelineTab = page.getByRole("tab", { name: "Стрічка" })
+        if (await timelineTab.isVisible()) await timelineTab.click()
         const change = page
           .locator('[data-slot="audit-change"]')
           .filter({ hasText: "Зручний канал" })
         await expect(change).toContainText("БулоТелефонСталоTelegram")
-        // Тост «Зміни збережено» не закриває рядок журналу на знімку.
+        // Тост «Зміни збережено» не закриває рядок стрічки на знімку.
         await page
           .getByRole("region", { name: /^Notifications/ })
           .getByRole("button", { name: "Закрити" })

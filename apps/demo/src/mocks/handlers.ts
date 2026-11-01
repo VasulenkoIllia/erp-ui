@@ -5,7 +5,6 @@ import {
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
-import { createTimelineHandlers } from "@/registry/lib/mock-timeline"
 import { timelineTargetMock } from "@/registry/lib/mock-timeline-store"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
@@ -16,6 +15,7 @@ import {
 } from "@/registry/modules/A4-import-export/mocks"
 import { createAuditMocks } from "@/registry/modules/A5-audit/mocks"
 import { createDictionariesMocks } from "@/registry/modules/A6-dictionaries/mocks"
+import { createTimelineMocks } from "@/registry/modules/N1-timeline/mocks"
 import { createNotificationsMocks } from "@/registry/modules/N5-notifications/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
@@ -29,7 +29,7 @@ import {
   type Invoice,
 } from "@/data/invoices"
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
-import { TIMELINE_SEEDS } from "@/data/timeline"
+import { MY_ACTIVITY_SEEDS, TIMELINE_SEEDS } from "@/data/timeline"
 import { makeProducts, productSchema, type Product } from "@/data/products"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
@@ -183,6 +183,28 @@ const importExport = createImportExportMocks({
   ],
 })
 
+/** Модуль N1 «Стрічка запису» (ADR-0054): рахунки й обидві картки B1, «Мої справи» бухгалтера демо. */
+const timeline = createTimelineMocks({
+  targets: [
+    timelineTargetMock({
+      resource: "invoices",
+      db: invoices.db,
+      title: (invoice) => invoice.number,
+    }),
+    timelineTargetMock({
+      resource: "contacts",
+      db: contacts.db.contacts,
+      title: (contact) => contact.name,
+    }),
+    timelineTargetMock({
+      resource: "organizations",
+      db: contacts.db.organizations,
+      title: (organization) => organization.name,
+    }),
+  ],
+  seeds: { ...MY_ACTIVITY_SEEDS, ...TIMELINE_SEEDS },
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -221,10 +243,7 @@ export const handlers = [
   ...createJobHandlers(),
   ...invoiceBulk,
   ...importExport.handlers,
-  ...createTimelineHandlers({
-    targets: [timelineTargetMock({ resource: "invoices", db: invoices.db })],
-    seeds: TIMELINE_SEEDS,
-  }),
+  ...timeline.handlers,
   ...products.handlers,
   ...invoices.handlers,
   ...contacts.handlers,

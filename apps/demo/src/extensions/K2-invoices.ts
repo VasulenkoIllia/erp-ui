@@ -1,4 +1,5 @@
 import type { InvoicesExtension } from "@/pages/invoice-extension"
+import { timelineModule } from "@/timeline-module"
 
 import { invoiceFields } from "./K2-invoices-fields"
 import { PaymentTerms, RemindAction } from "./K2-invoices-slots"
@@ -11,7 +12,8 @@ import { PaymentTerms, RemindAction } from "./K2-invoices-slots"
  * - нове поле «Менеджер» — схема, підписи й значення для моків;
  * - колонка «Менеджер» у списку після «Клієнт» (на вузькому екрані ховається першою);
  * - поле «Менеджер» у шапці картки й секція «Умови оплати» після рядків;
- * - дія «Нагадати клієнту» в шапці картки — лише з правом змінювати рахунки.
+ * - дія «Нагадати клієнту» в шапці картки — лише з правом змінювати рахунки;
+ * - стрічка запису модуля N1 замість «Історії» (ADR-0054).
  * Підписи полів і секцій — даними (uk, en), тексти компонентів — у рядках проекту.
  */
 export const invoicesExtension: InvoicesExtension = {
@@ -41,4 +43,5 @@ export const invoicesExtension: InvoicesExtension = {
   actions: {
     add: [{ id: "remind", component: RemindAction, access: "edit" }],
   },
+  aside: timelineModule.aside,
 }

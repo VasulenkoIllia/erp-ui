@@ -51,6 +51,7 @@ import { RECORD_DENIAL_REASONS } from "@/registry/lib/record-access"
 import { isRichTextEmpty, richTextSchema } from "@/registry/lib/rich-text"
 import {
   TIMELINE_MAX_FILE_BYTES,
+  TIMELINE_MAX_PER_PAGE,
   TIMELINE_PER_PAGE,
   TIMELINE_POST_KINDS,
   TIMELINE_SCENARIO_RESOURCE,
@@ -90,7 +91,7 @@ const isEmptyScenario = () =>
 const pageOf = (params: URLSearchParams) => ({
   page: Math.max(1, Number(params.get("page")) || 1),
   perPage: Math.min(
-    100,
+    TIMELINE_MAX_PER_PAGE,
     Math.max(1, Number(params.get("perPage")) || TIMELINE_PER_PAGE),
   ),
 })

@@ -21,6 +21,7 @@ import type { ModuleStrings } from "@/lib/i18n-namespaces"
 import type { ExtensionStatusChanges } from "@/lib/statuses"
 import type {
   ExtensionAction,
+  ExtensionAside,
   ExtensionSection,
 } from "@/components/templates/object-page"
 
@@ -135,6 +136,11 @@ export interface EntityExtension<T, K extends EntityIds> {
   readonly history?: boolean
   /** `false` — картка без «Редагує …» (ADR-0051); бекенд без блокувань і так нічого не зламає: 404 мовчить. */
   readonly editLock?: boolean
+  /**
+   * Стрічка картки замість «Історії»: `timelineModule.aside` модуля N1 чи свій компонент (ADR-0054).
+   * Без неї картка працює як раніше й не робить запитів стрічки: бекенд без стрічки нічого не помітить.
+   */
+  readonly aside?: ExtensionAside<T>
   /** Секції (у картці організації — вкладки) — компоненти проекту в слотах. */
   readonly sections?: KeyedChanges<ExtensionSection<T>, K["section"]>
   /** Дії в шапці картки — компоненти проекту з правом `access`. */

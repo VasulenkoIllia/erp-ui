@@ -1,4 +1,5 @@
 import type { MockTimelineSeeds } from "@/registry/lib/mock-timeline-store"
+import { createTimelineFixtures } from "@/registry/modules/N1-timeline/fixtures"
 
 import { HOSTILE_NOTE, NOTE } from "@/data/rich-text"
 
@@ -158,3 +159,17 @@ export const TIMELINE_SEEDS: MockTimelineSeeds = {
     ],
   },
 }
+
+/** «Мої справи» бухгалтера демо: записи тієї самої компанії, що й рахунок вище. */
+export const MY_ACTIVITY_SEEDS = createTimelineFixtures({
+  records: [
+    { resource: "contacts", id: "contact-001" },
+    { resource: "organizations", id: "org-001" },
+    { resource: "contacts", id: "contact-002" },
+    { resource: "organizations", id: "org-002" },
+    { resource: "contacts", id: "contact-003" },
+    { resource: "organizations", id: "org-003" },
+    { resource: "contacts", id: "contact-004" },
+  ],
+  people: [OLENA],
+})

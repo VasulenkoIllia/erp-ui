@@ -1,6 +1,12 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { cellOf, expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  cellOf,
+  expectNoA11yViolations,
+  openWith,
+  timelineChanges,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок A2c2b2 (ADR-0039): «свої» записи в модулі B1 на моках демо. Іван — «Менеджер з продажу»: бачить
@@ -242,7 +248,7 @@ test.describe("«Відповідальний»: бухгалтер бачить
     ).toContainText("Відповідальний: Марта Шевчук")
   })
 
-  test("передача: шапка й «Історія» — іменами, запис лишається видно", async ({
+  test("передача: шапка й стрічка — іменами, запис лишається видно", async ({
     page,
   }) => {
     await openWith(page, {}, OLENA_CARD)
@@ -256,8 +262,11 @@ test.describe("«Відповідальний»: бухгалтер бачить
       "Іван Петренко",
     )
     await expect(
-      page.getByText("Олена Коваль", { exact: false }).first(),
-    ).toBeVisible()
+      timelineChanges(page)
+        .locator('[data-slot="audit-change"]')
+        .filter({ hasText: "Відповідальний" })
+        .first(),
+    ).toContainText("БулоОлена КовальСталоІван Петренко")
   })
 
   test("у контакті — свій відповідальний, у шапці й колонці", async ({

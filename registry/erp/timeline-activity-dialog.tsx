@@ -110,7 +110,7 @@ export function TimelineActivityDialog({
   activity: TimelineActivity | null
   actions: TimelineActions
   /** Діалог без тригера: куди повернути фокус. */
-  finalFocus: React.RefObject<HTMLElement | null>
+  finalFocus: () => HTMLElement | null
   onClose: () => void
 }) {
   const t = useErpUiT()

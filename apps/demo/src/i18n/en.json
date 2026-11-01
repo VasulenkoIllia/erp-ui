@@ -442,8 +442,6 @@
     "total": "Total",
     "inWords": "Amount in words",
     "history": "History",
-    "comment": "Comment",
-    "commentSoon": "Comments, files and followers will arrive with the record feed in wave 1.",
     "edit": "Edit",
     "approveTitle": "Approve invoice {{number}}?",
     "approveDescription": "Only a draft up to 350,000.00 UAH can be approved. The job runs on the server; the result appears in a notification.",
@@ -857,6 +855,8 @@
     "edit": "Edit invoice"
   },
   "timelinePage": {
+    "noMailTitle": "Project without email",
+    "noMailDescription": "The extension turned messages off: notes stay, the message filter is gone too.",
     "lead": "Everything that happened to a record in one place: team notes, messages to the customer, field changes, files, followers and scheduled actions. Buttons here play the part of a colleague and the customer.",
     "fullTitle": "Full invoice timeline",
     "fullDescription": "Anyone who can see the record can write. New entries appear without a reload; the mock panel switches states, resource timeline.",

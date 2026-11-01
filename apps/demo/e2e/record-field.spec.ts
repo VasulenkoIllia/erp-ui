@@ -69,7 +69,7 @@ test.describe("поле-запис: десктоп", () => {
     await expect(page).not.toHaveURL(/responsibleId=/)
   })
 
-  test("форма: вибір запису з пошуком, шапка й журнал — іменами; очищення — «—»", async ({
+  test("форма: вибір запису з пошуком, шапка й стрічка — іменами; очищення — «—»", async ({
     page,
   }) => {
     await openWith(page, {}, IVAN_CARD)
@@ -95,13 +95,10 @@ test.describe("поле-запис: десктоп", () => {
     await expect(form).toBeHidden()
     await expect(headerValue(page, "Відповідальний")).toHaveText("Марта Шевчук")
 
-    // На широкому екрані історія — поруч із вкладками картки.
-    const history = page.getByRole("region", { name: "Історія" })
-    await history
-      .getByRole("button", { name: "Подробиці: Організації: зміна" })
-      .click()
+    // На широкому екрані стрічка — поруч із вкладками картки.
     await expect(
-      history
+      page
+        .getByRole("region", { name: "Стрічка" })
         .locator('[data-slot="audit-change"]')
         .filter({ hasText: "Відповідальний" }),
     ).toContainText("БулоІван ПетренкоСталоМарта Шевчук")

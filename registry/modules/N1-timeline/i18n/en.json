@@ -1,0 +1,19 @@
+{
+  "myActivities": {
+    "title": "My activities",
+    "lead": "Planned activities assigned to you across all records. Nearest due date first.",
+    "tabsLabel": "Due",
+    "listLabel": "My planned activities",
+    "updating": "Updating the list",
+    "tabs": {
+      "all": "All",
+      "overdue": "Overdue",
+      "today": "Today",
+      "upcoming": "Upcoming"
+    },
+    "emptyTitle": "Nothing to do",
+    "emptyDescription": "When someone assigns you an activity on a record, it appears here.",
+    "noResultsTitle": "Nothing on this tab",
+    "noResultsDescription": "0 matches. Your other activities are on the other tabs."
+  }
+}

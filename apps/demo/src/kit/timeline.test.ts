@@ -206,6 +206,35 @@ describe("список із зіпсованими рядками", () => {
     const activities = await api.activities(TARGET)
     expect(activities.map(({ id }) => id)).toEqual(["good"])
   })
+
+  it("«Мої справи»: зіпсований рядок випадає, зіпсована назва запису — ні", async () => {
+    const assignee = { id: "u-1", name: "Олена" }
+    const activity = {
+      version: 1,
+      type: "call",
+      title: "Дзвінок",
+      dueDate: "2026-11-02",
+      assignee,
+    }
+    const record = { resource: "invoices", id: "inv-1" }
+    const { api } = apiWith({
+      total: 4,
+      data: [
+        { ...activity, id: "good", record },
+        { ...activity, id: "bad-title", record: { ...record, title: 7 } },
+        { ...activity, id: "no-record" },
+        { ...activity, id: "bad-date", dueDate: "скоро", record },
+      ],
+    })
+    const { data } = await api.myActivities({}, 1, 20)
+    expect(data.map(({ id }) => id)).toEqual(["good", "bad-title"])
+    expect(data[1]?.record.title).toBeUndefined()
+  })
+
+  it("«Мої справи»: не пройшов жоден рядок — це помилка, а не порожньо", async () => {
+    const { api } = apiWith({ total: 1, data: [{ id: "1" }] })
+    await expect(api.myActivities({}, 1, 20)).rejects.toThrow()
+  })
 })
 
 describe("createTimelineApi", () => {

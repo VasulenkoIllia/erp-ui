@@ -86,6 +86,7 @@ function setup(
     activities: vi.fn(() => Promise.resolve([])),
     addActivity: vi.fn(() => Promise.resolve(ACTIVITY)),
     updateActivity: vi.fn(() => Promise.resolve(ACTIVITY)),
+    myActivities: vi.fn(() => Promise.resolve({ data: [], total: 0 })),
     ...api,
   } satisfies TimelineApi
   const authProvider = {
@@ -211,6 +212,21 @@ describe("RecordTimeline: варіанти", () => {
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole("button", { name: "Запланувати" }),
+    ).not.toBeInTheDocument()
+  })
+
+  it("лише читання: заборонена дія теж без кнопки", async () => {
+    setup(
+      {
+        activities: vi.fn(() =>
+          Promise.resolve([{ ...ACTIVITY, deniedActions: { update: "own" } }]),
+        ),
+      },
+      { readOnly: true },
+    )
+    expect(await screen.findByText("Подзвонити")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Виконано/ }),
     ).not.toBeInTheDocument()
   })
 

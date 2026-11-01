@@ -55,8 +55,9 @@ const MISSING_DETAIL = new Error(
 
 /**
  * Картка організації на шаблоні Object Page з вкладками (SPEC §7; ADR-0019, ADR-0024): «Реквізити»,
- * «Адреси», «Рахунки», «Контактні особи» і вкладки розширення проекту; «Історія» з журналу аудиту —
- * праворуч на широкому, останньою вкладкою на вузькому. Вибрана вкладка — в адресі (`?tab=`).
+ * «Адреси», «Рахунки», «Контактні особи» і вкладки розширення проекту; «Історія» з журналу аудиту чи
+ * стрічка зі слота `aside` (ADR-0054) — праворуч на широкому, останньою вкладкою на вузькому. Вибрана
+ * вкладка — в адресі (`?tab=`).
  * Адреси й рахунки змінюються в картці (ADR-0028): «Додати…» в заголовку вкладки, меню рядка.
  */
 export function OrganizationPage() {
@@ -90,6 +91,7 @@ function OrganizationCard({ id }: { id: string }) {
     resource: ORGANIZATIONS,
     sections: extension.organizations?.sections,
     actions: extension.organizations?.actions,
+    aside: extension.organizations?.aside,
   })
   const [isEditing, setEditing] = useState(false)
   const opener = useOpener()
@@ -198,7 +200,8 @@ function OrganizationCard({ id }: { id: string }) {
         tabs={{ ...tabs, label: t("organization.tabsLabel") }}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
         aside={
-          extension.organizations?.history === false
+          slots.aside ??
+          (extension.organizations?.history === false
             ? undefined
             : {
                 label: t("organization.history"),
@@ -211,7 +214,7 @@ function OrganizationCard({ id }: { id: string }) {
                     }}
                   />
                 ),
-              }
+              })
         }
       />
       {isEditing && organization ? (
