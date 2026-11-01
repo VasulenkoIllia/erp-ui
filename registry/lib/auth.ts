@@ -83,6 +83,7 @@ import { kitAction, recordDenial } from "@/registry/lib/record-access"
 import { createRolesApi, grants, type RolesApi } from "@/registry/lib/roles"
 import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
+import { createTimelineApi, type TimelineApi } from "@/registry/lib/timeline"
 import { createWebhooksApi, type WebhooksApi } from "@/registry/lib/webhooks"
 
 /* --------------------------------- Схеми --------------------------------- */
@@ -448,6 +449,8 @@ export interface ErpAuthProvider extends AuthProvider {
   inbox: InboxApi
   /** Канал подій сервера (lib/realtime, ADR-0051). */
   realtime: RealtimeApi
+  /** Стрічка запису (lib/timeline, ADR-0053). */
+  timeline: TimelineApi
   /** Налаштування поточної компанії (lib/company, ADR-0014). */
   company: CompanyApi
   /** Обов'язковий другий крок налаштовано — завершити вхід. */
@@ -707,6 +710,7 @@ export function createAuthProvider(
 
     inbox: createInboxApi(client),
     realtime: createRealtimeApi(client),
+    timeline: createTimelineApi(client),
 
     company: createCompanyApi(client),
 

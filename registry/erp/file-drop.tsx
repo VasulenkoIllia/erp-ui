@@ -50,6 +50,22 @@ export function matchesAccept(file: File, accept: string): boolean {
 const BYTES_IN_KB = 1024
 const BYTES_IN_MB = 1024 * 1024
 
+/** Розмір файла мовою інтерфейсу: «12 КБ», «2,5 МБ». */
+export function useFileSizeText(): (bytes: number) => string {
+  const t = useErpUiT()
+  const format = useFormat()
+  return (bytes) =>
+    bytes < BYTES_IN_MB
+      ? t("fileDrop.sizeKb", {
+          value: format.number(Math.ceil(bytes / BYTES_IN_KB)),
+        })
+      : t("fileDrop.sizeMb", {
+          value: format.number(bytes / BYTES_IN_MB, {
+            maximumFractionDigits: 1,
+          }),
+        })
+}
+
 export function FileDrop({
   label,
   hint,
@@ -63,7 +79,6 @@ export function FileDrop({
   className,
 }: FileDropProps) {
   const t = useErpUiT()
-  const format = useFormat()
   const input = React.useRef<HTMLInputElement>(null)
   const choose = React.useRef<HTMLButtonElement>(null)
   const refocus = React.useRef(false)
@@ -72,16 +87,7 @@ export function FileDrop({
   const [dragging, setDragging] = React.useState(false)
   const [rejected, setRejected] = React.useState<string | null>(null)
   const message = rejected ?? error
-  const sizeOf = (bytes: number) =>
-    bytes < BYTES_IN_MB
-      ? t("fileDrop.sizeKb", {
-          value: format.number(Math.ceil(bytes / BYTES_IN_KB)),
-        })
-      : t("fileDrop.sizeMb", {
-          value: format.number(bytes / BYTES_IN_MB, {
-            maximumFractionDigits: 1,
-          }),
-        })
+  const sizeOf = useFileSizeText()
 
   React.useEffect(() => {
     if (!file && refocus.current) choose.current?.focus()

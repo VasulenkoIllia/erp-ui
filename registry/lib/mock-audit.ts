@@ -225,6 +225,23 @@ function localize(event: MockAuditEvent, language: string): AuditEvent {
   }
 }
 
+/** Зміни полів одного запису, новіші першими: мок стрічки бере їх із журналу (ADR-0053). */
+export function mockRecordChanges(
+  target: { type: string; id: string },
+  companyId: string | null,
+  language: string,
+): AuditEvent[] {
+  return readEvents()
+    .filter(
+      (event) =>
+        inMockScope(event, companyId) &&
+        event.target?.type === target.type &&
+        event.target.id === target.id &&
+        Boolean(event.changes?.length),
+    )
+    .map((event) => localize(event, language))
+}
+
 function filtered(request: Request, companyId: string | null): AuditEvent[] {
   const params = new URL(request.url).searchParams
   const language = languageOf(request)

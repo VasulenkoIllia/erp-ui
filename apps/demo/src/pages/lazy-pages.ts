@@ -37,6 +37,10 @@ export const PAGES = {
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),
   ),
+  // Редактор вантажиться з полем нового запису, показ його не потребує.
+  timeline: lazyWithPreload(() =>
+    import("./TimelinePage").then((m) => m.TimelinePage),
+  ),
   // Майстер імпорту й діалог експорту; бібліотека xlsx вантажиться окремо, коли потрібен файл.
   importExport: lazyWithPreload(() =>
     import("./ImportExportPage").then((m) => m.ImportExportPage),

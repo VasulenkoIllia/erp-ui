@@ -28,4 +28,5 @@ export const MOCK_RESOURCES = [
   "import-runs",
   "products",
   "realtime",
+  "timeline",
 ]

@@ -5,6 +5,8 @@ import {
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
+import { createTimelineHandlers } from "@/registry/lib/mock-timeline"
+import { timelineTargetMock } from "@/registry/lib/mock-timeline-store"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
@@ -27,6 +29,7 @@ import {
   type Invoice,
 } from "@/data/invoices"
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
+import { TIMELINE_SEEDS } from "@/data/timeline"
 import { makeProducts, productSchema, type Product } from "@/data/products"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
@@ -218,6 +221,10 @@ export const handlers = [
   ...createJobHandlers(),
   ...invoiceBulk,
   ...importExport.handlers,
+  ...createTimelineHandlers({
+    targets: [timelineTargetMock({ resource: "invoices", db: invoices.db })],
+    seeds: TIMELINE_SEEDS,
+  }),
   ...products.handlers,
   ...invoices.handlers,
   ...contacts.handlers,
