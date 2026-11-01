@@ -25,4 +25,6 @@ export const MOCK_RESOURCES = [
   "tags",
   "reasons",
   "dictionary-defaults",
+  "import-runs",
+  "products",
 ]

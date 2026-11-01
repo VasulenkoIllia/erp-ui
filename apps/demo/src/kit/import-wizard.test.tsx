@@ -65,7 +65,9 @@ function setup({
   getJob = vi.fn(() => Promise.resolve(DONE_JOB)),
   startImport = vi.fn(() => Promise.resolve({ jobId: "job-1" })),
   retryJob = vi.fn(() => Promise.resolve({ jobId: "job-2" })),
+  canUpdate,
 }: {
+  canUpdate?: boolean
   checkImport?: ErpDataProvider["checkImport"]
   getJob?: ErpDataProvider["getJob"]
   startImport?: ErpDataProvider["startImport"]
@@ -75,7 +77,9 @@ function setup({
   const router = createMemoryRouter([
     {
       path: "/",
-      element: <ImportWizard target={TARGET} onDone={onDone} />,
+      element: (
+        <ImportWizard target={TARGET} canUpdate={canUpdate} onDone={onDone} />
+      ),
     },
   ])
   const dataProvider = {
@@ -137,6 +141,87 @@ describe("ImportWizard", () => {
       await screen.findByRole("combobox", { name: "Поле для колонки Ціна" }),
     ).toHaveTextContent("Ціна")
     expect(screen.getByText("Приклад: 12,5")).toBeInTheDocument()
+  })
+
+  describe("шапка над таблицею", () => {
+    const REPORT = new File(
+      ["Звіт за жовтень\nАртикул;Назва;Ціна\nA-1;Кава;12,5\nA-2;Чай;30\n"],
+      "звіт.csv",
+      { type: "text/csv" },
+    )
+    const headerSelect = () =>
+      screen.findByRole("combobox", { name: "Рядок із назвами колонок" })
+
+    async function chooseHeader(name: string) {
+      await userEvent.click(await headerSelect())
+      await userEvent.click(await screen.findByRole("option", { name }))
+    }
+
+    it("вибраний рядок дає назви колонок і нумерацію з Excel", async () => {
+      const { checkImport } = setup()
+      await userEvent.upload(screen.getByTestId("file-drop-input"), REPORT)
+      await screen.findByText("3 рядки")
+      await chooseHeader("Рядок 2: Артикул, Назва, Ціна")
+      await screen.findByText("2 рядки")
+      await next()
+      await screen.findByRole("heading", { level: 2, name: /Колонки/ })
+      expect(screen.getByText("Приклад: A-1")).toBeVisible()
+      await next()
+      await screen.findByRole("heading", { level: 2, name: /Перевірка/ })
+      const [, request] = vi.mocked(checkImport).mock.calls[0] ?? []
+      expect(request?.rows.map(({ row }) => row)).toEqual([3, 4])
+      expect(request?.rows[0]?.values).toEqual({
+        sku: "A-1",
+        name: "Кава",
+        price: 12.5,
+      })
+    })
+
+    it("зміна рядка скидає перевірку й ключ запуску", async () => {
+      const { checkImport } = setup()
+      await userEvent.upload(screen.getByTestId("file-drop-input"), REPORT)
+      await chooseHeader("Рядок 2: Артикул, Назва, Ціна")
+      await next()
+      await next()
+      await screen.findByRole("heading", { level: 2, name: /Перевірка/ })
+      await next("Назад")
+      await next("Назад")
+      await chooseHeader("Рядок 1: Звіт за жовтень")
+      await chooseHeader("Рядок 2: Артикул, Назва, Ціна")
+      await next()
+      await next()
+      await screen.findByRole("heading", { level: 2, name: /Перевірка/ })
+      const calls = vi.mocked(checkImport).mock.calls
+      expect(calls).toHaveLength(2)
+      expect(calls[0]?.[1].requestId).not.toBe(calls[1]?.[1].requestId)
+    })
+
+    it("файл без шапки не показує вибір", async () => {
+      setup()
+      await userEvent.upload(
+        screen.getByTestId("file-drop-input"),
+        new File(["Артикул\n"], "один.csv", { type: "text/csv" }),
+      )
+      await screen.findByText(/лише назви колонок/)
+      expect(
+        screen.queryByRole("combobox", { name: "Рядок із назвами колонок" }),
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it("без права змінювати дублі лише пропускаються, вибір пояснює чому", async () => {
+    setup({ canUpdate: false })
+    await chooseFile()
+    await next()
+    await screen.findByRole("heading", { level: 2, name: /Колонки/ })
+    expect(
+      screen.getByRole("combobox", { name: /Якщо запис із таким значенням/ }),
+    ).toBeDisabled()
+    expect(
+      screen.getByText(
+        "Немає права змінювати ці записи, тому дублі пропускаються.",
+      ),
+    ).toBeVisible()
   })
 
   it("не йде далі без обов'язкової колонки", async () => {

@@ -20,7 +20,7 @@ export const enImport = {
       report: "Report",
     },
     descriptions: {
-      file: "Upload a table. The first filled row must contain the column names.",
+      file: "Upload a table. Column names come from the first filled row. If the table has a heading above it, choose another row.",
       mapping: "Choose the field for each column.",
       check: "No record has been changed yet.",
       preview:
@@ -34,6 +34,8 @@ export const enImport = {
       rows_one: "{{formatted}} row",
       rows_other: "{{formatted}} rows",
       sheet: "Sheet",
+      headerRow: "Row with column names",
+      headerRowItem: "Row {{row}}: {{cells}}",
       template: "Download template",
       templateName: "template",
       templateFailed: "Could not create the template. Try again.",
@@ -64,6 +66,8 @@ export const enImport = {
       duplicates: "If a record with this “{{field}}” already exists",
       skipDuplicate: "Skip the row",
       updateDuplicate: "Update the record",
+      updateDenied:
+        "You have no permission to change these records, so duplicates are skipped.",
     },
     check: {
       create: "New records",

@@ -82,25 +82,67 @@ export function fieldValueText(
   return field.options?.find((item) => item.value === value)?.label ?? value
 }
 
-/** Перший непорожній рядок файла — заголовки. */
+/**
+ * Серед скількох перших рядків файла шукати заголовки: шапка над таблицею коротка. Рахуємо й порожні
+ * рядки, бо читання файла бере рівно такий запас понад межу.
+ */
+export const HEADER_ROW_CHOICES = 20
+/** Скільки клітинок і символів рядка видно у виборі: досить, щоб упізнати рядок. */
+const HEADER_PREVIEW_CELLS = 4
+const HEADER_PREVIEW_CHARS = 60
+
+export interface HeaderRowChoice {
+  /** Індекс у рядках аркуша: номер в Excel на одиницю більший. */
+  readonly index: number
+  readonly preview: string
+}
+
+/** Перший заповнений рядок файла: заголовки, доки людина не вибрала інший. */
 export function headerRowIndex(rows: readonly SpreadsheetRow[]): number {
   return rows.findIndex(hasValue)
 }
 
+/** Рядки, які людина може вибрати заголовками: заповнені серед перших, у порядку файла. */
+export function headerRowChoices(
+  rows: readonly SpreadsheetRow[],
+): HeaderRowChoice[] {
+  const choices: HeaderRowChoice[] = []
+  for (const [index, row] of rows.slice(0, HEADER_ROW_CHOICES).entries()) {
+    if (!hasValue(row)) continue
+    const preview = row
+      .map(cellText)
+      .filter(Boolean)
+      .slice(0, HEADER_PREVIEW_CELLS)
+      .join(", ")
+    choices.push({
+      index,
+      preview:
+        preview.length > HEADER_PREVIEW_CHARS
+          ? `${preview.slice(0, HEADER_PREVIEW_CHARS)}…`
+          : preview,
+    })
+  }
+  return choices
+}
+
 /** Скільки рядків із даними під заголовком. */
-export function dataRowCount(rows: readonly SpreadsheetRow[]): number {
-  return rows.slice(headerRowIndex(rows) + 1).filter(hasValue).length
+export function dataRowCount(
+  rows: readonly SpreadsheetRow[],
+  header: number = headerRowIndex(rows),
+): number {
+  return rows.slice(header + 1).filter(hasValue).length
 }
 
 /** Чому цей аркуш не можна імпортувати; `null` — можна. */
 export function sheetIssue(
   sheet: SpreadsheetSheet,
   maxRows: number,
+  header: number = headerRowIndex(sheet.rows),
 ): SheetIssue | null {
   if (sheet.truncated) return "too_many_rows"
-  const header = sheet.rows[headerRowIndex(sheet.rows)] ?? []
-  if (header.length > IMPORT_MAX_COLUMNS) return "too_many_columns"
-  const count = dataRowCount(sheet.rows)
+  const columns = sheet.rows[header] ?? []
+  if (columns.length > IMPORT_MAX_COLUMNS) return "too_many_columns"
+  const count = dataRowCount(sheet.rows, header)
   if (count > maxRows) return "too_many_rows"
   return count === 0 ? "no_rows" : null
 }
@@ -109,9 +151,11 @@ export function sheetIssue(
 export function columnSample(
   rows: readonly SpreadsheetRow[],
   column: number,
+  header: number = headerRowIndex(rows),
 ): string {
-  const start = headerRowIndex(rows) + 1
-  const row = rows.slice(start).find((cells) => !isEmptyCell(cells[column]))
+  const row = rows
+    .slice(header + 1)
+    .find((cells) => !isEmptyCell(cells[column]))
   return cellText(row?.[column])
 }
 
@@ -274,6 +318,7 @@ export function buildRows(
   fileRows: readonly SpreadsheetRow[],
   mapping: ImportMapping,
   fields: readonly ImportField[],
+  header: number = headerRowIndex(fileRows),
 ): BuiltRows {
   const byKey = new Map(fields.map((field) => [field.key, field]))
   const columns = Object.entries(mapping).flatMap(([column, key]) => {
@@ -283,7 +328,7 @@ export function buildRows(
   const required = fields.filter((field) => field.required)
   const rows: ImportRow[] = []
   const invalid = new Map<number, ImportRowError[]>()
-  const start = headerRowIndex(fileRows) + 1
+  const start = header + 1
   fileRows.slice(start).forEach((cells, offset) => {
     const present = columns.filter(({ column }) => !isEmptyCell(cells[column]))
     if (!present.length) return
@@ -364,14 +409,15 @@ export function errorReportRows(
   checked: readonly CheckedRow[],
   errorText: (error: ImportRowError) => string,
   errorHeader: string,
+  header: number = headerRowIndex(fileRows),
 ): SpreadsheetRow[] {
-  const header = fileRows[headerRowIndex(fileRows)] ?? []
+  const columns = fileRows[header] ?? []
   const invalid = checked.filter(({ action }) => action === "invalid")
   return [
-    [...header, errorHeader],
+    [...columns, errorHeader],
     // Рядки CSV бувають коротші за шапку: помилка має лишитись у своїй колонці.
     ...invalid.map(({ row, errors }) => [
-      ...header.map((_, column) => fileRows[row - 1]?.[column] ?? null),
+      ...columns.map((_, column) => fileRows[row - 1]?.[column] ?? null),
       errors.map(errorText).join("; "),
     ]),
   ]

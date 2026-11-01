@@ -37,13 +37,27 @@ import {
 } from "@/registry/lib/mock-server"
 import type { MockRecord, MockResourceDb } from "@/registry/lib/mocks"
 
+/** Запуск, який щойно почався: повтор того самого `requestId` запуском не є. */
+export interface MockImportStart {
+  readonly jobId: string
+  readonly resource: string
+  readonly request: ImportRequest
+  readonly user: MockUser
+  readonly companyId: string | null
+  readonly at: number
+}
+
 export interface MockImportOptions<T extends MockRecord> {
   resource: string
   db: MockResourceDb<T>
+  /** Значення полів, яких немає в рядку: новий запис дістає їх, як сервер без цих полів у тілі. */
+  defaults?: Record<string, unknown>
   perSecond?: number
   baseUrl?: string
   /** Годинник (тести). */
   now?: () => number
+  /** Новий запуск: для історії імпорту (модуль A4). */
+  onStarted?: (start: MockImportStart) => void
 }
 
 interface Scope<T extends MockRecord> {
@@ -90,6 +104,7 @@ function checkRows<T extends MockRecord>(
   db: MockResourceDb<T>,
   scope: Scope<T>,
   { rows, matchField, onDuplicate }: ImportRequest,
+  defaults: Record<string, unknown>,
 ) {
   const existing = existingBy(db, scope, matchField)
   const seen = new Set<string>()
@@ -111,7 +126,11 @@ function checkRows<T extends MockRecord>(
       return mockDeniedAction(scope.rules, found, "update")
         ? { row, action: "invalid", errors: [{ code: "forbidden" }] }
         : { row, action: "update" }
-    const prepared = db.prepare(values, scope.companyId, scope.user)
+    const prepared = db.prepare(
+      { ...defaults, ...values },
+      scope.companyId,
+      scope.user,
+    )
     return "record" in prepared
       ? { row, action: "create" }
       : {
@@ -129,9 +148,10 @@ function startImportJob<T extends MockRecord>(
   {
     resource,
     db,
+    defaults,
     perSecond,
     now,
-  }: Required<Omit<MockImportOptions<T>, "baseUrl">>,
+  }: Required<Omit<MockImportOptions<T>, "baseUrl" | "onStarted">>,
   body: ImportRequest,
   scope: Scope<T>,
 ): string {
@@ -176,7 +196,11 @@ function startImportJob<T extends MockRecord>(
       outcomes.updated += 1
       return null
     }
-    const inserted = db.insert(values, current.companyId, current.user)
+    const inserted = db.insert(
+      { ...defaults, ...values },
+      current.companyId,
+      current.user,
+    )
     if ("fieldErrors" in inserted) return failure(inserted.fieldErrors, title)
     if (key) {
       written.add(key)
@@ -220,9 +244,11 @@ function startImportJob<T extends MockRecord>(
 export function createImportHandlers<T extends MockRecord>({
   resource,
   db,
+  defaults = {},
   perSecond = MOCK_JOB_RATE,
   baseUrl = API_PREFIX,
   now = Date.now,
+  onStarted,
 }: MockImportOptions<T>): HttpHandler[] {
   const started = new Map<string, string>()
 
@@ -264,17 +290,29 @@ export function createImportHandlers<T extends MockRecord>({
     http.post(`${url}/check`, async ({ request }) => {
       const opened = await open(request)
       if (opened instanceof Response) return opened
-      return json({ rows: checkRows(db, opened.scope, opened.body) })
+      return json({ rows: checkRows(db, opened.scope, opened.body, defaults) })
     }),
     http.post(url, async ({ request }) => {
       const opened = await open(request)
       if (opened instanceof Response) return opened
       const { body, scope } = opened
       const key = `${scope.user.id}:${scope.companyId}:${body.requestId}`
-      const jobId =
-        started.get(key) ??
-        startImportJob({ resource, db, perSecond, now }, body, scope)
+      const repeated = started.get(key)
+      if (repeated) return json({ jobId: repeated }, { status: 202 })
+      const jobId = startImportJob(
+        { resource, db, defaults, perSecond, now },
+        body,
+        scope,
+      )
       started.set(key, jobId)
+      onStarted?.({
+        jobId,
+        resource,
+        request: body,
+        user: scope.user,
+        companyId: scope.companyId,
+        at: now(),
+      })
       return json({ jobId }, { status: 202 })
     }),
   ]

@@ -32,6 +32,7 @@ export const ROLES: MockRole[] = [
       "tags:*",
       "reasons:*",
       "dictionary-defaults:*",
+      "import-runs:read",
     ],
   },
   {
@@ -46,6 +47,7 @@ export const ROLES: MockRole[] = [
       "users:*",
       "roles:*",
       "security:*",
+      "import-runs:read",
       "audit:read",
       "webhooks:*",
       "company:*",
@@ -74,6 +76,7 @@ export const ROLES: MockRole[] = [
       "contacts:read:own",
       "contacts:create",
       "contacts:update:own",
+      "import-runs:read:own",
       "segments:read",
       "currencies:read",
       "exchange-rates:read",
@@ -236,6 +239,13 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Типові значення", en: "Default values" },
     group: DICTIONARIES,
     actions: ["read", "update"],
+  },
+  "import-runs": {
+    label: { uk: "Історія імпорту", en: "Import history" },
+    group: ADMIN,
+    actions: ["read"],
+    // «Свої / Усі» (ADR-0038): запуски, які людина почала сама.
+    own: ["read"],
   },
 }
 

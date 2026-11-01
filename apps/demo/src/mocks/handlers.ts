@@ -3,12 +3,15 @@ import {
   createPlatformHandlers,
   createResourceHandlers,
 } from "@/registry/lib/mocks"
-import { createImportHandlers } from "@/registry/lib/mock-imports"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
+import {
+  createImportExportMocks,
+  importTargetMock,
+} from "@/registry/modules/A4-import-export/mocks"
 import { createAuditMocks } from "@/registry/modules/A5-audit/mocks"
 import { createDictionariesMocks } from "@/registry/modules/A6-dictionaries/mocks"
 import { createNotificationsMocks } from "@/registry/modules/N5-notifications/mocks"
@@ -82,7 +85,7 @@ const LOCKED_EVERY = 24
  * Масове погодження (ADR-0018): лише чернетки; сума в гривнях понад ліміт — до директора;
  * кожен 24-й рахунок зайнятий іншим користувачем — повтор пройде.
  */
-// Товари сторінки «Імпорт і експорт» (ADR-0049).
+// Товари сторінок «Імпорт і експорт» (ADR-0049) і цілі проекту в модулі A4 (ADR-0050).
 const products = createResourceHandlers<Product>({
   resource: "products",
   schema: productSchema,
@@ -90,10 +93,6 @@ const products = createResourceHandlers<Product>({
   searchFields: ["sku", "name"],
   label: { uk: "Товари", en: "Products" },
   unique: ["sku"],
-})
-const productImport = createImportHandlers<Product>({
-  resource: "products",
-  db: products.db,
 })
 
 const invoiceBulk = createBulkHandlers<Invoice>({
@@ -164,6 +163,23 @@ const dictionaries = createDictionariesMocks({
   companies: COMPANIES.map(({ id }) => id),
 })
 
+/** Модуль A4 «Імпорт і експорт» (ADR-0050): цілі B1, A6 і своя ціль демо, історія кожної компанії. */
+const importExport = createImportExportMocks({
+  companies: COMPANIES.map(({ id }) => id),
+  targets: [
+    importTargetMock({ resource: "contacts", db: contacts.db.contacts }),
+    importTargetMock({
+      resource: "organizations",
+      db: contacts.db.organizations,
+    }),
+    importTargetMock({ resource: "taxes", db: dictionaries.db.taxes }),
+    importTargetMock({ resource: "units", db: dictionaries.db.units }),
+    importTargetMock({ resource: "tags", db: dictionaries.db.tags }),
+    importTargetMock({ resource: "reasons", db: dictionaries.db.reasons }),
+    importTargetMock({ resource: "products", db: products.db }),
+  ],
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -201,7 +217,7 @@ export const handlers = [
   ...createListSettingsHandlers(),
   ...createJobHandlers(),
   ...invoiceBulk,
-  ...productImport,
+  ...importExport.handlers,
   ...products.handlers,
   ...invoices.handlers,
   ...contacts.handlers,
