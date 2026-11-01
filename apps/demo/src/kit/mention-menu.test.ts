@@ -215,16 +215,20 @@ describe("клавіші", () => {
     expect(command).toHaveBeenCalledWith({ id: "a", label: "Людина a" })
   })
 
-  it.each(["Enter", "Tab"])(
-    "%s під час запиту не вибирає зі старого списку",
-    async (key) => {
-      const { menu, command, open } = await ready()
-      open("Мар")
-      expect(menu.getState()?.status).toBe("loading")
-      expect(menu.handleKey(key)).toBe(true)
-      expect(command).not.toHaveBeenCalled()
-    },
-  )
+  it("Enter під час запиту не вибирає зі старого списку", async () => {
+    const { menu, command, open } = await ready()
+    open("Мар")
+    expect(menu.getState()?.status).toBe("loading")
+    expect(menu.handleKey("Enter")).toBe(true)
+    expect(command).not.toHaveBeenCalled()
+  })
+
+  it("Tab під час запиту виходить із поля й нікого не вставляє", async () => {
+    const { menu, command, open } = await ready()
+    open("Мар")
+    expect(menu.handleKey("Tab")).toBe(false)
+    expect(command).not.toHaveBeenCalled()
+  })
 
   it("Enter після збою шукає знову", async () => {
     const search = vi

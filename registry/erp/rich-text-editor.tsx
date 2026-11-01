@@ -75,6 +75,9 @@ const FormListItem = ListItem.extend({
   },
 })
 
+/** Вікно посилання й службова зупинка його порталу: фокус звідти повертається в поле. */
+const FIELD_PORTALS = `[data-slot="${richTextLinkSlot}"], [data-base-ui-focus-guard]`
+
 const hasModifier = (event: KeyboardEvent) =>
   event.isComposing ||
   event.shiftKey ||
@@ -157,7 +160,8 @@ function createExtensions(menu: MentionMenu): Extensions {
           onExit: menu.close,
           onKeyDown: ({ event }) => {
             // Діалог слухає `document`, а вікно списку до того вже зникло: один Esc закрив би і його.
-            if (event.key === "Escape") event.stopPropagation()
+            if (event.key === "Escape" && menu.getState())
+              event.stopPropagation()
             if (hasModifier(event)) return false
             const handled = menu.handleKey(event.key)
             if (handled) event.preventDefault()
@@ -288,13 +292,17 @@ function Editor({
         className,
       )}
       onBlur={(event) => {
-        // Список живе, поки курсор у тексті: кнопки панелі теж у межах поля.
-        if (event.target === editor.view.dom && menu.getState())
+        // Список живе, поки курсор у тексті: кнопки панелі теж у межах поля. Перехід в інше вікно
+        // його не закриває: людина повернеться дописати ім'я, а закритий запит сам не відкриється.
+        if (
+          event.target === editor.view.dom &&
+          document.hasFocus() &&
+          menu.getState()
+        )
           dismissMention()
         const next = event.relatedTarget
         if (event.currentTarget.contains(next)) return
-        // Вікно посилання в порталі, але це те саме поле.
-        if (next?.closest(`[data-slot="${richTextLinkSlot}"]`)) return
+        if (next?.closest(FIELD_PORTALS)) return
         onBlur?.()
       }}
     >

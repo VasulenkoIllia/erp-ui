@@ -187,8 +187,10 @@ export function createMentionMenu(): MentionMenu {
         move(key === "ArrowDown" ? 1 : -1)
         return true
       }
+      // Список ще від попереднього запиту: Enter нічого не робить, а Tab просто виходить із поля.
+      if (state.status !== "ready") return key === "Enter"
       if (key === "Enter" || key === "Tab") {
-        if (state.status === "ready") select(state.active)
+        select(state.active)
         return true
       }
       return false

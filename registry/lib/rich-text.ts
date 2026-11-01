@@ -11,11 +11,11 @@ import { z } from "zod"
  *   нього. Рядок стає абзацами: бекенд із простим текстом працює без змін. Невідомий вузол (новіша
  *   версія кіта) лишає свій текст, невідома позначка чи небезпечне посилання зникають, текст лишається.
  * - Глибина й кількість вузлів обмежені: підроблений документ не вичерпає стек і не завісить вкладку
- *   в обході кіта. Законний текст цих меж не досягає. Сервер проекту має власну межу довжини, а відповідь
- *   у контракті йде через `richTextSchema`: кеш і форма копіюють значення рекурсивно й без меж.
+ *   в обході кіта. Законний текст цих меж не досягає. Сервер проекту сам обмежує глибину й довжину, а
+ *   у форму значення йде через `toRichText`: react-hook-form копіює його рекурсивно й без меж.
  * - Посилання лише `http`, `https`, `mailto`, `tel`, без логіна в адресі: `https://bank.example@evil.example`
- *   виглядає як інший сайт. У `mailto` без параметрів: `bcc` дописав би приховану копію. Перевірка одна
- *   для показу й редактора: `safeLinkHref`.
+ *   виглядає як інший сайт. У `mailto` лише адреса: `bcc`, зокрема закодований, дописав би приховану
+ *   копію. Перевірка одна для показу й редактора: `safeLinkHref`.
  * - Підпис згадки без керівних символів і не довший за `RICH_TEXT_MENTION_MAX`: він виглядає як позначка
  *   системи, тож не має розвертати сусідній текст чи вдавати повідомлення.
  */
@@ -98,10 +98,14 @@ export const EMPTY_RICH_TEXT: RichTextDoc = { type: "doc", content: [] }
 
 const LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"])
 const INLINE_TYPES = new Set(["text", "mention", "hardBreak"])
-// Без крапки в схемі: `docs.example:8443/a` — адреса з портом, а не схема `docs.example`.
-const NAMED_SCHEME = /^[a-z][a-z0-9+-]*:/i
+const NAMED_SCHEME = /^[a-z][a-z0-9+.-]*:/i
+// `crm:8080/a` і `docs.example:8443` — адреса з портом, а не схема; `tel:0441234567` — схема.
+const HOST_WITH_PORT = /^(?!tel:)[a-z][a-z0-9+.-]*:\d{1,5}(?:[/?#]|$)/i
 const LABEL_CONTROL_CHARS = /[\p{Cc}\p{Cf}]/gu
+const LABEL_SCAN_MAX = RICH_TEXT_MENTION_MAX * 4
 const EMAIL = /^[^\s@/:]+@[^\s@/:]+$/
+// Закодовані `?`, `#` і керівні символи поштовий клієнт може розкодувати в заголовки листа.
+const MAILTO_ENCODED_HEADERS = /%(?:[01][0-9a-f]|23|3f)/i
 
 /** Нормалізована адреса посилання або `null`, якщо такому посиланню не можна вірити. */
 export function safeLinkHref(value: unknown): string | null {
@@ -109,7 +113,11 @@ export function safeLinkHref(value: unknown): string | null {
   try {
     const url = new URL(value.trim())
     if (!LINK_PROTOCOLS.has(url.protocol)) return null
-    if (url.protocol === "mailto:" && url.search) return null
+    if (
+      url.protocol === "mailto:" &&
+      (url.search || url.hash || MAILTO_ENCODED_HEADERS.test(url.pathname))
+    )
+      return null
     return url.username || url.password ? null : url.href
   } catch {
     return null
@@ -121,7 +129,8 @@ export function linkFromInput(value: string): string | null {
   const typed = value.trim()
   if (!typed) return null
   if (EMAIL.test(typed)) return safeLinkHref(`mailto:${typed}`)
-  return safeLinkHref(NAMED_SCHEME.test(typed) ? typed : `https://${typed}`)
+  const hasScheme = NAMED_SCHEME.test(typed) && !HOST_WITH_PORT.test(typed)
+  return safeLinkHref(hasScheme ? typed : `https://${typed}`)
 }
 
 type JsonObject = Readonly<Record<string, unknown>>
@@ -162,7 +171,11 @@ function toMarks(value: unknown): readonly RichTextMark[] {
 
 function toMentionLabel(value: unknown): string {
   if (typeof value !== "string") return ""
-  const visible = value.replace(LABEL_CONTROL_CHARS, "").trim()
+  // Межа до розбору: підроблений підпис на мегабайти не копіюється посимвольно.
+  const visible = value
+    .slice(0, LABEL_SCAN_MAX)
+    .replace(LABEL_CONTROL_CHARS, "")
+    .trim()
   return Array.from(visible).slice(0, RICH_TEXT_MENTION_MAX).join("").trim()
 }
 
@@ -305,8 +318,7 @@ export function richTextFromPlain(text: string): RichTextDoc {
   return {
     type: "doc",
     content: text
-      .split(/\r?\n/)
-      .slice(0, RICH_TEXT_MAX_NODES)
+      .split(/\r?\n/, RICH_TEXT_MAX_NODES)
       .map((line) => toParagraph(line ? [{ type: "text", text: line }] : [])),
   }
 }

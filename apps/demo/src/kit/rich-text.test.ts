@@ -61,10 +61,13 @@ describe("safeLinkHref", () => {
     expect(safeLinkHref({ toString: () => "https://a.example" })).toBeNull()
   })
 
-  it("лист без параметрів: прихована копія не дописується", () => {
-    expect(
-      safeLinkHref("mailto:olena@firma.example?bcc=x@evil.example&body=привіт"),
-    ).toBeNull()
+  it.each([
+    "mailto:olena@firma.example?bcc=x@evil.example&body=привіт",
+    "mailto:a@b.example#?bcc=x@evil.example",
+    "mailto:a@b.example%3Fbcc=x@evil.example",
+    "mailto:a@b.example%0aBcc%3Ax%40evil.example",
+  ])("у листі лише адреса: %s", (href) => {
+    expect(safeLinkHref(href)).toBeNull()
   })
 })
 
@@ -83,6 +86,9 @@ describe("linkFromInput", () => {
     expect(linkFromInput("docs.example:8443/a")).toBe(
       "https://docs.example:8443/a",
     )
+    expect(linkFromInput("crm:8080/a")).toBe("https://crm:8080/a")
+    expect(linkFromInput("localhost:3000")).toBe("https://localhost:3000/")
+    expect(linkFromInput("tel:0441234567")).toBe("tel:0441234567")
   })
 
   it("адреса пошти стає листом", () => {

@@ -218,9 +218,29 @@ test.describe("поле тексту", () => {
   }) => {
     await openPage(page)
     await note(page).click()
-    await form(page).getByRole("button", { name: "Посилання" }).click()
+    const link = form(page).getByRole("button", { name: "Посилання" })
+    const error = form(page).getByText("Напишіть текст нотатки")
+    await link.click()
     await expect(address(page)).toBeFocused()
-    await expect(form(page).getByText("Напишіть текст нотатки")).toHaveCount(0)
+    await expect(error).toHaveCount(0)
+    await page.keyboard.press("Tab")
+    await page.keyboard.press("Tab")
+    await expect(address(page)).toBeHidden()
+    await expect(note(page)).toBeFocused()
+    await expect(error).toHaveCount(0)
+  })
+
+  test("у діалозі Esc закриває вікно посилання, а діалог лишається", async ({
+    page,
+  }) => {
+    await openPage(page)
+    await page.getByRole("button", { name: "Нотатка в діалозі" }).click()
+    const dialog = page.getByRole("dialog", { name: "Нотатка до запису" })
+    await dialog.getByRole("button", { name: "Посилання" }).click()
+    await expect(address(page)).toBeFocused()
+    await page.keyboard.press("Escape")
+    await expect(address(page)).toBeHidden()
+    await expect(dialog).toBeVisible()
   })
 
   test("обов'язкове поле: помилка біля поля, фокус, виправлення", async ({
