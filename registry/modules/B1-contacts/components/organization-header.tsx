@@ -7,6 +7,7 @@ import type {
   ObjectPageAction,
   ObjectPageHeader,
 } from "@/components/templates/object-page"
+import type { EditLock } from "@/hooks/use-edit-lock"
 import { useExtensionFields } from "@/lib/extension-fields"
 import {
   applyKeyedChanges,
@@ -33,6 +34,7 @@ export function useOrganizationHeader(
   organization: Organization | undefined,
   statuses: ResolvedStatuses,
   slotActions: KeyedChanges<ObjectPageAction, OrganizationActionId> | undefined,
+  lock: EditLock,
   onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
@@ -76,6 +78,8 @@ export function useOrganizationHeader(
           label={t("organization.edit")}
           deniedReason={t("organization.editDenied")}
           record={organization}
+          lockReason={lock.reason}
+          busy={lock.isAcquiring}
           onClick={onEdit}
         />
       ),

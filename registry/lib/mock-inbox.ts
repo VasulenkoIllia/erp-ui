@@ -20,6 +20,7 @@ import {
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   currentMockUser,
+  emitMockEvent,
   errorResponse,
   json,
   noContent,
@@ -70,15 +71,21 @@ export function pushMockNotification(
   input: Omit<MockInboxItem, "id" | "createdAt" | "readAt">,
 ): void {
   if (!mockChannelEnabled(userId, input.type, "in_app")) return
+  const id = `ntf-${randomToken().slice(0, 12)}`
   write(userId, [
     {
-      id: `ntf-${randomToken().slice(0, 12)}`,
+      id,
       createdAt: new Date().toISOString(),
       readAt: null,
       ...input,
     },
     ...read(userId),
   ])
+  emitMockEvent(
+    `${NOTIFICATIONS_RESOURCE}.created`,
+    { id },
+    { accountId: userId },
+  )
 }
 
 function localize(item: MockInboxItem, language: string): AppNotification {

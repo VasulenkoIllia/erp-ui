@@ -30,6 +30,9 @@ export const PAGES = {
   wizard: lazyWithPreload(() =>
     import("./WizardPage").then((m) => m.WizardPage),
   ),
+  realtime: lazyWithPreload(() =>
+    import("./RealtimePage").then((m) => m.RealtimePage),
+  ),
   // Майстер імпорту й діалог експорту; бібліотека xlsx вантажиться окремо, коли потрібен файл.
   importExport: lazyWithPreload(() =>
     import("./ImportExportPage").then((m) => m.ImportExportPage),

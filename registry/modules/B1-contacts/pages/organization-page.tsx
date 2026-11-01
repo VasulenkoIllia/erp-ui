@@ -2,6 +2,7 @@ import { useAuthenticated } from "ra-core"
 import { useMemo, useState } from "react"
 import { useParams } from "react-router"
 
+import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton } from "@/components/erp/page-state"
 import { RecordHistory } from "@/components/erp/record-history"
 import { BackToList } from "@/components/erp/record-link"
@@ -11,6 +12,7 @@ import {
   type ObjectPageSectionItem,
 } from "@/components/templates/object-page"
 import { useCardRecord, type CardRecord } from "@/hooks/use-card-record"
+import { useEditLock } from "@/hooks/use-edit-lock"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import {
@@ -92,13 +94,22 @@ function OrganizationCard({ id }: { id: string }) {
   const [isEditing, setEditing] = useState(false)
   const opener = useOpener()
   usePreloadForm("organization", "update")
+  const lock = useEditLock({
+    resource: ORGANIZATIONS,
+    id,
+    enabled: extension.organizations?.editLock !== false,
+  })
+  const startEditing = async () => {
+    if (await lock.acquire()) setEditing(true)
+  }
   const header = useOrganizationHeader(
     organization,
     statuses,
     slots.actions,
+    lock,
     (event) => {
       opener.remember(event)
-      setEditing(true)
+      void startEditing()
     },
   )
   const detail = useDetailState(card)
@@ -182,6 +193,7 @@ function OrganizationCard({ id }: { id: string }) {
         error={card.pageError}
         onRetry={card.retry}
         header={header}
+        notice={<EditLockNotice holder={lock.holder} />}
         sections={shownSections}
         tabs={{ ...tabs, label: t("organization.tabsLabel") }}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
@@ -208,9 +220,11 @@ function OrganizationCard({ id }: { id: string }) {
           finalFocus={opener.ref}
           onClose={() => {
             setEditing(false)
+            lock.release()
           }}
           onSaved={(saved) => {
             setEditing(false)
+            lock.release()
             leaveAfterTransfer(saved)
           }}
         />

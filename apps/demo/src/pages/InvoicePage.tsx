@@ -12,11 +12,13 @@ import { useTranslation } from "react-i18next"
 import { useLocation as useRouterLocation } from "react-router"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import { EditLockNotice } from "@/registry/erp/edit-lock-notice"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RecordStatusBar, type RecordField } from "@/registry/erp/record-header"
 import { RecordHistory } from "@/registry/erp/record-history"
 import { useCompanyId } from "@/registry/hooks/use-company"
+import { useEditLock, type EditLock } from "@/registry/hooks/use-edit-lock"
 import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
 import { ApiError, isApiError } from "@/registry/lib/api"
 import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
@@ -170,10 +172,18 @@ function InvoiceCard({
     sections: extension.sections,
     actions: extension.actions,
   })
+  const lock = useEditLock({ resource: RESOURCE, id })
+  const startEditing = (record: Invoice) => {
+    void lock.acquire().then((isAllowed) => {
+      if (isAllowed) setEditing(record)
+      else heading.current?.focus()
+    })
+  }
   const header = useInvoiceHeader(
     invoice,
     heading,
-    setEditing,
+    startEditing,
+    lock,
     extension,
     slots.actions,
   )
@@ -205,6 +215,7 @@ function InvoiceCard({
         error={pageError}
         onRetry={retry}
         header={header}
+        notice={<EditLockNotice holder={lock.holder} />}
         statusBar={
           invoice ? (
             <RecordStatusBar
@@ -236,6 +247,7 @@ function InvoiceCard({
           onReplace={setEditing}
           onClose={() => {
             setEditing(null)
+            lock.release()
           }}
         />
       ) : null}
@@ -248,6 +260,7 @@ function useInvoiceHeader(
   invoice: Invoice | undefined,
   heading: RefObject<HTMLHeadingElement | null>,
   onEdit: (invoice: Invoice) => void,
+  lock: EditLock,
   extension: InvoicesExtension,
   extensionActions: KeyedChanges<ObjectPageAction, InvoiceActionId> | undefined,
 ): ObjectPageHeader | undefined {
@@ -288,7 +301,10 @@ function useInvoiceHeader(
           },
         ]
       : []),
-    { id: "edit", node: <EditAction invoice={invoice} onEdit={onEdit} /> },
+    {
+      id: "edit",
+      node: <EditAction invoice={invoice} onEdit={onEdit} lock={lock} />,
+    },
   ]
   return {
     title: t("title", { number: invoice.number }),
@@ -301,9 +317,12 @@ function useInvoiceHeader(
 function EditAction({
   invoice,
   onEdit,
+  lock,
 }: {
   invoice: Invoice
   onEdit: (invoice: Invoice) => void
+  /** Рахунок редагує інша людина: режим перегляду (ADR-0051). */
+  lock: EditLock
 }) {
   const t = useCardT()
   const pageT = usePageT()
@@ -314,9 +333,12 @@ function EditAction({
   const Edit = ACTION_ICONS.edit
   // Поки права невідомі — дії немає, а не «немає доступу», що за мить стане кнопкою.
   if (isPending) return null
-  return canEdit === true ? (
+  const deniedReason = canEdit === true ? lock.reason : pageT("readOnlyHint")
+  return deniedReason === undefined ? (
     <Button
       variant="outline"
+      disabled={lock.isAcquiring}
+      focusableWhenDisabled
       onClick={() => {
         onEdit(invoice)
       }}
@@ -325,7 +347,7 @@ function EditAction({
       {t("edit")}
     </Button>
   ) : (
-    <DeniedAction reason={pageT("readOnlyHint")}>{t("edit")}</DeniedAction>
+    <DeniedAction reason={deniedReason}>{t("edit")}</DeniedAction>
   )
 }
 

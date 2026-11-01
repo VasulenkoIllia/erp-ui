@@ -24,6 +24,7 @@ import {
   type NotificationEvent,
   type QuietHours,
 } from "@/registry/lib/notification-settings"
+import { NOTIFICATIONS_RESOURCE } from "@/registry/lib/notifications"
 
 export interface MockNotificationEvent extends Omit<
   NotificationEvent,
@@ -73,7 +74,8 @@ export const languageOf = (request: Request) =>
   (request.headers.get("Accept-Language") ?? "uk").slice(0, 2)
 
 /** Ресурс сценаріїв: центр сповіщень, їх налаштування й підписка push. */
-export const NOTIFICATIONS_RESOURCE = "notifications"
+// erp-ui: окремі import + export, бо shadcn CLI хибно переписує шляхи в `export … from`.
+export { NOTIFICATIONS_RESOURCE }
 
 /** Відповідь сценарію або `null`; `conflict` діє лише на запис. */
 export async function notificationsScenario(

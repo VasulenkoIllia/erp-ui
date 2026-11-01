@@ -77,6 +77,7 @@ import {
   type InviteAccount,
 } from "@/registry/lib/invite-check"
 import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
+import { createRealtimeApi, type RealtimeApi } from "@/registry/lib/realtime"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
 import { kitAction, recordDenial } from "@/registry/lib/record-access"
 import { createRolesApi, grants, type RolesApi } from "@/registry/lib/roles"
@@ -445,6 +446,8 @@ export interface ErpAuthProvider extends AuthProvider {
   invitations: InvitationsApi
   /** Центр сповіщень (lib/notifications, ADR-0014). */
   inbox: InboxApi
+  /** Канал подій сервера (lib/realtime, ADR-0051). */
+  realtime: RealtimeApi
   /** Налаштування поточної компанії (lib/company, ADR-0014). */
   company: CompanyApi
   /** Обов'язковий другий крок налаштовано — завершити вхід. */
@@ -703,6 +706,7 @@ export function createAuthProvider(
     invitations: createInvitationsApi(client),
 
     inbox: createInboxApi(client),
+    realtime: createRealtimeApi(client),
 
     company: createCompanyApi(client),
 
