@@ -23,6 +23,7 @@ export function AccessAction({
   ref,
   busy = false,
   record,
+  lockReason,
 }: {
   resource: string
   action: "create" | "update"
@@ -35,6 +36,8 @@ export function AccessAction({
   ref?: Ref<HTMLButtonElement>
   /** Поки зберігається інша зміна запису — неактивна, але фокус лишається на ній. */
   busy?: boolean
+  /** Запис редагує інша людина (`useEditLock`, ADR-0051): кнопка неактивна з цією причиною. */
+  lockReason?: string | undefined
   /** Запис, над яким дія (`update` у картці): його позначка сервера теж забороняє дію. */
   record?: unknown
 }) {
@@ -45,7 +48,7 @@ export function AccessAction({
   })
   const Icon = ACTION_ICONS[icon]
   if (isPending) return null
-  return canAccess ? (
+  return canAccess && lockReason === undefined ? (
     <Button
       ref={ref}
       variant={variant}
@@ -57,7 +60,10 @@ export function AccessAction({
       {label}
     </Button>
   ) : (
-    <DeniedAction reason={recordReason ?? deniedReason} variant={variant}>
+    <DeniedAction
+      reason={lockReason ?? recordReason ?? deniedReason}
+      variant={variant}
+    >
       <Icon aria-hidden />
       {label}
     </DeniedAction>
@@ -76,6 +82,7 @@ export function useAccessPaletteAction({
   label,
   deniedReason,
   record,
+  lockReason,
   onSelect,
 }: {
   id: string
@@ -85,6 +92,7 @@ export function useAccessPaletteAction({
   label: string
   deniedReason: string
   record?: unknown
+  lockReason?: string | undefined
   onSelect: () => void
 }): PaletteAction | null {
   const { canAccess, isPending, recordReason } = useRecordAccess({
@@ -97,7 +105,8 @@ export function useAccessPaletteAction({
     id,
     label,
     icon: ACTION_ICONS[icon],
-    deniedReason: canAccess ? undefined : (recordReason ?? deniedReason),
+    deniedReason:
+      lockReason ?? (canAccess ? undefined : (recordReason ?? deniedReason)),
     onSelect,
   }
 }

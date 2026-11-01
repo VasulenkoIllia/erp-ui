@@ -4,9 +4,9 @@
  *
  * Контракт (під `/api/v1`, для користувача, що увійшов):
  * - `GET /notifications?status=all|unread&page=&perPage=` → { data, total, unread }, новіші першими;
- * - `GET /notifications/unread-count` → { count } — для дзвіника (опитування раз на хвилину;
- *   у кроці 0.5c — подія реального часу). Запит фоновий (`X-Background-Request: 1`): сервер не
- *   продовжує ним ковзну сесію;
+ * - `GET /notifications/unread-count` → { count } — для дзвіника: перечитується за подією
+ *   `notifications.created` каналу реального часу (lib/realtime), без каналу — раз на хвилину. Запит
+ *   фоновий (`X-Background-Request: 1`): сервер не продовжує ним ковзну сесію;
  * - `PATCH /notifications/:id` { read } → сповіщення; `POST /notifications/read-all` → 204;
  * - сповіщення: тип (подія з налаштувань), заголовок і текст мовою `Accept-Language`, важливість,
  *   хто спричинив, `link` — шлях у застосунку, куди веде клік;
@@ -16,6 +16,9 @@ import { z } from "zod"
 
 import type { ApiClient } from "@/registry/lib/api"
 import { createPushApi, type PushApi } from "@/registry/lib/web-push"
+
+/** Ресурс сповіщень: подія каналу реального часу, сценарії моків. */
+export const NOTIFICATIONS_RESOURCE = "notifications"
 
 export const NOTIFICATION_SEVERITIES = [
   "info",

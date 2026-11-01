@@ -303,18 +303,23 @@ export function createApiClient({
     )
   }
 
-  async function send<T>(
+  /** Запит до відповіді сервера: заголовки кіта, термін сесії, `ApiError` на статус поза 2xx. */
+  async function open(
     method: string,
     path: string,
     {
       query,
       body,
-      schema,
       signal,
-      responseType,
+      accept,
       background,
-    }: Omit<RequestOptions<T>, "timeoutMs">,
-  ): Promise<T> {
+      lastEventId,
+    }: Pick<RequestOptions<unknown>, "query" | "body" | "signal"> & {
+      accept: string
+      background?: boolean
+      lastEventId?: string
+    },
+  ): Promise<Response> {
     const search =
       query instanceof URLSearchParams
         ? query
@@ -324,9 +329,7 @@ export function createApiClient({
             ),
           )
     const url = `${baseUrl}${path}${search.size ? `?${search.toString()}` : ""}`
-    const headers = new Headers({
-      Accept: responseType === "blob" ? "*/*" : "application/json",
-    })
+    const headers = new Headers({ Accept: accept })
     // FormData (файли) — браузер сам ставить multipart/form-data з межею.
     const multipart = body instanceof FormData
     if (body !== undefined && !multipart)
@@ -337,6 +340,7 @@ export function createApiClient({
     const language = getLanguage?.()
     if (language) headers.set("Accept-Language", language)
     if (background) headers.set(BACKGROUND_HEADER, "1")
+    if (lastEventId) headers.set("Last-Event-ID", lastEventId)
 
     let response: Response
     try {
@@ -378,7 +382,18 @@ export function createApiClient({
             },
       )
     }
+    return response
+  }
 
+  async function send<T>(
+    method: string,
+    path: string,
+    { schema, responseType, ...options }: Omit<RequestOptions<T>, "timeoutMs">,
+  ): Promise<T> {
+    const response = await open(method, path, {
+      ...options,
+      accept: responseType === "blob" ? "*/*" : "application/json",
+    })
     if (response.status === 204) return undefined as T
     if (responseType === "blob") return (await response.blob()) as T
     const data: unknown = await response.json()
@@ -397,5 +412,19 @@ export function createApiClient({
       request<T>("PATCH", path, { ...options, body }),
     delete: <T>(path: string, options?: RequestOptions<T>) =>
       request<T>("DELETE", path, options),
+    /**
+     * Потік подій (lib/realtime, ADR-0051): фоновий запит без межі часу, тіло читає викликач. Помилки
+     * й заголовки — як у звичайного запиту, тож адаптер із власним `fetch` працює без змін.
+     */
+    stream: (
+      path: string,
+      { signal, lastEventId }: { signal: AbortSignal; lastEventId?: string },
+    ) =>
+      open("GET", path, {
+        signal,
+        accept: "text/event-stream",
+        background: true,
+        ...(lastEventId === undefined ? {} : { lastEventId }),
+      }),
   }
 }

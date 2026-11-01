@@ -133,6 +133,8 @@ export interface EntityExtension<T, K extends EntityIds> {
   readonly detailRows?: Pick<KeyedChanges<Keyed, K["detailRow"]>, "hide">
   /** `false` — картка без журналу «Історія»: бекенд не веде журналу змін. За замовчуванням — є. */
   readonly history?: boolean
+  /** `false` — картка без «Редагує …» (ADR-0051); бекенд без блокувань і так нічого не зламає: 404 мовчить. */
+  readonly editLock?: boolean
   /** Секції (у картці організації — вкладки) — компоненти проекту в слотах. */
   readonly sections?: KeyedChanges<ExtensionSection<T>, K["section"]>
   /** Дії в шапці картки — компоненти проекту з правом `access`. */

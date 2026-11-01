@@ -17,6 +17,8 @@
  *   (lib/pins), `getListSettings`/`saveListSettings` → `GET`/`PATCH /me/list-settings/<ресурс>`
  *   (lib/list-settings; читання чекає до `LIST_SETTINGS_TIMEOUT_MS`). Провайдер, написаний
  *   повністю сам, а не обгорткою над цим (ADR-0021), має додати ці три методи.
+ * - Блокування на час редагування (lib/edit-lock, ADR-0051): `getEditLock` → `GET`, `takeEditLock` →
+ *   `PUT`, `releaseEditLock` → `DELETE /<ресурс>/<id>/lock`; те саме про власний провайдер.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
 
@@ -49,6 +51,12 @@ import {
   type ImportRequest,
 } from "@/registry/lib/imports"
 import { PIN_PATH } from "@/registry/lib/pins"
+import {
+  EDIT_LOCK_PATH,
+  EDIT_LOCK_TIMEOUT_MS,
+  editLockSchema,
+  type EditLockState,
+} from "@/registry/lib/edit-lock"
 
 /** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
 export interface BulkDataProvider {
@@ -87,10 +95,23 @@ export interface ImportDataProvider {
   /** Застосувати: фонова задача, той самий `requestId` — та сама задача. */
   startImport: (resource: string, request: ImportRequest) => Promise<JobStarted>
 }
+/** Хто редагує запис (lib/edit-lock, ADR-0051). */
+export interface EditLockDataProvider {
+  getEditLock: (
+    resource: string,
+    id: string,
+    options?: { signal?: AbortSignal },
+  ) => Promise<EditLockState>
+  /** Взяти чи подовжити; у відповіді — той, хто тримає: я або інша людина, яка встигла раніше. */
+  takeEditLock: (resource: string, id: string) => Promise<EditLockState>
+  releaseEditLock: (resource: string, id: string) => Promise<void>
+}
+
 export type ErpDataProvider = DataProvider &
   BulkDataProvider &
   ListDataProvider &
-  ImportDataProvider
+  ImportDataProvider &
+  EditLockDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -268,6 +289,26 @@ export function createDataProvider(
       client.patch(listSettingsPath(resource), settings, {
         schema: listSettingsSchema,
       }),
+
+    getEditLock: (resource, id, { signal } = {}) =>
+      client.get(`${path(resource, id)}/${EDIT_LOCK_PATH}`, {
+        schema: editLockSchema,
+        signal,
+        background: true,
+        timeoutMs: EDIT_LOCK_TIMEOUT_MS,
+      }),
+
+    takeEditLock: (resource, id) =>
+      client.put(`${path(resource, id)}/${EDIT_LOCK_PATH}`, undefined, {
+        schema: editLockSchema,
+        timeoutMs: EDIT_LOCK_TIMEOUT_MS,
+      }),
+
+    releaseEditLock: async (resource, id) => {
+      await client.delete(`${path(resource, id)}/${EDIT_LOCK_PATH}`, {
+        timeoutMs: EDIT_LOCK_TIMEOUT_MS,
+      })
+    },
   }
   return provider
 }

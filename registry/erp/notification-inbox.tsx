@@ -23,6 +23,10 @@ import { NotificationBell } from "@/registry/erp/notification-bell"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { usePushSync } from "@/registry/hooks/use-push-sync"
+import {
+  useRealtimeEvent,
+  useRealtimeStatus,
+} from "@/registry/hooks/use-realtime"
 import { useTabCounter } from "@/registry/hooks/use-tab-counter"
 import { errorStateKind } from "@/registry/lib/api"
 import { safeRedirectPath } from "@/registry/lib/auth"
@@ -31,8 +35,10 @@ import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   INBOX_QUERY_KEYS,
+  NOTIFICATIONS_RESOURCE,
   type AppNotification,
 } from "@/registry/lib/notifications"
+import { REALTIME_RESYNC } from "@/registry/lib/realtime"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import {
@@ -52,11 +58,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/registry/ui/tabs"
  *   <NotificationInbox onNavigate={navigate} />
  *
  * `onNavigate(link)` — перехід за `link` сповіщення роутером застосунку; без нього — звичайне
- * посилання. Лічильник оновлюється раз на хвилину, при поверненні у вкладку й коли прийшов web push
- * (подія реального часу — крок N1). Його видно й у назві вкладки (ADR-0046).
+ * посилання. Лічильник оновлюється за подіями каналу (ADR-0051), без каналу — раз на хвилину, а ще
+ * при поверненні у вкладку й коли прийшов web push. Його видно й у назві вкладки (ADR-0046).
  */
 
 type Status = "all" | "unread"
+
+/** Опитування лічильника, коли каналу реального часу немає. */
+const UNREAD_POLL_MS = 60_000
 
 const SEVERITY: Record<
   NonNullable<AppNotification["severity"]>,
@@ -77,16 +86,22 @@ const SEVERITY: Record<
   },
 }
 
-/** Кількість непрочитаних для дзвіника; опитування раз на хвилину. */
+/** Кількість непрочитаних для дзвіника: за подіями каналу, а без нього — опитування раз на хвилину. */
 export function useUnreadNotifications(enabled = true) {
   const provider = useErpAuthProvider()
+  const queryClient = useQueryClient()
   // Сповіщення можуть бути свої в кожній компанії: лічильник іншої не показуємо.
   const companyId = useCompanyId()
+  const isLive = useRealtimeStatus() === "open"
+  useRealtimeEvent(({ type, resource }) => {
+    if (resource === NOTIFICATIONS_RESOURCE || type === REALTIME_RESYNC)
+      void queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEYS.all })
+  })
   return useQuery({
     queryKey: [...INBOX_QUERY_KEYS.count, companyScope(companyId)],
     queryFn: () => provider.inbox.unreadCount(),
     enabled,
-    refetchInterval: 60_000,
+    refetchInterval: isLive ? false : UNREAD_POLL_MS,
     refetchOnWindowFocus: true,
   })
 }

@@ -9,6 +9,7 @@
       "shortcuts": "Keyboard shortcuts",
       "wizard": "Wizard",
       "importExport": "Import and export",
+      "realtime": "Real time",
       "setup": "Get started",
       "states": "Page states",
       "data": "Data & mocks",
@@ -826,6 +827,32 @@
     "actionDone": "Action done",
     "actionDenied": "Sample blocked action",
     "actionReason": "Available to the Accountant role"
+  },
+  "realtimePage": {
+    "lead": "How the app learns about changes without a page reload: one server event channel, cache updates and \"Editing now\". Buttons here play the part of a colleague.",
+    "channelTitle": "Event channel",
+    "channelDescription": "One channel per company, even with several tabs open. It reconnects after a drop, and polling only runs while there is no channel.",
+    "status": "Channel state:",
+    "statuses": {
+      "idle": "Not started",
+      "connecting": "Connecting",
+      "open": "Connected",
+      "retrying": "Reconnecting",
+      "off": "Off"
+    },
+    "drop": "Drop the connection",
+    "notify": "Send a notification",
+    "noEvents": "No events yet.",
+    "recordTitle": "A record updates itself",
+    "recordDescription": "A colleague changes the invoice on another computer, and the value below updates without a reload.",
+    "client": "Client:",
+    "version": "Version:",
+    "change": "Colleague changes the invoice",
+    "lockTitle": "Someone else is editing",
+    "lockDescription": "While a colleague edits the record, it is view only here and on the invoice card.",
+    "lockStart": "Colleague starts editing",
+    "lockEnd": "Colleague finishes",
+    "edit": "Edit invoice"
   },
   "importExportPage": {
     "title": "Import and export",

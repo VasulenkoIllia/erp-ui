@@ -617,6 +617,22 @@ export const CODE_ITEMS = {
     demo: "contacts",
     spec: ["§8.4", "§17", "A2"],
   },
+  "hooks/use-realtime": {
+    title: "Стан і події каналу",
+    description:
+      "useRealtimeStatus: open означає, що опитувати не треба. useRealtimeEvent: слухати події каналу, поки компонент змонтовано (ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19"],
+  },
+  "hooks/use-edit-lock": {
+    title: "«Редагує …»",
+    description:
+      "useEditLock({ resource, id }): хто редагує запис, причина для неактивної «Редагувати», acquire перед формою, подовження, поки людина працює, release після (SPEC §8.2, ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§8"],
+  },
   "hooks/use-history-refresh": {
     title: "Свіжа історія картки",
     description:
@@ -896,6 +912,62 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "notificationsModule",
     spec: ["PF19", "§17"],
+  },
+  "lib/sse": {
+    title: "Розбір потоку SSE",
+    description:
+      "createSseParser і readSseBody: рядки, поля, коментар-серцебиття, обрив посеред рядка чи літери UTF-8 (WHATWG, ADR-0051). Канал читає потік через fetch, а не EventSource.",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19"],
+  },
+  "lib/realtime": {
+    title: "Канал реального часу",
+    description:
+      "Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§17"],
+  },
+  "lib/realtime-cache": {
+    title: "Кеш за подіями каналу",
+    description:
+      "syncRealtimeCache: зміна запису на сервері перечитує відкриті списки й картки ресурсу, не частіше ніж раз на секунду; після обриву — усе видиме (ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19"],
+  },
+  "lib/edit-lock": {
+    title: "Блокування на час редагування",
+    description:
+      "Контракт GET, PUT, DELETE /<ресурс>/<id>/lock і подія <ресурс>.locked: хто редагує запис, термін дії, подовження (SPEC §8.2, ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§8"],
+  },
+  "lib/mock-realtime": {
+    title: "Мок каналу й блокувань",
+    description:
+      "createRealtimeHandlers: потік SSE із шини мок-сервера, блокування записів; setMockEditLock і dropMockRealtimeStream для колеги й обриву в демо (ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§17"],
+  },
+  "lib/i18n-uk-realtime": {
+    title: "Рядки реального часу українською",
+    description:
+      "Рядки «Редагує …» (ADR-0051): окремий файл, простір імен erp-ui той самий.",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§11"],
+  },
+  "lib/i18n-en-realtime": {
+    title: "Рядки реального часу англійською",
+    description:
+      "Ті самі рядки «Редагує …» англійською; парність ключів перевіряє тип.",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§11"],
   },
   "lib/i18n-uk-push": {
     title: "Рядки push українською",
@@ -1566,6 +1638,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "login",
     spec: ["PF01", "§10"],
+  },
+  "erp/realtime-sync": {
+    title: "Канал подій застосунку",
+    description:
+      "RealtimeSync: вмикає канал подій для людини, що увійшла, оновлює кеш за подіями, перемикається разом із компанією; нічого не показує (ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19"],
+  },
+  "erp/edit-lock-notice": {
+    title: "Смуга «Редагує …»",
+    description:
+      "EditLockNotice: смуга на картці, поки запис редагує інша людина; живий текст для скрінрідера (SPEC §8.2, ADR-0051).",
+    status: "beta",
+    demo: "realtime",
+    spec: ["PF19", "§8"],
   },
   "erp/session-guard": {
     title: "Охорона сесії",

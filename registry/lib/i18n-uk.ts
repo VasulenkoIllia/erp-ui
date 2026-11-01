@@ -8,6 +8,7 @@ import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import { ukPush } from "@/registry/lib/i18n-uk-push"
+import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
 import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
@@ -1431,6 +1432,7 @@ export const uk = {
   ...ukShortcuts,
   ...ukSetup,
   ...ukPush,
+  ...ukRealtime,
   ...ukWizard,
   ...ukImport,
 }

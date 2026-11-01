@@ -61,6 +61,7 @@ const SHOT_PAGES = {
   pickers: "/#/pickers",
   icons: "/#/icons",
   shortcuts: "/#/shortcuts",
+  realtime: "/#/realtime",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",

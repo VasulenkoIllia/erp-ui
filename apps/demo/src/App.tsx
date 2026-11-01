@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   ListOrdered,
   Palette,
+  RadioTower,
   ScrollText,
   Shapes,
   ShieldCheck,
@@ -51,6 +52,7 @@ import { useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback, PageStateMain } from "@/registry/erp/page-state"
+import { RealtimeSync } from "@/registry/erp/realtime-sync"
 import { SessionGuard } from "@/registry/erp/session-guard"
 import { ShortcutsHelp } from "@/registry/erp/shortcuts-help"
 import { InboxBell } from "@/registry/erp/notification-inbox"
@@ -127,6 +129,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   shortcuts: Keyboard,
   wizard: ListOrdered,
   importExport: FileSpreadsheet,
+  realtime: RadioTower,
   setup: ListChecks,
   states: LayoutTemplate,
   data: Database,
@@ -672,6 +675,7 @@ function Shell({
         </ErrorBoundary>
       </AppShell>
       {me ? <SessionGuard /> : null}
+      {me ? <RealtimeSync /> : null}
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}

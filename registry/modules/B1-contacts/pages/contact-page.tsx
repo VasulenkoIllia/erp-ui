@@ -2,6 +2,7 @@ import { useAuthenticated } from "ra-core"
 import { useState, type MouseEvent } from "react"
 import { useParams } from "react-router"
 
+import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton } from "@/components/erp/page-state"
 import { PinToggle } from "@/components/erp/pin-toggle"
 import type { RecordField } from "@/components/erp/record-header"
@@ -16,6 +17,7 @@ import {
 } from "@/components/templates/object-page"
 import { Badge } from "@/components/ui/badge"
 import { useCardRecord } from "@/hooks/use-card-record"
+import { useEditLock } from "@/hooks/use-edit-lock"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { usePaletteActions } from "@/hooks/use-palette-actions"
@@ -88,10 +90,24 @@ function ContactCard({ id }: { id: string }) {
   const [isEditing, setEditing] = useState(false)
   const opener = useOpener()
   usePreloadForm("contact", "update")
-  const header = useContactHeader(contact, slots.actions, (event) => {
-    opener.remember(event)
-    setEditing(true)
+  const lock = useEditLock({
+    resource: CONTACTS,
+    id,
+    enabled: extension.contacts?.editLock !== false,
   })
+  const startEditing = async () => {
+    if (await lock.acquire()) setEditing(true)
+    else heading.current?.focus()
+  }
+  const header = useContactHeader(
+    contact,
+    slots.actions,
+    lock.reason,
+    (event) => {
+      opener.remember(event)
+      void startEditing()
+    },
+  )
   const editAction = useAccessPaletteAction({
     id: "edit",
     resource: CONTACTS,
@@ -100,8 +116,9 @@ function ContactCard({ id }: { id: string }) {
     label: t("contact.edit"),
     deniedReason: t("contact.editDenied"),
     record: contact,
+    lockReason: lock.reason,
     onSelect: () => {
-      setEditing(true)
+      void startEditing()
     },
   })
   usePaletteActions(
@@ -133,6 +150,7 @@ function ContactCard({ id }: { id: string }) {
         error={card.pageError}
         onRetry={card.retry}
         header={header}
+        notice={<EditLockNotice holder={lock.holder} />}
         sections={applyKeyedChanges(sections, slots.sections)}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
         aside={
@@ -154,9 +172,11 @@ function ContactCard({ id }: { id: string }) {
           finalFocus={opener.ref}
           onClose={() => {
             setEditing(false)
+            lock.release()
           }}
           onSaved={(saved) => {
             setEditing(false)
+            lock.release()
             leaveAfterTransfer(saved)
           }}
         />
@@ -169,6 +189,7 @@ function ContactCard({ id }: { id: string }) {
 function useContactHeader(
   contact: Contact | undefined,
   slotActions: KeyedChanges<ObjectPageAction, ContactActionId> | undefined,
+  lockReason: string | undefined,
   onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
@@ -206,6 +227,7 @@ function useContactHeader(
           label={t("contact.edit")}
           deniedReason={t("contact.editDenied")}
           record={contact}
+          lockReason={lockReason}
           onClick={onEdit}
         />
       ),

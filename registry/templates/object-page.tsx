@@ -89,6 +89,8 @@ export interface ObjectPageProps {
   back?: React.ReactNode
   /** Шапка запису; поки запису немає — не передається (тоді h1 — прихований `title`). */
   header?: ObjectPageHeader
+  /** Смуга під шапкою: «Редагує [ім'я]» (`EditLockNotice`, ADR-0051). */
+  notice?: React.ReactNode
   statusBar?: React.ReactNode
   /** Секції запису. */
   sections: readonly ObjectPageSectionItem[]
@@ -110,6 +112,7 @@ export function ObjectPage({
   headingRef,
   back,
   header,
+  notice,
   statusBar,
   sections,
   tabs,
@@ -177,6 +180,7 @@ export function ObjectPage({
             }
           />
         ) : null}
+        {notice}
         {statusBar}
         {aside ? (
           narrow === null ? null : narrow && tabs ? (

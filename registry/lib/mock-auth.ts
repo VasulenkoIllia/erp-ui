@@ -42,6 +42,7 @@ import {
   type MockInboxItem,
 } from "@/registry/lib/mock-inbox"
 import { createMeHandlers } from "@/registry/lib/mock-me"
+import { createRealtimeHandlers } from "@/registry/lib/mock-realtime"
 import { createSignInFlow } from "@/registry/lib/mock-sign-in-flow"
 import {
   createSignUpHandlers,
@@ -543,6 +544,7 @@ export function createPlatformHandlers({
     }),
 
     ...createInboxHandlers({ baseUrl }),
+    ...createRealtimeHandlers({ baseUrl }),
 
     ...createPushHandlers({ baseUrl }),
 

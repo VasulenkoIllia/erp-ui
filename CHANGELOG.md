@@ -6,6 +6,11 @@
 
 ### Додано
 
+- **Канал реального часу** `lib/realtime`, `lib/sse`, `lib/realtime-cache`, `erp/realtime-sync`, `hooks/use-realtime` (PF19, ADR-0051): один потік подій сервера на компанію через `fetch`, перепідключення з паузою до 30 с, зміна запису перечитує відкриті списки й картки, дзвінок не опитує, поки канал відкрито. Вмикається `<RealtimeSync />`, без нього все як раніше.
+- **«Редагує …»** `lib/edit-lock`, `hooks/use-edit-lock`, `erp/edit-lock-notice` (SPEC §8.2, ADR-0051): блокування запису на час редагування з терміном дії. Картка показує смугу, а «Редагувати» неактивна з причиною. Увімкнено на картках контакту й організації B1 і рахунку в демо; бекенд без цих адрес працює, як раніше.
+- `ErpAuthProvider`: новий `realtime`. `ErpDataProvider`: нові `getEditLock`, `takeEditLock`, `releaseEditLock`. Адаптер на `createAuthProvider` і `createDataProvider` отримує їх сам, написаний вручну додає. `ApiClient`: новий `stream`.
+- `ObjectPage`: необов'язковий `notice`. Модуль B1: необов'язковий `editLock` у розширенні. Моки: `createRealtimeHandlers` у `createPlatformHandlers`, `setMockEditLock`, `dropMockRealtimeStream`.
+
 - **Модуль A4 «Імпорт і експорт»** `modules/A4-import-export` (ADR-0050): цілі контактів, організацій, податків, одиниць, тегів і причин із діями за правами, майстер на адресі цілі, експорт із тими самими назвами колонок, історія запусків із причинами невдач. Розширення `ImportExportExtension`: `targets` (`add`, `change`, `hide`, `move`), `history` (`page: false`, `columns`, `filters`), `strings`. Без B1 чи A6 у проекті сховайте їхні цілі: `targets.hide`. Бекенду потрібні `import-runs` і контракт `lib/imports` для кожної цілі. Права: `import-runs:read` чи `import-runs:read:own`.
 - **Рядок заголовків у майстрі імпорту** (ADR-0050): на першому кроці людина вибирає рядок із назвами колонок серед заповнених рядків у перших 20, файл із шапкою над таблицею чистити не треба. У `ImportWizardApi` нові `headerRow` і `chooseHeaderRow`, функції `lib/import-rows` приймають необов'язковий рядок заголовків.
 - `createImportHandlers`: необов'язкові `defaults` (значення полів, яких немає в рядку) і `onStarted` (новий запуск). `lib/mock-jobs`: `readMockJob`.

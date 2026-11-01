@@ -27,4 +27,5 @@ export const MOCK_RESOURCES = [
   "dictionary-defaults",
   "import-runs",
   "products",
+  "realtime",
 ]

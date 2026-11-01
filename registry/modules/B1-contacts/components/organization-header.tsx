@@ -33,6 +33,7 @@ export function useOrganizationHeader(
   organization: Organization | undefined,
   statuses: ResolvedStatuses,
   slotActions: KeyedChanges<ObjectPageAction, OrganizationActionId> | undefined,
+  lockReason: string | undefined,
   onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
@@ -76,6 +77,7 @@ export function useOrganizationHeader(
           label={t("organization.edit")}
           deniedReason={t("organization.editDenied")}
           record={organization}
+          lockReason={lockReason}
           onClick={onEdit}
         />
       ),
