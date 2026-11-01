@@ -15,9 +15,10 @@ const MODULE = "/#/m/N1"
 const MY_ACTIVITIES = "/#/m/N1/my-activities"
 const CONTACTS = "/#/m/B1/contacts"
 const CONTACT_CARD = `${CONTACTS}/contact-001`
+const ORGANIZATION_CARD = "/#/m/B1/organizations/org-001"
 const CARDS = [
   { name: "контакт", href: CONTACT_CARD },
-  { name: "організація", href: "/#/m/B1/organizations/org-001" },
+  { name: "організація", href: ORGANIZATION_CARD },
   { name: "рахунок", href: "/#/data/inv-00001" },
 ]
 const TOTAL = 8
@@ -29,6 +30,8 @@ const heading = (page: Page) => page.getByRole("heading", { level: 1 })
 const rows = (page: Page) =>
   page.getByRole("list", { name: "Мої заплановані дії" }).getByRole("listitem")
 const tab = (page: Page, name: string) => page.getByRole("tab", { name })
+const organizationTabs = (page: Page) =>
+  page.getByRole("tablist", { name: "Розділи організації" }).getByRole("tab")
 const doneButton = (page: Page) =>
   rows(page)
     .first()
@@ -94,7 +97,7 @@ test.describe("модуль N1: «Мої справи»", () => {
     )
   })
 
-  test("«Виконано»: дія зникає зі списку, фокус на заголовку", async ({
+  test("«Виконано»: дія зникає зі списку, фокус на сусідньому рядку", async ({
     page,
   }) => {
     await openWith(page, {}, MY_ACTIVITIES)
@@ -102,16 +105,17 @@ test.describe("модуль N1: «Мої справи»", () => {
     await doneButton(page).click()
     await expect(shown(page, PER_PAGE, TOTAL - 1)).toBeVisible()
     await expect(page.getByRole("button", { name: label })).toHaveCount(0)
-    await expect(heading(page)).toBeFocused()
+    await expect(rows(page).first()).toBeFocused()
   })
 
   test("запис у рядку веде на його картку, там та сама дія", async ({
     page,
   }) => {
     await openWith(page, {}, MY_ACTIVITIES)
-    const link = rows(page).locator('a[href^="#/m/B1/contacts/"]').first()
+    const contactLink = page.locator('a[href^="#/m/B1/contacts/"]')
+    const row = rows(page).filter({ has: contactLink }).first()
+    const link = row.locator(contactLink)
     const record = (await link.textContent()) ?? ""
-    const row = rows(page).filter({ has: link })
     const label = await row
       .getByRole("button", { name: /^Виконано: / })
       .getAttribute("aria-label")
@@ -231,6 +235,19 @@ test.describe("незбережені зміни поруч зі стрічко�
     await expect(position).toHaveValue(POSITION)
   })
 
+  test("вкладка картки в адресі не питає про вихід, перехід зі сторінки питає", async ({
+    page,
+  }) => {
+    await openWith(page, {}, ORGANIZATION_CARD)
+    await writeDraft(page, DRAFT)
+    await organizationTabs(page).last().click()
+    await expect(page).toHaveURL(/[?&]tab=/)
+    await expect(unsavedDialog(page)).toHaveCount(0)
+    await expect(noteField(page)).toHaveText(DRAFT)
+    await page.getByRole("link", { name: "До організацій" }).click()
+    await expect(unsavedDialog(page)).toBeVisible()
+  })
+
   test("форму закрито: захист чернетки знову діє", async ({ page }) => {
     await openWith(page, {}, CONTACT_CARD)
     await writeDraft(page, DRAFT)
@@ -256,8 +273,7 @@ test.describe("чернетка стрічки на телефоні", () => {
     await writeDraft(page, DRAFT)
     await page
       .getByRole("tablist", { name: "Розділи запису" })
-      .getByRole("tab")
-      .first()
+      .getByRole("tab", { name: "Подробиці" })
       .click()
     await expect(noteField(page)).toBeHidden()
     await page.goBack()
@@ -266,6 +282,19 @@ test.describe("чернетка стрічки на телефоні", () => {
     await tab(page, "Стрічка").click()
     await expect(noteField(page)).toHaveText(DRAFT)
     await expectNoHorizontalScroll(page)
+  })
+
+  test("вкладки картки організації в адресі не питають про вихід", async ({
+    page,
+  }) => {
+    await openWith(page, {}, ORGANIZATION_CARD)
+    await organizationTabs(page).last().click()
+    await writeDraft(page, DRAFT)
+    await organizationTabs(page).first().click()
+    await expect(noteField(page)).toBeHidden()
+    await expect(unsavedDialog(page)).toHaveCount(0)
+    await organizationTabs(page).last().click()
+    await expect(noteField(page)).toHaveText(DRAFT)
   })
 })
 

@@ -584,6 +584,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -1110,6 +1111,16 @@
           "path": "registry/erp/timezone-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/timezone-select.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -4820,6 +4831,11 @@
           "target": "@hooks/use-tab-in-view.ts"
         },
         {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
           "path": "registry/hooks/use-virtual-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-virtual-rows.ts"
@@ -5869,6 +5885,11 @@
           "target": "@hooks/use-tab-in-view.ts"
         },
         {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
           "path": "registry/hooks/use-virtual-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-virtual-rows.ts"
@@ -6804,6 +6825,11 @@
           "path": "registry/hooks/use-tab-in-view.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-virtual-rows.ts",
@@ -10346,6 +10372,11 @@
           "path": "registry/hooks/use-tab-in-view.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-virtual-rows.ts",
@@ -47897,6 +47928,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -47930,6 +47962,11 @@
           "path": "registry/hooks/use-export-run.ts",
           "type": "registry:hook",
           "target": "@hooks/use-export-run.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -48102,6 +48139,11 @@
           "target": "@lib/list-settings.ts"
         },
         {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -48228,6 +48270,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -48321,6 +48364,11 @@
           "path": "registry/hooks/use-record-search.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -50168,7 +50216,9 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
-        "sonner@^2.0.8"
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
       ],
       "files": [
         {
@@ -50185,6 +50235,21 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -50300,6 +50365,16 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -50376,7 +50451,9 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
-        "sonner@^2.0.8"
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
       ],
       "files": [
         {
@@ -50388,6 +50465,21 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -50503,6 +50595,16 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -51267,6 +51369,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -51335,6 +51438,11 @@
           "path": "registry/hooks/use-job.ts",
           "type": "registry:hook",
           "target": "@hooks/use-job.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-wizard.ts",
@@ -51510,6 +51618,11 @@
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -53775,6 +53888,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -53805,9 +53919,24 @@
           "target": "@components/erp/repeating-rows.tsx"
         },
         {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
           "path": "registry/lib/announce.ts",
           "type": "registry:lib",
           "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -53933,6 +54062,16 @@
           "path": "registry/lib/key-value.ts",
           "type": "registry:lib",
           "target": "@lib/key-value.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -57379,6 +57518,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -57440,6 +57580,11 @@
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -57605,6 +57750,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -58854,6 +59004,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -58907,6 +59058,11 @@
           "path": "registry/hooks/use-record-form.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -59077,6 +59233,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -59232,6 +59393,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -59275,6 +59437,11 @@
           "path": "registry/hooks/use-record-form.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -59445,6 +59612,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -60922,6 +61094,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -61120,6 +61293,11 @@
           "path": "registry/hooks/use-record-search.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -61959,7 +62137,9 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
-        "sonner@^2.0.8"
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
       ],
       "files": [
         {
@@ -61976,6 +62156,21 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -62096,6 +62291,16 @@
           "path": "registry/lib/icons.tsx",
           "type": "registry:lib",
           "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -62168,7 +62373,9 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
-        "sonner@^2.0.8"
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
       ],
       "files": [
         {
@@ -62192,9 +62399,24 @@
           "target": "@components/erp/repeating-row-actions.tsx"
         },
         {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
           "path": "registry/lib/announce.ts",
           "type": "registry:lib",
           "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -62315,6 +62537,16 @@
           "path": "registry/lib/icons.tsx",
           "type": "registry:lib",
           "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -65031,6 +65263,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -65124,6 +65357,11 @@
           "path": "registry/hooks/use-role-draft.ts",
           "type": "registry:hook",
           "target": "@hooks/use-role-draft.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -65294,6 +65532,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -65490,7 +65733,9 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
-        "sonner@^2.0.8"
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
       ],
       "files": [
         {
@@ -65509,216 +65754,9 @@
           "target": "@components/erp/form.tsx"
         },
         {
-          "path": "registry/lib/i18n.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-import.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-import.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-lists.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-lists.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-push.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-push.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-realtime.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-realtime.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-records.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-records.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-rich-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-rich-text.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-setup.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-setup.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-shortcuts.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-timeline.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-timeline.ts"
-        },
-        {
-          "path": "registry/lib/i18n-en-wizard.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-en-wizard.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-import.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-import.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-lists.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-lists.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-push.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-push.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-realtime.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-realtime.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-records.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-records.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-rich-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-rich-text.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-setup.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-setup.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-shortcuts.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-timeline.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-timeline.ts"
-        },
-        {
-          "path": "registry/lib/i18n-uk-wizard.ts",
-          "type": "registry:lib",
-          "target": "@lib/i18n-uk-wizard.ts"
-        },
-        {
-          "path": "registry/lib/utils.ts",
-          "type": "registry:lib",
-          "target": "@lib/utils.ts"
-        },
-        {
-          "path": "registry/ui/alert.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert.tsx"
-        },
-        {
-          "path": "registry/ui/alert-dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert-dialog.tsx"
-        },
-        {
-          "path": "registry/ui/button.tsx",
-          "type": "registry:ui",
-          "target": "@ui/button.tsx"
-        },
-        {
-          "path": "registry/ui/field.tsx",
-          "type": "registry:ui",
-          "target": "@ui/field.tsx"
-        },
-        {
-          "path": "registry/ui/input.tsx",
-          "type": "registry:ui",
-          "target": "@ui/input.tsx"
-        },
-        {
-          "path": "registry/ui/label.tsx",
-          "type": "registry:ui",
-          "target": "@ui/label.tsx"
-        },
-        {
-          "path": "registry/ui/separator.tsx",
-          "type": "registry:ui",
-          "target": "@ui/separator.tsx"
-        },
-        {
-          "path": "registry/ui/spinner.tsx",
-          "type": "registry:ui",
-          "target": "@ui/spinner.tsx"
-        }
-      ],
-      "meta": {
-        "layer": "erp",
-        "status": "beta",
-        "demo": "forms",
-        "spec": [
-          "PF11",
-          "§8.3",
-          "§9",
-          "§10"
-        ]
-      }
-    },
-    {
-      "name": "erp/saved-view-dialog",
-      "type": "registry:component",
-      "title": "Діалог назви виду",
-      "description": "Частина erp/saved-views-menu: новий вид чи перейменування на react-hook-form + zod, «Відкривати за замовчуванням», назва, яка вже є, — помилка біля поля. Ставиться разом з erp/saved-views-menu.",
-      "dependencies": [
-        "@base-ui/react@^1.9.0",
-        "@hookform/resolvers@^5.9.1",
-        "class-variance-authority@^0.7.1",
-        "cn@^0.4.0",
-        "i18next@^26.4.4",
-        "lucide-react@^1.55.0",
-        "ra-core@^5.15.4",
-        "react-hook-form@^7.90.0",
-        "react-i18next@^17.0.16",
-        "sonner@^2.0.8",
-        "zod@^4.6.6"
-      ],
-      "files": [
-        {
-          "path": "registry/erp/saved-view-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-view-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/confirm-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/confirm-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/form.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form.tsx"
-        },
-        {
-          "path": "registry/hooks/use-api-error-message.ts",
+          "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
-          "target": "@hooks/use-api-error-message.ts"
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -65846,6 +65884,249 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "forms",
+        "spec": [
+          "PF11",
+          "§8.3",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/saved-view-dialog",
+      "type": "registry:component",
+      "title": "Діалог назви виду",
+      "description": "Частина erp/saved-views-menu: новий вид чи перейменування на react-hook-form + zod, «Відкривати за замовчуванням», назва, яка вже є, — помилка біля поля. Ставиться разом з erp/saved-views-menu.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/saved-view-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/saved-view-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
           "path": "registry/lib/saved-views.ts",
           "type": "registry:lib",
           "target": "@lib/saved-views.ts"
@@ -65937,6 +66218,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -65990,6 +66272,11 @@
           "path": "registry/hooks/use-saved-views.ts",
           "type": "registry:hook",
           "target": "@hooks/use-saved-views.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -69070,6 +69357,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -69183,6 +69471,11 @@
           "path": "registry/hooks/use-record-search.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -69598,6 +69891,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -69691,6 +69985,11 @@
           "path": "registry/hooks/use-record-search.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-search.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -70090,6 +70389,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -70198,6 +70498,11 @@
           "path": "registry/hooks/use-realtime.ts",
           "type": "registry:hook",
           "target": "@hooks/use-realtime.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -70388,6 +70693,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mention-menu.ts",
@@ -70588,6 +70898,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -70711,6 +71022,11 @@
           "path": "registry/hooks/use-record-access.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-access.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -70901,6 +71217,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mention-menu.ts",
@@ -71120,6 +71441,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -71248,6 +71570,11 @@
           "path": "registry/hooks/use-record-access.ts",
           "type": "registry:hook",
           "target": "@hooks/use-record-access.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -71438,6 +71765,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mention-menu.ts",
@@ -72453,6 +72785,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -72556,6 +72889,11 @@
           "path": "registry/hooks/use-realtime.ts",
           "type": "registry:hook",
           "target": "@hooks/use-realtime.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-timeline.ts",
@@ -72741,6 +73079,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mention-menu.ts",
@@ -76413,6 +76756,7 @@
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
         "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -76601,6 +76945,11 @@
           "path": "registry/hooks/use-tab-in-view.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-virtual-rows.ts",
@@ -77071,12 +77420,41 @@
       "type": "registry:component",
       "title": "Стрічка картки, що не зникає",
       "description": "Частина templates/object-page: вміст з keepMounted монтується, коли його вперше показали, і живе, доки відкрита картка, тож вкладка й поворот екрана не стирають написане. Ставиться разом із templates/object-page (ADR-0054).",
-      "dependencies": [],
+      "dependencies": [
+        "ra-core@^5.15.4",
+        "react-router@^7.18.4",
+        "zod@^4.6.6"
+      ],
       "files": [
         {
           "path": "registry/templates/object-page-aside.tsx",
           "type": "registry:component",
           "target": "@components/templates/object-page-aside.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         }
       ],
       "meta": {
@@ -77304,6 +77682,7 @@
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "zod@^4.6.6"
       ],
       "files": [
@@ -77351,6 +77730,11 @@
           "path": "registry/hooks/use-tab-in-view.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-in-view.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -77533,6 +77917,11 @@
           "target": "@lib/lazy.ts"
         },
         {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -77675,6 +78064,7 @@
         "ra-core@^5.15.4",
         "react-hook-form@^7.90.0",
         "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -77703,6 +78093,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/hooks/use-wizard.ts",
@@ -77833,6 +78228,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/session.ts",

@@ -12,6 +12,10 @@ import {
 } from "react-hook-form"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import {
+  KeptOverTabsContext,
+  searchWithoutTab,
+} from "@/registry/hooks/use-tab-param"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
 import {
@@ -274,12 +278,15 @@ function UnsavedChangesGuard({ when }: { when: boolean }) {
 
 function NavigationGuard({ when }: { when: boolean }) {
   const t = useErpUiT()
-  // Зміна лише якоря (#розділ) форму не закриває — не питаємо.
+  const isKeptOverTabs = React.useContext(KeptOverTabsContext)
+  const searchOf = (search: string) =>
+    isKeptOverTabs ? searchWithoutTab(search) : search
+  // Зміна лише якоря (#розділ) форму не закриває — не питаємо. Те саме з вкладкою, якщо форма живе поза нею.
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       when &&
       (currentLocation.pathname !== nextLocation.pathname ||
-        currentLocation.search !== nextLocation.search),
+        searchOf(currentLocation.search) !== searchOf(nextLocation.search)),
   )
   const blocked = blocker.state === "blocked"
 

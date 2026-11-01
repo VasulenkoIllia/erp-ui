@@ -250,7 +250,7 @@ function ObjectPageBody({
   if (narrow) {
     return (
       <Tabs defaultValue="details">
-        <TabsList className="w-full">
+        <TabsList className="w-full" aria-label={t("objectPage.tabs")}>
           <TabsTrigger value="details">{t("objectPage.details")}</TabsTrigger>
           <TabsTrigger value="aside">{aside.label}</TabsTrigger>
         </TabsList>
@@ -302,7 +302,10 @@ export interface ExtensionSection<T> {
  */
 export interface ExtensionAside<T> {
   readonly label: LocalizedText
-  /** Функція, а не `ComponentType`: один слот на всі картки підходить будь-якому запису з `id`. */
+  /**
+   * Функція, а не `ComponentType`: один слот на всі картки підходить будь-якому запису з `id`. Лише
+   * стала функція з модуля: нова на кожен рендер перемонтує слот і знищить чернетку в ньому.
+   */
   readonly component: (props: RecordSlotProps<T>) => React.ReactNode
 }
 

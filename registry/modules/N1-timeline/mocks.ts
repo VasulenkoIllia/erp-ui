@@ -30,11 +30,9 @@ import {
   type MockTimelineSeeds,
   type MockTimelineTarget,
 } from "@/lib/mock-timeline-store"
-import { TIMELINE_PER_PAGE } from "@/lib/timeline"
+import { TIMELINE_MAX_PER_PAGE, TIMELINE_PER_PAGE } from "@/lib/timeline"
 
 import { TIMELINE, type TimelineMyActivity } from "./contract"
-
-const MAX_PER_PAGE = 100
 
 /** Дії людини на записах цілі, які вона бачить; закриті дії мок зі стану прибирає сам. */
 function activitiesOf(
@@ -85,7 +83,7 @@ function myActivitiesHandler(
       )
     const page = Math.max(1, Number(params.get("page")) || 1)
     const perPage = Math.min(
-      MAX_PER_PAGE,
+      TIMELINE_MAX_PER_PAGE,
       Math.max(1, Number(params.get("perPage")) || TIMELINE_PER_PAGE),
     )
     const start = (page - 1) * perPage

@@ -13,11 +13,14 @@ import { FeedFooter, FeedLoadState } from "@/components/erp/timeline-feed"
 import { Spinner } from "@/components/ui/spinner"
 import { useTabParam } from "@/hooks/use-tab-param"
 import {
-  REFRESH_INDICATOR_DELAY_MS,
   createTimelineActions,
-  useDelayed,
+  useFeedRefreshState,
 } from "@/hooks/use-timeline"
-import { TIMELINE_PER_PAGE, type TimelineMyActivity } from "@/lib/timeline"
+import {
+  TIMELINE_MAX_PER_PAGE,
+  TIMELINE_PER_PAGE,
+  type TimelineMyActivity,
+} from "@/lib/timeline"
 import { cn } from "@/lib/utils"
 
 import { useTimelineModule } from "../module-context"
@@ -30,13 +33,13 @@ import {
 } from "./use-my-activities"
 
 const isMyActivityTab = (value: string | null): value is MyActivityTab =>
-  MY_ACTIVITY_TABS.includes(value as MyActivityTab)
+  MY_ACTIVITY_TABS.some((tab) => tab === value)
 
 /** Назва запису; без адреси картки — текст, а запис без назви показує свій `id`. */
 function RecordName({ record }: { record: TimelineMyActivity["record"] }) {
   const { extension } = useTimelineModule()
   const settings = extension.myActivities || undefined
-  const name = <bdi>{record.title ?? record.id}</bdi>
+  const name = <bdi>{record.title?.trim() || record.id}</bdi>
   const href = settings?.recordHref?.(record)
   return href ? <RecordLink to={href}>{name}</RecordLink> : name
 }
@@ -54,7 +57,7 @@ function MyActivitiesState({
   const t = useTimelineT()
   const { query } = feed
   if (!query.data || query.isRefetchError)
-    return <FeedLoadState query={query} />
+    return <FeedLoadState query={query} headingLevel={2} />
   return tab === "all" ? (
     <PageState
       kind="empty"
@@ -100,6 +103,7 @@ function MyActivitiesList({
       }),
     keyOf: myActivityKey,
     focusTarget: heading,
+    listRef: list,
   })
   return (
     <>
@@ -150,7 +154,7 @@ function MyActivitiesList({
 export function MyActivities({
   heading,
 }: {
-  /** Рядок зникає разом із кнопкою, на якій стояв фокус: він іде на заголовок сторінки. */
+  /** Останній рядок зникає разом із кнопкою, на якій стояв фокус: він іде на заголовок сторінки. */
   heading: RefObject<HTMLElement | null>
 }) {
   const t = useTimelineT()
@@ -158,17 +162,11 @@ export function MyActivities({
   const { value, onValueChange } = useTabParam()
   const tab: MyActivityTab = isMyActivityTab(value) ? value : "all"
   const settings = extension.myActivities || undefined
-  const feed = useMyActivities(tab, settings?.perPage ?? TIMELINE_PER_PAGE)
-  const { query } = feed
-  const isRefreshing = useDelayed(
-    (query.isFetching && !query.isPending && !query.isFetchingNextPage) ||
-      query.isPlaceholderData,
-    REFRESH_INDICATOR_DELAY_MS,
+  const feed = useMyActivities(
+    tab,
+    Math.min(settings?.perPage ?? TIMELINE_PER_PAGE, TIMELINE_MAX_PER_PAGE),
   )
-  const isSwitching = useDelayed(
-    query.isPlaceholderData && query.fetchStatus === "fetching",
-    REFRESH_INDICATOR_DELAY_MS,
-  )
+  const { isRefreshing, isSwitching } = useFeedRefreshState(feed.query)
   return (
     <div className="@container max-w-3xl min-w-0 space-y-4">
       <div className="flex min-w-0 items-center gap-2">

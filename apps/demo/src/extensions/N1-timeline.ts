@@ -18,6 +18,9 @@ const CARD_HREFS: Readonly<Record<string, (id: string) => string>> = {
 export const timelineExtension: TimelineExtension = {
   myActivities: {
     perPage: 5,
-    recordHref: ({ resource, id }) => CARD_HREFS[resource]?.(id),
+    recordHref: ({ resource, id }) =>
+      Object.hasOwn(CARD_HREFS, resource)
+        ? CARD_HREFS[resource]?.(id)
+        : undefined,
   },
 }

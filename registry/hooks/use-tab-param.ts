@@ -1,6 +1,17 @@
+import { createContext } from "react"
 import { useLocation, useSearchParams } from "react-router"
 
 import { TAB_PARAM } from "@/registry/lib/list-state"
+
+/** Вміст живе поза вкладками (`keepMounted`, ADR-0054): зміна самої вкладки його не знищує. */
+export const KeptOverTabsContext = createContext(false)
+
+/** Параметри адреси без вкладки: для порівняння адрес, коли вкладка нічого не закриває. */
+export function searchWithoutTab(search: string): string {
+  const params = new URLSearchParams(search)
+  params.delete(TAB_PARAM)
+  return params.toString()
+}
 
 export interface TabParam {
   /** Вибрана вкладка з адреси; `null` — перша. */

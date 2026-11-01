@@ -14,6 +14,7 @@ import {
   useQueryClient,
   type QueryClient,
   type QueryKey,
+  type UseInfiniteQueryResult,
 } from "@tanstack/react-query"
 import * as React from "react"
 import { z } from "zod"
@@ -50,10 +51,10 @@ function useTimelineKeys(target: TimelineTarget) {
 }
 
 /** Менше за секунду індикатор лише блимав би (SPEC §8.2). */
-export const REFRESH_INDICATOR_DELAY_MS = 1_000
+const REFRESH_INDICATOR_DELAY_MS = 1_000
 
 /** Правда лише через `delayMs` після початку: короткий стан не блимає. */
-export function useDelayed(value: boolean, delayMs: number): boolean {
+function useDelayed(value: boolean, delayMs: number): boolean {
   const [isShown, setIsShown] = React.useState(false)
   React.useEffect(() => {
     if (!value) return
@@ -69,6 +70,31 @@ export function useDelayed(value: boolean, delayMs: number): boolean {
 }
 
 /** Перечитати список за подіями каналу: подій може бути багато, запит — один на секунду. */
+/** Індикатор оновлення з видимими даними й приглушення рядків попереднього відбору, із затримкою. */
+export function useFeedRefreshState(
+  query: Pick<
+    UseInfiniteQueryResult<unknown>,
+    | "isFetching"
+    | "isPending"
+    | "isFetchingNextPage"
+    | "isPlaceholderData"
+    | "fetchStatus"
+  >,
+) {
+  // Без мережі запит нового відбору на паузі: `isFetching` мовчить, а список ще попередній.
+  const isRefreshing = useDelayed(
+    (query.isFetching && !query.isPending && !query.isFetchingNextPage) ||
+      query.isPlaceholderData,
+    REFRESH_INDICATOR_DELAY_MS,
+  )
+  // Новий відбір ще не прийшов; без мережі запит на паузі, і приглушувати список немає чого чекати.
+  const isSwitching = useDelayed(
+    query.isPlaceholderData && query.fetchStatus === "fetching",
+    REFRESH_INDICATOR_DELAY_MS,
+  )
+  return { isRefreshing, isSwitching }
+}
+
 export function useRefreshOnEvent(
   queryKey: QueryKey,
   isRelevant: (event: RealtimeEvent) => boolean,

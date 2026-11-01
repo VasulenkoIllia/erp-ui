@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CoreAdminContext } from "ra-core"
 import { Suspense } from "react"
@@ -10,6 +10,8 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { ApiError } from "@/registry/lib/api"
 import type { ErpAuthProvider, Me } from "@/registry/lib/auth"
 import { todayIn } from "@/registry/lib/dates"
+import { connectRealtime, getRealtimeStatus } from "@/registry/lib/realtime"
+import { REALTIME_FLUSH_MS } from "@/registry/lib/realtime-cache"
 import type {
   TimelineApi,
   TimelineMyActivitiesPage,
@@ -134,6 +136,23 @@ describe("«Мої справи»: рядки", () => {
     expect(within(item).queryByRole("link")).not.toBeInTheDocument()
   })
 
+  it("порожня назва запису: посилання називає `id`, а не лишається без імені", async () => {
+    await setup({
+      myActivities: vi.fn(() =>
+        Promise.resolve(
+          pageOf([
+            row("a", {
+              record: { resource: "invoices", id: "inv-7", title: "  " },
+            }),
+          ]),
+        ),
+      ),
+    })
+    expect(
+      within(await list()).getByRole("link", { name: "inv-7" }),
+    ).toBeInTheDocument()
+  })
+
   it("той самий `id` дії в різних записах — різні рядки", async () => {
     await setup({
       myActivities: vi.fn(() =>
@@ -160,7 +179,7 @@ describe("«Мої справи»: рядки", () => {
     })
     const item = within(await list()).getByRole("listitem")
     expect(
-      within(item).getByRole("button", { name: "Виконано" }),
+      within(item).getByRole("button", { name: "Виконано: Дія a" }),
     ).toHaveAttribute("aria-disabled", "true")
     expect(
       within(item).queryByRole("button", { name: "Дії: Дія a" }),
@@ -208,6 +227,33 @@ describe("«Мої справи»: вкладки", () => {
       5,
       expect.anything(),
     )
+  })
+
+  it("`perPage` понад стелю контракту обрізається: рахунок сторінок не розходиться", async () => {
+    const timeline = await setup({}, { myActivities: { perPage: 500 } })
+    await list()
+    expect(timeline.myActivities).toHaveBeenLastCalledWith(
+      {},
+      1,
+      100,
+      expect.anything(),
+    )
+  })
+
+  it("«Показати ще» не стосується рядків попередньої вкладки", async () => {
+    const myActivities = vi
+      .fn<TimelineApi["myActivities"]>()
+      .mockResolvedValueOnce(pageOf([row("a")], 5))
+      .mockReturnValue(new Promise(() => undefined))
+    await setup({ myActivities }, { myActivities: { perPage: 1 } })
+    await screen.findByRole("button", { name: "Показати ще" })
+    await userEvent.click(await tab("Прострочені"))
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Показати ще" }),
+      ).not.toBeInTheDocument()
+    })
+    expect(screen.getByText("Дія a")).toBeInTheDocument()
   })
 })
 
@@ -303,6 +349,51 @@ describe("«Мої справи»: стани SPEC §8.1", () => {
   })
 })
 
+describe("«Мої справи»: оновлення за подіями", () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("подія стрічки будь-якого ресурсу перечитує список, інша подія ні", async () => {
+    const timeline = await setup()
+    await list()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    let controller!: ReadableStreamDefaultController<Uint8Array>
+    const body = new ReadableStream<Uint8Array>({
+      start(value) {
+        controller = value
+      },
+    })
+    const stop = connectRealtime({
+      open: () =>
+        Promise.resolve(
+          new Response(body, {
+            headers: { "Content-Type": "text/event-stream" },
+          }),
+        ),
+      accountId: ME.id,
+      companyId: "my-activities-test",
+    })
+    await vi.waitFor(() => {
+      expect(getRealtimeStatus()).toBe("open")
+    })
+    const send = async (type: string) => {
+      const event = { type, resource: "contacts", id: "c-1", at: TODAY }
+      controller.enqueue(
+        new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`),
+      )
+      await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS * 2))
+    }
+    await send("contacts.exported")
+    expect(timeline.myActivities).toHaveBeenCalledTimes(1)
+    await send("contacts.timeline")
+    await waitFor(() => {
+      expect(timeline.myActivities).toHaveBeenCalledTimes(2)
+    })
+    stop()
+  })
+})
+
 describe("«Мої справи»: дії в рядку", () => {
   it("«Виконано»: PATCH адреси запису, рядок зник, фокус на заголовку", async () => {
     const myActivities = vi
@@ -324,6 +415,22 @@ describe("«Мої справи»: дії в рядку", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { level: 1 })).toHaveFocus()
     })
+  })
+
+  it("«Виконано» посеред списку: фокус на сусідньому рядку, сторінка не стрибає", async () => {
+    const focus = vi.spyOn(HTMLElement.prototype, "focus")
+    const myActivities = vi
+      .fn<TimelineApi["myActivities"]>()
+      .mockResolvedValueOnce(pageOf([row("a"), row("b")]))
+      .mockResolvedValue(pageOf([row("b")]))
+    await setup({ myActivities })
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Виконано: Дія a" }),
+    )
+    await waitFor(async () => {
+      expect(within(await list()).getByRole("listitem")).toHaveFocus()
+    })
+    expect(focus).toHaveBeenLastCalledWith({ preventScroll: true })
   })
 
   it.each([404, 409])(

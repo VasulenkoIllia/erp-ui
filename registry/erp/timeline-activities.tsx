@@ -88,6 +88,7 @@ export function ActivityRow({
   const typeLabel = isKnownType(activity.type)
     ? t(`timeline.activities.types.${activity.type}`)
     : activity.type
+  const doneLabel = t("timeline.activities.doneFor", { title: activity.title })
   return (
     <li
       tabIndex={-1}
@@ -122,22 +123,20 @@ export function ActivityRow({
           ) : null}
         </p>
       </div>
-      {denied ? (
+      {readOnly ? null : denied ? (
         <div className="shrink-0 ps-11 @md:ps-0">
-          <DeniedAction reason={denied} size="sm">
+          <DeniedAction reason={denied} size="sm" aria-label={doneLabel}>
             {t("timeline.activities.done")}
           </DeniedAction>
         </div>
-      ) : readOnly ? null : (
+      ) : (
         <div className="flex shrink-0 items-center gap-1 ps-11 @md:ps-0">
           <Button
             size="sm"
             variant="outline"
             disabled={busy}
             focusableWhenDisabled
-            aria-label={t("timeline.activities.doneFor", {
-              title: activity.title,
-            })}
+            aria-label={doneLabel}
             onClick={onDone}
           >
             {busy ? <Spinner aria-hidden /> : <CheckIcon aria-hidden />}
@@ -179,25 +178,36 @@ function useActivityClosing<T extends TimelineActivity>(
   items: readonly T[],
   keyOf: (activity: T) => string,
   focusTarget: React.RefObject<HTMLElement | null>,
+  listRef?: React.RefObject<HTMLElement | null>,
 ) {
   const t = useErpUiT()
   const errorText = useApiErrorMessage()
   const [closingKeys, setClosingKeys] = React.useState<readonly string[]>([])
   // Рядок зникає разом із кнопкою, на якій стояв фокус: він лишається в блоці (WCAG 2.4.3).
-  const closedKeys = React.useRef(new Set<string>())
+  // Без прокрутки: людина лишається там, де закрила дію, навіть якщо ціль далеко вгорі.
+  const closedRows = React.useRef(new Map<string, number>())
   React.useEffect(() => {
-    const gone = [...closedKeys.current].filter(
-      (key) => !items.some((item) => keyOf(item) === key),
+    const gone = [...closedRows.current].filter(
+      ([key]) => !items.some((item) => keyOf(item) === key),
     )
-    if (!gone.length) return
-    for (const key of gone) closedKeys.current.delete(key)
-    if (document.activeElement === document.body) focusTarget.current?.focus()
-  }, [items, keyOf, focusTarget])
+    const [closed] = gone
+    if (!closed) return
+    for (const [key] of gone) closedRows.current.delete(key)
+    if (document.activeElement !== document.body) return
+    const rows = listRef?.current?.children
+    const neighbour = rows?.[Math.min(closed[1], rows.length - 1)]
+    const target =
+      neighbour instanceof HTMLElement ? neighbour : focusTarget.current
+    target?.focus({ preventScroll: true })
+  }, [items, keyOf, focusTarget, listRef])
   const close = async (activity: T, status: "done" | "cancelled") => {
     const key = keyOf(activity)
     const actions = actionsFor(activity)
     setClosingKeys((keys) => [...keys, key])
-    closedKeys.current.add(key)
+    closedRows.current.set(
+      key,
+      items.findIndex((item) => keyOf(item) === key),
+    )
     try {
       await actions.updateActivity(activity.id, {
         version: activity.version,
@@ -205,7 +215,7 @@ function useActivityClosing<T extends TimelineActivity>(
       })
       announce(t("timeline.activities.closed", { title: activity.title }))
     } catch (failure) {
-      closedKeys.current.delete(key)
+      closedRows.current.delete(key)
       if (isApiError(failure) && [404, 409].includes(failure.status)) {
         toast.error(t("timeline.activities.changed"))
         await actions.refresh()
@@ -219,19 +229,23 @@ function useActivityClosing<T extends TimelineActivity>(
 
 /**
  * Поведінка рядків дій: закрити, змінити, скасувати. Дії беруться на рядок, бо у «Моїх справах» кожен
- * рядок належить своєму запису. Рядок міг зникнути, тож діалоги повертають фокус на `focusTarget`.
+ * рядок належить своєму запису. Рядок міг зникнути, тож діалоги повертають фокус на список чи
+ * `focusTarget`, а закриття дії — на сусідній рядок списку чи `focusTarget`.
  */
 export function useActivityRows<T extends TimelineActivity>({
   items,
   actionsFor,
   keyOf = activityId,
   focusTarget,
+  listRef,
 }: {
   items: readonly T[]
   actionsFor: (activity: T) => TimelineActions
   /** Ключ рядка: у «Моїх справах» `id` дії унікальний лише в межах запису. */
   keyOf?: (activity: T) => string
   focusTarget: React.RefObject<HTMLElement | null>
+  /** Довгий список, де `focusTarget` далеко від рядка: фокус лишається в ньому. Рядки — `tabIndex={-1}`. */
+  listRef?: React.RefObject<HTMLElement | null>
 }) {
   const t = useErpUiT()
   const { closingKeys, close } = useActivityClosing(
@@ -239,7 +253,9 @@ export function useActivityRows<T extends TimelineActivity>({
     items,
     keyOf,
     focusTarget,
+    listRef,
   )
+  const returnTarget = () => listRef?.current ?? focusTarget.current
   const [editing, setEditing] = React.useState<T | null>(null)
   const [cancelling, setCancelling] = React.useState<T | null>(null)
   const shownCancelling = useLastValue(cancelling)
@@ -261,7 +277,7 @@ export function useActivityRows<T extends TimelineActivity>({
         <TimelineActivityDialog
           activity={editing}
           actions={actionsFor(editing)}
-          finalFocus={focusTarget}
+          finalFocus={returnTarget}
           onClose={() => {
             setEditing(null)
           }}
@@ -277,7 +293,7 @@ export function useActivityRows<T extends TimelineActivity>({
         cancelLabel={t("timeline.activities.keep")}
         destructive
         lockWhileBusy
-        returnFocus={() => focusTarget.current}
+        returnFocus={returnTarget}
         onClose={() => {
           setCancelling(null)
         }}
@@ -377,7 +393,7 @@ export function TimelineActivities({
         <TimelineActivityDialog
           activity={null}
           actions={actions}
-          finalFocus={addButton}
+          finalFocus={() => addButton.current}
           onClose={() => {
             setIsAdding(false)
           }}

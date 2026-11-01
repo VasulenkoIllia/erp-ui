@@ -215,6 +215,21 @@ describe("RecordTimeline: варіанти", () => {
     ).not.toBeInTheDocument()
   })
 
+  it("лише читання: заборонена дія теж без кнопки", async () => {
+    setup(
+      {
+        activities: vi.fn(() =>
+          Promise.resolve([{ ...ACTIVITY, deniedActions: { update: "own" } }]),
+        ),
+      },
+      { readOnly: true },
+    )
+    expect(await screen.findByText("Подзвонити")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Виконано/ }),
+    ).not.toBeInTheDocument()
+  })
+
   it("без пошти: лишаються нотатки", async () => {
     setup({}, { messages: false })
     await findEditor()

@@ -41,6 +41,7 @@ type FeedQuery = Pick<
   | "isFetchNextPageError"
   | "isRefetchError"
   | "hasNextPage"
+  | "isPlaceholderData"
   | "fetchStatus"
   | "error"
   | "dataUpdatedAt"
@@ -49,7 +50,14 @@ type FeedQuery = Pick<
 >
 
 /** Запит без даних: скелетон, офлайн чи помилка замість усієї стрічки або лише списку. */
-export function FeedLoadState({ query }: { query: FeedQuery }) {
+export function FeedLoadState({
+  query,
+  headingLevel = 3,
+}: {
+  query: FeedQuery
+  /** Стан на місці всієї сторінки під її h1 — 2. */
+  headingLevel?: 2 | 3
+}) {
   const retry = () => {
     void query.refetch()
   }
@@ -59,7 +67,7 @@ export function FeedLoadState({ query }: { query: FeedQuery }) {
       <PageState
         kind="offline"
         className="min-h-40"
-        headingLevel={3}
+        headingLevel={headingLevel}
         onRetry={retry}
       />
     ) : (
@@ -69,7 +77,7 @@ export function FeedLoadState({ query }: { query: FeedQuery }) {
     <PageState
       kind={errorStateKind(query.error)}
       className="min-h-40"
-      headingLevel={3}
+      headingLevel={headingLevel}
       onRetry={retry}
     />
   )
@@ -160,7 +168,8 @@ export function FeedFooter({
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {t("timeline.shown", { shown, total })}
         </p>
-        {query.hasNextPage ? (
+        {/* Рядки попередньої вкладки: їхні сторінки до нової вкладки не стосуються. */}
+        {query.hasNextPage && !query.isPlaceholderData ? (
           <Button
             variant="outline"
             size="sm"

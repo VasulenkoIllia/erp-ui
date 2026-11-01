@@ -8,8 +8,7 @@ import { TimelineComposer } from "@/registry/erp/timeline-composer"
 import { FeedLoadState, TimelineFeed } from "@/registry/erp/timeline-feed"
 import { TimelineFollowers } from "@/registry/erp/timeline-followers"
 import {
-  REFRESH_INDICATOR_DELAY_MS,
-  useDelayed,
+  useFeedRefreshState,
   useTimelineActions,
   useTimelineFeed,
   useTimelineRealtime,
@@ -125,17 +124,7 @@ function TimelineBody({
   const [isReady, setIsReady] = React.useState(false)
   if (feed.query.data && !isReady) setIsReady(true)
   const { query } = feed
-  // Без мережі запит нового фільтра на паузі: `isFetching` мовчить, а список ще попередній.
-  const isRefreshing = useDelayed(
-    (query.isFetching && !query.isPending && !query.isFetchingNextPage) ||
-      query.isPlaceholderData,
-    REFRESH_INDICATOR_DELAY_MS,
-  )
-  // Новий фільтр ще не прийшов; без мережі запит на паузі, і приглушувати список немає чого чекати.
-  const isSwitching = useDelayed(
-    query.isPlaceholderData && query.fetchStatus === "fetching",
-    REFRESH_INDICATOR_DELAY_MS,
-  )
+  const { isRefreshing, isSwitching } = useFeedRefreshState(query)
   if (!isReady) return <FeedLoadState query={query} />
   return (
     <>

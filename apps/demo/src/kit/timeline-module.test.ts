@@ -1,4 +1,7 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { renderHook } from "@testing-library/react"
 import { setupServer } from "msw/node"
+import { createElement, type ReactNode } from "react"
 import {
   afterAll,
   afterEach,
@@ -7,9 +10,14 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vitest"
 import { z } from "zod"
 
+import {
+  createTimelineActions,
+  useTimelineVersionRefresh,
+} from "@/registry/hooks/use-timeline"
 import {
   createApiClient,
   isApiError,
@@ -27,7 +35,12 @@ import {
   signInMock,
   type MockUser,
 } from "@/registry/lib/mocks"
-import { createTimelineApi } from "@/registry/lib/timeline"
+import {
+  TIMELINE_MY_ACTIVITIES_KEY,
+  TIMELINE_SCENARIO_RESOURCE,
+  createTimelineApi,
+  timelineQueryKey,
+} from "@/registry/lib/timeline"
 import { createTimelineModule } from "@/registry/modules/N1-timeline"
 import { myActivityRange } from "@/registry/modules/N1-timeline/components/use-my-activities"
 import { TIMELINE } from "@/registry/modules/N1-timeline/contract"
@@ -152,6 +165,10 @@ describe("модуль N1: фабрика", () => {
     ])
   })
 
+  it("ресурс сценаріїв модуля той самий, що в стрічки картки", () => {
+    expect(TIMELINE).toBe(TIMELINE_SCENARIO_RESOURCE)
+  })
+
   it("без basePath окремої адреси модуля немає", () => {
     expect(createTimelineModule().routes.map((route) => route.path)).toEqual([
       "/my-activities",
@@ -172,6 +189,44 @@ describe("модуль N1: фабрика", () => {
     const label = { uk: "Журнал", en: "Log" }
     const { aside } = createTimelineModule({ extension: { card: { label } } })
     expect(aside.label).toBe(label)
+  })
+})
+
+describe("модуль N1: оновлення", () => {
+  const target = { resource: "deals", id: "d1" }
+
+  it("`refresh` дії перечитує і стрічку запису, і «Мої справи»", async () => {
+    const queryClient = new QueryClient()
+    const invalidate = vi
+      .spyOn(queryClient, "invalidateQueries")
+      .mockResolvedValue()
+    await createTimelineActions(api, queryClient, target).refresh()
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: timelineQueryKey(target),
+    })
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: TIMELINE_MY_ACTIVITIES_KEY,
+    })
+  })
+
+  it("нова версія запису перечитує стрічку, перша — ні", () => {
+    const queryClient = new QueryClient()
+    const invalidate = vi
+      .spyOn(queryClient, "invalidateQueries")
+      .mockResolvedValue()
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children)
+    const { rerender } = renderHook(
+      ({ version }) => {
+        useTimelineVersionRefresh(target, version)
+      },
+      { wrapper, initialProps: { version: 1 } },
+    )
+    expect(invalidate).not.toHaveBeenCalled()
+    rerender({ version: 2 })
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: timelineQueryKey(target),
+    })
   })
 })
 

@@ -38,6 +38,7 @@ export type {
   TimelineExtension,
   TimelineMessages,
 } from "./extension"
+export type { TimelineTarget } from "@/lib/timeline"
 export type { TimelineCardProps } from "./components/timeline-card"
 export type { TimelinePaths } from "./module-context"
 export type { TimelineResource } from "./resources"

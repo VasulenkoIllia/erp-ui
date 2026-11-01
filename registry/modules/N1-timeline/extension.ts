@@ -30,7 +30,7 @@ export interface TimelineCardExtension extends Pick<
 
 /** Сторінка «Мої справи». */
 export interface MyActivitiesExtension {
-  /** Дій на сторінку; за замовчуванням 20. */
+  /** Дій на сторінку, до 100; за замовчуванням 20. */
   readonly perPage?: number
   /**
    * Адреса картки запису; без неї чи з `undefined` назва запису в рядку лишається текстом. Адреси

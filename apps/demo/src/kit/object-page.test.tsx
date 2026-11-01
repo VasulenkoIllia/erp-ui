@@ -1,10 +1,13 @@
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { lazy, useEffect, useState } from "react"
+import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it, vi } from "vitest"
 
+import { UnsavedChangesGuard } from "@/registry/erp/form"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { RecordHeader, RecordStatusBar } from "@/registry/erp/record-header"
+import { useTabParam } from "@/registry/hooks/use-tab-param"
 import { ApiError, errorStateKind } from "@/registry/lib/api"
 import {
   OBJECT_PAGE_ASIDE_TAB,
@@ -20,6 +23,13 @@ import {
   parseInvoiceDetail,
 } from "@/data/invoices"
 import { invoiceHref, listSearchOf, parsePath } from "@/router"
+
+// `useCanBlock` з ra-core не бачить роутера тесту: захист беремо прямо з React Router.
+vi.mock("ra-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("ra-core")>()),
+  useBlocker: (await import("react-router")).useBlocker,
+  useCanBlock: () => true,
+}))
 
 /** Крок 0.6d (ADR-0019): шаблон Object Page, шапка й етапи, детальний запис рахунку, адреса картки. */
 
@@ -248,6 +258,13 @@ function Draft() {
 describe("ObjectPage: стрічка, що не зникає (ADR-0054)", () => {
   const aside = { label: "Стрічка", content: <Draft />, keepMounted: true }
 
+  it("вкладки вузької картки мають назву", () => {
+    render(<Page aside={aside} />)
+    expect(
+      screen.getByRole("tablist", { name: "Розділи запису" }),
+    ).toBeInTheDocument()
+  })
+
   it("не монтується, доки її не показали: запити не йдуть даремно", async () => {
     const mounted = vi.fn()
     function Spy() {
@@ -291,6 +308,67 @@ describe("ObjectPage: стрічка, що не зникає (ADR-0054)", () => 
     await user.click(screen.getByRole("tab", { name: "Подробиці" }))
     await user.click(screen.getByRole("tab", { name: "Стрічка" }))
     expect(await screen.findByLabelText("Чернетка")).toHaveValue("")
+  })
+})
+
+describe("ObjectPage: чернетка поруч із вкладками в адресі (ADR-0054)", () => {
+  function GuardedDraft() {
+    const [text, setText] = useState("")
+    return (
+      <label>
+        Чернетка
+        <input
+          value={text}
+          onChange={(event) => {
+            setText(event.target.value)
+          }}
+        />
+        <UnsavedChangesGuard when={text !== ""} />
+      </label>
+    )
+  }
+
+  function Card({ keepMounted }: { keepMounted: boolean }) {
+    return (
+      <Page
+        sections={TAB_SECTIONS}
+        tabs={useTabParam()}
+        aside={{ label: "Стрічка", content: <GuardedDraft />, keepMounted }}
+      />
+    )
+  }
+
+  async function openDraft(keepMounted: boolean) {
+    const router = createMemoryRouter(
+      [
+        { path: "/card", element: <Card keepMounted={keepMounted} /> },
+        { path: "/list", element: <p>Список</p> },
+      ],
+      { initialEntries: ["/card"] },
+    )
+    render(<RouterProvider router={router} />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    await user.type(await screen.findByLabelText("Чернетка"), "Текст")
+    return { router, user }
+  }
+
+  const unsaved = () =>
+    screen.queryByRole("alertdialog", { name: "Вийти без збереження?" })
+
+  it("вкладка не питає про вихід, бо чернетка лишається; вихід зі сторінки питає", async () => {
+    const { router, user } = await openDraft(true)
+    await user.click(screen.getByRole("tab", { name: "Реквізити" }))
+    expect(router.state.location.search).toMatch(/tab=/)
+    expect(unsaved()).not.toBeInTheDocument()
+    await act(() => router.navigate("/list"))
+    expect(unsaved()).toBeInTheDocument()
+  })
+
+  it("без `keepMounted` вкладка питає: разом із нею зникне й чернетка", async () => {
+    const { user } = await openDraft(false)
+    await user.click(screen.getByRole("tab", { name: "Реквізити" }))
+    expect(await screen.findByRole("alertdialog")).toBeInTheDocument()
   })
 })
 

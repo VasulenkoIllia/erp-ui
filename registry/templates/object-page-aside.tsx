@@ -1,6 +1,8 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
 
+import { KeptOverTabsContext } from "@/registry/hooks/use-tab-param"
+
 /**
  * Частина templates/object-page: вміст, що живе, доки відкрита картка (ADR-0054). Вузька й широка
  * розкладки картки різні, а вкладка монтує лише себе, тож без цього стрічка зникала б разом із
@@ -25,6 +27,11 @@ export function useKeptContent(content: React.ReactNode, isEnabled: boolean) {
   if (!isEnabled) return { slot: content, portal: null }
   return {
     slot: <div ref={attach} data-slot="object-page-kept" />,
-    portal: isOpened ? createPortal(content, host) : null,
+    portal: isOpened
+      ? createPortal(
+          <KeptOverTabsContext value={true}>{content}</KeptOverTabsContext>,
+          host,
+        )
+      : null,
   }
 }
