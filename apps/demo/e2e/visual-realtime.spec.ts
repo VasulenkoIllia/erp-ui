@@ -16,6 +16,8 @@ const WIDTHS = [390, 768, 1440] as const
 const PAGE = "/#/realtime"
 const INVOICE = "#/data/inv-00001"
 const NOTICE = /Запис зараз редагує Марта Шевчук/
+const notice = (page: Page) =>
+  page.locator('[data-slot="edit-lock-notice"]').getByText(NOTICE)
 const skip = () =>
   Boolean(process.env.SCREENSHOT_PAGES) &&
   !process.env.SCREENSHOT_PAGES?.split(",").includes("realtimeStates")
@@ -51,11 +53,11 @@ for (const width of WIDTHS)
       await page
         .getByRole("button", { name: "Колега почав редагувати" })
         .click()
-      await expect(page.getByText(NOTICE)).toBeVisible()
+      await expect(notice(page)).toBeVisible()
       await shot(page, `n1a-realtime-${String(width)}-${theme}`)
       await page.evaluate((target) => {
         window.location.hash = target
       }, INVOICE)
-      await expect(page.getByText(NOTICE)).toBeVisible()
+      await expect(notice(page)).toBeVisible()
       await shot(page, `n1a-invoice-locked-${String(width)}-${theme}`)
     })

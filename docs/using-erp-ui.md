@@ -706,7 +706,7 @@ node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/realtime-sync,erp/edit-lock-
   `data`: `{ type, resource, id?, at }`, `type` — `<ресурс>.<дія>`, ті самі назви, що у вебхуків. Даних запису в події
   немає. Серцебиття (рядок-коментар) не рідше ніж раз на 30 с.
 - 401, 403, 404, 405, 501 — каналу немає, кіт більше не пробує. Решта збоїв — нові спроби з паузою до 30 с.
-- Канал тримає одна вкладка на компанію, решта отримує події від неї.
+- Канал тримає одна вкладка на людину й компанію, решта отримує події від неї.
 - Подія `<ресурс>.created`, `.updated`, `.deleted` перечитує відкриті списки й картки ресурсу, не частіше ніж раз на
   секунду. `notifications.created` оновлює дзвінок. Свої події: `useRealtimeEvent((event) => …)`, стан каналу:
   `useRealtimeStatus()`. Подія `REALTIME_RESYNC` означає, що після обриву частина подій могла не дійти.
@@ -716,16 +716,19 @@ node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/realtime-sync,erp/edit-lock-
 ```tsx
 const lock = useEditLock({ resource: "contacts", id })
 <ObjectPage notice={<EditLockNotice holder={lock.holder} />} … />
-<AccessAction lockReason={lock.reason} onClick={() => void start()} … />  // чи DeniedAction з lock.reason
+<AccessAction lockReason={lock.reason} busy={lock.isAcquiring} onClick={() => void start()} … />  // чи DeniedAction з lock.reason
 const start = async () => { if (await lock.acquire()) setEditing(true) }
 // форма закрилась: lock.release()
 ```
 
 - Бекенд: `GET`, `PUT`, `DELETE /<ресурс>/<id>/lock`, відповідь `{ holder: { id, name } | null, expiresAt }`. `PUT` дає 200 і
-  тоді, коли запис уже тримає інша людина: вона буде в `holder`. Термін дії — від двох хвилин, подовження щохвилини.
+  тоді, коли запис уже тримає інша людина: вона буде в `holder`. `DELETE` чужого блокування не знімає. Термін дії — від
+  двох хвилин, подовження щохвилини фоновим запитом (`X-Background-Request`), тож воно не продовжує сесію.
   Подія `<ресурс>.locked` з `id` запису, коли `holder` змінився.
 - Це домовленість між людьми, дані береже версія запису. Збій блокування не заважає редагувати, а бекенд без цих
-  адрес (404) працює, як раніше: кіт питає один раз на картку. Модуль B1 вимикається `editLock: false` у розширенні.
+  адрес (404, 405, 501) працює, як раніше: кіт питає один раз на картку. Модуль B1 вимикається `editLock: false` у
+  розширенні.
+- `useEditLock` прив'язаний до запису на весь час життя: картка з іншим `id` має бути новим екземпляром (`key={id}`).
 - Моки вже мають канал і блокування (`createPlatformHandlers`). Колегу імітують `setMockEditLock` із `lib/mock-realtime`
   і звичайна зміна в `db` ресурсу; сценарії — ресурс `realtime`.
 

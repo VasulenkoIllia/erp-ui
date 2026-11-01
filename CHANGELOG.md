@@ -6,7 +6,7 @@
 
 ### Додано
 
-- **Канал реального часу** `lib/realtime`, `lib/sse`, `lib/realtime-cache`, `erp/realtime-sync`, `hooks/use-realtime` (PF19, ADR-0051): один потік подій сервера на компанію через `fetch`, перепідключення з паузою до 30 с, зміна запису перечитує відкриті списки й картки, дзвінок не опитує, поки канал відкрито. Вмикається `<RealtimeSync />`, без нього все як раніше.
+- **Канал реального часу** `lib/realtime`, `lib/sse`, `lib/realtime-cache`, `erp/realtime-sync`, `hooks/use-realtime` (PF19, ADR-0051): один потік подій сервера на людину й компанію через `fetch`, перепідключення з паузою до 30 с, зміна запису перечитує відкриті списки й картки, дзвінок не опитує, поки канал відкрито. Вмикається `<RealtimeSync />`, без нього все як раніше.
 - **«Редагує …»** `lib/edit-lock`, `hooks/use-edit-lock`, `erp/edit-lock-notice` (SPEC §8.2, ADR-0051): блокування запису на час редагування з терміном дії. Картка показує смугу, а «Редагувати» неактивна з причиною. Увімкнено на картках контакту й організації B1 і рахунку в демо; бекенд без цих адрес працює, як раніше.
 - `ErpAuthProvider`: новий `realtime`. `ErpDataProvider`: нові `getEditLock`, `takeEditLock`, `releaseEditLock`. Адаптер на `createAuthProvider` і `createDataProvider` отримує їх сам, написаний вручну додає. `ApiClient`: новий `stream`.
 - `ObjectPage`: необов'язковий `notice`. Модуль B1: необов'язковий `editLock` у розширенні. Моки: `createRealtimeHandlers` у `createPlatformHandlers`, `setMockEditLock`, `dropMockRealtimeStream`.

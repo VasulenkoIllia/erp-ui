@@ -3,17 +3,18 @@
  *
  *   const lock = useEditLock({ resource: "contacts", id })
  *   <EditLockNotice holder={lock.holder} />                // `notice` шаблону картки
- *   <AccessAction lockReason={lock.reason} … />            // «Редагувати» неактивна з причиною
+ *   <AccessAction lockReason={lock.reason} busy={lock.isAcquiring} … />
  *   const onEdit = async () => { if (await lock.acquire()) setEditing(true) }
  *   // форма закрилась: lock.release()
  *
  * - Хто редагує — із запиту, подія каналу перечитує його; без каналу запит опитується.
  * - `acquire` перед відкриттям форми: `false` — запис щойно взяла інша людина. Збій блокування не
  *   заважає редагувати (`true`): дані береже версія запису.
- * - Поки форма відкрита, блокування подовжується; без дій людини півгодини — ні, і сервер відпускає
- *   запис сам. Людина повернулась, а запис уже взяв хтось: тост про це, форма лишається, а дані
- *   береже порівняння при збереженні.
- * - Бекенд без адрес блокування: `GET` дає 404, і хук мовчки нічого не робить.
+ * - Поки форма відкрита, блокування подовжується фоновим запитом; без дій людини півгодини — ні, і
+ *   сервер відпускає запис сам. Запис тим часом узяв хтось: тост, форма лишається, дані береже
+ *   порівняння при збереженні. Закінчив — блокування повертається до відкритої форми.
+ * - Бекенд без адрес блокування (`isEditLockUnsupported`): хук мовчки нічого не робить.
+ * - Хук прив'язаний до запису на весь час життя: картка має `key={id}`, інший запис — новий екземпляр.
  */
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useDataProvider } from "ra-core"
@@ -34,6 +35,7 @@ import {
   EDIT_LOCK_QUERY_KEY,
   EDIT_LOCK_REFRESH_MS,
   editLockEventType,
+  isEditLockUnsupported,
   type EditLockHolder,
   type EditLockState,
 } from "@/registry/lib/edit-lock"
@@ -53,11 +55,15 @@ export interface EditLock {
   readonly holder: EditLockHolder | null
   /** Причина для неактивної «Редагувати», поки запис редагує інша людина. */
   readonly reason: string | undefined
+  /** Запит блокування ще йде: кнопка неактивна, повторний клік нічого не дасть. */
+  readonly isAcquiring: boolean
   /** Взяти блокування перед формою: `false` — запис редагує інша людина. */
   readonly acquire: () => Promise<boolean>
   /** Відпустити: форма закрилась. Запит може не вдатись, тоді сервер відпустить сам. */
   readonly release: () => void
 }
+
+const FREE: EditLockState = { holder: null, expiresAt: null }
 
 export function useEditLock({
   resource,
@@ -71,6 +77,9 @@ export function useEditLock({
   const { data: me } = useMe()
   const status = useRealtimeStatus()
   const [isHeld, setHeld] = React.useState(false)
+  const [isAcquiring, setAcquiring] = React.useState(false)
+  /** Зростає, коли форму закрили: відповідь на старий `PUT` уже нікому не потрібна. */
+  const generation = React.useRef(0)
   const queryKey = React.useMemo(
     () => [...EDIT_LOCK_QUERY_KEY, resource, id, companyScope(companyId)],
     [resource, id, companyId],
@@ -84,7 +93,9 @@ export function useEditLock({
     enabled: isActive,
     retry: false,
     refetchInterval: ({ state }) =>
-      state.status !== "error" && status !== "open" ? EDIT_LOCK_POLL_MS : false,
+      isEditLockUnsupported(state.error) || status === "open"
+        ? false
+        : EDIT_LOCK_POLL_MS,
   })
 
   useRealtimeEvent((event) => {
@@ -95,51 +106,63 @@ export function useEditLock({
       void queryClient.invalidateQueries({ queryKey })
   })
 
-  // Бекенд без блокувань (`GET` не вдався): без подовжень і зайвих запитів.
-  const isSupported = isActive && query.status !== "error"
+  const isSupported = isActive && !isEditLockUnsupported(query.error)
   // Поки профіль не прийшов, свого блокування не вважаємо чужим.
   const isOthers = ({ holder }: EditLockState) =>
     holder !== null && me?.id !== undefined && holder.id !== me.id
 
-  /** Взяти чи подовжити; `null` — запит не вдався, вважаємо, що блокувань немає. */
-  const take = async (): Promise<EditLockState | null> => {
+  /** Взяти чи подовжити; `null` — відповіді немає чи вона вже нікому не потрібна. */
+  const take = async (
+    options: { background?: boolean } = {},
+  ): Promise<EditLockState | null> => {
     if (!isSupported || id === undefined) return null
+    const started = generation.current
     try {
-      const lock = await dataProvider.takeEditLock(resource, id)
-      queryClient.setQueryData<EditLockState>(queryKey, lock)
-      return lock
+      const lock = await dataProvider.takeEditLock(resource, id, options)
+      if (started === generation.current) {
+        queryClient.setQueryData<EditLockState>(queryKey, lock)
+        return lock
+      }
+      // `PUT` обігнав `DELETE`: запис не лишається зайнятим до кінця терміну.
+      if (!isOthers(lock))
+        void dataProvider.releaseEditLock(resource, id).catch(() => undefined)
+      return null
     } catch {
       return null
     }
   }
 
   const acquire = async () => {
+    setAcquiring(true)
     const lock = await take()
+    setAcquiring(false)
     if (lock === null) return true
     setHeld(!isOthers(lock))
     return !isOthers(lock)
   }
 
-  const refresh = async () => {
-    const lock = await take()
-    if (lock?.holder && isOthers(lock)) {
-      setHeld(false)
-      toast.warning(t("editLock.lost", { name: lock.holder.name }))
-    }
-  }
-
   const release = () => {
     if (!isHeld || id === undefined) return
+    generation.current += 1
     setHeld(false)
-    queryClient.setQueryData<EditLockState>(queryKey, {
-      holder: null,
-      expiresAt: null,
-    })
+    queryClient.setQueryData<EditLockState>(queryKey, (lock) =>
+      lock && isOthers(lock) ? lock : FREE,
+    )
     // Не вдалось — сервер відпустить сам, коли мине термін.
     void dataProvider.releaseEditLock(resource, id).catch(() => undefined)
   }
 
-  useLockRefresh(isHeld, refresh)
+  const holder = query.data && isOthers(query.data) ? query.data.holder : null
+  const lostTo = isHeld ? (holder?.name ?? null) : null
+  useLockRefresh(isHeld && lostTo === null, () => take({ background: true }))
+
+  const warnLost = React.useEffectEvent((name: string) => {
+    toast.warning(t("editLock.lost", { name }))
+  })
+  React.useEffect(() => {
+    if (lostTo !== null) warnLost(lostTo)
+  }, [lostTo])
+
   const releaseOnLeave = React.useEffectEvent(release)
   React.useEffect(() => {
     if (!isHeld) return
@@ -147,18 +170,24 @@ export function useEditLock({
       releaseOnLeave()
     }
   }, [isHeld])
+  React.useEffect(
+    () => () => {
+      generation.current += 1
+    },
+    [],
+  )
 
-  const holder = query.data && isOthers(query.data) ? query.data.holder : null
   return {
     holder,
     reason: holder ? t("editLock.reason", { name: holder.name }) : undefined,
+    isAcquiring,
     acquire,
     release,
   }
 }
 
 /** Подовжує блокування, поки людина щось робить на сторінці. */
-function useLockRefresh(isHeld: boolean, refresh: () => Promise<void>) {
+function useLockRefresh(isHeld: boolean, refresh: () => Promise<unknown>) {
   const onTick = React.useEffectEvent(refresh)
   React.useEffect(() => {
     if (!isHeld) return
@@ -166,15 +195,16 @@ function useLockRefresh(isHeld: boolean, refresh: () => Promise<void>) {
     const noteActivity = () => {
       lastActivity = Date.now()
     }
-    window.addEventListener("pointerdown", noteActivity)
-    window.addEventListener("keydown", noteActivity)
+    // На перехопленні: поле, що зупиняє подію, теж рахується роботою людини.
+    window.addEventListener("pointerdown", noteActivity, true)
+    window.addEventListener("keydown", noteActivity, true)
     const timer = setInterval(() => {
       if (Date.now() - lastActivity < EDIT_LOCK_IDLE_MS) void onTick()
     }, EDIT_LOCK_REFRESH_MS)
     return () => {
       clearInterval(timer)
-      window.removeEventListener("pointerdown", noteActivity)
-      window.removeEventListener("keydown", noteActivity)
+      window.removeEventListener("pointerdown", noteActivity, true)
+      window.removeEventListener("keydown", noteActivity, true)
     }
   }, [isHeld])
 }

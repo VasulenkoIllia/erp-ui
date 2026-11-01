@@ -13,9 +13,11 @@ import type { ErpAuthProvider, Me } from "@/registry/lib/auth"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import {
   EDIT_LOCK_IDLE_MS,
+  EDIT_LOCK_QUERY_KEY,
   EDIT_LOCK_REFRESH_MS,
   type EditLockState,
 } from "@/registry/lib/edit-lock"
+import { AccessAction } from "@/registry/modules/B1-contacts/components/access-action"
 
 const ME = { id: "u-me", name: "Я" } as Me
 const OTHER = { id: "u-other", name: "Марта Шевчук" }
@@ -65,6 +67,7 @@ function setup(provider: Partial<ErpDataProvider>, enabled?: boolean) {
   } as unknown as ErpDataProvider
   const authProvider = {
     getMe: vi.fn(() => Promise.resolve(ME)),
+    checkError: vi.fn(() => Promise.resolve()),
   } as unknown as ErpAuthProvider
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -78,7 +81,7 @@ function setup(provider: Partial<ErpDataProvider>, enabled?: boolean) {
       <Card enabled={enabled} />
     </CoreAdminContext>,
   )
-  return { dataProvider, view }
+  return { dataProvider, queryClient, view }
 }
 
 describe("useEditLock", () => {
@@ -89,7 +92,7 @@ describe("useEditLock", () => {
     await waitFor(() => {
       expect(screen.getByTestId("form")).toHaveTextContent("форма")
     })
-    expect(dataProvider.takeEditLock).toHaveBeenCalledWith("contacts", "1")
+    expect(dataProvider.takeEditLock).toHaveBeenCalledWith("contacts", "1", {})
     await user.click(screen.getByRole("button", { name: "Закрити" }))
     expect(dataProvider.releaseEditLock).toHaveBeenCalledWith("contacts", "1")
   })
@@ -157,6 +160,56 @@ describe("useEditLock", () => {
     expect(dataProvider.takeEditLock).not.toHaveBeenCalled()
   })
 
+  it.each([405, 501])("статус %i: теж бекенд без блокувань", async (status) => {
+    const user = userEvent.setup()
+    const getEditLock = vi.fn(() =>
+      Promise.reject(new ApiError(status, { code: "x", message: "" })),
+    )
+    const { dataProvider } = setup({ getEditLock })
+    await waitFor(() => {
+      expect(getEditLock).toHaveBeenCalled()
+    })
+    await user.click(screen.getByRole("button", { name: "Редагувати" }))
+    await waitFor(() => {
+      expect(screen.getByTestId("form")).toHaveTextContent("форма")
+    })
+    expect(dataProvider.takeEditLock).not.toHaveBeenCalled()
+  })
+
+  it("тимчасовий збій перегляду блокувань не вимикає", async () => {
+    const user = userEvent.setup()
+    const getEditLock = vi.fn(() =>
+      Promise.reject(new ApiError(500, { code: "server", message: "" })),
+    )
+    const { dataProvider } = setup({ getEditLock })
+    await waitFor(() => {
+      expect(getEditLock).toHaveBeenCalled()
+    })
+    await user.click(screen.getByRole("button", { name: "Редагувати" }))
+    await waitFor(() => {
+      expect(screen.getByTestId("form")).toHaveTextContent("форма")
+    })
+    expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(1)
+  })
+
+  it("сторінку закрили, поки йшов запит: запис не лишається зайнятим", async () => {
+    const user = userEvent.setup()
+    let respond!: (lock: EditLockState) => void
+    const takeEditLock = vi.fn(
+      () =>
+        new Promise<EditLockState>((resolve) => {
+          respond = resolve
+        }),
+    )
+    const { dataProvider, view } = setup({ takeEditLock })
+    await user.click(screen.getByRole("button", { name: "Редагувати" }))
+    view.unmount()
+    respond(MINE)
+    await waitFor(() => {
+      expect(dataProvider.releaseEditLock).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it("вимкнено проектом: жодного запиту", async () => {
     const user = userEvent.setup()
     const { dataProvider } = setup({}, false)
@@ -202,6 +255,16 @@ describe("useEditLock", () => {
       expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(2)
     })
 
+    it("подовження фонове: відкрита форма не продовжує сесію", async () => {
+      const { dataProvider } = await openForm({})
+      await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS))
+      expect(dataProvider.takeEditLock).toHaveBeenLastCalledWith(
+        "contacts",
+        "1",
+        { background: true },
+      )
+    })
+
     it("людина пішла: подовжень немає, сервер відпустить сам", async () => {
       const { dataProvider } = await openForm({})
       await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_IDLE_MS * 2))
@@ -211,12 +274,16 @@ describe("useEditLock", () => {
     })
 
     it("запис тим часом взяла інша людина: тост, подовжень більше немає", async () => {
+      const getEditLock = vi.fn(() => Promise.resolve(FREE))
       const takeEditLock = vi
         .fn<ErpDataProvider["takeEditLock"]>()
         .mockResolvedValueOnce(MINE)
-        .mockResolvedValue(THEIRS)
+        .mockImplementation(() => {
+          getEditLock.mockResolvedValue(THEIRS)
+          return Promise.resolve(THEIRS)
+        })
       const warning = vi.spyOn(toast, "warning")
-      const { dataProvider } = await openForm({ takeEditLock })
+      const { dataProvider } = await openForm({ getEditLock, takeEditLock })
       await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS))
       await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS * 3))
       expect(takeEditLock).toHaveBeenCalledTimes(2)
@@ -225,5 +292,80 @@ describe("useEditLock", () => {
       )
       expect(dataProvider.releaseEditLock).not.toHaveBeenCalled()
     })
+
+    it("про втрату каже й подія каналу, закриття форми чужого не затирає", async () => {
+      const getEditLock = vi.fn(() => Promise.resolve(FREE))
+      const warning = vi.spyOn(toast, "warning")
+      const { queryClient } = await openForm({ getEditLock })
+      getEditLock.mockResolvedValue(THEIRS)
+      await act(() =>
+        queryClient.invalidateQueries({ queryKey: EDIT_LOCK_QUERY_KEY }),
+      )
+      await waitFor(() => {
+        expect(warning).toHaveBeenCalledTimes(1)
+      })
+      await act(async () => {
+        screen.getByRole("button", { name: "Закрити" }).click()
+        await vi.advanceTimersByTimeAsync(0)
+      })
+      expect(screen.getByTestId("reason")).toHaveTextContent(
+        "Запис зараз редагує Марта Шевчук",
+      )
+    })
+
+    it("колега закінчив: блокування повертається до відкритої форми", async () => {
+      const getEditLock = vi.fn(() => Promise.resolve(FREE))
+      const { dataProvider, queryClient } = await openForm({ getEditLock })
+      getEditLock.mockResolvedValue(THEIRS)
+      await act(() =>
+        queryClient.invalidateQueries({ queryKey: EDIT_LOCK_QUERY_KEY }),
+      )
+      await waitFor(() => {
+        expect(screen.getByTestId("reason")).not.toHaveTextContent("немає")
+      })
+      await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS))
+      expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(1)
+      getEditLock.mockResolvedValue(FREE)
+      await act(() =>
+        queryClient.invalidateQueries({ queryKey: EDIT_LOCK_QUERY_KEY }),
+      )
+      await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS))
+      expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(2)
+    })
+  })
+})
+
+describe("AccessAction: блокування", () => {
+  function action(lockReason?: string) {
+    const authProvider = {
+      getMe: vi.fn(() => Promise.resolve(ME)),
+    } as unknown as ErpAuthProvider
+    return (
+      <CoreAdminContext authProvider={authProvider}>
+        <AccessAction
+          resource="contacts"
+          action="update"
+          icon="edit"
+          label="Змінити"
+          deniedReason="Немає права"
+          lockReason={lockReason}
+          onClick={vi.fn()}
+        />
+      </CoreAdminContext>
+    )
+  }
+
+  it("блокування подією не забирає фокус із кнопки", async () => {
+    const view = render(action())
+    const button = await screen.findByRole("button", { name: "Змінити" })
+    button.focus()
+    view.rerender(action("Запис зараз редагує Марта Шевчук"))
+    const locked = screen.getByRole("button", { name: "Змінити" })
+    expect(locked).toBe(button)
+    expect(locked).toHaveFocus()
+    expect(locked).toHaveAttribute("aria-disabled", "true")
+    expect(locked).toHaveAccessibleDescription(
+      "Запис зараз редагує Марта Шевчук",
+    )
   })
 })

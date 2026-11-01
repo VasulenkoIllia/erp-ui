@@ -101,13 +101,12 @@ function OrganizationCard({ id }: { id: string }) {
   })
   const startEditing = async () => {
     if (await lock.acquire()) setEditing(true)
-    else heading.current?.focus()
   }
   const header = useOrganizationHeader(
     organization,
     statuses,
     slots.actions,
-    lock.reason,
+    lock,
     (event) => {
       opener.remember(event)
       void startEditing()

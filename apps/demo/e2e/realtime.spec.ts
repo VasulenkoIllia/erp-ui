@@ -11,6 +11,8 @@ import {
 const PAGE = "/#/realtime"
 const INVOICE = "#/data/inv-00001"
 const NOTICE = /Запис зараз редагує Марта Шевчук/
+const notice = (page: Page) =>
+  page.locator('[data-slot="edit-lock-notice"]').getByText(NOTICE)
 
 const status = (page: Page) => page.getByTestId("realtime-status")
 const press = (page: Page, name: string) =>
@@ -66,13 +68,13 @@ test.describe("реальний час", () => {
     const edit = page.getByRole("link", { name: "Редагувати рахунок" })
     await expect(edit).toBeVisible()
     await press(page, "Колега почав редагувати")
-    await expect(page.getByText(NOTICE)).toBeVisible()
+    await expect(notice(page)).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Редагувати рахунок" }),
     ).toBeDisabled()
     await expectNoA11yViolations(page)
     await press(page, "Колега закінчив")
-    await expect(page.getByText(NOTICE)).toBeHidden()
+    await expect(notice(page)).toBeHidden()
     await expect(edit).toBeVisible()
   })
 
@@ -81,9 +83,9 @@ test.describe("реальний час", () => {
   }) => {
     await openPage(page)
     await press(page, "Колега почав редагувати")
-    await expect(page.getByText(NOTICE)).toBeVisible()
+    await expect(notice(page)).toBeVisible()
     await goInside(page, INVOICE)
-    await expect(page.getByText(NOTICE)).toBeVisible()
+    await expect(notice(page)).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Редагувати" }),
     ).toBeDisabled()
@@ -136,7 +138,7 @@ test.describe("реальний час", () => {
     await page.setViewportSize({ width: 360, height: 780 })
     await openPage(page)
     await press(page, "Колега почав редагувати")
-    await expect(page.getByText(NOTICE)).toBeVisible()
+    await expect(notice(page)).toBeVisible()
     await expectNoHorizontalScroll(page)
   })
 })

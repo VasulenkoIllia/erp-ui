@@ -23,10 +23,7 @@ import { NotificationBell } from "@/registry/erp/notification-bell"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { usePushSync } from "@/registry/hooks/use-push-sync"
-import {
-  useRealtimeEvent,
-  useRealtimeStatus,
-} from "@/registry/hooks/use-realtime"
+import { useRealtimeStatus } from "@/registry/hooks/use-realtime"
 import { useTabCounter } from "@/registry/hooks/use-tab-counter"
 import { errorStateKind } from "@/registry/lib/api"
 import { safeRedirectPath } from "@/registry/lib/auth"
@@ -35,10 +32,8 @@ import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   INBOX_QUERY_KEYS,
-  NOTIFICATIONS_RESOURCE,
   type AppNotification,
 } from "@/registry/lib/notifications"
-import { REALTIME_RESYNC } from "@/registry/lib/realtime"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import {
@@ -89,14 +84,9 @@ const SEVERITY: Record<
 /** Кількість непрочитаних для дзвіника: за подіями каналу, а без нього — опитування раз на хвилину. */
 export function useUnreadNotifications(enabled = true) {
   const provider = useErpAuthProvider()
-  const queryClient = useQueryClient()
   // Сповіщення можуть бути свої в кожній компанії: лічильник іншої не показуємо.
   const companyId = useCompanyId()
   const isLive = useRealtimeStatus() === "open"
-  useRealtimeEvent(({ type, resource }) => {
-    if (resource === NOTIFICATIONS_RESOURCE || type === REALTIME_RESYNC)
-      void queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEYS.all })
-  })
   return useQuery({
     queryKey: [...INBOX_QUERY_KEYS.count, companyScope(companyId)],
     queryFn: () => provider.inbox.unreadCount(),

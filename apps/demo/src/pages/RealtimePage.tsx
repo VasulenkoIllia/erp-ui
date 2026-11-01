@@ -1,5 +1,5 @@
 import { useGetOne } from "ra-core"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
@@ -29,6 +29,9 @@ const LOG_SIZE = 8
 
 const colleague = () => import("@/mocks/colleague")
 
+/** Подія журналу сторінки: дві однакові за одну мілісекунду мають різні ключі. */
+type LoggedEvent = RealtimeEvent & { readonly entry: number }
+
 const BADGE: Record<RealtimeStatus, "secondary" | "default" | "outline"> = {
   idle: "outline",
   connecting: "secondary",
@@ -57,9 +60,12 @@ function ChannelSection() {
   const { t } = useTranslation()
   const status = useRealtimeStatus()
   const format = useFormat()
-  const [events, setEvents] = useState<readonly RealtimeEvent[]>([])
+  const [events, setEvents] = useState<readonly LoggedEvent[]>([])
+  const logged = useRef(0)
   useRealtimeEvent((event) => {
-    setEvents((current) => [event, ...current].slice(0, LOG_SIZE))
+    logged.current += 1
+    const entry = { ...event, entry: logged.current }
+    setEvents((current) => [entry, ...current].slice(0, LOG_SIZE))
   })
   return (
     <Section
@@ -68,7 +74,11 @@ function ChannelSection() {
     >
       <p className="flex items-center gap-2 text-sm">
         {t("realtimePage.status")}
-        <Badge variant={BADGE[status]} data-testid="realtime-status">
+        <Badge
+          variant={BADGE[status]}
+          role="status"
+          data-testid="realtime-status"
+        >
           {t(`realtimePage.statuses.${status}`)}
         </Badge>
       </p>
@@ -97,7 +107,7 @@ function ChannelSection() {
       {events.length ? (
         <ol className="space-y-1 text-sm" data-testid="realtime-log">
           {events.map((event) => (
-            <li key={`${event.at}-${event.type}-${event.id ?? ""}`}>
+            <li key={event.entry}>
               <span className="text-muted-foreground">
                 {format.date(event.at, "time")}
               </span>{" "}

@@ -8,6 +8,7 @@ import {
   HEARTBEAT_TIMEOUT_MS,
   REALTIME_RESYNC,
   realtimeRetryDelay,
+  RETRY_BASE_MS,
   RETRY_MAX_MS,
   STABLE_CONNECTION_MS,
   subscribeRealtime,
@@ -249,6 +250,118 @@ describe("createRealtimeChannel", () => {
     expect(open).toHaveBeenCalledTimes(2)
   })
 
+  it("збій обробки події закриває з'єднання, а не лишає його висіти", async () => {
+    const first = serverStream()
+    const second = serverStream()
+    const open = vi
+      .fn<RealtimeOpen>()
+      .mockResolvedValueOnce(first.response)
+      .mockResolvedValueOnce(second.response)
+    const statuses: RealtimeStatus[] = []
+    const channel = createRealtimeChannel(open, {
+      onEvent() {
+        throw new Error("збій")
+      },
+      onStatus: (status) => statuses.push(status),
+      onResync: vi.fn(),
+    })
+    await settle()
+    first.send(message(EVENT))
+    await settle()
+    expect(open.mock.calls[0]?.[0].signal.aborted).toBe(true)
+    expect(statuses.at(-1)).toBe("retrying")
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(open).toHaveBeenCalledTimes(2)
+    channel.stop()
+    await channel.done
+  })
+
+  it("чужа відповідь 200 закривається", async () => {
+    const open = vi.fn<RealtimeOpen>(() =>
+      Promise.resolve(new Response("<html>", { status: 200 })),
+    )
+    const { channel } = setup(open)
+    await channel.done
+    expect(open.mock.calls[0]?.[0].signal.aborted).toBe(true)
+  })
+
+  it("зупинка не чекає запиту, що завис: обгортка могла загубити signal", async () => {
+    const open = vi.fn<RealtimeOpen>(
+      () => new Promise<Response>(() => undefined),
+    )
+    const { statuses, channel } = setup(open)
+    await settle()
+    channel.stop()
+    await channel.done
+    expect(statuses).toEqual(["connecting"])
+  })
+
+  it("мовчазний запит перериває сторожа, цикл іде далі", async () => {
+    const open = vi.fn<RealtimeOpen>(
+      () => new Promise<Response>(() => undefined),
+    )
+    const { statuses, channel } = setup(open)
+    await vi.advanceTimersByTimeAsync(HEARTBEAT_TIMEOUT_MS)
+    expect(statuses.at(-1)).toBe("retrying")
+    channel.stop()
+    await channel.done
+  })
+
+  it("відповідь, що прийшла після зупинки, закривається", async () => {
+    let respond!: (response: Response) => void
+    const open = vi.fn<RealtimeOpen>(
+      () =>
+        new Promise<Response>((resolve) => {
+          respond = resolve
+        }),
+    )
+    const { channel } = setup(open)
+    await settle()
+    channel.stop()
+    await channel.done
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ cancel })
+    respond(
+      new Response(body, { headers: { "Content-Type": "text/event-stream" } }),
+    )
+    await settle()
+    expect(cancel).toHaveBeenCalledTimes(1)
+  })
+
+  it("retry: 0 від сервера не вмикає гарячого циклу", async () => {
+    const first = serverStream()
+    const open = vi
+      .fn<RealtimeOpen>()
+      .mockResolvedValueOnce(first.response)
+      .mockRejectedValue(new ApiError(503, { code: "server", message: "" }))
+    const { channel } = setup(open)
+    await settle()
+    first.send("retry: 0\n\n")
+    await settle()
+    first.close()
+    await settle()
+    // Менше за половину `RETRY_BASE_MS` пауза не буває.
+    await vi.advanceTimersByTimeAsync(RETRY_BASE_MS / 2 - 1)
+    expect(open).toHaveBeenCalledTimes(1)
+    channel.stop()
+    await channel.done
+  })
+
+  it("перше з'єднання після невдалих спроб теж перечитує", async () => {
+    const stream = serverStream()
+    const open = vi
+      .fn<RealtimeOpen>()
+      .mockRejectedValueOnce(new ApiError(503, { code: "server", message: "" }))
+      .mockResolvedValueOnce(stream.response)
+    const { onResync, channel } = setup(open)
+    await settle()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(open).toHaveBeenCalledTimes(2)
+    expect(onResync).toHaveBeenCalledTimes(1)
+    channel.stop()
+    await channel.done
+  })
+
   it("канал від іншої вкладки: перше з'єднання теж перечитує", async () => {
     const stream = serverStream()
     const { onResync, channel } = setup(
@@ -299,7 +412,11 @@ describe("connectRealtime: одна вкладка", () => {
     const openFirst = vi.fn<RealtimeOpen>(() =>
       Promise.resolve(stream.response),
     )
-    const stopFirst = connectRealtime({ open: openFirst, companyId: "a" })
+    const stopFirst = connectRealtime({
+      open: openFirst,
+      accountId: "u-1",
+      companyId: "a",
+    })
     await settle()
     expect(openFirst).toHaveBeenCalledTimes(1)
 
@@ -308,7 +425,11 @@ describe("connectRealtime: одна вкладка", () => {
     )
     const heard: RealtimeEvent[] = []
     const stopListening = subscribeRealtime((event) => heard.push(event))
-    const stopSecond = connectRealtime({ open: openSecond, companyId: "a" })
+    const stopSecond = connectRealtime({
+      open: openSecond,
+      accountId: "u-1",
+      companyId: "a",
+    })
     await settle()
     expect(openSecond).not.toHaveBeenCalled()
 
@@ -327,6 +448,7 @@ describe("connectRealtime: одна вкладка", () => {
     const first = serverStream()
     const stopFirst = connectRealtime({
       open: () => Promise.resolve(first.response),
+      accountId: "u-1",
       companyId: "b",
     })
     await settle()
@@ -334,7 +456,11 @@ describe("connectRealtime: одна вкладка", () => {
     const openSecond = vi.fn<RealtimeOpen>(() =>
       Promise.resolve(second.response),
     )
-    const stopSecond = connectRealtime({ open: openSecond, companyId: "b" })
+    const stopSecond = connectRealtime({
+      open: openSecond,
+      accountId: "u-1",
+      companyId: "b",
+    })
     await settle()
     expect(openSecond).not.toHaveBeenCalled()
     vi.useRealTimers()
@@ -356,12 +482,67 @@ describe("connectRealtime: одна вкладка", () => {
     stopListening()
   })
 
+  it("різні люди в одному браузері каналу не ділять", async () => {
+    installLocks()
+    const openFirst = vi.fn<RealtimeOpen>(() =>
+      Promise.resolve(serverStream().response),
+    )
+    const openSecond = vi.fn<RealtimeOpen>(() =>
+      Promise.resolve(serverStream().response),
+    )
+    const stopFirst = connectRealtime({
+      open: openFirst,
+      accountId: "u-1",
+      companyId: "e",
+    })
+    const stopSecond = connectRealtime({
+      open: openSecond,
+      accountId: "u-2",
+      companyId: "e",
+    })
+    await settle()
+    expect(openFirst).toHaveBeenCalledTimes(1)
+    expect(openSecond).toHaveBeenCalledTimes(1)
+    stopFirst()
+    stopSecond()
+  })
+
+  it("збій одного слухача не зупиняє решту", async () => {
+    vi.stubGlobal("navigator", {})
+    const logged = vi.spyOn(console, "error").mockReturnValue()
+    const stream = serverStream()
+    const stop = connectRealtime({
+      open: () => Promise.resolve(stream.response),
+      accountId: "u-1",
+      companyId: "f",
+    })
+    await settle()
+    const heard: RealtimeEvent[] = []
+    const stopBroken = subscribeRealtime(() => {
+      throw new Error("збій")
+    })
+    const stopListening = subscribeRealtime((event) => heard.push(event))
+    stream.send(message(EVENT))
+    await settle()
+    expect(heard).toEqual([EVENT])
+    expect(logged).toHaveBeenCalledTimes(1)
+    expect(getRealtimeStatus()).toBe("open")
+    stop()
+    stopBroken()
+    stopListening()
+    logged.mockRestore()
+  })
+
   it("без Web Locks кожна вкладка тримає свій канал", async () => {
     vi.stubGlobal("navigator", {})
     const open = vi.fn<RealtimeOpen>(() =>
       Promise.resolve(serverStream().response),
     )
-    const stop = connectRealtime({ open, companyId: "c" })
+    const stop = connectRealtime({
+      open,
+      accountId: "u-1",
+      companyId: "c",
+    })
     await settle()
     expect(open).toHaveBeenCalledTimes(1)
     expect(getRealtimeStatus()).toBe("open")
@@ -374,11 +555,16 @@ describe("connectRealtime: одна вкладка", () => {
     const hold = serverStream()
     const stopHolder = connectRealtime({
       open: () => Promise.resolve(hold.response),
+      accountId: "u-1",
       companyId: "d",
     })
     await settle()
     const open = vi.fn<RealtimeOpen>()
-    const stop = connectRealtime({ open, companyId: "d" })
+    const stop = connectRealtime({
+      open,
+      accountId: "u-1",
+      companyId: "d",
+    })
     stop()
     stopHolder()
     await settle()

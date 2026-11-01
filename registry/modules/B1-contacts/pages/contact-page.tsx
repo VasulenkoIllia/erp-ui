@@ -17,7 +17,7 @@ import {
 } from "@/components/templates/object-page"
 import { Badge } from "@/components/ui/badge"
 import { useCardRecord } from "@/hooks/use-card-record"
-import { useEditLock } from "@/hooks/use-edit-lock"
+import { useEditLock, type EditLock } from "@/hooks/use-edit-lock"
 import { useHistoryRefresh } from "@/hooks/use-history-refresh"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { usePaletteActions } from "@/hooks/use-palette-actions"
@@ -97,17 +97,11 @@ function ContactCard({ id }: { id: string }) {
   })
   const startEditing = async () => {
     if (await lock.acquire()) setEditing(true)
-    else heading.current?.focus()
   }
-  const header = useContactHeader(
-    contact,
-    slots.actions,
-    lock.reason,
-    (event) => {
-      opener.remember(event)
-      void startEditing()
-    },
-  )
+  const header = useContactHeader(contact, slots.actions, lock, (event) => {
+    opener.remember(event)
+    void startEditing()
+  })
   const editAction = useAccessPaletteAction({
     id: "edit",
     resource: CONTACTS,
@@ -189,7 +183,7 @@ function ContactCard({ id }: { id: string }) {
 function useContactHeader(
   contact: Contact | undefined,
   slotActions: KeyedChanges<ObjectPageAction, ContactActionId> | undefined,
-  lockReason: string | undefined,
+  lock: EditLock,
   onEdit: (event: MouseEvent<HTMLButtonElement>) => void,
 ): ObjectPageHeader | undefined {
   const t = useContactsT()
@@ -227,7 +221,8 @@ function useContactHeader(
           label={t("contact.edit")}
           deniedReason={t("contact.editDenied")}
           record={contact}
-          lockReason={lockReason}
+          lockReason={lock.reason}
+          busy={lock.isAcquiring}
           onClick={onEdit}
         />
       ),

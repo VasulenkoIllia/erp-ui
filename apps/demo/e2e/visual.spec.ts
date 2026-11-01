@@ -122,6 +122,13 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
     ).toBeVisible()
   if (pageId === "inbox")
     await expect(page.getByText(/2026-0012/).first()).toBeVisible()
+  // Реальний час: бейдж стану вже не змінює кольору, а запис прийшов із сервера.
+  if (pageId === "realtime") {
+    await expect(page.getByTestId("realtime-status")).toHaveText(
+      /^(Підключено|Connected)$/,
+    )
+    await expect(page.getByTestId("realtime-version")).toHaveText("1")
+  }
   if (pageId === "companyCurrencies")
     await expect(listStatus(page)).toHaveText(/\d (валют|currenc)/)
   if (pageId === "companyRates")

@@ -1,7 +1,12 @@
-import { useCallback, useRef, type MouseEvent, type Ref } from "react"
+import { useCallback, useId, useRef, type MouseEvent, type Ref } from "react"
 
 import { DeniedAction } from "@/components/erp/permission-gate"
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { PaletteAction } from "@/hooks/use-palette-actions"
 import { useRecordAccess } from "@/hooks/use-record-access"
 import { ACTION_ICONS } from "@/lib/icons"
@@ -47,26 +52,42 @@ export function AccessAction({
     record,
   })
   const Icon = ACTION_ICONS[icon]
+  const reasonId = useId()
   if (isPending) return null
-  return canAccess && lockReason === undefined ? (
-    <Button
-      ref={ref}
-      variant={variant}
-      disabled={busy}
-      focusableWhenDisabled
-      onClick={onClick}
-    >
-      <Icon aria-hidden />
-      {label}
-    </Button>
-  ) : (
-    <DeniedAction
-      reason={lockReason ?? recordReason ?? deniedReason}
-      variant={variant}
-    >
-      <Icon aria-hidden />
-      {label}
-    </DeniedAction>
+  if (!canAccess)
+    return (
+      <DeniedAction reason={recordReason ?? deniedReason} variant={variant}>
+        <Icon aria-hidden />
+        {label}
+      </DeniedAction>
+    )
+  // Та сама кнопка, а не `DeniedAction`: блокування приходить подією, і фокус не має пропасти разом із нею.
+  return (
+    <Tooltip disabled={lockReason === undefined}>
+      <TooltipTrigger
+        render={
+          <Button
+            ref={ref}
+            variant={variant}
+            disabled={busy || lockReason !== undefined}
+            focusableWhenDisabled
+            aria-describedby={lockReason === undefined ? undefined : reasonId}
+            onClick={onClick}
+          />
+        }
+      >
+        <Icon aria-hidden />
+        {label}
+      </TooltipTrigger>
+      {lockReason === undefined ? null : (
+        <>
+          <TooltipContent>{lockReason}</TooltipContent>
+          <span id={reasonId} className="sr-only">
+            {lockReason}
+          </span>
+        </>
+      )}
+    </Tooltip>
   )
 }
 
@@ -105,8 +126,7 @@ export function useAccessPaletteAction({
     id,
     label,
     icon: ACTION_ICONS[icon],
-    deniedReason:
-      lockReason ?? (canAccess ? undefined : (recordReason ?? deniedReason)),
+    deniedReason: canAccess ? lockReason : (recordReason ?? deniedReason),
     onSelect,
   }
 }

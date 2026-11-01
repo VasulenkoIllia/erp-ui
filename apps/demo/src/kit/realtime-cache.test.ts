@@ -2,6 +2,10 @@ import { QueryClient } from "@tanstack/react-query"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  INBOX_QUERY_KEYS,
+  NOTIFICATIONS_RESOURCE,
+} from "@/registry/lib/notifications"
+import {
   connectRealtime,
   REALTIME_RESYNC,
   type RealtimeEvent,
@@ -34,7 +38,7 @@ function liveChannel() {
       new Response(body, { headers: { "Content-Type": "text/event-stream" } }),
     )
   return {
-    stop: connectRealtime({ open, companyId: "cache-test" }),
+    stop: connectRealtime({ open, accountId: "u-1", companyId: "cache-test" }),
     send: async (...events: RealtimeEvent[]) => {
       for (const item of events)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(item)}\n\n`))
@@ -88,6 +92,18 @@ describe("syncRealtimeCache", () => {
     stop()
   })
 
+  it("подія сповіщень перечитує кеш дзвіночка", async () => {
+    const { invalidate, send, stop } = setup()
+    await vi.advanceTimersByTimeAsync(0)
+    await send(event("notifications.created", NOTIFICATIONS_RESOURCE))
+    await vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS)
+    expect(invalidate).toHaveBeenCalledTimes(1)
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: INBOX_QUERY_KEYS.all,
+    })
+    stop()
+  })
+
   it("подія не про запис кеш не чіпає", async () => {
     const { invalidate, send, stop } = setup()
     await vi.advanceTimersByTimeAsync(0)
@@ -102,8 +118,12 @@ describe("syncRealtimeCache", () => {
     await vi.advanceTimersByTimeAsync(0)
     queryClient.setQueryData(["invoices"], [])
     queryClient.setQueryData(["erp-ui", "me"], {})
+    queryClient.setQueryData(INBOX_QUERY_KEYS.all, [])
     await send(event(REALTIME_RESYNC, "realtime"))
     expect(queryClient.getQueryState(["invoices"])?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(INBOX_QUERY_KEYS.all)?.isInvalidated).toBe(
+      true,
+    )
     expect(queryClient.getQueryState(["erp-ui", "me"])?.isInvalidated).toBe(
       false,
     )

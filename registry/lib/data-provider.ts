@@ -103,7 +103,11 @@ export interface EditLockDataProvider {
     options?: { signal?: AbortSignal },
   ) => Promise<EditLockState>
   /** Взяти чи подовжити; у відповіді — той, хто тримає: я або інша людина, яка встигла раніше. */
-  takeEditLock: (resource: string, id: string) => Promise<EditLockState>
+  takeEditLock: (
+    resource: string,
+    id: string,
+    options?: { background?: boolean },
+  ) => Promise<EditLockState>
   releaseEditLock: (resource: string, id: string) => Promise<void>
 }
 
@@ -298,9 +302,10 @@ export function createDataProvider(
         timeoutMs: EDIT_LOCK_TIMEOUT_MS,
       }),
 
-    takeEditLock: (resource, id) =>
+    takeEditLock: (resource, id, { background } = {}) =>
       client.put(`${path(resource, id)}/${EDIT_LOCK_PATH}`, undefined, {
         schema: editLockSchema,
+        background,
         timeoutMs: EDIT_LOCK_TIMEOUT_MS,
       }),
 

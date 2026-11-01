@@ -5,15 +5,18 @@
  * - `GET /<ресурс>/<id>/lock` → `{ holder, expiresAt }`: хто редагує; нікого — `holder: null`;
  * - `PUT /<ресурс>/<id>/lock` → те саме: взяти чи подовжити. Статус 200 і тоді, коли запис уже тримає інша
  *   людина: вона й буде в `holder`, тож обидва запити з двох вкладок дають однакову відповідь;
- * - `DELETE /<ресурс>/<id>/lock` → 204: відпустити;
+ * - `DELETE /<ресурс>/<id>/lock` → 204: відпустити своє; чуже блокування цей запит не знімає;
  * - подія `<ресурс>.locked` каналу реального часу, з `id` запису, коли `holder` змінився.
  *
  * Блокування тримається стільки, скільки дав сервер (`expiresAt`, не менше двох інтервалів
  * `EDIT_LOCK_REFRESH_MS`): закрита вкладка чи згасла батарея відпускають запис самі. Це домовленість між
  * людьми, а не захист даних: збереження береже версія запису (409, ADR-0002). Тому збій блокування не
- * заважає редагувати, а бекенд без цих адрес (404) просто працює без «Редагує …».
+ * заважає редагувати, а бекенд без цих адрес (404, 405, 501) просто працює без «Редагує …».
+ * Подовження — фоновий запит (`X-Background-Request`): відкрита форма не продовжує сесію.
  */
 import { z } from "zod"
+
+import { isApiError } from "@/registry/lib/api"
 
 export const EDIT_LOCK_PATH = "lock"
 /** Запит блокування не тримає кнопку «Редагувати»: сервер мовчить — форма відкривається без нього. */
@@ -38,6 +41,12 @@ export const editLockSchema = z.object({
 export type EditLockState = z.infer<typeof editLockSchema>
 
 export const EDIT_LOCK_QUERY_KEY = ["erp-ui", "edit-lock"] as const
+
+const UNSUPPORTED_STATUSES = new Set([404, 405, 501])
+
+/** Бекенд не веде блокувань; решта збоїв минає, і запит повториться. */
+export const isEditLockUnsupported = (error: unknown) =>
+  isApiError(error) && UNSUPPORTED_STATUSES.has(error.status)
 
 /** Подія каналу про зміну блокування записів ресурсу. */
 export const editLockEventType = (resource: string) => `${resource}.locked`

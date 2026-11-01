@@ -12383,6 +12383,21 @@
           "path": "registry/lib/edit-lock.ts",
           "type": "registry:lib",
           "target": "@lib/edit-lock.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         }
       ],
       "meta": {
@@ -25088,6 +25103,11 @@
           "target": "@lib/company-scope.ts"
         },
         {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -25101,6 +25121,11 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/web-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/web-push.ts"
         }
       ],
       "meta": {
@@ -40530,6 +40555,16 @@
           "target": "@components/erp/edit-lock-notice.tsx"
         },
         {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
           "path": "registry/lib/edit-lock.ts",
           "type": "registry:lib",
           "target": "@lib/edit-lock.ts"
@@ -40628,6 +40663,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
         },
         {
           "path": "registry/lib/utils.ts",

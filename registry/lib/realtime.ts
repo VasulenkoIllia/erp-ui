@@ -16,8 +16,8 @@
  * Канал не обов'язковий: його вмикає застосунок (`RealtimeSync`, erp/realtime-sync). Без нього
  * статус лишається `idle`, і дзвіник та списки працюють опитуванням, як раніше.
  *
- * Канал тримає одна вкладка на компанію: браузер дає шість з'єднань на адресу в HTTP/1.1, і сьома
- * вкладка інакше повисла б. Хто тримає — вирішує Web Locks: закрилась вкладка, замок переходить до
+ * Канал тримає одна вкладка на людину й компанію: браузер дає шість з'єднань на адресу в HTTP/1.1, і
+ * сьома вкладка інакше повисла б. Хто тримає — вирішує Web Locks: закрилась вкладка, замок переходить до
  * наступної. Решта вкладок отримує події через `BroadcastChannel`. Без цих API кожна вкладка
  * тримає свій канал: працює так само, лише з'єднань більше.
  */
@@ -141,7 +141,7 @@ export function createRealtimeChannel(
   ) => {
     onStatus("open")
     if (needsResync) onResync()
-    needsResync = true
+    needsResync = false
     const openedAt = Date.now()
     // Розбір свій на кожне з'єднання: обірваний рядок не склеїться з першим рядком нового потоку.
     const parser = createSseParser({
@@ -151,7 +151,8 @@ export function createRealtimeChannel(
         if (event) onEvent(event)
       },
       onRetry(delayMs) {
-        baseDelayMs = delayMs
+        // Нуль від сервера не перетворює перепідключення на гарячий цикл.
+        baseDelayMs = Math.max(delayMs, RETRY_BASE_MS)
       },
     })
     try {
@@ -163,32 +164,20 @@ export function createRealtimeChannel(
     }
   }
 
-  /** Одне з'єднання до обриву; мовчання довше за межу перериває його, як обрив. */
-  const connect = async (controller: AbortController) => {
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const restartWatchdog = () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        controller.abort()
-      }, HEARTBEAT_TIMEOUT_MS)
-    }
-    try {
-      restartWatchdog()
-      const response = await open({
-        signal: controller.signal,
+  const connect = (controller: AbortController) =>
+    withWatchdog(controller, async (onChunk) => {
+      const { signal } = controller
+      const body = await openEventStream(open, {
+        signal,
         ...(lastEventId === undefined ? {} : { lastEventId }),
       })
-      if (!response.body || !isEventStream(response))
-        throw new ApiError(404, {
-          code: "not_found",
-          message: "Not an event stream",
-        })
-      restartWatchdog()
-      await read(response.body, controller.signal, restartWatchdog)
-    } finally {
-      clearTimeout(timer)
-    }
-  }
+      if (signal.aborted) {
+        void body.cancel()
+        return
+      }
+      onChunk()
+      await read(body, signal, onChunk)
+    })
 
   const run = async () => {
     onStatus("connecting")
@@ -206,6 +195,8 @@ export function createRealtimeChannel(
       }
       if (isStopped) return
       onStatus("retrying")
+      // Подій за час збою могло не дійти, навіть якщо з'єднання ще не було жодного разу.
+      needsResync = true
       await pause(realtimeRetryDelay(attempt, baseDelayMs))
       attempt += 1
     }
@@ -226,6 +217,59 @@ export function createRealtimeChannel(
 
 const isEventStream = (response: Response) =>
   response.headers.get("content-type")?.includes("text/event-stream") === true
+
+/**
+ * Мовчання довше за межу перериває з'єднання, як обрив. Будь-який вихід закриває його: виняток у
+ * читанні чи чужа відповідь не лишають відкритого потоку, а шість таких зупинили б усі запити.
+ */
+async function withWatchdog(
+  controller: AbortController,
+  run: (onChunk: () => void) => Promise<void>,
+): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const restart = () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      controller.abort()
+    }, HEARTBEAT_TIMEOUT_MS)
+  }
+  try {
+    restart()
+    await run(restart)
+  } finally {
+    clearTimeout(timer)
+    controller.abort()
+  }
+}
+
+/**
+ * Запит потоку. Обгортка `fetch` адаптера могла загубити `signal`, тому перерваний запит не чекаємо,
+ * а потік, що прийшов уже після обриву, закриваємо.
+ */
+async function openEventStream(
+  open: RealtimeOpen,
+  options: RealtimeOpenOptions,
+): Promise<ReadableStream<Uint8Array>> {
+  const { signal } = options
+  const opening = open(options)
+  const aborted = new Promise<never>((_, reject) => {
+    const abort = () => {
+      reject(new DOMException("Aborted", "AbortError"))
+    }
+    if (signal.aborted) abort()
+    else signal.addEventListener("abort", abort, { once: true })
+  })
+  opening
+    .then((late) => (signal.aborted ? late.body?.cancel() : undefined))
+    .catch(() => undefined)
+  const response = await Promise.race([opening, aborted])
+  if (!response.body || !isEventStream(response))
+    throw new ApiError(404, {
+      code: "not_found",
+      message: "Not an event stream",
+    })
+  return response.body
+}
 
 function parseEvent(data: string): RealtimeEvent | null {
   try {
@@ -271,7 +315,12 @@ function setStatus(next: RealtimeStatus) {
 
 function deliver(event: RealtimeEvent) {
   eventListeners.forEach((listener) => {
-    listener(event)
+    try {
+      listener(event)
+    } catch (error) {
+      // Збій одного слухача не зупиняє ні решту, ні канал.
+      console.error("erp-ui: realtime listener failed", error)
+    }
   })
 }
 
@@ -290,6 +339,8 @@ type TabMessage =
 
 export interface ConnectRealtimeOptions {
   readonly open: RealtimeOpen
+  /** Людина: токен адаптера живе у вкладці, тож у двох вкладках можуть бути різні люди. */
+  readonly accountId: string
   /** Компанія: `X-Company-Id` у каналу свій, тож вкладки різних компаній каналів не ділять. */
   readonly companyId: string | null
 }
@@ -297,9 +348,10 @@ export interface ConnectRealtimeOptions {
 /** Запустити канал цієї вкладки чи слухати вкладку, що вже тримає його; повертає зупинку. */
 export function connectRealtime({
   open,
+  accountId,
   companyId,
 }: ConnectRealtimeOptions): () => void {
-  const name = `erp-ui:realtime:${companyId ?? "none"}`
+  const name = `erp-ui:realtime:${accountId}:${companyId ?? "none"}`
   const tabs =
     typeof BroadcastChannel === "function" ? new BroadcastChannel(name) : null
   const lifetime = new AbortController()
@@ -308,6 +360,12 @@ export function connectRealtime({
 
   const post = (message: TabMessage) => {
     tabs?.postMessage(message)
+  }
+  /** Подія цієї вкладки й решти; після зупинки канал мовчить, закритий `tabs` кинув би виняток. */
+  const share = (event: RealtimeEvent) => {
+    if (lifetime.signal.aborted) return
+    deliver(event)
+    post({ kind: "event", event })
   }
 
   if (tabs)
@@ -328,18 +386,14 @@ export function connectRealtime({
     const running = createRealtimeChannel(
       open,
       {
-        onEvent(event) {
-          deliver(event)
-          post({ kind: "event", event })
-        },
+        onEvent: share,
         onStatus(next) {
+          if (lifetime.signal.aborted) return
           setStatus(next)
           post({ kind: "status", status: next })
         },
         onResync() {
-          const event = resyncEvent()
-          deliver(event)
-          post({ kind: "event", event })
+          share(resyncEvent())
         },
       },
       { isResumed: hasHeardOwner },
