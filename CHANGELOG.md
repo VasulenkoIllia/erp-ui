@@ -10,7 +10,7 @@
 
 Оновлення з v1.1.0: `node scripts/erp-ui-kit.mjs update v1.2.0`. Файлів кіта не вилучено, новий модуль ставиться окремо: `--add modules/A1-company`. Пакети, яких бракує, команда поставить сама. Що зробити в проекті:
 
-- **Провайдер, написаний повністю вручну.** Адаптер на фабриках нічого не додає. Хто написав провайдер сам, додає `timeline`, `realtime` і `inbox.push` в `ErpAuthProvider`, а `checkImport`, `startImport`, `getEditLock`, `takeEditLock` і `releaseEditLock` в `ErpDataProvider`.
+- **Провайдер, написаний повністю вручну.** В `ErpAuthProvider` додайте `timeline`, `realtime` і `inbox.push`: готові `createTimelineApi(client)` з `lib/timeline`, `createRealtimeApi(client)` з `lib/realtime`, `createPushApi(client)` з `lib/web-push`. В `ErpDataProvider` додайте `checkImport`, `startImport`, `getEditLock`, `takeEditLock` і `releaseEditLock`.
 - **Тести проекту.** Збірку це не ламає, але тест може впасти: збій чанка має заголовок «Потрібно оновити сторінку», назва вкладки починається з лічильника (`(3) `, вимикає `tabCounter={false}`), подробиці події в `AuditLog` більше не таблиця.
 - **Перевизначені тексти кіта.** Ключі `notificationSettings.pushTitle`, `pushDescription`, `pushAllow`, `pushDenied` і `audit.field` вилучено. Перевизначення через `addResourceBundle` за старим ключем перестає діяти без помилки, видно текст кіта. Тексти push тепер у ключах `push.*`.
 - **Фоновий файл push.** `public/erp-ui-push-sw.js` доходить до браузера лише після деплою проекту.
@@ -83,7 +83,6 @@
 - Моки: `unique` у `createResourceHandlers` приймає складений ключ (`[["currency", "date"]]`); `/company` підкоряється сценаріям ресурсу `company`.
 - **Єдиний реєстр клавіш** `lib/shortcuts` і `hooks/use-shortcut` (ADR-0042): усі клавіші кіта в одному переліку. Свою клавішу на весь застосунок проект описує константою модуля й вішає через `useShortcut(CREATE, onPress)`.
 - **Довідка гарячих клавіш** `erp/shortcuts-help`: клавіша «?» поза полями вводу, клавіші проекту окремою групою (`extra`), перемикач «?» у самій довідці (WCAG 2.1.4). Щоб отримати її, додайте в оболонку `<ShortcutsHelp />`, `useShortcut(SHORTCUTS.help, …)` і команду палітри (`docs/using-erp-ui.md`, розділ 4). Команда потрібна: без неї людина, що вимкнула «?», не поверне клавішу.
-- Чекліст ручного проходу VoiceOver: `docs/voiceover-checklist.md`.
 
 ### Виправлено
 
