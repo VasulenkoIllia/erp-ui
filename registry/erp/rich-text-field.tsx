@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { ErrorBoundary } from "@/registry/erp/error-boundary"
+import { ErrorBoundary, ReloadPageAction } from "@/registry/erp/error-boundary"
 import { useLoadingAnnouncement } from "@/registry/erp/page-state"
 import type {
   RichTextEditorProps,
@@ -12,7 +12,7 @@ import {
 } from "@/registry/erp/rich-text-styles"
 import { RichTextView } from "@/registry/erp/rich-text-view"
 import { useErpUiT } from "@/registry/lib/i18n"
-import { lazyWithPreload } from "@/registry/lib/lazy"
+import { isChunkLoadError, lazyWithPreload } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -89,8 +89,12 @@ function RichTextLoading({
 function RichTextFailed({
   value,
   retry,
+  error,
   className,
-}: Pick<RichTextFieldProps, "value" | "className"> & { retry: () => void }) {
+}: Pick<RichTextFieldProps, "value" | "className"> & {
+  retry: () => void
+  error: unknown
+}) {
   const t = useErpUiT()
   return (
     <div
@@ -102,9 +106,14 @@ function RichTextFailed({
         className="flex flex-wrap items-center justify-between gap-2 border-b border-input p-2 text-sm"
       >
         <span>{t("richText.failed")}</span>
-        <Button type="button" size="sm" variant="outline" onClick={retry}>
-          {t("pageState.error.retry")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {isChunkLoadError(error) ? (
+            <ReloadPageAction size="sm" variant="outline" />
+          ) : null}
+          <Button type="button" size="sm" variant="outline" onClick={retry}>
+            {t("pageState.error.retry")}
+          </Button>
+        </div>
       </div>
       <div className={richTextBodyClass}>
         <RichTextView value={value} empty={null} />
@@ -163,8 +172,13 @@ export function RichTextField({
   const { value, className } = props
   return (
     <ErrorBoundary
-      fallback={(retry) => (
-        <RichTextFailed value={value} retry={retry} className={className} />
+      fallback={(retry, error) => (
+        <RichTextFailed
+          value={value}
+          retry={retry}
+          error={error}
+          className={className}
+        />
       )}
     >
       <React.Suspense

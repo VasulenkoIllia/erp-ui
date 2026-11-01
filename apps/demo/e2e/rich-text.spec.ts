@@ -322,6 +322,9 @@ test.describe("поле тексту", () => {
     await expect(
       page.getByText(/Не вдалося завантажити редактор/).first(),
     ).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: "Оновити сторінку" }).first(),
+    ).toBeVisible()
     await expectNoA11yViolations(page)
     blocked = false
     await page.getByRole("button", { name: "Спробувати ще" }).first().click()

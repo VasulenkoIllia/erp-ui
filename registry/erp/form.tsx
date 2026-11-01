@@ -17,6 +17,7 @@ import {
   searchWithoutTab,
 } from "@/registry/hooks/use-tab-param"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { holdUnsavedChanges, isPageReloading } from "@/registry/lib/page-reload"
 import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
 import {
   Field,
@@ -251,7 +252,8 @@ function FormErrorSummary<TValues extends FieldValues>({
 
 /**
  * Незбережені зміни (SPEC §8.2): перехід у застосунку — діалог «Вийти без збереження?»,
- * закриття чи перезавантаження вкладки — запит браузера (`beforeunload`).
+ * закриття чи перезавантаження вкладки — запит браузера (`beforeunload`), а «Оновити сторінку» після
+ * збою чанка питає на місці (`lib/page-reload`, ADR-0055).
  * Діалог — лише з роутером, що вміє блокувати перехід (data router; ra-core створює його сам);
  * в іншому роутері лишається `beforeunload`, як у `Form` з ra-core.
  * `when` тримайте увімкненим і під час збереження: після успіху (`reset`) перехід, на який
@@ -264,12 +266,14 @@ function UnsavedChangesGuard({ when }: { when: boolean }) {
 
   React.useEffect(() => {
     if (!when) return
+    const release = holdUnsavedChanges()
     const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
+      if (!isPageReloading()) event.preventDefault()
     }
     window.addEventListener("beforeunload", warn)
     return () => {
       window.removeEventListener("beforeunload", warn)
+      release()
     }
   }, [when])
 

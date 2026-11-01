@@ -108,6 +108,17 @@ export const en = {
       retry: "Try again",
       reload: "Reload page",
     },
+    chunk: {
+      title: "This page needs a reload",
+      description:
+        "The app may have been updated while this page was open. Reload it to continue.",
+      futileTitle: "Reloading did not help",
+      futileDescription:
+        "This part of the app still cannot be loaded. Try again in a minute or contact your administrator.",
+      unsavedWarning: "You have unsaved changes. Reloading will discard them.",
+      reloadAnyway: "Reload anyway",
+      keepEditing: "Don't reload",
+    },
     forbidden: {
       title: "No access",
       description:

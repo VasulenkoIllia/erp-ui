@@ -323,7 +323,11 @@
     "createInvoice": "Create invoice",
     "retried": "Retrying the request…",
     "reset": "Filters reset",
-    "sessionGate": "Section state (h3): profile didn't load"
+    "sessionGate": "Section state (h3): profile didn't load",
+    "chunkFailed": "Chunk failed to load after a deploy",
+    "chunkFailedLead": "A real error boundary: the button reloads this page, and a second time within a minute the button is gone.",
+    "unsavedChanges": "A form next to it has unsaved changes",
+    "chunkReloadFutile": "Reloading did not help"
   },
   "modulePage": {
     "lead": "Module {{id}} is not built yet, but the shell already leads to it.",

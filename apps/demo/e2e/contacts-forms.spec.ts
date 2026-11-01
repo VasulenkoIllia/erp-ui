@@ -234,7 +234,7 @@ test.describe("B1: форми", () => {
     await page.getByRole("button", { name: "Створити організацію" }).click()
     const form = dialog(page, "Нова організація")
     const failure = form.getByRole("alert")
-    await expect(failure).toContainText("Не вдалося завантажити")
+    await expect(failure).toContainText("Потрібно оновити сторінку")
     await page.context().unroute(ORGANIZATION_FORM_CHUNK)
     await failure.getByRole("button", { name: "Спробувати ще" }).click()
     await expect(form.getByRole("textbox", { name: "Назва" })).toBeVisible()
