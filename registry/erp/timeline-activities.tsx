@@ -165,11 +165,13 @@ function useActivityClosing(
   const errorText = useApiErrorMessage()
   const [closingIds, setClosingIds] = React.useState<readonly string[]>([])
   // Рядок зникає разом із кнопкою, на якій стояв фокус: він лишається в блоці (WCAG 2.4.3).
-  const closedId = React.useRef<string | null>(null)
+  const closedIds = React.useRef(new Set<string>())
   React.useEffect(() => {
-    if (!closedId.current || items.some(({ id }) => id === closedId.current))
-      return
-    closedId.current = null
+    const gone = [...closedIds.current].filter(
+      (id) => !items.some((item) => item.id === id),
+    )
+    if (!gone.length) return
+    for (const id of gone) closedIds.current.delete(id)
     if (document.activeElement === document.body) focusTarget.current?.focus()
   }, [items, focusTarget])
   const close = async (
@@ -177,7 +179,7 @@ function useActivityClosing(
     status: "done" | "cancelled",
   ) => {
     setClosingIds((ids) => [...ids, activity.id])
-    closedId.current = activity.id
+    closedIds.current.add(activity.id)
     try {
       await actions.updateActivity(activity.id, {
         version: activity.version,
@@ -185,10 +187,10 @@ function useActivityClosing(
       })
       announce(t("timeline.activities.closed", { title: activity.title }))
     } catch (failure) {
-      closedId.current = null
+      closedIds.current.delete(activity.id)
       if (isApiError(failure) && [404, 409].includes(failure.status)) {
         toast.error(t("timeline.activities.changed"))
-        void actions.refresh()
+        await actions.refresh()
       } else toast.error(errorText(failure))
     } finally {
       setClosingIds((ids) => ids.filter((id) => id !== activity.id))

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { createApiClient } from "@/registry/lib/api"
+import { ApiError, createApiClient } from "@/registry/lib/api"
 import {
   TIMELINE_READ_TIMEOUT_MS,
   TIMELINE_UPLOAD_TIMEOUT_MS,
@@ -177,6 +177,22 @@ describe("список із зіпсованими рядками", () => {
     expect(data.map(({ id }) => id)).toEqual(["good"])
   })
 
+  it("не пройшов жоден рядок: це помилка, а не порожня стрічка", async () => {
+    const { api } = apiWith({
+      total: 2,
+      data: [
+        { id: "1", createdAt: BASE.at, kind: "note", body: "Текст" },
+        { id: "2", createdAt: BASE.at, kind: "note", body: "Текст" },
+      ],
+    })
+    await expect(api.list(TARGET, "all", 1, 20)).rejects.toThrow()
+  })
+
+  it("порожній список — це порожньо, а не помилка", async () => {
+    const { api } = apiWith({ total: 0, data: [] })
+    expect((await api.list(TARGET, "all", 1, 20)).data).toEqual([])
+  })
+
   it("дія з терміном, який не прочитати, випадає", async () => {
     const assignee = { id: "u-1", name: "Олена" }
     const activity = { version: 1, type: "call", title: "Дзвінок", assignee }
@@ -201,12 +217,37 @@ describe("createTimelineApi", () => {
     expect(new Headers(init?.headers).get("X-Background-Request")).toBe("1")
   })
 
-  it("читання передає `signal`: перейшли на інший запис, запит скасовано", async () => {
-    const { api, fetch } = apiWith()
+  /** `fetch`, що ніколи не відповідає, а на скасування відмовляє, як справжній. */
+  const hangingApi = () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"))
+          })
+        }),
+    )
+    return { fetch, api: createTimelineApi(createApiClient({ fetch })) }
+  }
+
+  it("читання скасовується: перейшли на інший запис", async () => {
+    const { api, fetch } = hangingApi()
     const controller = new AbortController()
-    await api.list(TARGET, "all", 1, 20, controller.signal)
-    expect(lastCall(fetch).init?.signal).toBeInstanceOf(AbortSignal)
-    expect(TIMELINE_READ_TIMEOUT_MS).toBeGreaterThan(0)
+    const pending = api.list(TARGET, "all", 1, 20, controller.signal)
+    await vi.waitFor(() => {
+      expect(fetch).toHaveBeenCalled()
+    })
+    controller.abort()
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" })
+  })
+
+  it("зависле читання не висить вічно", async () => {
+    vi.useFakeTimers()
+    const { api } = hangingApi()
+    const failure = api.followers(TARGET).catch((reason: unknown) => reason)
+    await vi.advanceTimersByTimeAsync(TIMELINE_READ_TIMEOUT_MS)
+    vi.useRealTimers()
+    expect(await failure).toBeInstanceOf(ApiError)
   })
 
   it("фільтр вузить запит за видом", async () => {

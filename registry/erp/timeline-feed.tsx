@@ -7,6 +7,7 @@ import type { RichTextViewProps } from "@/registry/erp/rich-text-view"
 import {
   TimelineEntryItem,
   type TimelineDeletable,
+  type TimelineEntryItemProps,
 } from "@/registry/erp/timeline-entry"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import {
@@ -56,6 +57,9 @@ export function FeedLoadState({ query }: { query: TimelineFeedData["query"] }) {
     />
   )
 }
+
+/** Немає такого запису: фокус іде на сам список. */
+const NO_ENTRY = -1
 
 /**
  * Кнопка зникає разом зі станом, що її показав («Показати ще» на останній сторінці, успішний повтор).
@@ -125,6 +129,8 @@ function FeedList({
   readOnly,
   mentions,
   renderMention,
+  isSwitching,
+  listRef,
   onDelete,
 }: {
   feed: TimelineFeedData
@@ -132,26 +138,28 @@ function FeedList({
   readOnly: boolean
   mentions?: MentionSearch | false
   renderMention?: RichTextViewProps["renderMention"]
-  onDelete: (entry: TimelineDeletable) => void
+  /** Новий фільтр ще не прийшов, видно попередній список. */
+  isSwitching: boolean
+  listRef: React.RefObject<HTMLOListElement | null>
+  onDelete: TimelineEntryItemProps["onDelete"]
 }) {
   const t = useErpUiT()
   const { query, entries, total } = feed
-  const list = React.useRef<HTMLOListElement>(null)
   const focusAfterFetch = useFocusAfterFetch(
-    list,
+    listRef,
     query.isFetching,
     entries.length,
   )
   return (
     <>
       <ol
-        ref={list}
+        ref={listRef}
         tabIndex={-1}
         aria-label={t("timeline.listLabel")}
-        aria-busy={query.isPlaceholderData}
+        aria-busy={isSwitching}
         className={cn(
-          "space-y-4 outline-none",
-          query.isPlaceholderData && "opacity-60",
+          "space-y-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isSwitching && "opacity-60",
         )}
       >
         {entries.map((entry) => (
@@ -189,7 +197,7 @@ function FeedList({
       <FeedNotice
         query={query}
         onRetry={(isMore) => {
-          focusAfterFetch(isMore ? entries.length : 0)
+          focusAfterFetch(isMore ? entries.length : NO_ENTRY)
         }}
       />
     </>
@@ -238,7 +246,7 @@ function DeleteDialog({
           if (isApiError(failure) && failure.status === 404)
             announce(t("timeline.deleted"))
           else toast.error(errorText(failure))
-          void actions.refresh()
+          await actions.refresh()
         }
         onClose()
       }}
@@ -246,7 +254,10 @@ function DeleteDialog({
   )
 }
 
-type FeedContentProps = Omit<React.ComponentProps<typeof FeedList>, "onDelete">
+type FeedContentProps = Omit<
+  React.ComponentProps<typeof FeedList>,
+  "onDelete" | "listRef"
+>
 
 export function TimelineFeed({
   actions,
@@ -256,16 +267,38 @@ export function TimelineFeed({
   onResetFilter: () => void
   onCompose: () => void
 }) {
-  const [deleting, setDeleting] = React.useState<TimelineDeletable | null>(null)
+  const t = useErpUiT()
+  const [deleting, setDeleting] = React.useState<{
+    entry: TimelineDeletable
+    opener: HTMLElement | null
+  } | null>(null)
+  const lastDeleting = useLastValue(deleting)
   const root = React.useRef<HTMLDivElement>(null)
+  const list = React.useRef<HTMLOListElement>(null)
   return (
-    <div ref={root} tabIndex={-1} className="space-y-4 outline-none">
-      <FeedContent actions={actions} {...props} onDelete={setDeleting} />
-      <DeleteDialog
-        deleting={deleting}
+    <div
+      ref={root}
+      role="group"
+      tabIndex={-1}
+      aria-label={t("timeline.listLabel")}
+      className="space-y-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <FeedContent
         actions={actions}
-        // Кнопка меню зникла разом із записом: фокус лишається в стрічці (WCAG 2.4.3).
-        returnFocus={() => root.current}
+        {...props}
+        listRef={list}
+        onDelete={(entry, opener) => {
+          setDeleting({ entry, opener })
+        }}
+      />
+      <DeleteDialog
+        deleting={deleting?.entry ?? null}
+        actions={actions}
+        // Запис лишився — до його меню; зник разом із кнопкою — у стрічку (WCAG 2.4.3).
+        returnFocus={() => {
+          const opener = lastDeleting?.opener
+          return opener?.isConnected ? opener : (list.current ?? root.current)
+        }}
         onClose={() => {
           setDeleting(null)
         }}

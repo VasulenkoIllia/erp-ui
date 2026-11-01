@@ -80,9 +80,10 @@ export function TimelineNoteEditor({
           ? parseNote(failure.current)
           : null
       // Відповідь загубилась, а запис дійшов: у `current` той самий текст, порівнювати нічого.
-      if (current && JSON.stringify(current.body) === JSON.stringify(body))
+      if (current && JSON.stringify(current.body) === JSON.stringify(body)) {
+        void actions.refresh()
         onClose()
-      else if (current) setConflict({ mine: body, current })
+      } else if (current) setConflict({ mine: body, current })
       else setError(errorText(failure))
     }
   }

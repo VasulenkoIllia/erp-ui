@@ -147,6 +147,11 @@ function TimelineBody({
       query.isPlaceholderData,
     REFRESH_INDICATOR_DELAY_MS,
   )
+  // Новий фільтр ще не прийшов; без мережі запит на паузі, і приглушувати список немає чого чекати.
+  const isSwitching = useDelayed(
+    query.isPlaceholderData && query.fetchStatus === "fetching",
+    REFRESH_INDICATOR_DELAY_MS,
+  )
   if (!isReady) return <FeedLoadState query={query} />
   return (
     <>
@@ -191,6 +196,7 @@ function TimelineBody({
       </div>
       <TimelineFeed
         feed={feed}
+        isSwitching={isSwitching}
         filter={filter}
         actions={actions}
         readOnly={readOnly}

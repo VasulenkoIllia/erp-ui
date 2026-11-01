@@ -23,6 +23,7 @@ import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   EMPTY_RICH_TEXT,
+  isRichTextEmpty,
   type MentionSearch,
   type RichTextDoc,
 } from "@/registry/lib/rich-text"
@@ -104,7 +105,9 @@ export function TimelineComposer({
       requestIds.clear()
       // Запит триває секунди, поле весь час відкрите: дописане за цей час не зникає разом із надісланим.
       const current = form.getValues("body")
-      const isWrittenOn = JSON.stringify(current) !== JSON.stringify(body)
+      const isWrittenOn =
+        !isRichTextEmpty(current) &&
+        JSON.stringify(current) !== JSON.stringify(body)
       form.reset({ body: { ...EMPTY_RICH_TEXT } })
       if (isWrittenOn) form.setValue("body", current, { shouldDirty: true })
       else setKind("note")

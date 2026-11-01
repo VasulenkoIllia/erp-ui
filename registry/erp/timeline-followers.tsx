@@ -54,12 +54,14 @@ function FollowersDialog({
   const errorText = useApiErrorMessage()
   const pickerId = React.useId()
   const picker = React.useRef<HTMLButtonElement>(null)
+  // Рядок зник разом із кнопкою «Прибрати»: фокус не лишається на сторінці під діалогом.
+  React.useEffect(() => {
+    if (document.activeElement === document.body) picker.current?.focus()
+  }, [followers.length])
   const run = (action: Promise<void>, doneText: string) => {
     action
       .then(() => {
         announce(doneText)
-        // Рядок зник разом із кнопкою «Прибрати», фокус не лишається на сторінці під діалогом.
-        picker.current?.focus()
       })
       .catch((failure: unknown) => {
         toast.error(errorText(failure))

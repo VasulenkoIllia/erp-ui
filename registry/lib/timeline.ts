@@ -34,7 +34,9 @@
  * Запис невідомого виду (новіша версія сервера, подія проекту) стає `other`: стрічка показує його `text`,
  * а не падає цілком. Те саме із записом, що не пройшов схему. Зіпсоване другорядне поле зникає, запис
  * лишається. Рядок без `id` чи з датою, яку не прочитати, випадає зі списку: показ дати кинув би виняток.
- * `id` унікальний у межах виду: нотатки й журнал змін можуть жити в різних таблицях.
+ * Не пройшов жоден рядок — це вже інший контракт, і людина бачить помилку, а не порожню стрічку.
+ * `id` нотаток і файлів спільний: `DELETE` адресує запис лише за ним. Зміни полів і події можуть мати
+ * ті самі `id`: журнал часто живе в іншій таблиці.
  */
 import { z } from "zod"
 
@@ -107,14 +109,17 @@ const timestampSchema = z
   .string()
   .refine((value) => !Number.isNaN(Date.parse(value)))
 
-/** Зіпсований рядок випадає, а не забирає решту списку. */
+/** Зіпсований рядок випадає, а не забирає решту списку; якщо не вижив жоден, це помилка, а не «порожньо». */
 const rowsOf = <T extends z.ZodType>(schema: T) =>
-  z.array(z.unknown()).transform((rows) =>
-    rows.flatMap((row) => {
+  z.array(z.unknown()).transform((rows, context) => {
+    const valid = rows.flatMap((row) => {
       const parsed = schema.safeParse(row)
       return parsed.success ? [parsed.data] : []
-    }),
-  )
+    })
+    if (rows.length && !valid.length)
+      context.addIssue({ code: "custom", message: "No valid rows" })
+    return valid
+  })
 
 export const timelinePersonSchema = z.object({
   id: z.string(),

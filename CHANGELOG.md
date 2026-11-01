@@ -6,6 +6,10 @@
 
 ### Додано
 
+- **Стрічка запису** `erp/record-timeline` (UI01, PF05, ADR-0053): нотатки для команди й повідомлення назовні мають різний вигляд, зміни полів, файли, підписники, заплановані дії, оновлення за подіями каналу. Писати може кожен із `<ресурс>:read`. Проект без пошти: `messages={false}`, інші блоки вимикаються `files`, `followers`, `activities`, режим перегляду: `readOnly`. Контракт і адреси бекенду: `lib/timeline`, дані: `hooks/use-timeline`, мок: `createTimelineHandlers`, `timelineTargetMock`, `addMockTimelineEntry`.
+- `ErpAuthProvider`: новий `timeline`. Адаптер на `createAuthProvider` отримує його сам, написаний вручну додає. Бекенду потрібні адреси з шапки `lib/timeline` і подія `<ресурс>.timeline`, щойно є канал реального часу.
+- `erp/file-drop`: експортовано `useFileSizeText`. `lib/mock-audit`: `mockRecordChanges`.
+
 - **Поле оформленого тексту** `erp/rich-text-field` (UI12, ADR-0052): Tiptap 3 окремим чанком, кнопки жирного, курсиву, списків, цитати, посилання й згадки, усі стани, робота в діалозі. Лише читання й вимкнене поле обходяться без редактора. Нові залежності `@tiptap/*` і `@floating-ui/dom`, лише в чанку редактора.
 - **Показ тексту без редактора** `erp/rich-text-view`, формат і перевірка чужих даних `lib/rich-text` (ADR-0052): документ JSON замість HTML, `toRichText`, `richTextSchema`, `richTextToPlain`, `isRichTextEmpty`, `richTextMentions`, посилання лише `http`, `https`, `mailto`, `tel`.
 - **Згадки колег** `lib/mention-menu`, `hooks/use-mention-search` (ADR-0052): пошук у довіднику `GET /users`, пауза між запитами, повільна відповідь, збій із повтором. Свій пошук чи вимкнення: `mentions`.

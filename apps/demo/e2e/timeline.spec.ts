@@ -99,6 +99,20 @@ test.describe("стрічка запису", () => {
     await expect(noteField(page)).toHaveText("Чернетка")
   })
 
+  test("правка нотатки теж під захистом", async ({ page }) => {
+    await openPage(page)
+    await entryMenu(page).click()
+    await page.getByRole("menuitem", { name: "Змінити" }).click()
+    await expect(
+      full(page).getByRole("textbox", { name: "Текст нотатки" }),
+    ).toBeFocused()
+    await type(page, " Дописано.")
+    await page.getByRole("link", { name: "Поле тексту" }).click()
+    await expect(
+      page.getByRole("alertdialog", { name: "Вийти без збереження?" }),
+    ).toBeVisible()
+  })
+
   test("свою нотатку можна змінити й видалити, чужу ні", async ({ page }) => {
     await openPage(page)
     await entryMenu(page).click()

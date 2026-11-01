@@ -49,18 +49,23 @@ function useTimelineKeys(target: TimelineTarget) {
 export function useTimelineRealtime(target: TimelineTarget): void {
   const queryClient = useQueryClient()
   const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  const flush = () => {
+    const queryKey = timelineQueryKey(target)
+    // Догрузку сторінки, яку людина щойно попросила, подія не скасовує: чекає її кінця.
+    const isLoadingMore = queryClient
+      .getQueryCache()
+      .findAll({ queryKey, fetchStatus: "fetching" })
+      .some((query) => query.state.fetchMeta)
+    timer.current = isLoadingMore
+      ? setTimeout(flush, REALTIME_FLUSH_MS)
+      : undefined
+    if (!isLoadingMore) void queryClient.invalidateQueries({ queryKey })
+  }
   useRealtimeEvent((event) => {
     if (event.type !== timelineEventType(target.resource)) return
     // Подія без `id` стосується всього ресурсу.
     if (event.id && event.id !== target.id) return
-    timer.current ??= setTimeout(() => {
-      timer.current = undefined
-      // Догрузку сторінки, яку людина щойно попросила, подія не скасовує.
-      void queryClient.invalidateQueries(
-        { queryKey: timelineQueryKey(target) },
-        { cancelRefetch: false },
-      )
-    }, REALTIME_FLUSH_MS)
+    timer.current ??= setTimeout(flush, REALTIME_FLUSH_MS)
   })
   React.useEffect(
     () => () => {
@@ -166,9 +171,12 @@ export function useTimelineActions(target: TimelineTarget): TimelineActions {
   return React.useMemo(() => {
     const { timeline } = provider
     const refresh = () =>
-      queryClient.invalidateQueries({ queryKey: timelineQueryKey(target) })
+      settledWithin(
+        queryClient.invalidateQueries({ queryKey: timelineQueryKey(target) }),
+        TIMELINE_REFRESH_WAIT_MS,
+      )
     const done = async <T>(result: T) => {
-      await settledWithin(refresh(), TIMELINE_REFRESH_WAIT_MS)
+      await refresh()
       return result
     }
     return {

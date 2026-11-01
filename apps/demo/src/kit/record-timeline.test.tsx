@@ -1,5 +1,12 @@
 import { onlineManager, QueryClient } from "@tanstack/react-query"
-import { act, render, screen, waitFor, within } from "@testing-library/react"
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CoreAdminContext } from "ra-core"
 import { toast } from "sonner"
@@ -423,6 +430,34 @@ describe("RecordTimeline: оновлення", () => {
     stop()
   })
 
+  it("подія під час «Показати ще» чекає її кінця", async () => {
+    const { stop, send } = await openChannel()
+    const more = deferred<TimelinePage>()
+    const list = vi
+      .fn<TimelineApi["list"]>()
+      .mockResolvedValueOnce(pageOf([note("n1")], 25))
+      .mockImplementationOnce(() => more.promise)
+      .mockResolvedValue(pageOf([note("n1")], 25))
+    setup({ list })
+    fireEvent.click(await screen.findByRole("button", { name: "Показати ще" }))
+    await waitFor(() => {
+      expect(list).toHaveBeenCalledTimes(2)
+    })
+    send("inv-1")
+    await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS * 2))
+    expect(list).toHaveBeenCalledTimes(2)
+    await act(async () => {
+      more.accept(pageOf([note("n2")], 25))
+      await more.promise
+    })
+    expect(await screen.findByText("Нотатка n2")).toBeInTheDocument()
+    await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS * 2))
+    await waitFor(() => {
+      expect(list.mock.calls.length).toBeGreaterThan(2)
+    })
+    stop()
+  })
+
   it("канал відкрито: опитування немає", async () => {
     const { stop, ping } = await openChannel()
     const list = vi.fn(() => Promise.resolve(pageOf([note("n1")])))
@@ -514,6 +549,53 @@ describe("RecordTimeline: новий запис", () => {
       "aria-selected",
       "true",
     )
+  })
+
+  it("стерли текст під час запиту: вид повертається до нотатки", async () => {
+    const pending = deferred<TimelineEntry>()
+    const post = vi.fn<TimelineApi["post"]>(() => pending.promise)
+    const user = userEvent.setup()
+    setup({ post })
+    await findEditor()
+    await user.click(screen.getByRole("tab", { name: "Повідомлення" }))
+    const editor = await findEditor("Повідомлення клієнту")
+    await write(user, editor, "Текст")
+    await user.click(screen.getByRole("button", { name: "Надіслати клієнту" }))
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledTimes(1)
+    })
+    act(() => {
+      editor.focus()
+    })
+    await user.keyboard("{Control>}a{/Control}{Backspace}")
+    await waitFor(() => {
+      expect(editor).toHaveTextContent("")
+    })
+    await act(async () => {
+      pending.accept(note("n2"))
+      await pending.promise
+    })
+    expect(
+      await screen.findByRole("button", { name: "Додати нотатку" }),
+    ).toBeInTheDocument()
+  })
+
+  it("перечитування зависло: кнопка звільняється, запис уже збережено", async () => {
+    const list = vi
+      .fn<TimelineApi["list"]>()
+      .mockResolvedValueOnce(pageOf([note("n1")]))
+      .mockImplementation(() => new Promise(() => undefined))
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    setup({ list })
+    const editor = await findEditor()
+    await write(user, editor, "Погоджено")
+    await user.click(screen.getByRole("button", { name: "Додати нотатку" }))
+    await act(() => vi.advanceTimersByTimeAsync(5_000))
+    await waitFor(() => {
+      expect(editor).not.toHaveTextContent("Погоджено")
+    })
+    vi.useRealTimers()
   })
 
   it("порожнє поле не йде на сервер, помилка біля поля", async () => {
@@ -680,6 +762,22 @@ describe("RecordTimeline: запис у стрічці", () => {
     const edit = await screen.findByRole("menuitem", { name: /^Змінити/ })
     expect(edit).toHaveAttribute("aria-disabled", "true")
     expect(edit).toHaveAccessibleName(/лише свої записи/)
+  })
+
+  it("«Скасувати» в діалозі видалення: фокус на меню цього запису", async () => {
+    const user = userEvent.setup()
+    setup()
+    const menu = await screen.findByRole("button", { name: /Дії із записом/ })
+    await user.click(menu)
+    await user.click(await screen.findByRole("menuitem", { name: "Видалити" }))
+    const dialog = await screen.findByRole("alertdialog")
+    await user.click(within(dialog).getByRole("button", { name: "Скасувати" }))
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    })
+    await waitFor(() => {
+      expect(menu).toHaveFocus()
+    })
   })
 
   it("закрили поле нотатки: фокус на меню цього запису", async () => {

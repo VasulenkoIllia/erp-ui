@@ -50,7 +50,8 @@ export interface TimelineEntryItemProps {
   readOnly: boolean
   mentions?: MentionSearch | false
   renderMention?: RichTextViewProps["renderMention"]
-  onDelete: (entry: TimelineDeletable) => void
+  /** `opener` — кнопка меню: пункт зник разом із меню, а фокус має кудись повернутись. */
+  onDelete: (entry: TimelineDeletable, opener: HTMLElement | null) => void
 }
 
 const MUTED_CHIP = "bg-muted text-muted-foreground"
@@ -112,6 +113,9 @@ function EntryTime({ at }: { at: string }) {
   )
 }
 
+/** Неактивний пункт приглушує лише назву: причина має читатись. */
+const DENIED_ITEM = "data-disabled:opacity-100"
+
 /** Причина стоїть у самому пункті: так її чує читач екрана, коли стає на неактивний пункт (SPEC §8.4). */
 function MenuItemText({
   children,
@@ -122,7 +126,7 @@ function MenuItemText({
 }) {
   return (
     <span className="flex min-w-0 flex-col">
-      {children}
+      <span className={reason ? "opacity-50" : undefined}>{children}</span>
       {reason ? (
         <span className="text-xs text-muted-foreground">{reason}</span>
       ) : null}
@@ -165,7 +169,11 @@ function EntryMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         {onEdit ? (
-          <DropdownMenuItem disabled={Boolean(editDenied)} onClick={onEdit}>
+          <DropdownMenuItem
+            disabled={Boolean(editDenied)}
+            className={DENIED_ITEM}
+            onClick={onEdit}
+          >
             <MenuItemText reason={editDenied}>
               {t("timeline.edit")}
             </MenuItemText>
@@ -174,6 +182,7 @@ function EntryMenu({
         <DropdownMenuItem
           variant="destructive"
           disabled={Boolean(deleteDenied)}
+          className={DENIED_ITEM}
           onClick={onDelete}
         >
           <MenuItemText reason={deleteDenied}>
@@ -283,6 +292,7 @@ export function TimelineEntryItem({
   React.useEffect(() => {
     if (isEditing || !shouldRestoreFocus.current) return
     shouldRestoreFocus.current = false
+    if (document.activeElement !== document.body) return
     const target = menuButton.current ?? item.current
     target?.focus()
   }, [isEditing])
@@ -302,7 +312,7 @@ export function TimelineEntryItem({
       tabIndex={-1}
       data-slot="timeline-entry"
       data-kind={entry.kind}
-      className="flex items-start gap-3 outline-none"
+      className="flex items-start gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <span
         className={cn(
@@ -337,7 +347,7 @@ export function TimelineEntryItem({
                   : undefined
               }
               onDelete={() => {
-                onDelete(entry)
+                onDelete(entry, menuButton.current)
               }}
             />
           ) : null}
