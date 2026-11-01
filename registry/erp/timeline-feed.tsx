@@ -1,3 +1,4 @@
+import type { UseInfiniteQueryResult } from "@tanstack/react-query"
 import * as React from "react"
 import { toast } from "sonner"
 
@@ -31,8 +32,24 @@ import { Spinner } from "@/registry/ui/spinner"
  */
 export type TimelineFeedData = ReturnType<typeof useTimelineFeed>
 
+/** Те, що беруть стани списку: «Мої справи» мають той самий запит сторінками з іншими рядками. */
+type FeedQuery = Pick<
+  UseInfiniteQueryResult<unknown>,
+  | "isPending"
+  | "isFetching"
+  | "isFetchingNextPage"
+  | "isFetchNextPageError"
+  | "isRefetchError"
+  | "hasNextPage"
+  | "fetchStatus"
+  | "error"
+  | "dataUpdatedAt"
+  | "refetch"
+  | "fetchNextPage"
+>
+
 /** Запит без даних: скелетон, офлайн чи помилка замість усієї стрічки або лише списку. */
-export function FeedLoadState({ query }: { query: TimelineFeedData["query"] }) {
+export function FeedLoadState({ query }: { query: FeedQuery }) {
   const retry = () => {
     void query.refetch()
   }
@@ -90,7 +107,7 @@ function FeedNotice({
   query,
   onRetry,
 }: {
-  query: TimelineFeedData["query"]
+  query: FeedQuery
   onRetry: (isMore: boolean) => void
 }) {
   const t = useErpUiT()
@@ -123,6 +140,52 @@ function FeedNotice({
   )
 }
 
+/** Під списком: скільки показано, «Показати ще», застарілі дані. Фокус не падає разом із кнопкою. */
+export function FeedFooter({
+  query,
+  shown,
+  total,
+  listRef,
+}: {
+  query: FeedQuery
+  shown: number
+  total: number
+  listRef: React.RefObject<HTMLOListElement | null>
+}) {
+  const t = useErpUiT()
+  const focusAfterFetch = useFocusAfterFetch(listRef, query.isFetching, shown)
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {t("timeline.shown", { shown, total })}
+        </p>
+        {query.hasNextPage ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={query.isFetchingNextPage}
+            focusableWhenDisabled
+            onClick={() => {
+              focusAfterFetch(shown)
+              void query.fetchNextPage()
+            }}
+          >
+            {query.isFetchingNextPage ? <Spinner aria-hidden /> : null}
+            {t("timeline.more")}
+          </Button>
+        ) : null}
+      </div>
+      <FeedNotice
+        query={query}
+        onRetry={(isMore) => {
+          focusAfterFetch(isMore ? shown : NO_ENTRY)
+        }}
+      />
+    </>
+  )
+}
+
 function FeedList({
   feed,
   actions,
@@ -145,11 +208,6 @@ function FeedList({
 }) {
   const t = useErpUiT()
   const { query, entries, total } = feed
-  const focusAfterFetch = useFocusAfterFetch(
-    listRef,
-    query.isFetching,
-    entries.length,
-  )
   return (
     <>
       <ol
@@ -174,31 +232,11 @@ function FeedList({
           />
         ))}
       </ol>
-      <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          {t("timeline.shown", { shown: entries.length, total })}
-        </p>
-        {query.hasNextPage ? (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={query.isFetchingNextPage}
-            focusableWhenDisabled
-            onClick={() => {
-              focusAfterFetch(entries.length)
-              void query.fetchNextPage()
-            }}
-          >
-            {query.isFetchingNextPage ? <Spinner aria-hidden /> : null}
-            {t("timeline.more")}
-          </Button>
-        ) : null}
-      </div>
-      <FeedNotice
+      <FeedFooter
         query={query}
-        onRetry={(isMore) => {
-          focusAfterFetch(isMore ? entries.length : NO_ENTRY)
-        }}
+        shown={entries.length}
+        total={total}
+        listRef={listRef}
       />
     </>
   )

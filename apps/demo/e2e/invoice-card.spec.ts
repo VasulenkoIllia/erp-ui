@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  expectNoA11yViolations,
+  openWith,
+  timelineChanges,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок 0.6d (ADR-0019): картка рахунку на шаблоні Object Page — перехід зі списку й назад із
@@ -55,7 +60,7 @@ test.describe("картка рахунку: десктоп", () => {
     page,
   }) => {
     await openWith(page, {}, FIRST_CARD)
-    await expect(history(page)).toContainText("Подій ще немає.")
+    await expect(history(page)).toContainText("У стрічці ще нічого немає")
     await page.getByRole("button", { name: "Погодити", exact: true }).click()
     const dialog = page.getByRole("alertdialog", {
       name: `Погодити рахунок № ${FIRST}?`,
@@ -69,7 +74,7 @@ test.describe("картка рахунку: десктоп", () => {
     await expect(currentStep(page)).toHaveText("Погоджено")
     // Кнопка «Погодити» зникла разом із фокусом — фокус на заголовку, а не на body.
     await expect(heading(page)).toBeFocused()
-    await expect(history(page)).toContainText("Рахунки: зміна")
+    await expect(timelineChanges(history(page))).toHaveCount(1)
   })
 
   test("«Змінити» мишею: збереження з версією, рядки лишаються, фокус на «Змінити»", async ({
@@ -89,10 +94,10 @@ test.describe("картка рахунку: десктоп", () => {
     )
     await expect(lineRows(page)).toHaveCount(linesBefore)
     await expect(edit).toBeFocused()
-    await expect(history(page)).toContainText("Рахунки: зміна")
+    await expect(timelineChanges(history(page))).toHaveCount(1)
   })
 
-  test("без права: дії неактивні з причиною, історія — немає доступу", async ({
+  test("без права на зміну: дії неактивні з причиною, стрічка лишається", async ({
     page,
   }) => {
     await openWith(page, {}, FIRST_CARD, { user: USERS.sales })
@@ -109,7 +114,7 @@ test.describe("картка рахунку: десктоп", () => {
     await expect(edit).toHaveAccessibleDescription(
       "Редагування доступне для ролі «Бухгалтер»",
     )
-    await expect(history(page)).toContainText("Немає доступу")
+    await expect(history(page)).toContainText("У стрічці ще нічого немає")
     await expectNoA11yViolations(page)
   })
 
@@ -307,7 +312,7 @@ for (const width of [360, 390] as const)
   test.describe(`картка рахунку: телефон ${String(width)}`, () => {
     test.use({ viewport: { width, height: 844 } })
 
-    test("вкладки «Подробиці» й «Історія», поточний етап «1 з 4», рядки — картки", async ({
+    test("вкладки «Подробиці» й «Стрічка», поточний етап «1 з 4», рядки — картки", async ({
       page,
     }) => {
       await openWith(page, {}, FIRST_CARD)
@@ -325,12 +330,12 @@ for (const width of [360, 390] as const)
       )
       expect(scrollWidth).toBeLessThanOrEqual(width)
 
-      await page.getByRole("tab", { name: "Історія" }).click()
+      await page.getByRole("tab", { name: "Стрічка" }).click()
       await expect(
-        page.getByRole("tabpanel", { name: "Історія" }),
-      ).toContainText("Подій ще немає.")
+        page.getByRole("tabpanel", { name: "Стрічка" }),
+      ).toContainText("У стрічці ще нічого немає")
       await expect(
-        page.getByRole("textbox", { name: "Коментар" }),
-      ).toBeDisabled()
+        page.getByRole("textbox", { name: "Нотатка для команди" }),
+      ).toHaveAttribute("contenteditable", "true")
     })
   })

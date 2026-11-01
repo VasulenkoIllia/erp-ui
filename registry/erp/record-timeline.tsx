@@ -8,6 +8,8 @@ import { TimelineComposer } from "@/registry/erp/timeline-composer"
 import { FeedLoadState, TimelineFeed } from "@/registry/erp/timeline-feed"
 import { TimelineFollowers } from "@/registry/erp/timeline-followers"
 import {
+  REFRESH_INDICATOR_DELAY_MS,
+  useDelayed,
   useTimelineActions,
   useTimelineFeed,
   useTimelineRealtime,
@@ -58,24 +60,6 @@ export interface RecordTimelineProps {
   /** Назва області для читача екрана: кілька стрічок на сторінці мають відрізнятись. */
   label?: string
   className?: string
-}
-
-/** Менше за секунду індикатор лише блимав би (SPEC §8.2). */
-const REFRESH_INDICATOR_DELAY_MS = 1_000
-
-function useDelayed(value: boolean, delayMs: number): boolean {
-  const [isShown, setIsShown] = React.useState(false)
-  React.useEffect(() => {
-    if (!value) return
-    const timer = setTimeout(() => {
-      setIsShown(true)
-    }, delayMs)
-    return () => {
-      clearTimeout(timer)
-      setIsShown(false)
-    }
-  }, [value, delayMs])
-  return value && isShown
 }
 
 function FilterSelect({

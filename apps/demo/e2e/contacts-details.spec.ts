@@ -5,6 +5,7 @@ import {
   chooseScenario,
   expectNoA11yViolations,
   openWith,
+  timelineChanges,
   USERS,
 } from "./helpers"
 
@@ -121,10 +122,8 @@ test.describe("B1: адреси й рахунки в картці", () => {
     await expect(rowMenu(page, SECOND_IBAN)).toBeFocused()
     const second = accounts.getByRole("row", { name: /Райффайзен/ })
     await expect(second.getByText("Основний", { exact: true })).toBeVisible()
-    // Історія перечитується з новою версією запису.
-    await expect(
-      page.getByRole("button", { name: "Подробиці: Організації: зміна" }),
-    ).toHaveCount(2)
+    // Стрічка перечитується з новою версією запису.
+    await expect(timelineChanges(page)).toHaveCount(2)
 
     await page.getByRole("tab", { name: "Реквізити" }).click()
     await expect(

@@ -57,7 +57,8 @@ import { useContactsT } from "../use-contacts-t"
 /**
  * Картка контакту на шаблоні Object Page (SPEC §7; ADR-0019): «Подробиці» з «Копіювати» (UI43) і
  * «Організація» з вибором компанії (UI40), секції розширення проекту; «Історія» з журналу аудиту
- * перечитується з новою версією запису; «Змінити» — форма в діалозі (ADR-0026).
+ * перечитується з новою версією запису, її місце може зайняти стрічка зі слота `aside` (ADR-0054);
+ * «Змінити» — форма в діалозі (ADR-0026).
  */
 export function ContactPage() {
   const { id = "" } = useParams()
@@ -86,6 +87,7 @@ function ContactCard({ id }: { id: string }) {
     resource: CONTACTS,
     sections: extension.contacts?.sections,
     actions: extension.contacts?.actions,
+    aside: extension.contacts?.aside,
   })
   const [isEditing, setEditing] = useState(false)
   const opener = useOpener()
@@ -148,7 +150,8 @@ function ContactCard({ id }: { id: string }) {
         sections={applyKeyedChanges(sections, slots.sections)}
         // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
         aside={
-          extension.contacts?.history === false
+          slots.aside ??
+          (extension.contacts?.history === false
             ? undefined
             : {
                 label: t("contact.history"),
@@ -157,7 +160,7 @@ function ContactCard({ id }: { id: string }) {
                     target={{ type: CONTACTS, id, name: contact?.name }}
                   />
                 ),
-              }
+              })
         }
       />
       {isEditing && contact ? (

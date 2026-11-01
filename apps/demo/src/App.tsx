@@ -404,7 +404,7 @@ function Shell({
       {
         id: "erp",
         label: t("nav.erp"),
-        // Модуль кіта (B1, A2, A1, A4, A5, A6, N5) — своїми пунктами; решта — заглушки розділів.
+        // Модуль кіта (B1, A2, A1, A4, A5, A6, N1, N5) — своїми пунктами; решта — заглушки розділів.
         items: ERP_EXAMPLE.flatMap(({ id, badge }) => {
           const kitModule = kitModuleOf(id)
           return kitModule

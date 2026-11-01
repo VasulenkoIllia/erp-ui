@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { lazy, useState } from "react"
+import { lazy, useEffect, useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import { DeniedAction } from "@/registry/erp/permission-gate"
@@ -9,6 +9,8 @@ import { ApiError, errorStateKind } from "@/registry/lib/api"
 import {
   OBJECT_PAGE_ASIDE_TAB,
   ObjectPage,
+  useRecordSlots,
+  type ExtensionAside,
   type ObjectPageSectionItem,
 } from "@/registry/templates/object-page"
 
@@ -224,6 +226,118 @@ describe("ObjectPage: вкладки секцій (ADR-0024)", () => {
     await user.click(screen.getByRole("tab", { name: "Історія" }))
     expect(onTab).toHaveBeenLastCalledWith(OBJECT_PAGE_ASIDE_TAB)
     expect(screen.getByText("Подій ще немає.")).toBeInTheDocument()
+  })
+})
+
+/** Поле з текстом, який живе в стані: так поводиться чернетка стрічки. */
+function Draft() {
+  const [text, setText] = useState("")
+  return (
+    <label>
+      Чернетка
+      <input
+        value={text}
+        onChange={(event) => {
+          setText(event.target.value)
+        }}
+      />
+    </label>
+  )
+}
+
+describe("ObjectPage: стрічка, що не зникає (ADR-0054)", () => {
+  const aside = { label: "Стрічка", content: <Draft />, keepMounted: true }
+
+  it("не монтується, доки її не показали: запити не йдуть даремно", async () => {
+    const mounted = vi.fn()
+    function Spy() {
+      useEffect(mounted, [])
+      return <p>Стрічка запису</p>
+    }
+    render(<Page aside={{ ...aside, content: <Spy /> }} />)
+    expect(mounted).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(await screen.findByText("Стрічка запису")).toBeInTheDocument()
+    expect(mounted).toHaveBeenCalledOnce()
+  })
+
+  it("чернетка переживає перехід на іншу вкладку і назад", async () => {
+    const user = userEvent.setup()
+    render(<Page aside={aside} />)
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    await user.type(await screen.findByLabelText("Чернетка"), "Текст")
+    await user.click(screen.getByRole("tab", { name: "Подробиці" }))
+    expect(screen.queryByLabelText("Чернетка")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(await screen.findByLabelText("Чернетка")).toHaveValue("Текст")
+  })
+
+  it("так само серед вкладок секцій", async () => {
+    const user = userEvent.setup()
+    render(<TabsPage aside={aside} />)
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    await user.type(await screen.findByLabelText("Чернетка"), "Текст")
+    await user.click(screen.getByRole("tab", { name: "Реквізити" }))
+    expect(screen.getByText("Код 12345678")).toBeInTheDocument()
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(await screen.findByLabelText("Чернетка")).toHaveValue("Текст")
+  })
+
+  it("без `keepMounted` вкладка, як і раніше, монтує вміст наново", async () => {
+    const user = userEvent.setup()
+    render(<Page aside={{ ...aside, keepMounted: false }} />)
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    await user.type(await screen.findByLabelText("Чернетка"), "Текст")
+    await user.click(screen.getByRole("tab", { name: "Подробиці" }))
+    await user.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(await screen.findByLabelText("Чернетка")).toHaveValue("")
+  })
+})
+
+describe("useRecordSlots: стрічка зі слота", () => {
+  const record = { id: "r1" }
+
+  function SlotPage({
+    component,
+  }: {
+    component: ExtensionAside<typeof record>["component"]
+  }) {
+    const slots = useRecordSlots({
+      record,
+      resource: "deals",
+      aside: { label: { uk: "Стрічка", en: "Feed" }, component },
+    })
+    return <Page aside={slots.aside} />
+  }
+
+  it("компонент проекту отримує запис і ресурс, назва — мовою інтерфейсу", async () => {
+    render(
+      <SlotPage
+        component={({ record: { id }, resource }) => (
+          <p>
+            {resource}/{id}
+          </p>
+        )}
+      />,
+    )
+    await userEvent.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(await screen.findByText("deals/r1")).toBeInTheDocument()
+  })
+
+  it("збій слота не валить картку", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    function Broken(): never {
+      throw new Error("boom")
+    }
+    render(<SlotPage component={Broken} />)
+    await userEvent.click(screen.getByRole("tab", { name: "Стрічка" }))
+    expect(
+      await screen.findByRole("button", { name: "Спробувати ще" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Рахунок № 2026-0001",
+    )
+    vi.restoreAllMocks()
   })
 })
 

@@ -4,6 +4,8 @@ import type {
   OrganizationsExtension,
 } from "@/registry/modules/B1-contacts"
 
+import { timelineModule } from "@/timeline-module"
+
 import { contactsMockExtension } from "./B1-contacts-fields"
 
 /**
@@ -17,10 +19,12 @@ import { contactsMockExtension } from "./B1-contacts-fields"
  *   заміни (`change`);
  * - контакти: поле «Зручний канал» — колонка після email, фільтр, поле шапки й вибір у формі з
  *   підказкою; вкладка списку «Ключові» за сегментом;
- * - рядки модуля: пояснення під назвою списку контактів.
+ * - рядки модуля: пояснення під назвою списку контактів;
+ * - стрічка запису модуля N1 на обох картках замість «Історії» (ADR-0054).
  */
 const organizations: OrganizationsExtension = {
   ...contactsMockExtension.organizations,
+  aside: timelineModule.aside,
   columns: {
     add: [
       { id: "vatPayer", place: { after: "code" }, minWidth: 8, priority: 4 },
@@ -65,6 +69,7 @@ export const contactsExtension: ContactsExtension = {
   organizations,
   contacts: {
     ...contactsMockExtension.contacts,
+    aside: timelineModule.aside,
     columns: {
       add: [
         {

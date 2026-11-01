@@ -55,20 +55,32 @@ export interface MockTimelineTarget {
     companyId: string | null,
     id: string,
   ) => boolean
+  /** Назва запису в «Моїх справах». */
+  readonly titleOf?: (
+    id: string,
+    companyId: string | null,
+  ) => string | undefined
 }
 
 export function timelineTargetMock<T extends MockRecord>({
   resource,
   db,
+  title,
 }: {
   resource: string
   db: Pick<MockResourceDb<T>, "accessOf" | "select">
+  /** Як назвати запис у «Моїх справах». */
+  title?: (record: T) => string
 }): MockTimelineTarget {
   return {
     resource,
     sees: (user, permissions, companyId, id) => {
       const rules = db.accessOf(user, [...permissions])
       return db.select({ id }, companyId, rules).length > 0
+    },
+    titleOf: (id, companyId) => {
+      const [record] = db.select({ id }, companyId)
+      return record && title?.(record)
     },
   }
 }
@@ -123,6 +135,9 @@ export function changeMockTimeline<R>(
 
 export const readMockTimeline = (key: string): MockTimelineRecord =>
   readAll()[key] ?? { entries: [], followers: [], activities: [] }
+
+/** Стан усіх записів: «Мої справи» йдуть через них. */
+export const readMockTimelineRecords = () => readAll()
 
 export function notifyMockTimeline(
   resource: string,

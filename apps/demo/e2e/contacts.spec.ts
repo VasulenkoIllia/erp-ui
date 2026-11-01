@@ -1,6 +1,12 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { cellOf, expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  cellOf,
+  expectNoA11yViolations,
+  openWith,
+  timelineChanges,
+  USERS,
+} from "./helpers"
 
 /**
  * Крок 1.4 (ADR-0025): модуль B1 «Контакти й компанії» на місці заглушки `/m/B1` з розширенням
@@ -75,8 +81,11 @@ test.describe("B1: контакти", () => {
       PRIVATE_NAME,
     )
     await expect(page.getByText("Приватна особа").first()).toBeVisible()
-    const history = page.getByRole("region", { name: "Історія" })
-    await expect(history.getByText("Подій ще немає.")).toBeVisible()
+    const timeline = page.getByRole("region", { name: "Стрічка" })
+    await expect(
+      timeline.getByRole("button", { name: "Запланувати" }),
+    ).toBeVisible()
+    await expect(timelineChanges(timeline)).toHaveCount(0)
     await page
       .getByRole("combobox", { name: "Організація контакту", exact: true })
       .click()
@@ -88,10 +97,8 @@ test.describe("B1: контакти", () => {
     await expect(
       page.getByRole("link", { name: "ПП «Агросвіт»", exact: true }),
     ).toBeVisible()
-    // Історія перечитується з новою версією запису (ADR-0028, п. 7).
-    await expect(
-      history.getByRole("button", { name: "Подробиці: Контакти: зміна" }),
-    ).toHaveCount(1)
+    // Стрічка перечитується з новою версією запису (ADR-0028, п. 7; ADR-0054).
+    await expect(timelineChanges(timeline)).toHaveCount(1)
 
     await page
       .getByRole("link", { name: "Відкрити картку організації" })
@@ -214,13 +221,13 @@ test.describe("B1: організації", () => {
 test.describe("B1: телефон", () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
-  test("картки списків, історія — остання вкладка картки, без прокрутки вбік", async ({
+  test("картки списків, стрічка — остання вкладка картки, без прокрутки вбік", async ({
     page,
   }) => {
     await openWith(page, {}, CONTACTS)
     await expect(page.locator("article[data-card]").first()).toBeVisible()
     await page.goto(FOP_CARD)
-    await expect(cardTabs(page).last()).toHaveText("Історія")
+    await expect(cardTabs(page).last()).toHaveText("Стрічка")
     expect(
       await page.evaluate(
         () =>

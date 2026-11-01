@@ -86,6 +86,7 @@ function setup(
     activities: vi.fn(() => Promise.resolve([])),
     addActivity: vi.fn(() => Promise.resolve(ACTIVITY)),
     updateActivity: vi.fn(() => Promise.resolve(ACTIVITY)),
+    myActivities: vi.fn(() => Promise.resolve({ data: [], total: 0 })),
     ...api,
   } satisfies TimelineApi
   const authProvider = {

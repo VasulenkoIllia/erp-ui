@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query"
 import { useAuthenticated, useCanAccess, useGetOne } from "ra-core"
 import {
   useCallback,
@@ -20,8 +19,8 @@ import { RecordHistory } from "@/registry/erp/record-history"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useEditLock, type EditLock } from "@/registry/hooks/use-edit-lock"
 import { useFocusHeadingOnNavigation } from "@/registry/hooks/use-focus-heading"
+import { useHistoryRefresh } from "@/registry/hooks/use-history-refresh"
 import { ApiError, isApiError } from "@/registry/lib/api"
-import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { applyKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
@@ -34,9 +33,7 @@ import {
   type ObjectPageSectionItem,
 } from "@/registry/templates/object-page"
 import { Button } from "@/registry/ui/button"
-import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
-import { Textarea } from "@/registry/ui/textarea"
 
 import {
   parseInvoiceDetail,
@@ -63,9 +60,9 @@ import { InvoiceStatusBadge } from "./invoice-status"
 
 /**
  * Картка рахунку стрес-сторінки (SPEC §7 Object Page, §18.1; ADR-0019): шапка з ключовими полями й
- * діями, етапи, рядки документа, історія змін із журналу аудиту на місці стрічки запису (UI01 —
- * хвиля 1). Шапка — одразу з кешу списку, рядки — з `GET /invoices/:id`. `extension` — розширення
- * проекту (ADR-0020): поля в шапці, секції й дії.
+ * діями, етапи, рядки документа, історія змін із журналу аудиту чи стрічка запису зі слота `aside`
+ * (UI01, ADR-0054). Шапка — одразу з кешу списку, рядки — з `GET /invoices/:id`. `extension` —
+ * розширення проекту (ADR-0020): поля в шапці, секції, дії й стрічка.
  */
 
 const RESOURCE = "invoices"
@@ -171,6 +168,7 @@ function InvoiceCard({
     resource: RESOURCE,
     sections: extension.sections,
     actions: extension.actions,
+    aside: extension.aside,
   })
   const lock = useEditLock({ resource: RESOURCE, id })
   const startEditing = (record: Invoice) => {
@@ -228,16 +226,18 @@ function InvoiceCard({
             />
           ) : null
         }
-        aside={{
-          label: t("history"),
-          content: (
-            <InvoiceHistory
-              id={id}
-              name={invoice?.number}
-              version={invoice?.version}
-            />
-          ),
-        }}
+        aside={
+          slots.aside ?? {
+            label: t("history"),
+            content: (
+              <InvoiceHistory
+                id={id}
+                name={invoice?.number}
+                version={invoice?.version}
+              />
+            ),
+          }
+        }
         sections={applyKeyedChanges(sections, slots.sections)}
       />
       {editing ? (
@@ -431,10 +431,7 @@ function ApproveAction({
   )
 }
 
-/**
- * Місце стрічки запису (UI01, хвиля 1): історія змін рахунку з журналу аудиту й поле коментаря, яке
- * поки неактивне й пояснює чому.
- */
+/** Без стрічки — історія змін із журналу аудиту; рахунок змінився, у журналі вже є подія. */
 function InvoiceHistory({
   id,
   name,
@@ -444,30 +441,6 @@ function InvoiceHistory({
   name?: string
   version?: number
 }) {
-  const t = useCardT()
-  const queryClient = useQueryClient()
-  // Рахунок змінився (збереження, погодження задачею) — у журналі вже є подія: перечитати.
-  const seen = useRef(version)
-  useEffect(() => {
-    if (seen.current === version) return
-    seen.current = version
-    void queryClient.invalidateQueries({ queryKey: AUDIT_QUERY_KEYS.events })
-  }, [queryClient, version])
-  return (
-    <div className="space-y-4">
-      <Field>
-        <FieldLabel htmlFor="invoice-comment">{t("comment")}</FieldLabel>
-        <Textarea
-          id="invoice-comment"
-          rows={2}
-          disabled
-          aria-describedby="invoice-comment-hint"
-        />
-        <FieldDescription id="invoice-comment-hint">
-          {t("commentSoon")}
-        </FieldDescription>
-      </Field>
-      <RecordHistory target={{ type: RESOURCE, id, name }} />
-    </div>
-  )
+  useHistoryRefresh(version)
+  return <RecordHistory target={{ type: RESOURCE, id, name }} />
 }

@@ -12,6 +12,8 @@ import {
   useInfiniteQuery,
   useQuery,
   useQueryClient,
+  type QueryClient,
+  type QueryKey,
 } from "@tanstack/react-query"
 import * as React from "react"
 import { z } from "zod"
@@ -27,7 +29,9 @@ import { useErpUiT } from "@/registry/lib/i18n"
 import { newImportRequestId } from "@/registry/lib/imports"
 import { REALTIME_FLUSH_MS } from "@/registry/lib/realtime-cache"
 import { isRichTextEmpty, richTextSchema } from "@/registry/lib/rich-text"
+import type { RealtimeEvent } from "@/registry/lib/realtime"
 import {
+  TIMELINE_MY_ACTIVITIES_KEY,
   TIMELINE_PER_PAGE,
   TIMELINE_POLL_MS,
   timelineEntriesOf,
@@ -45,12 +49,33 @@ function useTimelineKeys(target: TimelineTarget) {
   return { root, scope }
 }
 
-/** Перечитати стрічку за подією каналу: подій може бути багато, запит — один на секунду. */
-export function useTimelineRealtime(target: TimelineTarget): void {
+/** Менше за секунду індикатор лише блимав би (SPEC §8.2). */
+export const REFRESH_INDICATOR_DELAY_MS = 1_000
+
+/** Правда лише через `delayMs` після початку: короткий стан не блимає. */
+export function useDelayed(value: boolean, delayMs: number): boolean {
+  const [isShown, setIsShown] = React.useState(false)
+  React.useEffect(() => {
+    if (!value) return
+    const timer = setTimeout(() => {
+      setIsShown(true)
+    }, delayMs)
+    return () => {
+      clearTimeout(timer)
+      setIsShown(false)
+    }
+  }, [value, delayMs])
+  return value && isShown
+}
+
+/** Перечитати список за подіями каналу: подій може бути багато, запит — один на секунду. */
+export function useRefreshOnEvent(
+  queryKey: QueryKey,
+  isRelevant: (event: RealtimeEvent) => boolean,
+): void {
   const queryClient = useQueryClient()
   const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   const flush = () => {
-    const queryKey = timelineQueryKey(target)
     // Догрузку сторінки, яку людина щойно попросила, подія не скасовує: чекає її кінця.
     const isLoadingMore = queryClient
       .getQueryCache()
@@ -62,10 +87,8 @@ export function useTimelineRealtime(target: TimelineTarget): void {
     if (!isLoadingMore) void queryClient.invalidateQueries({ queryKey })
   }
   useRealtimeEvent((event) => {
-    if (event.type !== timelineEventType(target.resource)) return
-    // Подія без `id` стосується всього ресурсу.
-    if (event.id && event.id !== target.id) return
-    timer.current ??= setTimeout(flush, REALTIME_FLUSH_MS)
+    if (isRelevant(event))
+      timer.current ??= setTimeout(flush, REALTIME_FLUSH_MS)
   })
   React.useEffect(
     () => () => {
@@ -75,10 +98,30 @@ export function useTimelineRealtime(target: TimelineTarget): void {
   )
 }
 
+/** Перечитати стрічку за подією каналу. Подія без `id` стосується всього ресурсу. */
+export function useTimelineRealtime(target: TimelineTarget): void {
+  useRefreshOnEvent(
+    timelineQueryKey(target),
+    (event) =>
+      event.type === timelineEventType(target.resource) &&
+      (!event.id || event.id === target.id),
+  )
+}
+
 /** Опитування лише без каналу: `open` оновлює стрічку за подіями. */
-function usePollInterval(): number | false {
+export function useTimelinePollInterval(): number | false {
   return useRealtimeStatus() === "open" ? false : TIMELINE_POLL_MS
 }
+
+/** Наступна сторінка: `total` міг порахувати те, чого людина не бачить, тож порожня завершує список. */
+export const nextTimelinePage = (
+  last: { readonly data: readonly unknown[]; readonly total: number },
+  pages: readonly unknown[],
+  perPage: number,
+) =>
+  last.data.length && pages.length * perPage < last.total
+    ? pages.length + 1
+    : undefined
 
 export function useTimelineFeed(
   target: TimelineTarget,
@@ -86,7 +129,7 @@ export function useTimelineFeed(
 ) {
   const provider = useErpAuthProvider()
   const { root, scope } = useTimelineKeys(target)
-  const refetchInterval = usePollInterval()
+  const refetchInterval = useTimelinePollInterval()
   const query = useInfiniteQuery({
     queryKey: [...root, "entries", filter, scope],
     queryFn: ({ pageParam, signal }) =>
@@ -98,11 +141,8 @@ export function useTimelineFeed(
         signal,
       ),
     initialPageParam: 1,
-    // `total` міг порахувати записи, яких людина не бачить: порожня сторінка завершує список.
     getNextPageParam: (last, pages) =>
-      last.data.length && pages.length * TIMELINE_PER_PAGE < last.total
-        ? pages.length + 1
-        : undefined,
+      nextTimelinePage(last, pages, TIMELINE_PER_PAGE),
     // Новий фільтр лишає попередній список, доки не прийде свій: стрічка не блимає скелетоном.
     placeholderData: keepPreviousData,
     refetchInterval,
@@ -115,7 +155,7 @@ export function useTimelineFeed(
 export function useTimelineFollowers(target: TimelineTarget, enabled = true) {
   const provider = useErpAuthProvider()
   const { root, scope } = useTimelineKeys(target)
-  const refetchInterval = usePollInterval()
+  const refetchInterval = useTimelinePollInterval()
   return useQuery({
     queryKey: [...root, "followers", scope],
     queryFn: ({ signal }) => provider.timeline.followers(target, signal),
@@ -127,7 +167,7 @@ export function useTimelineFollowers(target: TimelineTarget, enabled = true) {
 export function useTimelineActivities(target: TimelineTarget, enabled = true) {
   const provider = useErpAuthProvider()
   const { root, scope } = useTimelineKeys(target)
-  const refetchInterval = usePollInterval()
+  const refetchInterval = useTimelinePollInterval()
   return useQuery({
     queryKey: [...root, "activities", scope],
     queryFn: ({ signal }) => provider.timeline.activities(target, signal),
@@ -158,42 +198,77 @@ type TargetArgs<F> = F extends (
   : never
 export type TimelineActions = {
   [
-    K in Exclude<keyof TimelineApi, "list" | "followers" | "activities">
+    K in Exclude<
+      keyof TimelineApi,
+      "list" | "followers" | "activities" | "myActivities"
+    >
   ]: TargetArgs<TimelineApi[K]>
 } & {
   /** Перечитати стрічку: чужа версія (409) лишає в кеші застарілу дію. */
   refresh: () => Promise<void>
 }
 
+/** Дії над одним записом; «Мої справи» будують їх на кожен рядок, тож без хука. */
+export function createTimelineActions(
+  timeline: TimelineApi,
+  queryClient: QueryClient,
+  target: TimelineTarget,
+): TimelineActions {
+  const refresh = () =>
+    settledWithin(
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: timelineQueryKey(target) }),
+        queryClient.invalidateQueries({
+          queryKey: TIMELINE_MY_ACTIVITIES_KEY,
+        }),
+      ]),
+      TIMELINE_REFRESH_WAIT_MS,
+    )
+  const done = async <T>(result: T) => {
+    await refresh()
+    return result
+  }
+  return {
+    refresh,
+    post: (input) => timeline.post(target, input).then(done),
+    updateNote: (entryId, input) =>
+      timeline.updateNote(target, entryId, input).then(done),
+    remove: (entryId) => timeline.remove(target, entryId).then(done),
+    uploadFile: (file, requestId) =>
+      timeline.uploadFile(target, file, requestId).then(done),
+    follow: (userId) => timeline.follow(target, userId).then(done),
+    unfollow: (userId) => timeline.unfollow(target, userId).then(done),
+    addActivity: (input) => timeline.addActivity(target, input).then(done),
+    updateActivity: (activityId, patch) =>
+      timeline.updateActivity(target, activityId, patch).then(done),
+  }
+}
+
 export function useTimelineActions(target: TimelineTarget): TimelineActions {
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
-  return React.useMemo(() => {
-    const { timeline } = provider
-    const refresh = () =>
-      settledWithin(
-        queryClient.invalidateQueries({ queryKey: timelineQueryKey(target) }),
-        TIMELINE_REFRESH_WAIT_MS,
-      )
-    const done = async <T>(result: T) => {
-      await refresh()
-      return result
-    }
-    return {
-      refresh,
-      post: (input) => timeline.post(target, input).then(done),
-      updateNote: (entryId, input) =>
-        timeline.updateNote(target, entryId, input).then(done),
-      remove: (entryId) => timeline.remove(target, entryId).then(done),
-      uploadFile: (file, requestId) =>
-        timeline.uploadFile(target, file, requestId).then(done),
-      follow: (userId) => timeline.follow(target, userId).then(done),
-      unfollow: (userId) => timeline.unfollow(target, userId).then(done),
-      addActivity: (input) => timeline.addActivity(target, input).then(done),
-      updateActivity: (activityId, patch) =>
-        timeline.updateActivity(target, activityId, patch).then(done),
-    }
-  }, [provider, queryClient, target])
+  return React.useMemo(
+    () => createTimelineActions(provider.timeline, queryClient, target),
+    [provider, queryClient, target],
+  )
+}
+
+/**
+ * Запис змінили на цій картці: без каналу подія не прийде, а зміна поля має з'явитись у стрічці одразу
+ * (як `useHistoryRefresh`). Перша версія після завантаження — не зміна.
+ */
+export function useTimelineVersionRefresh(
+  target: TimelineTarget,
+  version: number | undefined,
+): void {
+  const queryClient = useQueryClient()
+  const seen = React.useRef(version)
+  React.useEffect(() => {
+    const previous = seen.current
+    seen.current = version
+    if (previous === undefined || previous === version) return
+    void queryClient.invalidateQueries({ queryKey: timelineQueryKey(target) })
+  }, [queryClient, target, version])
 }
 
 /** Текст нотатки чи повідомлення: порожній на сервер не йде. */

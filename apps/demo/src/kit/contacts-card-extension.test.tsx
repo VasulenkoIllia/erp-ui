@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query"
 import { render, renderHook, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { CoreAdminContext, type DataProvider } from "ra-core"
 import { Suspense, type ReactNode } from "react"
 import { MemoryRouter, Route, Routes } from "react-router"
@@ -119,6 +120,55 @@ describe("картка контакту B1: розширення для беке
       within(details).findByText("Сегменти", {}, { timeout: 300 }),
     ).rejects.toThrow()
     expect(screen.queryAllByText("Історія")).toHaveLength(0)
+  })
+})
+
+describe("картка B1: слот стрічки (ADR-0054)", () => {
+  const slot = {
+    label: { uk: "Стрічка", en: "Timeline" },
+    component: ({
+      record,
+      resource,
+    }: {
+      record: { id: string }
+      resource: string
+    }) => <p>Стрічка {`${resource}/${record.id}`}</p>,
+  }
+
+  it("проект поставив стрічку: вона на місці «Історії»", async () => {
+    await renderCard(`/contacts/${CONTACT.id}`, {
+      contacts: { aside: slot },
+    })
+    await userEvent.click(await screen.findByRole("tab", { name: "Стрічка" }))
+    expect(
+      await screen.findByText(`Стрічка contacts/${CONTACT.id}`),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("tab", { name: "Історія" }),
+    ).not.toBeInTheDocument()
+  })
+
+  it("стрічка не залежить від `history: false`", async () => {
+    await renderCard(`/organizations/${ORGANIZATION.id}`, {
+      organizations: { aside: slot, history: false },
+    })
+    await userEvent.click(await screen.findByRole("tab", { name: "Стрічка" }))
+    expect(
+      await screen.findByText(`Стрічка organizations/${ORGANIZATION.id}`),
+    ).toBeInTheDocument()
+  })
+
+  it("без слота запитів стрічки немає: бекенд без неї нічого не помітить", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch")
+    await renderCard(`/contacts/${CONTACT.id}`)
+    await screen.findByRole("region", { name: "Подробиці" })
+    const urls = fetchSpy.mock.calls.map(([input]) =>
+      input instanceof Request ? input.url : String(input),
+    )
+    expect(
+      urls.filter((url) => /timeline|followers|activities/.test(url)),
+    ).toEqual([])
+    fetchSpy.mockRestore()
   })
 })
 

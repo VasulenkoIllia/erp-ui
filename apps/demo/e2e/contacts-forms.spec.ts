@@ -1,9 +1,10 @@
-import { expect, test, type Locator, type Page } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 import {
   chooseScenario,
   expectNoA11yViolations,
   openWith,
+  timelineChanges,
   USERS,
 } from "./helpers"
 
@@ -35,8 +36,6 @@ const headerValue = (page: Page, label: string) =>
     .locator("dd")
 const errorSummary = (page: Page) =>
   page.locator('[data-slot="form-error-summary"]')
-const contactChanges = (history: Locator) =>
-  history.getByRole("button", { name: "Подробиці: Контакти: зміна" })
 
 /** «Змінити» в шапці картки контакту: нова посада, «Зберегти», діалог закрито. */
 async function changePosition(page: Page) {
@@ -139,15 +138,17 @@ test.describe("B1: форми", () => {
     await expect(headerValue(page, "Платник ПДВ")).toHaveText("Ні")
   })
 
-  test("зміна контакту з картки: новий запис в історії без перезавантаження", async ({
+  test("зміна контакту з картки: новий запис у стрічці без перезавантаження", async ({
     page,
   }) => {
     await openWith(page, {}, CONTACT_CARD)
-    const history = page.getByRole("region", { name: "Історія" })
-    await expect(history.getByText("Подій ще немає.")).toBeVisible()
+    const timeline = page.getByRole("region", { name: "Стрічка" })
+    await expect(
+      timeline.getByRole("button", { name: "Запланувати" }),
+    ).toBeVisible()
     await changePosition(page)
-    // Історія перечитується з новою версією запису (ADR-0019, п. 7).
-    await expect(contactChanges(history)).toHaveCount(1)
+    // Стрічка перечитується з новою версією запису (ADR-0019, п. 7; ADR-0054).
+    await expect(timelineChanges(timeline)).toHaveCount(1)
     await expectNoA11yViolations(page)
   })
 
@@ -281,15 +282,17 @@ test.describe("B1: форми на телефоні", () => {
     await expectNoA11yViolations(page)
   })
 
-  test("зміна контакту з картки: відкрита вкладка «Історія» показує новий запис", async ({
+  test("зміна контакту з картки: відкрита вкладка «Стрічка» показує новий запис", async ({
     page,
   }) => {
     await openWith(page, {}, CONTACT_CARD)
-    await page.getByRole("tab", { name: "Історія" }).click()
-    const history = page.getByRole("tabpanel", { name: "Історія" })
-    await expect(history.getByText("Подій ще немає.")).toBeVisible()
+    await page.getByRole("tab", { name: "Стрічка" }).click()
+    const timeline = page.getByRole("tabpanel", { name: "Стрічка" })
+    await expect(
+      timeline.getByRole("button", { name: "Запланувати" }),
+    ).toBeVisible()
     await changePosition(page)
-    await expect(contactChanges(history)).toHaveCount(1)
+    await expect(timelineChanges(timeline)).toHaveCount(1)
     await expectNoA11yViolations(page)
   })
 })

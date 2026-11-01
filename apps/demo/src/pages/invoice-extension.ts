@@ -16,6 +16,7 @@ import {
 } from "@/registry/lib/extensions"
 import type {
   ExtensionAction,
+  ExtensionAside,
   ExtensionSection,
 } from "@/registry/templates/object-page"
 
@@ -46,6 +47,8 @@ export interface InvoicesExtension {
   sections?: KeyedChanges<ExtensionSection<Invoice>, InvoiceSectionId>
   /** Дії в шапці картки — компоненти проекту. */
   actions?: KeyedChanges<ExtensionAction<Invoice>, InvoiceActionId>
+  /** Стрічка картки замість «Історії» (ADR-0054). */
+  aside?: ExtensionAside<Invoice>
 }
 
 /** Без розширення рахунки такі, як у кіті. */

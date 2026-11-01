@@ -13,7 +13,7 @@ const EMPTY_RECORD = "inv-00003"
 
 const colleague = () => import("@/mocks/colleague")
 
-/** Стрічка запису (UI01, PF05, ADR-0053): усе разом, лише перегляд, порожньо й вузька колонка. */
+/** Стрічка запису (UI01, PF05, ADR-0053): усе разом, лише перегляд, без пошти, порожньо й вузька колонка. */
 export function TimelinePage() {
   const { t } = useTranslation()
   return (
@@ -76,6 +76,19 @@ export function TimelinePage() {
             id={CLOSED_RECORD}
             label={t("timelinePage.readOnlyTitle")}
             readOnly
+          />
+        </div>
+      </Section>
+      <Section
+        title={t("timelinePage.noMailTitle")}
+        description={t("timelinePage.noMailDescription")}
+      >
+        <div data-testid="timeline-no-mail">
+          <RecordTimeline
+            resource="invoices"
+            id={CLOSED_RECORD}
+            label={t("timelinePage.noMailTitle")}
+            messages={false}
           />
         </div>
       </Section>
