@@ -19,6 +19,8 @@ import { CONTACTS_TARGET } from "@/registry/modules/A4-import-export/targets"
 const TARGETS = "/import-export"
 /** Перший імпорт ліниво вантаженої сторінки довший за очікування `findBy`. */
 const PAGES_TIMEOUT_MS = 60_000
+/** Як у `createQueryClient`: кеш запису ще свіжий, коли людина відкриває подробиці. */
+const STALE_MS = 30_000
 /** Трохи довше за один крок опитування запусків. */
 const POLL_WAIT_MS = 4000
 
@@ -53,7 +55,7 @@ async function setup({
     getMe: getMe ?? (() => Promise.resolve({ permissions })),
   } as unknown as ErpAuthProvider
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false, staleTime: STALE_MS } },
   })
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   // Сторінка лінива й призупиняє перший рендер: без асинхронного `act` React не повторює його.

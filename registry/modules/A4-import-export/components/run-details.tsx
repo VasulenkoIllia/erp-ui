@@ -34,7 +34,7 @@ function RunFailure({
   const hidden = failure.count - failure.items.length
   return (
     <li className="rounded-lg border p-3">
-      <p className="font-medium break-words">{text}</p>
+      <p className="font-medium break-words first-letter:uppercase">{text}</p>
       <p className="text-sm text-muted-foreground">
         {t("history.details.failureCount", {
           count: failure.count,
@@ -58,7 +58,8 @@ function RunFailure({
 /**
  * Подробиці запуску: лічильники й причини невдач. Файла запуску сервер не зберігає, тож файл помилок
  * доступний лише в майстрі: тут видно номери рядків, а виправлений файл людина завантажує знову.
- * Рядок списку — лише перший показ: запуск міг іти, тож свіжий запис береться окремо.
+ * Рядок списку — лише перший показ: запуск міг іти, тож свіжий запис береться окремо. Кеш запису тут не
+ * годиться: `useGetList` кладе туди рядки й залишає старий, навіть якщо список уже новіший.
  */
 export function RunDetails({
   run: listed,
@@ -73,9 +74,12 @@ export function RunDetails({
 }) {
   const t = useImportExportT()
   const format = useFormat()
-  const { data: run = listed } = useGetOne<ImportRun>(IMPORT_RUNS, {
-    id: listed.id,
-  })
+  const fresh = useGetOne<ImportRun>(
+    IMPORT_RUNS,
+    { id: listed.id },
+    { refetchOnMount: "always" },
+  )
+  const run = fresh.isFetchedAfterMount && fresh.isSuccess ? fresh.data : listed
   const statusOf = useRunStatus()
   const labelOf = useRunTargetLabel()
   const target = useImportExportTargets().find(
