@@ -16,6 +16,8 @@
 const MAX_AMOUNT = BigInt(Number.MAX_SAFE_INTEGER)
 /** 100 % у сотих відсотка: ставки й знижки мають два знаки після коми. */
 const FULL_PERCENT = 10_000n
+/** Допуск на шум двійкового дробу: 7,07 × 100 не дає рівно 707, а 7,005 — це вже третій знак. */
+const PERCENT_NOISE = 1e-9
 const DECIMAL = /^\d+(\.\d+)?$/
 
 export interface TotalsLineTax {
@@ -87,9 +89,13 @@ function parseDecimal(value: string): { units: bigint; scale: bigint } {
 }
 
 function percentHundredths(percent: number): bigint {
-  if (!(percent >= 0 && percent <= 100))
+  const hundredths = Math.round(percent * 100)
+  if (
+    !(percent >= 0 && percent <= 100) ||
+    Math.abs(percent * 100 - hundredths) > PERCENT_NOISE
+  )
     throw new RangeError(`Некоректний відсоток: ${String(percent)}`)
-  return BigInt(Math.round(percent * 100))
+  return BigInt(hundredths)
 }
 
 /** Ділення невід'ємних цілих із математичним округленням. */
@@ -144,17 +150,17 @@ export function computeDocumentTotals(
 ): DocumentTotals | null {
   const sum = emptyTotals()
   const byTax = new Map<string, { tax: TotalsLineTax; sum: ExactTotals }>()
-  const exactLines = lines.map((line) => {
+  const exactLines: ExactTotals[] = []
+  for (const line of lines) {
     const totals = lineTotals(line, digits)
+    exactLines.push(totals)
     addTotals(sum, totals)
-    if (line.tax) {
-      const key = `${line.tax.id}|${String(line.tax.rate)}|${String(line.tax.included)}`
-      const group = byTax.get(key) ?? { tax: line.tax, sum: emptyTotals() }
-      addTotals(group.sum, totals)
-      byTax.set(key, group)
-    }
-    return totals
-  })
+    if (!line.tax) continue
+    const key = `${line.tax.id}|${String(line.tax.rate)}|${String(line.tax.included)}`
+    const group = byTax.get(key) ?? { tax: line.tax, sum: emptyTotals() }
+    addTotals(group.sum, totals)
+    byTax.set(key, group)
+  }
   // Усі значення невід'ємні, тож рядки й ставки не більші за відповідну суму документа.
   if (Object.values(sum).some((value) => value > MAX_AMOUNT)) return null
   return {

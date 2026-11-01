@@ -177,6 +177,11 @@ describe("кількість і ціна: десяткові рядки конт
     expect(formatPrice("12", "UAH", UK)).toBe(`12,00${NBSP}₴`)
     expect(formatPrice("1200.5", "usd", UK)).toBe(`1${NBSP}200,50${NBSP}USD`)
     expect(formatPrice("1500.5", "JPY", UK)).toBe(`1${NBSP}500,5${NBSP}JPY`)
+    expect(formatPrice("1.5", "KWD", UK)).toBe(`1,500${NBSP}KWD`)
+    expect(formatPrice("0.1234", "UAH", EN)).toBe("₴0.1234")
+    expect(formatPrice("999999999999999.9999", "USD", EN)).toBe(
+      `USD${NBSP}999,999,999,999,999.9999`,
+    )
   })
 
   it("useFormat бере мову інтерфейсу", () => {

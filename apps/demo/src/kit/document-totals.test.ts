@@ -5,9 +5,12 @@ import {
   documentLineSchema,
   documentLinesSchemaFor,
   documentTotalsSchema,
+  LINE_NAME_MAX,
   priceSchema,
   quantitySchema,
   savedDocumentLineSchema,
+  TAX_NAME_MAX,
+  UNIT_NAME_MAX,
 } from "@/registry/lib/document-lines"
 import {
   computeDocumentTotals,
@@ -25,6 +28,18 @@ const VAT_20_IN_PRICE: TotalsLineTax = {
 }
 const VAT_7: TotalsLineTax = { id: "vat-7", rate: 7, included: false }
 const VAT_0: TotalsLineTax = { id: "vat-0", rate: 0, included: false }
+
+/** Рядок вільним текстом, без довідників. */
+const ROW = {
+  id: "1",
+  name: "Послуга",
+  itemId: null,
+  quantity: "1",
+  unit: null,
+  price: "10",
+  discountPercent: 0,
+  tax: null,
+}
 
 const line = (
   quantity: string,
@@ -134,11 +149,26 @@ describe("сума рядка: таблиця прикладів округле�
     expect(lines).toEqual([expected])
   })
 
-  it("без податку й із податком завжди net + tax = total", () => {
-    for (const [, input] of cases) {
-      const totals = totalsOf([input])
-      expect(totals.net + totals.tax).toBe(totals.total)
+  it("у будь-якому поєднанні колонки сходяться", () => {
+    const lines = ["1", "0.125", "3.333"].flatMap((quantity) =>
+      ["0.01", "0.99", "33.33", "1234.5678"].flatMap((price) =>
+        [0, 10, 33.33, 100].flatMap((discount) =>
+          [null, VAT_20, VAT_20_IN_PRICE, VAT_7, VAT_0].map((tax) =>
+            line(quantity, price, tax, discount),
+          ),
+        ),
+      ),
+    )
+    const totals = totalsOf(lines)
+    for (const [index, input] of lines.entries()) {
+      const { amount, discount, net, tax, total } = totals.lines[index]
+      expect(net + tax).toBe(total)
+      expect(input.tax?.included ? total : net).toBe(amount - discount)
     }
+    expect(totals.net + totals.tax).toBe(totals.total)
+    expect(totals.lines.reduce((sum, row) => sum + row.total, 0)).toBe(
+      totals.total,
+    )
   })
 })
 
@@ -173,6 +203,36 @@ describe("підсумки документа", () => {
       { taxId: "vat-20", rate: 20, included: false, net: 10_000, tax: 2_000 },
       { taxId: "vat-20-in", rate: 20, included: true, net: 10_000, tax: 2_000 },
       { taxId: "vat-7", rate: 7, included: false, net: 1_000, tax: 70 },
+    ])
+  })
+
+  it("підсумок — сума рядків у їхньому порядку, зі знижками", () => {
+    const totals = totalsOf([
+      line("1", "100", VAT_20, 10),
+      line("2", "50", null, 50),
+    ])
+    expect(totals.lines.map((row) => row.total)).toEqual([10_800, 5_000])
+    expect(totals).toMatchObject({
+      amount: 20_000,
+      discount: 6_000,
+      net: 14_000,
+      tax: 1_800,
+      total: 15_800,
+    })
+  })
+
+  it("підсумок за ставкою розрізняє податок і позначку «у ціні»", () => {
+    const totals = totalsOf([
+      line("1", "100", VAT_20),
+      line("1", "100", { ...VAT_20, id: "vat-20-export" }),
+      line("1", "120", { ...VAT_20, included: true }),
+    ])
+    expect(
+      totals.taxes.map(({ taxId, included }) => [taxId, included]),
+    ).toEqual([
+      ["vat-20", false],
+      ["vat-20-export", false],
+      ["vat-20", true],
     ])
   })
 
@@ -223,28 +283,35 @@ describe("межа суми", () => {
     ).toBeNull()
   })
 
+  it("за межу не виходить жодна колонка, навіть коли разом нуль", () => {
+    expect(
+      computeDocumentTotals([line("1", "90071992547409.92", null, 100)], 2),
+    ).toBeNull()
+  })
+
   it("схема відхиляє кількість і ціну, разом завеликі для суми", () => {
-    const row = {
-      id: "1",
-      name: "Послуга",
-      quantity: "1000000000",
-      price: "1000000000",
-    }
+    const large = { ...ROW, quantity: "1000000000", price: "1000000000" }
     const schema = documentLinesSchemaFor(2)
-    const result = schema.safeParse([row])
+    const result = schema.safeParse([large])
     expect(result.success).toBe(false)
     expect(result.error?.issues[0]?.message).toBe("out_of_range")
-    expect(schema.safeParse([{ ...row, quantity: "1" }]).success).toBe(true)
+    expect(schema.safeParse([{ ...large, quantity: "1" }]).success).toBe(true)
+  })
+
+  it("межа залежить від знаків валюти", () => {
+    const large = [{ ...ROW, price: "90000000000000" }]
+    expect(documentLinesSchemaFor(2).safeParse(large).success).toBe(true)
+    expect(documentLinesSchemaFor(3).safeParse(large).success).toBe(false)
   })
 
   it("зіпсований рядок має свою помилку, а не помилку межі", () => {
     const result = documentLinesSchemaFor(2).safeParse([
-      { id: "1", name: "Послуга", quantity: "1,5", price: "10" },
+      { ...ROW, quantity: "1,5" },
     ])
     expect(result.success).toBe(false)
-    expect(result.error?.issues.map((issue) => issue.path)).toEqual([
-      [0, "quantity"],
-    ])
+    expect(
+      result.error?.issues.map(({ path, message }) => [path, message]),
+    ).toEqual([[[0, "quantity"], "invalid"]])
   })
 })
 
@@ -255,9 +322,15 @@ describe("некоректний вхід функції", () => {
     )
   })
 
-  it.each([101, -1, Number.NaN])("знижка %d", (discount) => {
+  it.each([101, -1, Number.NaN, 12.345])("знижка %d", (discount) => {
     expect(() =>
       computeDocumentTotals([line("1", "1", null, discount)], 2),
+    ).toThrow(RangeError)
+  })
+
+  it.each([101, -1, Number.NaN, 7.005])("ставка %d", (rate) => {
+    expect(() =>
+      computeDocumentTotals([line("1", "1", { ...VAT_20, rate })], 2),
     ).toThrow(RangeError)
   })
 })
@@ -285,7 +358,13 @@ describe("контракт", () => {
   })
 
   it("кількість: десятковий рядок більше нуля, до трьох знаків", () => {
-    for (const quantity of ["1", "1.5", "0.001", "1.500", "100000"])
+    for (const quantity of [
+      "1",
+      "1.5",
+      "0.001",
+      "1.500",
+      `${"9".repeat(15)}.999`,
+    ])
       expect(quantitySchema.safeParse(quantity).success).toBe(true)
     for (const quantity of [
       "0",
@@ -304,8 +383,24 @@ describe("контракт", () => {
       expect(quantitySchema.safeParse(quantity).success).toBe(false)
   })
 
+  it("кількість: зіпсоване значення не отримує другої помилки про нуль", () => {
+    const result = quantitySchema.safeParse("абв")
+    expect(result.error?.issues.map(({ message }) => message)).toEqual([
+      "invalid",
+    ])
+    expect(quantitySchema.safeParse("0").error?.issues[0]?.message).toBe(
+      "positive",
+    )
+  })
+
   it("ціна: десятковий рядок від нуля, до чотирьох знаків", () => {
-    for (const price of ["0", "0.1234", "12.5", "48600.00"])
+    for (const price of [
+      "0",
+      "0.1234",
+      "12.5",
+      "48600.00",
+      `${"9".repeat(15)}.9999`,
+    ])
       expect(priceSchema.safeParse(price).success).toBe(true)
     for (const price of ["0.12345", "-1", "1,5", 12.5])
       expect(priceSchema.safeParse(price).success).toBe(false)
@@ -313,48 +408,56 @@ describe("контракт", () => {
 
   it("рядок: вільний текст без запису й довідників", () => {
     expect(
-      documentLineSchema.parse({
-        id: "1",
-        name: " Консультація ",
-        quantity: "1.5",
-        price: "1000",
-      }),
-    ).toEqual({
-      id: "1",
-      name: "Консультація",
-      itemId: null,
-      quantity: "1.5",
-      unitId: null,
-      unitName: null,
-      price: "1000",
-      discountPercent: 0,
-      tax: null,
-    })
+      documentLineSchema.parse({ ...ROW, name: " Консультація " }),
+    ).toEqual({ ...ROW, name: "Консультація" })
   })
 
-  it("рядок: знижка й ставка до двох знаків, знімок податку з назвою", () => {
-    const row = { id: "1", name: "Товар", quantity: "1", price: "10" }
+  it("рядок: усі поля обов'язкові, порожнє не ховається за типовим значенням", () => {
+    for (const field of Object.keys(ROW)) {
+      const incomplete = Object.fromEntries(
+        Object.entries(ROW).filter(([key]) => key !== field),
+      )
+      expect(documentLineSchema.safeParse(incomplete).success, field).toBe(
+        false,
+      )
+    }
+  })
+
+  it("рядок: знімок одиниці й податку, межі значень", () => {
     const tax = { ...VAT_20, name: "ПДВ 20 %" }
-    expect(documentLineSchema.parse({ ...row, tax }).tax).toEqual(tax)
+    const unit = { id: "hour", name: "год" }
+    expect(documentLineSchema.parse({ ...ROW, tax, unit })).toMatchObject({
+      tax,
+      unit,
+    })
+    expect(
+      documentLineSchema.parse({ ...ROW, unit: { id: null, name: "рейс" } })
+        .unit,
+    ).toEqual({ id: null, name: "рейс" })
     for (const bad of [
       { discountPercent: 100.01 },
       { discountPercent: -1 },
       { discountPercent: 1.005 },
       { tax: { ...tax, rate: 101 } },
       { tax: VAT_20 },
+      { name: "   " },
+      { name: "я".repeat(LINE_NAME_MAX + 1) },
+      { unit: { id: null, name: "" } },
+      { unit: { id: null, name: "я".repeat(UNIT_NAME_MAX + 1) } },
+      { tax: { ...tax, name: "я".repeat(TAX_NAME_MAX + 1) } },
     ])
-      expect(documentLineSchema.safeParse({ ...row, ...bad }).success).toBe(
+      expect(documentLineSchema.safeParse({ ...ROW, ...bad }).success).toBe(
         false,
       )
   })
 
   it("відповідь сервера розбирається тими самими схемами, що й розрахунок", () => {
+    const tax = { ...VAT_20, name: "ПДВ 20 %" }
     const input = documentLineSchema.parse({
-      id: "1",
-      name: "Товар",
+      ...ROW,
       quantity: "2",
       price: "10.5",
-      tax: { ...VAT_20, name: "ПДВ 20 %" },
+      tax,
     })
     const totals = totalsOf([input])
     expect(documentTotalsSchema.parse(totals)).toEqual({
@@ -365,21 +468,31 @@ describe("контракт", () => {
       total: totals.total,
       taxes: totals.taxes,
     })
-    expect(
-      savedDocumentLineSchema.parse({ ...input, ...totals.lines[0] }),
-    ).toMatchObject({ net: 2_100, tax: 420, total: 2_520 })
+    const saved = savedDocumentLineSchema.parse({
+      ...input,
+      totals: totals.lines[0],
+    })
+    expect(saved.tax).toEqual(tax)
+    expect(saved.totals).toMatchObject({ net: 2_100, tax: 420, total: 2_520 })
+    // Збережений рядок годиться для нового розрахунку: знімок податку не затертий сумою.
+    expect(totalsOf([saved]).total).toBe(2_520)
   })
 
   it("сума поза межами в підсумках сервера не проходить схему", () => {
     const totals = totalsOf([line("1", "10")])
+    for (const bad of [
+      { total: Number.MAX_SAFE_INTEGER + 1 },
+      { net: "1000" },
+      { tax: -1 },
+    ])
+      expect(
+        documentTotalsSchema.safeParse({ ...totals, ...bad }).success,
+      ).toBe(false)
     expect(
-      documentTotalsSchema.safeParse({
-        ...totals,
-        total: Number.MAX_SAFE_INTEGER + 1,
+      savedDocumentLineSchema.safeParse({
+        ...ROW,
+        totals: { ...totals.lines[0], total: Number.MAX_SAFE_INTEGER + 1 },
       }).success,
-    ).toBe(false)
-    expect(
-      documentTotalsSchema.safeParse({ ...totals, net: "1000" }).success,
     ).toBe(false)
   })
 })
