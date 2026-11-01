@@ -86,7 +86,11 @@ export async function expectNoA11yViolations(page: Page): Promise<void> {
       ]),
     ANIMATIONS_WAIT_MS,
   )
-  const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze()
+  // Службові зупинки Base UI навколо спливного вікна: `aria-hidden` і `tabindex=0` за задумом, фокус одразу йде далі.
+  const results = await new AxeBuilder({ page })
+    .withTags(AXE_TAGS)
+    .exclude("[data-base-ui-focus-guard]")
+    .analyze()
   expect(
     results.violations,
     JSON.stringify(results.violations, null, 2),

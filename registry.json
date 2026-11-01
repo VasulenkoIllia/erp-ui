@@ -118,6 +118,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -161,6 +166,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -341,6 +351,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -384,6 +399,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -677,6 +697,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -720,6 +745,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -1387,6 +1417,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -1430,6 +1465,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -2440,6 +2480,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -2488,6 +2533,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -3689,6 +3739,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -3737,6 +3792,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -4765,6 +4825,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -4813,6 +4878,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -5759,6 +5829,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -5807,6 +5882,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -6686,6 +6766,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -6734,6 +6819,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -7852,6 +7942,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -7900,6 +7995,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -8993,6 +9093,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -9041,6 +9146,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -9604,6 +9714,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -9647,6 +9762,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -9771,6 +9891,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -9814,6 +9939,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -9965,6 +10095,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -10008,6 +10143,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -10111,6 +10251,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -10154,6 +10299,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -10612,6 +10762,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -10655,6 +10810,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -10757,6 +10917,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -10800,6 +10965,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -10977,6 +11147,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11020,6 +11195,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -11100,6 +11280,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11143,6 +11328,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -11253,6 +11443,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11296,6 +11491,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -11517,6 +11717,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11560,6 +11765,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -11698,6 +11908,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11741,6 +11956,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -11907,6 +12127,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -11950,6 +12175,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -12154,6 +12384,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -12197,6 +12432,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -12574,6 +12814,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -12617,6 +12862,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -12833,6 +13083,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -12876,6 +13131,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -13113,6 +13373,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -13156,6 +13421,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -13394,6 +13664,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -13437,6 +13712,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -13534,6 +13814,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -13659,6 +13944,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-setup.ts"
@@ -13679,6 +13969,79 @@
         "status": "beta",
         "demo": "pickers",
         "spec": [
+          "§11"
+        ]
+      }
+    },
+    {
+      "name": "lib/i18n-en-rich-text",
+      "type": "registry:lib",
+      "title": "Рядки поля тексту англійською",
+      "description": "Ті самі рядки поля тексту англійською; парність ключів перевіряє тип.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
           "§11"
         ]
       }
@@ -13724,6 +14087,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -13794,6 +14162,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-setup.ts"
@@ -13861,6 +14234,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-setup.ts"
@@ -13924,6 +14302,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -13967,6 +14350,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -14044,6 +14432,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -14087,6 +14480,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -14234,6 +14632,29 @@
       }
     },
     {
+      "name": "lib/i18n-uk-rich-text",
+      "type": "registry:lib",
+      "title": "Рядки поля тексту українською",
+      "description": "Рядки кнопок, посилання й згадок (ADR-0052): окремий файл, простір імен erp-ui той самий.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "§11"
+        ]
+      }
+    },
+    {
       "name": "lib/i18n-uk-setup",
       "type": "registry:lib",
       "title": "Рядки чек-листа українською",
@@ -14339,6 +14760,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-setup.ts"
@@ -14409,6 +14835,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -14452,6 +14883,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -14793,6 +15229,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -14836,6 +15277,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -14967,6 +15413,35 @@
       }
     },
     {
+      "name": "lib/mention-menu",
+      "type": "registry:lib",
+      "title": "Список згадок: стан",
+      "description": "Контролер списку під курсором поза React (ADR-0052): запит із паузою й скасуванням, індикатор після 1 с, помилка з повтором, клавіші. Tiptap не потрібен.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/mention-menu.ts",
+          "type": "registry:lib",
+          "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12"
+        ]
+      }
+    },
+    {
       "name": "lib/mock-account-state",
       "type": "registry:lib",
       "title": "Стан акаунта в моках",
@@ -15057,6 +15532,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -15100,6 +15580,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -15373,6 +15858,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -15416,6 +15906,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -15689,6 +16184,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -15732,6 +16232,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -16005,6 +16510,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -16048,6 +16558,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -16326,6 +16841,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -16369,6 +16889,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -16692,6 +17217,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -16735,6 +17265,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -17008,6 +17543,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -17051,6 +17591,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -17324,6 +17869,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -17367,6 +17917,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -17655,6 +18210,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -17698,6 +18258,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -17971,6 +18536,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -18014,6 +18584,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -18292,6 +18867,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -18335,6 +18915,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -18708,6 +19293,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -18751,6 +19341,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -18949,6 +19544,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -18992,6 +19592,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -19265,6 +19870,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -19308,6 +19918,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -19586,6 +20201,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -19629,6 +20249,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -19992,6 +20617,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -20035,6 +20665,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -20237,6 +20872,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -20280,6 +20920,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -20564,6 +21209,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -20607,6 +21257,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -20880,6 +21535,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -20923,6 +21583,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -21116,6 +21781,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -21159,6 +21829,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -21367,6 +22042,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -21410,6 +22090,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -21608,6 +22293,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -21651,6 +22341,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -21933,6 +22628,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -21976,6 +22676,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -22276,6 +22981,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -22319,6 +23029,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -22512,6 +23227,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -22555,6 +23275,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -22742,6 +23467,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -22785,6 +23515,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -23058,6 +23793,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -23101,6 +23841,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -23374,6 +24119,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -23417,6 +24167,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -23690,6 +24445,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -23733,6 +24493,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -23931,6 +24696,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -23974,6 +24744,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -24257,6 +25032,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -24300,6 +25080,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -24791,6 +25576,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -24834,6 +25624,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -25003,6 +25798,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -25046,6 +25846,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -25269,6 +26074,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -25314,6 +26124,11 @@
           "target": "@lib/i18n-uk-records.ts"
         },
         {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-uk-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-setup.ts"
@@ -25343,6 +26158,31 @@
           "§17",
           "UI40",
           "PF09"
+        ]
+      }
+    },
+    {
+      "name": "lib/rich-text",
+      "type": "registry:lib",
+      "title": "Оформлений текст: формат",
+      "description": "Документ JSON замість HTML (UI12, ADR-0052): toRichText для чужих даних (рядок стає абзацами, невідомий вузол лишає текст, межі глибини й вузлів), safeLinkHref, richTextSchema, richTextToPlain, richTextMentions, isRichTextEmpty. Без редактора й без React.",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "PF05"
         ]
       }
     },
@@ -25748,6 +26588,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -25791,6 +26636,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -26142,6 +26992,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -26185,6 +27040,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -26272,6 +27132,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -26315,6 +27180,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -26463,6 +27333,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -26506,6 +27381,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -26702,6 +27582,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -26745,6 +27630,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -26936,6 +27826,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -26979,6 +27874,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -27190,6 +28090,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -27233,6 +28138,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -27497,6 +28407,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -27540,6 +28455,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -27735,6 +28655,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -27778,6 +28703,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -28080,6 +29010,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -28123,6 +29058,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -28288,6 +29228,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -28331,6 +29276,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -28598,6 +29548,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -28641,6 +29596,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -28965,6 +29925,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -29008,6 +29973,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -29106,6 +30076,41 @@
       }
     },
     {
+      "name": "hooks/use-mention-search",
+      "type": "registry:hook",
+      "title": "Пошук колег для згадки",
+      "description": "useMentionSearch: довідник users, який бачить кожен у компанії (ADR-0030, ADR-0052); заблокованих прибирає браузер.",
+      "dependencies": [
+        "ra-core@^5.15.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-mention-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-mention-search.ts"
+        },
+        {
+          "path": "registry/lib/mention-menu.ts",
+          "type": "registry:lib",
+          "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-page-heading",
       "type": "registry:hook",
       "title": "h1 сторінки модуля",
@@ -29186,6 +30191,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -29229,6 +30239,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -29342,6 +30357,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -29385,6 +30405,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -29552,6 +30577,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -29595,6 +30625,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -29807,6 +30842,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -29850,6 +30890,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -29990,6 +31035,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -30033,6 +31083,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -30230,6 +31285,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -30273,6 +31333,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -30821,6 +31886,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -30864,6 +31934,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -31027,6 +32102,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -31070,6 +32150,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -31251,6 +32336,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -31294,6 +32384,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -31631,6 +32726,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -31674,6 +32774,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -32041,6 +33146,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -32084,6 +33194,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -32395,6 +33510,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -32438,6 +33558,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -32754,6 +33879,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -32797,6 +33927,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -33123,6 +34258,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -33166,6 +34306,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -33368,6 +34513,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -33411,6 +34561,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -33556,6 +34711,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -33599,6 +34759,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -33800,6 +34965,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -33843,6 +35013,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -34120,6 +35295,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -34163,6 +35343,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -34461,6 +35646,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -34504,6 +35694,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -34755,6 +35950,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -34798,6 +35998,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -34917,6 +36122,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -34960,6 +36170,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -35111,6 +36326,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -35154,6 +36374,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -35400,6 +36625,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -35443,6 +36673,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -35609,6 +36844,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -35652,6 +36892,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -35878,6 +37123,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -35921,6 +37171,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -36231,6 +37486,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -36274,6 +37534,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -36584,6 +37849,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -36627,6 +37897,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -36922,6 +38197,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -36965,6 +38245,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -37170,6 +38455,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -37213,6 +38503,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -37340,6 +38635,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -37383,6 +38683,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -37608,6 +38913,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -37651,6 +38961,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -37893,6 +39208,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -37936,6 +39256,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38063,6 +39388,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38106,6 +39436,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38227,6 +39562,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38270,6 +39610,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38372,6 +39717,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38415,6 +39765,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38511,6 +39866,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38554,6 +39914,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38651,6 +40016,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38694,6 +40064,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -38829,6 +40204,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -38872,6 +40252,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -39001,6 +40386,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -39044,6 +40434,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -39184,6 +40579,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -39227,6 +40627,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -39339,6 +40744,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -39382,6 +40792,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -39512,6 +40927,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -39555,6 +40975,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -39803,6 +41228,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -39846,6 +41276,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40063,6 +41498,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40106,6 +41546,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40246,6 +41691,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40289,6 +41739,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40426,6 +41881,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40469,6 +41929,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40605,6 +42070,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40648,6 +42118,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40762,6 +42237,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40805,6 +42285,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -40933,6 +42418,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -40976,6 +42466,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -41158,6 +42653,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -41201,6 +42701,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -41564,6 +43069,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -41607,6 +43117,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -41951,6 +43466,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -41994,6 +43514,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -42205,6 +43730,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -42248,6 +43778,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -42502,6 +44037,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -42545,6 +44085,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -42915,6 +44460,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -42958,6 +44508,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -43208,6 +44763,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -43251,6 +44811,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -43391,6 +44956,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -43434,6 +45004,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -43636,6 +45211,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -43679,6 +45259,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -43982,6 +45567,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -44025,6 +45615,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -44303,6 +45898,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -44346,6 +45946,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -44651,6 +46256,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -44694,6 +46304,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -45051,6 +46666,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -45094,6 +46714,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -45457,6 +47082,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -45500,6 +47130,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -45831,6 +47466,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -45874,6 +47514,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -46127,6 +47772,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -46170,6 +47820,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -46326,6 +47981,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -46369,6 +48029,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -46536,6 +48201,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -46579,6 +48249,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -46823,6 +48498,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -46866,6 +48546,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -47128,6 +48813,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -47171,6 +48861,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -47325,6 +49020,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -47368,6 +49068,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -47499,6 +49204,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -47542,6 +49252,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -47753,6 +49468,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -47796,6 +49516,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -48082,6 +49807,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -48125,6 +49855,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -48345,6 +50080,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -48388,6 +50128,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -48511,6 +50256,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -48554,6 +50304,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -48682,6 +50437,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -48725,6 +50485,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -48890,6 +50655,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -48933,6 +50703,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -49157,6 +50932,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -49200,6 +50980,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -49371,6 +51156,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -49414,6 +51204,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -49586,6 +51381,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -49629,6 +51429,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -49848,6 +51653,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -49891,6 +51701,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -50217,6 +52032,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -50260,6 +52080,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -50547,6 +52372,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -50590,6 +52420,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -50825,6 +52660,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -50868,6 +52708,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -51180,6 +53025,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -51223,6 +53073,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -51513,6 +53368,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -51556,6 +53416,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -51764,6 +53629,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -51807,6 +53677,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -51999,6 +53874,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -52042,6 +53922,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -52386,6 +54271,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -52429,6 +54319,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -52700,6 +54595,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -52743,6 +54643,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -53039,6 +54944,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -53082,6 +54992,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -53327,6 +55242,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -53370,6 +55290,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -53526,6 +55451,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -53569,6 +55499,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -53799,6 +55734,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -53842,6 +55782,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -54021,6 +55966,937 @@
       }
     },
     {
+      "name": "erp/rich-text-editor",
+      "type": "registry:component",
+      "title": "Редактор тексту",
+      "description": "RichTextEditor на Tiptap 3: лінивий чанк, напряму його не підключають, лише через erp/rich-text-field (ADR-0052).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@floating-ui/dom@^1.8.0",
+        "@tiptap/core@^3.32.2",
+        "@tiptap/extension-blockquote@^3.32.2",
+        "@tiptap/extension-bold@^3.32.2",
+        "@tiptap/extension-document@^3.32.2",
+        "@tiptap/extension-hard-break@^3.32.2",
+        "@tiptap/extension-italic@^3.32.2",
+        "@tiptap/extension-link@^3.32.2",
+        "@tiptap/extension-list@^3.32.2",
+        "@tiptap/extension-mention@^3.32.2",
+        "@tiptap/extension-paragraph@^3.32.2",
+        "@tiptap/extension-text@^3.32.2",
+        "@tiptap/extensions@^3.32.2",
+        "@tiptap/pm@^3.32.2",
+        "@tiptap/react@^3.32.2",
+        "@tiptap/suggestion@^3.32.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-editor.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-mentions.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-mentions.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-styles.ts",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-styles.ts"
+        },
+        {
+          "path": "registry/erp/rich-text-toolbar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-toolbar.tsx"
+        },
+        {
+          "path": "registry/hooks/use-mention-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-mention-search.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/mention-menu.ts",
+          "type": "registry:lib",
+          "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12"
+        ]
+      }
+    },
+    {
+      "name": "erp/rich-text-field",
+      "type": "registry:component",
+      "title": "Поле оформленого тексту",
+      "description": "RichTextField: лінивий чанк Tiptap 3, кнопки оформлення, посилання, згадки колег, лише читання й вимкнено без редактора, завантаження, збій чанка з повтором, preloadRichTextEditor (UI12, ADR-0052).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@floating-ui/dom@^1.8.0",
+        "@tiptap/core@^3.32.2",
+        "@tiptap/extension-blockquote@^3.32.2",
+        "@tiptap/extension-bold@^3.32.2",
+        "@tiptap/extension-document@^3.32.2",
+        "@tiptap/extension-hard-break@^3.32.2",
+        "@tiptap/extension-italic@^3.32.2",
+        "@tiptap/extension-link@^3.32.2",
+        "@tiptap/extension-list@^3.32.2",
+        "@tiptap/extension-mention@^3.32.2",
+        "@tiptap/extension-paragraph@^3.32.2",
+        "@tiptap/extension-text@^3.32.2",
+        "@tiptap/extensions@^3.32.2",
+        "@tiptap/pm@^3.32.2",
+        "@tiptap/react@^3.32.2",
+        "@tiptap/suggestion@^3.32.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-field.tsx"
+        },
+        {
+          "path": "registry/erp/error-boundary.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/error-boundary.tsx"
+        },
+        {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-editor.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-editor.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-mentions.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-mentions.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-styles.ts",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-styles.ts"
+        },
+        {
+          "path": "registry/erp/rich-text-toolbar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-toolbar.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-view.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-view.tsx"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-mention-search.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-mention-search.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/mention-menu.ts",
+          "type": "registry:lib",
+          "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "§8",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/rich-text-mentions",
+      "type": "registry:component",
+      "title": "Список згадок під курсором",
+      "description": "RichTextMentions: спливний список Base UI, фокус лишається в тексті, aria-activedescendant, стани пошуку (ADR-0052). Частина лінивого чанка.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tiptap/core@^3.32.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-mentions.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-mentions.tsx"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/mention-menu.ts",
+          "type": "registry:lib",
+          "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/rich-text-styles",
+      "type": "registry:component",
+      "title": "Вигляд оформленого тексту",
+      "description": "Спільні класи показу й редактора: текст, згадка, рамка, стани (ADR-0052). Без React і Tiptap.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-styles.ts",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-styles.ts"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12"
+        ]
+      }
+    },
+    {
+      "name": "erp/rich-text-toolbar",
+      "type": "registry:component",
+      "title": "Кнопки оформлення тексту",
+      "description": "RichTextToolbar: Base UI Toolbar, форматування, посилання у спливному вікні, кнопка згадки (ADR-0052). Частина лінивого чанка.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tiptap/core@^3.32.2",
+        "@tiptap/react@^3.32.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-toolbar.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-toolbar.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-styles.ts",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-styles.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/popover.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "§10"
+        ]
+      }
+    },
+    {
+      "name": "erp/rich-text-view",
+      "type": "registry:component",
+      "title": "Показ оформленого тексту",
+      "description": "RichTextView: збережений текст без редактора й без HTML, лише елементи з дозволених вузлів; простий рядок, порожнє значення, renderMention (UI12, ADR-0052).",
+      "dependencies": [
+        "cn@^0.4.0",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/rich-text-view.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-view.tsx"
+        },
+        {
+          "path": "registry/erp/rich-text-styles.ts",
+          "type": "registry:component",
+          "target": "@components/erp/rich-text-styles.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "richText",
+        "spec": [
+          "UI12",
+          "§8",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/role-detail",
       "type": "registry:component",
       "title": "Права ролі",
@@ -54165,6 +57041,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -54208,6 +57089,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -54504,6 +57390,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -54547,6 +57438,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -54760,6 +57656,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -54803,6 +57704,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -54988,6 +57894,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -55031,6 +57942,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -55344,6 +58260,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -55387,6 +58308,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -55652,6 +58578,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -55695,6 +58626,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -55854,6 +58790,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -55897,6 +58838,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -56120,6 +59066,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -56163,6 +59114,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -56427,6 +59383,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -56470,6 +59431,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -56775,6 +59741,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -56818,6 +59789,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -57021,6 +59997,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -57064,6 +60045,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -57180,6 +60166,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -57223,6 +60214,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -57329,6 +60325,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -57372,6 +60373,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -57520,6 +60526,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -57563,6 +60574,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -57784,6 +60800,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -57827,6 +60848,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -58091,6 +61117,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -58134,6 +61165,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -58332,6 +61368,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -58375,6 +61416,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -58568,6 +61614,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -58611,6 +61662,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -58719,6 +61775,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -58762,6 +61823,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -58860,6 +61926,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -58903,6 +61974,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -59013,6 +62089,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -59056,6 +62137,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -59278,6 +62364,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -59321,6 +62412,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -59641,6 +62737,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -59684,6 +62785,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -60011,6 +63117,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -60054,6 +63165,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -60326,6 +63442,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -60369,6 +63490,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -60581,6 +63707,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -60624,6 +63755,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -60975,6 +64111,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -61018,6 +64159,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -61350,6 +64496,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -61393,6 +64544,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -61785,6 +64941,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -61828,6 +64989,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -62305,6 +65471,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -62348,6 +65519,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -62703,6 +65879,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -62746,6 +65927,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -62947,6 +66133,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -62990,6 +66181,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",
@@ -63229,6 +66425,11 @@
           "target": "@lib/i18n-en-records.ts"
         },
         {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
           "path": "registry/lib/i18n-en-setup.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-en-setup.ts"
@@ -63272,6 +66473,11 @@
           "path": "registry/lib/i18n-uk-records.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
         },
         {
           "path": "registry/lib/i18n-uk-setup.ts",

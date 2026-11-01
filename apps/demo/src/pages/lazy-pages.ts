@@ -33,6 +33,10 @@ export const PAGES = {
   realtime: lazyWithPreload(() =>
     import("./RealtimePage").then((m) => m.RealtimePage),
   ),
+  // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
+  richText: lazyWithPreload(() =>
+    import("./RichTextPage").then((m) => m.RichTextPage),
+  ),
   // Майстер імпорту й діалог експорту; бібліотека xlsx вантажиться окремо, коли потрібен файл.
   importExport: lazyWithPreload(() =>
     import("./ImportExportPage").then((m) => m.ImportExportPage),

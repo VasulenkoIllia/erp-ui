@@ -732,6 +732,59 @@ const start = async () => { if (await lock.acquire()) setEditing(true) }
 - Моки вже мають канал і блокування (`createPlatformHandlers`). Колегу імітують `setMockEditLock` із `lib/mock-realtime`
   і звичайна зміна в `db` ресурсу; сценарії — ресурс `realtime`.
 
+### Оформлений текст і згадки (ADR-0052)
+
+Текст нотаток і повідомлень зберігається JSON-документом, а не HTML. Поле вантажить редактор окремим чанком, показ
+редактора не потребує.
+
+```sh
+node scripts/erp-ui-kit.mjs update v1.1.0 --add erp/rich-text-field,erp/rich-text-view,lib/rich-text
+```
+
+```tsx
+const schema = z.object({
+  body: richTextSchema.refine((doc) => !isRichTextEmpty(doc), { message: t("notes.required") }),
+})
+
+<FormField
+  control={form.control}
+  name="body"
+  label={t("notes.body")}
+  render={({ field, control, labelId }) => (
+    <RichTextField
+      {...control}
+      aria-labelledby={labelId}
+      value={field.value}
+      onChange={field.onChange}
+      onBlur={field.onBlur}
+      ref={field.ref}
+    />
+  )}
+/>
+
+<RichTextView value={note.body} />
+```
+
+- Бекенд: поле — JSON. Сервер обмежує глибину (32 рівні) і довжину документа та ніколи не вставляє його в HTML без своєї
+  перебудови: лист клієнту збирає сам із тих самих вузлів, текст і підписи екранує, а посилання перевіряє за правилами
+  `safeLinkHref` (`http`, `https`, `mailto` без параметрів, `tel`, без логіна в адресі). Лист іде від адреси компанії, тож
+  підроблене посилання дійшло б клієнту з довірою до відправника.
+- Провайдер кіта відповіді схемою не перевіряє, тому межа на сервері обов'язкова. У форму редагування кладіть
+  `toRichText(record.body)`: `react-hook-form` копіює значення рекурсивно й без меж, а сирий документ на тисячі рівнів
+  вичерпав би стек. `richTextSchema` чистить значення на виході форми й у контракті моків.
+- Бекенд із простим текстом працює без змін: `toRichText` і `richTextSchema` перетворюють рядок на абзаци.
+- Згадки шукають у `GET /users` (`q`, `sort=name`, `perPage=24`). Свій пошук: `mentions={(query, signal) => …}`, без згадок:
+  `mentions={false}`. Хто згаданий: `richTextMentions(doc)`. І `id`, і підпис надсилає браузер автора: сервер перевіряє
+  кожен `id` (людина є, активна, бачить запис) і на запису ставить ім'я з довідника, інакше підпис можна підробити.
+- Прев'ю в списку, сповіщення, пошук: `richTextToPlain(doc)`. Порожньо чи ні: `isRichTextEmpty(doc)`.
+- Лише читання й `disabled` показують текст без редактора, чанк не вантажиться. Перемикання скидає курсор та історію,
+  тож `disabled={isSubmitting}` на цьому полі не ставте. Заздалегідь завантажити перед відкриттям форми:
+  `preloadRichTextEditor()`.
+- Чого немає: заголовків, таблиць, зображень, вкладення пунктів списку в полі (Tab виводить із поля). Невідомий вузол із
+  новішої версії кіта показує свій текст.
+
+Tiptap напряму не імпортуйте: лише через `erp/rich-text-field` і `erp/rich-text-view`, редактор має лишатись окремим чанком.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

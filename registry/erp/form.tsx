@@ -68,6 +68,8 @@ interface FormFieldProps<
     field: ControllerRenderProps<TValues, TName>
     fieldState: ControllerFieldState
     control: FormControlProps
+    /** Для поля, яке `<label for>` не називає: `aria-labelledby` редактора тексту. */
+    labelId: string
   }) => React.ReactElement
 }
 
@@ -102,10 +104,13 @@ function FormField<
             data-field-name={name}
             className={className}
           >
-            <FieldLabel htmlFor={id}>{label}</FieldLabel>
+            <FieldLabel id={`${id}-label`} htmlFor={id}>
+              {label}
+            </FieldLabel>
             {render({
               field,
               fieldState,
+              labelId: `${id}-label`,
               control: {
                 id,
                 "aria-invalid": invalid ? true : undefined,

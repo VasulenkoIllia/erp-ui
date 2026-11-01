@@ -45,6 +45,7 @@ export const SHORTCUT_GROUPS = [
   "table",
   "cards",
   "cell",
+  "text",
   "avatar",
 ] as const
 type ShortcutGroup = (typeof SHORTCUT_GROUPS)[number]
@@ -102,6 +103,20 @@ export const SHORTCUTS = {
   cellEdit: { group: "cell", keys: [{ key: "F2" }] },
   cellSave: { group: "cell", keys: [{ key: "Enter" }] },
   cellCancel: { group: "cell", keys: [{ key: "Escape" }] },
+
+  // Обробляє Tiptap (ADR-0052). Посилання без клавіші: ⌘K усюди відкриває палітру.
+  textBold: { group: "text", keys: [{ key: "b", mod: true }] },
+  textItalic: { group: "text", keys: [{ key: "i", mod: true }] },
+  textUndo: { group: "text", keys: [{ key: "z", mod: true }] },
+  textMentionMove: {
+    group: "text",
+    keys: [{ key: "ArrowUp" }, { key: "ArrowDown" }],
+  },
+  textMentionChoose: {
+    group: "text",
+    keys: [{ key: "Enter" }, { key: "Tab" }],
+  },
+  textMentionClose: { group: "text", keys: [{ key: "Escape" }] },
 
   avatarMove: {
     group: "avatar",
