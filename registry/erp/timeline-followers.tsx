@@ -2,6 +2,7 @@ import * as React from "react"
 import { BellIcon, BellOffIcon, UsersIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
+import { SectionSkeleton } from "@/registry/erp/page-state"
 import { RecordPicker } from "@/registry/erp/record-picker"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useMe } from "@/registry/hooks/use-me"
@@ -186,6 +187,7 @@ export function TimelineFollowers({
     }
   }
 
+  if (query.isPending) return <SectionSkeleton rows={1} />
   if (query.isError && !query.data)
     return (
       <div role="alert" className="flex flex-wrap items-center gap-2 text-sm">
@@ -209,7 +211,7 @@ export function TimelineFollowers({
         <Button
           size="sm"
           variant="outline"
-          disabled={isBusy || query.isPending}
+          disabled={isBusy}
           focusableWhenDisabled
           onClick={() => {
             void toggle()
@@ -227,8 +229,6 @@ export function TimelineFollowers({
         ref={openButton}
         size="sm"
         variant="outline"
-        disabled={query.isPending}
-        focusableWhenDisabled
         onClick={() => {
           setIsOpen(true)
         }}

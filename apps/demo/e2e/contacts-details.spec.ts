@@ -300,8 +300,11 @@ test.describe("B1: адреси й рахунки в картці", () => {
     await expect(add).toHaveAccessibleDescription(
       "Немає права змінювати організації",
     )
-    await expect(grid(page, /^Банківські рахунки:/)).toBeVisible()
-    await expect(page.getByRole("button", { name: /^Дії: / })).toHaveCount(0)
+    const accounts = grid(page, /^Банківські рахунки:/)
+    await expect(accounts).toBeVisible()
+    await expect(accounts.getByRole("button", { name: /^Дії: / })).toHaveCount(
+      0,
+    )
     await page.getByRole("tab", { name: "Адреси" }).click()
     await expect(
       page.getByRole("button", { name: "Додати адресу" }),

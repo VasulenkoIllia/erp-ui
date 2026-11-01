@@ -72359,6 +72359,11 @@
           "target": "@components/erp/auth-layout.tsx"
         },
         {
+          "path": "registry/erp/page-state.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-state.tsx"
+        },
+        {
           "path": "registry/erp/picker-field.ts",
           "type": "registry:component",
           "target": "@components/erp/picker-field.ts"
@@ -72704,6 +72709,11 @@
           "target": "@ui/dialog.tsx"
         },
         {
+          "path": "registry/ui/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/empty.tsx"
+        },
+        {
           "path": "registry/ui/field.tsx",
           "type": "registry:ui",
           "target": "@ui/field.tsx"
@@ -72732,6 +72742,11 @@
           "path": "registry/ui/sheet.tsx",
           "type": "registry:ui",
           "target": "@ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/skeleton.tsx"
         },
         {
           "path": "registry/ui/spinner.tsx",

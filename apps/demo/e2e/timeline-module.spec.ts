@@ -15,6 +15,7 @@ const MODULE = "/#/m/N1"
 const MY_ACTIVITIES = "/#/m/N1/my-activities"
 const CONTACTS = "/#/m/B1/contacts"
 const CONTACT_CARD = `${CONTACTS}/contact-001`
+const CARD_URL = /contacts\/contact-/
 const ORGANIZATION_CARD = "/#/m/B1/organizations/org-001"
 const CARDS = [
   { name: "контакт", href: CONTACT_CARD },
@@ -47,6 +48,13 @@ const unsavedDialog = (page: Page) =>
 const stay = (page: Page) =>
   unsavedDialog(page).getByRole("button", { name: "Залишитися" }).click()
 
+/** Картка через посилання списку: «Назад» роутер спиняє лише для своїх переходів, не для `page.goto`. */
+async function openCardFromList(page: Page) {
+  await openWith(page, {}, CONTACTS)
+  await page.locator('a[href^="#/m/B1/contacts/contact-"]').first().click()
+  await expect(page).toHaveURL(CARD_URL)
+}
+
 async function writeDraft(page: Page, text: string) {
   await expect(noteField(page)).toHaveAttribute("contenteditable", "true")
   await noteField(page).click()
@@ -55,6 +63,8 @@ async function writeDraft(page: Page, text: string) {
 }
 
 test.describe("модуль N1: «Мої справи»", () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
   test("адреса модуля веде на сторінку, є пункт навігації, перша сторінка дій", async ({
     page,
   }) => {
@@ -222,8 +232,7 @@ test.describe("незбережені зміни поруч зі стрічко�
   test("змінена форма картки: «Назад» питає, форма лишається", async ({
     page,
   }) => {
-    await openWith(page, {}, CONTACTS)
-    await page.goto(CONTACT_CARD)
+    await openCardFromList(page)
     await expect(noteField(page)).toHaveAttribute("contenteditable", "true")
     await page.getByRole("button", { name: "Змінити", exact: true }).click()
     const position = contactForm(page).getByRole("textbox", { name: "Посада" })
@@ -231,7 +240,7 @@ test.describe("незбережені зміни поруч зі стрічко�
     await page.goBack()
     await expect(unsavedDialog(page)).toBeVisible()
     await stay(page)
-    await expect(page).toHaveURL(/contact-001/)
+    await expect(page).toHaveURL(CARD_URL)
     await expect(position).toHaveValue(POSITION)
   })
 
@@ -267,8 +276,7 @@ test.describe("чернетка стрічки на телефоні", () => {
   test("перемикання вкладок лишає текст, з прихованої вкладки перехід теж питає", async ({
     page,
   }) => {
-    await openWith(page, {}, CONTACTS)
-    await page.goto(CONTACT_CARD)
+    await openCardFromList(page)
     await tab(page, "Стрічка").click()
     await writeDraft(page, DRAFT)
     await page

@@ -261,7 +261,9 @@ test.describe("«Відповідальний»: бухгалтер бачить
     await expect(headerValue(page, "Відповідальний")).toHaveText(
       "Іван Петренко",
     )
-    await expect(timelineChanges(page)).toContainText("Олена Коваль")
+    await expect(
+      timelineChanges(page).filter({ hasText: "Олена Коваль" }),
+    ).toHaveCount(1)
   })
 
   test("у контакті — свій відповідальний, у шапці й колонці", async ({
