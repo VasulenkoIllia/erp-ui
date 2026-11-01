@@ -6,7 +6,7 @@
 export const richTextLinkSlot = "rich-text-link"
 
 export const richTextContentClass =
-  "min-w-0 wrap-anywhere [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-2 [&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-3 [&_blockquote]:text-muted-foreground [&_li]:my-0.5 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:ps-5 [&>:first-child]:mt-0 [&>:last-child]:mb-0"
+  "min-w-0 wrap-anywhere [&_a]:py-0.75 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-2 [&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-3 [&_blockquote]:text-muted-foreground [&_li]:my-0.5 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:ps-5 [&>:first-child]:mt-0 [&>:last-child]:mb-0"
 
 export const richTextMentionClass =
   "rounded-sm bg-muted px-0.5 font-medium text-foreground forced-colors:outline-1 forced-colors:outline-solid"

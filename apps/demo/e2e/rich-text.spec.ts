@@ -34,8 +34,11 @@ test.describe("поле тексту", () => {
     const bold = form(page).getByRole("button", { name: "Жирний" })
     await bold.click()
     await expect(bold).toHaveAttribute("aria-pressed", "true")
+    await expect(note(page)).toBeFocused()
     await type(page, "важливе")
     await bold.click()
+    // Фокус редактор повертає через кадр: пробіл, надрукований раніше, натиснув би кнопку.
+    await expect(note(page)).toBeFocused()
     await type(page, " @Мар")
     // Лише один рядок: це вже відповідь на «Мар», а не попередній список.
     await expect(mentions(page).getByRole("option")).toHaveCount(1)
@@ -78,6 +81,7 @@ test.describe("поле тексту", () => {
     await openPage(page)
     await page.getByRole("button", { name: "Згадати колегу" }).first().click()
     await expect(note(page)).toBeFocused()
+    await type(page, "Мар")
     await page.getByRole("option", { name: /Марта Шевчук/ }).click()
     await expect(note(page)).toContainText("@Марта Шевчук")
     await expect(note(page)).toBeFocused()
@@ -308,9 +312,12 @@ test.describe("поле тексту", () => {
     page,
   }) => {
     let blocked = true
-    await page.route(EDITOR_CHUNK, (route) =>
-      blocked ? route.abort() : route.continue(),
-    )
+    // Контекст, а не сторінка: запити чанків ідуть через сервіс-воркер моків.
+    await page
+      .context()
+      .route(EDITOR_CHUNK, (route) =>
+        blocked ? route.abort("internetdisconnected") : route.continue(),
+      )
     await openWith(page, {}, PAGE)
     await expect(
       page.getByText(/Не вдалося завантажити редактор/).first(),
