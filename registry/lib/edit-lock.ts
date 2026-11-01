@@ -25,7 +25,7 @@ export const EDIT_LOCK_TIMEOUT_MS = 5_000
 export const EDIT_LOCK_REFRESH_MS = 60_000
 /** Без дій стільки часу запис відпускається: людина пішла, форма лишилась відкритою (як у SAP Fiori). */
 export const EDIT_LOCK_IDLE_MS = 30 * 60_000
-/** Опитування, коли каналу реального часу немає. */
+/** Опитування, коли каналу реального часу немає чи запис тримає інша людина. */
 export const EDIT_LOCK_POLL_MS = 30_000
 
 export const editLockHolderSchema = z.object({

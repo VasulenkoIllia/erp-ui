@@ -7,7 +7,8 @@
  *   const onEdit = async () => { if (await lock.acquire()) setEditing(true) }
  *   // форма закрилась: lock.release()
  *
- * - Хто редагує — із запиту, подія каналу перечитує його; без каналу запит опитується.
+ * - Хто редагує — із запиту, подія каналу перечитує його; без каналу, а також поки запис тримає
+ *   інша людина, запит опитується: чуже блокування може спливти без події.
  * - `acquire` перед відкриттям форми: `false` — запис щойно взяла інша людина. Збій блокування не
  *   заважає редагувати (`true`): дані береже версія запису.
  * - Поки форма відкрита, блокування подовжується фоновим запитом; без дій людини півгодини — ні, і
@@ -85,6 +86,9 @@ export function useEditLock({
     [resource, id, companyId],
   )
   const isActive = enabled && id !== undefined
+  // Поки профіль не прийшов, свого блокування не вважаємо чужим.
+  const isOthers = ({ holder }: EditLockState) =>
+    holder !== null && me?.id !== undefined && holder.id !== me.id
 
   const query = useQuery({
     queryKey,
@@ -92,10 +96,12 @@ export function useEditLock({
       dataProvider.getEditLock(resource, id ?? "", { signal }),
     enabled: isActive,
     retry: false,
-    refetchInterval: ({ state }) =>
-      isEditLockUnsupported(state.error) || status === "open"
-        ? false
-        : EDIT_LOCK_POLL_MS,
+    refetchInterval: ({ state: { data, error } }) => {
+      if (isEditLockUnsupported(error)) return false
+      // Чуже блокування може спливти без події: сервер чистить прострочені ліниво.
+      const isWatching = status !== "open" || (data && isOthers(data))
+      return isWatching ? EDIT_LOCK_POLL_MS : false
+    },
   })
 
   useRealtimeEvent((event) => {
@@ -107,9 +113,6 @@ export function useEditLock({
   })
 
   const isSupported = isActive && !isEditLockUnsupported(query.error)
-  // Поки профіль не прийшов, свого блокування не вважаємо чужим.
-  const isOthers = ({ holder }: EditLockState) =>
-    holder !== null && me?.id !== undefined && holder.id !== me.id
 
   /** Взяти чи подовжити; `null` — відповіді немає чи вона вже нікому не потрібна. */
   const take = async (

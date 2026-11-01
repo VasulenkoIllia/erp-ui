@@ -924,7 +924,7 @@ export const CODE_ITEMS = {
   "lib/realtime": {
     title: "Канал реального часу",
     description:
-      "Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051).",
+      "Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на людину й компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051).",
     status: "beta",
     demo: "realtime",
     spec: ["PF19", "§17"],

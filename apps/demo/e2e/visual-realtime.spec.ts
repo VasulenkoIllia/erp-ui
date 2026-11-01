@@ -58,6 +58,9 @@ for (const width of WIDTHS)
       await page.evaluate((target) => {
         window.location.hash = target
       }, INVOICE)
+      // Смуга є й на сторінці, з якої йдемо: спершу дочекатись картки.
+      await expect(page.getByTestId("realtime-status")).toBeHidden()
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
       await expect(notice(page)).toBeVisible()
       await shot(page, `n1a-invoice-locked-${String(width)}-${theme}`)
     })

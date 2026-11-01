@@ -25141,7 +25141,7 @@
       "name": "lib/realtime",
       "type": "registry:lib",
       "title": "Канал реального часу",
-      "description": "Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051).",
+      "description": "Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на людину й компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051).",
       "dependencies": [
         "zod@^4.6.6"
       ],

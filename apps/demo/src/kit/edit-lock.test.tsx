@@ -13,10 +13,12 @@ import type { ErpAuthProvider, Me } from "@/registry/lib/auth"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import {
   EDIT_LOCK_IDLE_MS,
+  EDIT_LOCK_POLL_MS,
   EDIT_LOCK_QUERY_KEY,
   EDIT_LOCK_REFRESH_MS,
   type EditLockState,
 } from "@/registry/lib/edit-lock"
+import { connectRealtime, getRealtimeStatus } from "@/registry/lib/realtime"
 import { AccessAction } from "@/registry/modules/B1-contacts/components/access-action"
 
 const ME = { id: "u-me", name: "Я" } as Me
@@ -332,6 +334,56 @@ describe("useEditLock", () => {
       await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_REFRESH_MS))
       expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(2)
     })
+  })
+})
+
+describe("useEditLock: канал відкрито", () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function openChannel() {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const stop = connectRealtime({
+      open: () =>
+        Promise.resolve(
+          new Response(new ReadableStream(), {
+            headers: { "Content-Type": "text/event-stream" },
+          }),
+        ),
+      accountId: ME.id,
+      companyId: "edit-lock-test",
+    })
+    await vi.waitFor(() => {
+      expect(getRealtimeStatus()).toBe("open")
+    })
+    return stop
+  }
+
+  it("вільний запис не опитується: зміну принесе подія", async () => {
+    const stop = await openChannel()
+    const { dataProvider } = setup({})
+    await waitFor(() => {
+      expect(dataProvider.getEditLock).toHaveBeenCalledTimes(1)
+    })
+    await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_POLL_MS))
+    expect(dataProvider.getEditLock).toHaveBeenCalledTimes(1)
+    stop()
+  })
+
+  it("чуже блокування спливло без події: смуга зникає за опитуванням", async () => {
+    const stop = await openChannel()
+    const getEditLock = vi.fn(() => Promise.resolve(THEIRS))
+    setup({ getEditLock })
+    await waitFor(() => {
+      expect(screen.getByTestId("reason")).not.toHaveTextContent("немає")
+    })
+    getEditLock.mockResolvedValue(FREE)
+    await act(() => vi.advanceTimersByTimeAsync(EDIT_LOCK_POLL_MS))
+    await waitFor(() => {
+      expect(screen.getByTestId("reason")).toHaveTextContent("немає")
+    })
+    stop()
   })
 })
 

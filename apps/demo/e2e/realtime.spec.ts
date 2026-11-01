@@ -23,6 +23,9 @@ const openPage = async (page: Page) => {
   await expect(status(page)).toHaveText("Підключено")
 }
 
+const cardEdit = (page: Page) =>
+  page.getByRole("button", { name: "Змінити", exact: true })
+
 /** Перехід у межах застосунку: сервер моків живе в цій вкладці, перезавантаження його скине. */
 const goInside = (page: Page, hash: string) =>
   page.evaluate((target) => {
@@ -85,10 +88,10 @@ test.describe("реальний час", () => {
     await press(page, "Колега почав редагувати")
     await expect(notice(page)).toBeVisible()
     await goInside(page, INVOICE)
+    // Смуга є й на сторінці, з якої йдемо: спершу дочекатись картки.
+    await expect(status(page)).toBeHidden()
     await expect(notice(page)).toBeVisible()
-    await expect(
-      page.getByRole("button", { name: "Редагувати" }),
-    ).toBeDisabled()
+    await expect(cardEdit(page)).toBeDisabled()
   })
 
   test("своя форма тримає блокування, закриття його відпускає", async ({
@@ -99,7 +102,7 @@ test.describe("реальний час", () => {
       (request) =>
         request.method() === "PUT" && request.url().endsWith("/lock"),
     )
-    await page.getByRole("button", { name: "Редагувати" }).click()
+    await cardEdit(page).click()
     await taken
     const dialog = page.getByRole("dialog")
     await expect(dialog).toBeVisible()
