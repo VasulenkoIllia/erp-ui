@@ -190,12 +190,12 @@ function useActivityClosing<T extends TimelineActivity>(
     const gone = [...closedRows.current].filter(
       ([key]) => !items.some((item) => keyOf(item) === key),
     )
-    const [closed] = gone
-    if (!closed) return
+    if (!gone.length) return
     for (const [key] of gone) closedRows.current.delete(key)
     if (document.activeElement !== document.body) return
+    const index = Math.min(...gone.map(([, row]) => row))
     const rows = listRef?.current?.children
-    const neighbour = rows?.[Math.min(closed[1], rows.length - 1)]
+    const neighbour = rows?.[Math.min(index, rows.length - 1)]
     const target =
       neighbour instanceof HTMLElement ? neighbour : focusTarget.current
     target?.focus({ preventScroll: true })

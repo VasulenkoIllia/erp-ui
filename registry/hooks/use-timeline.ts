@@ -69,7 +69,6 @@ function useDelayed(value: boolean, delayMs: number): boolean {
   return value && isShown
 }
 
-/** Перечитати список за подіями каналу: подій може бути багато, запит — один на секунду. */
 /** Індикатор оновлення з видимими даними й приглушення рядків попереднього відбору, із затримкою. */
 export function useFeedRefreshState(
   query: Pick<
@@ -95,6 +94,7 @@ export function useFeedRefreshState(
   return { isRefreshing, isSwitching }
 }
 
+/** Перечитати список за подіями каналу: подій може бути багато, запит — один на секунду. */
 export function useRefreshOnEvent(
   queryKey: QueryKey,
   isRelevant: (event: RealtimeEvent) => boolean,
