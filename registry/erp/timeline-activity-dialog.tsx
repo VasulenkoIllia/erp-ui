@@ -103,11 +103,14 @@ function useConflictFields(
 export function TimelineActivityDialog({
   activity,
   actions,
+  finalFocus,
   onClose,
 }: {
   /** `null` — нова дія. */
   activity: TimelineActivity | null
   actions: TimelineActions
+  /** Діалог без тригера: куди повернути фокус. */
+  finalFocus: React.RefObject<HTMLElement | null>
   onClose: () => void
 }) {
   const t = useErpUiT()
@@ -122,7 +125,8 @@ export function TimelineActivityDialog({
     activity?.assignee.name ?? me?.name ?? "",
   )
   // Версія на момент відкриття: стрічка може оновитись за подією, поки людина заповнює форму.
-  const [baseVersion, setBaseVersion] = React.useState(activity?.version ?? 1)
+  // Лишається і після 409: повторне «Зберегти» знову покаже порівняння, а не перезапише чуже мовчки.
+  const [baseVersion] = React.useState(activity?.version ?? 1)
   const form = useForm<z.input<typeof schema>, unknown, TimelineActivityInput>({
     mode: "onTouched",
     resolver: zodResolver(schema),
@@ -159,10 +163,8 @@ export function TimelineActivityDialog({
         isApiError(failure) && failure.status === 409
           ? timelineActivitySchema.safeParse(failure.current)
           : null
-      if (current?.success) {
-        setBaseVersion(current.data.version)
-        setConflict(current.data)
-      } else setError(errorText(failure))
+      if (current?.success) setConflict(current.data)
+      else setError(errorText(failure))
     }
   }
   const values = form.getValues()
@@ -176,7 +178,7 @@ export function TimelineActivityDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent>
+      <DialogContent finalFocus={finalFocus}>
         <form
           noValidate
           className="space-y-4"
@@ -282,7 +284,10 @@ export function TimelineActivityDialog({
           onOverwrite={() => {
             if (conflict) void save(form.getValues(), conflict.version)
           }}
-          onReload={onClose}
+          onReload={() => {
+            void actions.refresh()
+            onClose()
+          }}
         />
       </DialogContent>
     </Dialog>

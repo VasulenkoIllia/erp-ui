@@ -1,20 +1,25 @@
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import type { z } from "zod"
 
 import { ConflictDialog } from "@/registry/erp/conflict-dialog"
-import { FormField, keepFieldFocus } from "@/registry/erp/form"
+import {
+  FormField,
+  keepFieldFocus,
+  UnsavedChangesGuard,
+} from "@/registry/erp/form"
 import { RichTextField } from "@/registry/erp/rich-text-field"
 import type { RichTextHandle } from "@/registry/erp/rich-text-editor"
 import { RichTextView } from "@/registry/erp/rich-text-view"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
-import type { TimelineActions } from "@/registry/hooks/use-timeline"
+import {
+  useTimelineBodySchema,
+  type TimelineActions,
+} from "@/registry/hooks/use-timeline"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
-  isRichTextEmpty,
-  richTextSchema,
   toRichText,
   type MentionSearch,
   type RichTextDoc,
@@ -53,16 +58,7 @@ export function TimelineNoteEditor({
     mine: RichTextDoc
     current: TimelineNote
   } | null>(null)
-  const schema = React.useMemo(
-    () =>
-      z.object({
-        body: richTextSchema.refine(
-          (doc) => !isRichTextEmpty(doc),
-          t("timeline.composer.required"),
-        ),
-      }),
-    [t],
-  )
+  const schema = useTimelineBodySchema()
   const form = useForm<
     z.input<typeof schema>,
     unknown,
@@ -83,7 +79,10 @@ export function TimelineNoteEditor({
         isApiError(failure) && failure.status === 409
           ? parseNote(failure.current)
           : null
-      if (current) setConflict({ mine: body, current })
+      // Відповідь загубилась, а запис дійшов: у `current` той самий текст, порівнювати нічого.
+      if (current && JSON.stringify(current.body) === JSON.stringify(body))
+        onClose()
+      else if (current) setConflict({ mine: body, current })
       else setError(errorText(failure))
     }
   }
@@ -94,7 +93,7 @@ export function TimelineNoteEditor({
     focused.current = true
     handle.focus()
   }, [])
-  const isSubmitting = form.formState.isSubmitting
+  const { isDirty, isSubmitting } = form.formState
   return (
     <form
       noValidate
@@ -103,6 +102,7 @@ export function TimelineNoteEditor({
         void form.handleSubmit(({ body }) => save(body, baseVersion))(event)
       }}
     >
+      {isDirty ? <UnsavedChangesGuard when /> : null}
       {error ? (
         <Alert variant="destructive" role="alert">
           <AlertDescription>{error}</AlertDescription>
@@ -164,7 +164,10 @@ export function TimelineNoteEditor({
         onOverwrite={() => {
           if (conflict) void save(conflict.mine, conflict.current.version)
         }}
-        onReload={onClose}
+        onReload={() => {
+          void actions.refresh()
+          onClose()
+        }}
       />
     </form>
   )

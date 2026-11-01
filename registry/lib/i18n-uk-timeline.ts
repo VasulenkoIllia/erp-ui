@@ -93,6 +93,8 @@ export const ukTimeline = {
       remove: "Прибрати {{name}}",
       empty: "Поки ніхто не стежить за цим записом.",
       failed: "Не вдалося завантажити підписників.",
+      added: "Додано: {{name}}",
+      removed: "Прибрано: {{name}}",
       you: "ви",
     },
     activities: {

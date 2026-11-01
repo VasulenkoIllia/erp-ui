@@ -14,26 +14,33 @@
  * - `PATCH /<ресурс>/<id>/timeline/<entryId>` { version, body } → нотатка; чужа версія — 409 із
  *   `current`. Повідомлення вже пішло, зміни полів пише сервер: їх не змінюють.
  * - `DELETE /<ресурс>/<id>/timeline/<entryId>` → 204: нотатка чи файл.
- * - `POST /<ресурс>/<id>/files` multipart (`file`, `requestId`) → запис `file`, 201. `url` у файлі
- *   відкривається без заголовків: підписана адреса з терміном дії.
+ * - `POST /<ресурс>/<id>/files` multipart (`requestId`, `file`) → запис `file`, 201. `url` у файлі —
+ *   абсолютна адреса `http(s)`, що відкривається без заголовків і живе довше за відкриту картку: стрічка
+ *   з каналом не перечитується сама. Відносну адресу кіт не показує посиланням.
  * - `GET /<ресурс>/<id>/followers` → { data }; `PUT`, `DELETE /<ресурс>/<id>/followers/<userId>` → 204,
  *   обидва ідемпотентні.
  * - `GET /<ресурс>/<id>/activities` → { data }: лише відкриті дії, найближчий термін першим.
  * - `POST /<ресурс>/<id>/activities` { requestId, type, title, dueDate, assigneeId } → дія, 201.
  * - `PATCH /<ресурс>/<id>/activities/<activityId>` { version, ... } → дія; `status: "done"` чи
  *   `"cancelled"` закриває її й дописує запис `activity` у стрічку. Чужа версія — 409 із `current`.
- * - Подія `<ресурс>.timeline` каналу реального часу, з `id` запису: перечитати стрічку (ADR-0051).
+ * - Подія `<ресурс>.timeline` каналу реального часу (ADR-0051) обов'язкова, щойно канал є: опитування
+ *   тоді вимкнено. З `id` — перечитати стрічку цього запису, без `id` — усі стрічки ресурсу.
+ * - Запит, що не дочекався відповіді, міг дійти. Повтор `PATCH` дасть 409, `DELETE` дасть 404: кіт вважає
+ *   виконаним 404 на видаленні й 409 із тим самим текстом нотатки.
  * - `deniedActions` на нотатці, файлі й дії — як на записі (ADR-0037): `{ update: "own" }`.
  * - Сервер проекту перевіряє `body` за ADR-0052: межі глибини й довжини, кожен `id` згадки, ім'я з
  *   довідника. Текст, який іде назовні, будує сам і екранує.
  *
  * Запис невідомого виду (новіша версія сервера, подія проекту) стає `other`: стрічка показує його `text`,
- * а не падає цілком. Те саме із записом, що не пройшов схему.
+ * а не падає цілком. Те саме із записом, що не пройшов схему. Зіпсоване другорядне поле зникає, запис
+ * лишається. Рядок без `id` чи з датою, яку не прочитати, випадає зі списку: показ дати кинув би виняток.
+ * `id` унікальний у межах виду: нотатки й журнал змін можуть жити в різних таблицях.
  */
 import { z } from "zod"
 
 import type { ApiClient } from "@/registry/lib/api"
 import { auditEventSchema } from "@/registry/lib/audit"
+import { isCalendarDate } from "@/registry/lib/dates"
 import { richTextSchema, type RichTextDoc } from "@/registry/lib/rich-text"
 
 /** Ресурс сценаріїв моків. */
@@ -44,9 +51,20 @@ export const TIMELINE_PER_PAGE = 20
 export const TIMELINE_POLL_MS = 60_000
 /** Найбільший файл за замовчуванням; сервер проекту має свою межу. */
 export const TIMELINE_MAX_FILE_BYTES = 25 * 1024 * 1024
+/** Зависле читання не тримає опитування й дію, що чекає перечитування. */
+export const TIMELINE_READ_TIMEOUT_MS = 30_000
 /** Скільки чекати запис: тайм-аут не означає «не збережено», повтор іде з тим самим `requestId`. */
 export const TIMELINE_WRITE_TIMEOUT_MS = 30_000
 export const TIMELINE_UPLOAD_TIMEOUT_MS = 120_000
+/** Найповільніший канал, на якому файл ще має дійти. */
+const TIMELINE_UPLOAD_MIN_BYTES_PER_SECOND = 64 * 1024
+
+/** Тайм-аут файла росте з розміром: великий файл на слабкому каналі інакше не дійде ніколи. */
+export const timelineUploadTimeoutMs = (bytes: number) =>
+  Math.max(
+    TIMELINE_UPLOAD_TIMEOUT_MS,
+    Math.ceil((bytes / TIMELINE_UPLOAD_MIN_BYTES_PER_SECOND) * 1_000),
+  )
 
 export const timelineEventType = (resource: string) => `${resource}.timeline`
 
@@ -79,7 +97,24 @@ export const TIMELINE_ACTIVITY_TYPES = [
   "task",
 ] as const
 
-const deniedActionsSchema = z.record(z.string(), z.string()).optional()
+const deniedActionsSchema = z
+  .record(z.string(), z.string())
+  .optional()
+  .catch(undefined)
+const optionalTextSchema = z.string().optional().catch(undefined)
+/** Дату показує `lib/format`, а він на нечитабельному значенні кидає виняток. */
+const timestampSchema = z
+  .string()
+  .refine((value) => !Number.isNaN(Date.parse(value)))
+
+/** Зіпсований рядок випадає, а не забирає решту списку. */
+const rowsOf = <T extends z.ZodType>(schema: T) =>
+  z.array(z.unknown()).transform((rows) =>
+    rows.flatMap((row) => {
+      const parsed = schema.safeParse(row)
+      return parsed.success ? [parsed.data] : []
+    }),
+  )
 
 export const timelinePersonSchema = z.object({
   id: z.string(),
@@ -92,7 +127,7 @@ export const timelineFileSchema = z.object({
   name: z.string(),
   /** Розмір у байтах. */
   size: z.number().int().min(0),
-  type: z.string().optional(),
+  type: optionalTextSchema,
   /** Підписана адреса: перевіряє `safeLinkHref`, сервер міг покласти що завгодно. */
   url: z.string(),
 })
@@ -100,9 +135,11 @@ export type TimelineFile = z.infer<typeof timelineFileSchema>
 
 const entryBase = {
   id: z.string(),
-  at: z.string(),
-  /** Хто написав; без `id` — клієнт ззовні чи система. */
-  author: z.object({ id: z.string().optional(), name: z.string() }),
+  at: timestampSchema,
+  /** Хто написав; без `id` — клієнт ззовні чи система. Автора могли видалити. */
+  author: z
+    .object({ id: z.string().optional(), name: z.string() })
+    .catch({ name: "" }),
 }
 
 const noteSchema = z.object({
@@ -110,7 +147,7 @@ const noteSchema = z.object({
   kind: z.literal("note"),
   body: richTextSchema,
   version: z.number().int().min(1),
-  editedAt: z.string().optional(),
+  editedAt: optionalTextSchema,
   deniedActions: deniedActionsSchema,
 })
 
@@ -120,9 +157,9 @@ const messageSchema = z.object({
   body: richTextSchema,
   direction: z.enum(["outgoing", "incoming"]),
   /** Стан вихідного: надсилає сервер, тому стан може змінитись після відповіді. */
-  status: z.enum(["queued", "sent", "failed"]).optional(),
+  status: z.enum(["queued", "sent", "failed"]).optional().catch(undefined),
   /** Кому пішло чи від кого прийшло. */
-  party: z.string().optional(),
+  party: optionalTextSchema,
 })
 
 const changeSchema = z.object({
@@ -166,7 +203,7 @@ export type TimelineEntry = z.output<typeof timelineEntrySchema>
 export type TimelineNote = z.output<typeof noteSchema>
 
 const timelinePageSchema = z.object({
-  data: z.array(timelineEntrySchema),
+  data: rowsOf(timelineEntrySchema),
   total: z.number().int().min(0),
 })
 export type TimelinePage = z.output<typeof timelinePageSchema>
@@ -177,7 +214,7 @@ export const timelineActivitySchema = z.object({
   type: z.string(),
   title: z.string(),
   /** Календарна дата "2026-11-02": дія має день, а не хвилину. */
-  dueDate: z.string(),
+  dueDate: z.string().refine(isCalendarDate),
   assignee: timelinePersonSchema,
   deniedActions: deniedActionsSchema,
 })
@@ -197,10 +234,12 @@ export type TimelineActivityPatch = Partial<TimelineActivityInput> & {
   readonly status?: "done" | "cancelled"
 }
 
-const followersSchema = z.object({ data: z.array(timelinePersonSchema) })
-const activitiesSchema = z.object({ data: z.array(timelineActivitySchema) })
+const followersSchema = z.object({ data: rowsOf(timelinePersonSchema) })
+const activitiesSchema = z.object({ data: rowsOf(timelineActivitySchema) })
 
 /* --------------------------------- Чисті функції --------------------------------- */
+
+export const timelineEntryKey = ({ kind, id }: TimelineEntry) => `${kind}/${id}`
 
 /**
  * Записи всіх сторінок без повторів: новий запис зсуває сторінки, тож останній рядок попередньої
@@ -213,8 +252,9 @@ export function timelineEntriesOf(
   return pages
     .flatMap((page) => page.data)
     .filter((entry) => {
-      if (seen.has(entry.id)) return false
-      seen.add(entry.id)
+      const key = timelineEntryKey(entry)
+      if (seen.has(key)) return false
+      seen.add(key)
       return true
     })
 }
@@ -227,6 +267,7 @@ export interface TimelineApi {
     filter: TimelineFilter,
     page: number,
     perPage: number,
+    signal?: AbortSignal,
   ) => Promise<TimelinePage>
   post: (
     target: TimelineTarget,
@@ -243,10 +284,16 @@ export interface TimelineApi {
     file: File,
     requestId: string,
   ) => Promise<TimelineEntry>
-  followers: (target: TimelineTarget) => Promise<TimelinePerson[]>
+  followers: (
+    target: TimelineTarget,
+    signal?: AbortSignal,
+  ) => Promise<TimelinePerson[]>
   follow: (target: TimelineTarget, userId: string) => Promise<void>
   unfollow: (target: TimelineTarget, userId: string) => Promise<void>
-  activities: (target: TimelineTarget) => Promise<TimelineActivity[]>
+  activities: (
+    target: TimelineTarget,
+    signal?: AbortSignal,
+  ) => Promise<TimelineActivity[]>
   addActivity: (
     target: TimelineTarget,
     input: TimelineActivityInput & { requestId: string },
@@ -261,23 +308,25 @@ export interface TimelineApi {
 const recordPath = ({ resource, id }: TimelineTarget, tail: string) =>
   `/${encodeURIComponent(resource)}/${encodeURIComponent(id)}/${tail}`
 
+const READ = { timeoutMs: TIMELINE_READ_TIMEOUT_MS, background: true } as const
 const WRITE = { timeoutMs: TIMELINE_WRITE_TIMEOUT_MS } as const
 
 /**
  * Читання стрічки — фонові запити: відкрита картка, що опитує чи перечитує за подією, не продовжує
- * сесію (ADR-0014). Запис — звичайні запити.
+ * сесію (ADR-0014), а причину запиту `queryFn` не знає, тож фонові й дії людини. Запис — звичайні запити.
  */
 export function createTimelineApi(client: ApiClient): TimelineApi {
   return {
-    list: (target, filter, page, perPage) =>
+    list: (target, filter, page, perPage, signal) =>
       client.get(recordPath(target, "timeline"), {
+        ...READ,
+        signal,
         query: {
           ...(filter === "all" ? {} : { kind: filter }),
           page: String(page),
           perPage: String(perPage),
         },
         schema: timelinePageSchema,
-        background: true,
       }),
     post: (target, input) =>
       client.post(recordPath(target, "timeline"), input, {
@@ -298,17 +347,19 @@ export function createTimelineApi(client: ApiClient): TimelineApi {
     },
     uploadFile(target, file, requestId) {
       const body = new FormData()
-      body.set("file", file)
+      // Ключ перед файлом: сервер, що читає форму потоком, відхилить дубль до тіла файла.
       body.set("requestId", requestId)
+      body.set("file", file)
       return client.post(recordPath(target, "files"), body, {
-        timeoutMs: TIMELINE_UPLOAD_TIMEOUT_MS,
+        timeoutMs: timelineUploadTimeoutMs(file.size),
         schema: timelineEntrySchema,
       })
     },
-    async followers(target) {
+    async followers(target, signal) {
       const { data } = await client.get(recordPath(target, "followers"), {
+        ...READ,
+        signal,
         schema: followersSchema,
-        background: true,
       })
       return data
     },
@@ -325,10 +376,11 @@ export function createTimelineApi(client: ApiClient): TimelineApi {
         WRITE,
       )
     },
-    async activities(target) {
+    async activities(target, signal) {
       const { data } = await client.get(recordPath(target, "activities"), {
+        ...READ,
+        signal,
         schema: activitiesSchema,
-        background: true,
       })
       return data
     },

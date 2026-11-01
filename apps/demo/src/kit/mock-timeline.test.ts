@@ -186,13 +186,6 @@ describe("стрічка", () => {
     const error = await failure(api.list(TARGET, "all", 1, 20))
     expect(error.status).toBe(404)
   })
-
-  it("чужого ресурсу не існує: 404", async () => {
-    const error = await failure(
-      api.list({ resource: "ghosts", id: "1" }, "all", 1, 20),
-    )
-    expect(error.status).toBe(404)
-  })
 })
 
 describe("запис у стрічку", () => {
@@ -241,6 +234,15 @@ describe("запис у стрічку", () => {
     })
     expect(entry).toMatchObject({ status: "queued" })
     await vi.advanceTimersByTimeAsync(1_000)
+    const { data } = await api.list(TARGET, "message", 1, 20)
+    expect(data[0]).toMatchObject({ status: "sent" })
+  })
+
+  it("перезавантаження зупинило таймер: повідомлення не лишається в черзі", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    await api.post(TARGET, { requestId: "r", kind: "message", body: BODY })
+    vi.clearAllTimers()
+    vi.setSystemTime(Date.now() + 5_000)
     const { data } = await api.list(TARGET, "message", 1, 20)
     expect(data[0]).toMatchObject({ status: "sent" })
   })
@@ -317,6 +319,14 @@ describe("файл", () => {
     expect(JSON.stringify(entry)).toContain("files.example")
   })
 
+  it("без ключа ідемпотентності: 422", async () => {
+    const form = new FormData()
+    form.set("file", file)
+    expect((await failure(client.post("/deals/d1/files", form))).status).toBe(
+      422,
+    )
+  })
+
   it("повтор із тим самим ключем не дає другого файла", async () => {
     await api.uploadFile(TARGET, file, "f2")
     await api.uploadFile(TARGET, file, "f2")
@@ -341,7 +351,54 @@ describe("підписники", () => {
   })
 })
 
+describe("адреси", () => {
+  it("лише для цілей: чужі `/<ресурс>/<id>/files` лишаються модулям", () => {
+    const paths = createTimelineHandlers({
+      targets: [timelineTargetMock({ resource: "deals", db: deals.db })],
+      seeds: SEEDS,
+      baseUrl: BASE,
+    }).map(({ info }) => String(info.path))
+    expect(paths.every((path) => path.startsWith(`${BASE}/deals/:id/`))).toBe(
+      true,
+    )
+  })
+})
+
 describe("заплановані дії", () => {
+  it("зміна перевіряє поля, як і створення", async () => {
+    const activity = await api.addActivity(TARGET, {
+      requestId: "p1",
+      type: "call",
+      title: "Дзвінок",
+      dueDate: "2026-11-09",
+      assigneeId: "u-1",
+    })
+    const update = (patch: Record<string, unknown>) =>
+      failure(
+        client.patch(`/deals/d1/activities/${activity.id}`, {
+          version: activity.version,
+          ...patch,
+        }),
+      )
+    expect((await update({ dueDate: "скоро" })).status).toBe(422)
+    expect((await update({ status: "забуто" })).status).toBe(422)
+    expect((await update({ title: "   " })).status).toBe(422)
+    const [row] = await api.activities(TARGET)
+    expect(row).toMatchObject({ dueDate: "2026-11-09", title: "Дзвінок" })
+  })
+
+  it("створення без ключа ідемпотентності: 422", async () => {
+    const error = await failure(
+      client.post("/deals/d1/activities", {
+        type: "call",
+        title: "Дзвінок",
+        dueDate: "2026-11-09",
+        assigneeId: "u-1",
+      }),
+    )
+    expect(error.status).toBe(422)
+  })
+
   const INPUT = {
     requestId: "a1",
     type: "call",

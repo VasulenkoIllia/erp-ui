@@ -59,7 +59,11 @@ export function TimelinePage() {
           </Button>
         </div>
         <div data-testid="timeline-full">
-          <RecordTimeline resource="invoices" id={FULL_RECORD} />
+          <RecordTimeline
+            resource="invoices"
+            id={FULL_RECORD}
+            label={t("timelinePage.fullTitle")}
+          />
         </div>
       </Section>
       <Section
@@ -67,7 +71,12 @@ export function TimelinePage() {
         description={t("timelinePage.readOnlyDescription")}
       >
         <div data-testid="timeline-read-only">
-          <RecordTimeline resource="invoices" id={CLOSED_RECORD} readOnly />
+          <RecordTimeline
+            resource="invoices"
+            id={CLOSED_RECORD}
+            label={t("timelinePage.readOnlyTitle")}
+            readOnly
+          />
         </div>
       </Section>
       <Section
@@ -78,6 +87,7 @@ export function TimelinePage() {
           <RecordTimeline
             resource="invoices"
             id={EMPTY_RECORD}
+            label={t("timelinePage.narrowTitle")}
             messages={false}
             files={false}
           />

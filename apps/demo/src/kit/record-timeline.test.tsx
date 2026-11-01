@@ -2,6 +2,7 @@ import { onlineManager, QueryClient } from "@tanstack/react-query"
 import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CoreAdminContext } from "ra-core"
+import { toast } from "sonner"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { RecordTimeline } from "@/registry/erp/record-timeline"
@@ -52,6 +53,15 @@ const ACTIVITY: TimelineActivity = {
 }
 
 const serverError = () => new ApiError(500, { code: "server", message: "Boom" })
+
+/** Запит, що летить, доки тест його не відпустить. */
+function deferred<T>() {
+  let accept!: (value: T) => void
+  const promise = new Promise<T>((resolve) => {
+    accept = resolve
+  })
+  return { promise, accept }
+}
 
 function setup(
   api: Partial<TimelineApi> = {},
@@ -210,6 +220,23 @@ describe("RecordTimeline: варіанти", () => {
     expect(timeline.activities).not.toHaveBeenCalled()
   })
 
+  it("фільтр не пропонує того, чого в проекті немає", async () => {
+    const user = userEvent.setup()
+    setup({}, { messages: false, files: false })
+    await screen.findByText("Нотатка n1")
+    await user.click(screen.getByRole("combobox", { name: "Що показати" }))
+    expect(
+      (await screen.findAllByRole("option")).map((row) => row.textContent),
+    ).toEqual(["Усе", "Нотатки", "Зміни полів"])
+  })
+
+  it("кілька стрічок на сторінці розрізняються назвою області", async () => {
+    setup({}, { label: "Закритий рахунок" })
+    expect(
+      await screen.findByRole("region", { name: "Закритий рахунок" }),
+    ).toBeInTheDocument()
+  })
+
   it("прострочену дію видно словом", async () => {
     setup({ activities: vi.fn(() => Promise.resolve([ACTIVITY])) })
     expect(await screen.findByText("Прострочено")).toBeInTheDocument()
@@ -238,6 +265,35 @@ describe("RecordTimeline: частковий збій", () => {
     expect(
       await screen.findByRole("button", { name: "1 підписник" }),
     ).toBeInTheDocument()
+  })
+
+  it("кнопка «Показати ще» зникла: фокус на першому новому записі", async () => {
+    const list = vi
+      .fn<TimelineApi["list"]>()
+      .mockResolvedValueOnce(pageOf([note("n1")], 25))
+      .mockResolvedValue(pageOf([note("n2")], 25))
+    const user = userEvent.setup()
+    setup({ list })
+    await user.click(await screen.findByRole("button", { name: "Показати ще" }))
+    const added = await screen.findByText("Нотатка n2")
+    await waitFor(() => {
+      expect(added.closest("li")).toHaveFocus()
+    })
+  })
+
+  it("порожня сторінка завершує список, навіть якщо `total` більший", async () => {
+    const list = vi
+      .fn<TimelineApi["list"]>()
+      .mockResolvedValueOnce(pageOf([note("n1")], 50))
+      .mockResolvedValue(pageOf([], 50))
+    const user = userEvent.setup()
+    setup({ list })
+    await user.click(await screen.findByRole("button", { name: "Показати ще" }))
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Показати ще" }),
+      ).not.toBeInTheDocument()
+    })
   })
 
   it("збій «Показати ще» лишає показане й дає повтор", async () => {
@@ -319,7 +375,7 @@ describe("RecordTimeline: оновлення", () => {
     await vi.waitFor(() => {
       expect(getRealtimeStatus()).toBe("open")
     })
-    const send = (id: string) => {
+    const send = (id?: string) => {
       const event = {
         type: "invoices.timeline",
         resource: "invoices",
@@ -347,6 +403,19 @@ describe("RecordTimeline: оновлення", () => {
     send("inv-1")
     await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS / 2))
     expect(list).toHaveBeenCalledTimes(1)
+    await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS))
+    await waitFor(() => {
+      expect(list).toHaveBeenCalledTimes(2)
+    })
+    stop()
+  })
+
+  it("подія без `id` стосується всього ресурсу", async () => {
+    const { stop, send } = await openChannel()
+    const list = vi.fn(() => Promise.resolve(pageOf([note("n1")])))
+    setup({ list })
+    await screen.findByText("Нотатка n1")
+    send()
     await act(() => vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS))
     await waitFor(() => {
       expect(list).toHaveBeenCalledTimes(2)
@@ -396,6 +465,55 @@ describe("RecordTimeline: новий запис", () => {
     await waitFor(() => {
       expect(editor).not.toHaveTextContent("Погоджено")
     })
+  })
+
+  it("поки запит летить, текст на місці", async () => {
+    const pending = deferred<TimelineEntry>()
+    const post = vi.fn<TimelineApi["post"]>(() => pending.promise)
+    const user = userEvent.setup()
+    setup({ post })
+    const editor = await findEditor()
+    await write(user, editor, "Погоджено")
+    await user.click(screen.getByRole("button", { name: "Додати нотатку" }))
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledTimes(1)
+    })
+    expect(editor).toHaveTextContent("Погоджено")
+    act(() => {
+      pending.accept(note("n2"))
+    })
+    await waitFor(() => {
+      expect(editor).not.toHaveTextContent("Погоджено")
+    })
+  })
+
+  it("дописане під час запиту лишається чернеткою того самого виду", async () => {
+    const pending = deferred<TimelineEntry>()
+    const post = vi.fn<TimelineApi["post"]>(() => pending.promise)
+    const user = userEvent.setup()
+    setup({ post })
+    await findEditor()
+    await user.click(screen.getByRole("tab", { name: "Повідомлення" }))
+    const editor = await findEditor("Повідомлення клієнту")
+    await write(user, editor, "Перше")
+    const send = screen.getByRole("button", { name: "Надіслати клієнту" })
+    await user.click(send)
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledTimes(1)
+    })
+    await write(user, editor, " друге")
+    await act(async () => {
+      pending.accept(note("n2"))
+      await pending.promise
+    })
+    await waitFor(() => {
+      expect(send).not.toHaveAttribute("aria-disabled", "true")
+    })
+    expect(editor).toHaveTextContent("Перше друге")
+    expect(screen.getByRole("tab", { name: "Повідомлення" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    )
   })
 
   it("порожнє поле не йде на сервер, помилка біля поля", async () => {
@@ -559,9 +677,87 @@ describe("RecordTimeline: запис у стрічці", () => {
     await user.click(
       await screen.findByRole("button", { name: /Дії із записом/ }),
     )
+    const edit = await screen.findByRole("menuitem", { name: /^Змінити/ })
+    expect(edit).toHaveAttribute("aria-disabled", "true")
+    expect(edit).toHaveAccessibleName(/лише свої записи/)
+  })
+
+  it("закрили поле нотатки: фокус на меню цього запису", async () => {
+    const user = userEvent.setup()
+    setup()
+    const menu = await screen.findByRole("button", { name: /Дії із записом/ })
+    await user.click(menu)
+    await user.click(await screen.findByRole("menuitem", { name: "Змінити" }))
+    const form = await screen.findByRole("textbox", { name: "Текст нотатки" })
+    await waitFor(() => {
+      expect(form).toHaveAttribute("contenteditable", "true")
+    })
+    await user.click(screen.getByRole("button", { name: "Скасувати" }))
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Дії із записом/ }),
+      ).toHaveFocus()
+    })
+  })
+
+  it("відповідь загубилась, текст дійшов: порівнювати нічого", async () => {
+    const saved = { ...note("n1"), version: 2 }
+    const updateNote = vi.fn<TimelineApi["updateNote"]>(() =>
+      Promise.reject(
+        new ApiError(409, {
+          code: "conflict",
+          message: "Changed",
+          current: saved,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    setup({ updateNote })
+    await user.click(
+      await screen.findByRole("button", { name: /Дії із записом/ }),
+    )
+    await user.click(await screen.findByRole("menuitem", { name: "Змінити" }))
+    const form = await screen.findByRole("textbox", { name: "Текст нотатки" })
+    await waitFor(() => {
+      expect(form).toHaveAttribute("contenteditable", "true")
+    })
+    await user.click(screen.getByRole("button", { name: "Зберегти" }))
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("textbox", { name: "Текст нотатки" }),
+      ).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  })
+
+  it("запис уже видалено: це результат, а не помилка, стрічка перечитується", async () => {
+    const list = vi
+      .fn<TimelineApi["list"]>()
+      .mockResolvedValueOnce(pageOf([note("n1")]))
+      .mockResolvedValue(pageOf([]))
+    const failed = vi.spyOn(toast, "error")
+    const user = userEvent.setup()
+    setup({
+      list,
+      remove: vi.fn(() =>
+        Promise.reject(new ApiError(404, { code: "gone", message: "Gone" })),
+      ),
+    })
+    await user.click(
+      await screen.findByRole("button", { name: /Дії із записом/ }),
+    )
+    await user.click(await screen.findByRole("menuitem", { name: "Видалити" }))
+    const dialog = await screen.findByRole("alertdialog")
+    await user.click(
+      within(dialog).getByRole("button", { name: "Видалити нотатку" }),
+    )
     expect(
-      await screen.findByRole("menuitem", { name: "Змінити" }),
-    ).toHaveAttribute("aria-disabled", "true")
+      await screen.findByText("У стрічці ще нічого немає"),
+    ).toBeInTheDocument()
+    expect(failed).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    })
   })
 
   it("чужа версія нотатки: порівняння, «зберегти моє» бере нову версію", async () => {
@@ -613,6 +809,83 @@ describe("RecordTimeline: дії й підписники", () => {
         status: "done",
       })
     })
+  })
+
+  it("«Виконано» по двох діях: зайнята кожна своя", async () => {
+    const other = { ...ACTIVITY, id: "a2", title: "Написати" }
+    const first = deferred<TimelineActivity>()
+    const second = deferred<TimelineActivity>()
+    const updateActivity = vi.fn<TimelineApi["updateActivity"]>((_, id) =>
+      id === "a1" ? first.promise : second.promise,
+    )
+    const user = userEvent.setup()
+    setup({
+      activities: vi.fn(() => Promise.resolve([ACTIVITY, other])),
+      updateActivity,
+    })
+    const call = await screen.findByRole("button", {
+      name: "Виконано: Подзвонити",
+    })
+    const mail = screen.getByRole("button", { name: "Виконано: Написати" })
+    await user.click(call)
+    await user.click(mail)
+    await act(async () => {
+      first.accept(ACTIVITY)
+      await first.promise
+    })
+    await waitFor(() => {
+      expect(call).not.toHaveAttribute("aria-disabled", "true")
+    })
+    expect(mail).toHaveAttribute("aria-disabled", "true")
+    await act(async () => {
+      second.accept(other)
+      await second.promise
+    })
+  })
+
+  it("рядок зник після «Виконано»: фокус лишається в блоці", async () => {
+    const activities = vi
+      .fn<TimelineApi["activities"]>()
+      .mockResolvedValueOnce([ACTIVITY])
+      .mockResolvedValue([])
+    const user = userEvent.setup()
+    setup({ activities })
+    await user.click(
+      await screen.findByRole("button", { name: "Виконано: Подзвонити" }),
+    )
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Запланувати" })).toHaveFocus()
+    })
+  })
+
+  it("чужа версія дії: повторне «Зберегти» знову показує порівняння", async () => {
+    const current = { ...ACTIVITY, title: "Колега змінив", version: 4 }
+    const updateActivity = vi.fn<TimelineApi["updateActivity"]>(() =>
+      Promise.reject(
+        new ApiError(409, { code: "conflict", message: "Changed", current }),
+      ),
+    )
+    const user = userEvent.setup()
+    setup({
+      activities: vi.fn(() => Promise.resolve([ACTIVITY])),
+      updateActivity,
+    })
+    await user.click(
+      await screen.findByRole("button", { name: "Дії: Подзвонити" }),
+    )
+    await user.click(await screen.findByRole("menuitem", { name: "Змінити" }))
+    const save = await screen.findByRole("button", { name: "Зберегти дію" })
+    await user.click(save)
+    await screen.findByRole("button", { name: "Зберегти мої зміни" })
+    await user.keyboard("{Escape}")
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Зберегти мої зміни" }),
+      ).not.toBeInTheDocument()
+    })
+    await user.click(save)
+    await screen.findByRole("button", { name: "Зберегти мої зміни" })
+    expect(updateActivity.mock.calls[1]?.[2].version).toBe(1)
   })
 
   it("чужа версія дії: список перечитується", async () => {

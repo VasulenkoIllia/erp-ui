@@ -33,26 +33,37 @@ interface TeamMember {
   name?: string
 }
 
+const memberName = (member: TeamMember) => member.name ?? member.id
+
 function FollowersDialog({
   followers,
   meId,
   actions,
   readOnly,
+  finalFocus,
   onClose,
 }: {
   followers: readonly { id: string; name: string }[]
   meId: string | undefined
   actions: TimelineActions
   readOnly: boolean
+  finalFocus: React.RefObject<HTMLElement | null>
   onClose: () => void
 }) {
   const t = useErpUiT()
   const errorText = useApiErrorMessage()
   const pickerId = React.useId()
-  const run = (action: Promise<void>) => {
-    action.catch((failure: unknown) => {
-      toast.error(errorText(failure))
-    })
+  const picker = React.useRef<HTMLButtonElement>(null)
+  const run = (action: Promise<void>, doneText: string) => {
+    action
+      .then(() => {
+        announce(doneText)
+        // Рядок зник разом із кнопкою «Прибрати», фокус не лишається на сторінці під діалогом.
+        picker.current?.focus()
+      })
+      .catch((failure: unknown) => {
+        toast.error(errorText(failure))
+      })
   }
   return (
     <Dialog
@@ -61,7 +72,7 @@ function FollowersDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent>
+      <DialogContent finalFocus={finalFocus}>
         <DialogHeader>
           <DialogTitle>{t("timeline.followers.title")}</DialogTitle>
           <DialogDescription>
@@ -89,7 +100,10 @@ function FollowersDialog({
                       name: person.name,
                     })}
                     onClick={() => {
-                      run(actions.unfollow(person.id))
+                      run(
+                        actions.unfollow(person.id),
+                        t("timeline.followers.removed", { name: person.name }),
+                      )
                     }}
                   >
                     <XIcon aria-hidden />
@@ -109,13 +123,20 @@ function FollowersDialog({
               {t("timeline.followers.add")}
             </FieldLabel>
             <RecordPicker<TeamMember>
+              ref={picker}
               id={pickerId}
               resource="users"
               label={t("timeline.followers.add")}
-              optionLabel={(member) => member.name ?? member.id}
+              optionLabel={memberName}
               value={null}
-              onValueChange={(id) => {
-                if (id) run(actions.follow(id))
+              onValueChange={(id, record) => {
+                if (id)
+                  run(
+                    actions.follow(id),
+                    t("timeline.followers.added", {
+                      name: record ? memberName(record) : id,
+                    }),
+                  )
               }}
             />
           </Field>
@@ -140,6 +161,7 @@ export function TimelineFollowers({
   const query = useTimelineFollowers(target)
   const [isOpen, setIsOpen] = React.useState(false)
   const [isBusy, setIsBusy] = React.useState(false)
+  const openButton = React.useRef<HTMLButtonElement>(null)
   const followers = query.data ?? []
   const isFollowing = followers.some((person) => person.id === me?.id)
 
@@ -200,6 +222,7 @@ export function TimelineFollowers({
         </Button>
       )}
       <Button
+        ref={openButton}
         size="sm"
         variant="outline"
         disabled={query.isPending}
@@ -217,6 +240,7 @@ export function TimelineFollowers({
           meId={me?.id}
           actions={actions}
           readOnly={readOnly}
+          finalFocus={openButton}
           onClose={() => {
             setIsOpen(false)
           }}

@@ -32,6 +32,7 @@ export function TimelineFileButton({
   const errorText = useApiErrorMessage()
   const sizeOf = useFileSizeText()
   const input = React.useRef<HTMLInputElement>(null)
+  const button = React.useRef<HTMLButtonElement>(null)
   const requestIds = useTimelineRequestId()
   const [uploading, setUploading] = React.useState<string | null>(null)
   const [failure, setFailure] = React.useState<UploadFailure | null>(null)
@@ -45,10 +46,13 @@ export function TimelineFileButton({
       return
     }
     setUploading(file.name)
+    announce(t("timeline.file.uploading", { name: file.name }))
     try {
       await actions.uploadFile(
         file,
-        requestIds.next(`${file.name}/${String(file.size)}`),
+        requestIds.next(
+          [file.name, file.size, file.lastModified].map(String).join("/"),
+        ),
       )
       requestIds.clear()
       announce(t("timeline.file.uploaded", { name: file.name }))
@@ -82,6 +86,7 @@ export function TimelineFileButton({
         }}
       />
       <Button
+        ref={button}
         type="button"
         variant="outline"
         disabled={uploading !== null}
@@ -96,7 +101,7 @@ export function TimelineFileButton({
         {t("timeline.file.add")}
       </Button>
       {uploading === null ? null : (
-        <p role="status" className="min-w-0 text-sm text-muted-foreground">
+        <p className="min-w-0 text-sm text-muted-foreground">
           {t("timeline.file.uploading", { name: uploading })}
         </p>
       )}
@@ -110,6 +115,7 @@ export function TimelineFileButton({
                 size="sm"
                 variant="outline"
                 onClick={() => {
+                  button.current?.focus()
                   if (failure.file) void upload(failure.file)
                 }}
               >
@@ -121,6 +127,7 @@ export function TimelineFileButton({
               size="sm"
               variant="ghost"
               onClick={() => {
+                button.current?.focus()
                 setFailure(null)
                 requestIds.clear()
               }}

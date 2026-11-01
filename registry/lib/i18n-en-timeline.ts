@@ -92,6 +92,8 @@ export const enTimeline: ErpUiTranslation<typeof ukTimeline> = {
       remove: "Remove {{name}}",
       empty: "Nobody is following this record yet.",
       failed: "Could not load followers.",
+      added: "Added: {{name}}",
+      removed: "Removed: {{name}}",
       you: "you",
     },
     activities: {

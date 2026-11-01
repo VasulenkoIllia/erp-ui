@@ -96,7 +96,7 @@ const pageOf = (params: URLSearchParams) => ({
 })
 
 /** Людина й запис запиту або готова відмова: сценарій, сесія, права, чи бачить запис. */
-function createGuard(targets: readonly MockTimelineTarget[]) {
+function createGuard({ resource, sees }: MockTimelineTarget) {
   return async (
     request: Request,
     params: Record<string, unknown>,
@@ -107,10 +107,8 @@ function createGuard(targets: readonly MockTimelineTarget[]) {
     if (!user) return unauthenticated()
     const access = mockRequestPermissions(request, user)
     if (access instanceof Response) return access
-    const resource = String(params.resource)
     const id = String(params.id)
-    const target = targets.find((item) => item.resource === resource)
-    if (!target?.sees(user, access.permissions, access.companyId, id))
+    if (!sees(user, access.permissions, access.companyId, id))
       return timelineNotFound()
     const { companyId } = access
     return { user, companyId, resource, id, key: `${resource}/${id}` }
@@ -127,7 +125,8 @@ function listEntries(request: Request, access: MockTimelineRequest) {
     language,
   ).map(changeEntry)
   const kind = params.get("kind")
-  const all = [...readMockTimeline(access.key).entries, ...changes]
+  const entries = readMockTimeline(access.key).entries.map(finishedSending)
+  const all = [...entries, ...changes]
     .filter((entry) => !kind || entry.kind === kind)
     .sort((a, b) => b.at.localeCompare(a.at))
   const { page, perPage } = pageOf(params)
@@ -141,6 +140,13 @@ function listEntries(request: Request, access: MockTimelineRequest) {
     total: all.length,
   })
 }
+
+/** Перезавантаження вкладки зупиняє таймер надсилання: стан не лишається `queued` назавжди. */
+const finishedSending = (entry: MockTimelineEntry): MockTimelineEntry =>
+  entry.status === "queued" &&
+  Date.now() - Date.parse(entry.at) > MESSAGE_SEND_MS * 2
+    ? { ...entry, status: "sent" }
+    : entry
 
 /** Вихідне повідомлення сервер надсилає сам: стан змінюється після відповіді. */
 function sendLater(access: MockTimelineRequest, entryId: string): void {
@@ -241,7 +247,10 @@ async function uploadFile(request: Request, access: MockTimelineRequest) {
   const form = await request.formData()
   const file = form.get("file")
   if (!file || typeof file === "string") return invalidTimeline("file")
-  const onceKey = `${access.key}/${form.get("requestId") as string}`
+  const requestId = form.get("requestId")
+  if (typeof requestId !== "string" || !requestId)
+    return invalidTimeline("requestId")
+  const onceKey = `${access.key}/${requestId}`
   if (handledTimelineRequests.has(onceKey))
     return json(handledTimelineRequests.get(onceKey), { status: 201 })
   if (file.size > TIMELINE_MAX_FILE_BYTES)
@@ -272,19 +281,10 @@ async function uploadFile(request: Request, access: MockTimelineRequest) {
 const byDueDate = (a: TimelineActivity, b: TimelineActivity) =>
   a.dueDate.localeCompare(b.dueDate)
 
-export function createTimelineHandlers({
-  targets,
-  seeds: initial = {},
-  baseUrl = API_PREFIX,
-}: {
-  targets: readonly MockTimelineTarget[]
-  seeds?: MockTimelineSeeds
-  baseUrl?: string
-}): HttpHandler[] {
-  setMockTimelineSeeds(initial)
-  const guard = createGuard(targets)
-  const record = `${baseUrl}/:resource/:id`
-
+function recordHandlers(
+  record: string,
+  guard: ReturnType<typeof createGuard>,
+): HttpHandler[] {
   return [
     http.get(`${record}/timeline`, async ({ request, params }) => {
       const access = await guard(request, params)
@@ -362,4 +362,20 @@ export function createTimelineHandlers({
       },
     ),
   ]
+}
+
+/** Адреси лише для цілей: `/<інший ресурс>/<id>/files` лишається обробникам модуля. */
+export function createTimelineHandlers({
+  targets,
+  seeds: initial = {},
+  baseUrl = API_PREFIX,
+}: {
+  targets: readonly MockTimelineTarget[]
+  seeds?: MockTimelineSeeds
+  baseUrl?: string
+}): HttpHandler[] {
+  setMockTimelineSeeds(initial)
+  return targets.flatMap((target) =>
+    recordHandlers(`${baseUrl}/${target.resource}/:id`, createGuard(target)),
+  )
 }

@@ -9,16 +9,18 @@ import {
   type TimelineDeletable,
 } from "@/registry/erp/timeline-entry"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
-import type {
-  TimelineActions,
-  useTimelineFeed,
+import {
+  useLastValue,
+  type TimelineActions,
+  type useTimelineFeed,
 } from "@/registry/hooks/use-timeline"
 import { announce } from "@/registry/lib/announce"
-import { errorStateKind } from "@/registry/lib/api"
+import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import type { MentionSearch } from "@/registry/lib/rich-text"
-import type { TimelineFilter } from "@/registry/lib/timeline"
+import { timelineEntryKey, type TimelineFilter } from "@/registry/lib/timeline"
+import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
 
@@ -55,8 +57,38 @@ export function FeedLoadState({ query }: { query: TimelineFeedData["query"] }) {
   )
 }
 
+/**
+ * Кнопка зникає разом зі станом, що її показав («Показати ще» на останній сторінці, успішний повтор).
+ * Фокус тоді йде на запис із переданим номером, а не на сторінку (WCAG 2.4.3).
+ */
+function useFocusAfterFetch(
+  list: React.RefObject<HTMLOListElement | null>,
+  isFetching: boolean,
+  count: number,
+) {
+  const entryIndex = React.useRef<number | null>(null)
+  React.useEffect(() => {
+    if (isFetching || entryIndex.current === null) return
+    const index = entryIndex.current
+    entryIndex.current = null
+    if (document.activeElement !== document.body) return
+    const entry = list.current?.children[index] as HTMLElement | undefined
+    const target = entry ?? list.current
+    target?.focus({ preventScroll: true })
+  }, [isFetching, count, list])
+  return (index: number) => {
+    entryIndex.current = index
+  }
+}
+
 /** Показані дані застаріли: перечитування чи наступна сторінка не вдались (SPEC §8.1, п. 8, 11). */
-function FeedNotice({ query }: { query: TimelineFeedData["query"] }) {
+function FeedNotice({
+  query,
+  onRetry,
+}: {
+  query: TimelineFeedData["query"]
+  onRetry: (isMore: boolean) => void
+}) {
   const t = useErpUiT()
   const format = useFormat()
   const isMoreError = query.isFetchNextPageError
@@ -76,6 +108,7 @@ function FeedNotice({ query }: { query: TimelineFeedData["query"] }) {
         disabled={query.isFetching}
         focusableWhenDisabled
         onClick={() => {
+          onRetry(isMoreError)
           void (isMoreError ? query.fetchNextPage() : query.refetch())
         }}
       >
@@ -92,36 +125,44 @@ function FeedList({
   readOnly,
   mentions,
   renderMention,
+  onDelete,
 }: {
   feed: TimelineFeedData
   actions: TimelineActions
   readOnly: boolean
   mentions?: MentionSearch | false
   renderMention?: RichTextViewProps["renderMention"]
+  onDelete: (entry: TimelineDeletable) => void
 }) {
   const t = useErpUiT()
-  const errorText = useApiErrorMessage()
   const { query, entries, total } = feed
-  const [deleting, setDeleting] = React.useState<TimelineDeletable | null>(null)
   const list = React.useRef<HTMLOListElement>(null)
-  const isFile = deleting?.kind === "file"
+  const focusAfterFetch = useFocusAfterFetch(
+    list,
+    query.isFetching,
+    entries.length,
+  )
   return (
     <>
       <ol
         ref={list}
         tabIndex={-1}
         aria-label={t("timeline.listLabel")}
-        className="space-y-4 outline-none"
+        aria-busy={query.isPlaceholderData}
+        className={cn(
+          "space-y-4 outline-none",
+          query.isPlaceholderData && "opacity-60",
+        )}
       >
         {entries.map((entry) => (
           <TimelineEntryItem
-            key={entry.id}
+            key={timelineEntryKey(entry)}
             entry={entry}
             actions={actions}
             readOnly={readOnly}
             mentions={mentions}
             renderMention={renderMention}
-            onDelete={setDeleting}
+            onDelete={onDelete}
           />
         ))}
       </ol>
@@ -136,6 +177,7 @@ function FeedList({
             disabled={query.isFetchingNextPage}
             focusableWhenDisabled
             onClick={() => {
+              focusAfterFetch(entries.length)
               void query.fetchNextPage()
             }}
           >
@@ -144,40 +186,95 @@ function FeedList({
           </Button>
         ) : null}
       </div>
-      <FeedNotice query={query} />
-      <ConfirmDialog
-        open={deleting !== null}
-        title={t(
-          isFile ? "timeline.fileDeleteTitle" : "timeline.noteDeleteTitle",
-        )}
-        description={
-          deleting?.kind === "file"
-            ? t("timeline.fileDeleteDescription", { name: deleting.file.name })
-            : t("timeline.noteDeleteDescription")
-        }
-        confirmLabel={t(isFile ? "timeline.fileDelete" : "timeline.noteDelete")}
-        destructive
-        // Кнопка меню зникла разом із записом: фокус лишається в списку (WCAG 2.4.3).
-        returnFocus={() => list.current}
-        onClose={() => {
-          setDeleting(null)
-        }}
-        onConfirm={async () => {
-          if (!deleting) return
-          try {
-            await actions.remove(deleting.id)
-            announce(t("timeline.deleted"))
-          } catch (failure) {
-            toast.error(errorText(failure))
-          }
-          setDeleting(null)
+      <FeedNotice
+        query={query}
+        onRetry={(isMore) => {
+          focusAfterFetch(isMore ? entries.length : 0)
         }}
       />
     </>
   )
 }
 
+/** Діалог живе над списком: останній запис зникає зі списком, а діалог має закритись як слід. */
+function DeleteDialog({
+  deleting,
+  actions,
+  returnFocus,
+  onClose,
+}: {
+  deleting: TimelineDeletable | null
+  actions: TimelineActions
+  returnFocus: () => HTMLElement | null
+  onClose: () => void
+}) {
+  const t = useErpUiT()
+  const errorText = useApiErrorMessage()
+  const shown = useLastValue(deleting)
+  const isFile = shown?.kind === "file"
+  return (
+    <ConfirmDialog
+      open={deleting !== null}
+      title={t(
+        isFile ? "timeline.fileDeleteTitle" : "timeline.noteDeleteTitle",
+      )}
+      description={
+        shown?.kind === "file"
+          ? t("timeline.fileDeleteDescription", { name: shown.file.name })
+          : t("timeline.noteDeleteDescription")
+      }
+      confirmLabel={t(isFile ? "timeline.fileDelete" : "timeline.noteDelete")}
+      destructive
+      lockWhileBusy
+      returnFocus={returnFocus}
+      onClose={onClose}
+      onConfirm={async () => {
+        if (!deleting) return
+        try {
+          await actions.remove(deleting.id)
+          announce(t("timeline.deleted"))
+        } catch (failure) {
+          // Відповідь загубилась чи запис уже видалив колега: 404 і є результат.
+          if (isApiError(failure) && failure.status === 404)
+            announce(t("timeline.deleted"))
+          else toast.error(errorText(failure))
+          void actions.refresh()
+        }
+        onClose()
+      }}
+    />
+  )
+}
+
+type FeedContentProps = Omit<React.ComponentProps<typeof FeedList>, "onDelete">
+
 export function TimelineFeed({
+  actions,
+  ...props
+}: FeedContentProps & {
+  filter: TimelineFilter
+  onResetFilter: () => void
+  onCompose: () => void
+}) {
+  const [deleting, setDeleting] = React.useState<TimelineDeletable | null>(null)
+  const root = React.useRef<HTMLDivElement>(null)
+  return (
+    <div ref={root} tabIndex={-1} className="space-y-4 outline-none">
+      <FeedContent actions={actions} {...props} onDelete={setDeleting} />
+      <DeleteDialog
+        deleting={deleting}
+        actions={actions}
+        // Кнопка меню зникла разом із записом: фокус лишається в стрічці (WCAG 2.4.3).
+        returnFocus={() => root.current}
+        onClose={() => {
+          setDeleting(null)
+        }}
+      />
+    </div>
+  )
+}
+
+function FeedContent({
   feed,
   filter,
   readOnly,

@@ -86,6 +86,19 @@ test.describe("стрічка запису", () => {
     await expect(noteField(page)).toHaveText("")
   })
 
+  test("чернетка під захистом, хоч сусіднє поле порожнє", async ({ page }) => {
+    await openPage(page)
+    await noteField(page).click()
+    await type(page, "Чернетка")
+    await page.getByRole("link", { name: "Поле тексту" }).click()
+    const dialog = page.getByRole("alertdialog", {
+      name: "Вийти без збереження?",
+    })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole("button", { name: "Залишитися" }).click()
+    await expect(noteField(page)).toHaveText("Чернетка")
+  })
+
   test("свою нотатку можна змінити й видалити, чужу ні", async ({ page }) => {
     await openPage(page)
     await entryMenu(page).click()
@@ -104,7 +117,7 @@ test.describe("стрічка запису", () => {
     await entryMenu(page).click()
     await page.getByRole("menuitem", { name: "Видалити" }).click()
     const count = await entries(page).count()
-    const dialog = page.getByRole("dialog", { name: "Видалити нотатку?" })
+    const dialog = page.getByRole("alertdialog", { name: "Видалити нотатку?" })
     await dialog.getByRole("button", { name: "Видалити нотатку" }).click()
     await expect(entries(page)).toHaveCount(count - 1)
 

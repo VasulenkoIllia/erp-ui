@@ -16,6 +16,7 @@ import { SectionSkeleton } from "@/registry/erp/page-state"
 import { TimelineActivityDialog } from "@/registry/erp/timeline-activity-dialog"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import {
+  useLastValue,
   useTimelineActivities,
   type TimelineActions,
 } from "@/registry/hooks/use-timeline"
@@ -155,15 +156,28 @@ function ActivityRow({
   )
 }
 
-function useActivityClosing(actions: TimelineActions) {
+function useActivityClosing(
+  actions: TimelineActions,
+  items: readonly TimelineActivity[],
+  focusTarget: React.RefObject<HTMLElement | null>,
+) {
   const t = useErpUiT()
   const errorText = useApiErrorMessage()
-  const [closingId, setClosingId] = React.useState<string | null>(null)
+  const [closingIds, setClosingIds] = React.useState<readonly string[]>([])
+  // Рядок зникає разом із кнопкою, на якій стояв фокус: він лишається в блоці (WCAG 2.4.3).
+  const closedId = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!closedId.current || items.some(({ id }) => id === closedId.current))
+      return
+    closedId.current = null
+    if (document.activeElement === document.body) focusTarget.current?.focus()
+  }, [items, focusTarget])
   const close = async (
     activity: TimelineActivity,
     status: "done" | "cancelled",
   ) => {
-    setClosingId(activity.id)
+    setClosingIds((ids) => [...ids, activity.id])
+    closedId.current = activity.id
     try {
       await actions.updateActivity(activity.id, {
         version: activity.version,
@@ -171,15 +185,16 @@ function useActivityClosing(actions: TimelineActions) {
       })
       announce(t("timeline.activities.closed", { title: activity.title }))
     } catch (failure) {
-      if (isApiError(failure) && failure.status === 409) {
+      closedId.current = null
+      if (isApiError(failure) && [404, 409].includes(failure.status)) {
         toast.error(t("timeline.activities.changed"))
-        await actions.refresh()
+        void actions.refresh()
       } else toast.error(errorText(failure))
     } finally {
-      setClosingId(null)
+      setClosingIds((ids) => ids.filter((id) => id !== activity.id))
     }
   }
-  return { closingId, close }
+  return { closingIds, close }
 }
 
 export function TimelineActivities({
@@ -194,16 +209,17 @@ export function TimelineActivities({
   const t = useErpUiT()
   const timeZone = useUserTimeZone()
   const query = useTimelineActivities(target)
-  const { closingId, close } = useActivityClosing(actions)
+  const addButton = React.useRef<HTMLButtonElement>(null)
+  const items = React.useMemo(() => query.data ?? [], [query.data])
+  const { closingIds, close } = useActivityClosing(actions, items, addButton)
   const [editing, setEditing] = React.useState<TimelineActivity | "new" | null>(
     null,
   )
   const [cancelling, setCancelling] = React.useState<TimelineActivity | null>(
     null,
   )
+  const shownCancelling = useLastValue(cancelling)
   const headingId = React.useId()
-  const addButton = React.useRef<HTMLButtonElement>(null)
-  const items = query.data ?? []
   const today = todayIn(timeZone)
   return (
     <section
@@ -259,7 +275,7 @@ export function TimelineActivities({
               key={activity.id}
               activity={activity}
               today={today}
-              busy={closingId === activity.id}
+              busy={closingIds.includes(activity.id)}
               readOnly={readOnly}
               onDone={() => {
                 void close(activity, "done")
@@ -278,6 +294,7 @@ export function TimelineActivities({
         <TimelineActivityDialog
           activity={editing === "new" ? null : editing}
           actions={actions}
+          finalFocus={addButton}
           onClose={() => {
             setEditing(null)
           }}
@@ -287,11 +304,12 @@ export function TimelineActivities({
         open={cancelling !== null}
         title={t("timeline.activities.cancelTitle")}
         description={t("timeline.activities.cancelDescription", {
-          title: cancelling?.title,
+          title: shownCancelling?.title,
         })}
         confirmLabel={t("timeline.activities.cancel")}
         cancelLabel={t("timeline.activities.keep")}
         destructive
+        lockWhileBusy
         returnFocus={() => addButton.current}
         onClose={() => {
           setCancelling(null)

@@ -112,12 +112,32 @@ function EntryTime({ at }: { at: string }) {
   )
 }
 
+/** Причина стоїть у самому пункті: так її чує читач екрана, коли стає на неактивний пункт (SPEC §8.4). */
+function MenuItemText({
+  children,
+  reason,
+}: {
+  children: React.ReactNode
+  reason?: string
+}) {
+  return (
+    <span className="flex min-w-0 flex-col">
+      {children}
+      {reason ? (
+        <span className="text-xs text-muted-foreground">{reason}</span>
+      ) : null}
+    </span>
+  )
+}
+
 function EntryMenu({
   entry,
+  buttonRef,
   onEdit,
   onDelete,
 }: {
   entry: TimelineDeletable
+  buttonRef: React.Ref<HTMLButtonElement>
   onEdit?: () => void
   onDelete: () => void
 }) {
@@ -126,12 +146,12 @@ function EntryMenu({
   const denial = useRecordDenialReason()
   const editDenied = denial(entry, "update")
   const deleteDenied = denial(entry, "delete")
-  const reason = (onEdit ? editDenied : undefined) ?? deleteDenied
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button
+            ref={buttonRef}
             variant="ghost"
             size="icon-sm"
             className="ms-auto"
@@ -146,7 +166,9 @@ function EntryMenu({
       <DropdownMenuContent align="end" className="w-56">
         {onEdit ? (
           <DropdownMenuItem disabled={Boolean(editDenied)} onClick={onEdit}>
-            {t("timeline.edit")}
+            <MenuItemText reason={editDenied}>
+              {t("timeline.edit")}
+            </MenuItemText>
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem
@@ -154,11 +176,10 @@ function EntryMenu({
           disabled={Boolean(deleteDenied)}
           onClick={onDelete}
         >
-          {t("timeline.delete")}
+          <MenuItemText reason={deleteDenied}>
+            {t("timeline.delete")}
+          </MenuItemText>
         </DropdownMenuItem>
-        {reason ? (
-          <p className="px-1.5 py-1 text-xs text-muted-foreground">{reason}</p>
-        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -255,6 +276,16 @@ export function TimelineEntryItem({
 }: TimelineEntryItemProps) {
   const t = useErpUiT()
   const [isEditing, setIsEditing] = React.useState(false)
+  const item = React.useRef<HTMLLIElement>(null)
+  const menuButton = React.useRef<HTMLButtonElement>(null)
+  // Кнопки поля зникли разом із фокусом: він повертається до меню запису (WCAG 2.4.3).
+  const shouldRestoreFocus = React.useRef(false)
+  React.useEffect(() => {
+    if (isEditing || !shouldRestoreFocus.current) return
+    shouldRestoreFocus.current = false
+    const target = menuButton.current ?? item.current
+    target?.focus()
+  }, [isEditing])
   const {
     icon: Icon,
     chip,
@@ -267,9 +298,11 @@ export function TimelineEntryItem({
     !readOnly && !isEditing && (entry.kind === "note" || entry.kind === "file")
   return (
     <li
+      ref={item}
+      tabIndex={-1}
       data-slot="timeline-entry"
       data-kind={entry.kind}
-      className="flex items-start gap-3"
+      className="flex items-start gap-3 outline-none"
     >
       <span
         className={cn(
@@ -295,6 +328,7 @@ export function TimelineEntryItem({
           {canChange ? (
             <EntryMenu
               entry={entry}
+              buttonRef={menuButton}
               onEdit={
                 entry.kind === "note"
                   ? () => {
@@ -314,6 +348,7 @@ export function TimelineEntryItem({
             actions={actions}
             mentions={mentions}
             onClose={() => {
+              shouldRestoreFocus.current = true
               setIsEditing(false)
             }}
           />

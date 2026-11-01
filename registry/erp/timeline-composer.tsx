@@ -2,7 +2,7 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { LockIcon, SendIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import type { z } from "zod"
 
 import {
   FormField,
@@ -14,6 +14,7 @@ import type { RichTextHandle } from "@/registry/erp/rich-text-editor"
 import { TimelineFileButton } from "@/registry/erp/timeline-file-button"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import {
+  useTimelineBodySchema,
   useTimelineRequestId,
   type TimelineActions,
 } from "@/registry/hooks/use-timeline"
@@ -22,8 +23,6 @@ import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   EMPTY_RICH_TEXT,
-  isRichTextEmpty,
-  richTextSchema,
   type MentionSearch,
   type RichTextDoc,
 } from "@/registry/lib/rich-text"
@@ -85,16 +84,7 @@ export function TimelineComposer({
       handle.current?.focus()
     },
   }))
-  const schema = React.useMemo(
-    () =>
-      z.object({
-        body: richTextSchema.refine(
-          (doc) => !isRichTextEmpty(doc),
-          t("timeline.composer.required"),
-        ),
-      }),
-    [t],
-  )
+  const schema = useTimelineBodySchema()
   const form = useForm<
     z.input<typeof schema>,
     unknown,
@@ -112,8 +102,12 @@ export function TimelineComposer({
       const requestId = requestIds.next(JSON.stringify([kind, body]))
       await actions.post({ requestId, kind, body })
       requestIds.clear()
+      // Запит триває секунди, поле весь час відкрите: дописане за цей час не зникає разом із надісланим.
+      const current = form.getValues("body")
+      const isWrittenOn = JSON.stringify(current) !== JSON.stringify(body)
       form.reset({ body: { ...EMPTY_RICH_TEXT } })
-      setKind("note")
+      if (isWrittenOn) form.setValue("body", current, { shouldDirty: true })
+      else setKind("note")
       announce(
         t(
           kind === "note"
@@ -142,7 +136,8 @@ export function TimelineComposer({
         void form.handleSubmit(({ body }) => submit(body))(event)
       }}
     >
-      <UnsavedChangesGuard when={isDirty} />
+      {/* Роутер дивиться лише на останній захист: чисте поле не має вимикати захист сусідньої форми. */}
+      {isDirty ? <UnsavedChangesGuard when /> : null}
       {messages ? (
         <Tabs
           value={kind}

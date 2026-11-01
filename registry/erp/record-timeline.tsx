@@ -44,8 +44,9 @@ export interface RecordTimelineProps {
   id: string
   /** Режим перегляду: запис закрито, додавати нічого не можна (SPEC §8.1, п. 17). */
   readOnly?: boolean
-  /** `false`: у проекта немає пошти, лишаються нотатки. */
+  /** `false`: у проекта немає пошти, лишаються нотатки, зникає й фільтр повідомлень. */
   messages?: boolean
+  /** `false`: файлів немає, ні кнопки, ні фільтра. */
   files?: boolean
   followers?: boolean
   activities?: boolean
@@ -54,6 +55,8 @@ export interface RecordTimelineProps {
   /** Згадка як посилання на людину. */
   renderMention?: RichTextViewProps["renderMention"]
   maxFileBytes?: number
+  /** Назва області для читача екрана: кілька стрічок на сторінці мають відрізнятись. */
+  label?: string
   className?: string
 }
 
@@ -76,17 +79,19 @@ function useDelayed(value: boolean, delayMs: number): boolean {
 }
 
 function FilterSelect({
+  filters,
   value,
   onChange,
   isRefreshing,
 }: {
+  filters: readonly TimelineFilter[]
   value: TimelineFilter
   onChange: (value: TimelineFilter) => void
   isRefreshing: boolean
 }) {
   const t = useErpUiT()
   const id = React.useId()
-  const items = TIMELINE_FILTERS.map((filter) => ({
+  const items = filters.map((filter) => ({
     value: filter,
     label: t(`timeline.filters.${filter}`),
   }))
@@ -136,8 +141,10 @@ function TimelineBody({
   const [isReady, setIsReady] = React.useState(false)
   if (feed.query.data && !isReady) setIsReady(true)
   const { query } = feed
+  // Без мережі запит нового фільтра на паузі: `isFetching` мовчить, а список ще попередній.
   const isRefreshing = useDelayed(
-    query.isFetching && !query.isPending && !query.isFetchingNextPage,
+    (query.isFetching && !query.isPending && !query.isFetchingNextPage) ||
+      query.isPlaceholderData,
     REFRESH_INDICATOR_DELAY_MS,
   )
   if (!isReady) return <FeedLoadState query={query} />
@@ -166,6 +173,10 @@ function TimelineBody({
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <FilterSelect
+          filters={TIMELINE_FILTERS.filter(
+            (item) =>
+              (messages || item !== "message") && (files || item !== "file"),
+          )}
           value={filter}
           onChange={setFilter}
           isRefreshing={isRefreshing}
@@ -196,12 +207,16 @@ function TimelineBody({
   )
 }
 
-export function RecordTimeline({ className, ...props }: RecordTimelineProps) {
+export function RecordTimeline({
+  label,
+  className,
+  ...props
+}: RecordTimelineProps) {
   const t = useErpUiT()
   return (
     <section
       data-slot="record-timeline"
-      aria-label={t("timeline.title")}
+      aria-label={label ?? t("timeline.title")}
       className={cn("@container space-y-4", className)}
     >
       {/* Інший запис — нова стрічка: чернетка не переходить з картки на картку. */}

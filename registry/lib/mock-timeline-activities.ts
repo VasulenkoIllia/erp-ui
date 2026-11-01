@@ -22,12 +22,15 @@ import {
   type TimelineActivityPatch,
 } from "@/registry/lib/timeline"
 
+const CLOSED_STATUSES: readonly string[] = ["done", "cancelled"]
+
 export async function addActivity(
   request: Request,
   access: MockTimelineRequest,
 ) {
   const payload = (await request.json()) as { requestId?: string }
-  const onceKey = `${access.key}/${String(payload.requestId)}`
+  if (!payload.requestId) return invalidTimeline("requestId")
+  const onceKey = `${access.key}/${payload.requestId}`
   if (handledTimelineRequests.has(onceKey))
     return json(handledTimelineRequests.get(onceKey), { status: 201 })
   const parsed = timelineActivityInputSchema.safeParse(payload)
@@ -75,8 +78,15 @@ export async function patchActivity(
   access: MockTimelineRequest,
   activityId: unknown,
 ) {
-  const { version, status, assigneeId, ...fields } =
+  const { version, status, ...input } =
     (await request.json()) as TimelineActivityPatch
+  const parsed = timelineActivityInputSchema.partial().safeParse(input)
+  if (!parsed.success) return invalidTimeline("title")
+  const { assigneeId, ...fields } = parsed.data
+  if (fields.dueDate && !isCalendarDate(fields.dueDate))
+    return invalidTimeline("dueDate", "invalid")
+  if (status && !CLOSED_STATUSES.includes(status))
+    return invalidTimeline("status", "invalid")
   const assignee = assigneeId ? colleagueOf(access, assigneeId) : undefined
   if (assigneeId && !assignee) return invalidTimeline("assigneeId", "invalid")
   const result = changeMockTimeline(access.key, (record) => {

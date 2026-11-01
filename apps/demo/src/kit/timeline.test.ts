@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest"
 
 import { createApiClient } from "@/registry/lib/api"
 import {
-  TIMELINE_POLL_MS,
+  TIMELINE_READ_TIMEOUT_MS,
+  TIMELINE_UPLOAD_TIMEOUT_MS,
   createTimelineApi,
   timelineEntriesOf,
   timelineEntrySchema,
-  timelineEventType,
-  timelineQueryKey,
+  timelineUploadTimeoutMs,
   type TimelinePage,
 } from "@/registry/lib/timeline"
 
@@ -107,8 +107,37 @@ describe("timelineEntrySchema", () => {
     ).toMatchObject({ kind: "other" })
   })
 
-  it("запис без автора й часу сторінку ламає: це вже інший контракт", () => {
-    expect(() => timelineEntrySchema.parse({ kind: "note" })).toThrow()
+  it("запис без часу не розібрати", () => {
+    expect(() =>
+      timelineEntrySchema.parse({ id: "e1", kind: "note" }),
+    ).toThrow()
+  })
+
+  it("автора видалили: запис лишається", () => {
+    expect(
+      timelineEntrySchema.parse({ ...BASE, author: null, text: "Подія" }),
+    ).toMatchObject({ kind: "other", author: { name: "" }, text: "Подія" })
+  })
+
+  it("зіпсоване другорядне поле не забирає текст", () => {
+    const note = timelineEntrySchema.parse({
+      ...BASE,
+      kind: "note",
+      version: 1,
+      body: "Текст",
+      deniedActions: { update: true },
+    })
+    expect(note.kind).toBe("note")
+    expect(note).not.toHaveProperty("deniedActions.update")
+    const message = timelineEntrySchema.parse({
+      ...BASE,
+      kind: "message",
+      direction: "outgoing",
+      body: "Текст",
+      status: "delivered",
+    })
+    expect(message.kind).toBe("message")
+    expect(message.kind === "message" && message.status).toBeUndefined()
   })
 })
 
@@ -117,6 +146,49 @@ describe("timelineEntriesOf", () => {
     expect(
       timelineEntriesOf([page("c", "b"), page("b", "a")]).map(({ id }) => id),
     ).toEqual(["c", "b", "a"])
+  })
+
+  it("однакові `id` у різних видів — різні записи", () => {
+    const entries = timelineEntriesOf([
+      {
+        total: 2,
+        data: [
+          { ...BASE, id: "42", kind: "other" },
+          { ...BASE, id: "42", kind: "change", changes: [] },
+        ],
+      },
+    ])
+    expect(entries).toHaveLength(2)
+  })
+})
+
+describe("список із зіпсованими рядками", () => {
+  it("рядок без `id` чи з нечитабельною датою випадає, решта лишається", async () => {
+    const { api } = apiWith({
+      total: 4,
+      data: [
+        { ...BASE, id: "good", kind: "other", text: "Подія" },
+        { ...BASE, id: undefined, kind: "other" },
+        { ...BASE, id: "bad-date", at: "2026-13-45", kind: "other" },
+        { ...BASE, id: "empty-date", at: "", kind: "note", body: "Текст" },
+      ],
+    })
+    const { data } = await api.list(TARGET, "all", 1, 20)
+    expect(data.map(({ id }) => id)).toEqual(["good"])
+  })
+
+  it("дія з терміном, який не прочитати, випадає", async () => {
+    const assignee = { id: "u-1", name: "Олена" }
+    const activity = { version: 1, type: "call", title: "Дзвінок", assignee }
+    const { api } = apiWith({
+      data: [
+        { ...activity, id: "good", dueDate: "2026-11-02" },
+        { ...activity, id: "bad", dueDate: "скоро" },
+        { ...activity, id: "empty", dueDate: "" },
+      ],
+    })
+    const activities = await api.activities(TARGET)
+    expect(activities.map(({ id }) => id)).toEqual(["good"])
   })
 })
 
@@ -127,6 +199,14 @@ describe("createTimelineApi", () => {
     const { url, init } = lastCall(fetch)
     expect(url).toBe("/api/v1/invoices/inv%2F1/timeline?page=2&perPage=20")
     expect(new Headers(init?.headers).get("X-Background-Request")).toBe("1")
+  })
+
+  it("читання передає `signal`: перейшли на інший запис, запит скасовано", async () => {
+    const { api, fetch } = apiWith()
+    const controller = new AbortController()
+    await api.list(TARGET, "all", 1, 20, controller.signal)
+    expect(lastCall(fetch).init?.signal).toBeInstanceOf(AbortSignal)
+    expect(TIMELINE_READ_TIMEOUT_MS).toBeGreaterThan(0)
   })
 
   it("фільтр вузить запит за видом", async () => {
@@ -166,6 +246,14 @@ describe("createTimelineApi", () => {
     const form = init?.body as FormData
     expect(form.get("requestId")).toBe("r-2")
     expect((form.get("file") as File).name).toBe("a.pdf")
+    expect([...form.keys()][0]).toBe("requestId")
+  })
+
+  it("тайм-аут файла росте з розміром", () => {
+    expect(timelineUploadTimeoutMs(1024)).toBe(TIMELINE_UPLOAD_TIMEOUT_MS)
+    expect(timelineUploadTimeoutMs(100 * 1024 * 1024)).toBeGreaterThan(
+      TIMELINE_UPLOAD_TIMEOUT_MS,
+    )
   })
 
   it("підписник: `PUT`, `DELETE`, відповідь без тіла", async () => {
@@ -175,16 +263,5 @@ describe("createTimelineApi", () => {
     await api.unfollow(TARGET, "u-1")
     expect(lastCall(fetch).url).toBe("/api/v1/invoices/inv%2F1/followers/u-1")
     expect(lastCall(fetch).init?.method).toBe("DELETE")
-  })
-})
-
-describe("ключі й події", () => {
-  it("ключ кешу починається з ресурсу: подія запису оновлює й стрічку", () => {
-    expect(timelineQueryKey(TARGET)[0]).toBe("invoices")
-  })
-
-  it("подія не збігається з подіями запису: кеш списку вона не чіпає", () => {
-    expect(timelineEventType("invoices")).toBe("invoices.timeline")
-    expect(TIMELINE_POLL_MS).toBeGreaterThan(0)
   })
 })
