@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -22,6 +22,12 @@ const BrokenRender = (): never => {
   throw new Error("render")
 }
 
+/** Оновлення, що справді відбулось: у jsdom `reload` нічого не вивантажує. */
+function reloadAndLeave() {
+  reloadPage()
+  window.dispatchEvent(new Event("pagehide"))
+}
+
 const reloadButton = () =>
   screen.queryByRole("button", { name: "Оновити сторінку" })
 const retryButton = () =>
@@ -30,6 +36,7 @@ const retryButton = () =>
 describe("оновлення сторінки після збою чанка (ADR-0055)", () => {
   const reload = vi.fn()
   let isOnline = true
+  let release: () => void = () => undefined
 
   beforeEach(() => {
     isOnline = true
@@ -42,7 +49,9 @@ describe("оновлення сторінки після збою чанка (AD
   })
 
   afterEach(() => {
+    release()
     window.dispatchEvent(new Event("beforeunload"))
+    window.dispatchEvent(new Event("pagehide"))
     vi.useRealTimers()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
@@ -86,7 +95,7 @@ describe("оновлення сторінки після збою чанка (AD
   })
 
   it("оновлення щойно не допомогло: кнопки немає, чесний текст, повтор лишається", () => {
-    reloadPage()
+    reloadAndLeave()
     render(
       <ErrorBoundary>
         <FailedChunk />
@@ -101,12 +110,35 @@ describe("оновлення сторінки після збою чанка (AD
 
   it("мітка діє лише для тієї самої адреси й лише хвилину", () => {
     vi.useFakeTimers({ now: new Date(2026, 10, 1, 12) })
-    reloadPage()
+    reloadAndLeave()
     expect(reloadDidNotHelp()).toBe(true)
     vi.stubGlobal("location", { href: `${ADDRESS}/2`, reload })
     expect(reloadDidNotHelp()).toBe(false)
     vi.stubGlobal("location", { href: ADDRESS, reload })
     vi.setSystemTime(Date.now() + MINUTE_MS)
+    expect(reloadDidNotHelp()).toBe(false)
+  })
+
+  it("оновлення не відбулось (чужий запит браузера відхилили): мітки немає", () => {
+    reloadPage()
+    window.dispatchEvent(new Event("beforeunload"))
+    expect(reloadDidNotHelp()).toBe(false)
+    expect(isPageReloading()).toBe(false)
+  })
+
+  it("мітка з майбутнього не ховає кнопку назавжди", () => {
+    const mark = (at: number) => {
+      sessionStorage.setItem(
+        "erp-ui:page-reload",
+        JSON.stringify({ at, url: ADDRESS }),
+      )
+    }
+    mark(Date.now() + MINUTE_MS)
+    expect(reloadDidNotHelp()).toBe(false)
+    sessionStorage.setItem(
+      "erp-ui:page-reload",
+      `{"at":1e999,"url":"${ADDRESS}"}`,
+    )
     expect(reloadDidNotHelp()).toBe(false)
   })
 
@@ -134,8 +166,27 @@ describe("оновлення сторінки після збою чанка (AD
     expect(reloadDidNotHelp()).toBe(false)
   })
 
+  it("мережа зникла вже після збою: кнопка ховається, а з мережею повертається", () => {
+    render(
+      <ErrorBoundary>
+        <FailedChunk />
+      </ErrorBoundary>,
+    )
+    expect(reloadButton()).toBeVisible()
+    isOnline = false
+    act(() => {
+      window.dispatchEvent(new Event("offline"))
+    })
+    expect(reloadButton()).toBeNull()
+    isOnline = true
+    act(() => {
+      window.dispatchEvent(new Event("online"))
+    })
+    expect(reloadButton()).toBeVisible()
+  })
+
   it("незбережені зміни: спершу питає на місці, відмова повертає фокус", async () => {
-    const release = holdUnsavedChanges()
+    release = holdUnsavedChanges()
     render(
       <ErrorBoundary>
         <FailedChunk />
@@ -155,15 +206,15 @@ describe("оновлення сторінки після збою чанка (AD
       screen.getByRole("button", { name: "Усе одно оновити" }),
     )
     expect(reload).toHaveBeenCalledOnce()
-    release()
   })
 
-  it("захисти рахуються: зміни є, поки живий хоч один", () => {
+  it("захисти рахуються: зміни є, поки живий хоч один; повторне скасування нічого не ламає", () => {
     const first = holdUnsavedChanges()
-    const second = holdUnsavedChanges()
+    release = holdUnsavedChanges()
+    first()
     first()
     expect(hasUnsavedChanges()).toBe(true)
-    second()
+    release()
     expect(hasUnsavedChanges()).toBe(false)
   })
 
@@ -175,7 +226,7 @@ describe("оновлення сторінки після збою чанка (AD
   })
 
   it("ReloadPageAction у власному fallback теж ховається після марного оновлення", () => {
-    reloadPage()
+    reloadAndLeave()
     render(<ReloadPageAction />)
     expect(reloadButton()).toBeNull()
   })

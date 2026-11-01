@@ -19,7 +19,10 @@ let isReloading = false
 
 export function holdUnsavedChanges(): () => void {
   unsavedHolds += 1
+  let isHeld = true
   return () => {
+    if (!isHeld) return
+    isHeld = false
     unsavedHolds -= 1
   }
 }
@@ -33,7 +36,7 @@ export function isPageReloading(): boolean {
   return isReloading
 }
 
-export function reloadPage(): void {
+function rememberReload(): void {
   try {
     sessionStorage.setItem(
       RELOAD_MARK_KEY,
@@ -42,6 +45,9 @@ export function reloadPage(): void {
   } catch {
     // Без сховища лишається кнопка: оновлює лише людина, тож циклу немає.
   }
+}
+
+export function reloadPage(): void {
   isReloading = true
   // Після всіх захистів: якщо чужий запит браузера скасували, закриття вкладки знову попередить.
   window.addEventListener(
@@ -51,6 +57,8 @@ export function reloadPage(): void {
     },
     { once: true },
   )
+  // Мітка лише тоді, коли сторінка справді пішла: той самий чужий запит людина могла відхилити.
+  window.addEventListener("pagehide", rememberReload, { once: true })
   location.reload()
 }
 
@@ -59,11 +67,10 @@ export function reloadDidNotHelp(): boolean {
     const mark = JSON.parse(
       sessionStorage.getItem(RELOAD_MARK_KEY) ?? "null",
     ) as { at?: unknown; url?: unknown } | null
-    return (
-      typeof mark?.at === "number" &&
-      mark.url === location.href &&
-      Date.now() - mark.at < RELOAD_WINDOW_MS
-    )
+    if (typeof mark?.at !== "number" || mark.url !== location.href) return false
+    // Годинник могли перевести назад: мітка з майбутнього не має ховати кнопку назавжди.
+    const ageMs = Date.now() - mark.at
+    return ageMs >= 0 && ageMs < RELOAD_WINDOW_MS
   } catch {
     return false
   }

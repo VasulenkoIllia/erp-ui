@@ -138,20 +138,31 @@ function ChunkFailure(
   )
 }
 
+const subscribeToNetwork = (onChange: () => void) => {
+  window.addEventListener("online", onChange)
+  window.addEventListener("offline", onChange)
+  return () => {
+    window.removeEventListener("online", onChange)
+    window.removeEventListener("offline", onChange)
+  }
+}
+
+const readOnline = () => navigator.onLine
+
 /**
  * «Оновити сторінку» для збою чанка, і в стані межі, і у власному `fallback` тісного місця. Є
  * незбережені зміни — питає на місці. Не діалогом: він не входить у вхідний чанк, а лінивий після
  * деплою теж міг би не завантажитись (ADR-0055). Без мережі чи після марного оновлення нічого не
- * показує. Рядки стають елементами батьківського `flex-wrap`, текст попередження — окремим рядком.
+ * показує: мережа могла зникнути вже після збою. Кнопки стають елементами батьківського `flex-wrap`,
+ * текст попередження — окремим рядком.
  */
 export function ReloadPageAction({
   size,
   variant,
 }: Pick<React.ComponentProps<typeof Button>, "size" | "variant">) {
   const t = useErpUiT()
-  const [isAvailable] = React.useState(
-    () => navigator.onLine && !reloadDidNotHelp(),
-  )
+  const isOnline = React.useSyncExternalStore(subscribeToNetwork, readOnline)
+  const [isReloadFutile] = React.useState(reloadDidNotHelp)
   const [isConfirming, setIsConfirming] = React.useState(false)
   const warningId = React.useId()
   // Кнопка, на якій клікнули, зникає: фокус на безпечну дію, а після відмови — назад (WCAG 2.4.3).
@@ -163,7 +174,7 @@ export function ReloadPageAction({
     focusTarget.current?.focus()
   }, [isConfirming])
 
-  if (!isAvailable) return null
+  if (!isOnline || isReloadFutile) return null
   if (!isConfirming)
     return (
       <Button

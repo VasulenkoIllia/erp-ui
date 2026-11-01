@@ -5,11 +5,13 @@ import { describe, expect, it } from "vitest"
 
 import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
 import { applyKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
+import { ChunkLoadError } from "@/registry/lib/lazy"
 import {
   ObjectPage,
   useRecordSlots,
   type ExtensionAction,
   type ExtensionSection,
+  type ObjectPageAction,
   type RecordSlotProps,
 } from "@/registry/templates/object-page"
 
@@ -164,6 +166,45 @@ describe("ObjectPage: шапка, секції й дії списками з к�
         .getAllByRole("button")
         .map((button) => button.textContent),
     ).toEqual(["Змінити"])
+  })
+
+  it("лінивий чанк дії не завантажився: замість дії «Оновити сторінку», а не порожнеча (ADR-0055)", () => {
+    const FailedChunk = () => {
+      throw new ChunkLoadError(new Error("404"), () => undefined)
+    }
+    function ChunkCard() {
+      const slots = useRecordSlots({
+        record,
+        resource: "docs",
+        actions: { add: [{ id: "lazy", component: FailedChunk }] },
+      })
+      return (
+        <ObjectPage
+          title="Документ"
+          header={{
+            title: record.title,
+            actions: applyKeyedChanges<ObjectPageAction>([], slots.actions),
+          }}
+          sections={[]}
+        />
+      )
+    }
+    const error = console.error
+    console.error = () => undefined
+    try {
+      render(
+        <CoreAdminContext queryClient={new QueryClient()}>
+          <ChunkCard />
+        </CoreAdminContext>,
+      )
+    } finally {
+      console.error = error
+    }
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Оновити сторінку",
+      }),
+    ).toBeVisible()
   })
 
   it("секція розширення отримує запис і ресурс; порядок — за ключами", () => {
