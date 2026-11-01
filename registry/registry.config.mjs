@@ -1655,6 +1655,94 @@ export const CODE_ITEMS = {
     demo: "realtime",
     spec: ["PF19", "§8"],
   },
+  "lib/rich-text": {
+    title: "Оформлений текст: формат",
+    description:
+      "Документ JSON замість HTML (UI12, ADR-0052): toRichText для чужих даних (рядок стає абзацами, невідомий вузол лишає текст, межі глибини й вузлів), safeLinkHref, richTextSchema, richTextToPlain, richTextMentions, isRichTextEmpty. Без редактора й без React.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "PF05"],
+  },
+  "lib/i18n-uk-rich-text": {
+    title: "Рядки поля тексту українською",
+    description:
+      "Рядки кнопок, посилання й згадок (ADR-0052): окремий файл, простір імен erp-ui той самий.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§11"],
+  },
+  "lib/i18n-en-rich-text": {
+    title: "Рядки поля тексту англійською",
+    description:
+      "Ті самі рядки поля тексту англійською; парність ключів перевіряє тип.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§11"],
+  },
+  "lib/mention-menu": {
+    title: "Список згадок: стан",
+    description:
+      "Контролер списку під курсором поза React (ADR-0052): запит із паузою й скасуванням, індикатор після 1 с, помилка з повтором, клавіші. Tiptap не потрібен.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12"],
+  },
+  "hooks/use-mention-search": {
+    title: "Пошук колег для згадки",
+    description:
+      "useMentionSearch: довідник users, який бачить кожен у компанії (ADR-0030, ADR-0052); заблокованих прибирає браузер.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12"],
+  },
+  "erp/rich-text-view": {
+    title: "Показ оформленого тексту",
+    description:
+      "RichTextView: збережений текст без редактора й без HTML, лише елементи з дозволених вузлів; простий рядок, порожнє значення, renderMention (UI12, ADR-0052).",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§8", "§10"],
+  },
+  "erp/rich-text-styles": {
+    title: "Вигляд оформленого тексту",
+    description:
+      "Спільні класи показу й редактора: текст, згадка, рамка, стани (ADR-0052). Без React і Tiptap.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12"],
+  },
+  "erp/rich-text-mentions": {
+    title: "Список згадок під курсором",
+    description:
+      "RichTextMentions: спливний список Base UI, фокус лишається в тексті, aria-activedescendant, стани пошуку (ADR-0052). Частина лінивого чанка.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§10"],
+  },
+  "erp/rich-text-toolbar": {
+    title: "Кнопки оформлення тексту",
+    description:
+      "RichTextToolbar: Base UI Toolbar, форматування, посилання у спливному вікні, кнопка згадки (ADR-0052). Частина лінивого чанка.",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§10"],
+  },
+  "erp/rich-text-editor": {
+    title: "Редактор тексту",
+    description:
+      "RichTextEditor на Tiptap 3: лінивий чанк, напряму його не підключають, лише через erp/rich-text-field (ADR-0052).",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12"],
+  },
+  "erp/rich-text-field": {
+    title: "Поле оформленого тексту",
+    description:
+      "RichTextField: лінивий чанк Tiptap 3, кнопки оформлення, посилання, згадки колег, лише читання й вимкнено без редактора, завантаження, збій чанка з повтором, preloadRichTextEditor (UI12, ADR-0052).",
+    status: "beta",
+    demo: "richText",
+    spec: ["UI12", "§8", "§9", "§10"],
+  },
   "erp/session-guard": {
     title: "Охорона сесії",
     description:

@@ -16,6 +16,7 @@ export const ROUTES = {
   wizard: "/wizard",
   importExport: "/import-export",
   realtime: "/realtime",
+  richText: "/rich-text",
   setup: "/setup",
   states: "/states",
   data: "/data",
