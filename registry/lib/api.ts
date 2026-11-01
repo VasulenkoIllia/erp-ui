@@ -210,6 +210,12 @@ export const recordBaseSchema = z.object({
   version: z.number().int().min(1),
 })
 
+/**
+ * Сума в контракті: ціле число мінорних одиниць JSON-числом. `int()` у zod 4 пропускає лише значення в
+ * межах `Number.MAX_SAFE_INTEGER`, це понад 90 трильйонів гривень у копійках (ADR-0056).
+ */
+export const moneyAmountSchema = z.number().int()
+
 export interface RequestOptions<T> {
   query?: URLSearchParams | Record<string, string | undefined>
   body?: unknown

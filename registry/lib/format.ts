@@ -5,6 +5,7 @@
  * - `useFormat()` — ті самі функції з локаллю поточної мови інтерфейсу.
  * - Гроші — цілі мінорні одиниці + код валюти (SPEC §17): { amount: 4860000, currency: "UAH" } → «48 600,00 ₴».
  *   Гривня — символом «₴», інші валюти — кодом: «1 200,00 USD» (рішення власника 13.10.2026).
+ * - Кількість і ціна за одиницю — десяткові рядки контракту (ADR-0056): `formatDecimal`, `formatPrice`.
  * - Дати — лише явні стилі (`DATE_STYLES`); рядок "2026-10-13" — календарна дата без зсуву часового поясу.
  *   «р.» після року не пишемо: «13 жовтня 2026», «жовтень 2026» (SPEC §11).
  * - Час — 24-годинний; тиждень — з понеділка, номери тижнів — ISO 8601.
@@ -17,7 +18,10 @@ import { useLanguage } from "@/registry/lib/i18n"
 import { useUserTimeZone } from "@/registry/lib/user-timezone"
 
 export interface Money {
-  /** Ціле число мінорних одиниць (копійок, центів). */
+  /**
+   * Ціле число мінорних одиниць (копійок, центів). `bigint` — лише для показу й поля суми: у контракті
+   * сума завжди JSON-число (`moneyAmountSchema` з lib/api, ADR-0056), bigint у JSON не йде.
+   */
   amount: number | bigint
   /** Код валюти ISO 4217: UAH, USD, EUR, PLN… */
   currency: string
@@ -149,11 +153,16 @@ export function decimalToMinor(
 }
 
 /** Гривня — символом «₴», інші валюти — кодом (рішення власника 13.10.2026). */
-function moneyFormat(currency: string, locale: string): Intl.NumberFormat {
+function moneyFormat(
+  currency: string,
+  locale: string,
+  options: Intl.NumberFormatOptions = {},
+): Intl.NumberFormat {
   return numberFormat(locale, {
     style: "currency",
     currency,
     currencyDisplay: currency === "UAH" ? "narrowSymbol" : "code",
+    ...options,
   })
 }
 
@@ -189,6 +198,32 @@ export function formatMoney(money: Money, locale: string): string {
       currencyDigits(currency),
     ) as Intl.StringNumericLiteral,
   )
+}
+
+const fractionLength = (decimal: string) => decimal.split(".")[1]?.length ?? 0
+
+/** Кількість, десятковий рядок контракту: "1.50" → «1,5». Рядок форматується точно, без float. */
+export function formatDecimal(value: string, locale: string): string {
+  return numberFormat(locale, {
+    maximumFractionDigits: fractionLength(value),
+  }).format(value as Intl.StringNumericLiteral)
+}
+
+/**
+ * Ціна за одиницю, десятковий рядок контракту (ADR-0056): знаків не менше, ніж у валюти, зайвих нулів
+ * немає: "0.1234" → «0,1234 ₴», "12.5000" → «12,50 ₴».
+ */
+export function formatPrice(
+  price: string,
+  currency: string,
+  locale: string,
+): string {
+  const code = currency.toUpperCase()
+  const digits = currencyDigits(code)
+  return moneyFormat(code, locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: Math.max(digits, fractionLength(price)),
+  }).format(price as Intl.StringNumericLiteral)
 }
 
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
@@ -361,6 +396,9 @@ export function useFormat() {
       percent: (value: number, options?: Intl.NumberFormatOptions) =>
         formatPercent(value, locale, options),
       money: (money: Money) => formatMoney(money, locale),
+      decimal: (value: string) => formatDecimal(value, locale),
+      price: (price: string, currency: string) =>
+        formatPrice(price, currency, locale),
       date: (value: DateValue, style: DateStyle, options?: DateOptions) =>
         formatDate(value, style, locale, { timeZone, ...options }),
       dateRange: (

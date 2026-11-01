@@ -6,9 +6,11 @@ import {
   decimalToMinor,
   formatDate,
   formatDateRange,
+  formatDecimal,
   formatMoney,
   formatNumber,
   formatPercent,
+  formatPrice,
   formatRelative,
   isoWeek,
   minorToDecimal,
@@ -156,6 +158,31 @@ describe("множина", () => {
     ]
     for (const [n, category] of cases)
       expect(pluralCategory(n, UK), String(n)).toBe(category)
+  })
+})
+
+describe("кількість і ціна: десяткові рядки контракту", () => {
+  it("кількість без зайвих нулів і без похибок float", () => {
+    expect(formatDecimal("1.50", UK)).toBe("1,5")
+    expect(formatDecimal("2", UK)).toBe("2")
+    expect(formatDecimal("1234.5", EN)).toBe("1,234.5")
+    expect(formatDecimal("123456789012345.125", EN)).toBe(
+      "123,456,789,012,345.125",
+    )
+  })
+
+  it("ціна: знаків не менше, ніж у валюти, зайвих нулів немає", () => {
+    expect(formatPrice("0.1234", "UAH", UK)).toBe(`0,1234${NBSP}₴`)
+    expect(formatPrice("12.5000", "UAH", UK)).toBe(`12,50${NBSP}₴`)
+    expect(formatPrice("12", "UAH", UK)).toBe(`12,00${NBSP}₴`)
+    expect(formatPrice("1200.5", "usd", UK)).toBe(`1${NBSP}200,50${NBSP}USD`)
+    expect(formatPrice("1500.5", "JPY", UK)).toBe(`1${NBSP}500,5${NBSP}JPY`)
+  })
+
+  it("useFormat бере мову інтерфейсу", () => {
+    const { result } = renderHook(() => useFormat())
+    expect(result.current.decimal("1.5")).toBe("1,5")
+    expect(result.current.price("0.1234", "UAH")).toBe(`0,1234${NBSP}₴`)
   })
 })
 
