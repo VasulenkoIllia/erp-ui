@@ -14,7 +14,7 @@ import { Spinner } from "@/registry/ui/spinner"
  * на телефоні вона теж біля курсора: нижня шторка (UI38) сховала б клавіатуру.
  *
  * Спливне вікно Base UI, а не `mount` плагіна: усередині діалогу воно входить у його дерево, тож клік
- * у списку й Esc не закривають сам діалог.
+ * у списку не закриває сам діалог. Esc до діалогу не доходить: його зупиняє редактор.
  */
 const keepEditorFocus = (event: React.MouseEvent) => {
   event.preventDefault()
@@ -86,7 +86,6 @@ function MentionOptions({
           aria-selected={index === state.active}
           tabIndex={-1}
           className="group flex min-h-touch w-full min-w-0 flex-col justify-center rounded-md px-2 py-1 text-start text-sm outline-none hover:bg-muted aria-selected:bg-accent aria-selected:text-accent-foreground forced-colors:aria-selected:outline-2 forced-colors:aria-selected:outline-solid"
-          onMouseDown={keepEditorFocus}
           onClick={() => {
             menu.select(index)
           }}
@@ -115,13 +114,7 @@ function MentionStatus({
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 p-1">
         <span>{t("richText.mentionsFailed")}</span>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onMouseDown={keepEditorFocus}
-          onClick={menu.retry}
-        >
+        <Button type="button" size="sm" variant="outline" onClick={menu.retry}>
           {t("pageState.error.retry")}
         </Button>
       </div>
@@ -179,6 +172,7 @@ function MentionPopup({
         initialFocus={false}
         finalFocus={false}
         className="max-w-(--available-width) gap-0 p-1"
+        onMouseDown={keepEditorFocus}
       >
         {hasList ? (
           <MentionOptions id={id} state={state} menu={menu} />

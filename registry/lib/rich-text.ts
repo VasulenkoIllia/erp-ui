@@ -5,18 +5,23 @@ import { z } from "zod"
  * показ будує елементи React із дозволених вузлів, тож небезпечному HTML ніде взятися, а екрану
  * запису не потрібен ні редактор, ні санітайзер.
  *
- * - Документ — підмножина JSON ProseMirror, яку редактор віддає сам. Сервер проекту зберігає його як є,
- *   а згадки для сповіщень бере з `attrs.id`, бо підпис надсилає браузер.
+ * - Документ — підмножина JSON ProseMirror, яку редактор віддає сам. І `attrs.id`, і `attrs.label` згадки
+ *   надсилає браузер автора: сервер проекту перевіряє кожен `id` і на запису ставить ім'я з довідника.
  * - `toRichText(value)` — єдиний вхід для чужих даних, усе, що показуємо чи редагуємо, проходить через
  *   нього. Рядок стає абзацами: бекенд із простим текстом працює без змін. Невідомий вузол (новіша
  *   версія кіта) лишає свій текст, невідома позначка чи небезпечне посилання зникають, текст лишається.
- * - Глибина й кількість вузлів обмежені: підроблений документ не вичерпає стек і не завісить вкладку.
- *   Законний текст цих меж не досягає, сервер проекту має власну межу довжини.
+ * - Глибина й кількість вузлів обмежені: підроблений документ не вичерпає стек і не завісить вкладку
+ *   в обході кіта. Законний текст цих меж не досягає. Сервер проекту має власну межу довжини, а відповідь
+ *   у контракті йде через `richTextSchema`: кеш і форма копіюють значення рекурсивно й без меж.
  * - Посилання лише `http`, `https`, `mailto`, `tel`, без логіна в адресі: `https://bank.example@evil.example`
- *   виглядає як інший сайт. Перевірка одна для показу й редактора: `safeLinkHref`.
+ *   виглядає як інший сайт. У `mailto` без параметрів: `bcc` дописав би приховану копію. Перевірка одна
+ *   для показу й редактора: `safeLinkHref`.
+ * - Підпис згадки без керівних символів і не довший за `RICH_TEXT_MENTION_MAX`: він виглядає як позначка
+ *   системи, тож не має розвертати сусідній текст чи вдавати повідомлення.
  */
 export const RICH_TEXT_MAX_DEPTH = 32
 export const RICH_TEXT_MAX_NODES = 10_000
+export const RICH_TEXT_MENTION_MAX = 80
 
 export type RichTextMark =
   | { readonly type: "bold" | "italic" }
@@ -93,7 +98,10 @@ export const EMPTY_RICH_TEXT: RichTextDoc = { type: "doc", content: [] }
 
 const LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"])
 const INLINE_TYPES = new Set(["text", "mention", "hardBreak"])
-const NAMED_SCHEME = /^[a-z][a-z0-9+.-]*:/i
+// Без крапки в схемі: `docs.example:8443/a` — адреса з портом, а не схема `docs.example`.
+const NAMED_SCHEME = /^[a-z][a-z0-9+-]*:/i
+const LABEL_CONTROL_CHARS = /[\p{Cc}\p{Cf}]/gu
+const EMAIL = /^[^\s@/:]+@[^\s@/:]+$/
 
 /** Нормалізована адреса посилання або `null`, якщо такому посиланню не можна вірити. */
 export function safeLinkHref(value: unknown): string | null {
@@ -101,16 +109,18 @@ export function safeLinkHref(value: unknown): string | null {
   try {
     const url = new URL(value.trim())
     if (!LINK_PROTOCOLS.has(url.protocol)) return null
+    if (url.protocol === "mailto:" && url.search) return null
     return url.username || url.password ? null : url.href
   } catch {
     return null
   }
 }
 
-/** Те, що людина ввела в поле адреси: `example.com` означає `https://example.com/`. */
+/** Те, що людина ввела в поле адреси: `example.com` означає `https://example.com/`, пошта стає листом. */
 export function linkFromInput(value: string): string | null {
   const typed = value.trim()
   if (!typed) return null
+  if (EMAIL.test(typed)) return safeLinkHref(`mailto:${typed}`)
   return safeLinkHref(NAMED_SCHEME.test(typed) ? typed : `https://${typed}`)
 }
 
@@ -150,12 +160,17 @@ function toMarks(value: unknown): readonly RichTextMark[] {
   return [...marks.values()]
 }
 
+function toMentionLabel(value: unknown): string {
+  if (typeof value !== "string") return ""
+  const visible = value.replace(LABEL_CONTROL_CHARS, "").trim()
+  return Array.from(visible).slice(0, RICH_TEXT_MENTION_MAX).join("").trim()
+}
+
 function toMention(value: JsonObject): RichTextMentionNode | null {
   const attrs = isObject(value.attrs) ? value.attrs : {}
   if (typeof attrs.id !== "string" || !attrs.id) return null
-  const label =
-    typeof attrs.label === "string" && attrs.label ? attrs.label : attrs.id
-  return { type: "mention", attrs: { id: attrs.id, label } }
+  const label = toMentionLabel(attrs.label) || toMentionLabel(attrs.id)
+  return label ? { type: "mention", attrs: { id: attrs.id, label } } : null
 }
 
 function toInline(
@@ -202,7 +217,12 @@ function toBlocks(
     inline = []
   }
   for (const value of values) {
-    if (isObject(value) && INLINE_TYPES.has(String(value.type))) {
+    // Лише рядок: приведення вкладеного масиву в `type` вичерпало б стек ще до межі глибини.
+    if (
+      isObject(value) &&
+      typeof value.type === "string" &&
+      INLINE_TYPES.has(value.type)
+    ) {
       inline.push(...toInline(value, depth, walk))
     } else {
       flush()
@@ -286,6 +306,7 @@ export function richTextFromPlain(text: string): RichTextDoc {
     type: "doc",
     content: text
       .split(/\r?\n/)
+      .slice(0, RICH_TEXT_MAX_NODES)
       .map((line) => toParagraph(line ? [{ type: "text", text: line }] : [])),
   }
 }
@@ -294,18 +315,21 @@ export function richTextFromPlain(text: string): RichTextDoc {
 export function toRichText(value: unknown): RichTextDoc {
   if (typeof value === "string") return richTextFromPlain(value)
   if (!isObject(value) || value.type !== "doc") return EMPTY_RICH_TEXT
-  return {
-    type: "doc",
-    content: toBlocks(childrenOf(value), 1, { left: RICH_TEXT_MAX_NODES }),
-  }
+  const content = toBlocks(childrenOf(value), 1, { left: RICH_TEXT_MAX_NODES })
+  // Порожній редактор тримає один порожній абзац: стертий текст не робить форму зміненою.
+  const [first] = content
+  const isBlank =
+    content.length === 1 && first?.type === "paragraph" && !first.content
+  return isBlank ? EMPTY_RICH_TEXT : { type: "doc", content }
 }
 
 /**
- * Схема для контрактів і форм: чужий документ дає `RichTextDoc`, а не помилку, щоб запис із новішої
- * версії кіта читався. Обов'язковість у формі: `richTextSchema.refine((doc) => !isRichTextEmpty(doc))`.
+ * Схема для контрактів і форм: чужий документ чи простий текст дає `RichTextDoc`, а не помилку, щоб
+ * читався запис зі старого текстового поля й із новішої версії кіта. Обов'язковість у формі:
+ * `richTextSchema.refine((doc) => !isRichTextEmpty(doc))`.
  */
 export const richTextSchema = z
-  .looseObject({ type: z.literal("doc"), content: z.array(z.unknown()) })
+  .union([z.string(), z.looseObject({ type: z.literal("doc") })])
   .transform(toRichText)
 
 function inlineToPlain(node: RichTextInline): string {

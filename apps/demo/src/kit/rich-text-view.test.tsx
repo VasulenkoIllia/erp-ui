@@ -23,6 +23,7 @@ describe("RichTextView", () => {
   it("посилання відкривається окремо й без доступу до вікна", () => {
     render(<RichTextView value={NOTE} />)
     const link = screen.getByRole("link", { name: "Умови договору" })
+    expect(link).toHaveAttribute("title", link.getAttribute("href"))
     expect(link).toHaveAttribute("href", "https://docs.example/contract")
     expect(link).toHaveAttribute("target", "_blank")
     expect(link).toHaveAttribute("rel", "noopener noreferrer nofollow")

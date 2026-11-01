@@ -4,6 +4,7 @@ import {
   EMPTY_RICH_TEXT,
   RICH_TEXT_MAX_DEPTH,
   RICH_TEXT_MAX_NODES,
+  RICH_TEXT_MENTION_MAX,
   isRichTextEmpty,
   linkFromInput,
   richTextFromPlain,
@@ -59,6 +60,12 @@ describe("safeLinkHref", () => {
     expect(safeLinkHref(undefined)).toBeNull()
     expect(safeLinkHref({ toString: () => "https://a.example" })).toBeNull()
   })
+
+  it("лист без параметрів: прихована копія не дописується", () => {
+    expect(
+      safeLinkHref("mailto:olena@firma.example?bcc=x@evil.example&body=привіт"),
+    ).toBeNull()
+  })
 })
 
 describe("linkFromInput", () => {
@@ -71,6 +78,18 @@ describe("linkFromInput", () => {
     expect(linkFromInput("mailto:a@b.example")).toBe("mailto:a@b.example")
     expect(linkFromInput("   ")).toBeNull()
   })
+
+  it("порт без схеми не вважається схемою", () => {
+    expect(linkFromInput("docs.example:8443/a")).toBe(
+      "https://docs.example:8443/a",
+    )
+  })
+
+  it("адреса пошти стає листом", () => {
+    expect(linkFromInput("olena@firma.example")).toBe(
+      "mailto:olena@firma.example",
+    )
+  })
 })
 
 describe("toRichText", () => {
@@ -81,6 +100,11 @@ describe("toRichText", () => {
   it("не залежить від того, скільки разів пройшов", () => {
     const once = toRichText(HOSTILE_NOTE)
     expect(toRichText(once)).toEqual(once)
+  })
+
+  it("один порожній абзац — це порожній документ: стертий текст не міняє форму", () => {
+    expect(toRichText(doc({ type: "paragraph" }))).toEqual(EMPTY_RICH_TEXT)
+    expect(toRichText(doc(paragraph("а")))).not.toEqual(EMPTY_RICH_TEXT)
   })
 
   it("рядок стає абзацами, порожні рядки лишаються", () => {
@@ -254,12 +278,35 @@ describe("toRichText", () => {
     })
   })
 
+  it("підпис згадки без керівних символів і не довший за межу", () => {
+    const label = (value: string) => {
+      const [first] = richTextMentions(
+        doc({
+          type: "paragraph",
+          content: [{ type: "mention", attrs: { id: "u1", label: value } }],
+        }),
+      )
+      return first?.label
+    }
+    expect(label("Оле‮на​")).toBe("Олена")
+    expect(label("‮")).toBe("u1")
+    expect(label("я".repeat(1000))).toHaveLength(RICH_TEXT_MENTION_MAX)
+    expect(label("😀".repeat(100))).toBe("😀".repeat(RICH_TEXT_MENTION_MAX))
+  })
+
   it("дуже глибокий документ не вичерпує стек", () => {
     let nested: unknown = paragraph("на дні")
     for (let level = 0; level < 200_000; level += 1)
       nested = { type: "blockquote", content: [nested] }
     expect(() => toRichText(doc(nested))).not.toThrow()
     expect(richTextToPlain(doc(nested))).toBe("")
+  })
+
+  it("вкладені масиви в типі вузла не вичерпують стек", () => {
+    let nested: unknown = "x"
+    for (let level = 0; level < 200_000; level += 1) nested = [nested]
+    const hostile = doc({ type: nested }, { type: 42 }, paragraph("лишається"))
+    expect(richTextToPlain(hostile)).toBe("лишається")
   })
 
   it("глибина в межах норми лишається", () => {
@@ -326,9 +373,16 @@ describe("допоміжні функції", () => {
     expect(richTextFromPlain("  \n ")).toEqual(EMPTY_RICH_TEXT)
   })
 
-  it("схема чистить документ і відхиляє не документ", () => {
+  it("richTextFromPlain: кількість абзаців обмежена", () => {
+    const huge = "а\n".repeat(RICH_TEXT_MAX_NODES * 2)
+    expect(richTextFromPlain(huge).content).toHaveLength(RICH_TEXT_MAX_NODES)
+  })
+
+  it("схема чистить документ, бере старий текст і відхиляє решту", () => {
     expect(richTextSchema.parse(HOSTILE_NOTE)).toEqual(toRichText(HOSTILE_NOTE))
-    expect(richTextSchema.safeParse("текст").success).toBe(false)
-    expect(richTextSchema.safeParse({ type: "doc" }).success).toBe(false)
+    expect(richTextSchema.parse("текст")).toEqual(toRichText("текст"))
+    expect(richTextSchema.parse({ type: "doc" })).toEqual(EMPTY_RICH_TEXT)
+    expect(richTextSchema.safeParse(42).success).toBe(false)
+    expect(richTextSchema.safeParse({ type: "note" }).success).toBe(false)
   })
 })

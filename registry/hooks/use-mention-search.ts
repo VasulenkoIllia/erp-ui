@@ -1,7 +1,7 @@
 import { useDataProvider, type RaRecord } from "ra-core"
 import { useCallback } from "react"
 
-import { MENTION_RESULTS } from "@/registry/lib/mention-menu"
+import { MENTION_FETCHED } from "@/registry/lib/mention-menu"
 import type { MentionSearch } from "@/registry/lib/rich-text"
 
 /** Запис довідника людей (ADR-0030); `status` бачить лише той, хто має `users:read`. */
@@ -22,7 +22,7 @@ export function useMentionSearch(resource = "users"): MentionSearch {
   return useCallback(
     async (query, signal) => {
       const { data } = await dataProvider.getList<MentionRecord>(resource, {
-        pagination: { page: 1, perPage: MENTION_RESULTS },
+        pagination: { page: 1, perPage: MENTION_FETCHED },
         sort: { field: "name", order: "ASC" },
         filter: query ? { q: query } : {},
         signal,

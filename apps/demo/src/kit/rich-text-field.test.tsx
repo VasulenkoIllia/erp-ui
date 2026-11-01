@@ -157,6 +157,28 @@ describe("RichTextField з редактором", () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+  it("Ctrl+Z не повертає текст, що прийшов ззовні", async () => {
+    const onChange = vi.fn()
+    const props = {
+      "aria-label": "Нотатка",
+      mentions: false,
+      onChange,
+    } as const
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <RichTextField {...props} value={text("перше")} />,
+    )
+    const editor = await findEditor()
+    rerender(<RichTextField {...props} value={text("друге")} />)
+    await waitFor(() => {
+      expect(editor).toHaveTextContent("друге")
+    })
+    editor.focus()
+    await user.keyboard("{Control>}z{/Control}")
+    expect(editor).toHaveTextContent("друге")
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
   it("копія того самого значення не скидає редактор", async () => {
     function Copying() {
       const [value, setValue] = useState<RichTextDoc>(text("а"))

@@ -215,6 +215,32 @@ describe("клавіші", () => {
     expect(command).toHaveBeenCalledWith({ id: "a", label: "Людина a" })
   })
 
+  it.each(["Enter", "Tab"])(
+    "%s під час запиту не вибирає зі старого списку",
+    async (key) => {
+      const { menu, command, open } = await ready()
+      open("Мар")
+      expect(menu.getState()?.status).toBe("loading")
+      expect(menu.handleKey(key)).toBe(true)
+      expect(command).not.toHaveBeenCalled()
+    },
+  )
+
+  it("Enter після збою шукає знову", async () => {
+    const search = vi
+      .fn<MentionSearch>()
+      .mockRejectedValueOnce(new Error("збій"))
+      .mockResolvedValue([])
+    const { menu, open } = setup(search)
+    open("")
+    await settle()
+    expect(menu.getState()?.status).toBe("failed")
+    expect(menu.handleKey("Enter")).toBe(true)
+    await settle()
+    expect(search).toHaveBeenCalledTimes(2)
+    expect(menu.getState()?.status).toBe("ready")
+  })
+
   it("без списку клавіші лишаються редактору", async () => {
     const { menu, open } = setup(vi.fn(() => Promise.resolve([])))
     expect(menu.handleKey("Enter")).toBe(false)

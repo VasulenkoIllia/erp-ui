@@ -19,8 +19,9 @@ import { cn } from "@/registry/lib/utils"
  * `toRichText` уже відкинув небезпечні посилання.
  *
  * Значення — будь-яке: документ, простий текст бекенду без оформлення чи `null`. Порожнє показує
- * `empty`. `renderMention` робить згадку посиланням на людину: підпис у документі приходить від
- * браузера автора, тож перевірений запис людини проект бере за `mention.id`.
+ * `empty`. `renderMention` робить згадку посиланням на людину. Підпис і `id` приходять від браузера
+ * автора: чесними їх робить сервер, що на запису ставить ім'я з довідника. Без такого сервера проект
+ * бере ім'я за `mention.id`.
  */
 export interface RichTextViewProps {
   value: unknown
@@ -38,6 +39,7 @@ function renderText(node: RichTextTextNode): React.ReactNode {
       content = (
         <a
           href={mark.attrs.href}
+          title={mark.attrs.href}
           target="_blank"
           rel="noopener noreferrer nofollow"
         >
@@ -64,12 +66,9 @@ function renderInline(
           {renderMention ? (
             renderMention(node.attrs)
           ) : (
-            <span
-              data-slot="rich-text-mention"
-              className={richTextMentionClass}
-            >
+            <bdi data-slot="rich-text-mention" className={richTextMentionClass}>
               @{node.attrs.label}
-            </span>
+            </bdi>
           )}
         </React.Fragment>
       )

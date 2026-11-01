@@ -1,7 +1,7 @@
 import * as React from "react"
-// Необхідна залежність `@tiptap/suggestion`; реєстр бере пакети елемента з імпортів.
+// Peer-залежність `@tiptap/suggestion`: реєстр бере пакети елемента лише з імпортів.
 import type {} from "@floating-ui/dom"
-import type { Extensions, JSONContent } from "@tiptap/core"
+import type { Attributes, Extensions, JSONContent } from "@tiptap/core"
 import Blockquote from "@tiptap/extension-blockquote"
 import Bold from "@tiptap/extension-bold"
 import Document from "@tiptap/extension-document"
@@ -28,6 +28,7 @@ import {
   richTextContentClass,
   richTextFrameClass,
   richTextInvalidClass,
+  richTextLinkSlot,
   richTextMentionClass,
 } from "@/registry/erp/rich-text-styles"
 import { RichTextToolbar } from "@/registry/erp/rich-text-toolbar"
@@ -58,6 +59,28 @@ import { cn } from "@/registry/lib/utils"
 const MENTION_PLUGIN_KEY = new PluginKey("erp-ui-mention")
 
 const LINK_REL = "noopener noreferrer nofollow"
+
+/** Лише адреса: `class`, `title`, `target` і `rel` зі вставленого HTML не доходять до DOM поля. */
+const HrefOnlyLink = Link.extend({
+  addAttributes() {
+    const { href } = this.parent?.() as Attributes
+    return { href }
+  },
+})
+
+/** Tab виводить із поля, як скрізь у формі: вкладати пункти клавіатурою не можна, і документ не міняється. */
+const FormListItem = ListItem.extend({
+  addKeyboardShortcuts() {
+    return { Enter: () => this.editor.commands.splitListItem(this.name) }
+  },
+})
+
+const hasModifier = (event: KeyboardEvent) =>
+  event.isComposing ||
+  event.shiftKey ||
+  event.ctrlKey ||
+  event.metaKey ||
+  event.altKey
 
 /** Стилі, без яких ProseMirror працює неправильно: Tiptap дає їх власним `<style>`. */
 const ENGINE_CLASS =
@@ -101,11 +124,13 @@ function createExtensions(menu: MentionMenu): Extensions {
     HardBreak,
     BulletList,
     OrderedList,
-    ListItem,
+    FormListItem,
     ListKeymap,
     UndoRedo,
-    Link.configure({
+    HrefOnlyLink.configure({
       openOnClick: false,
+      // Вставка поверх виділення не питає `isAllowedUri`: посилання зникло б при збереженні мовчки.
+      linkOnPaste: false,
       defaultProtocol: "https",
       isAllowedUri: (url) => safeLinkHref(url) !== null,
       HTMLAttributes: { rel: LINK_REL, target: "_blank", class: null },
@@ -131,6 +156,9 @@ function createExtensions(menu: MentionMenu): Extensions {
           onUpdate: menu.update,
           onExit: menu.close,
           onKeyDown: ({ event }) => {
+            // Діалог слухає `document`, а вікно списку до того вже зникло: один Esc закрив би і його.
+            if (event.key === "Escape") event.stopPropagation()
+            if (hasModifier(event)) return false
             const handled = menu.handleKey(event.key)
             if (handled) event.preventDefault()
             return handled
@@ -183,11 +211,15 @@ function Editor({
 }: Omit<RichTextEditorProps, "mentions"> & { search: MentionSearch | null }) {
   const [menu] = React.useState(createMentionMenu)
   const [extensions] = React.useState(() => createExtensions(menu))
-  const [content] = React.useState(() => toContent(toRichText(value)))
+  const [initial] = React.useState(() => {
+    const doc = toRichText(value)
+    return { content: toContent(doc), json: JSON.stringify(doc) }
+  })
   React.useEffect(() => {
     menu.setSearch(search)
   }, [menu, search])
   const isInvalid = invalid === true || invalid === "true"
+  const hasMentions = search !== null
   const editorProps = React.useMemo(
     () => ({
       attributes: textboxAttributes({
@@ -199,7 +231,7 @@ function Editor({
         "aria-describedby": describedBy,
         "aria-invalid": isInvalid ? "true" : undefined,
         "aria-placeholder": placeholder,
-        "aria-autocomplete": search ? "list" : undefined,
+        "aria-autocomplete": hasMentions ? "list" : undefined,
         class: cn(
           richTextContentClass,
           richTextBodyClass,
@@ -208,12 +240,12 @@ function Editor({
         ),
       }),
     }),
-    [id, label, labelledBy, describedBy, isInvalid, placeholder, search],
+    [id, label, labelledBy, describedBy, isInvalid, placeholder, hasMentions],
   )
-  const emitted = React.useRef(JSON.stringify(toRichText(value)))
+  const emitted = React.useRef(initial.json)
   const editor = useEditor({
     extensions,
-    content,
+    content: initial.content,
     editorProps,
     injectCSS: false,
     onUpdate: ({ editor: current }) => {
@@ -227,7 +259,12 @@ function Editor({
     const next = JSON.stringify(doc)
     if (next === emitted.current) return
     emitted.current = next
-    editor.commands.setContent(toContent(doc), { emitUpdate: false })
+    // Поза історією: Ctrl+Z не повертає текст попереднього запису у форму.
+    editor
+      .chain()
+      .setMeta("addToHistory", false)
+      .setContent(toContent(doc), { emitUpdate: false })
+      .run()
   }, [editor, value])
   const focus = React.useCallback(() => {
     editor.commands.focus()
@@ -251,10 +288,17 @@ function Editor({
         className,
       )}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) onBlur?.()
+        // Список живе, поки курсор у тексті: кнопки панелі теж у межах поля.
+        if (event.target === editor.view.dom && menu.getState())
+          dismissMention()
+        const next = event.relatedTarget
+        if (event.currentTarget.contains(next)) return
+        // Вікно посилання в порталі, але це те саме поле.
+        if (next?.closest(`[data-slot="${richTextLinkSlot}"]`)) return
+        onBlur?.()
       }}
     >
-      <RichTextToolbar editor={editor} hasMentions={search !== null} />
+      <RichTextToolbar editor={editor} hasMentions={hasMentions} />
       <EditorContent editor={editor} />
       {search ? (
         <RichTextMentions

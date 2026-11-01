@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { richTextLinkSlot } from "@/registry/erp/rich-text-styles"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { linkFromInput } from "@/registry/lib/rich-text"
 import { Button } from "@/registry/ui/button"
@@ -86,8 +87,9 @@ function ToolbarButton({
           variant="ghost"
           size="icon"
           aria-label={label}
-          aria-pressed={pressed}
-          className="aria-pressed:bg-muted aria-pressed:text-foreground forced-colors:aria-pressed:outline-2 forced-colors:aria-pressed:outline-solid"
+          aria-pressed={trigger ? undefined : pressed}
+          data-active={pressed ? "" : undefined}
+          className="data-active:bg-muted data-active:text-foreground forced-colors:data-active:outline-2 forced-colors:data-active:outline-solid"
           onClick={onClick}
         />
       }
@@ -158,7 +160,10 @@ function LinkButton({ editor, active }: { editor: Editor; active: boolean }) {
       />
       <PopoverContent
         align="start"
-        finalFocus={() => editor.view.dom}
+        aria-label={t("richText.link")}
+        data-slot={richTextLinkSlot}
+        // Дотик поза вікном уже переніс фокус туди, де людина торкнулась.
+        finalFocus={(closeType) => closeType !== "touch" && editor.view.dom}
         className="max-w-(--available-width)"
       >
         <Field data-invalid={invalid ? true : undefined}>
@@ -203,16 +208,17 @@ function LinkButton({ editor, active }: { editor: Editor; active: boolean }) {
 
 /** «@» запускає той самий пошук, що й друк: кнопка для дотику й для тих, хто не знає про символ. */
 function startMention(editor: Editor) {
-  const { from } = editor.state.selection
+  const { to } = editor.state.selection
   const before = editor.state.doc.textBetween(
-    Math.max(from - 1, 0),
-    from,
+    Math.max(to - 1, 0),
+    to,
     "\n",
     "\n",
   )
   editor
     .chain()
     .focus()
+    .setTextSelection(to)
     .insertContent(before && !/\s/.test(before) ? " @" : "@")
     .run()
 }

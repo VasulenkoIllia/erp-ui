@@ -10,9 +10,13 @@ import {
 const PAGE = "/#/rich-text"
 const EDITOR_CHUNK = /rich-text-editor[^/]*\.(js|tsx)/
 
+/** Сторінка показує кілька полів і дублює тексти підказкою, тож шукаємо в межах поля форми. */
+const form = (page: Page) => page.locator('[data-field-name="body"]')
 const note = (page: Page) => page.getByRole("textbox", { name: "Нотатка" })
 const mentions = (page: Page) => page.getByRole("listbox")
+const popup = (page: Page) => page.locator('[data-slot="rich-text-mentions"]')
 const saved = (page: Page) => page.getByTestId("rich-text-saved")
+const address = (page: Page) => page.getByLabel("Адреса посилання")
 
 const openPage = async (page: Page) => {
   await openWith(page, {}, PAGE)
@@ -27,14 +31,14 @@ test.describe("поле тексту", () => {
     await openPage(page)
     await note(page).click()
     await type(page, "Погоджено ")
-    await page.getByRole("button", { name: "Жирний" }).click()
-    await expect(page.getByRole("button", { name: "Жирний" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
+    const bold = form(page).getByRole("button", { name: "Жирний" })
+    await bold.click()
+    await expect(bold).toHaveAttribute("aria-pressed", "true")
     await type(page, "важливе")
-    await page.getByRole("button", { name: "Жирний" }).click()
+    await bold.click()
     await type(page, " @Мар")
+    // Лише один рядок: це вже відповідь на «Мар», а не попередній список.
+    await expect(mentions(page).getByRole("option")).toHaveCount(1)
     await expect(
       mentions(page).getByRole("option", { name: /Марта Шевчук/ }),
     ).toBeVisible()
@@ -42,11 +46,12 @@ test.describe("поле тексту", () => {
     await page.keyboard.press("Enter")
     await expect(mentions(page)).toBeHidden()
     await page.getByRole("button", { name: "Зберегти нотатку" }).click()
-    await expect(saved(page).getByText("важливе")).toHaveJSProperty(
+    const view = saved(page).locator('[data-slot="rich-text-view"]')
+    await expect(view.getByText("важливе")).toHaveJSProperty(
       "tagName",
       "STRONG",
     )
-    await expect(saved(page).getByText("@Марта Шевчук")).toBeVisible()
+    await expect(view.getByText("@Марта Шевчук")).toBeVisible()
     await expect(saved(page).getByText(/Згадано: Марта Шевчук/)).toBeVisible()
     await expect(note(page)).toHaveText("")
   })
@@ -62,10 +67,10 @@ test.describe("поле тексту", () => {
     await expect(note(page)).toHaveAttribute("aria-activedescendant", /.+/)
     await expectNoA11yViolations(page)
     await type(page, "жодноготакого")
-    await expect(page.getByText("Нікого не знайдено")).toBeVisible()
+    await expect(popup(page).getByText("Нікого не знайдено")).toBeVisible()
     await expect(note(page)).not.toHaveAttribute("aria-activedescendant")
     await page.keyboard.press("Escape")
-    await expect(page.getByText("Нікого не знайдено")).toBeHidden()
+    await expect(popup(page)).toHaveCount(0)
     await expect(note(page)).toBeFocused()
   })
 
@@ -85,10 +90,66 @@ test.describe("поле тексту", () => {
     })
     await field.click()
     await type(page, "@")
-    await expect(page.getByText("Не вдалося знайти колег")).toBeVisible()
-    await page.getByRole("button", { name: "Спробувати ще" }).click()
+    await expect(popup(page).getByText("Не вдалося знайти колег")).toBeVisible()
+    await popup(page).getByRole("button", { name: "Спробувати ще" }).click()
     await expect(page.getByRole("option").first()).toBeVisible()
     await expect(field).toBeFocused()
+  })
+
+  test("у діалозі перший Esc закриває список, другий закриває діалог", async ({
+    page,
+  }) => {
+    await openPage(page)
+    await page.getByRole("button", { name: "Нотатка в діалозі" }).click()
+    const dialog = page.getByRole("dialog", { name: "Нотатка до запису" })
+    const field = dialog.getByRole("textbox", { name: "Нотатка до запису" })
+    await expect(field).toHaveAttribute("contenteditable", "true")
+    await field.click()
+    await type(page, "@")
+    await expect(mentions(page).getByRole("option").first()).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(mentions(page)).toBeHidden()
+    await expect(dialog).toBeVisible()
+    await expect(field).toBeFocused()
+    await page.keyboard.press("Escape")
+    await expect(dialog).toBeHidden()
+  })
+
+  test("вихід із поля закриває список згадок", async ({ page }) => {
+    await openPage(page)
+    await note(page).click()
+    await type(page, "@жодноготакого")
+    await expect(popup(page).getByText("Нікого не знайдено")).toBeVisible()
+    await page.keyboard.press("Tab")
+    await expect(note(page)).not.toBeFocused()
+    await expect(popup(page)).toHaveCount(0)
+  })
+
+  test("Shift+Tab при відкритому списку не вставляє людину", async ({
+    page,
+  }) => {
+    await openPage(page)
+    await note(page).click()
+    await type(page, "@")
+    await expect(mentions(page).getByRole("option").first()).toBeVisible()
+    await page.keyboard.press("Shift+Tab")
+    await expect(note(page)).not.toBeFocused()
+    await expect(mentions(page)).toBeHidden()
+    await expect(
+      note(page).locator('[data-slot="rich-text-mention"]'),
+    ).toHaveCount(0)
+  })
+
+  test("Tab у списку виводить із поля й не міняє документ", async ({
+    page,
+  }) => {
+    await openPage(page)
+    const field = page.getByRole("textbox", { name: "Вузьке місце" })
+    await expect(field).toHaveAttribute("contenteditable", "true")
+    await field.getByText("узгодити доставку").click()
+    await page.keyboard.press("Tab")
+    await expect(field).not.toBeFocused()
+    await expect(field.locator("ul ul")).toHaveCount(0)
   })
 
   test("посилання: небезпечна адреса відхиляється, безпечна стає посиланням", async ({
@@ -99,21 +160,45 @@ test.describe("поле тексту", () => {
     await type(page, "договір")
     await page.keyboard.press("ControlOrMeta+a")
     await page.getByRole("button", { name: "Посилання" }).first().click()
-    const address = page.getByLabel("Адреса посилання")
-    await expect(address).toBeFocused()
-    await address.fill("javascript:alert(1)")
+    await expect(address(page)).toBeFocused()
+    await expectNoA11yViolations(page)
+    await address(page).fill("javascript:alert(1)")
     await page.keyboard.press("Enter")
     await expect(page.getByText("Вкажіть адресу")).toBeVisible()
-    await expect(address).toHaveValue("javascript:alert(1)")
+    await expect(address(page)).toHaveValue("javascript:alert(1)")
     await expect(note(page).getByRole("link")).toHaveCount(0)
-    await address.fill("docs.example/contract")
+    await address(page).fill("docs.example/contract")
     await page.keyboard.press("Enter")
     await expect(note(page).getByRole("link")).toHaveAttribute(
       "href",
       "https://docs.example/contract",
     )
-    await expect(address).toBeHidden()
+    await expect(address(page)).toBeHidden()
     await expect(note(page)).toBeFocused()
+  })
+
+  test("вставлене посилання приносить лише адресу", async ({ page }) => {
+    await openPage(page)
+    await note(page).click()
+    await page.evaluate(() => {
+      const clipboardData = new DataTransfer()
+      clipboardData.setData(
+        "text/html",
+        '<a href="https://docs.example/a" class="fixed inset-0" title="Підміна" target="_self">договір</a>',
+      )
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", {
+          clipboardData,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+    const link = note(page).getByRole("link", { name: "договір" })
+    await expect(link).toHaveAttribute("href", "https://docs.example/a")
+    await expect(link).toHaveAttribute("target", "_blank")
+    await expect(link).not.toHaveAttribute("class", /.*/)
+    await expect(link).not.toHaveAttribute("title", /.*/)
   })
 
   test("Esc закриває вікно посилання одразу, курсор лишається над кнопкою", async ({
@@ -122,11 +207,20 @@ test.describe("поле тексту", () => {
     await openPage(page)
     await note(page).click()
     await page.getByRole("button", { name: "Посилання" }).first().click()
-    const address = page.getByLabel("Адреса посилання")
-    await expect(address).toBeFocused()
+    await expect(address(page)).toBeFocused()
     await page.keyboard.press("Escape")
-    await expect(address).toBeHidden()
+    await expect(address(page)).toBeHidden()
     await expect(note(page)).toBeFocused()
+  })
+
+  test("фокус у вікні посилання не показує помилку порожнього поля", async ({
+    page,
+  }) => {
+    await openPage(page)
+    await note(page).click()
+    await form(page).getByRole("button", { name: "Посилання" }).click()
+    await expect(address(page)).toBeFocused()
+    await expect(form(page).getByText("Напишіть текст нотатки")).toHaveCount(0)
   })
 
   test("обов'язкове поле: помилка біля поля, фокус, виправлення", async ({
@@ -134,11 +228,12 @@ test.describe("поле тексту", () => {
   }) => {
     await openPage(page)
     await page.getByRole("button", { name: "Зберегти нотатку" }).click()
-    await expect(page.getByText("Напишіть текст нотатки")).toBeVisible()
+    const error = form(page).getByText("Напишіть текст нотатки")
+    await expect(error).toBeVisible()
     await expect(note(page)).toHaveAttribute("aria-invalid", "true")
     await expect(note(page)).toBeFocused()
     await type(page, "текст")
-    await expect(page.getByText("Напишіть текст нотатки")).toBeHidden()
+    await expect(error).toBeHidden()
   })
 
   test("клік по підпису ставить фокус у текст", async ({ page }) => {

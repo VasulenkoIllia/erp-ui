@@ -5,7 +5,7 @@ import { CoreAdminContext, type DataProvider } from "ra-core"
 import { describe, expect, it, vi } from "vitest"
 
 import { useMentionSearch } from "@/registry/hooks/use-mention-search"
-import { MENTION_RESULTS } from "@/registry/lib/mention-menu"
+import { MENTION_FETCHED } from "@/registry/lib/mention-menu"
 
 function setup(data: Record<string, unknown>[]) {
   const getList = vi.fn(() => Promise.resolve({ data, total: data.length }))
@@ -23,7 +23,7 @@ describe("useMentionSearch", () => {
     const { signal } = new AbortController()
     await search("ол", signal)
     expect(getList).toHaveBeenCalledWith("users", {
-      pagination: { page: 1, perPage: MENTION_RESULTS },
+      pagination: { page: 1, perPage: MENTION_FETCHED },
       sort: { field: "name", order: "ASC" },
       filter: { q: "ол" },
       signal,

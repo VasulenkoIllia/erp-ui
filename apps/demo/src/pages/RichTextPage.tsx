@@ -26,6 +26,14 @@ import {
   type RichTextMention,
 } from "@/registry/lib/rich-text"
 import { Button } from "@/registry/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/registry/ui/dialog"
 
 import { HOSTILE_NOTE, NOTE, PLAIN_NOTE } from "@/data/rich-text"
 import { ROUTES } from "@/router"
@@ -173,6 +181,29 @@ function Example({
   )
 }
 
+function DialogExample() {
+  const { t } = useTranslation()
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button type="button" variant="outline" />}>
+        {t("richTextPage.dialogOpen")}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("richTextPage.dialogTitle")}</DialogTitle>
+          <DialogDescription>
+            {t("richTextPage.dialogDescription")}
+          </DialogDescription>
+        </DialogHeader>
+        <RichTextField
+          aria-label={t("richTextPage.dialogTitle")}
+          value={null}
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function StatesSection() {
   const { t } = useTranslation()
   const flakySearch = useFlakySearch()
@@ -248,6 +279,7 @@ function StatesSection() {
           </div>
         )}
       </Example>
+      <DialogExample />
     </Section>
   )
 }

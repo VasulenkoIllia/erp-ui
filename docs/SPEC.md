@@ -122,7 +122,7 @@ erp-ui/
 | Календар | FullCalendar 7 Standard (shadcn-версія) | MIT | Premium (таймлайн ресурсів) лише під клієнта |
 | Таймлайн ресурсів | прототип на @event-calendar/core | MIT | |
 | Gantt | ReUI Gantt; складне — SVAR або Bryntum під клієнта | MIT / платно | |
-| Редактор | Tiptap 3 + Collaboration + Hocuspocus/Yjs | MIT | DOCX й історія версій Tiptap — платні, не беремо |
+| Редактор | Tiptap 3 окремими пакетами (ADR-0052); спільне редагування Collaboration + Hocuspocus/Yjs — коли з'явиться модуль | MIT | DOCX й історія версій Tiptap — платні, не беремо |
 | Файли | Uppy 6 + tus, react-pdf, docx-preview; вибір файла — власний `erp/file-drop` (ADR-0049) | MIT / Apache-2.0 | |
 | Графіки | Recharts 3 (shadcn charts), ECharts 6 для великих даних | MIT / Apache-2.0 | |
 | Автоматизація | React Flow 12 (@xyflow/react) + react-querybuilder | MIT | правила виконує сервер |

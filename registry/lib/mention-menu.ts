@@ -11,10 +11,13 @@ import type {
  *
  * - Кожна літера скасовує попередній запит, пауза не дає слати запит на кожне натискання.
  * - Поки запит іде, видно попередній список. Індикатор лише після `MENTION_SLOW_MS` (SPEC §8.2).
+ *   Вибирати з нього клавішею не можна: швидкий Enter вставив би не ту людину.
  */
 export const MENTION_DEBOUNCE_MS = 200
 export const MENTION_SLOW_MS = 1_000
 export const MENTION_RESULTS = 8
+/** Запас на заблокованих: їх прибирає браузер, тож сервер віддає більше, ніж показує список. */
+export const MENTION_FETCHED = MENTION_RESULTS * 3
 
 export type MentionMenuStatus = "loading" | "ready" | "failed"
 
@@ -175,13 +178,17 @@ export function createMentionMenu(): MentionMenu {
     },
     handleKey(key) {
       const state = getState()
+      if (state?.status === "failed" && key === "Enter") {
+        start(state.query, 0)
+        return true
+      }
       if (!state?.items.length) return false
       if (key === "ArrowDown" || key === "ArrowUp") {
         move(key === "ArrowDown" ? 1 : -1)
         return true
       }
       if (key === "Enter" || key === "Tab") {
-        select(state.active)
+        if (state.status === "ready") select(state.active)
         return true
       }
       return false
