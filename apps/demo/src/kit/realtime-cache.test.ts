@@ -16,6 +16,8 @@ import {
   syncRealtimeCache,
 } from "@/registry/lib/realtime-cache"
 
+import { timelineEventType, timelineQueryKey } from "@/registry/lib/timeline"
+
 const encoder = new TextEncoder()
 
 const event = (type: string, resource: string): RealtimeEvent => ({
@@ -101,6 +103,26 @@ describe("syncRealtimeCache", () => {
     expect(invalidate).toHaveBeenCalledWith({
       queryKey: INBOX_QUERY_KEYS.all,
     })
+    stop()
+  })
+
+  it("подія запису оновлює й стрічку: ключ починається з ресурсу", async () => {
+    const { queryClient, send, stop } = setup()
+    await vi.advanceTimersByTimeAsync(0)
+    const key = timelineQueryKey({ resource: "invoices", id: "1" })
+    queryClient.setQueryData(key, [])
+    await send(event("invoices.updated", "invoices"))
+    await vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS)
+    expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true)
+    stop()
+  })
+
+  it("подія стрічки не чіпає кеш списків ресурсу", async () => {
+    const { invalidate, send, stop } = setup()
+    await vi.advanceTimersByTimeAsync(0)
+    await send(event(timelineEventType("invoices"), "invoices"))
+    await vi.advanceTimersByTimeAsync(REALTIME_FLUSH_MS)
+    expect(invalidate).not.toHaveBeenCalled()
     stop()
   })
 

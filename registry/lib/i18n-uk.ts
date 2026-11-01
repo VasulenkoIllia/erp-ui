@@ -10,6 +10,7 @@ import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import { ukPush } from "@/registry/lib/i18n-uk-push"
 import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
 import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
@@ -1435,6 +1436,7 @@ export const uk = {
   ...ukPush,
   ...ukRealtime,
   ...ukRichText,
+  ...ukTimeline,
   ...ukWizard,
   ...ukImport,
 }

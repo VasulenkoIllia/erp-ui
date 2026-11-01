@@ -11,6 +11,7 @@
       "importExport": "Import and export",
       "realtime": "Real time",
       "richText": "Rich text field",
+      "timeline": "Record timeline",
       "setup": "Get started",
       "states": "Page states",
       "data": "Data & mocks",
@@ -854,6 +855,18 @@
     "lockStart": "Colleague starts editing",
     "lockEnd": "Colleague finishes",
     "edit": "Edit invoice"
+  },
+  "timelinePage": {
+    "lead": "Everything that happened to a record in one place: team notes, messages to the customer, field changes, files, followers and scheduled actions. Buttons here play the part of a colleague and the customer.",
+    "fullTitle": "Full invoice timeline",
+    "fullDescription": "Anyone who can see the record can write. New entries appear without a reload; the mock panel switches states, resource timeline.",
+    "colleagueNote": "Colleague writes a note",
+    "customerReply": "Customer replies",
+    "changeInvoice": "Change the invoice",
+    "readOnlyTitle": "View only",
+    "readOnlyDescription": "The record is closed: the timeline is visible, nothing can be added.",
+    "narrowTitle": "Narrow column, no mail or files",
+    "narrowDescription": "An empty timeline in a card column. A project without mail keeps notes only."
   },
   "richTextPage": {
     "lead": "Notes and messages: formatted text with mentions of colleagues. The editor loads separately, only when the field can be changed, and saved text is shown without it.",

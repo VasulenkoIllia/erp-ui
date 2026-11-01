@@ -6,6 +6,7 @@ import {
   setMockEditLock,
 } from "@/registry/lib/mock-realtime"
 import { currentMockUser } from "@/registry/lib/mock-server"
+import { addMockTimelineEntry } from "@/registry/lib/mock-timeline-store"
 
 import { invoices } from "./handlers"
 
@@ -41,6 +42,33 @@ export function colleagueSendsNotification(): void {
       title: { uk: "Рахунок прострочено", en: "Invoice overdue" },
       actor: { name: COLLEAGUE.name },
     })
+}
+
+/** Колега написав нотатку: простий текст, як від бекенду без оформлення (ADR-0052). */
+export function colleagueWritesNote(id: string): void {
+  addMockTimelineEntry(
+    { resource: "invoices", id, companyId: getCompanyId() },
+    {
+      kind: "note",
+      author: COLLEAGUE,
+      version: 1,
+      body: "Домовилась із клієнтом про оплату до п'ятниці.",
+    },
+  )
+}
+
+/** Клієнт відповів: вхідне повідомлення від людини поза компанією. */
+export function customerReplies(id: string): void {
+  addMockTimelineEntry(
+    { resource: "invoices", id, companyId: getCompanyId() },
+    {
+      kind: "message",
+      direction: "incoming",
+      author: { name: "Богдан Мельник" },
+      party: "ТОВ «Зоря»",
+      body: "Дякую, рахунок отримали. Оплатимо цього тижня.",
+    },
+  )
 }
 
 export const dropConnection = dropMockRealtimeStream

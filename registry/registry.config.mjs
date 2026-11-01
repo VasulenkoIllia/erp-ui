@@ -1743,6 +1743,134 @@ export const CODE_ITEMS = {
     demo: "richText",
     spec: ["UI12", "§8", "§9", "§10"],
   },
+  "lib/timeline": {
+    title: "Стрічка запису: контракт",
+    description:
+      "Контракт GET, POST, PATCH, DELETE /<ресурс>/<id>/timeline, файли, підписники, заплановані дії, подія <ресурс>.timeline, createTimelineApi, requestId замість подвійного надсилання, запис невідомого виду не ламає стрічку (PF05, ADR-0053).",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "UI01", "§17"],
+  },
+  "lib/mock-timeline": {
+    title: "Мок стрічки запису",
+    description:
+      "createTimelineHandlers: усі адреси контракту стрічки зі сценаріями success, error, empty, slow, conflict, forbidden, offline; права як на сервері, зміни полів із журналу аудиту (ADR-0053).",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§17"],
+  },
+  "lib/mock-timeline-activities": {
+    title: "Мок запланованих дій",
+    description:
+      "Створення й зміна дій стрічки; закрита дія лишає запис у стрічці (ADR-0053). Частина lib/mock-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§17"],
+  },
+  "lib/mock-timeline-store": {
+    title: "Стан моку стрічки",
+    description:
+      "Стан у localStorage, timelineTargetMock для ресурсів проекту, addMockTimelineEntry для колеги в демо, відповіді моку (ADR-0053).",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§17"],
+  },
+  "lib/i18n-uk-timeline": {
+    title: "Рядки стрічки запису українською",
+    description:
+      "Рядки стрічки, поля нової нотатки, підписників і дій (ADR-0053): окремий файл, простір імен erp-ui той самий.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§11"],
+  },
+  "lib/i18n-en-timeline": {
+    title: "Рядки стрічки запису англійською",
+    description:
+      "Ті самі рядки стрічки англійською; парність ключів перевіряє тип.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§11"],
+  },
+  "hooks/use-timeline": {
+    title: "Дані стрічки запису",
+    description:
+      "useTimelineFeed, useTimelineFollowers, useTimelineActivities, useTimelineActions, useTimelineRealtime: записи сторінками, оновлення за подіями каналу, опитування без каналу (ADR-0053).",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05"],
+  },
+  "erp/record-timeline": {
+    title: "Стрічка запису",
+    description:
+      "RecordTimeline: нотатки й повідомлення, зміни полів, файли, підписники, заплановані дії на картці запису; усі стани колекції, @container, режим перегляду; messages={false} для проекту без пошти (UI01, PF05, ADR-0053).",
+    status: "beta",
+    demo: "timeline",
+    spec: ["UI01", "PF05", "§8", "§9", "§10"],
+  },
+  "erp/timeline-feed": {
+    title: "Список записів стрічки",
+    description:
+      "Записи, «Показати ще», стани SPEC §8.1, підтвердження видалення (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["UI01", "§8"],
+  },
+  "erp/timeline-entry": {
+    title: "Запис стрічки",
+    description:
+      "Один запис: нотатка й повідомлення мають різний вигляд, зміни полів, файл, закрита дія, подія проекту; меню дій із причиною заборони (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["UI01", "§10"],
+  },
+  "erp/timeline-note-editor": {
+    title: "Зміна нотатки",
+    description:
+      "Поле нотатки в стрічці, версія на момент відкриття, порівняння при чужій версії (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["UI01", "§8"],
+  },
+  "erp/timeline-composer": {
+    title: "Поле нового запису",
+    description:
+      "Нотатка чи повідомлення: вид видно кольором, значком, підказкою й назвою кнопки; текст лишається до відповіді сервера, requestId проти подвійного надсилання (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "UI01", "§8"],
+  },
+  "erp/timeline-file-button": {
+    title: "Файл у стрічку",
+    description:
+      "Кнопка вибору файла, завантаження, збій із повтором тим самим ключем (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "UI11"],
+  },
+  "erp/timeline-activities": {
+    title: "Заплановані дії запису",
+    description:
+      "Список відкритих дій, прострочені словом, виконати, змінити, скасувати; окремий збій блоку (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§8"],
+  },
+  "erp/timeline-activity-dialog": {
+    title: "Форма запланованої дії",
+    description:
+      "Вид, назва, термін, виконавець; порівняння при чужій версії (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05", "§8"],
+  },
+  "erp/timeline-followers": {
+    title: "Підписники запису",
+    description:
+      "«Стежити», список підписників у діалозі, додати чи прибрати колегу (ADR-0053). Частина erp/record-timeline.",
+    status: "beta",
+    demo: "timeline",
+    spec: ["PF05"],
+  },
   "erp/session-guard": {
     title: "Охорона сесії",
     description:
