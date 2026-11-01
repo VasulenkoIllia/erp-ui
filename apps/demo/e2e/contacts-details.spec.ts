@@ -309,7 +309,11 @@ test.describe("B1: адреси й рахунки в картці", () => {
     await expect(
       page.getByRole("button", { name: "Додати адресу" }),
     ).toHaveAttribute("aria-disabled", "true")
-    await expect(page.getByRole("button", { name: /^Дії: / })).toHaveCount(0)
+    await expect(
+      page
+        .getByRole("tabpanel", { name: "Адреси" })
+        .getByRole("button", { name: /^Дії: / }),
+    ).toHaveCount(0)
     await expectNoA11yViolations(page)
   })
 })

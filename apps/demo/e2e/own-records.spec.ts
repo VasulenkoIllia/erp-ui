@@ -262,8 +262,11 @@ test.describe("«Відповідальний»: бухгалтер бачить
       "Іван Петренко",
     )
     await expect(
-      timelineChanges(page).filter({ hasText: "Олена Коваль" }),
-    ).toHaveCount(1)
+      timelineChanges(page)
+        .locator('[data-slot="audit-change"]')
+        .filter({ hasText: "Відповідальний" })
+        .first(),
+    ).toContainText("БулоОлена КовальСталоІван Петренко")
   })
 
   test("у контакті — свій відповідальний, у шапці й колонці", async ({
