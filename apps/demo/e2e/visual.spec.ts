@@ -780,7 +780,7 @@ test.describe("скриншоти кроку 0.6a @screenshots", () => {
       await block(page, /\/DataPage-[\w-]+\.js$/)
       await page.goto("/#/data")
       await expect(page.getByRole("alert")).toContainText(
-        "Не вдалося завантажити дані",
+        "Потрібно оновити сторінку",
       )
       await expectNoA11yViolations(page)
       await page.screenshot({

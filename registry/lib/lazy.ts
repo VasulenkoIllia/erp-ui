@@ -10,6 +10,7 @@
  * - Невдале завантаження (офлайн, застарілий чанк після деплою) кидає `ChunkLoadError` до
  *   найближчого `ErrorBoundary` (erp/error-boundary); його «Спробувати ще» вантажить чанк заново.
  *   `React.lazy` так не вміє: відмову він запам'ятовує назавжди.
+ * - `isChunkLoadError(error)` — це збій завантаження чанка, а не помилка рендеру (ADR-0055).
  * - `whenIdle(task)` — запустити, коли браузер вільний (після першого кадру).
  *
  *   const ReportPage = lazyWithPreload(() => import(…).then((m) => m.ReportPage))
@@ -34,6 +35,22 @@ export class ChunkLoadError extends Error {
     this.name = "ChunkLoadError"
     this.retry = retry
   }
+}
+
+/**
+ * Тексти відмови `import()` у Chromium, Firefox і Safari, а також Vite для CSS чанка: `React.lazy`
+ * у файлі розширення й рядки модуля приходять до межі помилок без `ChunkLoadError`. Причини браузер
+ * не каже: після деплою, без мережі й при збої сервера текст той самий.
+ */
+const CHUNK_FAILURE_MESSAGE =
+  /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Unable to preload CSS/i
+
+/** Чанк не завантажився; відрізняє це від помилки рендеру, яку оновлення сторінки не лікує. */
+export function isChunkLoadError(error: unknown): boolean {
+  return (
+    error instanceof ChunkLoadError ||
+    (error instanceof Error && CHUNK_FAILURE_MESSAGE.test(error.message))
+  )
 }
 
 /** Проміс зі станом, який читає `use()` React: готовий результат віддається без призупинення. */

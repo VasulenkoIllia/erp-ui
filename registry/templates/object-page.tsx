@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { ErrorBoundary } from "@/registry/erp/error-boundary"
+import { ErrorBoundary, ReloadPageAction } from "@/registry/erp/error-boundary"
 import {
   PageState,
   SectionSkeleton,
@@ -12,6 +12,7 @@ import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { localizedText, type LocalizedText } from "@/registry/lib/auth"
 import { mapKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
+import { isChunkLoadError } from "@/registry/lib/lazy"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import { Skeleton } from "@/registry/ui/skeleton"
@@ -379,7 +380,7 @@ export function useRecordSlots<
       })),
       actions: mapKeyedChanges(actions, ({ id, access, component: Slot }) => {
         const node = (
-          <ErrorBoundary fallback={hideFailedAction}>
+          <ErrorBoundary fallback={failedAction}>
             <Slot record={record} resource={resource} />
           </ErrorBoundary>
         )
@@ -398,8 +399,17 @@ export function useRecordSlots<
   }, [record, resource, sections, actions, aside, language])
 }
 
-/** Дія проекту, що впала, зникає з шапки (React пише помилку в консоль, `onError` — немає). */
-const hideFailedAction = () => null
+/**
+ * Дія проекту, що впала, зникає з шапки (React пише помилку в консоль, `onError` — немає). Лише чанк
+ * лишає кнопку: інакше після деплою людина вирішила б, що права на дію в неї немає (ADR-0055).
+ */
+function failedAction(_retry: () => void, error: unknown) {
+  return isChunkLoadError(error) ? (
+    <div className="flex max-w-64 flex-wrap justify-end gap-2 empty:hidden">
+      <ReloadPageAction size="sm" variant="outline" />
+    </div>
+  ) : null
+}
 
 /** Секція картки з заголовком h2 і діями. */
 function ObjectPageSection({

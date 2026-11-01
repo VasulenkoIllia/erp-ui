@@ -6,6 +6,9 @@
 
 ### Додано
 
+- **«Оновити сторінку» після збою лінивого чанка** у `erp/error-boundary` (ADR-0055): стан має свій текст, кнопку видно одразу, без мережі її немає. Якщо оновлення не допомогло, кнопка зникає на хвилину. Незбережені зміни попереджають на місці. Поле тексту показує ту саму кнопку.
+- `lib/page-reload`: `reloadPage`, `reloadDidNotHelp`, `holdUnsavedChanges`, `hasUnsavedChanges`, `isPageReloading`. `lib/lazy`: `isChunkLoadError`. `erp/error-boundary`: `ReloadPageAction`, другий аргумент `fallback` (помилка), наявні функції працюють без змін.
+
 - **Модуль N1 «Стрічка запису»** `modules/N1-timeline` (ADR-0054): сторінка «Мої справи» з діями людини через усі записи, вкладки за терміном, «Виконано» в рядку, посилання на картку з розширення. `myActivities: false` вимикає сторінку для бекенду без `GET /me/activities`. Моки `createTimelineMocks`, фікстури `createTimelineFixtures`.
 - `TimelineApi`: новий `myActivities` (`GET /me/activities`), схема `timelineMyActivitySchema`, ключ `TIMELINE_MY_ACTIVITIES_KEY`. Адаптер на `createAuthProvider` отримує метод сам, написаний вручну додає.
 - **Слот стрічки на картці** (ADR-0054): `useRecordSlots({ aside })` і тип `ExtensionAside` у `templates/object-page`, `aside` в розширенні організацій і контактів B1. Без слота картка лишається з «Історією» й не робить запитів до стрічки. `ObjectPageAside.keepMounted` і `templates/object-page-aside` тримають вміст живим між вкладками й при повороті телефона.
@@ -82,6 +85,7 @@
 
 ### Змінено
 
+- Збій лінивого чанка в `erp/error-boundary` показує «Потрібно оновити сторінку» замість «Не вдалося завантажити дані» (ADR-0055). Тести проекту, що чекали старий текст, треба оновити. Лінива дія в шапці `useRecordSlots` при збої чанка лишає кнопку оновлення, а не зникає.
 - CI: у PR нові й змінені spec-файли, крім `perf` і `visual`, проходять ×10 окремою задачею; повний e2e, бюджет бандла, швидкість і доставка так само в CI.
 - **Кіт відкрито для читання** (ADR-0048): код видно, усі права застережено (`LICENSE`), чужий код — у `THIRD-PARTY-NOTICES.md`. Для `shadcn add` токен більше не потрібен, для `erp-ui-kit update` лишається `gh auth login`. Запуск репозиторію — `docs/development.md`. Домени пошти й сайтів у фікстурах стали `.example`, тимчасовий пароль демо змінено.
 - `pnpm check:registry` порівнює копію скіла лише там, де є `.claude/skills/erp-ui/`.

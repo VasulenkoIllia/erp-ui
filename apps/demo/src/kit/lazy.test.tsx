@@ -1,10 +1,14 @@
 import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { Suspense } from "react"
+import { Suspense, type ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import { ChunkLoadError, lazyWithPreload } from "@/registry/lib/lazy"
+import {
+  ChunkLoadError,
+  isChunkLoadError,
+  lazyWithPreload,
+} from "@/registry/lib/lazy"
 
 const Ready = () => <p>Сторінка готова</p>
 
@@ -47,7 +51,7 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     expect(screen.queryByText("Вантажу")).toBeNull()
   })
 
-  it("чанк не завантажився — стан помилки, «Спробувати ще» вантажить знову", async () => {
+  it("чанк не завантажився — «Оновити сторінку» одразу, «Спробувати ще» вантажить знову", async () => {
     // React пише перехоплену помилку в консоль — у тесті це шум.
     const consoleError = vi
       .spyOn(console, "error")
@@ -57,8 +61,11 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     await renderLazy(Page)
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Не вдалося завантажити дані",
+      "Потрібно оновити сторінку",
     )
+    expect(
+      screen.getByRole("button", { name: "Оновити сторінку" }),
+    ).toBeVisible()
     // Відмова запам'ятовується до повтору: рендери після збою не вантажать чанк знову.
     expect(load).toHaveBeenCalledTimes(1)
 
@@ -71,7 +78,7 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     consoleError.mockRestore()
   })
 
-  it("повтор не вдався — з'являється «Оновити сторінку»; помилка йде в onError", async () => {
+  it("повтор не вдався — фокус на заголовку нового стану; помилка йде в onError", async () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined)
@@ -85,9 +92,6 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
       </ErrorBoundary>,
     )
     const retry = await screen.findByRole("button", { name: "Спробувати ще" })
-    expect(
-      screen.queryByRole("button", { name: "Оновити сторінку" }),
-    ).toBeNull()
     expect(onError).toHaveBeenCalledWith(
       expect.any(ChunkLoadError),
       expect.anything(),
@@ -101,7 +105,7 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     ).toBeVisible()
     // Кнопка повтору зникла разом зі станом — фокус на заголовку нового стану, а не на body.
     expect(
-      screen.getByRole("heading", { name: "Не вдалося завантажити дані" }),
+      screen.getByRole("heading", { name: "Потрібно оновити сторінку" }),
     ).toHaveFocus()
     consoleError.mockRestore()
   })
@@ -190,19 +194,33 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     expect(retry).toHaveBeenCalledOnce()
   })
 
-  it("власний вигляд для тісних місць отримує повтор", async () => {
+  it("isChunkLoadError розпізнає відмову import() у браузерах, але не помилку рендеру", () => {
+    for (const message of [
+      "Failed to fetch dynamically imported module: https://app.example/assets/a-1.js",
+      "error loading dynamically imported module: https://app.example/assets/a-1.js",
+      "Importing a module script failed.",
+      "Unable to preload CSS for /assets/a-1.css",
+    ])
+      expect(isChunkLoadError(new TypeError(message))).toBe(true)
+    expect(isChunkLoadError(new ChunkLoadError("404", vi.fn()))).toBe(true)
+    expect(isChunkLoadError(new Error("render"))).toBe(false)
+    expect(isChunkLoadError("Importing a module script failed.")).toBe(false)
+  })
+
+  it("власний вигляд для тісних місць отримує повтор і помилку", async () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined)
     const Page = lazyWithPreload(flakyLoader(1))
+    const fallback = vi.fn<(retry: () => void, error: unknown) => ReactNode>(
+      (retry) => (
+        <button type="button" onClick={retry}>
+          Повторити панель
+        </button>
+      ),
+    )
     await renderAsync(
-      <ErrorBoundary
-        fallback={(retry) => (
-          <button type="button" onClick={retry}>
-            Повторити панель
-          </button>
-        )}
-      >
+      <ErrorBoundary fallback={fallback}>
         <Suspense fallback={null}>
           <Page />
         </Suspense>
@@ -211,6 +229,10 @@ describe("lazyWithPreload і ErrorBoundary (ADR-0009)", () => {
     const retry = await screen.findByRole("button", {
       name: "Повторити панель",
     })
+    expect(fallback).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(ChunkLoadError),
+    )
     await act(async () => {
       await userEvent.click(retry)
     })

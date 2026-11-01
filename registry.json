@@ -1123,6 +1123,11 @@
           "target": "@lib/list-state.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/shortcuts.ts"
@@ -2861,6 +2866,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -4140,6 +4150,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -5271,6 +5286,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -6233,6 +6253,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -7250,6 +7275,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -8441,6 +8471,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -9755,6 +9790,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -10647,6 +10687,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -17129,7 +17174,7 @@
       "name": "lib/lazy",
       "type": "registry:lib",
       "title": "Ліниві компоненти",
-      "description": "lazyWithPreload: сторінка чи важка частина окремим чанком із preload (наведення, старт, вільний браузер); збій завантаження — ChunkLoadError з повтором для erp/error-boundary; whenIdle (ADR-0009).",
+      "description": "lazyWithPreload: сторінка чи важка частина окремим чанком із preload (наведення, старт, вільний браузер); збій завантаження — ChunkLoadError з повтором для erp/error-boundary; isChunkLoadError відрізняє його від помилки рендеру; whenIdle (ADR-0009, ADR-0055).",
       "dependencies": [],
       "files": [
         {
@@ -29346,6 +29391,29 @@
       }
     },
     {
+      "name": "lib/page-reload",
+      "type": "registry:lib",
+      "title": "Оновлення сторінки після збою чанка",
+      "description": "reloadPage з міткою, щоб оновлення не ходило по колу; reloadDidNotHelp; holdUnsavedChanges і hasUnsavedChanges: межа помилок знає про незбережені зміни без форм (ADR-0055).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "states",
+        "spec": [
+          "§8.1",
+          "§18.5"
+        ]
+      }
+    },
+    {
       "name": "lib/passkey",
       "type": "registry:lib",
       "title": "Ключі доступу й WebOTP",
@@ -40711,6 +40779,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -41735,6 +41808,11 @@
           "target": "@lib/lazy.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/shortcuts.ts"
@@ -41962,6 +42040,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -47727,7 +47810,7 @@
       "name": "erp/error-boundary",
       "type": "registry:component",
       "title": "Межа помилок",
-      "description": "Помилка рендеру чи чанк, що не завантажився, — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; без мережі — «Немає з'єднання»; власний вигляд для тісних місць; рамка навколо стану помилки (`frame`: діалог лінивої форми); після невдалого повтору фокус — на заголовку нового стану (WCAG 2.4.3).",
+      "description": "Помилка рендеру — стан «Не вдалося завантажити» з «Спробувати ще» замість білого екрана; чанк, що не завантажився, — «Оновити сторінку» з попередженням про незбережені зміни й захистом від повторів (ReloadPageAction, ADR-0055); без мережі — «Немає з'єднання»; власний вигляд для тісних місць; рамка навколо стану помилки (`frame`: діалог лінивої форми); після невдалого повтору фокус — на заголовку нового стану (WCAG 2.4.3).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -47876,6 +47959,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -48147,6 +48235,11 @@
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -48584,6 +48677,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -49614,6 +49712,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -50372,6 +50475,11 @@
           "target": "@lib/list-state.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -50600,6 +50708,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -51628,6 +51741,11 @@
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -54067,6 +54185,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -57767,6 +57890,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -59250,6 +59378,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -59627,6 +59760,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -61510,6 +61648,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -62298,6 +62441,11 @@
           "target": "@lib/list-state.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -62542,6 +62690,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -63466,6 +63619,11 @@
           "path": "registry/lib/mention-menu.ts",
           "type": "registry:lib",
           "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/rich-text.ts",
@@ -65549,6 +65707,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -65889,6 +66052,11 @@
           "target": "@lib/list-state.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -66125,6 +66293,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -66427,6 +66600,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -67972,6 +68150,11 @@
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -69678,6 +69861,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -70185,6 +70373,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -70715,6 +70908,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -71237,6 +71435,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -71785,6 +71988,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -73114,6 +73322,11 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -77207,6 +77420,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -77947,6 +78165,11 @@
           "target": "@lib/notifications.ts"
         },
         {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
@@ -78248,6 +78471,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/session.ts",

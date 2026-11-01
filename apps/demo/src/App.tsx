@@ -52,7 +52,7 @@ import {
 } from "@/registry/erp/command-palette"
 import { useBrandAppearance } from "@/registry/erp/auth-layout"
 import { CompanySwitcher } from "@/registry/erp/company-switcher"
-import { ErrorBoundary } from "@/registry/erp/error-boundary"
+import { ErrorBoundary, ReloadPageAction } from "@/registry/erp/error-boundary"
 import { LoadingFallback, PageStateMain } from "@/registry/erp/page-state"
 import { RealtimeSync } from "@/registry/erp/realtime-sync"
 import { SessionGuard } from "@/registry/erp/session-guard"
@@ -72,7 +72,7 @@ import {
 } from "@/registry/lib/appearance"
 import { LANGUAGES, useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
-import { whenIdle } from "@/registry/lib/lazy"
+import { isChunkLoadError, whenIdle } from "@/registry/lib/lazy"
 import type { MockMessage } from "@/registry/lib/mock-server"
 import { syncPreferences } from "@/registry/lib/preferences"
 import { SHORTCUTS, type ProjectShortcut } from "@/registry/lib/shortcuts"
@@ -529,15 +529,18 @@ function Shell({
         banner={
           me?.impersonator ? (
             <ErrorBoundary
-              fallback={(retry) => (
+              fallback={(retry, error) => (
                 // Без чанка смуги — хоча б від чийого імені робота (ADR-0011).
                 <div
                   role="alert"
-                  className="flex items-center gap-3 bg-warning-soft px-4 py-2 text-sm font-medium text-warning-foreground"
+                  className="flex flex-wrap items-center gap-3 bg-warning-soft px-4 py-2 text-sm font-medium text-warning-foreground"
                 >
                   <p className="min-w-0 flex-1">
                     {kitT("auth.impersonation.banner", { name: me.name })}
                   </p>
+                  {isChunkLoadError(error) ? (
+                    <ReloadPageAction size="sm" variant="outline" />
+                  ) : null}
                   <Button variant="outline" size="sm" onClick={retry}>
                     {kitT("pageState.error.retry")}
                   </Button>
