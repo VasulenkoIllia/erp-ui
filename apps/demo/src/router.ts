@@ -28,6 +28,7 @@ export const ROUTES = {
   users: "/settings/users",
   roles: "/settings/roles",
   company: "/settings/company",
+  numbering: "/settings/numbering",
   profile: "/settings/profile",
   notifications: "/settings/notifications",
   securityPolicy: "/settings/security-policy",

@@ -27,6 +27,7 @@
       "inbox": "Notifications",
       "roles": "Roles & permissions",
       "company": "Company",
+      "numbering": "Document numbering",
       "fields": "Dates & numbers",
       "forms": "Forms",
       "pickers": "Picker & details",
@@ -862,7 +863,7 @@
   "documentPage": {
     "lead": "A document goes through three states: draft, submitted and cancelled. Actions depend on the status: submit, cancel, reverse, amend. The server says what isn't allowed for a particular document, and the reason shows on the button.",
     "listTitle": "Documents",
-    "listDescription": "Documents in different statuses. Pick a document to see its actions.",
+    "listDescription": "Documents in different statuses. A draft has no number: it gets one when submitted. Choose a document to see its actions.",
     "cardTitle": "Document card",
     "cardDescription": "The action bar shows only the actions available from the document status. Mock scenarios for the “documents” resource are in the developer panel: slow, error, offline, conflict, forbidden, empty.",
     "statuses": {
@@ -902,6 +903,14 @@
       "none": "No actions for this status"
     },
     "extension": "The project extension adds the “In review” status and the “Send for review” action for drafts, and allows “Submit” from review too."
+  },
+  "numberingPage": {
+    "lead": "A document gets its number when it is submitted: a draft has none. The template sets what the number is made of, and the preview shows the next one. Submit a draft on the Document page and the counter goes up.",
+    "sectionTitle": "Number series",
+    "sectionDescription": "An administrator can change the numbering, a team lead can only view it. Mock scenarios for the numbering-series resource are in the developer panel: slow, error, offline, conflict, forbidden, empty.",
+    "labels": {
+      "documents": "Documents"
+    }
   },
   "timelinePage": {
     "noMailTitle": "Project without email",

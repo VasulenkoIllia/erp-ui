@@ -94,6 +94,9 @@ export const PAGES = {
   notifications: lazyWithPreload(() =>
     import("./NotificationsPage").then((m) => m.NotificationsPage),
   ),
+  numbering: lazyWithPreload(() =>
+    import("./NumberingPage").then((m) => m.NumberingPage),
+  ),
   securityPolicy: lazyWithPreload(() =>
     import("./SecurityPolicyPage").then((m) => m.SecurityPolicyPage),
   ),

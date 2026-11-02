@@ -1054,6 +1054,37 @@ export const CODE_ITEMS = {
     demo: "document",
     spec: ["PF03", "§11"],
   },
+  "lib/numbering": {
+    title: "Нумерація документів",
+    description:
+      "Контракт PF03b: серія номерів на тип документа (ресурс numbering-series, PATCH шаблону й правил із version), лічильники numbering-counters лише для читання; шаблон із мітками {YYYY} {YY} {MM} {BRANCH} {####}, перевірка шаблону з кодами, номер за шаблоном, лічильник на компанію чи філію й рік, перегляд наступного номера. Номер дає проведення, у чернетки його немає (ADR-0058).",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§17"],
+  },
+  "lib/mock-numbering": {
+    title: "Мок нумерації",
+    description:
+      "createNumberingMocks: серії на createResourceHandlers (права, 409, 422 шаблону, сценарії), GET /numbering-counters, forResource для опції numbering моку переходів — атомарна видача номера на проведенні, зайнятий номер пропускається (ADR-0058).",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§17"],
+  },
+  "lib/i18n-uk-numbering": {
+    title: "Рядки нумерації українською",
+    description:
+      "Налаштування нумерації, мітки шаблону, помилки шаблону, «Без номера» (ADR-0058): окремий файл, простір імен erp-ui той самий.",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§11"],
+  },
+  "lib/i18n-en-numbering": {
+    title: "Рядки нумерації англійською",
+    description: "Ті самі рядки нумерації англійською.",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§11"],
+  },
   "lib/record-access": {
     title: "Права на рівні запису: контракт",
     description:
@@ -2442,6 +2473,22 @@ export const CODE_ITEMS = {
     status: "draft",
     demo: "document",
     spec: ["PF03", "§8.2", "§10"],
+  },
+  "erp/numbering-settings": {
+    title: "Налаштування нумерації",
+    description:
+      "NumberingSettings: типи документів компанії зі своїми серіями, вибрана — в адресі; широкий контейнер — список і форма поруч, вузький — одне під одним; без права на зміну — лише перегляд, без права на читання — «Немає доступу»; стани завантаження, помилки, офлайн і порожньо (PF03b, ADR-0058).",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§8", "§9", "§10"],
+  },
+  "erp/numbering-series-form": {
+    title: "Форма серії нумерації",
+    description:
+      "NumberingSeriesForm: шаблон із кнопками міток на місці курсора, «Щороку з 1», «Окремо для кожної філії», перевірка шаблону біля поля, перегляд наступного номера з лічильників сервера й вибором філії; збереження з липкою панеллю й порівнянням у конфлікті. Частина erp/numbering-settings (PF03b, ADR-0058).",
+    status: "draft",
+    demo: "numbering",
+    spec: ["PF03", "§8.2", "§8.3", "§10"],
   },
   "erp/confirm-dialog": {
     title: "Діалог підтвердження",

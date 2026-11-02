@@ -9,6 +9,7 @@ import {
   documentDeniedActions,
 } from "@/registry/lib/mock-transitions"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
+import { createNumberingMocks } from "@/registry/lib/mock-numbering"
 import { timelineTargetMock } from "@/registry/lib/mock-timeline-store"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { RECORD_DENIAL_REASONS } from "@/registry/lib/record-access"
@@ -38,6 +39,9 @@ import {
   amendDocument,
   colleagueDocumentChange,
   DOCUMENT_TRANSITIONS,
+  DOCUMENT_NUMBER_TEMPLATE,
+  DOCUMENT_NUMBERS_ISSUED,
+  DOCUMENT_SEED_YEAR,
   documentSchema,
   makeDocuments,
   reverseDocument,
@@ -251,6 +255,32 @@ export const documents = createResourceHandlers<DemoDocument>({
   },
 })
 
+/**
+ * Нумерація (PF03b, ADR-0058): серія документів у кожній компанії демо; засів першої компанії вже видав
+ * номери проведеним і скасованим документам. Код філії для `{BRANCH}` — з профілів компаній демо.
+ */
+export const numbering = createNumberingMocks({
+  series: COMPANIES.map((company) => ({
+    companyId: company.id,
+    resource: "documents",
+    template: DOCUMENT_NUMBER_TEMPLATE,
+  })),
+  counters: [
+    {
+      companyId: COMPANIES[0].id,
+      resource: "documents",
+      year: DOCUMENT_SEED_YEAR,
+      value: DOCUMENT_NUMBERS_ISSUED,
+    },
+  ],
+  branchCode: (companyId, branchId) =>
+    companyId
+      ? COMPANY_PROFILES[companyId]?.branches?.find(
+          (branch) => branch.id === branchId,
+        )?.code
+      : undefined,
+})
+
 const documentTransitions = createTransitionHandlers({
   resource: "documents",
   db: documents.db,
@@ -261,6 +291,7 @@ const documentTransitions = createTransitionHandlers({
   amend: amendDocument,
   reverse: reverseDocument,
   conflictChange: colleagueDocumentChange,
+  numbering: numbering.forResource({ resource: "documents", db: documents.db }),
 })
 
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
@@ -290,6 +321,10 @@ export const handlers = [
       tags: { uk: "Теги", en: "Tags" },
       reasons: { uk: "Причини", en: "Reasons" },
       documents: { uk: "Документи", en: "Documents" },
+      "numbering-series": {
+        uk: "Нумерація документів",
+        en: "Document numbering",
+      },
     },
     auditSeeds: [...AUDIT_SEEDS, ...audit.seeds],
     webhookEvents: WEBHOOK_EVENTS,
@@ -307,6 +342,7 @@ export const handlers = [
   ...invoices.handlers,
   ...documentTransitions,
   ...documents.handlers,
+  ...numbering.handlers,
   ...contacts.handlers,
   ...users.handlers,
   ...company.handlers,

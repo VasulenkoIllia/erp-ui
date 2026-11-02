@@ -3,6 +3,7 @@ import { z } from "zod"
 import { moneyAmountSchema, recordBaseSchema } from "@/registry/lib/api"
 import { documentLifecycleSchema } from "@/registry/lib/document-lifecycle"
 import type { DocumentState } from "@/registry/lib/document-lifecycle"
+import { formatDocumentNumber } from "@/registry/lib/numbering"
 import type { StatusTransition } from "@/registry/lib/statuses"
 
 import { COMPANIES } from "@/fixtures"
@@ -46,7 +47,8 @@ export type DocumentTransitionId = (typeof DOCUMENT_TRANSITIONS)[number]["id"]
 export const documentSchema = recordBaseSchema
   .extend({
     companyId: z.string().nullable().optional(),
-    number: z.string().min(1),
+    // Номер дає сервер на проведенні (ADR-0058): у чернетки його немає.
+    number: z.string().min(1).nullable(),
     client: z.string().min(1),
     date: z.string(),
     dueDate: z.string(),
@@ -141,27 +143,45 @@ const SEEDS: readonly Seed[] = [
   },
 ]
 
+/** Шаблон серії документів демо (ADR-0058): «ДОК-2026-0001», з 1 щороку. */
+export const DOCUMENT_NUMBER_TEMPLATE = "ДОК-{YYYY}-{####}"
+
+/** Номери, які засів уже видав: проведені й скасовані документи, у порядку засіву. */
+export const DOCUMENT_NUMBERS_ISSUED = SEEDS.filter(
+  (seed) => seed.docStatus !== "draft",
+).length
+/** Рік дати документів засіву: лічильник цього року вже видав `DOCUMENT_NUMBERS_ISSUED`. */
+export const DOCUMENT_SEED_YEAR = Number(isoDay(0).slice(0, 4))
+
 /** Документи першої компанії демо: інша компанія їх не бачить, як і решту даних (ADR-0036). */
 export function makeDocuments(): DemoDocument[] {
   const companyId = COMPANIES[0].id
-  return SEEDS.map(({ id, links, ...seed }, index) =>
-    documentSchema.parse({
+  let issued = 0
+  return SEEDS.map(({ id, links, ...seed }, index) => {
+    const date = isoDay(-index * 3)
+    const number =
+      seed.docStatus === "draft"
+        ? null
+        : formatDocumentNumber(DOCUMENT_NUMBER_TEMPLATE, {
+            date,
+            value: (issued += 1),
+          })
+    return documentSchema.parse({
       id,
       version: 1,
       companyId,
-      number: `ДОК-${String(index + 1).padStart(4, "0")}`,
-      date: isoDay(-index * 3),
+      number,
+      date,
       dueDate: isoDay(14 - index * 3),
       currency: "UAH",
       ...seed,
       ...links,
-    }),
-  )
+    })
+  })
 }
 
-/** Виправлена копія: нова чернетка з тими самими даними й номером із суфіксом. */
+/** Виправлена копія: нова чернетка з тими самими даними; номер дасть проведення. */
 export const amendDocument = (document: DemoDocument) => ({
-  number: `${document.number}-1`,
   client: document.client,
   date: isoDay(0),
   dueDate: document.dueDate,
@@ -170,9 +190,8 @@ export const amendDocument = (document: DemoDocument) => ({
   status: "draft",
 })
 
-/** Сторно: проведений документ із тією самою сумою з мінусом сьогоднішньою датою. */
+/** Сторно: проведений документ із тією самою сумою з мінусом сьогоднішньою датою; номер — наступний у серії. */
 export const reverseDocument = (document: DemoDocument) => ({
-  number: `${document.number}-С`,
   client: document.client,
   date: isoDay(0),
   dueDate: isoDay(0),
