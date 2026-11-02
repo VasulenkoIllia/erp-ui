@@ -37,6 +37,10 @@ export const PAGES = {
   document: lazyWithPreload(() =>
     import("./DocumentPage").then((m) => m.DocumentPage),
   ),
+  // Редактор рядків документа (ADR-0059).
+  documentLines: lazyWithPreload(() =>
+    import("./DocumentLinesPage").then((m) => m.DocumentLinesPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

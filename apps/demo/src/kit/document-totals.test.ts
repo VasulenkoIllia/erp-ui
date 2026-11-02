@@ -14,102 +14,141 @@ import {
 } from "@/registry/lib/document-lines"
 import {
   computeDocumentTotals,
-  type DocumentTotals,
   type Totals,
   type TotalsLine,
-  type TotalsLineTax,
 } from "@/registry/lib/document-totals"
 
-const VAT_20: TotalsLineTax = { id: "vat-20", rate: 20, included: false }
-const VAT_20_IN_PRICE: TotalsLineTax = {
-  id: "vat-20-in",
-  rate: 20,
-  included: true,
-}
-const VAT_7: TotalsLineTax = { id: "vat-7", rate: 7, included: false }
-const VAT_0: TotalsLineTax = { id: "vat-0", rate: 0, included: false }
+import {
+  line,
+  ROW,
+  totalsOf,
+  VAT_0,
+  VAT_20,
+  VAT_20_IN_PRICE,
+  VAT_7,
+} from "./document-totals.fixtures"
 
-/** Рядок вільним текстом, без довідників. */
-const ROW = {
-  id: "1",
-  name: "Послуга",
-  itemId: null,
-  quantity: "1",
-  unit: null,
-  price: "10",
-  discountPercent: 0,
-  tax: null,
-}
-
-const line = (
-  quantity: string,
-  price: string,
-  tax: TotalsLineTax | null = null,
-  discountPercent = 0,
-): TotalsLine => ({ quantity, price, tax, discountPercent })
-
-function totalsOf(lines: readonly TotalsLine[], digits = 2): DocumentTotals {
-  const totals = computeDocumentTotals(lines, digits)
-  if (!totals) throw new Error("Сума за межами контракту")
-  return totals
-}
+/** Підсумки документа (ADR-0056): округлення, ставки, межа суми, контракт. Знижки — document-discount.test. */
 
 describe("сума рядка: таблиця прикладів округлення", () => {
   const cases: readonly [string, TotalsLine, Totals][] = [
     [
       "ціна без ПДВ: податок зверху",
       line("1", "120", VAT_20),
-      { amount: 12_000, discount: 0, net: 12_000, tax: 2_400, total: 14_400 },
+      {
+        amount: 12_000,
+        discount: 0,
+        documentDiscount: 0,
+        net: 12_000,
+        tax: 2_400,
+        total: 14_400,
+      },
     ],
     [
       "ціна з ПДВ: податок усередині",
       line("1", "120", VAT_20_IN_PRICE),
-      { amount: 12_000, discount: 0, net: 10_000, tax: 2_000, total: 12_000 },
+      {
+        amount: 12_000,
+        discount: 0,
+        documentDiscount: 0,
+        net: 10_000,
+        tax: 2_000,
+        total: 12_000,
+      },
     ],
     [
       "половина копійки округлюється вгору",
       line("1", "0.125"),
-      { amount: 13, discount: 0, net: 13, tax: 0, total: 13 },
+      {
+        amount: 13,
+        discount: 0,
+        documentDiscount: 0,
+        net: 13,
+        tax: 0,
+        total: 13,
+      },
     ],
     [
       "менше половини копійки вниз",
       line("1", "0.0049"),
-      { amount: 0, discount: 0, net: 0, tax: 0, total: 0 },
+      { amount: 0, discount: 0, documentDiscount: 0, net: 0, tax: 0, total: 0 },
     ],
     [
       "1,005 ₴: двійковий дріб дав би 1,00",
       line("1", "1.005"),
-      { amount: 101, discount: 0, net: 101, tax: 0, total: 101 },
+      {
+        amount: 101,
+        discount: 0,
+        documentDiscount: 0,
+        net: 101,
+        tax: 0,
+        total: 101,
+      },
     ],
     [
       "1,5 години по 333,33 ₴",
       line("1.5", "333.33"),
-      { amount: 50_000, discount: 0, net: 50_000, tax: 0, total: 50_000 },
+      {
+        amount: 50_000,
+        discount: 0,
+        documentDiscount: 0,
+        net: 50_000,
+        tax: 0,
+        total: 50_000,
+      },
     ],
     [
       "точна ціна 0,1234 ₴ за 1000 одиниць",
       line("1000", "0.1234"),
-      { amount: 12_340, discount: 0, net: 12_340, tax: 0, total: 12_340 },
+      {
+        amount: 12_340,
+        discount: 0,
+        documentDiscount: 0,
+        net: 12_340,
+        tax: 0,
+        total: 12_340,
+      },
     ],
     [
       "дробова кількість з трьома знаками",
       line("0.125", "0.1234"),
-      { amount: 2, discount: 0, net: 2, tax: 0, total: 2 },
+      { amount: 2, discount: 0, documentDiscount: 0, net: 2, tax: 0, total: 2 },
     ],
     [
       "знижка округлюється окремо від суми",
       line("1", "33.33", VAT_20, 10),
-      { amount: 3_333, discount: 333, net: 3_000, tax: 600, total: 3_600 },
+      {
+        amount: 3_333,
+        discount: 333,
+        documentDiscount: 0,
+        net: 3_000,
+        tax: 600,
+        total: 3_600,
+      },
     ],
     [
       "половина копійки у знижці",
       line("1", "0.25", null, 10),
-      { amount: 25, discount: 3, net: 22, tax: 0, total: 22 },
+      {
+        amount: 25,
+        discount: 3,
+        documentDiscount: 0,
+        net: 22,
+        tax: 0,
+        total: 22,
+      },
     ],
     [
       "знижка 100 %: податку немає",
       line("2", "50", VAT_20, 100),
-      { amount: 10_000, discount: 10_000, net: 0, tax: 0, total: 0 },
+      {
+        amount: 10_000,
+        discount: 10_000,
+        documentDiscount: 0,
+        net: 0,
+        tax: 0,
+        total: 0,
+      },
     ],
     [
       "знижка на ціну з ПДВ зменшує суму до оплати",
@@ -117,6 +156,7 @@ describe("сума рядка: таблиця прикладів округле�
       {
         amount: 12_000,
         discount: 1_200,
+        documentDiscount: 0,
         net: 9_000,
         tax: 1_800,
         total: 10_800,
@@ -125,22 +165,50 @@ describe("сума рядка: таблиця прикладів округле�
     [
       "половина копійки в податку зверху",
       line("1", "1.25", { id: "vat-10", rate: 10, included: false }),
-      { amount: 125, discount: 0, net: 125, tax: 13, total: 138 },
+      {
+        amount: 125,
+        discount: 0,
+        documentDiscount: 0,
+        net: 125,
+        tax: 13,
+        total: 138,
+      },
     ],
     [
       "половина копійки в податку всередині",
       line("1", "0.99", VAT_20_IN_PRICE),
-      { amount: 99, discount: 0, net: 82, tax: 17, total: 99 },
+      {
+        amount: 99,
+        discount: 0,
+        documentDiscount: 0,
+        net: 82,
+        tax: 17,
+        total: 99,
+      },
     ],
     [
       "ставка з дробом",
       line("1", "33.33", { id: "vat-7-5", rate: 7.5, included: false }),
-      { amount: 3_333, discount: 0, net: 3_333, tax: 250, total: 3_583 },
+      {
+        amount: 3_333,
+        discount: 0,
+        documentDiscount: 0,
+        net: 3_333,
+        tax: 250,
+        total: 3_583,
+      },
     ],
     [
       "ставка 0 %",
       line("3", "10", VAT_0),
-      { amount: 3_000, discount: 0, net: 3_000, tax: 0, total: 3_000 },
+      {
+        amount: 3_000,
+        discount: 0,
+        documentDiscount: 0,
+        net: 3_000,
+        tax: 0,
+        total: 3_000,
+      },
     ],
   ]
 
@@ -256,6 +324,7 @@ describe("підсумки документа", () => {
     expect(totalsOf([])).toEqual({
       amount: 0,
       discount: 0,
+      documentDiscount: 0,
       net: 0,
       tax: 0,
       total: 0,
@@ -463,6 +532,7 @@ describe("контракт", () => {
     expect(documentTotalsSchema.parse(totals)).toEqual({
       amount: totals.amount,
       discount: totals.discount,
+      documentDiscount: totals.documentDiscount,
       net: totals.net,
       tax: totals.tax,
       total: totals.total,

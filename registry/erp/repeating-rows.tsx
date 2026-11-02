@@ -11,7 +11,11 @@ import {
 } from "react-hook-form"
 
 import { keepFieldFocus } from "@/registry/erp/form"
-import { RepeatingRowActions } from "@/registry/erp/repeating-row-actions"
+import {
+  REPEATING_ROWS_LAYOUTS,
+  RepeatingRowActions,
+  type RepeatingRowsTableFrom,
+} from "@/registry/erp/repeating-row-actions"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS } from "@/registry/lib/icons"
@@ -30,7 +34,8 @@ import {
  *
  * - Поля рядка дає `renderRow`: це звичайні `FormField` з іменем `` `parts.${index}.percent` ``.
  * - Широкий контейнер — рядки таблицею, підписи видно лише над першим, решта для скрінрідера; вузький —
- *   картки з підписом над кожним полем. Перемикання на `@container`, тож рядки живуть і в діалозі.
+ *   картки з підписом над кожним полем. Перемикання на `@container`, тож рядки живуть і в діалозі. Таблиця
+ *   з `@lg`, для рядка з багатьма полями — з `@4xl` (`tableFrom`, рядки документа).
  * - Порядок змінюють кнопки «Підняти» й «Опустити» (`canReorder`), перетягування немає: воно б вимагало
  *   такої самої альтернативи (WCAG 2.5.7).
  * - Вилучення — без діалогу, з «Повернути» під рядками (SPEC §8.2): форма ще не збережена, а рядок не
@@ -72,6 +77,8 @@ export interface RepeatingRowsProps<
   renderRow: (row: RepeatingRowProps) => React.ReactNode
   /** Сітка полів рядка на широкому контейнері: `@lg:grid-cols-2`. */
   rowClassName?: string
+  /** З якої ширини контейнера рядки стають таблицею: `lg` (32rem) чи `4xl` (56rem). */
+  tableFrom?: RepeatingRowsTableFrom
   /** Текст, поки рядків немає. */
   empty?: React.ReactNode
   minRows?: number
@@ -140,6 +147,7 @@ function RepeatingRows<
   newRow,
   renderRow,
   rowClassName,
+  tableFrom = "lg",
   empty,
   minRows = 0,
   maxRows,
@@ -170,6 +178,7 @@ function RepeatingRows<
   const message = groupError(get(errors, name))
   const count = fields.length
   const isFull = maxRows !== undefined && count >= maxRows
+  const layout = REPEATING_ROWS_LAYOUTS[tableFrom]
 
   React.useEffect(() => {
     const scope = scopeRef.current
@@ -254,7 +263,7 @@ function RepeatingRows<
         <FieldDescription id={`${id}-hint`}>{description}</FieldDescription>
       ) : null}
       {count ? (
-        <ol className="grid gap-3 @lg:gap-2">
+        <ol className={cn("grid gap-3", layout.list)}>
           {fields.map((field, index) => {
             const row = rowLabel(index)
             return (
@@ -262,13 +271,16 @@ function RepeatingRows<
                 <div
                   role="group"
                   aria-label={row}
-                  className="flex flex-col gap-2 rounded-lg border p-3 @lg:flex-row @lg:items-start @lg:border-0 @lg:p-0"
+                  className={cn(
+                    "flex flex-col gap-2 rounded-lg border p-3",
+                    layout.row,
+                  )}
                 >
                   <div
                     data-row-fields
                     className={cn(
                       "grid min-w-0 flex-1 gap-3",
-                      index > 0 && "@lg:**:data-[slot=field-label]:sr-only",
+                      index > 0 && layout.laterLabels,
                       rowClassName,
                     )}
                   >
@@ -282,6 +294,7 @@ function RepeatingRows<
                       canReorder={canReorder}
                       canRemove={count > minRows}
                       isFirst={index === 0}
+                      tableFrom={tableFrom}
                       onMove={moveRow}
                       onRemove={removeRow}
                     />

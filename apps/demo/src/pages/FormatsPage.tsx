@@ -119,6 +119,12 @@ function NumbersSection() {
         rows={[
           { label: t("numbers.number"), value: format.number(1234.5) },
           { label: t("numbers.percent"), value: format.percent(0.2) },
+          { label: t("numbers.quantity"), value: format.decimal("1.500") },
+          { label: t("numbers.price"), value: format.price("0.1234", "UAH") },
+          {
+            label: t("numbers.priceRound"),
+            value: format.price("12.5000", "UAH"),
+          },
           {
             label: t("numbers.uah"),
             value: format.money({ amount: 4_860_000, currency: "UAH" }),

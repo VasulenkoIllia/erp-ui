@@ -5,8 +5,11 @@
  * - Вхід — десяткові рядки кількості й ціни, вихід — цілі мінорні одиниці. Рахуємо в BigInt: двійковий
  *   дріб 1.005 менший за 1,005, і копійка зникала б на округленні.
  * - Округлення математичне (половина вгору) і лише до мінорної одиниці.
- * - Порядок у рядку: кількість × ціна, знижка, податок. Кожне значення округлюється окремо, тому
- *   колонки сходяться: `net + tax = total` у рядку й у документі.
+ * - Порядок у рядку: кількість × ціна, знижка рядка, частка знижки документа, податок. Кожне значення
+ *   округлюється окремо, тому колонки сходяться: `net + tax = total` у рядку й у документі.
+ * - Знижка — відсотком або сумою на весь рядок, одне з двох. Знижка документа так само, рахується від
+ *   суми рядків після їхніх знижок і зменшує базу податку (рішення власника 02.11.2026). Вона ділиться
+ *   між рядками пропорційно до їхньої суми, копійки залишку — найдорожчому рядку.
  * - Податок округлюється за рядком, підсумок — сума рядків (рішення власника 02.11.2026).
  * - Податок поверх ціни: `tax = net × rate`. Податок уже в ціні (`included`, знімок з довідника
  *   ставок): `tax = total × rate / (100 + rate)`. В одному документі можуть бути обидва випадки.
@@ -29,28 +32,46 @@ export interface TotalsLineTax {
   included: boolean
 }
 
-export interface TotalsLine {
+/** Знижка рядка чи документа: більша за нуль лише одна з двох. */
+export interface TotalsDiscount {
+  /** У відсотках, 0–100, два знаки. */
+  discountPercent: number
+  /** Сумою в мінорних одиницях, на весь рядок чи документ. */
+  discountAmount: number
+}
+
+export interface TotalsLine extends TotalsDiscount {
   /** Кількість, десятковий рядок: "1.5". */
   quantity: string
   /** Ціна за одиницю в основних одиницях валюти, десятковий рядок: "0.1234". */
   price: string
-  /** Знижка у відсотках, 0–100, два знаки. */
-  discountPercent: number
   /** null — рядок без податку. */
   tax: TotalsLineTax | null
 }
+
+export const NO_DISCOUNT: Readonly<TotalsDiscount> = Object.freeze({
+  discountPercent: 0,
+  discountAmount: 0,
+})
 
 /** Суми в мінорних одиницях. */
 export interface Totals {
   /** Кількість × ціна, до знижки. */
   amount: number
+  /** Уся знижка: рядка й частка знижки документа. */
   discount: number
+  /** Частка знижки документа в `discount`. */
+  documentDiscount: number
   /** Без податку. */
   net: number
   tax: number
   /** З податком. */
   total: number
 }
+
+/** Знижка самих рядків, без частки знижки документа. */
+export const lineDiscountOf = (totals: Totals) =>
+  totals.discount - totals.documentDiscount
 
 /** Підсумок за ставкою: у документі з двома ставками друкується кожна. */
 export interface TaxTotal {
@@ -68,11 +89,20 @@ export interface DocumentTotals extends Totals {
   taxes: TaxTotal[]
 }
 
+/**
+ * Чому документ не рахується в межах контракту. `discount_exceeds` — знижка сумою більша за суму
+ * рядка (`line` — його індекс) чи документа (`line: null`).
+ */
+export type TotalsIssue =
+  | { readonly code: "out_of_range" }
+  | { readonly code: "discount_exceeds"; readonly line: number | null }
+
 type ExactTotals = Record<keyof Totals, bigint>
 
 const emptyTotals = (): ExactTotals => ({
   amount: 0n,
   discount: 0n,
+  documentDiscount: 0n,
   net: 0n,
   tax: 0n,
   total: 0n,
@@ -102,30 +132,79 @@ function percentHundredths(percent: number): bigint {
 const divideRounded = (value: bigint, divisor: bigint) =>
   (2n * value + divisor) / (2n * divisor)
 
-function lineTotals(line: TotalsLine, digits: number): ExactTotals {
+/** Знижка від `base`: відсоток округлюється, сума береться як є. Обидві разом — помилка коду. */
+function discountOf(discount: TotalsDiscount, base: bigint): bigint {
+  const percent = percentHundredths(discount.discountPercent)
+  const amount = discount.discountAmount
+  if (!(Number.isSafeInteger(amount) && amount >= 0))
+    throw new RangeError(`Некоректна знижка сумою: ${String(amount)}`)
+  if (percent > 0n && amount > 0)
+    throw new RangeError("Знижка або відсотком, або сумою")
+  return amount > 0
+    ? BigInt(amount)
+    : divideRounded(base * percent, FULL_PERCENT)
+}
+
+/** Кількість × ціна до знижки. */
+function lineAmount(line: TotalsLine, digits: number): bigint {
   const quantity = parseDecimal(line.quantity)
   const price = parseDecimal(line.price)
-  const amount = divideRounded(
+  return divideRounded(
     quantity.units * price.units * 10n ** BigInt(digits),
     quantity.scale * price.scale,
   )
-  const discount = divideRounded(
-    amount * percentHundredths(line.discountPercent),
-    FULL_PERCENT,
-  )
-  const payable = amount - discount
+}
+
+/**
+ * Знижка документа між рядками пропорційно до `bases`: частки округлюються вниз, залишок копійок —
+ * найдорожчому рядку. Якщо копійок більше, ніж лишилось у ньому (рядки по копійці), решта йде
+ * наступному за сумою: частка ніколи не більша за суму рядка.
+ */
+function splitDiscount(discount: bigint, bases: readonly bigint[]): bigint[] {
+  const sum = bases.reduce((total, base) => total + base, 0n)
+  if (sum === 0n) return bases.map(() => 0n)
+  const shares = bases.map((base) => (discount * base) / sum)
+  let rest = discount - shares.reduce((total, share) => total + share, 0n)
+  const byBase = bases
+    .map((base, index) => ({ base, index }))
+    .sort((a, b) =>
+      a.base === b.base ? a.index - b.index : a.base > b.base ? -1 : 1,
+    )
+  for (const { base, index } of byBase) {
+    if (rest === 0n) break
+    const room = base - shares[index]
+    const extra = rest < room ? rest : room
+    shares[index] += extra
+    rest -= extra
+  }
+  return shares
+}
+
+function lineTotals(
+  line: TotalsLine,
+  amount: bigint,
+  discount: bigint,
+  documentDiscount: bigint,
+): ExactTotals {
+  const payable = amount - discount - documentDiscount
+  const discounts = {
+    amount,
+    discount: discount + documentDiscount,
+    documentDiscount,
+  }
   const rate = line.tax ? percentHundredths(line.tax.rate) : 0n
   if (line.tax?.included) {
     const tax = divideRounded(payable * rate, FULL_PERCENT + rate)
-    return { amount, discount, net: payable - tax, tax, total: payable }
+    return { ...discounts, net: payable - tax, tax, total: payable }
   }
   const tax = divideRounded(payable * rate, FULL_PERCENT)
-  return { amount, discount, net: payable, tax, total: payable + tax }
+  return { ...discounts, net: payable, tax, total: payable + tax }
 }
 
 function addTotals(sum: ExactTotals, line: ExactTotals) {
   sum.amount += line.amount
   sum.discount += line.discount
+  sum.documentDiscount += line.documentDiscount
   sum.net += line.net
   sum.tax += line.tax
   sum.total += line.total
@@ -134,25 +213,43 @@ function addTotals(sum: ExactTotals, line: ExactTotals) {
 const toNumbers = (totals: ExactTotals): Totals => ({
   amount: Number(totals.amount),
   discount: Number(totals.discount),
+  documentDiscount: Number(totals.documentDiscount),
   net: Number(totals.net),
   tax: Number(totals.tax),
   total: Number(totals.total),
 })
 
-/**
- * Рядки → суми рядків і документа. `digits` — знаків після коми у валюти (`currencyDigits` з lib/format).
- * null — сума вийшла за межу контракту (`moneyAmountSchema`): такий документ не можна ні показати
- * точно, ні надіслати, тому рішення лишається за викликом, а не за винятком посеред рендера.
- */
-export function computeDocumentTotals(
+type Calculation =
+  | { readonly totals: DocumentTotals; readonly issue: null }
+  | { readonly totals: null; readonly issue: TotalsIssue }
+
+function calculate(
   lines: readonly TotalsLine[],
   digits: number,
-): DocumentTotals | null {
+  discount: TotalsDiscount,
+): Calculation {
+  const amounts = lines.map((line) => lineAmount(line, digits))
+  const discounts = lines.map((line, index) => discountOf(line, amounts[index]))
+  const exceeded = discounts.findIndex((value, index) => value > amounts[index])
+  if (exceeded !== -1)
+    return { totals: null, issue: { code: "discount_exceeds", line: exceeded } }
+  const bases = amounts.map((amount, index) => amount - discounts[index])
+  const base = bases.reduce((total, value) => total + value, 0n)
+  const documentDiscount = discountOf(discount, base)
+  if (documentDiscount > base)
+    return { totals: null, issue: { code: "discount_exceeds", line: null } }
+  const shares = splitDiscount(documentDiscount, bases)
+
   const sum = emptyTotals()
   const byTax = new Map<string, { tax: TotalsLineTax; sum: ExactTotals }>()
   const exactLines: ExactTotals[] = []
-  for (const line of lines) {
-    const totals = lineTotals(line, digits)
+  for (const [index, line] of lines.entries()) {
+    const totals = lineTotals(
+      line,
+      amounts[index],
+      discounts[index],
+      shares[index],
+    )
     exactLines.push(totals)
     addTotals(sum, totals)
     if (!line.tax) continue
@@ -162,16 +259,44 @@ export function computeDocumentTotals(
     byTax.set(key, group)
   }
   // Усі значення невід'ємні, тож рядки й ставки не більші за відповідну суму документа.
-  if (Object.values(sum).some((value) => value > MAX_AMOUNT)) return null
+  if (Object.values(sum).some((value) => value > MAX_AMOUNT))
+    return { totals: null, issue: { code: "out_of_range" } }
   return {
-    ...toNumbers(sum),
-    lines: exactLines.map(toNumbers),
-    taxes: [...byTax.values()].map((group) => ({
-      taxId: group.tax.id,
-      rate: group.tax.rate,
-      included: group.tax.included,
-      net: Number(group.sum.net),
-      tax: Number(group.sum.tax),
-    })),
+    issue: null,
+    totals: {
+      ...toNumbers(sum),
+      lines: exactLines.map(toNumbers),
+      taxes: [...byTax.values()].map((group) => ({
+        taxId: group.tax.id,
+        rate: group.tax.rate,
+        included: group.tax.included,
+        net: Number(group.sum.net),
+        tax: Number(group.sum.tax),
+      })),
+    },
   }
+}
+
+/**
+ * Рядки й знижка документа → суми рядків і документа. `digits` — знаків після коми у валюти
+ * (`currencyDigits` з lib/format). null — документ не рахується в межах контракту: сума за межею
+ * `moneyAmountSchema` чи знижка сумою більша за свою суму; що саме, каже `documentTotalsIssue`.
+ * Такий документ не можна ні показати точно, ні надіслати, тому рішення лишається за викликом, а не
+ * за винятком посеред рендера.
+ */
+export function computeDocumentTotals(
+  lines: readonly TotalsLine[],
+  digits: number,
+  discount: TotalsDiscount = NO_DISCOUNT,
+): DocumentTotals | null {
+  return calculate(lines, digits, discount).totals
+}
+
+/** Чому `computeDocumentTotals` дає null; null — документ рахується. Перша причина за порядком рядків. */
+export function documentTotalsIssue(
+  lines: readonly TotalsLine[],
+  digits: number,
+  discount: TotalsDiscount = NO_DISCOUNT,
+): TotalsIssue | null {
+  return calculate(lines, digits, discount).issue
 }

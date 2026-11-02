@@ -11,6 +11,7 @@
       "importExport": "Import and export",
       "realtime": "Real time",
       "document": "Document",
+      "documentLines": "Document lines",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -182,6 +183,9 @@
       "description": "Money is integer minor units + currency code; hryvnia shows ₴, other currencies show their code.",
       "number": "Number",
       "percent": "Percent",
+      "quantity": "Document line quantity",
+      "price": "Price finer than a penny",
+      "priceRound": "Price without trailing zeros",
       "uah": "Amount in hryvnias",
       "negative": "Negative amount",
       "usd": "Amount in dollars",
@@ -903,6 +907,27 @@
       "none": "No actions for this status"
     },
     "extension": "The project extension adds the “In review” status and the “Send for review” action for drafts, and allows “Submit” from review too."
+  },
+  "documentLinesPage": {
+    "lead": "The line editor of a quote, order or invoice (UI05, ADR-0059): a name or a product from the catalogue, quantity, unit, price, a percentage or amount discount, tax and totals. A document discount is split between the lines and reduces the VAT base.",
+    "editorTitle": "Invoice lines",
+    "editorDescription": "Products from the products mock, units and taxes from the A6 dictionaries; a new line takes the company defaults. A table in a wide container, cards in a narrow one. Mock scenarios in the developer panel show the dictionaries loading and failing.",
+    "readOnly": "Read only",
+    "saved": "Lines saved",
+    "sample": {
+      "product": "Coffee machine",
+      "service": "Equipment setup",
+      "delivery": "City delivery"
+    },
+    "variantsTitle": "Variants",
+    "variantsDescription": "No requests: an empty document in a narrow container, errors next to fields, a document discount above the lines total, a total over the limit and a saved document in dollars, read only, with server amounts.",
+    "variants": {
+      "empty": "Empty document, narrow container",
+      "errors": "Errors next to fields: name, quantity and line discount",
+      "documentDiscount": "Document discount above the lines total",
+      "outOfRange": "Document total over the contract limit",
+      "saved": "Saved document, read only: price including VAT, document discount, server totals"
+    }
   },
   "numberingPage": {
     "lead": "A document gets its number when it is submitted: a draft has none. The template sets what the number is made of, and the preview shows the next one. Submit a draft on the Document page and the counter goes up.",

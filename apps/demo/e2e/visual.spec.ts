@@ -64,6 +64,8 @@ const SHOT_PAGES = {
   realtime: "/#/realtime",
   // Документ (крок PF03a, ADR-0057): список, картка з панеллю дій і варіанти панелі.
   document: "/#/document",
+  // Рядки документа (крок UI05a, ADR-0059): редактор на моках товарів і довідників, варіанти.
+  documentLines: "/#/document-lines",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
@@ -145,6 +147,15 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
         .getByRole("button")
         .first(),
     ).toBeVisible()
+  }
+  // Рядки документа: довідники й підпис вибраного товару вже з сервера, а не скелетон і «Завантаження…».
+  if (pageId === "documentLines") {
+    await expect(page.getByTestId("lines-form")).toBeVisible()
+    await expect(
+      page
+        .locator('[data-slot="record-picker"]')
+        .getByText(/^(Завантаження…|Loading…)$/),
+    ).toHaveCount(0)
   }
   // Нумерація: перегляд уже з лічильником сервера, а не «…».
   if (pageId === "numbering")
