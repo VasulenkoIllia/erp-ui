@@ -220,8 +220,11 @@ test.describe("A1: курси", () => {
     const date = dialog.getByRole("textbox", { name: "Дата" })
     await expect(date).toHaveAttribute("aria-invalid", "true")
     // Нова дата знімає помилку: курс стає першим рядком разом із полем розширення.
+    // Пояс браузера з конфігурації: раннер у UTC ввечері бачив би завтрашню дату як сьогоднішню в Києві.
     await date.fill(
-      new Date(Date.now() + 86_400_000).toLocaleDateString("uk-UA"),
+      new Date(Date.now() + 86_400_000).toLocaleDateString("uk-UA", {
+        timeZone: "Europe/Kyiv",
+      }),
     )
     await dialog.getByRole("button", { name: "Створити" }).click()
     await expect(toast(page, "Курс PLN додано")).toBeVisible()

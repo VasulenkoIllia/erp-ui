@@ -13,6 +13,7 @@ import { createApiClient, isApiError } from "@/registry/lib/api"
 import { createAuthProvider } from "@/registry/lib/auth"
 import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
+import { addDays, todayIn } from "@/registry/lib/dates"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import { applyMockRoles } from "@/registry/lib/mock-team"
 import {
@@ -112,7 +113,7 @@ const failureOf = (promise: Promise<unknown>) =>
   )
 
 /** Дати фікстур відносні, тож завжди новіша за них. */
-const TOMORROW = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)
+const TOMORROW = addDays(todayIn(), 1)
 
 describe("фікстури A1", () => {
   it("кожна компанія має свої валюти й курси, id не повторюються", () => {

@@ -14222,6 +14222,72 @@
       }
     },
     {
+      "name": "lib/document-lines",
+      "type": "registry:lib",
+      "title": "Контракт рядка документа",
+      "description": "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми разом за рядками (ADR-0056).",
+      "dependencies": [
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lines.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/document-totals.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-totals.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "draft",
+        "spec": [
+          "UI05",
+          "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/document-totals",
+      "type": "registry:lib",
+      "title": "Підсумки документа",
+      "description": "Чиста функція без React: рядки → суми рядків, ставок і документа в мінорних одиницях, точно в BigInt. Математичне округлення до копійки, ПДВ за рядком, податок зверху чи вже в ціні (знімок із довідника ставок), null за межею суми контракту. Джерело правди — сервер, браузер рахує попередньо (ADR-0056).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/document-totals.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-totals.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "draft",
+        "spec": [
+          "UI05",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/edit-lock",
       "type": "registry:lib",
       "title": "Блокування на час редагування",
