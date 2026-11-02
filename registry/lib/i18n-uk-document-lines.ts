@@ -23,6 +23,7 @@ export const ukDocumentLines = {
     tax: "Податок",
     noTax: "Без податку",
     sum: "Сума",
+    noSum: "ще не пораховано",
     totals: {
       label: "Підсумки",
       amount: "Сума до знижок",
@@ -39,6 +40,7 @@ export const ukDocumentLines = {
         "Не враховано {{count}} рядків: перевірте кількість, ціну й знижку.",
       skipped_other:
         "Не враховано {{count}} рядка: перевірте кількість, ціну й знижку.",
+      documentDiscountSkipped: "Знижку на документ не враховано: перевірте її.",
     },
     errors: {
       invalid: "Введіть число",

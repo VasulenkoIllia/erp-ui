@@ -25,6 +25,8 @@ import {
   type TaxTotal,
   type Totals,
   type TotalsDiscount,
+  type TotalsIssue,
+  type TotalsLine,
 } from "@/registry/lib/document-totals"
 
 /** Стільки ж, скільки дозволяє `decimals` одиниці в довіднику. */
@@ -65,7 +67,7 @@ export const priceSchema = decimalSchema(PRICE_DECIMALS_MAX)
 const lineAmountSchema = moneyAmountSchema.min(0)
 
 /** Поля знижки рядка й документа. */
-const discountShape = {
+export const discountShape = {
   discountPercent: percentSchema,
   /** Мінорні одиниці на весь рядок чи документ, не на одиницю товару. */
   discountAmount: lineAmountSchema,
@@ -123,7 +125,7 @@ const totalsShape = {
   total: lineAmountSchema,
 } satisfies Record<keyof Totals, z.ZodType<number>>
 
-// `safeExtend`: `extend` не бере схему з перевіркою (`refine` знижки).
+// `safeExtend`, як радимо модулям: `extend` схеми з `refine` не перевизначає поле.
 export const savedDocumentLineSchema = documentLineSchema.safeExtend({
   totals: z.object(totalsShape),
 })
@@ -143,26 +145,77 @@ export const documentTotalsSchema = z.object({
 })
 export type SavedDocumentTotals = z.infer<typeof documentTotalsSchema>
 
+/** Текст помилки сум за кодом: контракт лишає код, форма (`erp/document-lines-schema`) перекладає. */
+export type TotalsIssueText = (code: TotalsIssue["code"]) => string
+const asCode: TotalsIssueText = (code) => code
+
+/** Перевірки сум — після схеми, коли значення вже правильні: `documentTotalsIssue` інакше кидає. */
+type TotalsCheck<T> = (value: T, context: z.core.$RefinementCtx<T>) => void
+
+/** Знижка сумою понад суму рядка — помилка на полі знижки цього рядка, окремо в кожному рядку. */
+export const lineTotalsCheck =
+  <T extends TotalsLine>(
+    digits: number,
+    text: TotalsIssueText = asCode,
+  ): TotalsCheck<T> =>
+  (line, context) => {
+    if (documentTotalsIssue([line], digits)?.code === "discount_exceeds")
+      context.addIssue({
+        code: "custom",
+        message: text("discount_exceeds"),
+        path: ["discountAmount"],
+      })
+  }
+
+/** Сума рядків за межею контракту — помилка всієї групи. */
+export const linesTotalsCheck =
+  <T extends TotalsLine>(
+    digits: number,
+    text: TotalsIssueText = asCode,
+  ): TotalsCheck<T[]> =>
+  (lines, context) => {
+    if (documentTotalsIssue(lines, digits)?.code === "out_of_range")
+      context.addIssue({ code: "custom", message: text("out_of_range") })
+  }
+
+/** Знижка документа понад суму рядків після їхніх знижок — помилка на полі знижки документа. */
+export const bodyTotalsCheck =
+  <T extends TotalsDiscount & { lines: TotalsLine[] }>(
+    digits: number,
+    text: TotalsIssueText = asCode,
+  ): TotalsCheck<T> =>
+  (body, context) => {
+    if (
+      documentTotalsIssue(body.lines, digits, body)?.code === "discount_exceeds"
+    )
+      context.addIssue({
+        code: "custom",
+        message: text("discount_exceeds"),
+        path: ["discountAmount"],
+      })
+  }
+
+const BODY_KEYS: ReadonlySet<PropertyKey> = new Set([
+  "lines",
+  ...Object.keys(discountShape),
+])
+
+/** Рядки й знижка документа без помилок; помилка в полі шапки модуля перевірку сум не вимикає. */
+export const whenBodyValid = ({ issues }: z.core.ParsePayload) =>
+  !issues.some((issue) => BODY_KEYS.has(issue.path?.[0] ?? ""))
+
 /**
  * Рядки документа разом: схема рядка не бачить, що кількість і ціна разом вийшли за межу суми, а знижка
  * сумою — за суму рядка. `digits` — знаків після коми у валюти документа (`currencyDigits` з lib/format).
  */
 export const documentLinesSchemaFor = (digits: number) =>
-  z.array(documentLineSchema).superRefine(
-    (lines, context) => {
-      const issue = documentTotalsIssue(lines, digits)
-      if (issue)
-        context.addIssue({
-          code: "custom",
-          message: issue.code,
-          path:
-            issue.code === "discount_exceeds" && issue.line !== null
-              ? [issue.line, "discountAmount"]
-              : [],
-        })
-    },
-    { when: whenValid },
-  )
+  z
+    .array(
+      documentLineSchema.superRefine(lineTotalsCheck(digits), {
+        when: whenValid,
+      }),
+    )
+    .superRefine(linesTotalsCheck(digits), { when: whenValid })
 
 /**
  * Рядки й знижка документа: тіло, з якого сервер рахує підсумки. Модуль додає поля шапки через
@@ -172,18 +225,5 @@ export const documentBodySchemaFor = (digits: number) =>
   z
     .object({ lines: documentLinesSchemaFor(digits), ...discountShape })
     .refine(isSingleDiscount, singleDiscount)
-    .superRefine(
-      (body, context) => {
-        if (
-          documentTotalsIssue(body.lines, digits, body)?.code ===
-          "discount_exceeds"
-        )
-          context.addIssue({
-            code: "custom",
-            message: "discount_exceeds",
-            path: ["discountAmount"],
-          })
-      },
-      { when: whenValid },
-    )
+    .superRefine(bodyTotalsCheck(digits), { when: whenBodyValid })
 export type DocumentBody = z.infer<ReturnType<typeof documentBodySchemaFor>>

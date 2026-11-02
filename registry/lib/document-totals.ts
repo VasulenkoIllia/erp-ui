@@ -49,10 +49,10 @@ export interface TotalsLine extends TotalsDiscount {
   tax: TotalsLineTax | null
 }
 
-export const NO_DISCOUNT: TotalsDiscount = {
+export const NO_DISCOUNT: Readonly<TotalsDiscount> = Object.freeze({
   discountPercent: 0,
   discountAmount: 0,
-}
+})
 
 /** Суми в мінорних одиницях. */
 export interface Totals {
@@ -68,6 +68,10 @@ export interface Totals {
   /** З податком. */
   total: number
 }
+
+/** Знижка самих рядків, без частки знижки документа. */
+export const lineDiscountOf = (totals: Totals) =>
+  totals.discount - totals.documentDiscount
 
 /** Підсумок за ставкою: у документі з двома ставками друкується кожна. */
 export interface TaxTotal {

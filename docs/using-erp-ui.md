@@ -953,7 +953,8 @@ const form = useForm({ mode: "onTouched", resolver: zodResolver(schema), default
 - Поля форми: `lines` (`DocumentLine[]` з `lib/document-lines`), `discountPercent`, `discountAmount` — знижка на документ.
   Знижка рядка й документа — відсотком або сумою в мінорних одиницях, одне з двох.
 - Підсумки під рядками — попередній розрахунок `computeDocumentTotals`; запис із сервера розбирайте `documentBodySchemaFor(digits)`,
-  а в режимі лише для читання передайте підсумки сервера в `savedTotals`.
+  а в режимі лише для читання передайте підсумки сервера в `savedTotals`, а рядки — з `totals` (`savedDocumentLineSchema`).
+- `toLine` і `newLine` дають лише ті поля, що відомі: `undefined` лишає значення порожнього рядка. Форма — без `shouldUnregister`.
 - Бекенд рахує ті самі суми за таблицями ADR-0056 і ADR-0059: знижка документа ділиться між рядками пропорційно, копійки
   залишку — найдорожчому рядку, база ПДВ зменшується. Знижка понад свою суму — 422 `discount_exceeds`.
 

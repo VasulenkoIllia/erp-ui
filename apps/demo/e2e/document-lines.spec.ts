@@ -61,7 +61,7 @@ test.describe("рядки документа", () => {
     const kind = added.getByRole("combobox", { name: "Вид знижки: Рядок 4" })
     await expect(kind).toBeFocused()
     await page.keyboard.press("Enter")
-    await page.getByRole("option", { name: "₴" }).press("Enter")
+    await page.getByRole("option", { name: "сумою" }).press("Enter")
     await expect(kind).toBeFocused()
     await page.keyboard.press("Shift+Tab")
     await expect(added.getByLabel("Знижка, сумою")).toBeFocused()

@@ -25,6 +25,7 @@ export const enDocumentLines = {
     tax: "Tax",
     noTax: "No tax",
     sum: "Amount",
+    noSum: "not calculated yet",
     totals: {
       label: "Totals",
       amount: "Before discounts",
@@ -37,6 +38,7 @@ export const enDocumentLines = {
         "{{count}} line isn't counted: check the quantity, price and discount.",
       skipped_other:
         "{{count}} lines aren't counted: check the quantity, price and discount.",
+      documentDiscountSkipped: "The document discount isn't counted: check it.",
     },
     errors: {
       invalid: "Enter a number",

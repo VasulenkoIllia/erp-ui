@@ -11,16 +11,21 @@ import {
 import type {
   DocumentLine,
   DocumentLineTax,
+  SavedDocumentLine,
   SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
-import { computeDocumentTotals } from "@/registry/lib/document-totals"
+import {
+  computeDocumentTotals,
+  NO_DISCOUNT,
+} from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
 
 import { Section } from "./Section"
 
 /**
  * Варіанти редактора без запитів: довідники — сталі варіанти, без вибору товару. Завантаження й помилку
- * довідників показує редактор вище зі сценаріями моків.
+ * довідників показує редактор вище зі сценаріями моків. Знижку документа понад суму видно окремим
+ * варіантом: її перевіряють, коли рядки вже правильні.
  */
 
 const VAT_20: DocumentLineTax = {
@@ -48,10 +53,8 @@ const LINE: Omit<DocumentLine, "id" | "name"> = {
   tax: VAT_20,
 }
 
-const NO_DISCOUNT = { discountPercent: 0, discountAmount: 0 }
-
 interface Variant {
-  readonly id: "empty" | "errors" | "outOfRange" | "saved"
+  readonly id: "empty" | "errors" | "documentDiscount" | "outOfRange" | "saved"
   readonly currency: string
   readonly values: DocumentLinesValues
   readonly readOnly?: boolean
@@ -83,8 +86,17 @@ function useVariants(): readonly Variant[] {
             discountAmount: 15_000,
           },
         ],
+        ...NO_DISCOUNT,
+      },
+    },
+    {
+      id: "documentDiscount",
+      currency: "UAH",
+      validate: true,
+      values: {
+        lines: [{ ...LINE, id: "document-1", name: t("sample.service") }],
         discountPercent: 0,
-        discountAmount: 50_000,
+        discountAmount: 15_000,
       },
     },
     {
@@ -137,23 +149,31 @@ function useVariants(): readonly Variant[] {
   ]
 }
 
-/** Підсумки «сервера» збереженого документа: у демо їх рахує та сама функція. */
-function savedTotalsOf({ currency, values }: Variant): SavedDocumentTotals {
+/** Збережений документ: суми рядків і підсумки «сервера» в демо рахує та сама функція. */
+function savedOf({ currency, values }: Variant): {
+  values: DocumentLinesValues
+  totals: SavedDocumentTotals
+} {
   const totals = computeDocumentTotals(
     values.lines,
     currencyDigits(currency),
     values,
   )
   if (!totals) throw new Error("Варіант демо за межею суми")
-  return totals
+  const lines: SavedDocumentLine[] = values.lines.flatMap((line, index) => {
+    const lineTotals = totals.lines[index]
+    return lineTotals ? [{ ...line, totals: lineTotals }] : []
+  })
+  return { values: { ...values, lines }, totals }
 }
 
 function VariantForm({ variant }: { variant: Variant }) {
   const schema = useDocumentLinesSchema(variant.currency)
+  const saved = variant.readOnly ? savedOf(variant) : null
   const form = useForm<DocumentLinesValues>({
     mode: "onTouched",
     resolver: zodResolver(schema),
-    defaultValues: variant.values,
+    defaultValues: saved?.values ?? variant.values,
   })
   const { trigger } = form
   useEffect(() => {
@@ -167,7 +187,7 @@ function VariantForm({ variant }: { variant: Variant }) {
         units={UNITS}
         taxes={TAXES}
         readOnly={variant.readOnly}
-        savedTotals={variant.readOnly ? savedTotalsOf(variant) : undefined}
+        savedTotals={saved?.totals}
       />
     </form>
   )

@@ -30,7 +30,8 @@ import {
  *   знаків після коми стільки, скільки у валюти (UAH 2, JPY 0). Валюта — підписом у полі: «₴», «USD».
  * - `NumberInput` — відсоток, число днів: `number | null`, одиниця — підписом (`unit`).
  * - `DecimalInput` — кількість і ціна рядка документа (ADR-0056): десятковий рядок контракту без
- *   похибок float, «1,50» дає `"1.5"`, порожнє поле — `""`.
+ *   похибок float, «1,50» дає `"1.5"`, порожнє поле — `""`. Значення ззовні з нулями в кінці
+ *   ("1.50") — те саме число, тож набране «1,5» лишається, як є.
  * - Порожнє поле — `null`. Межі (мінімум, максимум) перевіряє форма (SPEC §8.3), а не поле.
  * - `ref` веде на `<input>`: react-hook-form фокусує поле з помилкою.
  * - Валюта чи одиниця — в описі поля (`aria-describedby`), тож скрінрідер її називає.
@@ -79,6 +80,7 @@ function useDraft<T>(
 function useNumericProps(
   decimalScale: number | undefined,
   allowNegative: boolean,
+  maxIntegerDigits = MAX_INTEGER_DIGITS,
 ) {
   const { locale } = useLanguage()
   const { group, decimal } = numberSeparators(locale)
@@ -89,7 +91,7 @@ function useNumericProps(
     decimalScale,
     valueIsNumericString: true,
     isAllowed: ({ value }: NumberFormatValues) =>
-      (value.replace("-", "").split(".")[0] ?? "").length <= MAX_INTEGER_DIGITS,
+      (value.replace("-", "").split(".")[0] ?? "").length <= maxIntegerDigits,
     // Цифрова клавіатура iOS не має мінуса.
     inputMode: allowNegative
       ? ("text" as const)
@@ -263,6 +265,8 @@ type DecimalInputProps = InputProps &
     onValueChange: (value: string) => void
     /** Знаків після коми. */
     decimalScale: number
+    /** Цілих розрядів не більше; за замовчуванням 15. */
+    maxIntegerDigits?: number
     /** Одиниця чи валюта після числа: «шт.», «₴». */
     unit?: string
   }
@@ -271,13 +275,14 @@ function DecimalInput({
   value,
   onValueChange,
   decimalScale,
+  maxIntegerDigits,
   unit,
   className,
   ref,
   ...props
 }: DecimalInputProps) {
   const unitId = React.useId()
-  const numeric = useNumericProps(decimalScale, false)
+  const numeric = useNumericProps(decimalScale, false, maxIntegerDigits)
   const { guard, hinted, hide } = useWholeNumberGuard(
     decimalScale === 0,
     numeric.allowedDecimalSeparators,
@@ -287,7 +292,7 @@ function DecimalInput({
     value,
     (decimal) => decimal,
     toDecimal,
-    (a, b) => a === b,
+    (a, b) => toDecimal(a) === toDecimal(b),
   )
   return (
     <NumberGroup

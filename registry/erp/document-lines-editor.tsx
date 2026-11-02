@@ -4,7 +4,6 @@ import { useWatch, type FieldValues, type UseFormReturn } from "react-hook-form"
 
 import {
   DocumentLineFields,
-  type DiscountKind,
   type DocumentLineItem,
 } from "@/registry/erp/document-line-fields"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
@@ -13,13 +12,14 @@ import {
   previewTotals,
 } from "@/registry/erp/document-lines-totals"
 import { RepeatingRows } from "@/registry/erp/repeating-rows"
-import type {
-  DocumentLine,
-  DocumentLineTax,
-  DocumentLineUnit,
-  SavedDocumentTotals,
+import {
+  savedDocumentLineSchema,
+  type DocumentLine,
+  type DocumentLineTax,
+  type DocumentLineUnit,
+  type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
-import type { TotalsDiscount } from "@/registry/lib/document-totals"
+import type { Totals } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
@@ -34,12 +34,13 @@ import { cn } from "@/registry/lib/utils"
  * - Контейнер від 56rem — таблиця: підписи видно над першим рядком, далі для скрінрідера. Вужчий —
  *   картки: на телефоні дві колонки, від 28rem — три. Горизонтальної прокрутки немає.
  * - Підсумки — попередній розрахунок у браузері; збережений документ у режимі лише для читання
- *   показує числа сервера (`savedTotals`), бо джерело правди — сервер (ADR-0056).
+ *   показує числа сервера (`savedTotals` і `totals` рядків), бо джерело правди — сервер (ADR-0056).
  * - Довідники одиниць і податків приходять варіантами (`units`, `taxes`): кіт не знає модуля A6, а
  *   модуль документа бере їх зі своїх ресурсів. Рядок зберігає знімок значення.
  * - Форма: `useForm({ mode: "onTouched", resolver: zodResolver(useDocumentLinesSchema(currency)) })`
  *   з полями `lines`, `discountPercent`, `discountAmount` (`DocumentLinesValues`); шапку модуль додає
  *   `safeExtend`. Додати, змінити й вилучити рядок можна лише з клавіатури, фокус веде `RepeatingRows`.
+ *   Форма без `shouldUnregister`: друге поле знижки (відсоток чи сума) не показане, але лишається нулем.
  * - `readOnly` — поля лишаються у фокусі, кнопок немає (SPEC §8.3).
  */
 
@@ -56,7 +57,7 @@ export interface DocumentLinesEditorProps<
   /** Активні ставки довідника. */
   taxes: readonly DocumentLineTax[]
   item?: DocumentLineItem<TItem>
-  /** Типові значення нового рядка: податок і одиниця з налаштувань довідників. */
+  /** Типові значення нового рядка: податок і одиниця з налаштувань довідників; `undefined` — порожнє. */
   newLine?: () => Partial<Omit<DocumentLine, "id">>
   /** Назва групи; за замовчуванням «Рядки документа». */
   label?: React.ReactNode
@@ -84,20 +85,24 @@ const newLineId = () =>
     part.toString(36),
   ).join("")}`
 
-/** Вид знижки: за значенням, а для нуля — останній вибір людини. */
-const kindOf = (
-  discount: TotalsDiscount,
-  chosen: DiscountKind | undefined,
-): DiscountKind =>
-  discount.discountAmount > 0
-    ? "amount"
-    : discount.discountPercent > 0
-      ? "percent"
-      : (chosen ?? "percent")
+/** Новий рядок: типові значення поверх порожнього, `undefined` не стирає порожнє значення. */
+const newLineOf = (defaults: Partial<Omit<DocumentLine, "id">> = {}) => ({
+  ...EMPTY_LINE,
+  ...Object.fromEntries(
+    Object.entries(defaults).filter(([, value]) => value !== undefined),
+  ),
+  id: newLineId(),
+})
+
+/** Суми сервера в збереженому рядку (`savedDocumentLineSchema`); рядок форми їх не має. */
+const savedLineTotals = (line: DocumentLine | undefined): Totals | undefined =>
+  line && "totals" in line
+    ? savedDocumentLineSchema.shape.totals.safeParse(line.totals).data
+    : undefined
 
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
-  "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,3fr)_minmax(5rem,1fr)_minmax(5.5rem,1.1fr)_minmax(7rem,1.4fr)_minmax(8rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
+  "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,3fr)_minmax(5rem,1fr)_minmax(5.5rem,1.1fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
 
 export function DocumentLinesEditor<
   TValues extends DocumentLinesValues,
@@ -126,10 +131,6 @@ export function DocumentLinesEditor<
     control,
     name: ["discountPercent", "discountAmount"],
   })
-  const [lineKinds, setLineKinds] = React.useState<
-    ReadonlyMap<string, DiscountKind>
-  >(() => new Map())
-  const [documentKind, setDocumentKind] = React.useState<DiscountKind>()
   const preview = React.useMemo(
     () =>
       previewTotals(lines, currencyDigits(currency), {
@@ -150,7 +151,7 @@ export function DocumentLinesEditor<
         description={description}
         rowLabel={(index) => t("documentLines.row", { index: index + 1 })}
         addLabel={t("documentLines.add")}
-        newRow={() => ({ ...EMPTY_LINE, ...newLine?.(), id: newLineId() })}
+        newRow={() => newLineOf(newLine?.())}
         empty={t("documentLines.empty")}
         maxRows={maxLines}
         readOnly={readOnly}
@@ -164,19 +165,13 @@ export function DocumentLinesEditor<
               index={index}
               rowLabel={rowLabel}
               line={line}
-              totals={preview.lines.get(index)}
+              totals={
+                (readOnly && savedLineTotals(line)) || preview.lines.get(index)
+              }
               currency={currency}
               units={units}
               taxes={taxes}
               item={item}
-              discountKind={kindOf(
-                line ?? EMPTY_LINE,
-                line && lineKinds.get(line.id),
-              )}
-              onDiscountKind={(kind) => {
-                if (!line) return
-                setLineKinds((kinds) => new Map(kinds).set(line.id, kind))
-              }}
               readOnly={readOnly}
             />
           )
@@ -188,8 +183,7 @@ export function DocumentLinesEditor<
         preview={preview}
         savedTotals={savedTotals}
         currency={currency}
-        discountKind={kindOf({ discountPercent, discountAmount }, documentKind)}
-        onDiscountKind={setDocumentKind}
+        discount={{ discountPercent, discountAmount }}
         readOnly={readOnly}
       />
     </div>

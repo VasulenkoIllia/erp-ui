@@ -920,10 +920,11 @@
       "delivery": "City delivery"
     },
     "variantsTitle": "Variants",
-    "variantsDescription": "No requests: an empty document in a narrow container, errors next to fields, a total over the limit and a saved document in dollars, read only, with server totals.",
+    "variantsDescription": "No requests: an empty document in a narrow container, errors next to fields, a document discount above the lines total, a total over the limit and a saved document in dollars, read only, with server amounts.",
     "variants": {
       "empty": "Empty document, narrow container",
-      "errors": "Errors next to fields: name, quantity, line and document discount",
+      "errors": "Errors next to fields: name, quantity and line discount",
+      "documentDiscount": "Document discount above the lines total",
       "outOfRange": "Document total over the contract limit",
       "saved": "Saved document, read only: price including VAT, document discount, server totals"
     }

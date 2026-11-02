@@ -15050,7 +15050,7 @@
       "name": "lib/document-lines",
       "type": "registry:lib",
       "title": "Контракт рядка документа",
-      "description": "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor (ADR-0056, ADR-0059).",
+      "description": "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor; ті самі перевірки сум (lineTotalsCheck, linesTotalsCheck, bodyTotalsCheck) бере схема форми з текстами мовою інтерфейсу (ADR-0056, ADR-0059).",
       "dependencies": [
         "zod@^4.6.6"
       ],
@@ -54132,10 +54132,332 @@
       }
     },
     {
+      "name": "erp/document-discount-field",
+      "type": "registry:component",
+      "title": "Знижка рядка чи документа",
+      "description": "DiscountField: знижка відсотком або сумою з перемикачем «%» / «₴», що обнуляє друге значення; вид — за значенням, стерта знижка лишає поле під фокусом; сума в мінорних одиницях без виходу за безпечне ціле. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-number-format@^5.4.5",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/document-discount-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-discount-field.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/document-lines-schema.ts",
+          "type": "registry:component",
+          "target": "@components/erp/document-lines-schema.ts"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/number-group.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-group.tsx"
+        },
+        {
+          "path": "registry/erp/number-input.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lines.ts"
+        },
+        {
+          "path": "registry/lib/document-totals.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-totals.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "draft",
+        "demo": "documentLines",
+        "spec": [
+          "UI05",
+          "§8.3",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/document-line-fields",
       "type": "registry:component",
       "title": "Поля рядка документа",
-      "description": "DocumentLineFields: поля одного рядка в порядку колонок, значення довідника, якого вже немає, лишається під своєю назвою; DiscountField — знижка рядка чи документа з перемикачем «%» / «₴», що обнуляє друге значення. Частина erp/document-lines-editor (UI05, ADR-0059).",
+      "description": "DocumentLineFields: поля одного рядка в порядку колонок, значення довідника, якого вже немає, лишається під своєю назвою; вибір запису підставляє лише назву, ціну, одиницю й податок. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -54161,6 +54483,11 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/document-discount-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-discount-field.tsx"
         },
         {
           "path": "registry/erp/document-lines-schema.ts",
@@ -54608,7 +54935,7 @@
       "name": "erp/document-lines-editor",
       "type": "registry:component",
       "title": "Рядки документа",
-      "description": "DocumentLinesEditor на erp/repeating-rows: назва чи вибір запису ресурсу проекту (підставляє назву, ціну, одиницю й податок), кількість, одиниця й податок знімком довідника, ціна, знижка відсотком або сумою, сума рядка; знижка на документ і підсумки за ставками з lib/document-totals; таблиця з 56rem, картки на вужчому без горизонтальної прокрутки; додати, змінити й вилучити рядок лише з клавіатури; лише для читання з підсумками сервера (UI05, ADR-0059).",
+      "description": "DocumentLinesEditor на erp/repeating-rows: назва чи вибір запису ресурсу проекту (підставляє назву, ціну, одиницю й податок), кількість, одиниця й податок знімком довідника, ціна, знижка відсотком або сумою, сума рядка; знижка на документ і підсумки за ставками з lib/document-totals; таблиця з 56rem, картки на вужчому без горизонтальної прокрутки; додати, змінити й вилучити рядок лише з клавіатури; лише для читання з сумами рядків і підсумками сервера (UI05, ADR-0059).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -54634,6 +54961,11 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/document-discount-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-discount-field.tsx"
         },
         {
           "path": "registry/erp/document-line-fields.tsx",
@@ -55113,7 +55445,7 @@
       "name": "erp/document-lines-schema",
       "type": "registry:component",
       "title": "Схема форми рядків документа",
-      "description": "useDocumentLinesSchema(currency): схема форми рядків і знижки документа з текстами помилок мовою інтерфейсу біля поля; кількість і ціна — схемами контракту, суми й знижки — documentTotalsIssue; шапку модуль додає safeExtend. Частина erp/document-lines-editor (UI05, ADR-0059).",
+      "description": "useDocumentLinesSchema(currency): схема форми рядків і знижки документа з текстами помилок мовою інтерфейсу біля поля; кількість, ціна й знижки — схемами контракту, суми — перевірками контракту: знижка понад суму рядка видна в кожному рядку одразу, помилка поля шапки перевірки сум не вимикає; шапку модуль додає safeExtend. Частина erp/document-lines-editor (UI05, ADR-0059).",
       "dependencies": [
         "i18next@^26.4.4",
         "react-i18next@^17.0.16",
@@ -55321,10 +55653,9 @@
       "name": "erp/document-lines-totals",
       "type": "registry:component",
       "title": "Підсумки рядків документа",
-      "description": "DocumentLinesTotals: знижка на документ, сума до знижок, знижки рядків і документа, без податку, податок за кожною ставкою (у ціні — «У т. ч.»), разом; рядки, які ще не порахувати, не враховуються з поясненням; сума за межею — повідомлення. previewTotals — попередній розрахунок форми. Частина erp/document-lines-editor (UI05, ADR-0059).",
+      "description": "DocumentLinesTotals: знижка на документ, сума до знижок, знижки рядків і документа, без податку, податок за кожною ставкою (у ціні — «У т. ч.»), разом; рядки, які ще не порахувати, і зайва знижка документа не враховуються з поясненням, яке озвучує скрінрідер; сума за межею — повідомлення. previewTotals — попередній розрахунок форми. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-query@^5.104.2",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -55349,9 +55680,9 @@
           "target": "@components/erp/confirm-dialog.tsx"
         },
         {
-          "path": "registry/erp/document-line-fields.tsx",
+          "path": "registry/erp/document-discount-field.tsx",
           "type": "registry:component",
-          "target": "@components/erp/document-line-fields.tsx"
+          "target": "@components/erp/document-discount-field.tsx"
         },
         {
           "path": "registry/erp/document-lines-schema.ts",
@@ -55364,11 +55695,6 @@
           "target": "@components/erp/form.tsx"
         },
         {
-          "path": "registry/erp/form-select.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form-select.tsx"
-        },
-        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -55379,49 +55705,9 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
-          "path": "registry/erp/picker-field.ts",
-          "type": "registry:component",
-          "target": "@components/erp/picker-field.ts"
-        },
-        {
-          "path": "registry/erp/record-picker.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker.tsx"
-        },
-        {
-          "path": "registry/erp/record-picker-parts.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker-parts.tsx"
-        },
-        {
-          "path": "registry/hooks/use-breakpoint.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-breakpoint.ts"
-        },
-        {
-          "path": "registry/hooks/use-company.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-company.ts"
-        },
-        {
-          "path": "registry/hooks/use-me.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-me.ts"
-        },
-        {
-          "path": "registry/hooks/use-record-search.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-record-search.ts"
-        },
-        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/lib/account.ts",
-          "type": "registry:lib",
-          "target": "@lib/account.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -55429,34 +55715,9 @@
           "target": "@lib/api.ts"
         },
         {
-          "path": "registry/lib/appearance.ts",
-          "type": "registry:lib",
-          "target": "@lib/appearance.ts"
-        },
-        {
-          "path": "registry/lib/audit.ts",
-          "type": "registry:lib",
-          "target": "@lib/audit.ts"
-        },
-        {
-          "path": "registry/lib/auth.ts",
-          "type": "registry:lib",
-          "target": "@lib/auth.ts"
-        },
-        {
-          "path": "registry/lib/company.ts",
-          "type": "registry:lib",
-          "target": "@lib/company.ts"
-        },
-        {
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
-        },
-        {
-          "path": "registry/lib/dates.ts",
-          "type": "registry:lib",
-          "target": "@lib/dates.ts"
         },
         {
           "path": "registry/lib/document-lines.ts",
@@ -55619,29 +55880,9 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
-          "path": "registry/lib/invitations.ts",
-          "type": "registry:lib",
-          "target": "@lib/invitations.ts"
-        },
-        {
-          "path": "registry/lib/invite-check.ts",
-          "type": "registry:lib",
-          "target": "@lib/invite-check.ts"
-        },
-        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
-        },
-        {
-          "path": "registry/lib/notification-settings.ts",
-          "type": "registry:lib",
-          "target": "@lib/notification-settings.ts"
-        },
-        {
-          "path": "registry/lib/notifications.ts",
-          "type": "registry:lib",
-          "target": "@lib/notifications.ts"
         },
         {
           "path": "registry/lib/page-reload.ts",
@@ -55649,49 +55890,9 @@
           "target": "@lib/page-reload.ts"
         },
         {
-          "path": "registry/lib/passkey.ts",
-          "type": "registry:lib",
-          "target": "@lib/passkey.ts"
-        },
-        {
-          "path": "registry/lib/realtime.ts",
-          "type": "registry:lib",
-          "target": "@lib/realtime.ts"
-        },
-        {
-          "path": "registry/lib/record-access.ts",
-          "type": "registry:lib",
-          "target": "@lib/record-access.ts"
-        },
-        {
-          "path": "registry/lib/rich-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/rich-text.ts"
-        },
-        {
-          "path": "registry/lib/roles.ts",
-          "type": "registry:lib",
-          "target": "@lib/roles.ts"
-        },
-        {
-          "path": "registry/lib/security-policy.ts",
-          "type": "registry:lib",
-          "target": "@lib/security-policy.ts"
-        },
-        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/sse.ts",
-          "type": "registry:lib",
-          "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/timeline.ts",
-          "type": "registry:lib",
-          "target": "@lib/timeline.ts"
         },
         {
           "path": "registry/lib/user-timezone.ts",
@@ -55702,16 +55903,6 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
-        },
-        {
-          "path": "registry/lib/web-push.ts",
-          "type": "registry:lib",
-          "target": "@lib/web-push.ts"
-        },
-        {
-          "path": "registry/lib/webhooks.ts",
-          "type": "registry:lib",
-          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/alert.tsx",
@@ -55727,11 +55918,6 @@
           "path": "registry/ui/button.tsx",
           "type": "registry:ui",
           "target": "@ui/button.tsx"
-        },
-        {
-          "path": "registry/ui/combobox.tsx",
-          "type": "registry:ui",
-          "target": "@ui/combobox.tsx"
         },
         {
           "path": "registry/ui/field.tsx",
@@ -55762,11 +55948,6 @@
           "path": "registry/ui/separator.tsx",
           "type": "registry:ui",
           "target": "@ui/separator.tsx"
-        },
-        {
-          "path": "registry/ui/sheet.tsx",
-          "type": "registry:ui",
-          "target": "@ui/sheet.tsx"
         },
         {
           "path": "registry/ui/spinner.tsx",
@@ -65443,7 +65624,7 @@
       "name": "erp/number-input",
       "type": "registry:component",
       "title": "Поля числа й суми",
-      "description": "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код), NumberInput (відсоток, число з одиницею) і DecimalInput (кількість і ціна рядка документа десятковим рядком без похибок float); розряди й кома — за мовою інтерфейсу; у полі без дробу кома не вводиться, спливає підказка «Лише ціле число».",
+      "description": "MoneyInput (Money у мінорних одиницях, знаки після коми за валютою, «₴» чи код), NumberInput (відсоток, число з одиницею) і DecimalInput (кількість і ціна рядка документа десятковим рядком без похибок float, межа цілих розрядів maxIntegerDigits); розряди й кома — за мовою інтерфейсу; у полі без дробу кома не вводиться, спливає підказка «Лише ціле число».",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",

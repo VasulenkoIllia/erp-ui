@@ -1,13 +1,10 @@
 import type * as React from "react"
 import type { UseFormReturn } from "react-hook-form"
 
-import {
-  DiscountField,
-  type DiscountKind,
-} from "@/registry/erp/document-line-fields"
+import { DiscountField } from "@/registry/erp/document-discount-field"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import {
-  documentLineSchema,
+  discountShape,
   isSingleDiscount,
   priceSchema,
   quantitySchema,
@@ -17,6 +14,7 @@ import {
 import {
   computeDocumentTotals,
   documentTotalsIssue,
+  lineDiscountOf,
   NO_DISCOUNT,
   type DocumentTotals,
   type TaxTotal,
@@ -30,7 +28,8 @@ import { cn } from "@/registry/lib/utils"
 /**
  * Підсумки `erp/document-lines-editor` (UI05, ADR-0059): попередній розрахунок `computeDocumentTotals` під час
  * введення й знижка на весь документ. Рядок, який ще не порахувати (порожня ціна, знижка більша за
- * суму), не враховується, і це сказано під підсумками: інакше «Разом» мовчки було б меншим.
+ * суму), і зайва знижка документа не враховуються, і це сказано під підсумками: інакше «Разом» мовчки
+ * було б іншим. Ці примітки й повідомлення про межу суми озвучує скрінрідер (`role="status"`).
  */
 
 export interface TotalsPreview {
@@ -39,14 +38,17 @@ export interface TotalsPreview {
   /** Суми рядків за індексом у формі; індексу немає — рядок не враховано. */
   readonly lines: ReadonlyMap<number, Totals>
   readonly skipped: number
+  /** Знижку документа не враховано: вона більша за суму рядків чи некоректна. */
+  readonly documentDiscountSkipped: boolean
 }
 
-const { discountPercent, discountAmount } = documentLineSchema.shape
-
 const isValidDiscount = (discount: TotalsDiscount) =>
-  discountPercent.safeParse(discount.discountPercent).success &&
-  discountAmount.safeParse(discount.discountAmount).success &&
+  discountShape.discountPercent.safeParse(discount.discountPercent).success &&
+  discountShape.discountAmount.safeParse(discount.discountAmount).success &&
   isSingleDiscount(discount)
+
+const hasDiscount = (discount: TotalsDiscount) =>
+  discount.discountPercent !== 0 || discount.discountAmount !== 0
 
 const isCountable = (line: DocumentLine) =>
   quantitySchema.safeParse(line.quantity).success &&
@@ -85,6 +87,8 @@ export function previewTotals(
             : [],
         ),
         skipped: lines.length - counted.length,
+        documentDiscountSkipped:
+          documentDiscount === NO_DISCOUNT && hasDiscount(discount),
       }
     }
   }
@@ -131,8 +135,8 @@ interface DocumentLinesTotalsProps {
   /** Підсумки сервера збереженого документа: їх видно лише для читання. */
   savedTotals?: SavedDocumentTotals
   currency: string
-  discountKind: DiscountKind
-  onDiscountKind: (kind: DiscountKind) => void
+  /** Знижка документа з форми. */
+  discount: TotalsDiscount
   readOnly: boolean
 }
 
@@ -142,15 +146,15 @@ export function DocumentLinesTotals({
   preview,
   savedTotals,
   currency,
-  discountKind,
-  onDiscountKind,
+  discount,
   readOnly,
 }: DocumentLinesTotalsProps) {
   const t = useErpUiT()
   const format = useFormat()
+  const isSaved = Boolean(readOnly && savedTotals)
   const totals = (readOnly && savedTotals) || preview.totals
   const money = (amount: number) => format.money({ amount, currency })
-  const lineDiscount = totals ? totals.discount - totals.documentDiscount : 0
+  const lineDiscount = totals ? lineDiscountOf(totals) : 0
   return (
     <section
       aria-label={t("documentLines.totals.label")}
@@ -161,11 +165,10 @@ export function DocumentLinesTotals({
         form={form}
         percentName="discountPercent"
         amountName="discountAmount"
+        discount={discount}
         label={t("documentLines.totals.documentDiscount")}
         kindLabel={t("documentLines.documentDiscountKind")}
         currency={currency}
-        kind={discountKind}
-        onKindChange={onDiscountKind}
         readOnly={readOnly}
       />
       {totals ? (
@@ -214,16 +217,24 @@ export function DocumentLinesTotals({
             isTotal
           />
         </dl>
-      ) : (
-        <p className="text-sm text-destructive-foreground">
-          {t("documentLines.errors.out_of_range")}
-        </p>
-      )}
-      {preview.skipped && !(readOnly && savedTotals) ? (
-        <p className="text-sm text-muted-foreground">
-          {t("documentLines.totals.skipped", { count: preview.skipped })}
-        </p>
       ) : null}
+      <div role="status" className="grid gap-1 text-sm empty:hidden">
+        {totals ? null : (
+          <p className="text-destructive-foreground">
+            {t("documentLines.errors.out_of_range")}
+          </p>
+        )}
+        {preview.skipped && !isSaved ? (
+          <p className="text-muted-foreground">
+            {t("documentLines.totals.skipped", { count: preview.skipped })}
+          </p>
+        ) : null}
+        {preview.documentDiscountSkipped && !isSaved ? (
+          <p className="text-muted-foreground">
+            {t("documentLines.totals.documentDiscountSkipped")}
+          </p>
+        ) : null}
+      </div>
     </section>
   )
 }

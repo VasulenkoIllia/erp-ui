@@ -1,11 +1,14 @@
-import * as React from "react"
 import type { RaRecord } from "ra-core"
-import { get, type FieldPath, type UseFormReturn } from "react-hook-form"
+import type { UseFormReturn } from "react-hook-form"
 
+import {
+  DiscountField,
+  setLinesValue,
+} from "@/registry/erp/document-discount-field"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import { FormField } from "@/registry/erp/form"
 import { FormSelect, type FormSelectItem } from "@/registry/erp/form-select"
-import { DecimalInput, NumberInput } from "@/registry/erp/number-input"
+import { DecimalInput } from "@/registry/erp/number-input"
 import { RecordPicker } from "@/registry/erp/record-picker"
 import {
   PRICE_DECIMALS_MAX,
@@ -14,26 +17,16 @@ import {
   type DocumentLineTax,
   type DocumentLineUnit,
 } from "@/registry/lib/document-lines"
-import type { Totals } from "@/registry/lib/document-totals"
 import {
-  currencyDigits,
-  currencyLabel,
-  decimalToMinor,
-  minorToDecimal,
-  useFormat,
-} from "@/registry/lib/format"
+  lineDiscountOf,
+  NO_DISCOUNT,
+  type Totals,
+} from "@/registry/lib/document-totals"
+import { currencyLabel, useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import type { ListFilter } from "@/registry/lib/list-state"
-import { cn } from "@/registry/lib/utils"
 import { FieldTitle } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/registry/ui/select"
 
 /**
  * Поля одного рядка `erp/document-lines-editor` (UI05, ADR-0059) і поле знижки, спільне з підсумками.
@@ -42,13 +35,11 @@ import {
  *   одиниця, ціна, знижка, податок, сума. Фокус іде в тому самому порядку, що й на екрані.
  * - Одиниця й податок — знімок значення довідника. Значення, якого вже немає серед варіантів
  *   (вимкнене чи зі старою ставкою), лишається вибраним під своєю назвою.
- * - Знижка — відсотком або сумою, одне з двох (рішення власника 02.11.2026): перемикач «%» / «₴»
- *   поруч із полем обнуляє обидва значення.
+ * - Знижка — `erp/document-discount-field`.
+ * - Частина редактора: форма — `DocumentLinesValues`.
  */
 
-export type DiscountKind = "percent" | "amount"
-
-/** Що підставити в рядок із вибраного запису. */
+/** Що підставити в рядок із вибраного запису; поля без значення лишаються, як були. */
 export type DocumentLineItemPatch = Partial<
   Pick<DocumentLine, "name" | "price" | "unit" | "tax">
 >
@@ -67,7 +58,6 @@ export interface DocumentLineItem<T extends RaRecord> {
 }
 
 type LinesForm = UseFormReturn<DocumentLinesValues>
-type LinesPath = FieldPath<DocumentLinesValues>
 
 const NONE = "none"
 const CURRENT = "current"
@@ -110,131 +100,19 @@ const unitSnapshot = (unit: DocumentLineUnit | null) =>
 const taxSnapshot = (tax: DocumentLineTax | null) =>
   tax && { id: tax.id, name: tax.name, rate: tax.rate, included: tax.included }
 
-/** Зміна поля не тим полем, що його показує: перевіряємо лише те, що вже має помилку. */
-function setField(form: LinesForm, name: LinesPath, value: unknown) {
-  form.setValue(name, value as never, {
-    shouldDirty: true,
-    shouldValidate: Boolean(get(form.formState.errors, name)),
-  })
-}
-
-interface DiscountFieldProps {
-  form: LinesForm
-  percentName: LinesPath
-  amountName: LinesPath
-  label: React.ReactNode
-  kindLabel: string
-  currency: string
-  kind: DiscountKind
-  onKindChange: (kind: DiscountKind) => void
-  readOnly: boolean
-  className?: string
-}
-
-/** Знижка рядка чи документа: поле й перемикач «%» / «₴». Друге значення завжди нуль. */
-export function DiscountField({
-  form,
-  percentName,
-  amountName,
-  label,
-  kindLabel,
-  currency,
-  kind,
-  onKindChange,
-  readOnly,
-  className,
-}: DiscountFieldProps) {
-  const t = useErpUiT()
-  const { locale } = useLanguage()
-  const digits = currencyDigits(currency)
-  const kinds = [
-    { value: "percent", label: "%" },
-    { value: "amount", label: currencyLabel(currency, locale) },
-  ] as const
-  const fieldLabel = (
-    <>
-      {label}
-      <span className="sr-only">, {t(`documentLines.${kind}`)}</span>
-    </>
-  )
-  return (
-    <div className={cn("flex min-w-0 items-end gap-1 self-start", className)}>
-      {kind === "percent" ? (
-        <FormField
-          key={kind}
-          control={form.control}
-          name={percentName}
-          label={fieldLabel}
-          readOnly={readOnly}
-          className="min-w-0 flex-1"
-          render={({ field, control }) => (
-            <NumberInput
-              {...control}
-              ref={field.ref}
-              decimalScale={2}
-              placeholder="0"
-              value={field.value === 0 ? null : (field.value as number)}
-              onValueChange={(value) => {
-                field.onChange(value ?? 0)
-              }}
-              onBlur={field.onBlur}
-            />
-          )}
-        />
-      ) : (
-        <FormField
-          key={kind}
-          control={form.control}
-          name={amountName}
-          label={fieldLabel}
-          readOnly={readOnly}
-          className="min-w-0 flex-1"
-          render={({ field, control }) => (
-            <DecimalInput
-              {...control}
-              ref={field.ref}
-              decimalScale={digits}
-              placeholder="0"
-              value={
-                field.value === 0
-                  ? ""
-                  : minorToDecimal(field.value as number, digits)
-              }
-              onValueChange={(value) => {
-                // Понад межу безпечного цілого — bigint; число поза межею відхилить схема.
-                field.onChange(
-                  value ? Number(decimalToMinor(value, digits)) : 0,
-                )
-              }}
-              onBlur={field.onBlur}
-            />
-          )}
-        />
-      )}
-      <Select
-        items={kinds}
-        value={kind}
-        readOnly={readOnly}
-        onValueChange={(next) => {
-          if (next === kind) return
-          setField(form, percentName, 0)
-          setField(form, amountName, 0)
-          onKindChange(next as DiscountKind)
-        }}
-      >
-        <SelectTrigger aria-label={kindLabel} className="w-16 shrink-0">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {kinds.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
+/** Назва, ціна, одиниця й податок із вибраного запису; одиниця й податок — лише поля знімка. */
+function applyItem(
+  form: LinesForm,
+  index: number,
+  patch: DocumentLineItemPatch,
+) {
+  const { name, price, unit, tax } = patch
+  if (name !== undefined) setLinesValue(form, `lines.${index}.name`, name)
+  if (price !== undefined) setLinesValue(form, `lines.${index}.price`, price)
+  if (unit !== undefined)
+    setLinesValue(form, `lines.${index}.unit`, unitSnapshot(unit))
+  if (tax !== undefined)
+    setLinesValue(form, `lines.${index}.tax`, taxSnapshot(tax))
 }
 
 export interface DocumentLineFieldsProps<T extends RaRecord> {
@@ -248,8 +126,6 @@ export interface DocumentLineFieldsProps<T extends RaRecord> {
   units: readonly (DocumentLineUnit & { id: string })[]
   taxes: readonly DocumentLineTax[]
   item?: DocumentLineItem<T>
-  discountKind: DiscountKind
-  onDiscountKind: (kind: DiscountKind) => void
   readOnly: boolean
 }
 
@@ -266,8 +142,6 @@ export function DocumentLineFields<T extends RaRecord>({
   units,
   taxes,
   item,
-  discountKind,
-  onDiscountKind,
   readOnly,
 }: DocumentLineFieldsProps<T>) {
   const t = useErpUiT()
@@ -287,9 +161,7 @@ export function DocumentLineFields<T extends RaRecord>({
     sameTax,
     t("documentLines.noTax"),
   )
-  const sum = totals
-    ? totals.amount - totals.discount + totals.documentDiscount
-    : null
+  const sum = totals ? totals.amount - lineDiscountOf(totals) : null
   return (
     <>
       <div className="col-span-2 grid min-w-0 gap-2 @md:col-span-3 @4xl:col-span-1">
@@ -313,14 +185,7 @@ export function DocumentLineFields<T extends RaRecord>({
                 clearable
                 onValueChange={(id, record) => {
                   field.onChange(id)
-                  if (!record) return
-                  const patch = item.toLine(record)
-                  for (const [key, value] of Object.entries(patch))
-                    setField(
-                      form,
-                      path(key as keyof DocumentLineItemPatch),
-                      value,
-                    )
+                  if (record) applyItem(form, index, item.toLine(record))
                 }}
                 onBlur={field.onBlur}
               />
@@ -398,11 +263,10 @@ export function DocumentLineFields<T extends RaRecord>({
         form={form}
         percentName={path("discountPercent")}
         amountName={path("discountAmount")}
+        discount={line ?? NO_DISCOUNT}
         label={t("documentLines.discount")}
         kindLabel={t("documentLines.discountKind", { row: rowLabel })}
         currency={currency}
-        kind={discountKind}
-        onKindChange={onDiscountKind}
         readOnly={readOnly}
         className={WIDE_CELL}
       />
@@ -430,7 +294,14 @@ export function DocumentLineFields<T extends RaRecord>({
           {t("documentLines.sum")}
         </FieldTitle>
         <span className="flex h-control items-center text-sm tabular-nums">
-          {sum === null ? "—" : format.money({ amount: sum, currency })}
+          {sum === null ? (
+            <>
+              <span aria-hidden>—</span>
+              <span className="sr-only">{t("documentLines.noSum")}</span>
+            </>
+          ) : (
+            format.money({ amount: sum, currency })
+          )}
         </span>
       </div>
     </>

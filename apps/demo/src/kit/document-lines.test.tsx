@@ -16,6 +16,7 @@ import { previewTotals } from "@/registry/erp/document-lines-totals"
 import type {
   DocumentLine,
   DocumentLineTax,
+  SavedDocumentLine,
   SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import { computeDocumentTotals } from "@/registry/lib/document-totals"
@@ -77,6 +78,7 @@ function Editor({
   readOnly,
   savedTotals,
   item,
+  newLine = () => ({ tax: VAT_20 }),
   onSubmit,
 }: {
   initial: DocumentLinesValues
@@ -84,6 +86,7 @@ function Editor({
   readOnly?: boolean
   savedTotals?: SavedDocumentTotals
   item?: DocumentLineItem<Product>
+  newLine?: () => Partial<Omit<DocumentLine, "id">>
   onSubmit?: (values: DocumentLinesValues) => void
 }) {
   const schema = useDocumentLinesSchema(currency)
@@ -105,7 +108,7 @@ function Editor({
         units={UNITS}
         taxes={TAXES}
         item={item}
-        newLine={() => ({ tax: VAT_20 })}
+        newLine={newLine}
         readOnly={readOnly}
         savedTotals={savedTotals}
       />
@@ -194,6 +197,15 @@ describe("підсумки збігаються з lib/document-totals", () => {
     expect([...preview.lines.keys()]).toEqual([0])
     expect(preview.totals?.documentDiscount).toBe(0)
     expect(preview.totals?.total).toBe(12_000)
+    expect(preview.documentDiscountSkipped).toBe(true)
+  })
+
+  it("зайва знижка документа — примітка під підсумками", () => {
+    render(<Editor initial={values([line("1")], { discountAmount: 50_000 })} />)
+    expect(total("Разом")).toBe(uah(12_000))
+    expect(within(totals()).getByRole("status")).toHaveTextContent(
+      "Знижку на документ не враховано: перевірте її.",
+    )
   })
 
   it("сума за межею контракту — повідомлення замість підсумків", () => {
@@ -270,7 +282,7 @@ describe("клавіатура", () => {
     await user.click(
       within(row(1)).getByRole("combobox", { name: "Вид знижки: Рядок 1" }),
     )
-    await user.click(await screen.findByRole("option", { name: "₴" }))
+    await user.click(await screen.findByRole("option", { name: "сумою" }))
     const amount = within(row(1)).getByLabelText("Знижка, сумою")
     expect(amount).toHaveValue("")
     await user.type(amount, "12,5")
@@ -283,6 +295,40 @@ describe("клавіатура", () => {
       discountAmount: 1_250,
     })
     expect(total("Знижка в рядках")).toBe(uah(1_250))
+  })
+
+  it("стерта знижка сумою лишає поле суми під фокусом", async () => {
+    const user = userEvent.setup()
+    render(<Editor initial={values([line("1", { discountAmount: 5_000 })])} />)
+    const amount = within(row(1)).getByLabelText("Знижка, сумою")
+    await user.click(amount)
+    await user.keyboard("{Control>}a{/Control}{Backspace}")
+    expect(within(row(1)).getByLabelText("Знижка, сумою")).toBe(amount)
+    expect(amount).toHaveFocus()
+    expect(amount).toHaveValue("")
+    await user.keyboard("1")
+    // Набране не перемальовується нулями: «1», а не «1,00».
+    expect(amount).toHaveValue("1")
+  })
+
+  it("сума знижки не виходить за безпечне ціле число", async () => {
+    const user = userEvent.setup()
+    render(<Editor initial={values([line("1", { discountAmount: 100 })])} />)
+    const amount = within(row(1)).getByLabelText("Знижка, сумою")
+    await user.clear(amount)
+    await user.type(amount, "9".repeat(17))
+    // UAH: 13 цілих розрядів і 2 знаки копійок — 15 цифр мінорних одиниць.
+    expect(amount).toHaveValue("9\u00a0999\u00a0999\u00a0999\u00a0999")
+    expect(within(row(1)).getByText("—")).toBeInTheDocument()
+  })
+
+  it("новий рядок: типове значення undefined не стирає порожнє", async () => {
+    const user = userEvent.setup()
+    render(<Editor initial={values([])} newLine={() => ({ tax: undefined })} />)
+    await user.click(screen.getByRole("button", { name: "Додати рядок" }))
+    expect(
+      within(row(1)).getByRole("combobox", { name: "Податок" }),
+    ).toHaveTextContent("Без податку")
   })
 })
 
@@ -307,16 +353,21 @@ describe("помилки біля полів", () => {
       await within(row(1)).findByText("Має бути більше нуля"),
     ).toBeInTheDocument()
     expect(within(row(1)).getAllByText("Заповніть це поле")).toHaveLength(2)
+    // Знижка рядка перевіряється в самому рядку: помилки інших рядків її не ховають.
+    expect(
+      within(row(2)).getByText("Знижка більша за суму"),
+    ).toBeInTheDocument()
     expect(onSubmit).not.toHaveBeenCalled()
 
-    // Рядки виправлено: тепер видно, що знижка рядка більша за його суму.
+    // Рядки виправлено: тепер видно, що знижка документа більша за суму рядків.
     await user.type(within(row(1)).getByLabelText("Назва"), "Послуга")
     await user.clear(within(row(1)).getByLabelText("Кількість"))
     await user.type(within(row(1)).getByLabelText("Кількість"), "1")
     await user.type(within(row(1)).getByLabelText("Ціна"), "100")
+    await user.clear(within(row(2)).getByLabelText("Знижка, сумою"))
     await user.click(screen.getByRole("button", { name: "Зберегти" }))
     expect(
-      await within(row(2)).findByText("Знижка більша за суму"),
+      await within(totals()).findByText("Знижка більша за суму"),
     ).toBeInTheDocument()
   })
 
@@ -371,6 +422,20 @@ describe("лише для читання й знімки довідників", 
     expect(total("Разом")).toBe(uah(99_999))
   })
 
+  it("сума рядка лише для читання — із сум сервера в рядку", () => {
+    const saved = line("1")
+    const server = computeDocumentTotals([saved], 2)
+    if (!server) throw new Error("Сума за межею")
+    const fromServer: SavedDocumentLine = {
+      ...saved,
+      totals: { ...server.lines[0], amount: 9_999 },
+    }
+    render(
+      <Editor initial={values([fromServer])} readOnly savedTotals={server} />,
+    )
+    expect(within(row(1)).getByText(uahText(9_999))).toBeInTheDocument()
+  })
+
   it("ставка, якої вже немає в довіднику, лишається вибраною під своєю назвою", () => {
     render(
       <Editor
@@ -405,17 +470,30 @@ describe("лише для читання й знімки довідників", 
             toLine: (product) => ({
               name: product.name,
               price: String(product.price),
+              // Без значення — одиниця лишається, як була.
+              unit: undefined,
             }),
           }}
         />
       </CoreAdminContext>,
     )
+    await user.click(screen.getByRole("button", { name: "Зберегти" }))
+    expect(
+      await within(row(1)).findAllByText("Заповніть це поле"),
+    ).toHaveLength(2)
     await user.click(
       within(row(1)).getByRole("combobox", { name: "Товар чи послуга" }),
     )
     await user.click(await screen.findByRole("option", { name: "Кавоварка" }))
     expect(within(row(1)).getByLabelText("Назва")).toHaveValue("Кавоварка")
     expect(within(row(1)).getByLabelText("Ціна")).toHaveValue("4\u00a0200")
+    expect(
+      within(row(1)).getByRole("combobox", { name: "Одиниця" }),
+    ).toHaveTextContent("шт")
+    // Хост не читає `errors`, а помилки полів, які заповнив вибір, усе одно зникають.
+    await waitFor(() => {
+      expect(within(row(1)).queryByText("Заповніть це поле")).toBeNull()
+    })
     expect(total("Разом")).toBe(uah(504_000))
   })
 })

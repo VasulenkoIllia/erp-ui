@@ -2,26 +2,29 @@ import * as React from "react"
 import { z } from "zod"
 
 import {
+  bodyTotalsCheck,
+  discountShape,
   documentLineSchema,
   isSingleDiscount,
   LINE_NAME_MAX,
+  lineTotalsCheck,
+  linesTotalsCheck,
   priceSchema,
   quantitySchema,
+  whenBodyValid,
   whenValid,
   type DocumentLine,
 } from "@/registry/lib/document-lines"
-import {
-  documentTotalsIssue,
-  type TotalsDiscount,
-} from "@/registry/lib/document-totals"
+import type { TotalsDiscount } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 
 /**
  * Схема форми `erp/document-lines-editor` (UI05, ADR-0059): ті самі правила, що в контракті `lib/document-lines`,
- * але з текстами мовою інтерфейсу біля поля. Кількість і ціна перевіряються схемами контракту, суми й
- * знижки — `documentTotalsIssue`, тож правило живе в одному місці. Порожня кількість чи ціна — `""`.
+ * але з текстами мовою інтерфейсу біля поля. Кількість, ціну й знижки перевіряють схеми контракту, суми —
+ * перевірки контракту (`lineTotalsCheck` і далі), тож правило живе в одному місці. Порожня кількість чи
+ * ціна — `""`. Знижка понад суму рядка видна в кожному рядку одразу, знижка документа — коли рядки правильні.
  *
  * Модуль додає поля шапки: `useDocumentLinesSchema(currency).safeExtend({ client: … })`.
  */
@@ -42,25 +45,32 @@ export function useDocumentLinesSchema(currency: string) {
   return React.useMemo(() => {
     const digits = currencyDigits(currency)
     const required = t("validation.required")
-    const issueText = (code: string) =>
-      t(`documentLines.errors.${code as IssueCode}`)
-    const decimal = (schema: z.ZodType<string>) =>
-      z.string().superRefine((value, context) => {
-        const message = value
-          ? schema.safeParse(value).error?.issues[0]?.message
-          : required
-        if (message)
-          context.addIssue({
-            code: "custom",
-            message: value ? issueText(message) : message,
-          })
+    const issueText = (code: IssueCode) => t(`documentLines.errors.${code}`)
+    /** Правило контракту, текст — мовою інтерфейсу. */
+    const translated = <S extends z.ZodType>(
+      base: S,
+      contract: z.ZodType<z.output<S>>,
+      message: (value: z.output<S>, error: z.ZodError) => string,
+    ) =>
+      base.superRefine((value, context) => {
+        const { error } = contract.safeParse(value)
+        if (error)
+          context.addIssue({ code: "custom", message: message(value, error) })
       })
+    const decimal = (schema: z.ZodType<string>) =>
+      translated(z.string(), schema, (value, error) =>
+        value ? issueText(error.issues[0]?.message as IssueCode) : required,
+      )
     const discount = {
-      discountPercent: z.number().max(100, issueText("percentMax")),
-      // Поле суми дає bigint понад межу безпечного цілого, форма тримає його числом поза межею.
-      discountAmount: z
-        .number()
-        .refine(Number.isSafeInteger, issueText("out_of_range")),
+      // Поле не дає ввести від'ємне чи третій знак, але значення може прийти із запису.
+      discountPercent: translated(
+        z.number(),
+        discountShape.discountPercent,
+        (value) => issueText(value > 100 ? "percentMax" : "invalid"),
+      ),
+      discountAmount: translated(z.number(), discountShape.discountAmount, () =>
+        issueText("invalid"),
+      ),
     }
     const singleDiscount = {
       error: issueText("discount_both"),
@@ -85,36 +95,17 @@ export function useDocumentLinesSchema(currency: string) {
         tax: documentLineSchema.shape.tax,
       })
       .refine(isSingleDiscount, singleDiscount)
-    const lines = z.array(line).superRefine(
-      (rows, context) => {
-        const issue = documentTotalsIssue(rows, digits)
-        if (issue?.code === "out_of_range")
-          context.addIssue({ code: "custom", message: issueText(issue.code) })
-        if (issue?.code === "discount_exceeds" && issue.line !== null)
-          context.addIssue({
-            code: "custom",
-            message: issueText(issue.code),
-            path: [issue.line, "discountAmount"],
-          })
-      },
-      { when: whenValid },
-    )
+      .superRefine(lineTotalsCheck(digits, issueText), { when: whenValid })
     return z
-      .object({ lines, ...discount })
+      .object({
+        lines: z.array(line).superRefine(linesTotalsCheck(digits, issueText), {
+          when: whenValid,
+        }),
+        ...discount,
+      })
       .refine(isSingleDiscount, singleDiscount)
-      .superRefine(
-        (body, context) => {
-          if (
-            documentTotalsIssue(body.lines, digits, body)?.code ===
-            "discount_exceeds"
-          )
-            context.addIssue({
-              code: "custom",
-              message: issueText("discount_exceeds"),
-              path: ["discountAmount"],
-            })
-        },
-        { when: whenValid },
-      )
+      .superRefine(bodyTotalsCheck(digits, issueText), {
+        when: whenBodyValid,
+      }) satisfies z.ZodType<DocumentLinesValues>
   }, [currency, t])
 }
