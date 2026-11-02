@@ -6,11 +6,36 @@ import { toast } from "sonner"
 import { useUndoToast } from "@/components/erp/confirm-dialog"
 import { useApiErrorMessage } from "@/hooks/use-api-error-message"
 import { useCompanyId } from "@/hooks/use-company"
+import { isFocusLost } from "@/hooks/use-focus-heading"
 import { isApiError } from "@/lib/api"
 import { companyScope } from "@/lib/company-scope"
 
 import { DICTIONARY_DEFAULTS, type DictionaryEntry } from "../contract"
 import { useDictionariesT } from "../use-dictionaries-t"
+
+/** Перечитаний список React малює трохи пізніше за відповідь сервера, запас на повільний пристрій. */
+const ROW_REMOVAL_FRAMES = 30
+
+/**
+ * Найближчий кадр після перечитування може випередити відмальовку, а зниклий рядок потім забере фокус у
+ * таблицю. Тож дивимось кілька кадрів. Рядок лишився — нічого не робимо; людину, що за цей час пішла з
+ * таблиці, не чіпаємо.
+ */
+export function focusHeadingOnceRemoved(
+  button: HTMLElement,
+  heading: RefObject<HTMLHeadingElement | null>,
+  frames = ROW_REMOVAL_FRAMES,
+): void {
+  const table = button.closest('[data-slot="data-table"]')
+  const watch = (framesLeft: number) =>
+    requestAnimationFrame(() => {
+      if (button.isConnected) {
+        if (framesLeft > 1) watch(framesLeft - 1)
+      } else if (isFocusLost() || table?.contains(document.activeElement))
+        heading.current?.focus()
+    })
+  watch(frames)
+}
 
 /**
  * Вимкнути чи ввімкнути значення довідника: `PATCH` з `active` і `version`. Вимкнення зворотне, тож без
@@ -71,9 +96,7 @@ export function useEntryToggle<T extends DictionaryEntry>(
           })
         else toast.success(done)
         await refresh()
-        requestAnimationFrame(() => {
-          if (button && !button.isConnected) heading.current?.focus()
-        })
+        if (button) focusHeadingOnceRemoved(button, heading)
       } catch (failure: unknown) {
         const reason =
           isApiError(failure) && failure.code === "conflict"
