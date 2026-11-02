@@ -931,6 +931,32 @@ createTransitionHandlers({ /* … */ numbering: numbering.forResource({ resource
 - Лічильник — на серію чи філію (`perBranch`) і на рік дати документа (`resetYearly`). Видача атомарна, зайнятий номер сервер
   пропускає. Номера в браузері не складайте: перегляд (`nextDocumentNumber`) лише показує, яким він, імовірно, буде.
 
+### Рядки документа (ADR-0056, ADR-0059)
+
+Редактор рядків пропозиції, замовлення чи рахунку — поле форми документа. Довідники одиниць і податків модуль читає сам
+(ресурси A6 `units`, `taxes`, `dictionary-defaults`) і дає варіантами; рядок зберігає знімок значення.
+
+```tsx
+const schema = useDocumentLinesSchema("UAH").safeExtend({ client: z.string().min(1, required) })
+const form = useForm({ mode: "onTouched", resolver: zodResolver(schema), defaultValues })
+
+<DocumentLinesEditor
+  form={form}
+  currency="UAH"
+  units={units.map((unit) => ({ id: unit.id, name: unit.shortName }))}
+  taxes={taxes.map(({ id, name, rate, included }) => ({ id, name, rate, included }))}
+  item={{ resource: "products", optionLabel: (p) => p.name, toLine: (p) => ({ name: p.name, price: String(p.price) }) }}
+  newLine={() => ({ tax: defaultTax, unit: defaultUnit })}
+/>
+```
+
+- Поля форми: `lines` (`DocumentLine[]` з `lib/document-lines`), `discountPercent`, `discountAmount` — знижка на документ.
+  Знижка рядка й документа — відсотком або сумою в мінорних одиницях, одне з двох.
+- Підсумки під рядками — попередній розрахунок `computeDocumentTotals`; запис із сервера розбирайте `documentBodySchemaFor(digits)`,
+  а в режимі лише для читання передайте підсумки сервера в `savedTotals`.
+- Бекенд рахує ті самі суми за таблицями ADR-0056 і ADR-0059: знижка документа ділиться між рядками пропорційно, копійки
+  залишку — найдорожчому рядку, база ПДВ зменшується. Знижка понад свою суму — 422 `discount_exceeds`.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

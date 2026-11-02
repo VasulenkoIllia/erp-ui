@@ -3,7 +3,29 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
 import { keepFieldFocus } from "@/registry/erp/form"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS } from "@/registry/lib/icons"
+import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
+
+/** З якої ширини контейнера рядки `erp/repeating-rows` стають таблицею. */
+export type RepeatingRowsTableFrom = "lg" | "4xl"
+
+/** Класи таблиці на широкому контейнері: Tailwind бачить лише цілі назви класів. */
+export const REPEATING_ROWS_LAYOUTS = {
+  lg: {
+    list: "@lg:gap-2",
+    row: "@lg:flex-row @lg:items-start @lg:border-0 @lg:p-0",
+    laterLabels: "@lg:**:data-[slot=field-label]:sr-only",
+    actions: "@lg:self-stretch",
+    spacer: "@lg:block",
+  },
+  "4xl": {
+    list: "@4xl:gap-2",
+    row: "@4xl:flex-row @4xl:items-start @4xl:border-0 @4xl:p-0",
+    laterLabels: "@4xl:**:data-[slot=field-label]:sr-only",
+    actions: "@4xl:self-stretch",
+    spacer: "@4xl:block",
+  },
+} as const satisfies Record<RepeatingRowsTableFrom, Record<string, string>>
 
 /** Кнопки рядка `erp/repeating-rows`: порядок і вилучення (UI42, ADR-0047). */
 export interface RepeatingRowActionsProps {
@@ -13,6 +35,7 @@ export interface RepeatingRowActionsProps {
   canReorder: boolean
   canRemove: boolean
   isFirst: boolean
+  tableFrom?: RepeatingRowsTableFrom
   onMove: (from: number, to: number) => void
   onRemove: (index: number) => void
 }
@@ -24,18 +47,20 @@ export function RepeatingRowActions({
   canReorder,
   canRemove,
   isFirst,
+  tableFrom = "lg",
   onMove,
   onRemove,
 }: RepeatingRowActionsProps) {
   const t = useErpUiT()
   const Remove = ACTION_ICONS.delete
+  const layout = REPEATING_ROWS_LAYOUTS[tableFrom]
   return (
-    <div className="flex shrink-0 flex-col gap-2 @lg:self-stretch">
+    <div className={cn("flex shrink-0 flex-col gap-2", layout.actions)}>
       {/* Вирівнює кнопки першого рядка з полями, а не з їхніми підписами. */}
       {isFirst ? (
         <span
           aria-hidden
-          className="invisible hidden text-sm leading-snug @lg:block"
+          className={cn("invisible hidden text-sm leading-snug", layout.spacer)}
         >
           &nbsp;
         </span>

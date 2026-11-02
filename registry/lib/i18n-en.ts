@@ -7,6 +7,7 @@ import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
 import { enImport } from "@/registry/lib/i18n-en-import"
 import { enDocuments } from "@/registry/lib/i18n-en-documents"
+import { enDocumentLines } from "@/registry/lib/i18n-en-document-lines"
 import { enNumbering } from "@/registry/lib/i18n-en-numbering"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
@@ -1439,5 +1440,6 @@ export const en = {
   ...enWizard,
   ...enImport,
   ...enDocuments,
+  ...enDocumentLines,
   ...enNumbering,
 } satisfies ErpUiTranslation

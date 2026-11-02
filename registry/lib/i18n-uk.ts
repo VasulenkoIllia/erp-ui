@@ -4,6 +4,7 @@
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
 import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
@@ -1455,6 +1456,7 @@ export const uk = {
   ...ukWizard,
   ...ukImport,
   ...ukDocuments,
+  ...ukDocumentLines,
   ...ukNumbering,
 }
 

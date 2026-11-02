@@ -28,7 +28,9 @@ import {
  *   (`erp/number-group`).
  * - `MoneyInput` — сума в цілих мінорних одиницях (`Money`, SPEC §17): копійки без похибок float;
  *   знаків після коми стільки, скільки у валюти (UAH 2, JPY 0). Валюта — підписом у полі: «₴», «USD».
- * - `NumberInput` — кількість, відсоток, ціна за одиницю: `number | null`, одиниця — підписом (`unit`).
+ * - `NumberInput` — відсоток, число днів: `number | null`, одиниця — підписом (`unit`).
+ * - `DecimalInput` — кількість і ціна рядка документа (ADR-0056): десятковий рядок контракту без
+ *   похибок float, «1,50» дає `"1.5"`, порожнє поле — `""`.
  * - Порожнє поле — `null`. Межі (мінімум, максимум) перевіряє форма (SPEC §8.3), а не поле.
  * - `ref` веде на `<input>`: react-hook-form фокусує поле з помилкою.
  * - Валюта чи одиниця — в описі поля (`aria-describedby`), тож скрінрідер її називає.
@@ -245,4 +247,89 @@ function NumberInput({
   )
 }
 
-export { MoneyInput, NumberInput, type MoneyInputProps, type NumberInputProps }
+/** Введене → канонічний рядок контракту: без нулів зліва й справа, без крапки в кінці. */
+function toDecimal(text: string): string {
+  if (isIncomplete(text)) return ""
+  const [whole = "", fraction = ""] = text.split(".")
+  const digits = whole.replace(/^0+(?=\d)/, "") || "0"
+  const rest = fraction.replace(/0+$/, "")
+  return rest ? `${digits}.${rest}` : digits
+}
+
+type DecimalInputProps = InputProps &
+  Omit<GroupProps, "allowNegative"> & {
+    /** Десятковий рядок контракту: "1.5"; порожнє поле — "". */
+    value: string
+    onValueChange: (value: string) => void
+    /** Знаків після коми. */
+    decimalScale: number
+    /** Одиниця чи валюта після числа: «шт.», «₴». */
+    unit?: string
+  }
+
+function DecimalInput({
+  value,
+  onValueChange,
+  decimalScale,
+  unit,
+  className,
+  ref,
+  ...props
+}: DecimalInputProps) {
+  const unitId = React.useId()
+  const numeric = useNumericProps(decimalScale, false)
+  const { guard, hinted, hide } = useWholeNumberGuard(
+    decimalScale === 0,
+    numeric.allowedDecimalSeparators,
+    props,
+  )
+  const [shown, setDraft] = useDraft(
+    value,
+    (decimal) => decimal,
+    toDecimal,
+    (a, b) => a === b,
+  )
+  return (
+    <NumberGroup
+      isWhole={decimalScale === 0}
+      hinted={hinted}
+      onDismiss={hide}
+      className={className}
+    >
+      <NumericFormat
+        {...numeric}
+        {...props}
+        {...guard}
+        getInputRef={ref}
+        aria-describedby={describedBy(
+          unit ? unitId : undefined,
+          props["aria-describedby"],
+        )}
+        customInput={InputGroupInput}
+        className="tabular-nums"
+        value={shown}
+        allowNegative={false}
+        onValueChange={(values: NumberFormatValues, { event }) => {
+          // Зміна ззовні (форма скинула значення) — не правка користувача.
+          if (!event) return
+          setDraft(values.value)
+          onValueChange(toDecimal(values.value))
+        }}
+      />
+      {unit ? (
+        <InputGroupAddon align="inline-end">
+          <InputGroupText id={unitId}>{unit}</InputGroupText>
+        </InputGroupAddon>
+      ) : null}
+    </NumberGroup>
+  )
+}
+
+export {
+  DecimalInput,
+  MoneyInput,
+  NumberInput,
+  type DecimalInputProps,
+  type MoneyInputProps,
+  type NumberInputProps,
+}
