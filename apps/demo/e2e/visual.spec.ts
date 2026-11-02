@@ -91,6 +91,8 @@ const SHOT_PAGES = {
   integrations: "/#/settings/integrations",
   roles: "/#/settings/roles",
   company: "/#/settings/company",
+  // Нумерація (крок PF03b, ADR-0058): серія документів із переглядом наступного номера.
+  numbering: "/#/settings/numbering",
   inbox: "/#/notifications",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
@@ -133,7 +135,9 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   }
   // Документ: список і картка з панеллю дій уже з сервера, а не скелетони.
   if (pageId === "document") {
-    await expect(page.getByRole("link", { name: /ДОК-0008/ })).toBeVisible()
+    await expect(
+      page.getByRole("link", { name: /ДОК-\d{4}-0006/ }),
+    ).toBeVisible()
     await expect(
       page
         .getByTestId("document-card")
@@ -142,6 +146,9 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
         .first(),
     ).toBeVisible()
   }
+  // Нумерація: перегляд уже з лічильником сервера, а не «…».
+  if (pageId === "numbering")
+    await expect(page.locator("output")).toHaveText(/^ДОК-\d{4}-\d{4}$/)
   if (pageId === "companyCurrencies")
     await expect(listStatus(page)).toHaveText(/\d (валют|currenc)/)
   if (pageId === "companyRates")

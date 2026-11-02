@@ -34,6 +34,7 @@ export const ROLES: MockRole[] = [
       "reasons:*",
       "dictionary-defaults:*",
       "import-runs:read",
+      "numbering-series:read",
     ],
   },
   {
@@ -60,6 +61,7 @@ export const ROLES: MockRole[] = [
       "tags:*",
       "reasons:*",
       "dictionary-defaults:*",
+      "numbering-series:*",
     ],
   },
   {
@@ -121,6 +123,7 @@ export const ROLES: MockRole[] = [
       "tags:read",
       "reasons:read",
       "dictionary-defaults:read",
+      "numbering-series:read",
     ],
   },
   // Сильніша за адміністратора й нікому не призначена: «стеля» в демо (ADR-0032) — Олена її не дасть,
@@ -255,6 +258,11 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
   "dictionary-defaults": {
     label: { uk: "Типові значення", en: "Default values" },
     group: DICTIONARIES,
+    actions: ["read", "update"],
+  },
+  "numbering-series": {
+    label: { uk: "Нумерація документів", en: "Document numbering" },
+    group: ADMIN,
     actions: ["read", "update"],
   },
   "import-runs": {

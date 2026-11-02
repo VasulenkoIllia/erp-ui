@@ -56,6 +56,18 @@ export function DocumentPage() {
   )
 }
 
+/** Номер документа; чернетка номера не має, поки її не проведуть (ADR-0058). */
+function DocumentNumber({ number }: { number: string | null }) {
+  const kitT = useErpUiT()
+  return (
+    number ?? (
+      <span className="text-muted-foreground">
+        {kitT("numbering.noNumber")}
+      </span>
+    )
+  )
+}
+
 function DocumentList({ current }: { current: string }) {
   const { t } = useTranslation()
   const companyId = useCompanyId()
@@ -64,7 +76,7 @@ function DocumentList({ current }: { current: string }) {
     DOCUMENT_RESOURCE,
     {
       pagination: { page: 1, perPage: LIST_SIZE },
-      sort: { field: "number", order: "ASC" },
+      sort: { field: "date", order: "DESC" },
       meta: companyScope(companyId),
     },
   )
@@ -92,7 +104,9 @@ function DocumentList({ current }: { current: string }) {
                 aria-current={document.id === current ? "page" : undefined}
                 className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-[current=page]:bg-muted aria-[current=page]:font-medium"
               >
-                <span className="tabular-nums">{document.number}</span>
+                <span className="tabular-nums">
+                  <DocumentNumber number={document.number} />
+                </span>
                 <span className="min-w-0 flex-1 truncate text-muted-foreground">
                   {document.client}
                 </span>
@@ -170,7 +184,7 @@ function DocumentCard({ id }: { id: string }) {
               tabIndex={-1}
               className="text-lg font-semibold tabular-nums focus-visible:outline-none"
             >
-              {data.number}
+              <DocumentNumber number={data.number} />
             </h3>
             <StatusBadge
               status={statuses.byId.get(data.status) ?? data.status}
@@ -243,8 +257,10 @@ function DocumentLinks({ document }: { document: DemoDocument }) {
     { enabled: present.length > 0 },
   )
   if (!present.length) return null
-  const numberOf = (id: string) =>
-    linked?.find((item) => item.id === id)?.number ?? id
+  const numberOf = (id: string) => {
+    const found = linked?.find((item) => item.id === id)
+    return found ? <DocumentNumber number={found.number} /> : id
+  }
   return (
     <ul className="space-y-1 text-sm">
       {present.map(({ key, target }) => (

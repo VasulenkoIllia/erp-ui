@@ -13,6 +13,8 @@
  * - Зміни йдуть через `db.patch` і `db.insert`: нова версія, журнал, подія каналу; причина — окремою
  *   подією журналу запису з дією й причиною.
  * - `documentDeniedActions` — позначки життєвого циклу для опції `deniedActions` ресурсу.
+ * - `numbering` (PF03b, ADR-0058): номер отримує документ, що стає проведеним, — на `submit` і сторно;
+ *   виправлена копія народжується чернеткою без номера.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -50,6 +52,18 @@ import {
 } from "@/registry/lib/record-access"
 import { findTransition, type StatusTransition } from "@/registry/lib/statuses"
 
+/**
+ * Номер документа, що стає проведеним (ADR-0058): поле й наступний номер серії. Дає
+ * `createNumberingMocks(...).forResource(...)` з lib/mock-numbering.
+ */
+export interface MockDocumentNumbering {
+  readonly field: string
+  readonly assign: (
+    document: Readonly<Record<string, unknown>>,
+    companyId: string | null,
+  ) => string
+}
+
 /** Запис зі статусом; документ має ще поля життєвого циклу. */
 export type MockTransitionRecord = MockRecord & {
   readonly status: string
@@ -69,6 +83,8 @@ export interface MockTransitionOptions<T extends MockTransitionRecord> {
   reverse?: (record: T) => Record<string, unknown>
   /** Що змінює колега в сценарії `conflict`; за замовчуванням лише версія. */
   conflictChange?: (record: T) => Partial<T>
+  /** Номер документа на проведенні: `createNumberingMocks(...).forResource(...)`. */
+  numbering?: MockDocumentNumbering
   baseUrl?: string
 }
 
@@ -120,32 +136,61 @@ function createFrom<T extends MockTransitionRecord>(
 
 /** Дія над записом: новий документ із позначкою на першому чи новий статус і стан документа. */
 function applyTransition<T extends MockTransitionRecord>(
-  { db, amend, reverse }: MockTransitionOptions<T>,
+  { db, amend, reverse, numbering }: MockTransitionOptions<T>,
   record: T,
   transition: StatusTransition,
   actor: Actor,
 ) {
   const status = transition.to ?? record.status
-  if (transition.id === "amend" && amend)
+  const companyId = record.companyId ?? actor.companyId
+  /** Поле номера: документ, що стає проведеним, отримує наступний номер серії, чернетка — жодного. */
+  const numbered = (
+    document: Record<string, unknown>,
+    isSubmitted: boolean,
+  ): Record<string, unknown> =>
+    numbering
+      ? {
+          [numbering.field]: isSubmitted
+            ? numbering.assign(document, companyId)
+            : null,
+        }
+      : {}
+  if (transition.id === "amend" && amend) {
+    const body = {
+      ...amend(record),
+      docStatus: "draft",
+      amendedFrom: record.id,
+    }
     return createFrom(
       db,
       record,
-      { ...amend(record), docStatus: "draft", amendedFrom: record.id },
+      { ...body, ...numbered(body, false) },
       (id) => ({ amendedBy: id }),
       actor,
     )
-  if (transition.id === "reverse" && reverse)
+  }
+  if (transition.id === "reverse" && reverse) {
+    const body = {
+      ...reverse(record),
+      docStatus: "submitted",
+      reversalOf: record.id,
+    }
     return createFrom(
       db,
       record,
-      { ...reverse(record), docStatus: "submitted", reversalOf: record.id },
+      { ...body, ...numbered(body, true) },
       (id) => ({ reversedBy: id, status }),
       actor,
     )
+  }
   const state = isDocumentAction(transition.id)
     ? DOCUMENT_STATE_AFTER[transition.id]
     : undefined
-  return db.patch(record.id, { status, ...(state ? { docStatus: state } : {}) })
+  return db.patch(record.id, {
+    status,
+    ...(state ? { docStatus: state } : {}),
+    ...(state === "submitted" ? numbered(record, true) : {}),
+  })
 }
 
 /**
@@ -214,6 +259,9 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
         if (!actions.has(action)) return undefined
         const early = await applyScenario(scenarioFor(resource))
         if (early) return early
+        // Тіло — до запису: далі жодного `await`, тож два одночасні запити до одного документа бачать
+        // версію одне одного (другий — 409), як під блокуванням рядка на сервері.
+        const raw: unknown = await request.json().catch(() => undefined)
         const user = currentMockUser()
         if (!user) return unauthenticated()
         const access = mockRequestPermissions(request, user)
@@ -237,7 +285,6 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
             message: `${resource}: ${denial}`,
             current: current(),
           })
-        const raw: unknown = await request.json().catch(() => undefined)
         const checked = checkTransition(options, record, action, raw, current)
         if (checked instanceof Response) return checked
         const result = applyTransition(options, record, checked.transition, {

@@ -21,6 +21,11 @@ const bar = (page: Page) =>
 const badge = (page: Page) =>
   page.getByTestId("document-card").locator("h3 + *")
 
+/** Дати засіву — від сьогодні, номер — з року дати (ADR-0058): фіксований день дає ті самі номери. */
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-02T10:00:00Z"))
+})
+
 async function confirmWithReason(page: Page, title: string, reason: string) {
   const dialog = page.getByRole("alertdialog", { name: `${title}?` })
   await expect(dialog).toBeVisible()
@@ -35,6 +40,11 @@ test.describe("PF03a: життєвий цикл документа", () => {
     page,
   }) => {
     await openWith(page, {}, documentPath("doc-1"))
+    const heading = page
+      .getByTestId("document-card")
+      .getByRole("heading", { level: 3 })
+    // Чернетка номера не має: його дає проведення (ADR-0058).
+    await expect(heading).toHaveText("Без номера")
     await expect(bar(page).getByRole("button")).toHaveText([
       "Провести",
       "На перевірку",
@@ -46,6 +56,8 @@ test.describe("PF03a: життєвий цикл документа", () => {
     await dialog.getByRole("button", { name: "Провести документ" }).click()
     await expect(dialog).toBeHidden()
     await expect(badge(page)).toHaveText("Проведено")
+    // Засів уже видав шість номерів цього року: проведення бере сьомий.
+    await expect(heading).toHaveText("ДОК-2026-0007")
     await expect(
       bar(page).getByRole("button", { name: "Позначити оплаченим" }),
     ).toBeEnabled()
@@ -129,7 +141,7 @@ test.describe("PF03a: життєвий цикл документа", () => {
     await dialog.getByRole("button", { name: "Сторнувати документ" }).click()
     await expect(
       page.getByTestId("document-card").getByRole("heading", { level: 3 }),
-    ).toHaveText("ДОК-0002-С")
+    ).toHaveText("ДОК-2026-0007")
   })
 
   test("виправити скасований: перехід до нової чернетки з посиланням на перший", async ({
@@ -138,13 +150,14 @@ test.describe("PF03a: життєвий цикл документа", () => {
     await openWith(page, {}, documentPath("doc-4"))
     await bar(page).getByRole("button", { name: "Виправити" }).click()
     const card = page.getByTestId("document-card")
+    // Виправлена копія — чернетка: номера ще немає, наступний вона візьме на проведенні.
     await expect(card.getByRole("heading", { level: 3 })).toHaveText(
-      "ДОК-0004-1",
+      "Без номера",
     )
     await expect(card.getByRole("heading", { level: 3 })).toBeFocused()
     await expect(badge(page)).toHaveText("Чернетка")
     await expect(
-      card.getByRole("link", { name: "ДОК-0004", exact: true }),
+      card.getByRole("link", { name: "ДОК-2026-0003", exact: true }),
     ).toBeVisible()
   })
 
@@ -155,10 +168,11 @@ test.describe("PF03a: життєвий цикл документа", () => {
     await bar(page).getByRole("button", { name: "Сторнувати" }).click()
     await confirmWithReason(page, "Сторнувати документ", "Повернення товару")
     const card = page.getByTestId("document-card")
+    // Сторно народжується проведеним і бере наступний номер серії.
     await expect(card.getByRole("heading", { level: 3 })).toHaveText(
-      "ДОК-0002-С",
+      "ДОК-2026-0007",
     )
-    await card.getByRole("link", { name: "ДОК-0002", exact: true }).click()
+    await card.getByRole("link", { name: "ДОК-2026-0001", exact: true }).click()
     await expect(badge(page)).toHaveText("Сторновано")
     await expect(card.locator('dt:text-is("Стан документа") + dd')).toHaveText(
       "Проведено",

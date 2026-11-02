@@ -8,8 +8,8 @@
  *   розширення), і форма показує порівняння змінених полів (`conflict`, `erp/record-form`).
  *   «Зберегти мої зміни» — ті самі поля з новою версією, «Взяти збережене» — значення сервера у
  *   формі. Не розібралось — звичайна помилка над формою.
- * - 422 `fieldErrors` — помилки полів, коди — текстом мовою інтерфейсу; поле, якого у формі немає,
- *   діалог показує над формою. Введене не губиться.
+ * - 422 `fieldErrors` — помилки полів, коди — текстом мовою інтерфейсу (свої коди ресурсу —
+ *   `serverErrorText`); поле, якого у формі немає, діалог показує над формою. Введене не губиться.
  * - Відправка без змін — тост «Змін немає» і `onUnchanged`.
  * - Поки йде запит, повторна відправка (Enter у полі) нічого не надсилає. Без мережі запит одразу
  *   завершується помилкою «офлайн», а не чекає мережі. Межі часу немає: `POST` не можна безпечно
@@ -73,6 +73,11 @@ export interface RecordFormOptions<
    * поле, якого у формі немає, діалог показує над формою.
    */
   readonly fieldOfServerError?: (field: string) => string
+  /**
+   * Текст помилки 422 для коду контракту ресурсу (`unknown_token` шаблону нумерації); `undefined` —
+   * текст кіта. `field` — ім'я з відповіді.
+   */
+  readonly serverErrorText?: (field: string, code: string) => string | undefined
   /** Запис → значення форми: «Взяти збережене» після конфлікту. */
   readonly toValues: (record: TRecord) => TValues
   readonly onSaved: (record: TRecord) => void
@@ -154,6 +159,7 @@ function useKitForm<TValues extends FieldValues>(
 function useServerFieldErrors<TValues extends FieldValues>(
   form: UseFormReturn<TValues>,
   fieldOf: (field: string) => string = (field) => field,
+  textOf?: (field: string, code: string) => string | undefined,
 ) {
   const t = useErpUiT()
   return (failure: unknown): boolean => {
@@ -167,7 +173,8 @@ function useServerFieldErrors<TValues extends FieldValues>(
         : undefined
       form.setError(fieldOf(name) as Path<TValues>, {
         type: "server",
-        message: t(key ?? "recordForm.serverErrors.invalid"),
+        message:
+          textOf?.(name, code) ?? t(key ?? "recordForm.serverErrors.invalid"),
       })
     }
     return entries.length > 0
@@ -273,6 +280,7 @@ export function useRecordForm<
   const serverFieldErrors = useServerFieldErrors(
     form,
     options.fieldOfServerError,
+    options.serverErrorText,
   )
   // Запис, від якого рахуємо зміни й версію: після створення — створений, після «Взяти збережене» —
   // версія сервера.
