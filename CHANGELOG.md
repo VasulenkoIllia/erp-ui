@@ -10,6 +10,14 @@
 - **Контракт рядка документа** `lib/document-lines` (ADR-0056): кількість до трьох знаків і ціна до чотирьох десятковими рядками, вільна назва чи запис ресурсу проекту, знімок одиниці й податку. `documentLineSchema`, `savedDocumentLineSchema`, `documentTotalsSchema`, `documentLinesSchemaFor`.
 - `lib/api`: `moneyAmountSchema`, сума в контракті: ціле JSON-число в межах `Number.MAX_SAFE_INTEGER`. `lib/format`: `formatDecimal`, `formatPrice`, у `useFormat()` `decimal` і `price`.
 
+- **Панель дій документа** `erp/document-action-bar` (PF03, ADR-0057): дії графа зі статусу документа, основна першою. Дія без права чи заборонена сервером неактивна з причиною, у вузькому контейнері причина ще й видимим рядком. Провести, скасувати, сторнувати й дія з причиною питають підтвердження. Відмова сервера показує причину на кнопці, конфлікт версій порівнює, що людина бачила, з тим, що зараз, і дає повторити дію. Діалоги панелі — `erp/document-action-dialogs`.
+- **Життєвий цикл документа** `lib/document-lifecycle` (ADR-0057): `docStatus` (`draft`, `submitted`, `cancelled`), дії `submit`, `cancel`, `amend`, `reverse`, зв'язки виправленої копії й сторно, тіло запиту `transitionBodySchema`. Після сторно перший документ лишається проведеним.
+- **Граф переходів** у `lib/statuses` (ADR-0057): `StatusTransition`, `ModuleTransition`, `mergeTransitions`, `useResolvedTransitions`, `transitionsFrom`, `findTransition`; розширення проекту `ExtensionTransitionChanges` (`add`, `hide`, `move`, `change` підпису, `from` і причини).
+- `hooks/use-record-transition`: запит переходу, відмова, конфлікт, повтор. Мок `createTransitionHandlers` і `documentDeniedActions` у `lib/mock-transitions`.
+- `ErpDataProvider`: новий `runTransition` (`POST /<ресурс>/:id/<дія>`, чекає до `TRANSITION_TIMEOUT_MS`, 30 с). Адаптер на `createDataProvider` отримує його сам, написаний вручну додає.
+- `lib/api`: код помилки `transition_not_allowed`. `lib/record-access`: коди причин `submitted`, `cancelled`, `linked`, `amended`, `reversed` з текстами кіта. Типи `ApiErrorCode` і `RecordDenialReason` стали ширшими: вичерпний `Record<RecordDenialReason, …>` у проекті потребує нових ключів.
+- `ConfirmDialog`: необов'язковий `body` між описом і кнопками; якщо після підтвердження відкрився інший діалог (конфлікт, пароль ще раз), фокус лишається в ньому. `ConflictDialog`: необов'язкові `labels` (тексти для дії над записом) і `finalFocus`.
+
 ### Виправлено
 
 - Модуль A6: коли фільтр прибирає вимкнений рядок, фокус переходить на заголовок сторінки. Раніше перевірка могла випередити відмальовку списку, і фокус лишався в таблиці. Людину, яка за цей час пішла з таблиці, фокус не наздоганяє.

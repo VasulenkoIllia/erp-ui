@@ -865,6 +865,47 @@ export const contactsExtension: ContactsExtension = {
   Беріть слот із файлу розширення, який вантажить вхід (ADR-0054, п. 7).
 - Моки: `createTimelineMocks({ targets: [timelineTargetMock({ resource, db, title })], seeds })`, фікстури `createTimelineFixtures({ records, people })`.
 
+### Життєвий цикл документа й панель дій (ADR-0057)
+
+Документ має стан кіта `docStatus` (`draft`, `submitted`, `cancelled`) і статус модуля. Модуль описує граф переходів, проект змінює його
+файлом розширення, панель показує дії зі статусу.
+
+```tsx
+// Граф модуля: основна дія статусу першою; без `to` дія створює новий документ.
+const INVOICE_TRANSITIONS = [
+  { id: "submit", from: ["draft"], to: "submitted" },
+  { id: "cancel", from: ["submitted"], to: "cancelled", reason: "required" },
+  { id: "reverse", from: ["submitted"], to: "reversed", reason: "required" },
+  { id: "amend", from: ["cancelled"] },
+] as const satisfies readonly StatusTransition<InvoiceStatus>[]
+
+const transitions = useResolvedTransitions(
+  INVOICE_TRANSITIONS.map((item) => ({ ...item, label: t(`invoices.actions.${item.id}`) })),
+  extension.transitions, // add, hide, move, change: label, from, reason
+)
+
+<DocumentActionBar
+  resource="invoices"
+  record={invoice}
+  transitions={transitions}
+  compare={(seen, current) => changedFields(seen, current)}
+  onCreated={(created) => navigate(`/invoices/${created.id}`)}
+/>
+```
+
+- Бекенду потрібна адреса `POST /<ресурс>/:id/<дія>` з `{ version, reason? }` (SPEC §17): змінений запис (200) або новий документ (201)
+  для `amend` і `reverse`. Дія — `id` переходу й дія права (`invoices:submit`). Порядок перевірок і коди причин — ADR-0057.
+- Проведений і скасований документ бекенд мітить `deniedActions` (`submitted`, `cancelled`), пов'язані проведені документи — `linked`,
+  виправлений — `amended`, сторнований — `reversed`. Тексти цих кодів кіт показує сам. Свій код проекту — загальним текстом.
+- Після сторно перший документ лишається проведеним, поруч з'являється документ-сторно з `reversalOf`.
+- Куди веде дія модуля (`to`), розширення не змінює: інша поведінка — нова дія в `add` зі своїм ключем (`add` з ключем дії модуля не
+  діє). Дії кіта — лише зі свого стану `docStatus`, хоч би що дозволяв граф. Сервер і моки беруть той самий граф через
+  `mergeTransitions(MODULE_TRANSITIONS, extension.transitions)`.
+- Провайдер, написаний вручну, додає `runTransition(resource, id, action, body)`; адаптер на `createDataProvider` отримує його сам.
+- Моки: `createTransitionHandlers({ resource, db, transitions, amend, reverse, conflictChange })` перед `handlers` ресурсу і
+  `deniedActions: (_, record) => documentDeniedActions(record)` у `createResourceHandlers`. Дії, якої немає в графі, мок не бере, тож
+  масові дії, імпорт і стрічка ресурсу працюють; дії графа не називайте `bulk` чи `import`.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

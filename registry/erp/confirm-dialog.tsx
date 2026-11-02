@@ -51,10 +51,15 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   onClose: () => void
   onConfirm: () => Promise<unknown> | void
-  /** Куди повернути фокус, якщо елемента, з якого відкрили, уже немає. */
-  returnFocus?: () => HTMLElement | null
+  /**
+   * Куди повернути фокус, якщо елемента, з якого відкрили, уже немає; `false` — фокус уже поставлено
+   * самим колбеком (елемент без місця в порядку Tab, на який Base UI сам не повертає).
+   */
+  returnFocus?: () => HTMLElement | null | false
   /** Не закривати діалог, поки `onConfirm` триває. */
   lockWhileBusy?: boolean
+  /** Вміст між описом і кнопками: поле причини дії (ADR-0057). Перевірку робить `onConfirm`. */
+  body?: React.ReactNode
   children?: React.ReactNode
 }
 
@@ -68,6 +73,10 @@ function activeOpener(): HTMLElement | null {
     : null
 }
 
+/** Фокус уже в іншому відкритому діалозі: повернути його під модальне вікно — загубити (WCAG 2.4.3). */
+const focusInOtherDialog = () =>
+  document.activeElement?.closest('[role="dialog"]') != null
+
 function ConfirmDialog({
   open,
   title,
@@ -80,6 +89,7 @@ function ConfirmDialog({
   onConfirm,
   returnFocus,
   lockWhileBusy = false,
+  body,
   children,
 }: ConfirmDialogProps) {
   const t = useErpUiT()
@@ -132,9 +142,14 @@ function ConfirmDialog({
       }}
     >
       <AlertDialogContent
-        // Пункт меню, з якого відкрили, уже зник — тоді `returnFocus` чи правило Base UI.
+        // Пункт меню, з якого відкрили, уже зник — тоді `returnFocus` чи правило Base UI. Після
+        // підтвердження відкрився інший діалог (конфлікт, пароль ще раз) — фокус лишається в ньому.
         finalFocus={() =>
-          opener?.isConnected ? opener : (returnFocus?.() ?? true)
+          focusInOtherDialog()
+            ? false
+            : opener?.isConnected
+              ? opener
+              : (returnFocus?.() ?? true)
         }
       >
         <AlertDialogHeader>
@@ -172,6 +187,7 @@ function ConfirmDialog({
             ) : null}
           </Field>
         ) : null}
+        {body}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={lockWhileBusy && busy}>
             {cancelLabel ?? t("confirm.cancel")}

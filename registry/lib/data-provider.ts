@@ -19,6 +19,9 @@
  *   повністю сам, а не обгорткою над цим (ADR-0021), має додати ці три методи.
  * - Блокування на час редагування (lib/edit-lock, ADR-0051): `getEditLock` → `GET`, `takeEditLock` →
  *   `PUT`, `releaseEditLock` → `DELETE /<ресурс>/<id>/lock`; те саме про власний провайдер.
+ * - Дія над записом за графом переходів (lib/statuses, lib/document-lifecycle, ADR-0057):
+ *   `runTransition` → `POST /<ресурс>/<id>/<дія>` з `{ version, reason? }`; відповідь — запис після дії
+ *   або новий документ (`amend`, `reverse`); чекає до `TRANSITION_TIMEOUT_MS`. Те саме про власний провайдер.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
 
@@ -57,6 +60,10 @@ import {
   editLockSchema,
   type EditLockState,
 } from "@/registry/lib/edit-lock"
+import {
+  TRANSITION_TIMEOUT_MS,
+  type TransitionBody,
+} from "@/registry/lib/document-lifecycle"
 
 /** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
 export interface BulkDataProvider {
@@ -110,12 +117,23 @@ export interface EditLockDataProvider {
   ) => Promise<EditLockState>
   releaseEditLock: (resource: string, id: string) => Promise<void>
 }
+/** Дії над записом за графом переходів (lib/statuses, lib/document-lifecycle; ADR-0057). */
+export interface TransitionDataProvider {
+  /** Запис після дії; для `amend` і `reverse` — новий документ. Помилки — ApiError (409 з `current`). */
+  runTransition: (
+    resource: string,
+    id: Identifier,
+    action: string,
+    body: TransitionBody,
+  ) => Promise<RaRecord>
+}
 
 export type ErpDataProvider = DataProvider &
   BulkDataProvider &
   ListDataProvider &
   ImportDataProvider &
-  EditLockDataProvider
+  EditLockDataProvider &
+  TransitionDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -314,6 +332,13 @@ export function createDataProvider(
         timeoutMs: EDIT_LOCK_TIMEOUT_MS,
       })
     },
+
+    runTransition: (resource, id, action, body) =>
+      client.post<RaRecord>(
+        `${path(resource, id)}/${encodeURIComponent(action)}`,
+        body,
+        { timeoutMs: TRANSITION_TIMEOUT_MS },
+      ),
   }
   return provider
 }

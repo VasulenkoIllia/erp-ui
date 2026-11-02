@@ -10,6 +10,7 @@
       "wizard": "Wizard",
       "importExport": "Import and export",
       "realtime": "Real time",
+      "document": "Document",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -857,6 +858,50 @@
     "lockStart": "Colleague starts editing",
     "lockEnd": "Colleague finishes",
     "edit": "Edit invoice"
+  },
+  "documentPage": {
+    "lead": "A document goes through three states: draft, submitted and cancelled. Actions depend on the status: submit, cancel, reverse, amend. The server says what isn't allowed for a particular document, and the reason shows on the button.",
+    "listTitle": "Documents",
+    "listDescription": "Documents in different statuses. Pick a document to see its actions.",
+    "cardTitle": "Document card",
+    "cardDescription": "The action bar shows only the actions available from the document status. Mock scenarios for the “documents” resource are in the developer panel: slow, error, offline, conflict, forbidden, empty.",
+    "statuses": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "reversed": "Reversed"
+    },
+    "actions": {
+      "markPaid": "Mark as paid"
+    },
+    "fields": {
+      "client": "Client",
+      "dueDate": "Due date",
+      "amount": "Amount",
+      "state": "Document state",
+      "status": "Status"
+    },
+    "steps": "Document stages",
+    "links": {
+      "amendedFrom": "Amended from document",
+      "amendedBy": "Amended copy",
+      "reversalOf": "Reversal of document",
+      "reversedBy": "Reversed by document"
+    },
+    "colleague": {
+      "pay": "A colleague posts a payment",
+      "hint": "A colleague will post a payment for this document, and the card won't know about it. This shows how the server refuses an action.",
+      "paid": "The payment is posted. The card doesn't know about it yet: press “Cancel”, and the server will refuse with a reason."
+    },
+    "variantsTitle": "Bar variants",
+    "variantsDescription": "States without server requests: buttons are disabled with a reason, or there are no actions.",
+    "variants": {
+      "noPermission": "View-only role",
+      "denied": "The server denies actions, narrow container",
+      "none": "No actions for this status"
+    },
+    "extension": "The project extension adds the “In review” status and the “Send for review” action for drafts, and allows “Submit” from review too."
   },
   "timelinePage": {
     "noMailTitle": "Project without email",

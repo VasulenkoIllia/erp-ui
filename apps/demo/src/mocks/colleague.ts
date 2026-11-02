@@ -8,7 +8,7 @@ import {
 import { currentMockUser } from "@/registry/lib/mock-server"
 import { addMockTimelineEntry } from "@/registry/lib/mock-timeline-store"
 
-import { invoices } from "./handlers"
+import { documentPayments, invoices } from "./handlers"
 
 /**
  * Колега в демо реального часу (ADR-0051): сервер моків живе в цій вкладці, тож чужі дії імітує
@@ -69,6 +69,14 @@ export function customerReplies(id: string): void {
       body: "Дякую, рахунок отримали. Оплатимо цього тижня.",
     },
   )
+}
+
+/**
+ * Колега провів оплату документа (сторінка «Документ», ADR-0057): подія — про оплату, а не про документ,
+ * тож картка не перечитується, а сервер уже не дає скасувати.
+ */
+export function colleaguePaysDocument(id: string): void {
+  documentPayments.add(id)
 }
 
 export const dropConnection = dropMockRealtimeStream

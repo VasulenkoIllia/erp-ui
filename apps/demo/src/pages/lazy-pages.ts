@@ -33,6 +33,10 @@ export const PAGES = {
   realtime: lazyWithPreload(() =>
     import("./RealtimePage").then((m) => m.RealtimePage),
   ),
+  // Життєвий цикл документа й панель дій (ADR-0057).
+  document: lazyWithPreload(() =>
+    import("./DocumentPage").then((m) => m.DocumentPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

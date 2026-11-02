@@ -1,7 +1,7 @@
 {
   "targetKb": 250,
   "limitsKb": {
-    "вхід": 391.6,
+    "вхід": 393,
     "company-page.tsx": 622.3,
     "organization-page.tsx": 620.9,
     "organizations-list-page.tsx": 610.1,
@@ -42,22 +42,23 @@
     "user-page.tsx": 468.4,
     "ImportExportPage.tsx": 457.9,
     "AuthPage.tsx": 444,
-    "RolesPage.tsx": 440.3,
+    "RolesPage.tsx": 441.7,
     "FieldsPage.tsx": 438.9,
+    "DocumentPage.tsx": 436.7,
     "RichTextPage.tsx": 435.2,
     "UsersPage.tsx": 434.7,
     "SecurityPolicyPage.tsx": 427.7,
     "AuditPage.tsx": 424,
     "IntegrationsPage.tsx": 422.4,
     "PrimitivesPage.tsx": 421.5,
-    "NotificationsPage.tsx": 407.3,
+    "NotificationsPage.tsx": 408.7,
     "RealtimePage.tsx": 408.9,
-    "ShortcutsPage.tsx": 399.5,
-    "AppearancePage.tsx": 398.8,
-    "SetupPage.tsx": 396.8,
-    "IconsPage.tsx": 393.8,
-    "InboxPage.tsx": 393.5,
+    "ShortcutsPage.tsx": 400.9,
+    "AppearancePage.tsx": 400.2,
+    "SetupPage.tsx": 398.2,
+    "IconsPage.tsx": 395.2,
+    "InboxPage.tsx": 394.9,
     "StatesPage.tsx": 421.1,
-    "ModulePage.tsx": 392.7
+    "ModulePage.tsx": 394.1
   }
 }

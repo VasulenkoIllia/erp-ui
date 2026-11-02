@@ -3,6 +3,7 @@
  * Англійський переклад — `i18n-en.ts` з тими самими ключами; паритет перевіряє тест.
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
@@ -234,6 +235,8 @@ export const uk = {
       "Вхід з цієї мережі заборонено політикою компанії. Зверніться до адміністратора",
     account_blocked:
       "Акаунт заблоковано. Зверніться до адміністратора компанії.",
+    transition_not_allowed:
+      "Цю дію не можна виконати із записом у цьому статусі",
     unknown: "Щось пішло не так. Спробуйте ще раз",
     provider: "{{message}} (відповідь сервісу: {{provider}})",
   },
@@ -1450,6 +1453,7 @@ export const uk = {
   ...ukTimeline,
   ...ukWizard,
   ...ukImport,
+  ...ukDocuments,
 }
 
 export type ErpUiMessages = typeof uk
