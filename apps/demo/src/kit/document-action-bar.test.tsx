@@ -190,19 +190,22 @@ function renderCard(
   const queryClient = new QueryClient()
   queryClient.setQueryData<Me>(ME_QUERY_KEY, me(permissions))
   const created: string[] = []
-  const view = render(
-    <CoreAdminContext
-      queryClient={queryClient}
-      dataProvider={createDataProvider(createApiClient({ baseUrl: BASE }))}
-    >
+  const dataProvider = createDataProvider(createApiClient({ baseUrl: BASE }))
+  const tree = (cardId: string) => (
+    <CoreAdminContext queryClient={queryClient} dataProvider={dataProvider}>
       <Card
-        id={id}
+        id={cardId}
         transitions={transitions}
         onCreated={(newId) => created.push(newId)}
       />
-    </CoreAdminContext>,
+    </CoreAdminContext>
   )
-  return { ...view, created, queryClient }
+  const view = render(tree(id))
+  /** Той самий екземпляр панелі показує інший документ (як картка без перемонтування). */
+  const show = (cardId: string) => {
+    view.rerender(tree(cardId))
+  }
+  return { ...view, created, queryClient, show }
 }
 
 const bar = () => screen.getByRole("group", { name: "Дії документа" })
@@ -425,5 +428,48 @@ describe("DocumentActionBar", () => {
     expect(await within(bar()).findByRole("alert")).toHaveTextContent(
       /^«Позначити оплаченим» не виконано\./,
     )
+  })
+  it("після підтвердження кнопка зникла: фокус на самій панелі, а не на першій дії", async () => {
+    const user = userEvent.setup()
+    renderCard("d1")
+    await user.click(await screen.findByRole("button", { name: "Провести" }))
+    const confirm = await openConfirm("Провести документ?")
+    await user.click(
+      within(confirm).getByRole("button", { name: "Провести документ" }),
+    )
+    await waitFor(() => {
+      expect(status()).toHaveTextContent("submitted")
+    })
+    await waitFor(() => {
+      expect(bar()).toHaveFocus()
+    })
+  })
+
+  it("відповідь після переходу на інший документ нічого не показує й нікуди не веде", async () => {
+    const user = userEvent.setup()
+    let release = () => {}
+    const held = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    // Відповідь затримується, а потім іде далі, до мока переходів.
+    server.use(
+      http.post(`${BASE}/docs/:id/amend`, async () => {
+        await held
+        return undefined
+      }),
+    )
+    const { created, show } = renderCard("d3")
+    await user.click(await screen.findByRole("button", { name: "Виправити" }))
+    show("d2")
+    await waitFor(() => {
+      expect(status()).toHaveTextContent("submitted")
+    })
+    release()
+    await waitFor(() => {
+      expect(docs.db.all().some((doc) => doc.amendedFrom === "d3")).toBe(true)
+    })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(created).toEqual([])
+    expect(within(bar()).queryByRole("alert")).toBeNull()
   })
 })

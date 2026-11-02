@@ -76,6 +76,7 @@ type Failure =
       readonly kind: "failed"
       readonly error: unknown
       readonly reload: boolean
+      readonly current?: unknown
     }
 
 const isTransitionRecord = (value: unknown): value is TransitionRecord =>
@@ -94,10 +95,13 @@ function classifyFailure(error: unknown, inDialog: boolean): Failure {
   if (error.code === "conflict" && isTransitionRecord(error.current))
     return { kind: "conflict", current: error.current }
   if (error.status === 403) return { kind: "refused", current: error.current }
+  // Без відповіді (офлайн, межа часу) сервер міг дію виконати: картка перечитується.
   return {
     kind: "failed",
     error,
-    reload: error.current !== undefined || error.status === 404,
+    current: error.current,
+    reload:
+      error.current !== undefined || error.status === 404 || error.status === 0,
   }
 }
 
@@ -133,28 +137,39 @@ function useTransitionMessages<R extends TransitionRecord>(
   const t = useErpUiT()
   const errorText = useApiErrorMessage()
   const denialReason = useRecordDenialReason()
-  const [feedback, setFeedback] = React.useState<TransitionFeedback | null>(
-    null,
-  )
+  /** Текст і версія, яку він описує: свіже перечитування з тією самою версією його не стирає. */
+  const [feedback, setFeedback] = React.useState<
+    (TransitionFeedback & { readonly about: TransitionRecord }) | null
+  >(null)
   const [refusals, setRefusals] = React.useState<Refusals | null>(null)
   const [conflict, setConflict] = React.useState<TransitionConflict<R> | null>(
     null,
   )
-  // Новий запис від сервера (колега змінив, інший документ) — старий текст про збій уже не про нього.
-  const [shown, setShown] = React.useState(record)
-  if (record.id !== shown.id || record.version !== shown.version) {
-    setShown(record)
-    setFeedback(null)
-    if (record.id !== shown.id) setConflict(null)
+  // Інший документ у тій самій панелі — без чужого конфлікту.
+  const [shownId, setShownId] = React.useState(record.id)
+  if (record.id !== shownId) {
+    setShownId(record.id)
+    setConflict(null)
   }
-  const say = (transition: ModuleTransition, text: string) => {
-    setFeedback({ action: transition.id, text })
+  // Запис змінився після збою (колега, інший документ) — старий текст уже не про нього.
+  if (
+    feedback &&
+    (feedback.about.id !== record.id || record.version > feedback.about.version)
+  )
+    setFeedback(null)
+  const say = (
+    transition: ModuleTransition,
+    text: string,
+    about: TransitionRecord,
+  ) => {
+    setFeedback({ action: transition.id, text, about })
   }
   /** `base` — запис на екрані, коли прийшла відмова: кнопка тримає причину, доки він той самий. */
   const refused = (
     transition: ModuleTransition,
     current: unknown,
     base: object,
+    about: TransitionRecord,
   ) => {
     const reason =
       denialReason(current, transition.id) ?? t("apiErrors.forbidden")
@@ -168,6 +183,7 @@ function useTransitionMessages<R extends TransitionRecord>(
     say(
       transition,
       t("documentActions.refused", { action: transition.label, reason }),
+      about,
     )
   }
   return {
@@ -189,7 +205,13 @@ function useTransitionMessages<R extends TransitionRecord>(
       if (failure.kind === "conflict")
         // `current` — запис ресурсу за контрактом; версію перевірено в `classifyFailure`.
         setConflict({ transition, reason, seen, current: failure.current as R })
-      if (failure.kind === "refused") refused(transition, failure.current, base)
+      // Відповідь із записом (`current`) новіша за той, що бачила людина.
+      const about =
+        "current" in failure && isTransitionRecord(failure.current)
+          ? failure.current
+          : seen
+      if (failure.kind === "refused")
+        refused(transition, failure.current, base, about)
       if (failure.kind === "failed")
         say(
           transition,
@@ -197,6 +219,7 @@ function useTransitionMessages<R extends TransitionRecord>(
             action: transition.label,
             message: errorText(failure.error),
           }),
+          about,
         )
       // Свіжий запис несе позначку сервера: кнопка лишається неактивною й після перечитування.
       if (

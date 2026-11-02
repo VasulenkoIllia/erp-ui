@@ -51,8 +51,11 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   onClose: () => void
   onConfirm: () => Promise<unknown> | void
-  /** Куди повернути фокус, якщо елемента, з якого відкрили, уже немає. */
-  returnFocus?: () => HTMLElement | null
+  /**
+   * Куди повернути фокус, якщо елемента, з якого відкрили, уже немає; `false` — фокус уже поставлено
+   * самим колбеком (елемент без місця в порядку Tab, на який Base UI сам не повертає).
+   */
+  returnFocus?: () => HTMLElement | null | false
   /** Не закривати діалог, поки `onConfirm` триває. */
   lockWhileBusy?: boolean
   /** Вміст між описом і кнопками: поле причини дії (ADR-0057). Перевірку робить `onConfirm`. */

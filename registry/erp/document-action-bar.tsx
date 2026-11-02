@@ -1,32 +1,26 @@
 import * as React from "react"
 import type { RaRecord } from "ra-core"
 
-import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import type { ConflictField } from "@/registry/erp/conflict-dialog"
 import {
-  ConflictDialog,
-  type ConflictField,
-} from "@/registry/erp/conflict-dialog"
+  needsConfirmation,
+  TransitionConflict,
+  TransitionDialog,
+} from "@/registry/erp/document-action-dialogs"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useMe } from "@/registry/hooks/use-me"
 import { useRecordDenialReason } from "@/registry/hooks/use-record-access"
 import {
   useRecordTransition,
-  type TransitionConflict as Conflict,
-  type TransitionOutcome,
   type TransitionRecord,
 } from "@/registry/hooks/use-record-transition"
 import { hasPermission } from "@/registry/lib/auth"
-import {
-  lifecycleAllows,
-  TRANSITION_REASON_MAX_LENGTH,
-} from "@/registry/lib/document-lifecycle"
+import { lifecycleAllows } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { transitionsFrom, type ModuleTransition } from "@/registry/lib/statuses"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
-import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
-import { Textarea } from "@/registry/ui/textarea"
 
 /**
  * Панель дій документа (PF03 DocumentActionBar, ADR-0057): дії графа зі статусу запису, основна —
@@ -55,27 +49,23 @@ export interface DocumentActionBarProps<R extends TransitionRecord> {
   className?: string
 }
 
-/** Незворотні дії життєвого циклу питають підтвердження й без поля причини. */
-const CONFIRMED_ACTIONS = ["submit", "cancel", "reverse"] as const
-type ConfirmedAction = (typeof CONFIRMED_ACTIONS)[number]
-const isConfirmed = (action: string): action is ConfirmedAction =>
-  (CONFIRMED_ACTIONS as readonly string[]).includes(action)
-const confirmKey = (action: string) => (isConfirmed(action) ? action : "other")
-const DESTRUCTIVE_ACTIONS = new Set(["cancel", "reverse"])
-
-const needsDialog = (transition: ModuleTransition) =>
-  transition.reason !== undefined || isConfirmed(transition.id)
-
 /** Обгортка кнопки дії (`data-transition`): та сама між активною й неактивною, тож фокус знаходить заміну. */
 const TRANSITION_ATTR = "data-transition"
-const actionButton = (group: HTMLElement | null, id: string) =>
-  group?.querySelector<HTMLElement>(
+
+/**
+ * Фокус на дію `id`, а без неї на саму панель. Не через повернення фокуса Base UI: воно бере перший
+ * елемент у порядку Tab усередині панелі, і випадковий Enter виконав би чужу дію.
+ */
+function focusAction(group: HTMLElement | null, id: string) {
+  const button = group?.querySelector<HTMLElement>(
     `[${TRANSITION_ATTR}="${CSS.escape(id)}"] button`,
-  ) ?? null
+  )
+  ;(button ?? group)?.focus({ preventScroll: true })
+}
 
 /**
  * Кнопка з фокусом зникла з DOM (статус змінився, дія стала неактивною з причиною) — фокус на ту саму
- * дію, а без неї на панель. Людина сама пішла з кнопки — нічого не робимо: елемент лишився в DOM.
+ * дію, а без неї на панель. Людина сама пішла з кнопки (клік повз, Tab) — забуваємо її: елемент у DOM.
  */
 function useKeepActionFocus(
   group: React.RefObject<HTMLElement | null>,
@@ -95,19 +85,27 @@ function useKeepActionFocus(
         ?.getAttribute(TRANSITION_ATTR)
       focused.current = id ? { element: target, id } : null
     }
+    const forget = (event: FocusEvent) => {
+      const target = event.target as HTMLElement
+      // Видалений елемент уже не в DOM: його пам'ятаємо, щоб повернути фокус на заміну.
+      queueMicrotask(() => {
+        if (target.isConnected && focused.current?.element === target)
+          focused.current = null
+      })
+    }
     node.addEventListener("focusin", remember)
+    node.addEventListener("focusout", forget)
     return () => {
       node.removeEventListener("focusin", remember)
+      node.removeEventListener("focusout", forget)
     }
   }, [group, isShown])
   React.useLayoutEffect(() => {
     const last = focused.current
     if (!last || last.element.isConnected) return
     focused.current = null
-    if (document.activeElement !== document.body) return
-    ;(actionButton(group.current, last.id) ?? group.current)?.focus({
-      preventScroll: true,
-    })
+    if (document.activeElement === document.body)
+      focusAction(group.current, last.id)
   })
 }
 
@@ -127,6 +125,8 @@ function DocumentActionBar<R extends TransitionRecord>({
     transition: ModuleTransition
     seen: R
   } | null>(null)
+  // Інший документ у тій самій панелі (кнопка «Назад») — підтвердження старого вже не про нього.
+  if (asking && asking.seen.id !== record.id) setAsking(null)
   const groupRef = React.useRef<HTMLDivElement>(null)
   useKeepActionFocus(groupRef, !isPending)
   // Профіль ще вантажиться — без кнопок, які за мить стануть неактивними.
@@ -138,6 +138,9 @@ function DocumentActionBar<R extends TransitionRecord>({
     hasPermission(me?.permissions ?? [], resource, transition.id)
       ? (denialReason(record, transition.id) ?? flow.refusalOf(transition.id))
       : t("documentActions.noPermission")
+  const returnFocus = (id: string) => {
+    focusAction(groupRef.current, id)
+  }
   return (
     <div
       ref={groupRef}
@@ -165,7 +168,7 @@ function DocumentActionBar<R extends TransitionRecord>({
                 variant={index === 0 ? "default" : "outline"}
                 pending={flow.pending}
                 onRun={() => {
-                  if (needsDialog(transition))
+                  if (needsConfirmation(transition))
                     setAsking({ transition, seen: record })
                   else void flow.run(transition)
                 }}
@@ -195,14 +198,12 @@ function DocumentActionBar<R extends TransitionRecord>({
             inDialog: transition.reason !== undefined,
           })
         }
-        returnFocus={(id) =>
-          actionButton(groupRef.current, id) ?? groupRef.current
-        }
+        returnFocus={returnFocus}
       />
       <TransitionConflict
         conflict={flow.conflict}
         compare={compare}
-        finalFocus={groupRef}
+        returnFocus={returnFocus}
         onRetry={() => void flow.retryConflict()}
         onReload={() => void flow.reloadAfterConflict()}
       />
@@ -252,164 +253,6 @@ function ActionButton({
       {busy ? <Spinner aria-hidden /> : null}
       {transition.label}
     </Button>
-  )
-}
-
-/** Конфлікт версій (409): що людина бачила й що зараз; дія ще раз — з новою версією. */
-function TransitionConflict<R extends TransitionRecord>({
-  conflict,
-  compare,
-  finalFocus,
-  onRetry,
-  onReload,
-}: {
-  conflict: Conflict<R> | null
-  compare?: (seen: R, current: R) => ConflictField[]
-  finalFocus: React.RefObject<HTMLElement | null>
-  onRetry: () => void
-  onReload: () => void
-}) {
-  const t = useErpUiT()
-  // Під час закриття діалог ще видно: таблиця й кнопка — останнього конфлікту.
-  const [shown, setShown] = React.useState(conflict)
-  if (conflict && conflict !== shown) setShown(conflict)
-  if (!shown) return null
-  const compared = compare?.(shown.seen, shown.current) ?? []
-  return (
-    <ConflictDialog
-      open={conflict !== null}
-      // Кнопка дії могла зникнути разом зі статусом: фокус — на панель.
-      finalFocus={finalFocus}
-      onOpenChange={(open) => {
-        if (!open) onReload()
-      }}
-      fields={
-        compared.length
-          ? compared
-          : [
-              {
-                key: "version",
-                label: t("documentActions.conflict.version"),
-                mine: shown.seen.version,
-                theirs: shown.current.version,
-              },
-            ]
-      }
-      labels={{
-        title: t("documentActions.conflict.title"),
-        description: t("documentActions.conflict.description"),
-        mine: t("documentActions.conflict.mine"),
-        theirs: t("documentActions.conflict.theirs"),
-        reload: t("documentActions.conflict.reload"),
-        // Кнопка називає наслідок (SPEC §8.2): «Скасувати документ», а не «Скасувати».
-        overwrite: t(
-          `documentActions.confirm.${confirmKey(shown.transition.id)}.action`,
-          {
-            action: shown.transition.label,
-          },
-        ),
-      }}
-      onReload={onReload}
-      onOverwrite={onRetry}
-    />
-  )
-}
-
-/** Підтвердження дії з причиною, якщо граф її питає; поле лишається з помилкою, доки сервер не прийме. */
-function TransitionDialog({
-  transition,
-  onClose,
-  onConfirm,
-  returnFocus,
-}: {
-  transition: ModuleTransition | null
-  onClose: () => void
-  onConfirm: (
-    transition: ModuleTransition,
-    reason?: string,
-  ) => Promise<TransitionOutcome>
-  /** Куди повернути фокус: кнопка дії могла зникнути чи стати неактивною. */
-  returnFocus: (action: string) => HTMLElement | null
-}) {
-  const t = useErpUiT()
-  const id = React.useId()
-  const fieldRef = React.useRef<HTMLTextAreaElement>(null)
-  const [reason, setReason] = React.useState("")
-  const [error, setError] = React.useState<string | null>(null)
-  // Під час закриття діалог ще видно: тексти — останньої дії. Кожне відкриття — з порожнього поля.
-  const [shown, setShown] = React.useState(transition)
-  const [wasOpen, setWasOpen] = React.useState(transition !== null)
-  if (
-    (transition !== null) !== wasOpen ||
-    (transition && transition !== shown)
-  ) {
-    setWasOpen(transition !== null)
-    if (transition) {
-      setShown(transition)
-      setReason("")
-      setError(null)
-    }
-  }
-  if (!shown) return null
-  const text = (part: "title" | "description" | "action") =>
-    t(`documentActions.confirm.${confirmKey(shown.id)}.${part}`, {
-      action: shown.label,
-    })
-  const fail = (message: string) => {
-    setError(message)
-    fieldRef.current?.focus()
-  }
-  const confirm = async () => {
-    const value = reason.trim()
-    if (shown.reason === "required" && !value)
-      return fail(t("documentActions.reasonRequired"))
-    const outcome = await onConfirm(shown, value || undefined)
-    if (typeof outcome === "object")
-      return fail(
-        outcome.reasonError === "required"
-          ? t("documentActions.reasonRequired")
-          : t("apiErrors.validation"),
-      )
-    onClose()
-  }
-  return (
-    <ConfirmDialog
-      open={transition !== null}
-      title={text("title")}
-      description={text("description")}
-      confirmLabel={text("action")}
-      destructive={DESTRUCTIVE_ACTIONS.has(shown.id)}
-      cancelLabel={t("documentActions.keep")}
-      onClose={onClose}
-      onConfirm={confirm}
-      returnFocus={() => returnFocus(shown.id)}
-      lockWhileBusy
-      body={
-        shown.reason ? (
-          <Field data-invalid={error ? true : undefined}>
-            <FieldLabel htmlFor={`${id}-reason`}>
-              {shown.reason === "required"
-                ? t("documentActions.reason")
-                : t("documentActions.reasonOptional")}
-            </FieldLabel>
-            <Textarea
-              ref={fieldRef}
-              id={`${id}-reason`}
-              value={reason}
-              maxLength={TRANSITION_REASON_MAX_LENGTH}
-              required={shown.reason === "required"}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? `${id}-error` : undefined}
-              onChange={(event) => {
-                setReason(event.target.value)
-                setError(null)
-              }}
-            />
-            {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
-          </Field>
-        ) : null
-      }
-    />
   )
 }
 

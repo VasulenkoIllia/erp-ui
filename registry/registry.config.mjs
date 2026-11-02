@@ -2435,6 +2435,14 @@ export const CODE_ITEMS = {
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4", "§9", "§10"],
   },
+  "erp/document-action-dialogs": {
+    title: "Діалоги панелі дій документа",
+    description:
+      "TransitionDialog: підтвердження дії з кнопкою-наслідком і полем причини, кожне відкриття з порожнього поля; TransitionConflict: порівняння того, що людина бачила, з тим, що зараз, і повтор дії з новою версією. Частина erp/document-action-bar (PF03, ADR-0057).",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§8.2", "§10"],
+  },
   "erp/confirm-dialog": {
     title: "Діалог підтвердження",
     description:
