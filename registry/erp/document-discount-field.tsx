@@ -54,10 +54,11 @@ export function setLinesValue<TName extends LinesPath>(
   })
 }
 
+/** Будь-яке ненульове значення, і від'ємне із запису: поле з помилкою схеми лишається видимим. */
 const kindOfValue = (discount: TotalsDiscount): DiscountKind | null =>
-  discount.discountAmount > 0
+  discount.discountAmount !== 0
     ? "amount"
-    : discount.discountPercent > 0
+    : discount.discountPercent !== 0
       ? "percent"
       : null
 

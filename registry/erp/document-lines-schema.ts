@@ -11,6 +11,7 @@ import {
   linesTotalsCheck,
   priceSchema,
   quantitySchema,
+  singleDiscount,
   whenBodyValid,
   whenValid,
   type DocumentLine,
@@ -72,9 +73,9 @@ export function useDocumentLinesSchema(currency: string) {
         issueText("invalid"),
       ),
     }
-    const singleDiscount = {
+    const singleDiscountText = {
+      ...singleDiscount,
       error: issueText("discount_both"),
-      path: ["discountAmount"],
     }
     const line = z
       .object({
@@ -94,7 +95,7 @@ export function useDocumentLinesSchema(currency: string) {
         ...discount,
         tax: documentLineSchema.shape.tax,
       })
-      .refine(isSingleDiscount, singleDiscount)
+      .refine(isSingleDiscount, singleDiscountText)
       .superRefine(lineTotalsCheck(digits, issueText), { when: whenValid })
     return z
       .object({
@@ -103,7 +104,7 @@ export function useDocumentLinesSchema(currency: string) {
         }),
         ...discount,
       })
-      .refine(isSingleDiscount, singleDiscount)
+      .refine(isSingleDiscount, singleDiscountText)
       .superRefine(bodyTotalsCheck(digits, issueText), {
         when: whenBodyValid,
       }) satisfies z.ZodType<DocumentLinesValues>

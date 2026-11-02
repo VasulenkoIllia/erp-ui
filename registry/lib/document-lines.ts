@@ -76,7 +76,7 @@ export const discountShape = {
 /** Знижка відсотком або сумою: друга при першій — помилка на полі суми. */
 export const isSingleDiscount = (discount: TotalsDiscount) =>
   !(discount.discountPercent > 0 && discount.discountAmount > 0)
-const singleDiscount = {
+export const singleDiscount = {
   error: "discount_both",
   path: ["discountAmount"],
 }
@@ -200,9 +200,15 @@ const BODY_KEYS: ReadonlySet<PropertyKey> = new Set([
   ...Object.keys(discountShape),
 ])
 
-/** Рядки й знижка документа без помилок; помилка в полі шапки модуля перевірку сум не вимикає. */
+/**
+ * Рядки й знижка документа без помилок; помилка в полі шапки модуля перевірку сум не вимикає. Помилка
+ * всього значення (не об'єкт) — вимикає: шлях порожній.
+ */
 export const whenBodyValid = ({ issues }: z.core.ParsePayload) =>
-  !issues.some((issue) => BODY_KEYS.has(issue.path?.[0] ?? ""))
+  !issues.some((issue) => {
+    const key = issue.path?.[0]
+    return key === undefined || BODY_KEYS.has(key)
+  })
 
 /**
  * Рядки документа разом: схема рядка не бачить, що кількість і ціна разом вийшли за межу суми, а знижка

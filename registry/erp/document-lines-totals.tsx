@@ -218,7 +218,8 @@ export function DocumentLinesTotals({
           />
         </dl>
       ) : null}
-      <div role="status" className="grid gap-1 text-sm empty:hidden">
+      {/* Порожня область лишається в дереві доступності: інакше перша примітка може не прозвучати. */}
+      <div role="status" className="grid gap-1 text-sm empty:sr-only">
         {totals ? null : (
           <p className="text-destructive-foreground">
             {t("documentLines.errors.out_of_range")}

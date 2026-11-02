@@ -102,7 +102,7 @@ const savedLineTotals = (line: DocumentLine | undefined): Totals | undefined =>
 
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
-  "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,3fr)_minmax(5rem,1fr)_minmax(5.5rem,1.1fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
+  "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,2.8fr)_minmax(5rem,1fr)_minmax(5.5rem,1.3fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
 
 export function DocumentLinesEditor<
   TValues extends DocumentLinesValues,

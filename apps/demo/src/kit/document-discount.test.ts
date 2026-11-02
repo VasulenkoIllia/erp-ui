@@ -275,6 +275,9 @@ describe("схеми знижки", () => {
     expect(both.error?.issues.map(({ message }) => message)).toEqual([
       "discount_both",
     ])
+    // Не об'єкт — помилка контракту, а не виняток перевірки сум.
+    for (const value of [null, undefined, "тіло", []])
+      expect(documentBodySchemaFor(2).safeParse(value).success).toBe(false)
     // Порожня шапка модуля не вимикає перевірку знижки документа.
     const header = schema.safeParse({
       ...body,
