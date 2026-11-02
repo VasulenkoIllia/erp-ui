@@ -7,6 +7,7 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vitest"
 
 import { createApiClient, isApiError } from "@/registry/lib/api"
@@ -25,6 +26,7 @@ import {
   type Reason,
   type Tax,
 } from "@/registry/modules/A6-dictionaries"
+import { focusHeadingOnceRemoved } from "@/registry/modules/A6-dictionaries/components/use-entry-toggle"
 import {
   DEFAULTS_ID,
   DICTIONARY_DEFAULTS,
@@ -433,5 +435,73 @@ describe("модуль A6: моки", () => {
     const current = await taxBy("ПДВ 20%")
     expect(current.version).toBe(tax.version + 1)
     await expect(update(TAXES, current, { rate: 21 })).resolves.toBeTruthy()
+  })
+})
+
+describe("вимкнений рядок зникає разом із кнопкою", () => {
+  let frames: FrameRequestCallback[]
+  const nextFrame = () => frames.shift()?.(0)
+  const setup = () => {
+    const table = document.body.appendChild(document.createElement("div"))
+    table.dataset.slot = "data-table"
+    const button = table.appendChild(document.createElement("button"))
+    const neighbour = table.appendChild(document.createElement("button"))
+    const heading = document.body.appendChild(document.createElement("h1"))
+    heading.tabIndex = -1
+    button.focus()
+    return { button, neighbour, heading, ref: { current: heading } }
+  }
+
+  beforeEach(() => {
+    frames = []
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) =>
+      frames.push(callback),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    document.body.replaceChildren()
+  })
+
+  it("рядок зник пізніше за перший кадр: фокус усе одно на заголовку", () => {
+    const { button, heading, ref } = setup()
+    focusHeadingOnceRemoved(button, ref)
+    nextFrame()
+    nextFrame()
+    expect(document.activeElement).toBe(button)
+    button.remove()
+    nextFrame()
+    expect(document.activeElement).toBe(heading)
+    expect(frames).toHaveLength(0)
+  })
+
+  it("таблиця вже забрала фокус на сусідню клітинку: заголовок його отримує", () => {
+    const { button, neighbour, heading, ref } = setup()
+    focusHeadingOnceRemoved(button, ref)
+    button.remove()
+    neighbour.focus()
+    nextFrame()
+    expect(document.activeElement).toBe(heading)
+  })
+
+  it("людина вже пішла з таблиці: фокус лишається в неї", () => {
+    const { button, ref } = setup()
+    const pager = document.body.appendChild(document.createElement("button"))
+    focusHeadingOnceRemoved(button, ref)
+    pager.focus()
+    button.remove()
+    nextFrame()
+    expect(document.activeElement).toBe(pager)
+  })
+
+  it("рядок лишився: фокус не чіпаємо й перестаємо чекати", () => {
+    const { button, ref } = setup()
+    focusHeadingOnceRemoved(button, ref, 3)
+    nextFrame()
+    nextFrame()
+    nextFrame()
+    expect(frames).toHaveLength(0)
+    expect(document.activeElement).toBe(button)
   })
 })

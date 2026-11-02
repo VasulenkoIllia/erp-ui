@@ -10,6 +10,10 @@
 - **Контракт рядка документа** `lib/document-lines` (ADR-0056): кількість до трьох знаків і ціна до чотирьох десятковими рядками, вільна назва чи запис ресурсу проекту, знімок одиниці й податку. `documentLineSchema`, `savedDocumentLineSchema`, `documentTotalsSchema`, `documentLinesSchemaFor`.
 - `lib/api`: `moneyAmountSchema`, сума в контракті: ціле JSON-число в межах `Number.MAX_SAFE_INTEGER`. `lib/format`: `formatDecimal`, `formatPrice`, у `useFormat()` `decimal` і `price`.
 
+### Виправлено
+
+- Модуль A6: коли фільтр прибирає вимкнений рядок, фокус переходить на заголовок сторінки. Раніше перевірка могла випередити відмальовку списку, і фокус лишався в таблиці. Людину, яка за цей час пішла з таблиці, фокус не наздоганяє.
+
 ### Без змін
 
 - Тип `Money` лишився `number | bigint`, `createDataProvider` не отримав опції розбору схемою: запис розбирає модуль на картці, частинами (ADR-0056).
