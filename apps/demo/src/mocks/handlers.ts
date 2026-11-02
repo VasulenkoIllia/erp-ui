@@ -4,9 +4,15 @@ import {
   createResourceHandlers,
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
+import {
+  createTransitionHandlers,
+  documentDeniedActions,
+} from "@/registry/lib/mock-transitions"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { timelineTargetMock } from "@/registry/lib/mock-timeline-store"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
+import { RECORD_DENIAL_REASONS } from "@/registry/lib/record-access"
+import { mergeTransitions } from "@/registry/lib/statuses"
 import { createUsersFixtures } from "@/registry/modules/A2-users/fixtures"
 import { createCompanyMocks } from "@/registry/modules/A1-company/mocks"
 import {
@@ -28,6 +34,15 @@ import {
   makeInvoices,
   type Invoice,
 } from "@/data/invoices"
+import {
+  amendDocument,
+  colleagueDocumentChange,
+  DOCUMENT_TRANSITIONS,
+  documentSchema,
+  makeDocuments,
+  reverseDocument,
+  type DemoDocument,
+} from "@/data/documents"
 import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
 import { MY_ACTIVITY_SEEDS, TIMELINE_SEEDS } from "@/data/timeline"
 import { makeProducts, productSchema, type Product } from "@/data/products"
@@ -35,6 +50,7 @@ import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
+import { documentsExtension } from "@/extensions/documents"
 import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
 
@@ -205,6 +221,48 @@ const timeline = createTimelineMocks({
   seeds: { ...MY_ACTIVITY_SEEDS, ...TIMELINE_SEEDS },
 })
 
+/**
+ * Документи з оплатою, про яку картка ще не знає: колега провів її, а подія прийшла про оплату, не про
+ * документ (сторінка «Документ», `@/mocks/colleague`).
+ */
+export const documentPayments = new Set<string>()
+
+/**
+ * Документи сторінки «Документ» (PF03, ADR-0057): позначки життєвого циклу кіта й правило демо —
+ * оплачений документ не скасовують (`linked`), а сторнують.
+ */
+export const documents = createResourceHandlers<DemoDocument>({
+  resource: "documents",
+  schema: documentSchema,
+  data: makeDocuments,
+  searchFields: ["number", "client"],
+  label: { uk: "Документи", en: "Documents" },
+  fieldLabels: {
+    client: { uk: "Клієнт", en: "Client" },
+    dueDate: { uk: "Сплатити до", en: "Due date" },
+    status: { uk: "Статус", en: "Status" },
+    docStatus: { uk: "Стан документа", en: "Document state" },
+  },
+  deniedActions: (_actor, document) => {
+    const denied = { ...documentDeniedActions(document) }
+    if (document.status === "paid" || documentPayments.has(document.id))
+      denied.cancel ??= RECORD_DENIAL_REASONS.linked
+    return Object.keys(denied).length ? denied : undefined
+  },
+})
+
+const documentTransitions = createTransitionHandlers({
+  resource: "documents",
+  db: documents.db,
+  transitions: mergeTransitions(
+    DOCUMENT_TRANSITIONS,
+    documentsExtension.transitions,
+  ),
+  amend: amendDocument,
+  reverse: reverseDocument,
+  conflictChange: colleagueDocumentChange,
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -231,6 +289,7 @@ export const handlers = [
       "payment-terms": { uk: "Умови оплати", en: "Payment terms" },
       tags: { uk: "Теги", en: "Tags" },
       reasons: { uk: "Причини", en: "Reasons" },
+      documents: { uk: "Документи", en: "Documents" },
     },
     auditSeeds: [...AUDIT_SEEDS, ...audit.seeds],
     webhookEvents: WEBHOOK_EVENTS,
@@ -246,6 +305,8 @@ export const handlers = [
   ...timeline.handlers,
   ...products.handlers,
   ...invoices.handlers,
+  ...documentTransitions,
+  ...documents.handlers,
   ...contacts.handlers,
   ...users.handlers,
   ...company.handlers,

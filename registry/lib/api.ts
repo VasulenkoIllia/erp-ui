@@ -135,6 +135,8 @@ export const API_ERROR_CODES = [
   "factor_setup_required",
   "ip_not_allowed",
   "account_blocked",
+  /** Граф переходів сервера не має цієї дії з поточного статусу запису (ADR-0057). */
+  "transition_not_allowed",
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number] | (string & {})
 

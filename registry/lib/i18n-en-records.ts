@@ -56,6 +56,13 @@ export const enRecords = {
   recordAccess: {
     shared: "Shared record: only a platform administrator can change it",
     own: "This record is assigned to someone else: you can only change your own records",
+    submitted:
+      "A submitted document can't be changed: cancel or reverse it and make an amended copy",
+    cancelled: "A cancelled document can't be changed: create an amended copy",
+    linked: "Linked documents are submitted: cancel them first",
+    amended:
+      "This document has already been amended: work with the amended copy",
+    reversed: "This document has already been reversed",
     denied: "This action isn't allowed for this record",
   },
   recordForm: {

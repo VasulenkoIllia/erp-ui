@@ -20,6 +20,7 @@ export const ROLES: MockRole[] = [
     },
     permissions: [
       "invoices:*",
+      "documents:*",
       "products:*",
       "organizations:*",
       "contacts:*",
@@ -70,6 +71,7 @@ export const ROLES: MockRole[] = [
     },
     permissions: [
       "invoices:read",
+      "documents:read",
       "organizations:read:own",
       "organizations:create",
       "organizations:update:own",
@@ -145,6 +147,21 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Рахунки", en: "Invoices" },
     group: SALES,
     actions: ["read", "create", "update", "delete", "export", "approve"],
+  },
+  documents: {
+    label: { uk: "Документи", en: "Documents" },
+    group: SALES,
+    actions: [
+      "read",
+      "update",
+      "delete",
+      "submit",
+      "markPaid",
+      "cancel",
+      "reverse",
+      "amend",
+      "sendToReview",
+    ],
   },
   products: {
     label: { uk: "Товари", en: "Products" },

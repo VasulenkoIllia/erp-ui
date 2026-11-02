@@ -62,6 +62,8 @@ const SHOT_PAGES = {
   icons: "/#/icons",
   shortcuts: "/#/shortcuts",
   realtime: "/#/realtime",
+  // Документ (крок PF03a, ADR-0057): список, картка з панеллю дій і варіанти панелі.
+  document: "/#/document",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
@@ -128,6 +130,17 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
       /^(Підключено|Connected)$/,
     )
     await expect(page.getByTestId("realtime-version")).toHaveText("1")
+  }
+  // Документ: список і картка з панеллю дій уже з сервера, а не скелетони.
+  if (pageId === "document") {
+    await expect(page.getByRole("link", { name: /ДОК-0008/ })).toBeVisible()
+    await expect(
+      page
+        .getByTestId("document-card")
+        .locator('[data-slot="document-action-bar"]')
+        .getByRole("button")
+        .first(),
+    ).toBeVisible()
   }
   if (pageId === "companyCurrencies")
     await expect(listStatus(page)).toHaveText(/\d (валют|currenc)/)

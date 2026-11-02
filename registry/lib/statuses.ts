@@ -8,6 +8,9 @@
  * - `useResolvedStatuses` — статуси мовою інтерфейсу: `options` — для вкладок і вибору (без
  *   схованих), `byId` — для бейджа (усі відомі).
  * - Тон — колір і іконка бейджа (SPEC §6.3): статуси без власного кольору, лише токени тем.
+ * - Дозволені переходи (ADR-0020, п. 2; ADR-0057): дія `id` переводить запис зі статусів `from` у `to`.
+ *   Граф — дані модуля й розширення, однакові для інтерфейсу й сервера: інтерфейс показує дії зі
+ *   статусу запису, сервер виконує лише їх, а що з конкретним записом — каже позначка `deniedActions`.
  */
 import { useMemo } from "react"
 import { z } from "zod"
@@ -126,4 +129,134 @@ export function useResolvedStatuses<K extends string>(
     )
     return { options, byId }
   }, [statuses, changes, language])
+}
+
+/* --------------------------------- Переходи --------------------------------- */
+
+/** Чи питати причину дії: `required` — без неї сервер відповість 422, `optional` — поле без вимоги. */
+export type TransitionReason = "required" | "optional"
+
+/**
+ * Дозволений перехід: дія `id` (право `<ресурс>:<дія>`, ключ `deniedActions`, шлях
+ * `POST /<ресурс>/:id/<дія>`) зі статусів `from` у `to`. Без `to` статус не змінюється: дія лише
+ * створює інший документ (`amend`).
+ */
+export interface StatusTransition<K extends string = string> {
+  readonly id: string
+  readonly from: readonly K[]
+  readonly to?: K
+  readonly reason?: TransitionReason
+}
+
+/** Перехід мовою інтерфейсу: кнопка дії. */
+export interface ModuleTransition<
+  K extends string = string,
+> extends StatusTransition<K> {
+  readonly label: string
+}
+
+/** Перехід із файлу розширення: підпис мовами, статуси — модуля чи нові статуси розширення. */
+export interface ExtensionTransition extends StatusTransition {
+  readonly label: LocalizedText
+}
+
+/**
+ * Що розширення змінює в переході модуля без заміни: підпис, звідки (новий статус розширення теж
+ * може вести до проведення) і чи питати причину. Куди веде дія модуля, вирішує модуль.
+ */
+export type ExtensionTransitionChange = Pick<
+  ExtensionTransition,
+  "label" | "from" | "reason"
+>
+
+/**
+ * Зміни переходів у файлі розширення: `add`, `hide`, `move` і `change` за ключем дії модуля (`A`).
+ * Статуси в `from` і `to` — модуля чи нові статуси розширення. `add` з ключем дії модуля не діє:
+ * заміна дала б іншу `to` тій самій дії на сервері, а змінити її підпис чи `from` — це `change`.
+ */
+export type ExtensionTransitionChanges<A extends string = string> =
+  KeyedChanges<ExtensionTransition, A, ExtensionTransitionChange>
+
+/** Граф без підписів: для сервера й моків. */
+type TransitionChangeData = Pick<StatusTransition, "from" | "reason">
+
+/** Без нових переходів із ключем дії модуля (див. `ExtensionTransitionChanges`). */
+function onlyNewTransitions<A extends string>(
+  module: readonly { readonly id: string }[],
+  changes?: ExtensionTransitionChanges<A>,
+): ExtensionTransitionChanges<A> | undefined {
+  if (!changes?.add) return changes
+  const ids = new Set(module.map((transition) => transition.id))
+  return { ...changes, add: changes.add.filter(({ id }) => !ids.has(id)) }
+}
+
+/** Переходи модуля зі змінами розширення без підписів — граф для моків і сервера на TypeScript. */
+export function mergeTransitions<A extends string>(
+  module: readonly (StatusTransition & { readonly id: A })[],
+  changes?: ExtensionTransitionChanges<A>,
+): readonly StatusTransition[] {
+  const data = mapKeyedChanges(
+    onlyNewTransitions(module, changes),
+    ({ id, from, to, reason }): StatusTransition => ({ id, from, to, reason }),
+    ({ id, from, reason }) => ({ id, from, reason }),
+  )
+  return applyKeyedChanges<
+    StatusTransition & { readonly id: A },
+    StatusTransition,
+    TransitionChangeData
+  >(module, data)
+}
+
+/** Перехід `id` зі статусу `from`, якщо граф його дозволяє. */
+export function findTransition<T extends StatusTransition>(
+  transitions: readonly T[],
+  from: string,
+  id: string,
+): T | undefined {
+  return transitions.find(
+    (transition) => transition.id === id && transition.from.includes(from),
+  )
+}
+
+/** Дії зі статусу запису в порядку графа. */
+export function transitionsFrom<T extends StatusTransition>(
+  transitions: readonly T[],
+  status: string,
+): readonly T[] {
+  return transitions.filter((transition) => transition.from.includes(status))
+}
+
+/**
+ * Переходи модуля (`transitions` — підписи мовою інтерфейсу, стабільні між рендерами) зі змінами
+ * розширення.
+ */
+export function useResolvedTransitions<A extends string>(
+  transitions: readonly (ModuleTransition & { readonly id: A })[],
+  changes?: ExtensionTransitionChanges<A>,
+): readonly ModuleTransition[] {
+  const { language } = useLanguage()
+  return useMemo(() => {
+    const resolved = mapKeyedChanges(
+      onlyNewTransitions(transitions, changes),
+      ({ id, from, to, reason, label }): ModuleTransition => ({
+        id,
+        from,
+        to,
+        reason,
+        label: localizedText(label, language) ?? id,
+      }),
+      // Лише те, що розширення може змінити: дані без типів (з сервера) не перепишуть `to`.
+      ({ id, from, reason, label }) => ({
+        id,
+        from,
+        reason,
+        label: localizedText(label, language),
+      }),
+    )
+    return applyKeyedChanges<
+      ModuleTransition & { readonly id: A },
+      ModuleTransition,
+      Pick<ModuleTransition, "label" | "from" | "reason">
+    >(transitions, resolved)
+  }, [transitions, changes, language])
 }

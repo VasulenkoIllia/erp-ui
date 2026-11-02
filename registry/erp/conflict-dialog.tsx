@@ -31,12 +31,24 @@ export interface ConflictField {
   theirs: React.ReactNode
 }
 
+/** Тексти діалогу замість типових «Зберегти мої зміни»: дія над записом (ADR-0057). */
+export interface ConflictDialogLabels {
+  title: string
+  description: string
+  mine: string
+  theirs: string
+  overwrite: string
+  reload: string
+}
+
 export function ConflictDialog({
   open,
   onOpenChange,
   fields,
   onOverwrite,
   onReload,
+  labels,
+  finalFocus,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -46,21 +58,36 @@ export function ConflictDialog({
   onOverwrite: () => void
   /** Відкинути свої зміни й узяти збережене. */
   onReload: () => void
+  labels?: Partial<ConflictDialogLabels>
+  /** Куди повернути фокус після закриття: кнопка, з якої відкрили, могла зникнути. */
+  finalFocus?: React.ComponentProps<typeof DialogContent>["finalFocus"]
 }) {
   const t = useErpUiT()
+  const text = {
+    title: t("conflict.title"),
+    description: t("conflict.description"),
+    mine: t("conflict.mine"),
+    theirs: t("conflict.theirs"),
+    overwrite: t("conflict.overwrite"),
+    reload: t("conflict.reload"),
+    // Порожнє значення не перекриває типовий текст.
+    ...Object.fromEntries(
+      Object.entries(labels ?? {}).filter(([, value]) => Boolean(value)),
+    ),
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl" finalFocus={finalFocus}>
         <DialogHeader>
-          <DialogTitle>{t("conflict.title")}</DialogTitle>
-          <DialogDescription>{t("conflict.description")}</DialogDescription>
+          <DialogTitle>{text.title}</DialogTitle>
+          <DialogDescription>{text.description}</DialogDescription>
         </DialogHeader>
-        <Table label={t("conflict.title")}>
+        <Table label={text.title}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("conflict.field")}</TableHead>
-              <TableHead>{t("conflict.mine")}</TableHead>
-              <TableHead>{t("conflict.theirs")}</TableHead>
+              <TableHead>{text.mine}</TableHead>
+              <TableHead>{text.theirs}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -77,9 +104,9 @@ export function ConflictDialog({
         </Table>
         <DialogFooter>
           <Button variant="outline" onClick={onReload}>
-            {t("conflict.reload")}
+            {text.reload}
           </Button>
-          <Button onClick={onOverwrite}>{t("conflict.overwrite")}</Button>
+          <Button onClick={onOverwrite}>{text.overwrite}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

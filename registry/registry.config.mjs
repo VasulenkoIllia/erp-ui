@@ -362,7 +362,7 @@ export const CODE_ITEMS = {
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
-      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024).",
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024); дія над записом за графом переходів — runTransition (ADR-0057).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -630,6 +630,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "roles",
     spec: ["A2"],
+  },
+  "hooks/use-record-transition": {
+    title: "Дія за графом переходів",
+    description:
+      "useRecordTransition({ resource, record, onCreated }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом, 409 — дані для порівняння, повтор із новою версією; новий документ після amend і reverse (ADR-0057).",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§8.2", "§8.4"],
   },
   "hooks/use-record-access": {
     title: "Дія над записом",
@@ -1015,6 +1023,37 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["UI03", "PF06", "PF11", "§17"],
   },
+  "lib/document-lifecycle": {
+    title: "Життєвий цикл документа",
+    description:
+      "Контракт PF03 за моделлю ERPNext: docStatus draft → submitted → cancelled, дії submit, cancel, amend (виправлена копія з amendedFrom) і reverse (сторно з reversalOf, перший лишається проведеним), тіло дії { version, reason? }, порядок перевірок сервера (ADR-0057).",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§17"],
+  },
+  "lib/mock-transitions": {
+    title: "Мок дій за графом переходів",
+    description:
+      "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057).",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§17"],
+  },
+  "lib/i18n-uk-documents": {
+    title: "Рядки документів українською",
+    description:
+      "Стани й дії документа, підтвердження з причиною, порівняння в конфлікті (ADR-0057): окремий файл, простір імен erp-ui той самий.",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§11"],
+  },
+  "lib/i18n-en-documents": {
+    title: "Рядки документів англійською",
+    description: "Ті самі рядки документів англійською.",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§11"],
+  },
   "lib/record-access": {
     title: "Права на рівні запису: контракт",
     description:
@@ -1034,7 +1073,7 @@ export const CODE_ITEMS = {
   "lib/statuses": {
     title: "Статуси запису модуля",
     description:
-      "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025).",
+      "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason? }, розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
     status: "beta",
     demo: "contacts",
     spec: ["§6.3", "§17"],
@@ -1592,7 +1631,7 @@ export const CODE_ITEMS = {
   "erp/conflict-dialog": {
     title: "Діалог конфлікту",
     description:
-      "«Запис змінив інший користувач»: порівняння ваших і збережених значень, «Зберегти мої зміни» або «Взяти збережене».",
+      "«Запис змінив інший користувач»: порівняння ваших і збережених значень, «Зберегти мої зміни» або «Взяти збережене»; labels — свої тексти для дії над записом (ADR-0057).",
     status: "beta",
     demo: "data",
     spec: ["§8.2", "§17"],
@@ -2388,10 +2427,18 @@ export const CODE_ITEMS = {
     demo: "fields",
     spec: ["UI21", "§11", "§17"],
   },
+  "erp/document-action-bar": {
+    title: "Панель дій документа",
+    description:
+      "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057).",
+    status: "draft",
+    demo: "document",
+    spec: ["PF03", "§8.2", "§8.4", "§9", "§10"],
+  },
   "erp/confirm-dialog": {
     title: "Діалог підтвердження",
     description:
-      "Три рівні видалення (SPEC §8.2): useUndoToast для зворотних дій, ConfirmDialog з кнопкою-наслідком, confirmWord для критичних дій; кнопка зайнята, поки триває дія.",
+      "Три рівні видалення (SPEC §8.2): useUndoToast для зворотних дій, ConfirmDialog з кнопкою-наслідком, confirmWord для критичних дій; body — поле між описом і кнопками (причина дії); кнопка зайнята, поки триває дія.",
     status: "beta",
     demo: "forms",
     spec: ["§8.2"],

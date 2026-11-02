@@ -620,6 +620,8 @@ export function createResourceHandlers<T extends MockRecord>({
       },
       /** Хто питає про записи ресурсу: його права й правила ресурсу (lib/mock-scope). */
       accessOf,
+      /** Запис, яким його бачить картка: з полями `detail` (дії над записом, ADR-0057). */
+      card: full,
       /** Записи компанії за фільтром; з `rules` — лише видимі людині, для відповіді клієнту. */
       select: (
         filter: Record<string, FilterValue>,

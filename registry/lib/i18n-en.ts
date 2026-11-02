@@ -6,6 +6,7 @@ import { enLists } from "@/registry/lib/i18n-en-lists"
 import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
 import { enImport } from "@/registry/lib/i18n-en-import"
+import { enDocuments } from "@/registry/lib/i18n-en-documents"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
 import { enRichText } from "@/registry/lib/i18n-en-rich-text"
@@ -229,6 +230,8 @@ export const en = {
       "Your company's policy blocks sign-in from this network. Contact your administrator",
     account_blocked:
       "This account is blocked. Contact your company administrator.",
+    transition_not_allowed:
+      "This action isn't available in the record's status",
     unknown: "Something went wrong. Please try again",
     provider: "{{message}} (service response: {{provider}})",
   },
@@ -1434,4 +1437,5 @@ export const en = {
   ...enTimeline,
   ...enWizard,
   ...enImport,
+  ...enDocuments,
 } satisfies ErpUiTranslation
