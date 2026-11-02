@@ -6,10 +6,11 @@ import type { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 export const enNumbering: typeof ukNumbering = {
   numbering: {
     title: "Document numbering",
-    description:
-      "A document gets its number when it is submitted. Drafts have no number, and a cancelled document's number is never given to another one.",
     noNumber: "No number",
     seriesList: "Document types",
+    emptyTitle: "Nothing to number yet",
+    emptyDescription:
+      "Number series appear here once the project has documents with numbers.",
     template: "Number template",
     templateHint:
       "Tags: {YYYY} year, {YY} two-digit year, {MM} month, {BRANCH} branch code, {####} four-digit counter.",
@@ -32,7 +33,6 @@ export const enNumbering: typeof ukNumbering = {
     previewHint: "Unless someone submits a document first.",
     previewBranch: "Branch for the preview",
     noBranch: "No branch",
-    previewInvalid: "Fix the template to see the number",
     previewFailed: "Couldn't load the counter",
     saved: "Numbering saved",
     readOnly:

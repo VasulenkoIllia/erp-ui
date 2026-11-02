@@ -17,6 +17,11 @@ const template = (page: Page) =>
 const preview = (page: Page) =>
   page.getByRole("status", { name: "Наступний номер" })
 
+/** Дати засіву — від сьогодні, номер — з року дати: фіксований день дає ті самі номери. */
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-02T10:00:00Z"))
+})
+
 test.describe("PF03b: нумерація документів", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
@@ -69,9 +74,7 @@ test.describe("PF03b: нумерація документів", () => {
     await expect(template(page)).toHaveAccessibleDescription(
       /Додайте рік \{YYYY\} чи \{YY\}/,
     )
-    await expect(preview(page)).toHaveText(
-      "Виправте шаблон, щоб побачити номер",
-    )
+    await expect(preview(page)).toHaveText(/^Додайте рік \{YYYY\} чи \{YY\}/)
     await expectNoA11yViolations(page)
     await page.getByRole("switch", { name: "Щороку з 1" }).click()
     await expect(template(page)).not.toHaveAccessibleDescription(/Додайте рік/)

@@ -1,8 +1,6 @@
-import { useGetList } from "ra-core"
 import * as React from "react"
 import {
   Controller,
-  useWatch,
   type Control,
   type ControllerRenderProps,
   type UseFormReturn,
@@ -11,42 +9,43 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { FormField, keepFieldFocus } from "@/registry/erp/form"
-import { FormSelect } from "@/registry/erp/form-select"
+import {
+  NumberingPreview,
+  useNumberingIssueText,
+} from "@/registry/erp/numbering-preview"
 import type {
   RecordFormItem,
   RecordFormItemProps,
 } from "@/registry/erp/record-form"
 import { RecordFormPage } from "@/registry/erp/record-form-page"
-import { useCompanyId } from "@/registry/hooks/use-company"
-import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useRecordForm } from "@/registry/hooks/use-record-form"
-import { MAX_PER_PAGE } from "@/registry/lib/api"
-import { companyScope } from "@/registry/lib/company-scope"
-import { todayIn } from "@/registry/lib/dates"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
-  NUMBERING_COUNTERS,
   NUMBERING_SERIES,
-  NUMBERING_TEMPLATE_MAX_LENGTH,
+  NUMBERING_TEMPLATE_ISSUES,
   NUMBERING_TOKENS,
-  nextDocumentNumber,
   numberingSeriesSchema,
   numberingTemplateIssue,
-  usesBranch,
-  type NumberingCounter,
   type NumberingSeries,
+  type NumberingTemplateIssue,
   type NumberingToken,
 } from "@/registry/lib/numbering"
 import { Button } from "@/registry/ui/button"
-import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+} from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import { Switch } from "@/registry/ui/switch"
 
 /**
  * Форма однієї серії нумерації (PF03b, ADR-0058), частина `erp/numbering-settings`: шаблон із кнопками
- * міток, «Щороку з 1», «Окремо для кожної філії» і перегляд наступного номера з лічильників сервера.
- * Перевірка шаблону — та сама, що в сервера (`numberingTemplateIssue`); зміна прапорця перевіряє шаблон
- * ще раз, бо від нього залежить, чи потрібен рік чи код філії.
+ * міток, «Щороку з 1», «Окремо для кожної філії» і перегляд наступного номера (`erp/numbering-preview`).
+ * Перевірка шаблону — та сама, що в сервера (`numberingTemplateIssue`), і код 422 сервера звучить тим
+ * самим текстом; зміна прапорця перевіряє шаблон ще раз, бо від нього залежить, чи потрібен рік чи код
+ * філії.
  */
 interface SeriesValues {
   template: string
@@ -59,6 +58,9 @@ const toValues = ({
   resetYearly,
   perBranch,
 }: NumberingSeries): SeriesValues => ({ template, resetYearly, perBranch })
+
+const isTemplateIssue = (code: string): code is NumberingTemplateIssue =>
+  (NUMBERING_TEMPLATE_ISSUES as readonly string[]).includes(code)
 
 const TOKEN_NAMES: Readonly<
   Record<NumberingToken, "YYYY" | "YY" | "MM" | "BRANCH" | "counter">
@@ -78,6 +80,7 @@ export function NumberingSeriesForm({
   readOnly: boolean
 }) {
   const t = useErpUiT()
+  const issueText = useNumberingIssueText()
   const schema = React.useMemo(
     () =>
       z
@@ -92,12 +95,10 @@ export function NumberingSeriesForm({
             context.addIssue({
               code: "custom",
               path: ["template"],
-              message: t(`numbering.issues.${issue}`, {
-                max: NUMBERING_TEMPLATE_MAX_LENGTH,
-              }),
+              message: issueText(issue),
             })
         }),
-    [t],
+    [issueText],
   )
   const state = useRecordForm<SeriesValues, NumberingSeries>({
     resource: NUMBERING_SERIES,
@@ -108,6 +109,10 @@ export function NumberingSeriesForm({
     recordSchema: numberingSeriesSchema,
     toPayload: (values, keys) =>
       Object.fromEntries(keys.map((key) => [key, values[key]])),
+    serverErrorText: (field, code) =>
+      field === "template" && isTemplateIssue(code)
+        ? issueText(code)
+        : undefined,
     toValues,
     onSaved: () => {
       toast.success(t("numbering.saved"))
@@ -154,7 +159,8 @@ function insertToken(
   input: HTMLInputElement | null,
   token: string,
 ) {
-  const value = field.value
+  // Текст і курсор — з того самого поля: під час набору з IME значення форми може відставати.
+  const value = input?.value ?? field.value
   const start = input?.selectionStart ?? value.length
   const end = input?.selectionEnd ?? start
   const next = value.slice(0, start) + token + value.slice(end)
@@ -268,104 +274,20 @@ function RuleSwitch({
             aria-describedby={description ? `${id}-hint` : undefined}
             onCheckedChange={(checked) => {
               field.onChange(checked)
-              const template = form.getFieldState("template")
-              if (template.isTouched || form.formState.isSubmitted)
-                void form.trigger("template")
+              // Прапорець міг зробити шаблон хибним: помилка одразу біля поля, а не лише в перегляді.
+              void form.trigger("template")
             }}
           />
-          <div className="grid gap-1">
+          <FieldContent>
             <FieldLabel htmlFor={id}>{label}</FieldLabel>
             {description ? (
               <FieldDescription id={`${id}-hint`}>
                 {description}
               </FieldDescription>
             ) : null}
-          </div>
+          </FieldContent>
         </Field>
       )}
     />
-  )
-}
-
-/** Наступний номер для шаблону у формі, зокрема ще не збереженого; філію питає, лише якщо номер її має. */
-function NumberingPreview({
-  control,
-  series,
-  label,
-  description,
-  className,
-}: RecordFormItemProps & {
-  control: Control<SeriesValues>
-  series: NumberingSeries
-}) {
-  const t = useErpUiT()
-  const id = React.useId()
-  const companyId = useCompanyId()
-  const values = useWatch({ control })
-  const profile = useCompanyProfile()
-  const [branchId, setBranchId] = React.useState<string | null>(null)
-  const counters = useGetList<NumberingCounter>(NUMBERING_COUNTERS, {
-    filter: { series: series.id },
-    pagination: { page: 1, perPage: MAX_PER_PAGE },
-    meta: companyScope(companyId),
-  })
-  const rules = {
-    id: series.id,
-    template: values.template ?? series.template,
-    resetYearly: values.resetYearly ?? series.resetYearly,
-    perBranch: values.perBranch ?? series.perBranch,
-  }
-  const branches = profile.data?.branches ?? []
-  const branch = branches.find((item) => item.id === branchId)
-  const number = numberingTemplateIssue(rules.template, rules)
-    ? t("numbering.previewInvalid")
-    : counters.error
-      ? t("numbering.previewFailed")
-      : counters.data
-        ? nextDocumentNumber(rules, counters.data, {
-            date: todayIn(profile.data?.timezone ?? undefined),
-            branchId: branch?.id ?? null,
-            branchCode: branch?.code,
-          })
-        : "…"
-  return (
-    <div className={className}>
-      <div className="grid gap-3 rounded-lg border bg-muted/40 p-3 @lg:grid-cols-[minmax(0,1fr)_minmax(0,14rem)] @lg:items-end">
-        <div className="grid min-w-0 gap-1">
-          <p id={`${id}-label`} className="text-sm text-muted-foreground">
-            {label}
-          </p>
-          <output
-            aria-labelledby={`${id}-label`}
-            aria-describedby={`${id}-hint`}
-            className="font-mono text-lg font-semibold break-all"
-          >
-            {number}
-          </output>
-          <p id={`${id}-hint`} className="text-sm text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        {usesBranch(rules.template) && branches.length ? (
-          <Field>
-            <FieldLabel htmlFor={`${id}-branch`}>
-              {t("numbering.previewBranch")}
-            </FieldLabel>
-            <FormSelect<string | null>
-              id={`${id}-branch`}
-              items={[
-                { value: null, label: t("numbering.noBranch") },
-                ...branches.map((item) => ({
-                  value: item.id,
-                  label: item.code ? `${item.name} (${item.code})` : item.name,
-                })),
-              ]}
-              value={branch?.id ?? null}
-              onValueChange={setBranchId}
-            />
-          </Field>
-        ) : null}
-      </div>
-    </div>
   )
 }

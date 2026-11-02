@@ -1,15 +1,17 @@
 /**
  * Мок нумерації документів (lib/numbering, ADR-0058): серії — ресурс `numbering-series` на
- * `createResourceHandlers` (права, версія й 409, сценарії, журнал), лічильники — у пам'яті моку,
- * `GET /numbering-counters`.
+ * `createResourceHandlers` (права, версія й 409, 422 шаблону, сценарії, журнал), лічильники — у пам'яті
+ * моку, `GET /numbering-counters`.
  *
- * - `forResource` дає мок переходів (`createTransitionHandlers`, опція `numbering`) номер для документа,
+ * - `forResource` дає моку переходів (`createTransitionHandlers`, опція `numbering`) номер для документа,
  *   що стає проведеним. Видача синхронна: між читанням і записом лічильника немає `await`, тож два
  *   одночасні проведення отримують різні значення, як під блокуванням рядка лічильника на сервері.
- * - Номер, уже зайнятий у компанії (шаблон змінили, а потім повернули), мок пропускає й бере наступне
- *   значення.
- * - Серії немає — помилка налаштування моку, а не відповідь сервера: справжній сервер створює серію
- *   на кожен тип документа сам.
+ * - Номер, уже зайнятий серед документів цього типу в компанії (шаблон змінили, а потім повернули), мок
+ *   пропускає й бере наступне значення. Запис документа, який не пройшов схему, лишає пропуск у
+ *   лічильнику: сервер відкотив би його разом із транзакцією.
+ * - Серії створює сервер: `POST` і `DELETE` серій — 405. Зміну `resource` у `PATCH` мок не відхиляє.
+ * - Серії немає, сіди з хибним шаблоном чи лічильник без серії — помилка налаштування моку, а не відповідь
+ *   сервера.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -22,7 +24,7 @@ import {
 } from "@/registry/lib/dates"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
-import { mockGrantsRecords } from "@/registry/lib/mock-scope"
+import { inMockCompany, mockGrantsRecords } from "@/registry/lib/mock-scope"
 import {
   applyScenario,
   currentMockUser,
@@ -35,11 +37,13 @@ import {
   type MockRecord,
   type MockResourceDb,
 } from "@/registry/lib/mocks"
+import type { MockDocumentNumbering } from "@/registry/lib/mock-transitions"
 import {
   counterScope,
   formatDocumentNumber,
   NUMBERING_COUNTERS,
   NUMBERING_SERIES,
+  numberingTemplateIssue,
   validNumberingSeriesSchema,
   type CounterScope,
   type NumberingCounter,
@@ -73,24 +77,28 @@ export interface NumberingMockOptions {
   readonly baseUrl?: string
 }
 
-/** Номер для документа, що стає проведеним: поле й значення (`createTransitionHandlers`). */
-export interface MockDocumentNumbering {
-  readonly field: string
-  readonly assign: (
-    document: Readonly<Record<string, unknown>>,
-    companyId: string | null,
-  ) => string
-}
-
-export interface MockNumberingResource<T extends MockRecord> {
+export interface MockNumberingResource {
   readonly resource: string
-  readonly db: MockResourceDb<T>
+  /** Записи документів: у них мок шукає зайняті номери. */
+  readonly db: { readonly all: () => readonly MockRecord[] }
   /** Поле номера; за замовчуванням `number`. */
   readonly field?: string
-  /** Поле дати документа (`CalendarDate`); немає — сьогодні. */
+  /** Поле дати документа (`YYYY-MM-DD` чи дата й час ISO); порожнє — сьогодні. */
   readonly dateField?: string
   /** Поле філії документа; за замовчуванням `branchId`. */
   readonly branchField?: string
+}
+
+export interface NumberingMocks {
+  readonly handlers: HttpHandler[]
+  /** Серії: їх стан у тестах. */
+  readonly db: MockResourceDb<NumberingSeries>
+  /** Номер на проведенні для документів ресурсу: опція `numbering` моку переходів. */
+  readonly forResource: (
+    options: MockNumberingResource,
+  ) => MockDocumentNumbering
+  /** Серії й лічильники — до засіву. */
+  readonly reset: () => void
 }
 
 /** Зайнятих номерів підряд більше — шаблон дає той самий номер для всіх значень. */
@@ -104,27 +112,53 @@ const counterId = (series: string, scope: CounterScope) =>
 
 const text = (value: unknown) => (typeof value === "string" ? value : null)
 
+/** Дата документа для року й місяця; хибне значення — помилка налаштування моку, а не «сьогодні». */
+function documentDate(value: unknown, field: string): CalendarDate {
+  if (value === undefined || value === null || value === "") return todayIn()
+  const date = typeof value === "string" ? value.slice(0, 10) : ""
+  if (!isCalendarDate(date))
+    throw new Error(
+      `erp-ui mock: ${field} is not a date: ${JSON.stringify(value)}`,
+    )
+  return date
+}
+
+function seriesRecords(
+  seeds: readonly MockNumberingSeriesSeed[],
+): NumberingSeries[] {
+  return seeds.map((seed) => {
+    const record = {
+      id: seriesId(seed),
+      version: 1,
+      companyId: seed.companyId,
+      resource: seed.resource,
+      template: seed.template,
+      resetYearly: seed.resetYearly ?? true,
+      perBranch: seed.perBranch ?? false,
+    }
+    const issue = numberingTemplateIssue(record.template, record)
+    if (issue)
+      throw new Error(
+        `erp-ui mock: numbering series ${record.id}: template ${issue}`,
+      )
+    return record
+  })
+}
+
 export function createNumberingMocks({
   series: seeds,
   counters: counterSeeds = [],
   branchCode,
   label = { uk: "Нумерація документів", en: "Document numbering" },
   baseUrl = API_PREFIX,
-}: NumberingMockOptions) {
+}: NumberingMockOptions): NumberingMocks {
+  // Хибний засів видно одразу, а не на першому запиті.
+  const initial = seriesRecords(seeds)
   const series = createResourceHandlers<NumberingSeries>({
     baseUrl,
     resource: NUMBERING_SERIES,
     schema: validNumberingSeriesSchema,
-    data: () =>
-      seeds.map((seed) => ({
-        id: seriesId(seed),
-        version: 1,
-        companyId: seed.companyId,
-        resource: seed.resource,
-        template: seed.template,
-        resetYearly: seed.resetYearly ?? true,
-        perBranch: seed.perBranch ?? false,
-      })),
+    data: () => structuredClone(initial),
     searchFields: ["resource"],
     label,
     fieldLabels: {
@@ -135,6 +169,12 @@ export function createNumberingMocks({
     unique: [["resource"]],
   })
 
+  const seeded = new Set(initial.map((item) => item.id))
+  for (const seed of counterSeeds)
+    if (!seeded.has(seriesId(seed)))
+      throw new Error(
+        `erp-ui mock: counter seed for ${seed.resource} has no numbering series`,
+      )
   const seedCounters = () =>
     new Map(
       counterSeeds.map((seed): [string, NumberingCounter] => {
@@ -149,13 +189,17 @@ export function createNumberingMocks({
   let counters: Map<string, NumberingCounter> | null = null
   const counterStore = () => (counters ??= seedCounters())
 
+  /** Серія типу документа: своя компанії, інакше спільна (ADR-0036). */
   const seriesOf = (resource: string, companyId: string | null) => {
-    const found = series.db
+    const candidates = series.db
       .all()
-      .find(
+      .filter(
         (item) =>
-          item.resource === resource && (item.companyId ?? null) === companyId,
+          item.resource === resource &&
+          inMockCompany(item.companyId, companyId),
       )
+    const found =
+      candidates.find((item) => item.companyId === companyId) ?? candidates[0]
     if (!found)
       throw new Error(`erp-ui mock: no numbering series for ${resource}`)
     return found
@@ -182,7 +226,8 @@ export function createNumberingMocks({
         branchCode: branch,
         value,
       })
-      if (number === null) break
+      if (number === null)
+        throw new Error(`erp-ui mock: series ${found.id} has a broken template`)
       if (!isTaken(number)) {
         store.set(id, { id, series: found.id, ...scope, value })
         return number
@@ -191,36 +236,39 @@ export function createNumberingMocks({
     throw new Error(`erp-ui mock: no free number in series ${found.id}`)
   }
 
-  function forResource<T extends MockRecord>({
+  const forResource = ({
     resource,
     db,
     field = "number",
     dateField = "date",
     branchField = "branchId",
-  }: MockNumberingResource<T>): MockDocumentNumbering {
-    return {
-      field,
-      assign: (document, companyId) => {
-        const date = document[dateField]
-        return assign(
-          resource,
-          companyId,
-          {
-            date: isCalendarDate(date) ? date : todayIn(),
-            branchId: text(document[branchField]),
-          },
-          (number) =>
-            db
-              .all()
-              .some(
-                (record) =>
-                  (record.companyId ?? null) === companyId &&
-                  record[field] === number,
-              ),
-        )
-      },
-    }
-  }
+  }: MockNumberingResource): MockDocumentNumbering => ({
+    field,
+    assign: (document, companyId) =>
+      assign(
+        resource,
+        companyId,
+        {
+          date: documentDate(document[dateField], dateField),
+          branchId: text(document[branchField]),
+        },
+        (number) =>
+          db
+            .all()
+            .some(
+              (record) =>
+                (record.companyId ?? null) === companyId &&
+                record[field] === number,
+            ),
+      ),
+  })
+
+  const url = `${baseUrl}/${NUMBERING_SERIES}`
+  const notAllowed = () =>
+    errorResponse(405, {
+      code: "method_not_allowed",
+      message: "Numbering series are created by the server",
+    })
 
   const counterHandler = http.get(
     `${baseUrl}/${NUMBERING_COUNTERS}`,
@@ -231,19 +279,15 @@ export function createNumberingMocks({
       if (!user) return unauthenticated()
       const access = mockRequestPermissions(request, user)
       if (access instanceof Response) return access
-      if (
-        !mockGrantsRecords(series.db.accessOf(user, access.permissions), "read")
-      )
+      const rules = series.db.accessOf(user, access.permissions)
+      if (!mockGrantsRecords(rules, "read"))
         return errorResponse(403, {
           code: "forbidden",
           message: `Missing permission ${NUMBERING_SERIES}:read`,
         })
       const wanted = new URL(request.url).searchParams.get("series")
       const visible = new Set(
-        series.db
-          .all()
-          .filter((item) => (item.companyId ?? null) === access.companyId)
-          .map((item) => item.id),
+        series.db.select({}, access.companyId, rules).map((item) => item.id),
       )
       const data = [...counterStore().values()].filter(
         (counter) =>
@@ -255,7 +299,12 @@ export function createNumberingMocks({
   )
 
   return {
-    handlers: [counterHandler, ...series.handlers] as HttpHandler[],
+    handlers: [
+      counterHandler,
+      http.post(url, notAllowed),
+      http.delete(`${url}/:id`, notAllowed),
+      ...series.handlers,
+    ],
     db: series.db,
     forResource,
     reset: () => {

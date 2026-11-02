@@ -30,7 +30,6 @@ import {
 } from "@/registry/lib/document-lifecycle"
 import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
-import type { MockDocumentNumbering } from "@/registry/lib/mock-numbering"
 import { fieldErrors } from "@/registry/lib/mock-records"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
@@ -52,6 +51,18 @@ import {
   type RecordDeniedActions,
 } from "@/registry/lib/record-access"
 import { findTransition, type StatusTransition } from "@/registry/lib/statuses"
+
+/**
+ * Номер документа, що стає проведеним (ADR-0058): поле й наступний номер серії. Дає
+ * `createNumberingMocks(...).forResource(...)` з lib/mock-numbering.
+ */
+export interface MockDocumentNumbering {
+  readonly field: string
+  readonly assign: (
+    document: Readonly<Record<string, unknown>>,
+    companyId: string | null,
+  ) => string
+}
 
 /** Запис зі статусом; документ має ще поля життєвого циклу. */
 export type MockTransitionRecord = MockRecord & {
@@ -248,6 +259,9 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
         if (!actions.has(action)) return undefined
         const early = await applyScenario(scenarioFor(resource))
         if (early) return early
+        // Тіло — до запису: далі жодного `await`, тож два одночасні запити до одного документа бачать
+        // версію одне одного (другий — 409), як під блокуванням рядка на сервері.
+        const raw: unknown = await request.json().catch(() => undefined)
         const user = currentMockUser()
         if (!user) return unauthenticated()
         const access = mockRequestPermissions(request, user)
@@ -271,7 +285,6 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
             message: `${resource}: ${denial}`,
             current: current(),
           })
-        const raw: unknown = await request.json().catch(() => undefined)
         const checked = checkTransition(options, record, action, raw, current)
         if (checked instanceof Response) return checked
         const result = applyTransition(options, record, checked.transition, {

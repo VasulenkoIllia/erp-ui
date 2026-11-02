@@ -25397,6 +25397,7 @@
       "description": "createNumberingMocks: серії на createResourceHandlers (права, 409, 422 шаблону, сценарії), GET /numbering-counters, forResource для опції numbering моку переходів — атомарна видача номера на проведенні, зайнятий номер пропускається (ADR-0058).",
       "dependencies": [
         "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
         "zod@^4.6.6"
@@ -25451,9 +25452,19 @@
           "target": "@lib/dates.ts"
         },
         {
+          "path": "registry/lib/document-lifecycle.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lifecycle.ts"
+        },
+        {
           "path": "registry/lib/edit-lock.ts",
           "type": "registry:lib",
           "target": "@lib/edit-lock.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -25589,6 +25600,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
         },
         {
           "path": "registry/lib/invitations.ts",
@@ -25741,6 +25757,11 @@
           "target": "@lib/mock-team.ts"
         },
         {
+          "path": "registry/lib/mock-transitions.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-transitions.ts"
+        },
+        {
           "path": "registry/lib/mock-webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/mock-webhooks.ts"
@@ -25819,6 +25840,11 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -30640,11 +30666,6 @@
           "target": "@lib/mock-notifications.ts"
         },
         {
-          "path": "registry/lib/mock-numbering.ts",
-          "type": "registry:lib",
-          "target": "@lib/mock-numbering.ts"
-        },
-        {
           "path": "registry/lib/mock-push.ts",
           "type": "registry:lib",
           "target": "@lib/mock-push.ts"
@@ -30713,11 +30734,6 @@
           "path": "registry/lib/notifications.ts",
           "type": "registry:lib",
           "target": "@lib/notifications.ts"
-        },
-        {
-          "path": "registry/lib/numbering.ts",
-          "type": "registry:lib",
-          "target": "@lib/numbering.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -38427,7 +38443,7 @@
       "name": "hooks/use-record-form",
       "type": "registry:hook",
       "title": "Збереження форми запису",
-      "description": "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються; toPayload отримує запис, до якого застосовують зміну (після конфлікту — збережений зараз), fieldOfServerError — поле форми для помилки елемента колекції (ADR-0002, ADR-0026, ADR-0028).",
+      "description": "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються; toPayload отримує запис, до якого застосовують зміну (після конфлікту — збережений зараз), fieldOfServerError — поле форми для помилки елемента колекції, serverErrorText — свій текст для коду 422 ресурсу (ADR-0002, ADR-0026, ADR-0028).",
       "dependencies": [
         "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
@@ -62183,10 +62199,443 @@
       }
     },
     {
+      "name": "erp/numbering-preview",
+      "type": "registry:component",
+      "title": "Перегляд наступного номера",
+      "description": "NumberingPreview: наступний номер для шаблону у формі, зокрема ще не збереженого, з лічильників сервера; вибір філії, коли номер має її код; скрінрідер чує номер після паузи в наборі; useNumberingIssueText — текст помилки шаблону для поля, перегляду й коду 422. Частина erp/numbering-series-form (PF03b, ADR-0058).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@hookform/resolvers@^5.9.1",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/numbering-preview.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/numbering-preview.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/record-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/record-form.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-company-profile.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-form.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-form.ts"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/numbering.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/realtime.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/sse.ts",
+          "type": "registry:lib",
+          "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/timeline.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/web-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/web-push.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/select.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "draft",
+        "demo": "numbering",
+        "spec": [
+          "PF03",
+          "§8",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/numbering-series-form",
       "type": "registry:component",
       "title": "Форма серії нумерації",
-      "description": "NumberingSeriesForm: шаблон із кнопками міток на місці курсора, «Щороку з 1», «Окремо для кожної філії», перевірка шаблону біля поля, перегляд наступного номера з лічильників сервера й вибором філії; збереження з липкою панеллю й порівнянням у конфлікті. Частина erp/numbering-settings (PF03b, ADR-0058).",
+      "description": "NumberingSeriesForm: шаблон із кнопками міток на місці курсора, «Щороку з 1», «Окремо для кожної філії», перевірка шаблону біля поля (і для коду 422 сервера той самий текст), перегляд наступного номера (erp/numbering-preview); збереження з липкою панеллю й порівнянням у конфлікті. Частина erp/numbering-settings (PF03b, ADR-0058).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -62227,6 +62676,11 @@
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/numbering-preview.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/numbering-preview.tsx"
         },
         {
           "path": "registry/erp/record-form.tsx",
@@ -62277,6 +62731,11 @@
           "path": "registry/lib/account.ts",
           "type": "registry:lib",
           "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -62671,6 +63130,11 @@
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/numbering-preview.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/numbering-preview.tsx"
         },
         {
           "path": "registry/erp/numbering-series-form.tsx",

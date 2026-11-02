@@ -136,7 +136,7 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   // Документ: список і картка з панеллю дій уже з сервера, а не скелетони.
   if (pageId === "document") {
     await expect(
-      page.getByRole("link", { name: /ДОК-2026-0006/ }),
+      page.getByRole("link", { name: /ДОК-\d{4}-0006/ }),
     ).toBeVisible()
     await expect(
       page

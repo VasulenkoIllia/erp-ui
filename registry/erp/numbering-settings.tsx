@@ -34,7 +34,7 @@ export interface NumberingSettingsProps {
 }
 
 /** Параметр адреси з вибраною серією. */
-export const NUMBERING_SERIES_PARAM = "series"
+const NUMBERING_SERIES_PARAM = "series"
 
 export function NumberingSettings({
   labels = {},
@@ -63,6 +63,14 @@ function SeriesBrowser({
   const canUpdate = useHasPermission(NUMBERING_SERIES, "update")
   const selected = useSearchParamState(NUMBERING_SERIES_PARAM)
   const headingId = React.useId()
+  const heading = React.useRef<HTMLHeadingElement>(null)
+  // Серію вибрала людина: фокус на її заголовок, бо на вузькому екрані форма під списком.
+  const focusNext = React.useRef(false)
+  React.useEffect(() => {
+    if (!focusNext.current) return
+    focusNext.current = false
+    heading.current?.focus()
+  }, [selected.value])
   const { data, isPending, error, refetch, fetchStatus } =
     useGetList<NumberingSeries>(NUMBERING_SERIES, {
       pagination: { page: 1, perPage: MAX_PER_PAGE },
@@ -72,32 +80,30 @@ function SeriesBrowser({
   const retry = () => {
     void refetch()
   }
+  const failure = (className: string) => (
+    <PageState
+      kind={error ? errorStateKind(error) : "offline"}
+      headingLevel={headingLevel}
+      className={className}
+      onRetry={retry}
+    />
+  )
   if (isPending)
     // Без мережі запит на паузі, помилки немає: інакше скелетон лишився б назавжди.
     return fetchStatus === "paused" ? (
-      <PageState
-        kind="offline"
-        headingLevel={headingLevel}
-        className="min-h-40"
-        onRetry={retry}
-      />
+      failure("min-h-40")
     ) : (
       <SectionSkeleton rows={4} />
     )
-  if (error)
-    return (
-      <PageState
-        kind={errorStateKind(error)}
-        headingLevel={headingLevel}
-        className="min-h-40"
-        onRetry={retry}
-      />
-    )
-  const first = data?.[0]
+  // Серії є з кешу, а перечитати не вдалося: незбережене у формі лишається, стан — над нею.
+  if (!data) return failure("min-h-40")
+  const first = data[0]
   if (!first)
     return (
       <PageState
         kind="empty"
+        title={t("numbering.emptyTitle")}
+        description={t("numbering.emptyDescription")}
         headingLevel={headingLevel}
         className="min-h-40"
       />
@@ -106,32 +112,25 @@ function SeriesBrowser({
   const labelOf = (series: NumberingSeries) =>
     labels[series.resource] ?? series.resource
   return (
-    <div className="@container">
+    <div className="@container grid gap-4">
+      {error ? failure("") : null}
       <div className="grid gap-6 @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
-        <ul className="space-y-1" aria-label={t("numbering.seriesList")}>
-          {data.map((series) => (
-            <li key={series.id}>
-              <button
-                type="button"
-                aria-current={series.id === current.id ? "true" : undefined}
-                className={cn(
-                  "grid min-h-touch w-full gap-0.5 rounded-md px-3 py-2 text-start text-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  series.id === current.id && "bg-muted font-medium",
-                )}
-                onClick={() => {
-                  selected.onValueChange(series.id)
-                }}
-              >
-                <span className="truncate">{labelOf(series)}</span>
-                <span className="truncate font-mono text-xs font-normal text-muted-foreground">
-                  {series.template}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SeriesList
+          series={data}
+          currentId={current.id}
+          labelOf={labelOf}
+          onSelect={(id) => {
+            focusNext.current = true
+            selected.onValueChange(id)
+          }}
+        />
         <section aria-labelledby={headingId} className="grid min-w-0 gap-4">
-          <Heading id={headingId} className="text-lg font-semibold">
+          <Heading
+            ref={heading}
+            id={headingId}
+            tabIndex={-1}
+            className="text-lg font-semibold break-words focus-visible:outline-none"
+          >
             {labelOf(current)}
           </Heading>
           {canUpdate ? null : (
@@ -147,5 +146,45 @@ function SeriesBrowser({
         </section>
       </div>
     </div>
+  )
+}
+
+/** Типи документів: вибрана — `aria-current`; під назвою — шаблон серії. */
+function SeriesList({
+  series,
+  currentId,
+  labelOf,
+  onSelect,
+}: {
+  series: readonly NumberingSeries[]
+  currentId: string
+  labelOf: (series: NumberingSeries) => string
+  onSelect: (id: string) => void
+}) {
+  const t = useErpUiT()
+  return (
+    <ul className="space-y-1" aria-label={t("numbering.seriesList")}>
+      {series.map((item) => (
+        <li key={item.id}>
+          <button
+            type="button"
+            aria-current={item.id === currentId ? "true" : undefined}
+            className={cn(
+              "grid min-h-touch w-full gap-0.5 rounded-md px-3 py-2 text-start text-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              item.id === currentId && "bg-muted font-medium",
+            )}
+            onClick={() => {
+              // Вибрана серія: перехід нічого не змінить, а захист змін спитав би даремно.
+              if (item.id !== currentId) onSelect(item.id)
+            }}
+          >
+            <span className="truncate">{labelOf(item)}</span>
+            <span className="truncate font-mono text-xs font-normal text-muted-foreground">
+              {item.template}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }

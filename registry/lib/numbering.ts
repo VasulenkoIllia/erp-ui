@@ -4,8 +4,9 @@
  *
  * Контракт (під `/api/v1`, компанія запиту — `X-Company-Id`):
  * - Номер дає сервер, коли документ стає проведеним: на `submit` (ADR-0057) і документу-сторно. Чернетка
- *   й виправлена копія номера не мають (`null`). Виправлена копія й сторно беруть наступний номер серії, а
- *   скасований документ лишає свій: номер ніколи не повторюється (рішення власника 02.11.2026).
+ *   номера не має (`null`), виправлена копія теж: вона чернетка й бере наступний номер серії, коли її
+ *   проведуть; сторно бере його одразу. Скасований документ лишає свій номер: номер ніколи не
+ *   повторюється (рішення власника 02.11.2026).
  * - Серії — ресурс `numbering-series` (ADR-0002): `GET` список і запис, `PATCH` з `version` полів
  *   `template`, `resetYearly`, `perBranch`. Серію на кожен тип документа (`resource`) створює сервер,
  *   клієнт серій не створює й не видаляє. Права `numbering-series:read` і `numbering-series:update`.
@@ -13,9 +14,9 @@
  * - Лічильники — `GET /numbering-counters?series=<id серії>` → `{ data, total }`: останнє видане значення
  *   кожного лічильника серії, право `numbering-series:read`. Лише читання: значення змінює проведення.
  * - Лічильник один на серію або, з `perBranch`, свій для кожної філії документа (`branchId`); з
- *   `resetYearly` — ще й свій на кожен календарний рік дати документа. Номер унікальний у компанії:
- *   зайнятий сервер пропускає й бере наступне значення. Видача атомарна: два одночасні проведення не
- *   отримують одного значення.
+ *   `resetYearly` — ще й свій на кожен календарний рік дати документа. Номер унікальний серед документів
+ *   цього типу в компанії: зайнятий сервер пропускає й бере наступне значення. Видача атомарна: два
+ *   одночасні проведення не отримують одного значення.
  * - Мітки шаблону: `{YYYY}` і `{YY}` — рік дати документа, `{MM}` — місяць, `{BRANCH}` — код філії
  *   документа (немає — порожньо), `{#…#}` — лічильник щонайменше з такої кількості цифр, скільки `#`.
  */
@@ -30,7 +31,7 @@ export const NUMBERING_COUNTERS = "numbering-counters"
 /** Шаблон довший — це вже не номер, а опис. */
 export const NUMBERING_TEMPLATE_MAX_LENGTH = 40
 /** Цифр лічильника в мітці `{#…#}`: від 1 до 9. */
-export const NUMBERING_COUNTER_MAX_DIGITS = 9
+const NUMBERING_COUNTER_MAX_DIGITS = 9
 
 /** Мітки для кнопок вставки; лічильник — чотири цифри, решту людина допише сама. */
 export const NUMBERING_TOKENS = [
@@ -70,7 +71,7 @@ const COUNTER_TOKEN = new RegExp(
 )
 
 /** Частини шаблону; `null` — невідома мітка чи дужка без пари. */
-export function parseNumberingTemplate(
+function parseNumberingTemplate(
   template: string,
 ): readonly TemplatePart[] | null {
   const parts: TemplatePart[] = []
@@ -86,9 +87,12 @@ export function parseNumberingTemplate(
     if (close < open) return null
     if (open > 0) parts.push({ kind: "text", text: rest.slice(0, open) })
     const name = rest.slice(open + 1, close)
+    // Лише власні ключі: `{constructor}` чи `{__proto__}` — невідомі мітки, а не поля прототипу.
     const part = COUNTER_TOKEN.test(name)
       ? { kind: "counter" as const, digits: name.length }
-      : NAMED_TOKENS[name]
+      : Object.hasOwn(NAMED_TOKENS, name)
+        ? NAMED_TOKENS[name]
+        : undefined
     if (!part) return null
     parts.push(part)
     rest = rest.slice(close + 1)
@@ -136,7 +140,10 @@ export interface DocumentNumberInput {
   readonly value: number
 }
 
-/** Номер за шаблоном; хибний шаблон — `null` (сервер такого не збереже). */
+/**
+ * Номер за шаблоном; нерозбірний шаблон — `null`. Решту правил (один лічильник, рік, код філії) перевіряє
+ * `numberingTemplateIssue`: `nextDocumentNumber` і сервер не видають номера за шаблоном з помилкою.
+ */
 export function formatDocumentNumber(
   template: string,
   { date, branchCode, value }: DocumentNumberInput,
@@ -173,7 +180,7 @@ export const numberingSeriesSchema = recordBaseSchema.extend({
 })
 export type NumberingSeries = z.infer<typeof numberingSeriesSchema>
 
-/** Серія з перевіркою шаблону, як її робить сервер: моки й форми налаштувань. */
+/** Серія з перевіркою шаблону, як її робить сервер (моки); форма перевіряє ті самі правила своїми текстами. */
 export const validNumberingSeriesSchema = numberingSeriesSchema.superRefine(
   (series, context) => {
     const issue = numberingTemplateIssue(series.template, series)
@@ -182,16 +189,16 @@ export const validNumberingSeriesSchema = numberingSeriesSchema.superRefine(
   },
 )
 
-export const numberingCounterSchema = z.object({
-  id: z.string(),
+/** Рядок `GET /numbering-counters`. */
+export interface NumberingCounter {
+  readonly id: string
   /** `id` серії. */
-  series: z.string(),
-  branchId: z.string().nullable(),
-  year: z.number().int().nullable(),
+  readonly series: string
+  readonly branchId: string | null
+  readonly year: number | null
   /** Останнє видане значення. */
-  value: z.number().int().min(0),
-})
-export type NumberingCounter = z.infer<typeof numberingCounterSchema>
+  readonly value: number
+}
 
 export interface CounterScope {
   readonly branchId: string | null
@@ -214,14 +221,15 @@ export interface NextNumberInput {
 }
 
 /**
- * Наступний номер серії з поточними лічильниками, зокрема для ще не збереженого шаблону. Це перегляд:
- * хтось може провести документ раніше, і тоді номер буде наступним за цим.
+ * Наступний номер серії з поточними лічильниками, зокрема для ще не збереженого шаблону; шаблон з помилкою
+ * — `null`. Це перегляд: хтось може провести документ раніше, і тоді номер буде наступним за цим.
  */
 export function nextDocumentNumber(
   series: NumberingRules & { readonly id: string; readonly template: string },
   counters: readonly NumberingCounter[],
   { date, branchId, branchCode }: NextNumberInput,
 ): string | null {
+  if (numberingTemplateIssue(series.template, series)) return null
   const scope = counterScope(series, { date, branchId })
   const last =
     counters.find(

@@ -50,6 +50,9 @@ describe("шаблон номера (lib/numbering)", () => {
     ["РФ-{YYYY-{####}", "unknown_token"],
     ["РФ}-{YYYY}-{####}", "unknown_token"],
     ["РФ-{YYYY}-{##########}", "unknown_token"],
+    // Мітка — лише власний ключ таблиці міток, а не поле прототипу.
+    ["РФ-{constructor}-{####}", "unknown_token"],
+    ["РФ-{__proto__}-{YYYY}-{####}", "unknown_token"],
     ["РФ-{YYYY}", "counter_required"],
     ["{YYYY}-{##}-{###}", "counter_duplicate"],
     ["РФ-{####}", "year_required"],
@@ -275,6 +278,24 @@ describe("номер на проведенні (lib/mock-numbering + lib/mock-tr
     ])
   })
 
+  it("два одночасні проведення одного документа: одне проходить, друге — 409, номер один", async () => {
+    setScenario("slow", "docs")
+    const results = await Promise.allSettled([
+      run("d1", "submit"),
+      run("d1", "submit"),
+    ])
+    expect(results.map((result) => result.status).sort()).toEqual([
+      "fulfilled",
+      "rejected",
+    ])
+    const rejected = results.find((result) => result.status === "rejected")
+    expect((rejected?.reason as ApiError).status).toBe(409)
+    expect(stored("d1")?.number).toBe("Д-2026-0003")
+    // Відмова номера не забрала: наступний документ бере наступний.
+    resetScenarios()
+    expect((await run("d2", "submit")).number).toBe("Д-2026-0004")
+  })
+
   it("чернетка номера не має; номер з'являється лише на проведенні", async () => {
     expect(stored("d1")?.number).toBeNull()
     const submitted = await run("d1", "submit")
@@ -319,6 +340,50 @@ describe("серії й лічильники: контракт моку", () => 
     expect(error.status).toBe(422)
     expect(error.fieldErrors).toEqual({ template: "year_required" })
     expect(numbering.db.all()[0]?.template).toBe("Д-{YYYY}-{####}")
+  })
+
+  it("серії створює сервер: POST і DELETE — 405", async () => {
+    expect(
+      (
+        await failure(
+          data.create<NumberingSeries>(NUMBERING_SERIES, {
+            data: { resource: "acts", template: "А-{YYYY}-{####}" },
+          }),
+        )
+      ).status,
+    ).toBe(405)
+    expect(
+      (
+        await failure(
+          data.delete<NumberingSeries>(NUMBERING_SERIES, {
+            id: seriesId(),
+            previousData: { id: seriesId(), version: 1 } as NumberingSeries,
+          }),
+        )
+      ).status,
+    ).toBe(405)
+    expect(numbering.db.all()).toHaveLength(1)
+  })
+
+  it("засів із хибним шаблоном чи лічильник без серії — помилка налаштування моку одразу", () => {
+    expect(() =>
+      createNumberingMocks({
+        series: [{ companyId: null, resource: "acts", template: "А-{####}" }],
+      }),
+    ).toThrow(/year_required/)
+    expect(() =>
+      createNumberingMocks({
+        series: [
+          {
+            companyId: null,
+            resource: "acts",
+            template: "А-{####}",
+            resetYearly: false,
+          },
+        ],
+        counters: [{ companyId: null, resource: "akts", value: 3 }],
+      }),
+    ).toThrow(/no numbering series/)
   })
 
   it("лише перегляд — 403 на зміну; без права на серії — 403 і на лічильники", async () => {

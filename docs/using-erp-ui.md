@@ -902,9 +902,34 @@ const transitions = useResolvedTransitions(
   діє). Дії кіта — лише зі свого стану `docStatus`, хоч би що дозволяв граф. Сервер і моки беруть той самий граф через
   `mergeTransitions(MODULE_TRANSITIONS, extension.transitions)`.
 - Провайдер, написаний вручну, додає `runTransition(resource, id, action, body)`; адаптер на `createDataProvider` отримує його сам.
-- Моки: `createTransitionHandlers({ resource, db, transitions, amend, reverse, conflictChange })` перед `handlers` ресурсу і
+- Моки: `createTransitionHandlers({ resource, db, transitions, amend, reverse, conflictChange, numbering })` перед `handlers` ресурсу і
   `deniedActions: (_, record) => documentDeniedActions(record)` у `createResourceHandlers`. Дії, якої немає в графі, мок не бере, тож
   масові дії, імпорт і стрічка ресурсу працюють; дії графа не називайте `bulk` чи `import`.
+
+### Нумерація документів (ADR-0058)
+
+Номер дає сервер, коли документ стає проведеним: на `submit` і документу-сторно. Чернетка й виправлена копія мають `number: null`,
+інтерфейс пише «Без номера» (`numbering.noNumber`). Номер ніколи не повторюється: скасований документ лишає свій.
+
+```tsx
+// Сторінка налаштувань: серії компанії, форма шаблону, перегляд наступного номера.
+<NumberingSettings labels={{ invoices: t("invoices.title") }} headingLevel={3} />
+
+// Моки: серія на тип документа, засів лічильника для документів із номерами, номер на проведенні.
+const numbering = createNumberingMocks({
+  series: [{ companyId: null, resource: "invoices", template: "РФ-{YYYY}-{####}" }],
+  counters: [{ companyId: null, resource: "invoices", year: 2026, value: 12 }],
+})
+createTransitionHandlers({ /* … */ numbering: numbering.forResource({ resource: "invoices", db: invoices.db }) })
+```
+
+- Бекенду потрібен ресурс `numbering-series` (`GET` список і запис, `PATCH` з `version` полів `template`, `resetYearly`, `perBranch`) і
+  `GET /numbering-counters?series=<id>` → `{ data, total }`. Серію на кожен тип документа створює сервер. Права
+  `numbering-series:read` і `numbering-series:update`.
+- Мітки шаблону: `{YYYY}`, `{YY}`, `{MM}`, `{BRANCH}`, `{#…#}` (1–9 цифр), до 40 символів. Хибний шаблон — 422
+  `fieldErrors.template` з кодом `numberingTemplateIssue`; форма показує той самий текст, що й до відправки.
+- Лічильник — на серію чи філію (`perBranch`) і на рік дати документа (`resetYearly`). Видача атомарна, зайнятий номер сервер
+  пропускає. Номера в браузері не складайте: перегляд (`nextDocumentNumber`) лише показує, яким він, імовірно, буде.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 

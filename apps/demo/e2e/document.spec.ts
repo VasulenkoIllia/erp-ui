@@ -21,6 +21,11 @@ const bar = (page: Page) =>
 const badge = (page: Page) =>
   page.getByTestId("document-card").locator("h3 + *")
 
+/** Дати засіву — від сьогодні, номер — з року дати (ADR-0058): фіксований день дає ті самі номери. */
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-02T10:00:00Z"))
+})
+
 async function confirmWithReason(page: Page, title: string, reason: string) {
   const dialog = page.getByRole("alertdialog", { name: `${title}?` })
   await expect(dialog).toBeVisible()

@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { http } from "msw/http"
 import { setupServer } from "msw/node"
 import { CoreAdminContext } from "ra-core"
 import { createMemoryRouter, RouterProvider } from "react-router"
@@ -20,11 +21,13 @@ import { createAuthProvider, ME_QUERY_KEY } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { createNumberingMocks } from "@/registry/lib/mock-numbering"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
+import { errorResponse } from "@/registry/lib/mock-server"
 import {
   createPlatformHandlers,
   signInMock,
   type MockUser,
 } from "@/registry/lib/mocks"
+import { NUMBERING_SERIES } from "@/registry/lib/numbering"
 import { createQueryClient } from "@/registry/lib/query-client"
 
 /**
@@ -95,7 +98,7 @@ function renderSettings() {
       <RouterProvider router={router} />
     </CoreAdminContext>,
   )
-  return router
+  return { router, queryClient }
 }
 
 const template = () => screen.findByRole("textbox", { name: "Шаблон номера" })
@@ -172,7 +175,7 @@ describe("NumberingSettings", () => {
     await userEvent.tab()
     await userEvent.click(screen.getByRole("switch", { name: "Щороку з 1" }))
     expect(field).toHaveAccessibleDescription(/Додайте рік/)
-    expect(preview()).toHaveTextContent("Виправте шаблон, щоб побачити номер")
+    expect(preview()).toHaveTextContent(/^Додайте рік/)
     await userEvent.click(screen.getByRole("switch", { name: "Щороку з 1" }))
     await waitFor(() => {
       expect(field).not.toHaveAccessibleDescription(/Додайте рік/)
@@ -213,7 +216,54 @@ describe("NumberingSettings", () => {
     setScenario("empty", "numbering-series")
     renderSettings()
     expect(
-      await screen.findByRole("heading", { name: "Тут поки порожньо" }),
+      await screen.findByRole("heading", { name: "Нумерувати ще нічого" }),
     ).toBeInTheDocument()
+  })
+
+  it("код 422 сервера — той самий текст помилки шаблону біля поля", async () => {
+    server.use(
+      http.patch(`${BASE}/${NUMBERING_SERIES}/:id`, () =>
+        errorResponse(422, {
+          code: "validation",
+          message: "Validation failed",
+          fieldErrors: { template: "unknown_token" },
+        }),
+      ),
+    )
+    renderSettings()
+    const field = await template()
+    await userEvent.type(field, "-Н")
+    await userEvent.click(screen.getByRole("button", { name: "Зберегти" }))
+    await waitFor(() => {
+      expect(field).toHaveAccessibleDescription(
+        /Невідома мітка або дужка без пари/,
+      )
+    })
+    expect(field).toHaveValue("З-{####}-Н")
+  })
+
+  it("серії не вдалося перечитати — стан помилки над формою, введене лишається", async () => {
+    const { queryClient } = renderSettings()
+    const field = await template()
+    await userEvent.type(field, "-Н")
+    // 403 не повторюється (lib/query-client): стан одразу, без паузи повтору.
+    setScenario("forbidden", NUMBERING_SERIES)
+    await queryClient.invalidateQueries({ queryKey: [NUMBERING_SERIES] })
+    expect(
+      await screen.findByRole("heading", { name: "Немає доступу" }),
+    ).toBeInTheDocument()
+    expect(await template()).toHaveValue("З-{####}-Н")
+  })
+
+  it("клік по вибраній серії зі змінами — без діалогу, форма та сама", async () => {
+    renderSettings()
+    const field = await template()
+    await userEvent.type(field, "-Н")
+    const list = screen.getByRole("list", { name: "Типи документів" })
+    await userEvent.click(
+      within(list).getByRole("button", { name: /Замовлення/ }),
+    )
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    expect(field).toHaveValue("З-{####}-Н")
   })
 })

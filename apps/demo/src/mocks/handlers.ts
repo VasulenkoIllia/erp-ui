@@ -242,6 +242,7 @@ export const documents = createResourceHandlers<DemoDocument>({
   searchFields: ["number", "client"],
   label: { uk: "Документи", en: "Documents" },
   fieldLabels: {
+    number: { uk: "Номер", en: "Number" },
     client: { uk: "Клієнт", en: "Client" },
     dueDate: { uk: "Сплатити до", en: "Due date" },
     status: { uk: "Статус", en: "Status" },
