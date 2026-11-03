@@ -13,14 +13,11 @@ import {
 } from "@/registry/erp/document-lines-preview"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import { FormField } from "@/registry/erp/form"
-import {
-  savedDocumentLineSchema,
-  type DocumentBodyLine,
-  type DocumentLine,
-  type DocumentLineTax,
-  type DocumentLineUnit,
+import type {
+  DocumentBodyLine,
+  DocumentLineTax,
+  DocumentLineUnit,
 } from "@/registry/lib/document-lines"
-import type { Totals } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { Input } from "@/registry/ui/input"
@@ -49,12 +46,6 @@ export interface DocumentLineRowProps<T extends RaRecord> {
   item?: DocumentLineItem<T>
 }
 
-/** Суми сервера в збереженому рядку (`savedDocumentLineSchema`); рядок форми їх не має. */
-const savedLineTotals = (line: DocumentLine): Totals | undefined =>
-  "totals" in line
-    ? savedDocumentLineSchema.shape.totals.safeParse(line.totals).data
-    : undefined
-
 /**
  * Знімок рядка: `compute` порівнює його з попереднім і не перемальовує рядок без змін. Копія, бо перше
  * значення `useWatch` — живий об'єкт форми, який RHF змінює на місці: порівняння з ним завжди «рівне».
@@ -79,9 +70,7 @@ export function DocumentLineRow<T extends RaRecord>({
   const digits = currencyDigits(currency)
   const totals = React.useMemo(
     () =>
-      line?.kind === "item"
-        ? (readOnly && savedLineTotals(line)) || lineTotalsOf(line, digits)
-        : undefined,
+      line?.kind === "item" ? lineTotalsOf(line, digits, readOnly) : undefined,
     [line, readOnly, digits],
   )
   if (line?.kind === "section")
@@ -89,6 +78,7 @@ export function DocumentLineRow<T extends RaRecord>({
       <SectionFields
         form={form}
         index={index}
+        id={line.id}
         readOnly={readOnly}
         currency={currency}
       />
@@ -114,16 +104,18 @@ export function DocumentLineRow<T extends RaRecord>({
 function SectionFields({
   form,
   index,
+  id,
   readOnly,
   currency,
 }: {
   form: LinesForm
   index: number
+  id: string
   readOnly: boolean
   currency: string
 }) {
   const t = useErpUiT()
-  const sum = useSectionSum(index)
+  const sum = useSectionSum(id)
   return (
     <>
       <FormField

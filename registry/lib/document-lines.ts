@@ -48,9 +48,6 @@ export const SECTION_TITLE_MAX = 200
 /** Нотатка — кілька речень: умови, гарантія, примітка до розділу. */
 export const NOTE_TEXT_MAX = 2000
 
-export const DOCUMENT_LINE_KINDS = ["item", "section", "note"] as const
-export type DocumentLineKind = (typeof DOCUMENT_LINE_KINDS)[number]
-
 /** zod не перериває перевірку помилкою регулярного виразу, а на зіпсованому значенні вона хибна. */
 export const whenValid = ({ issues }: z.core.ParsePayload) =>
   issues.length === 0
@@ -144,15 +141,15 @@ export type DocumentNote = z.infer<typeof documentNoteSchema>
 export type DocumentBodyLine = DocumentLine | DocumentSection | DocumentNote
 
 /** Рядок тіла, з якого рахуються суми: перевірки беруть і рядки форми, і рядки контракту. */
-type BodyLineLike =
+/** Рядок тіла документа для підсумків: товар чи послуга з полями розрахунку, розділ чи нотатка. */
+export type BodyLineLike =
   (TotalsLine & { kind: "item" }) | { kind: "section" } | { kind: "note" }
 
 /** Рядки товарів і послуг за порядком: лише їх бачить `lib/document-totals`. */
-export function itemLinesOf(lines: readonly DocumentBodyLine[]): DocumentLine[]
-export function itemLinesOf(lines: readonly BodyLineLike[]): TotalsLine[]
-export function itemLinesOf(lines: readonly BodyLineLike[]): TotalsLine[] {
-  return lines.flatMap((line) => (line.kind === "item" ? [line] : []))
-}
+export const itemLinesOf = <T extends BodyLineLike>(lines: readonly T[]) =>
+  lines.filter(
+    (line): line is Extract<T, { kind: "item" }> => line.kind === "item",
+  )
 
 const totalsShape = {
   /** Кількість × ціна, до знижки. */
@@ -232,7 +229,7 @@ export const linesTotalsCheck =
 
 /** Знижка документа понад суму рядків після їхніх знижок — помилка на полі знижки документа. */
 export const bodyTotalsCheck =
-  <T extends TotalsDiscount & { lines: BodyLineLike[] }>(
+  <T extends TotalsDiscount & { lines: readonly BodyLineLike[] }>(
     digits: number,
     text: TotalsIssueText = asCode,
   ): TotalsCheck<T> =>

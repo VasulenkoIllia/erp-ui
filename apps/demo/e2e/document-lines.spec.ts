@@ -4,6 +4,7 @@ import {
   expectNoA11yViolations,
   expectNoHorizontalScroll,
   openWith,
+  waitForMenuFocus,
 } from "./helpers"
 
 /**
@@ -74,6 +75,7 @@ test.describe("рядки документа", () => {
       .press("Enter")
     const remove = page.getByRole("menuitem", { name: "Вилучити" })
     await expect(remove).toBeVisible()
+    await waitForMenuFocus(page)
     await page.keyboard.press("End")
     await expect(remove).toBeFocused()
     await page.keyboard.press("Enter")

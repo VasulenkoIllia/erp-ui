@@ -49,6 +49,8 @@ import { cn } from "@/registry/lib/utils"
  *   `virtualizeFrom` рядків малюються лише видимі (вікно сторінки, `erp/repeating-rows-list`). Варіанти
  *   `units`, `taxes` і `item` мають бути стабільними (`useMemo`), інакше перемальовуються всі рядки.
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
+ * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
+ *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
  */
 
 export interface DocumentLinesEditorProps<
@@ -204,7 +206,11 @@ export function DocumentLinesEditor<
       data-slot="document-lines"
       className={cn("@container grid min-w-0 gap-4", className)}
     >
-      <DocumentLinesPreview control={control} currency={currency}>
+      <DocumentLinesPreview
+        control={control}
+        currency={currency}
+        readOnly={readOnly}
+      >
         <RepeatingRows
           control={control}
           name="lines"

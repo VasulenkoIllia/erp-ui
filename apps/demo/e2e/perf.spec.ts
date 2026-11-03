@@ -1,6 +1,12 @@
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
 import { SESSION_KEY, USERS } from "./helpers"
+import {
+  DOCUMENT_FORM,
+  documentRow,
+  interactWithDocument,
+  interactWithFullDocument,
+} from "./perf-document"
 
 /**
  * Бюджети швидкості (ADR-0009, SPEC §18.5) на телефоні середнього класу: CPU у 4 рази повільніше
@@ -31,12 +37,17 @@ const RUNS = 5
 const MIN_INTERACTIONS = 5
 
 const DATA = "/#/data"
-/** Великий документ (UI05b, ADR-0060): 500 рядків у розділах, форма на сторінці з панеллю збереження. */
-const DOCUMENT_FORM = "/#/document-form"
 
 declare global {
   interface Window {
-    __perf: { lcp: number; inp: number; slowest: string }
+    __perf: {
+      lcp: number
+      inp: number
+      slowest: string
+      /** Найдовший кадр від `since` (Long Animation Frames), мс. */
+      frame: number
+      since: number
+    }
   }
 }
 
@@ -58,7 +69,7 @@ async function openThrottled(
   await page.addInitScript(
     ([sessionKey, session]) => {
       localStorage.setItem(sessionKey, session)
-      const perf = { lcp: 0, inp: 0, slowest: "" }
+      const perf = { lcp: 0, inp: 0, slowest: "", frame: 0, since: Infinity }
       window.__perf = perf
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) perf.lcp = entry.startTime
@@ -81,6 +92,13 @@ async function openThrottled(
         buffered: true,
         durationThreshold: 16,
       } as PerformanceObserverInit)
+      // Дія з меню рядка виконується, коли меню закрилось, поза подією кліку: INP її не бачить, а
+      // найдовший кадр під час дій — бачить.
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries())
+          if (entry.startTime >= perf.since)
+            perf.frame = Math.max(perf.frame, entry.duration)
+      }).observe({ type: "long-animation-frame", buffered: true })
     },
     [
       SESSION_KEY,
@@ -185,66 +203,6 @@ async function interactWithGrid(page: Page) {
   }
 }
 
-const documentRow = (page: Page) => (index: number) =>
-  page
-    .getByTestId("document-form")
-    .getByRole("group", { name: `Рядок ${String(index)}`, exact: true })
-
-/**
- * Документ на 99 рядків — найбільший, де в DOM усі рядки (поріг редактора — 100). «Повернути» вставляє
- * рядок угорі, тож перемальовуються всі рядки нижче: найгірший випадок без віртуалізації.
- */
-async function interactWithFullDocument(page: Page) {
-  const form = page.getByTestId("document-form")
-  const row = documentRow(page)
-  const price = row(3).getByLabel("Ціна")
-  await price.click()
-  await price.press("End")
-  await price.pressSequentially("05", { delay: 120 })
-  await row(2).getByRole("button", { name: "Дії: Рядок 2" }).click()
-  await page.getByRole("menuitem", { name: "Вилучити" }).click()
-  await form.getByRole("button", { name: "Повернути" }).click()
-  await expect(
-    row(2).getByRole("combobox", { name: "Товар чи послуга" }),
-  ).toBeFocused()
-  await form.getByRole("button", { name: "Додати рядок" }).click()
-  await expect(
-    row(100).getByRole("combobox", { name: "Товар чи послуга" }),
-  ).toBeFocused()
-  const discount = form.getByLabel("Знижка на документ, у відсотках")
-  await discount.click()
-  await discount.pressSequentially("5", { delay: 120 })
-}
-
-/**
- * Великий документ на телефоні: введення в поле рядка, вставка рядка з меню, назва нового рядка, «Підняти»,
- * «Додати рядок» під 500 рядками й знижка на документ. Рядки — картки, у DOM лише видимі.
- */
-async function interactWithDocument(page: Page) {
-  const form = page.getByTestId("document-form")
-  const row = documentRow(page)
-  const price = row(3).getByLabel("Ціна")
-  await price.click()
-  await price.press("End")
-  await price.pressSequentially("05", { delay: 120 })
-  await row(3).getByRole("button", { name: "Дії: Рядок 3" }).click()
-  await page.getByRole("menuitem", { name: "Вставити рядок нижче" }).click()
-  const name = row(4).getByLabel("Назва")
-  await expect(name).toHaveValue("")
-  await name.click()
-  await name.pressSequentially("Монтаж", { delay: 120 })
-  await row(4).getByRole("button", { name: "Дії: Рядок 4" }).click()
-  await page.getByRole("menuitem", { name: "Підняти" }).click()
-  await expect(row(3).getByLabel("Назва")).toHaveValue("Монтаж")
-  await form.getByRole("button", { name: "Додати рядок" }).click()
-  await expect(
-    row(502).getByRole("combobox", { name: "Товар чи послуга" }),
-  ).toBeFocused()
-  const discount = form.getByLabel("Знижка на документ, у відсотках")
-  await discount.click()
-  await discount.pressSequentially("5", { delay: 120 })
-}
-
 /** Медіана LCP і INP за RUNS прогонів: відкрити сторінку й виконати дії. */
 async function measure(
   browser: Browser,
@@ -256,6 +214,7 @@ async function measure(
 ) {
   const lcp: number[] = []
   const inp: number[] = []
+  const frame: number[] = []
   const slowest: string[] = []
   for (let run = 0; run < RUNS; run++) {
     const page = await openThrottled(browser, rate, viewport)
@@ -266,9 +225,13 @@ async function measure(
       // LCP фіксується до першої взаємодії — даємо сторінці домалюватись.
       await page.waitForTimeout(500)
       lcp.push(await page.evaluate(() => window.__perf.lcp))
+      await page.evaluate(() => {
+        window.__perf.since = performance.now()
+      })
       await interact(page)
       await page.waitForTimeout(500)
       inp.push(await page.evaluate(() => window.__perf.inp))
+      frame.push(await page.evaluate(() => window.__perf.frame))
       slowest.push(await page.evaluate(() => window.__perf.slowest))
       // Порожній замір (спостерігачі нічого не отримали) не має пройти як «0 мс».
       const interactions = await page.evaluate(
@@ -285,7 +248,12 @@ async function measure(
       await page.context().close()
     }
   }
-  return { lcp: median(lcp), inp: median(inp), runs: { lcp, inp, slowest } }
+  return {
+    lcp: median(lcp),
+    inp: median(inp),
+    frame: median(frame),
+    runs: { lcp, inp, frame, slowest },
+  }
 }
 
 test.describe("швидкість @perf", () => {
@@ -381,7 +349,12 @@ test.describe("швидкість @perf", () => {
         type: "perf",
         description: JSON.stringify(result),
       })
-      // Межа та сама, що й для списку (SPEC §18.5): рядки документа не мають її зсувати.
+      // Межа та сама, що й для списку (SPEC §18.5): рядки документа не мають її зсувати. Кадр — та
+      // сама межа для дій меню, які INP не бачить.
       expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
+      expect(
+        result.frame,
+        "найдовший кадр під час дій, мс",
+      ).toBeLessThanOrEqual(INP_BUDGET_MS)
     })
 })

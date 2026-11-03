@@ -228,7 +228,7 @@ describe("підсумки збігаються з lib/document-totals", () => {
       discountAmount: 50_000,
     })
     expect(preview.skipped).toBe(1)
-    expect([...preview.lines.keys()]).toEqual([0])
+    expect(preview.totals?.lines).toHaveLength(1)
     expect(preview.totals?.documentDiscount).toBe(0)
     expect(preview.totals?.total).toBe(12_000)
     expect(preview.documentDiscountSkipped).toBe(true)

@@ -262,7 +262,7 @@ export function RepeatingRowMenu({
         ) : null}
         {insertLabels.map((label, kind) => (
           <DropdownMenuItem
-            key={label}
+            key={kind}
             disabled={!canInsert}
             onClick={() => {
               choose(() => {

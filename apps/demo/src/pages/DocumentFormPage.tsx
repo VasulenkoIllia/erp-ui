@@ -66,18 +66,21 @@ function DocumentForm({
   const t = usePageT()
   const kitT = useErpUiT()
   const schema = useDocumentLinesSchema(CURRENCY)
+  // 500 рядків будуються раз: форма бере лише перше значення.
+  const [defaultValues] = useState<DocumentLinesValues>(() => ({
+    lines: documentLines(size, {
+      section: (index) => t("section", { index }),
+      note: t("note"),
+    }),
+    discountPercent: 0,
+    discountAmount: 0,
+  }))
+  // Поле рядка поза екраном не має DOM: на помилку фокус іде на зведення помилок, а не на поле.
   const form = useForm<DocumentLinesValues>({
     mode: "onTouched",
     shouldFocusError: false,
     resolver: zodResolver(schema),
-    defaultValues: {
-      lines: documentLines(size, {
-        section: (index) => t("section", { index }),
-        note: t("note"),
-      }),
-      discountPercent: 0,
-      discountAmount: 0,
-    },
+    defaultValues,
   })
   const { isDirty, isSubmitting, errors, submitCount } = form.formState
   const item = useMemo<DocumentLineItem<Product>>(

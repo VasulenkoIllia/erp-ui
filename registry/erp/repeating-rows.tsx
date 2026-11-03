@@ -107,9 +107,9 @@ export interface RepeatingRowsProps<
   insertLabel?: string
   /** Інші види рядків: кнопка «Додати…» під рядками й пункт «Вставити… нижче» в меню рядка. */
   extraKinds?: readonly RepeatingRowsKind<FieldArray<TValues, TName>>[]
-  /** Підписи колонок над таблицею (на широкому контейнері). */
+  /** Підписи колонок над таблицею (на широкому контейнері); праворуч місце на одне меню рядка. */
   columnHeader?: React.ReactNode
-  /** З якої кількості рядків малювати лише видимі; без нього — усі. */
+  /** З якої кількості рядків малювати лише видимі; без нього чи у вкладеній прокрутці — усі. */
   virtualizeFrom?: number
   readOnly?: boolean
   className?: string
@@ -370,7 +370,7 @@ function RepeatingRows<
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {kinds.map((kind, index) => (
             <Button
-              key={kind.addLabel}
+              key={index}
               type="button"
               variant="outline"
               data-rows-add={index === 0 ? "" : undefined}

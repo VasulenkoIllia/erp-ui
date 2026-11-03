@@ -4,11 +4,12 @@ import {
   expectNoA11yViolations,
   expectNoHorizontalScroll,
   openWith,
+  waitForMenuFocus,
 } from "./helpers"
 
 /**
  * Великий документ (UI05b, ADR-0060): 500 рядків у розділах, віртуальні рядки у вікні сторінки, меню
- * рядка, перехід зі зведення помилок на рядок, якого не було в DOM, панель збереження над полем у фокусі.
+ * рядка, перехід зі зведення помилок на рядок далеко внизу, панель збереження над полем у фокусі.
  */
 const PAGE = "/#/document-form"
 
@@ -30,12 +31,27 @@ async function rowAction(page: Page, index: number, action: string) {
     .press("Enter")
   const item = page.getByRole("menuitem", { name: action })
   await expect(item).toBeVisible()
+  // Base UI переводить фокус у меню наступним кадром: клавіша раніше пішла б на кнопку.
+  await waitForMenuFocus(page)
   for (let step = 0; step < 10; step++) {
     if (await item.evaluate((node) => node === document.activeElement)) break
     await page.keyboard.press("ArrowDown")
   }
   await expect(item).toBeFocused()
   await page.keyboard.press("Enter")
+}
+
+/**
+ * До кінця документа: висота невиміряних рядків — оцінка, і після виміру сторінка стає довшою, тож
+ * прокрутка повторюється, доки останній рядок не з'явиться.
+ */
+async function scrollToEnd(page: Page) {
+  await expect(async () => {
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+    })
+    await expect(row(page, 500)).toBeVisible({ timeout: 1_000 })
+  }).toPass()
 }
 
 test.describe("великий документ", () => {
@@ -48,9 +64,7 @@ test.describe("великий документ", () => {
     expect(await rows(page).count()).toBeLessThan(40)
     await expect(rows(page).first()).toHaveAttribute("aria-setsize", "500")
     await expect(rows(page).first()).toHaveAttribute("aria-posinset", "1")
-    await page.evaluate(() => {
-      window.scrollTo(0, document.body.scrollHeight)
-    })
+    await scrollToEnd(page)
     await expect(row(page, 500).getByLabel("Нотатка")).toBeVisible()
     await expect(row(page, 1)).toHaveCount(0)
     await expectNoHorizontalScroll(page)
@@ -73,20 +87,18 @@ test.describe("великий документ", () => {
     await expect(page.locator(":focus")).toBeInViewport()
   })
 
-  test("зведення помилок переводить на рядок, якого не було в DOM", async ({
+  test("зведення помилок переводить на рядок далеко внизу", async ({
     page,
   }) => {
     await openDocument(page)
-    await page.evaluate(() => {
-      window.scrollTo(0, document.body.scrollHeight)
-    })
+    await scrollToEnd(page)
     await row(page, 495).getByLabel("Назва").fill("")
-    // Фокус іде з рядка: рядок у фокусі лишався б у DOM і нагорі сторінки.
     await page.getByRole("heading", { level: 1 }).click()
     await page.evaluate(() => {
       window.scrollTo(0, 0)
     })
-    await expect(row(page, 495)).toHaveCount(0)
+    // Рядок із першою помилкою лишається в DOM поза екраном: на нього переходить зведення.
+    await expect(row(page, 495)).not.toBeInViewport()
     await form(page).getByRole("button", { name: "Зберегти" }).click()
     const summary = form(page).locator('[data-slot="form-error-summary"]')
     await expect(summary).toBeFocused()

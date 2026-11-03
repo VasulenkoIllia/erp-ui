@@ -118,9 +118,9 @@ describe("суми розділів", () => {
     )
     // Рядок до першого розділу ні до якого розділу не належить.
     expect([...sums]).toEqual([
-      [1, 20_000 + 4_500],
-      [5, 0],
-      [6, 500],
+      ["s1", 20_000 + 4_500],
+      ["s2", 0],
+      ["s3", 500],
     ])
   })
 
@@ -134,6 +134,15 @@ describe("суми розділів", () => {
       ],
       2,
     )
-    expect(sums.get(0)).toBe(10_000)
+    expect(sums.get("s1")).toBe(10_000)
+  })
+
+  it("збережений документ лише для читання: сума розділу з сум рядків сервера", () => {
+    // Сервер порахував інакше (тут — за кількістю 3): показуємо його числа, а не свої.
+    const totals = computeDocumentTotals([{ ...ROW, quantity: "3" }], 2)
+      ?.lines[0]
+    const lines = [section("s1"), { ...ROW, totals }]
+    expect(sectionSums(lines, 2).get("s1")).toBe(1_000)
+    expect(sectionSums(lines, 2, true).get("s1")).toBe(3_000)
   })
 })

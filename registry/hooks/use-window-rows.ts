@@ -4,7 +4,9 @@
  * з `erp/save-bar` лишається звичайною формою, і на телефоні немає прокрутки в прокрутці.
  *
  * - Рядки, що лишаються в DOM поза екраном (`keep`, `keepLive`): у фокусі, куди зараз піде фокус, з
- *   першою помилкою. Порядок у DOM — порядок рядків (`withActiveRow`).
+ *   першою помилкою. Порядок у DOM — порядок рядків.
+ * - Список усередині власної прокрутки (діалог, шторка): вікно сторінки там не прокручується, тож
+ *   малюються всі рядки.
  * - Висота рядка вимірюється; невиміряні рахуються за середньою з виміряних: таблиця й картки мають
  *   різну висоту, і одна оцінка на обидві не годиться.
  * - Відступ списку від верху сторінки (`scrollMargin`) міряється знову, коли змінюється висота сторінки:
@@ -17,8 +19,6 @@ import {
   useWindowVirtualizer,
   type Range,
 } from "@tanstack/react-virtual"
-
-import { withActiveRow } from "@/registry/lib/data-table-core"
 
 export interface WindowRowsOptions {
   count: number
@@ -38,6 +38,24 @@ export interface WindowRowsOptions {
 /** Рядків над і під екраном: Tab із останнього видимого рядка потрапляє в наступний, а не повз нього. */
 const OVERSCAN = 4
 
+/** Предок із власною вертикальною прокруткою, яка вже прокручується. */
+function hasScrollParent(element: HTMLElement) {
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    if (node === document.body) return false
+    const { overflowY } = getComputedStyle(node)
+    if (
+      (overflowY === "auto" || overflowY === "scroll") &&
+      node.scrollHeight > node.clientHeight
+    )
+      return true
+  }
+  return false
+}
+
+/** Видимий діапазон і рядки, що лишаються в DOM, без повторів і в порядку рядків. */
+const withKept = (visible: readonly number[], kept: readonly number[]) =>
+  [...new Set([...visible, ...kept])].sort((a, b) => a - b)
+
 export function useWindowRows({
   count,
   enabled,
@@ -47,10 +65,16 @@ export function useWindowRows({
   keepLive,
   estimateSize,
 }: WindowRowsOptions) {
+  const [isNested, setIsNested] = React.useState(false)
+  const isActive = enabled && !isNested
   const [scrollMargin, setScrollMargin] = React.useState(0)
   React.useLayoutEffect(() => {
     const list = listRef.current
-    if (!enabled || !list) return
+    if (!isActive || !list) return
+    if (hasScrollParent(list)) {
+      setIsNested(true)
+      return
+    }
     const update = () => {
       const margin = list.getBoundingClientRect().top + window.scrollY
       setScrollMargin((current) =>
@@ -63,28 +87,37 @@ export function useWindowRows({
     return () => {
       observer.disconnect()
     }
-  }, [enabled, listRef])
+  }, [isActive, listRef])
 
-  const measured = React.useRef({ total: 0, count: 0 })
+  // Остання висота кожного рядка: середня рахується з рядків, а не з повторних вимірів того самого.
+  const measured = React.useRef({
+    sizes: new Map<React.Key, number>(),
+    total: 0,
+  })
   const rangeExtractor = React.useCallback(
     (range: Range) =>
-      [...keep, ...keepLive()]
-        .filter((index) => index < range.count)
-        .reduce(withActiveRow, defaultRangeExtractor(range)),
+      withKept(
+        defaultRangeExtractor(range),
+        [...keep, ...keepLive()].filter(
+          (index) => index >= 0 && index < range.count,
+        ),
+      ),
     [keep, keepLive],
   )
   const virtualizer = useWindowVirtualizer<HTMLLIElement>({
-    count: enabled ? count : 0,
-    enabled,
+    count: isActive ? count : 0,
+    enabled: isActive,
     getItemKey,
     estimateSize: () =>
-      measured.current.count
-        ? measured.current.total / measured.current.count
+      measured.current.sizes.size
+        ? measured.current.total / measured.current.sizes.size
         : estimateSize,
     measureElement: (element, entry, instance) => {
       const size = measureElement(element, entry, instance)
-      measured.current.total += size
-      measured.current.count += 1
+      const { sizes } = measured.current
+      const key = getItemKey(instance.indexFromElement(element))
+      measured.current.total += size - (sizes.get(key) ?? 0)
+      sizes.set(key, size)
       return size
     },
     overscan: OVERSCAN,
@@ -93,7 +126,7 @@ export function useWindowRows({
   })
   return {
     /** null — віртуалізації немає, малюються всі рядки. */
-    items: enabled ? virtualizer.getVirtualItems() : null,
+    items: isActive ? virtualizer.getVirtualItems() : null,
     totalSize: virtualizer.getTotalSize(),
     /** Зсув рядка всередині списку: `start` рахується від верху сторінки. */
     offsetOf: (start: number) => start - scrollMargin,

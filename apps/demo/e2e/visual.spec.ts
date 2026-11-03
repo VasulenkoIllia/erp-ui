@@ -66,8 +66,9 @@ const SHOT_PAGES = {
   document: "/#/document",
   // Рядки документа (крок UI05a, ADR-0059): редактор на моках товарів і довідників, варіанти.
   documentLines: "/#/document-lines",
-  // Великий документ (крок UI05b, ADR-0060): 500 рядків у розділах, віртуальні рядки, меню рядка.
-  documentForm: "/#/document-form",
+  // Великий документ (крок UI05b, ADR-0060): розділи, нотатки, меню рядка. Знімок — на 12 рядків:
+  // сторінка з 500 рядками в десятки тисяч пікселів, а намальовано на ній лише видимі.
+  documentForm: "/#/document-form?lines=12",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
@@ -159,6 +160,8 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
         .getByText(/^(Завантаження…|Loading…)$/),
     ).toHaveCount(0)
   }
+  if (pageId === "documentForm")
+    await expect(page.getByTestId("document-form")).toBeVisible()
   // Нумерація: перегляд уже з лічильником сервера, а не «…».
   if (pageId === "numbering")
     await expect(page.locator("output")).toHaveText(/^ДОК-\d{4}-\d{4}$/)

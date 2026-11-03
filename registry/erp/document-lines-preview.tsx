@@ -12,6 +12,7 @@ import {
 } from "@/registry/erp/document-lines-totals"
 import {
   itemLinesOf,
+  savedDocumentLineSchema,
   type DocumentBodyLine,
   type DocumentLine,
 } from "@/registry/lib/document-lines"
@@ -31,37 +32,58 @@ import { currencyDigits } from "@/registry/lib/format"
  *   рахує її сам і не перемальовується від змін в інших рядках.
  * - Сума розділу — сума колонки «Сума» його рядків, які вже можна порахувати (рішення власника
  *   03.11.2026). Її лише видно: сервер суми розділу не зберігає.
+ * - Збережений документ у режимі лише для читання показує суми рядків сервера, і сума розділу
+ *   складається з них же: рядки й розділ сходяться (ADR-0056, п. 5).
  */
 
-/** Суми рядка без знижки документа; undefined — рядок ще не порахувати. */
+/** Суми сервера в збереженому рядку (`savedDocumentLineSchema`); рядок форми їх не має. */
+const savedLineTotals = (line: DocumentLine): Totals | undefined =>
+  "totals" in line
+    ? savedDocumentLineSchema.shape.totals.safeParse(line.totals).data
+    : undefined
+
+/**
+ * Суми рядка без знижки документа; undefined — рядок ще не порахувати. `readOnly` — суми сервера, якщо
+ * рядок збережений.
+ */
 export function lineTotalsOf(
   line: DocumentLine,
   digits: number,
+  readOnly = false,
 ): Totals | undefined {
+  if (readOnly) {
+    const saved = savedLineTotals(line)
+    if (saved) return saved
+  }
   return isCountable(line)
     ? computeDocumentTotals([line], digits)?.lines[0]
     : undefined
 }
 
-/** Суми розділів за індексом рядка розділу. Рядки до першого розділу ні до якого не належать. */
+/**
+ * Суми розділів за `id` рядка розділу: індекс зсувається від вставки чи порядку раніше, ніж відкладений
+ * розрахунок наздожене рядки. Рядки до першого розділу ні до якого не належать.
+ */
 export function sectionSums(
   lines: readonly DocumentBodyLine[],
   digits: number,
-): ReadonlyMap<number, number> {
-  const sums = new Map<number, number>()
-  let section = -1
-  lines.forEach((line, index) => {
+  readOnly = false,
+): ReadonlyMap<string, number> {
+  const sums = new Map<string, number>()
+  let section: string | null = null
+  for (const line of lines) {
     if (line.kind === "section") {
-      section = index
-      sums.set(index, 0)
-      return
+      section = line.id
+      sums.set(section, 0)
+      continue
     }
     const totals =
-      line.kind === "item" && section >= 0
-        ? lineTotalsOf(line, digits)
+      line.kind === "item" && section !== null
+        ? lineTotalsOf(line, digits, readOnly)
         : undefined
-    if (totals) sums.set(section, (sums.get(section) ?? 0) + lineSumOf(totals))
-  })
+    if (section !== null && totals)
+      sums.set(section, (sums.get(section) ?? 0) + lineSumOf(totals))
+  }
   return sums
 }
 
@@ -69,24 +91,26 @@ interface LinesPreview {
   /** Рядки товарів і послуг: назви ставок для підсумків. */
   readonly lines: readonly DocumentLine[]
   readonly preview: TotalsPreview
-  readonly sectionSums: ReadonlyMap<number, number>
+  readonly sectionSums: ReadonlyMap<string, number>
   /** Знижка документа без затримки: від неї залежить вид знижки в полі. */
   readonly discount: TotalsDiscount
 }
 
 const PreviewContext = React.createContext<LinesPreview | null>(null)
 
-/** Сума розділу за індексом його рядка; undefined — рядок не розділ чи розрахунку ще немає. */
-export const useSectionSum = (index: number) =>
-  React.useContext(PreviewContext)?.sectionSums.get(index)
+/** Сума розділу за його `id`; undefined — розрахунку ще немає. */
+export const useSectionSum = (id: string) =>
+  React.useContext(PreviewContext)?.sectionSums.get(id)
 
 export function DocumentLinesPreview({
   control,
   currency,
+  readOnly,
   children,
 }: {
   control: Control<DocumentLinesValues>
   currency: string
+  readOnly: boolean
   children: React.ReactNode
 }) {
   const lines = useWatch({ control, name: "lines" })
@@ -106,9 +130,9 @@ export function DocumentLinesPreview({
         discountPercent: deferredPercent,
         discountAmount: deferredAmount,
       }),
-      sectionSums: sectionSums(deferredLines, digits),
+      sectionSums: sectionSums(deferredLines, digits, readOnly),
     }
-  }, [deferredLines, digits, deferredPercent, deferredAmount])
+  }, [deferredLines, digits, deferredPercent, deferredAmount, readOnly])
   const value = React.useMemo(
     () => ({ ...computed, discount: { discountPercent, discountAmount } }),
     [computed, discountPercent, discountAmount],

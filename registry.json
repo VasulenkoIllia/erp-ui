@@ -41169,9 +41169,8 @@
       "name": "hooks/use-window-rows",
       "type": "registry:hook",
       "title": "useWindowRows",
-      "description": "Віртуальні рядки форми у вікні сторінки на TanStack Virtual (useWindowVirtualizer): прокручується сама сторінка, рядки поза екраном, які мають лишитися в DOM (у фокусі, куди піде фокус, перший із помилкою), за порядком; висота невиміряних — середня з виміряних; відступ списку переміряється зі зміною висоти сторінки (ADR-0060).",
+      "description": "Віртуальні рядки форми у вікні сторінки на TanStack Virtual (useWindowVirtualizer): прокручується сама сторінка, рядки поза екраном, які мають лишитися в DOM (у фокусі, куди піде фокус, перший із помилкою), за порядком; висота невиміряних — середня з виміряних; відступ списку переміряється зі зміною висоти сторінки; у вкладеній прокрутці (діалог, шторка) малюються всі рядки (ADR-0060).",
       "dependencies": [
-        "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17"
       ],
       "files": [
@@ -41179,16 +41178,6 @@
           "path": "registry/hooks/use-window-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-window-rows.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         }
       ],
       "meta": {
@@ -55479,7 +55468,6 @@
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
-        "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -55653,11 +55641,6 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
         },
         {
           "path": "registry/lib/dates.ts",
@@ -55893,11 +55876,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/sse.ts",
@@ -64221,7 +64199,6 @@
       "description": "KeyValueField на erp/repeating-rows: пари ключ і значення, підписи колонок, порожній стан, межа рядків, лише для читання; перевірка й перетворення на об'єкт запиту — lib/key-value (UI42, ADR-0047).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -64289,11 +64266,6 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -64464,11 +64436,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -74979,7 +74946,6 @@
       "description": "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі або від virtualizeFrom лише видимі у вікні сторінки (hooks/use-window-rows); віртуальний рядок каже скрінрідеру своє місце й кількість рядків, перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -75032,11 +74998,6 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -75202,11 +75163,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -75279,7 +75235,6 @@
       "description": "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері (з 32rem чи для багатьох полів з 56rem, tableFrom) і картки на вузькому, лише для читання; дії рядка кнопками чи одним меню з вставкою нижче (rowActions), інші види рядків (extraKinds), підписи колонок над таблицею (columnHeader), рядок перемальовується лише зі своїми пропсами, від virtualizeFrom у DOM лише видимі рядки (UI42, ADR-0047, ADR-0060).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -75342,11 +75297,6 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -75512,11 +75462,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/utils.ts",
