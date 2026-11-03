@@ -2638,7 +2638,7 @@ export const CODE_ITEMS = {
   "erp/repeating-rows-list": {
     title: "Список повторюваних рядків",
     description:
-      "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі (PlainRows) або від virtualRows.from віртуальний список, який передає форма (erp/repeating-rows-virtual), тож решта форм не завантажує TanStack Virtual; перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
+      "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі або віртуальний список, який передає форма (erp/repeating-rows-virtual) і який сам малює всі рядки до virtualRows.from, тож решта форм не завантажує TanStack Virtual; перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
     status: "draft",
     demo: "documentForm",
     spec: ["UI42", "UI05", "§9", "§10", "§18.1"],
@@ -2646,7 +2646,7 @@ export const CODE_ITEMS = {
   "erp/repeating-rows-virtual": {
     title: "Віртуальні повторювані рядки",
     description:
-      "VirtualRowsList: у DOM лише рядки erp/repeating-rows на екрані й поруч, прокручується сторінка (hooks/use-window-rows); рядок каже скрінрідеру своє місце й кількість рядків, у вкладеній прокрутці малюються всі рядки. Підключається опцією RepeatingRows.virtualRows (ADR-0060).",
+      "VirtualRowsList: у DOM лише рядки erp/repeating-rows на екрані й поруч, прокручується сторінка (hooks/use-window-rows); рядок каже скрінрідеру своє місце й кількість рядків; до порога й у вкладеній прокрутці малюються всі рядки, а на порозі рядки на екрані не перемонтовуються. Підключається опцією RepeatingRows.virtualRows (ADR-0060).",
     status: "draft",
     demo: "documentForm",
     spec: ["UI42", "UI05", "§9", "§10", "§18.5"],

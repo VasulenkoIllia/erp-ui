@@ -22,6 +22,8 @@ import {
 
 export interface WindowRowsOptions {
   count: number
+  /** false — усі рядки в DOM (`items: null`), як і у вкладеній прокрутці. */
+  enabled: boolean
   listRef: React.RefObject<HTMLElement | null>
   /** Ключ рядка: виміряна висота йде за рядком, коли над ним вставили чи вилучили інший. */
   getItemKey: (index: number) => React.Key
@@ -59,6 +61,7 @@ const withKept = (visible: readonly number[], kept: readonly number[]) =>
 
 export function useWindowRows({
   count,
+  enabled,
   listRef,
   getItemKey,
   keep,
@@ -66,24 +69,28 @@ export function useWindowRows({
   estimateSize,
 }: WindowRowsOptions) {
   const [isNested, setIsNested] = React.useState(false)
-  const isActive = !isNested
+  const isActive = enabled && !isNested
   const [scrollMargin, setScrollMargin] = React.useState(0)
   React.useLayoutEffect(() => {
     const list = listRef.current
     if (!isActive || !list) return
-    if (hasScrollParent(list)) {
-      setIsNested(true)
-      return
-    }
     const update = () => {
+      // Висота рядків спершу оцінна: контейнер може почати прокручуватись, коли рядки виміряно.
+      if (hasScrollParent(list)) {
+        setIsNested(true)
+        return
+      }
       const margin = list.getBoundingClientRect().top + window.scrollY
       setScrollMargin((current) =>
         Math.abs(current - margin) < 1 ? current : margin,
       )
     }
     update()
+    if (typeof ResizeObserver === "undefined") return
     const observer = new ResizeObserver(update)
     observer.observe(document.body)
+    // У вкладеній прокрутці розмір body не змінюється, а розмір списку — так.
+    observer.observe(list)
     return () => {
       observer.disconnect()
     }
@@ -125,7 +132,10 @@ export function useWindowRows({
     rangeExtractor,
     // Без розміру вікна перший кадр після ввімкнення не має діапазону й не малює навіть закріплених
     // рядків: сотий доданий рядок не отримав би фокус.
-    initialRect: { width: window.innerWidth, height: window.innerHeight },
+    initialRect:
+      typeof window === "undefined"
+        ? undefined
+        : { width: window.innerWidth, height: window.innerHeight },
   })
   return {
     /** null — віртуалізації немає, малюються всі рядки. */

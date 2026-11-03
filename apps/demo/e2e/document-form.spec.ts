@@ -135,6 +135,43 @@ test.describe("великий документ", () => {
     await expect(sectionSum).not.toHaveText(before ?? "")
   })
 
+  test("поріг 20 рядків: рядки на екрані зберігають стан, фокус іде за діями", async ({
+    page,
+  }) => {
+    // Усі 20 рядків на екрані: стан рядка поза екраном не тримається (ADR-0060), тут — лише видимих.
+    await page.setViewportSize({ width: 1440, height: 1600 })
+    await openWith(page, {}, `${PAGE}?lines=19`)
+    await expect(rows(page)).toHaveCount(19)
+    await expect(rows(page).first()).not.toHaveAttribute("aria-setsize")
+    // Вид нульової знижки живе лише в рядку: перемонтування повернуло б «%».
+    await row(page, 10)
+      .getByRole("combobox", { name: "Вид знижки: Рядок 10" })
+      .click()
+    await page.getByRole("option", { name: "сумою" }).click()
+    const amount = row(page, 10).getByLabel("Знижка, сумою")
+    await expect(amount).toBeVisible()
+
+    await form(page).getByRole("button", { name: "Додати рядок" }).click()
+    await expect(
+      row(page, 20).getByRole("combobox", { name: "Товар чи послуга" }),
+    ).toBeFocused()
+    await expect(rows(page).first()).toHaveAttribute("aria-setsize", "20")
+    await expect(amount).toBeVisible()
+
+    await rowAction(page, 20, "Вилучити")
+    await expect(
+      row(page, 19).getByRole("button", { name: "Дії: Рядок 19" }),
+    ).toBeFocused()
+    await expect(rows(page).first()).not.toHaveAttribute("aria-setsize")
+    await expect(amount).toBeVisible()
+
+    await form(page).getByRole("button", { name: "Повернути" }).click()
+    await expect(
+      row(page, 20).getByRole("combobox", { name: "Товар чи послуга" }),
+    ).toBeFocused()
+    await expect(amount).toBeVisible()
+  })
+
   for (const theme of ["light", "dark"] as const)
     test(`axe (${theme})`, async ({ page }) => {
       await openDocument(page, theme)

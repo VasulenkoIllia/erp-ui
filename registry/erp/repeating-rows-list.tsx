@@ -10,10 +10,10 @@ import {
 import { cn } from "@/registry/lib/utils"
 
 /**
- * Список рядків `erp/repeating-rows` (UI05b, ADR-0060): підписи колонок над таблицею й рядки — усі або,
- * коли їх не менше за `virtualRows.from`, віртуальний список `virtualRows.List`
- * (`erp/repeating-rows-virtual`). Віртуальний список підключає той, кому потрібні сотні рядків: решта
- * форм не завантажує TanStack Virtual. Рядок — `RepeatingRowItem` зі стабільними діями `useRowHandlers`.
+ * Список рядків `erp/repeating-rows` (UI05b, ADR-0060): підписи колонок над таблицею й рядки — усі або
+ * віртуальний список `virtualRows.List` (`erp/repeating-rows-virtual`), який сам малює всі рядки до
+ * `virtualRows.from`. Віртуальний список підключає той, кому потрібні сотні рядків: решта форм не
+ * завантажує TanStack Virtual. Рядок — `RepeatingRowItem` зі стабільними діями `useRowHandlers`.
  */
 
 /** Пропси віртуального списку: `VirtualRowsList` з `erp/repeating-rows-virtual`. */
@@ -21,6 +21,8 @@ export interface VirtualRowsProps {
   fields: readonly { readonly rowId: string }[]
   renderItem: (index: number) => React.ReactNode
   tableFrom: RepeatingRowsTableFrom
+  /** З якої кількості рядків малювати лише видимі; до неї — усі. */
+  from: number
   /** Рядки поза екраном, які лишаються в DOM: перший рядок із помилкою для зведення помилок. */
   keep: readonly number[]
   /** Рядок у фокусі й рядок, куди зараз піде фокус. */
@@ -30,6 +32,10 @@ export interface VirtualRowsProps {
 /** Віртуальні рядки: з якої кількості рядків і яким списком. */
 export interface RepeatingRowsVirtual {
   readonly from: number
+  /**
+   * Компонент, оголошений поза рендером: інший тип на місці списку перемонтував би всі рядки з їхнім
+   * станом. Тому й поріг перетинає сам список, а не `RepeatingRowsList`.
+   */
   readonly List: React.ComponentType<VirtualRowsProps>
 }
 
@@ -77,47 +83,38 @@ export function RepeatingRowsList({
           {readOnly ? null : <span className="size-control shrink-0" />}
         </div>
       ) : null}
-      {virtualRows && fields.length >= virtualRows.from ? (
+      {virtualRows ? (
         <virtualRows.List
           fields={fields}
           renderItem={renderItem}
           tableFrom={tableFrom}
+          from={virtualRows.from}
           keep={keep}
           keepLive={keepLive}
         />
       ) : (
-        <PlainRows
-          fields={fields}
-          renderItem={renderItem}
-          tableFrom={tableFrom}
-        />
+        <ol className={plainRowsClassName(tableFrom)}>
+          {plainRowItems(fields, renderItem)}
+        </ol>
       )}
     </>
   )
 }
 
-/** Усі рядки в DOM: звичайний список і запасний для віртуального у вкладеній прокрутці. */
-export function PlainRows({
-  fields,
-  renderItem,
-  tableFrom,
-  ref,
-}: Pick<VirtualRowsProps, "fields" | "renderItem" | "tableFrom"> & {
-  ref?: React.Ref<HTMLOListElement>
-}) {
-  return (
-    <ol
-      ref={ref}
-      className={cn("grid gap-3", REPEATING_ROWS_LAYOUTS[tableFrom].list)}
-    >
-      {fields.map((field, index) => (
-        <li key={field.rowId} data-row-index={index} className="min-w-0">
-          {renderItem(index)}
-        </li>
-      ))}
-    </ol>
-  )
-}
+/** Клас списку, у якому в DOM усі рядки. */
+export const plainRowsClassName = (tableFrom: RepeatingRowsTableFrom) =>
+  cn("grid gap-3", REPEATING_ROWS_LAYOUTS[tableFrom].list)
+
+/** Усі рядки в DOM: звичайний список і віртуальний до порога чи у вкладеній прокрутці. */
+export const plainRowItems = (
+  fields: VirtualRowsProps["fields"],
+  renderItem: VirtualRowsProps["renderItem"],
+) =>
+  fields.map((field, index) => (
+    <li key={field.rowId} data-row-index={index} className="min-w-0">
+      {renderItem(index)}
+    </li>
+  ))
 
 /** Що рядок робить зі своїми діями: функції стабільні, рядки від них не перемальовуються. */
 export interface RepeatingRowHandlers {
