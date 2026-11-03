@@ -31,6 +31,7 @@ import {
   UserRound,
   Users,
   Webhook,
+  Workflow,
 } from "lucide-react"
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import type { TFunction } from "i18next"
@@ -139,6 +140,7 @@ const PAGE_ICONS: Record<Route, typeof Palette> = {
   document: FileCheck2,
   documentLines: ReceiptText,
   documentForm: ListTree,
+  documentFlow: Workflow,
   richText: TextCursorInput,
   timeline: MessagesSquare,
   setup: ListChecks,

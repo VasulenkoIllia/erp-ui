@@ -5,6 +5,10 @@ import {
 } from "@/registry/lib/mocks"
 import { createBulkHandlers, createJobHandlers } from "@/registry/lib/mock-jobs"
 import {
+  createDocumentFlowHandlers,
+  documentFlowSource,
+} from "@/registry/lib/mock-document-flow"
+import {
   createTransitionHandlers,
   documentDeniedActions,
 } from "@/registry/lib/mock-transitions"
@@ -295,6 +299,23 @@ const documentTransitions = createTransitionHandlers({
   numbering: numbering.forResource({ resource: "documents", db: documents.db }),
 })
 
+/** Потік документів (UI13, ADR-0061): виправлені копії й сторно за зв'язками життєвого циклу. */
+const documentFlow = createDocumentFlowHandlers({
+  sources: [
+    documentFlowSource({
+      resource: "documents",
+      db: documents.db,
+      node: (document) => ({
+        number: document.number,
+        date: document.date,
+        status: document.status,
+        docStatus: document.docStatus,
+        total: { amount: document.amount, currency: document.currency },
+      }),
+    }),
+  ],
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -342,6 +363,7 @@ export const handlers = [
   ...products.handlers,
   ...invoices.handlers,
   ...documentTransitions,
+  ...documentFlow,
   ...documents.handlers,
   ...numbering.handlers,
   ...contacts.handlers,

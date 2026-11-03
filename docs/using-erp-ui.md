@@ -931,6 +931,45 @@ createTransitionHandlers({ /* … */ numbering: numbering.forResource({ resource
 - Лічильник — на серію чи філію (`perBranch`) і на рік дати документа (`resetYearly`). Видача атомарна, зайнятий номер сервер
   пропускає. Номера в браузері не складайте: перегляд (`nextDocumentNumber`) лише показує, яким він, імовірно, буде.
 
+### Потік документів (ADR-0061)
+
+Ланцюг пов'язаних документів на картці: пропозиція, замовлення, відвантаження, рахунок, а в межах типу виправлена копія й
+сторно. Ланцюг будує сервер, картка лише показує його.
+
+```tsx
+// Картка замовлення: типи — назва, адреса картки й статуси модуля; модулі один одного не імпортують.
+<DocumentFlow
+  resource="orders"
+  id={String(record.id)}
+  types={{
+    quotes: { label: t("quotes.one"), href: paths.quote, statuses: quoteStatuses },
+    orders: { label: t("orders.one"), href: paths.order, statuses },
+    invoices: { label: t("invoices.one") }, // сторінки рахунків у проекті немає: номер без посилання
+  }}
+/>
+
+// Моки: джерела в порядку процесу, звідки документ — `links`; за замовчуванням зв'язки життєвого циклу.
+createDocumentFlowHandlers({
+  sources: [
+    documentFlowSource({ resource: "quotes", db: quotes.db, node: (quote) => ({ number: quote.number, date: quote.date }) }),
+    documentFlowSource({
+      resource: "orders",
+      db: orders.db,
+      node: (order) => ({ number: order.number, date: order.date, status: order.status, docStatus: order.docStatus }),
+      links: (order) => (order.quoteId ? [{ kind: "basedOn", resource: "quotes", id: order.quoteId }] : []),
+    }),
+  ],
+})
+```
+
+- Бекенду потрібна адреса `GET /<ресурс>/:id/flow` → `{ documents, truncated? }`: цей документ і пов'язані, тип за типом у порядку
+  процесу. Документ без права читати — `access: "forbidden"` лише з типом і номером, видалений — `"deleted"`; сервер не пропускає їх,
+  інакше ланцюг рветься. Не більше 100 документів, решта — `truncated: true`.
+- Зв'язки `links` (`basedOn`, `amendedFrom`, `reversalOf`) ведуть на документ тієї самої відповіді. Порядок кроків — порядок
+  першої появи типу у відповіді.
+- Провайдер, написаний вручну, додає `getDocumentFlow(resource, id, { signal })`; адаптер на `createDataProvider` отримує його сам.
+- Потік оновлюється разом із ресурсом картки: подія каналу про документ і дія панелі. Свої дані без запиту — `DocumentFlowView`.
+
 ### Рядки документа (ADR-0056, ADR-0059, ADR-0060)
 
 Редактор рядків пропозиції, замовлення чи рахунку — поле форми документа. Довідники одиниць і податків модуль читає сам

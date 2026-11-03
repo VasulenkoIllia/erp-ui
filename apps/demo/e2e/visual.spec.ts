@@ -69,6 +69,8 @@ const SHOT_PAGES = {
   // Великий документ (крок UI05b, ADR-0060): розділи, нотатки, меню рядка. Знімок — на 11 рядків:
   // сторінка з 500 рядками в десятки тисяч пікселів, а намальовано на ній лише видимі.
   documentForm: "/#/document-form?lines=11",
+  // Потік документів (крок UI13, ADR-0061): ланцюг, вузький контейнер, сторно й стани без запитів.
+  documentFlow: "/#/document-flow",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
@@ -149,6 +151,10 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
         .locator('[data-slot="document-action-bar"]')
         .getByRole("button")
         .first(),
+    ).toBeVisible()
+    // Потік на картці вже з моку, а не скелетон.
+    await expect(
+      page.getByTestId("document-card").locator('[data-slot="document-flow"]'),
     ).toBeVisible()
   }
   // Рядки документа: довідники й підпис вибраного товару вже з сервера, а не скелетон і «Завантаження…».

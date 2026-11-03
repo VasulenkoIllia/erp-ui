@@ -22,6 +22,8 @@
  * - Дія над записом за графом переходів (lib/statuses, lib/document-lifecycle, ADR-0057):
  *   `runTransition` → `POST /<ресурс>/<id>/<дія>` з `{ version, reason? }`; відповідь — запис після дії
  *   або новий документ (`amend`, `reverse`); чекає до `TRANSITION_TIMEOUT_MS`. Те саме про власний провайдер.
+ * - Потік документів (lib/document-links, ADR-0061): `getDocumentFlow` → `GET /<ресурс>/<id>/flow`,
+ *   відповідь перевіряється схемою, чекає до `DOCUMENT_FLOW_TIMEOUT_MS`. Те саме про власний провайдер.
  */
 import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
 
@@ -64,6 +66,12 @@ import {
   TRANSITION_TIMEOUT_MS,
   type TransitionBody,
 } from "@/registry/lib/document-lifecycle"
+import {
+  DOCUMENT_FLOW_PATH,
+  DOCUMENT_FLOW_TIMEOUT_MS,
+  documentFlowSchema,
+  type DocumentFlow,
+} from "@/registry/lib/document-links"
 
 /** Методи масових дій поверх dataProvider ra-core (lib/jobs). */
 export interface BulkDataProvider {
@@ -128,12 +136,22 @@ export interface TransitionDataProvider {
   ) => Promise<RaRecord>
 }
 
+/** Потік пов'язаних документів (lib/document-links, ADR-0061). */
+export interface DocumentFlowDataProvider {
+  getDocumentFlow: (
+    resource: string,
+    id: Identifier,
+    options?: { signal?: AbortSignal },
+  ) => Promise<DocumentFlow>
+}
+
 export type ErpDataProvider = DataProvider &
   BulkDataProvider &
   ListDataProvider &
   ImportDataProvider &
   EditLockDataProvider &
-  TransitionDataProvider
+  TransitionDataProvider &
+  DocumentFlowDataProvider
 
 export interface DataProviderOptions {
   /** Ресурс ra-core → шлях API без префікса. */
@@ -339,6 +357,13 @@ export function createDataProvider(
         body,
         { timeoutMs: TRANSITION_TIMEOUT_MS },
       ),
+
+    getDocumentFlow: (resource, id, { signal } = {}) =>
+      client.get(`${path(resource, id)}/${DOCUMENT_FLOW_PATH}`, {
+        schema: documentFlowSchema,
+        signal,
+        timeoutMs: DOCUMENT_FLOW_TIMEOUT_MS,
+      }),
   }
   return provider
 }

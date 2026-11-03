@@ -13,6 +13,7 @@
       "document": "Document",
       "documentLines": "Document lines",
       "documentForm": "Large document",
+      "documentFlow": "Document flow",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -889,12 +890,8 @@
       "status": "Status"
     },
     "steps": "Document stages",
-    "links": {
-      "amendedFrom": "Amended from document",
-      "amendedBy": "Amended copy",
-      "reversalOf": "Reversal of document",
-      "reversedBy": "Reversed by document"
-    },
+    "flowTitle": "Related documents",
+    "flowType": "Document",
     "colleague": {
       "pay": "A colleague posts a payment",
       "hint": "A colleague will post a payment for this document, and the card won't know about it. This shows how the server refuses an action.",
@@ -943,6 +940,37 @@
     "section": "Stage {{index}}",
     "note": "Prices are valid for 14 days. Installation follows full delivery of the stage equipment.",
     "saved": "Document saved"
+  },
+  "documentFlowPage": {
+    "lead": "The chain of related documents on a record page: quote, order, shipment, invoice, and within a type the amended copy and the reversal (UI13, ADR-0061). Each document shows its status and links to its page. A document you can't read shows a mark without a link, and so does a deleted one.",
+    "saleTitle": "Sales chain",
+    "saleDescription": "The order was created from a quote, then two shipments and an invoice came from it. You have no permission to see one shipment, the draft invoice was deleted, and the cancelled invoice was replaced by an amended copy. A link makes the document current, like opening its page.",
+    "narrowTitle": "Narrow container",
+    "narrowDescription": "The same chain in a narrow container: the steps go vertically, as on a phone.",
+    "reversalTitle": "Reversal",
+    "reversalDescription": "An invoice and the reversal that cancels it out: the first one stays submitted.",
+    "statesTitle": "States",
+    "statesDescription": "No server requests: loading, empty, error, offline, no permission, refresh failed and a cut flow. The live flow on mocks is on the Document page.",
+    "states": {
+      "loading": "Loading",
+      "empty": "No related documents",
+      "error": "Server error",
+      "offline": "No connection",
+      "forbidden": "No permission to see the flow",
+      "refresh": "Refresh failed, previous data",
+      "truncated": "The server sent only part of the documents"
+    },
+    "types": {
+      "quotes": "Quote",
+      "orders": "Order",
+      "shipments": "Shipment",
+      "invoices": "Invoice"
+    },
+    "statuses": {
+      "accepted": "Accepted",
+      "shipped": "Shipped"
+    },
+    "noRequest": "This variant makes no request. The live flow on mocks is on the Document page."
   },
   "numberingPage": {
     "lead": "A document gets its number when it is submitted: a draft has none. The template sets what the number is made of, and the preview shows the next one. Submit a draft on the Document page and the counter goes up.",

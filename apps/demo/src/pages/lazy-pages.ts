@@ -45,6 +45,10 @@ export const PAGES = {
   documentForm: lazyWithPreload(() =>
     import("./DocumentFormPage").then((m) => m.DocumentFormPage),
   ),
+  // Потік документів: ланцюг, вузький контейнер, сторно й стани (ADR-0061).
+  documentFlow: lazyWithPreload(() =>
+    import("./DocumentFlowPage").then((m) => m.DocumentFlowPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

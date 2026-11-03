@@ -364,7 +364,7 @@ export const CODE_ITEMS = {
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
-      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024); дія над записом за графом переходів — runTransition (ADR-0057).",
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024); дія над записом за графом переходів — runTransition (ADR-0057); потік документів — getDocumentFlow (ADR-0061).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -1041,6 +1041,22 @@ export const CODE_ITEMS = {
     demo: "document",
     spec: ["PF03", "§17"],
   },
+  "lib/document-links": {
+    title: "Зв'язки документів і потік",
+    description:
+      "Контракт UI13: GET /<ресурс>/:id/flow — документ і пов'язані з ним у порядку процесу; access granted, forbidden (лише тип і номер) чи deleted; links basedOn, amendedFrom, reversalOf; не більше DOCUMENT_FLOW_LIMIT із truncated; documentFlowSteps — кроки за типами, ключ запиту від ресурсу (ADR-0061).",
+    status: "draft",
+    demo: "documentFlow",
+    spec: ["UI13", "§17"],
+  },
+  "lib/mock-document-flow": {
+    title: "Мок потоку документів",
+    description:
+      "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу; запису немає — deleted, невидимий людині — forbidden з номером; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
+    status: "draft",
+    demo: "document",
+    spec: ["UI13", "§17"],
+  },
   "lib/mock-transitions": {
     title: "Мок дій за графом переходів",
     description:
@@ -1052,7 +1068,7 @@ export const CODE_ITEMS = {
   "lib/i18n-uk-documents": {
     title: "Рядки документів українською",
     description:
-      "Стани й дії документа, підтвердження з причиною, порівняння в конфлікті (ADR-0057): окремий файл, простір імен erp-ui той самий.",
+      "Стани й дії документа, підтвердження з причиною, порівняння в конфлікті (ADR-0057), потік документів (ADR-0061): окремий файл, простір імен erp-ui той самий.",
     status: "draft",
     demo: "document",
     spec: ["PF03", "§11"],
@@ -2498,6 +2514,22 @@ export const CODE_ITEMS = {
     status: "draft",
     demo: "document",
     spec: ["PF03", "§8.2", "§10"],
+  },
+  "erp/document-flow": {
+    title: "Потік документів",
+    description:
+      "DocumentFlow: ланцюг пов'язаних документів на картці за типами в порядку процесу, статус кожного (статуси модуля чи стан кіта), дата й сума, звідки документ (на підставі, виправлена копія, сторно), перехід на картку посиланням; поточний позначено; без права читати й видалений — позначка без посилання; на широкому контейнері кроки рядком, на вузькому вертикально; стани завантаження, порожньо, помилка, офлайн, немає права, не вдалося оновити, обрізаний потік. DocumentFlowView — те саме без запиту, useDocumentFlow — дані (UI13, ADR-0061).",
+    status: "draft",
+    demo: "documentFlow",
+    spec: ["UI13", "§8.1", "§9", "§10", "§11"],
+  },
+  "erp/document-flow-item": {
+    title: "Документ у потоці",
+    description:
+      "DocumentFlowItem: номер посиланням на картку, бейдж статусу, дата й сума, підписи зв'язків; позначки «Немає доступу» й «Видалено» без посилання, «Цей документ» без посилання. Частина erp/document-flow, окремо не ставиться (UI13, ADR-0061).",
+    status: "draft",
+    demo: "documentFlow",
+    spec: ["UI13", "§10"],
   },
   "erp/document-lines-editor": {
     title: "Рядки документа",
