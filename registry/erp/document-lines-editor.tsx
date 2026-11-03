@@ -14,6 +14,7 @@ import {
   type RepeatingRowProps,
   type RepeatingRowsKind,
 } from "@/registry/erp/repeating-rows"
+import { VirtualRowsList } from "@/registry/erp/repeating-rows-virtual"
 import type {
   DocumentBodyLine,
   DocumentLine,
@@ -46,7 +47,7 @@ import { cn } from "@/registry/lib/utils"
  *   своїх рядків. Дії рядка — одним меню: підняти, опустити, вставити рядок, розділ чи нотатку нижче,
  *   вилучити. Підписи колонок стоять над таблицею, тож першим може бути рядок будь-якого виду.
  * - Багато рядків: кожен рядок підписаний на свої значення, підсумки рахуються нижчим пріоритетом, а від
- *   `virtualizeFrom` рядків малюються лише видимі (вікно сторінки, `erp/repeating-rows-list`). Варіанти
+ *   `virtualizeFrom` рядків малюються лише видимі (вікно сторінки, `erp/repeating-rows-virtual`). Варіанти
  *   `units`, `taxes` і `item` мають бути стабільними (`useMemo`), інакше перемальовуються всі рядки.
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
  * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
@@ -201,6 +202,10 @@ export function DocumentLinesEditor<
     ],
     [t],
   )
+  const virtualRows = React.useMemo(
+    () => ({ from: virtualizeFrom, List: VirtualRowsList }),
+    [virtualizeFrom],
+  )
   return (
     <div
       data-slot="document-lines"
@@ -226,7 +231,7 @@ export function DocumentLinesEditor<
           canReorder
           rowActions="menu"
           columnHeader={<LinesHeader />}
-          virtualizeFrom={virtualizeFrom}
+          virtualRows={virtualRows}
           readOnly={readOnly}
           tableFrom="4xl"
           rowClassName={ROW_GRID}

@@ -2638,15 +2638,23 @@ export const CODE_ITEMS = {
   "erp/repeating-rows-list": {
     title: "Список повторюваних рядків",
     description:
-      "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі або від virtualizeFrom лише видимі у вікні сторінки (hooks/use-window-rows); віртуальний рядок каже скрінрідеру своє місце й кількість рядків, перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
+      "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі (PlainRows) або від virtualRows.from віртуальний список, який передає форма (erp/repeating-rows-virtual), тож решта форм не завантажує TanStack Virtual; перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
     status: "draft",
     demo: "documentForm",
     spec: ["UI42", "UI05", "§9", "§10", "§18.1"],
   },
+  "erp/repeating-rows-virtual": {
+    title: "Віртуальні повторювані рядки",
+    description:
+      "VirtualRowsList: у DOM лише рядки erp/repeating-rows на екрані й поруч, прокручується сторінка (hooks/use-window-rows); рядок каже скрінрідеру своє місце й кількість рядків, у вкладеній прокрутці малюються всі рядки. Підключається опцією RepeatingRows.virtualRows (ADR-0060).",
+    status: "draft",
+    demo: "documentForm",
+    spec: ["UI42", "UI05", "§9", "§10", "§18.5"],
+  },
   "erp/repeating-rows": {
     title: "Повторювані рядки",
     description:
-      "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері (з 32rem чи для багатьох полів з 56rem, tableFrom) і картки на вузькому, лише для читання; дії рядка кнопками чи одним меню з вставкою нижче (rowActions), інші види рядків (extraKinds), підписи колонок над таблицею (columnHeader), рядок перемальовується лише зі своїми пропсами, від virtualizeFrom у DOM лише видимі рядки (UI42, ADR-0047, ADR-0060).",
+      "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері (з 32rem чи для багатьох полів з 56rem, tableFrom) і картки на вузькому, лише для читання; дії рядка кнопками чи одним меню з вставкою нижче (rowActions), інші види рядків (extraKinds), підписи колонок над таблицею (columnHeader), рядок перемальовується лише зі своїми пропсами, віртуальні рядки опцією virtualRows з erp/repeating-rows-virtual (UI42, ADR-0047, ADR-0060).",
     status: "beta",
     demo: "forms",
     spec: ["UI42", "§8.2", "§8.3", "§9", "§10"],

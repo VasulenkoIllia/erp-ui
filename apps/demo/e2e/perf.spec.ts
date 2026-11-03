@@ -81,11 +81,17 @@ async function openThrottled(
             perf.inp = entry.duration
             // Для звіту: яка дія найповільніша (подія й елемент).
             const target = entry.target instanceof Element ? entry.target : null
+            // Затримка до обробника, обробка й показ, мс: що саме забрало час.
+            const phases = [
+              entry.processingStart - entry.startTime,
+              entry.processingEnd - entry.processingStart,
+              entry.startTime + entry.duration - entry.processingEnd,
+            ].map(Math.round)
             perf.slowest = `${entry.name} ${target?.tagName.toLowerCase() ?? "?"}${
               target?.getAttribute("aria-label")
                 ? ` «${target.getAttribute("aria-label")}»`
                 : ""
-            } ${(target?.textContent ?? "").trim().slice(0, 30)}`
+            } ${(target?.textContent ?? "").trim().slice(0, 30)} ${phases.join("/")}`
           }
       }).observe({
         type: "event",

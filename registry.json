@@ -7132,11 +7132,6 @@
           "target": "@hooks/use-virtual-rows.ts"
         },
         {
-          "path": "registry/hooks/use-window-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-window-rows.ts"
-        },
-        {
           "path": "registry/hooks/use-windowed-list.ts",
           "type": "registry:hook",
           "target": "@hooks/use-windowed-list.ts"
@@ -55573,6 +55568,11 @@
           "target": "@components/erp/repeating-rows-list.tsx"
         },
         {
+          "path": "registry/erp/repeating-rows-virtual.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/repeating-rows-virtual.tsx"
+        },
+        {
           "path": "registry/hooks/use-breakpoint.ts",
           "type": "registry:hook",
           "target": "@hooks/use-breakpoint.ts"
@@ -64199,7 +64199,6 @@
       "description": "KeyValueField на erp/repeating-rows: пари ключ і значення, підписи колонок, порожній стан, межа рядків, лише для читання; перевірка й перетворення на об'єкт запиту — lib/key-value (UI42, ADR-0047).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -64246,11 +64245,6 @@
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/hooks/use-window-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-window-rows.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -74943,10 +74937,9 @@
       "name": "erp/repeating-rows-list",
       "type": "registry:component",
       "title": "Список повторюваних рядків",
-      "description": "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі або від virtualizeFrom лише видимі у вікні сторінки (hooks/use-window-rows); віртуальний рядок каже скрінрідеру своє місце й кількість рядків, перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
+      "description": "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі (PlainRows) або від virtualRows.from віртуальний список, який передає форма (erp/repeating-rows-virtual), тож решта форм не завантажує TanStack Virtual; перший рядок із помилкою лишається в DOM для зведення помилок. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -74978,6 +74971,295 @@
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
+        },
+        {
+          "path": "registry/hooks/use-tab-param.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/page-reload.ts",
+          "type": "registry:lib",
+          "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dropdown-menu.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "draft",
+        "demo": "documentForm",
+        "spec": [
+          "UI42",
+          "UI05",
+          "§9",
+          "§10",
+          "§18.1"
+        ]
+      }
+    },
+    {
+      "name": "erp/repeating-rows-virtual",
+      "type": "registry:component",
+      "title": "Віртуальні повторювані рядки",
+      "description": "VirtualRowsList: у DOM лише рядки erp/repeating-rows на екрані й поруч, прокручується сторінка (hooks/use-window-rows); рядок каже скрінрідеру своє місце й кількість рядків, у вкладеній прокрутці малюються всі рядки. Підключається опцією RepeatingRows.virtualRows (ADR-0060).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-virtual@^3.14.17",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-hook-form@^7.90.0",
+        "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/repeating-rows-virtual.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/repeating-rows-virtual.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/repeating-row-actions.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/repeating-row-actions.tsx"
+        },
+        {
+          "path": "registry/erp/repeating-rows-list.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/repeating-rows-list.tsx"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -75224,7 +75506,7 @@
           "UI05",
           "§9",
           "§10",
-          "§18.1"
+          "§18.5"
         ]
       }
     },
@@ -75232,10 +75514,9 @@
       "name": "erp/repeating-rows",
       "type": "registry:component",
       "title": "Повторювані рядки",
-      "description": "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері (з 32rem чи для багатьох полів з 56rem, tableFrom) і картки на вузькому, лише для читання; дії рядка кнопками чи одним меню з вставкою нижче (rowActions), інші види рядків (extraKinds), підписи колонок над таблицею (columnHeader), рядок перемальовується лише зі своїми пропсами, від virtualizeFrom у DOM лише видимі рядки (UI42, ADR-0047, ADR-0060).",
+      "description": "RepeatingRows: група полів форми на useFieldArray: додати, вилучити з «Повернути», змінити порядок кнопками, межі рядків, помилка всієї групи, фокус після кожної дії, оголошення для скрінрідера, таблиця на широкому контейнері (з 32rem чи для багатьох полів з 56rem, tableFrom) і картки на вузькому, лише для читання; дії рядка кнопками чи одним меню з вставкою нижче (rowActions), інші види рядків (extraKinds), підписи колонок над таблицею (columnHeader), рядок перемальовується лише зі своїми пропсами, віртуальні рядки опцією virtualRows з erp/repeating-rows-virtual (UI42, ADR-0047, ADR-0060).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
@@ -75277,11 +75558,6 @@
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/hooks/use-window-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-window-rows.ts"
         },
         {
           "path": "registry/lib/announce.ts",

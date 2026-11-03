@@ -19,6 +19,7 @@ import {
   RepeatingRowItem,
   RepeatingRowsList,
   useRowHandlers,
+  type RepeatingRowsVirtual,
 } from "@/registry/erp/repeating-rows-list"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -52,9 +53,8 @@ import {
  * - Помилка всієї групи (сума частин не 100 %) — під рядками: `refine` на масиві в схемі zod.
  * - `readOnly` — лише поля без кнопок: передайте його полям у `renderRow` (SPEC §8.3).
  * - Перехід зі зведення помилок (`FormErrorSummary`) — на перше поле з помилкою всередині групи.
- * - Багато рядків (UI05b, ADR-0060): `renderRow` стабільний (`useCallback`), поля підписані на свій рядок;
- *   понад `virtualizeFrom` — лише видимі рядки (`erp/repeating-rows-list`). `rowActions="menu"` — дії одним
- *   меню з «Вставити… нижче» для кожного виду (`extraKinds`); `columnHeader` — підписи колонок над таблицею.
+ * - UI05b, ADR-0060: стабільний `renderRow` (`useCallback`), `virtualRows` (`erp/repeating-rows-virtual`),
+ *   `rowActions="menu"` з «Вставити… нижче» для кожного виду (`extraKinds`), `columnHeader` над таблицею.
  */
 
 export interface RepeatingRowProps {
@@ -109,8 +109,8 @@ export interface RepeatingRowsProps<
   extraKinds?: readonly RepeatingRowsKind<FieldArray<TValues, TName>>[]
   /** Підписи колонок над таблицею (на широкому контейнері); праворуч місце на одне меню рядка. */
   columnHeader?: React.ReactNode
-  /** З якої кількості рядків малювати лише видимі; без нього чи у вкладеній прокрутці — усі. */
-  virtualizeFrom?: number
+  /** Лише видимі рядки від `from`: `{ from, List: VirtualRowsList }` з `erp/repeating-rows-virtual`. */
+  virtualRows?: RepeatingRowsVirtual
   readOnly?: boolean
   className?: string
 }
@@ -183,7 +183,7 @@ function RepeatingRows<
   insertLabel,
   extraKinds,
   columnHeader,
-  virtualizeFrom,
+  virtualRows,
   readOnly = false,
   className,
 }: RepeatingRowsProps<TValues, TName, TTransformed>) {
@@ -344,7 +344,7 @@ function RepeatingRows<
           rowClassName={rowClassName}
           tableFrom={tableFrom}
           readOnly={readOnly}
-          virtualizeFrom={virtualizeFrom}
+          virtualRows={virtualRows}
           rowErrors={groupErrors}
           keepLive={keepLive}
         />

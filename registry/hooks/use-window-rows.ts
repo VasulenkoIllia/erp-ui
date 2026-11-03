@@ -22,8 +22,6 @@ import {
 
 export interface WindowRowsOptions {
   count: number
-  /** false — малюються всі рядки. */
-  enabled: boolean
   listRef: React.RefObject<HTMLElement | null>
   /** Ключ рядка: виміряна висота йде за рядком, коли над ним вставили чи вилучили інший. */
   getItemKey: (index: number) => React.Key
@@ -35,8 +33,11 @@ export interface WindowRowsOptions {
   estimateSize: number
 }
 
-/** Рядків над і під екраном: Tab із останнього видимого рядка потрапляє в наступний, а не повз нього. */
-const OVERSCAN = 4
+/**
+ * Рядків над і під екраном. Одного досить, щоб Tab з останнього видимого рядка потрапив у наступний; більше
+ * — дорожча кожна дія з рядками: зсув індексу перепідписує всі поля намальованих рядків на форму.
+ */
+const OVERSCAN = 1
 
 /** Предок із власною вертикальною прокруткою, яка вже прокручується. */
 function hasScrollParent(element: HTMLElement) {
@@ -58,7 +59,6 @@ const withKept = (visible: readonly number[], kept: readonly number[]) =>
 
 export function useWindowRows({
   count,
-  enabled,
   listRef,
   getItemKey,
   keep,
@@ -66,7 +66,7 @@ export function useWindowRows({
   estimateSize,
 }: WindowRowsOptions) {
   const [isNested, setIsNested] = React.useState(false)
-  const isActive = enabled && !isNested
+  const isActive = !isNested
   const [scrollMargin, setScrollMargin] = React.useState(0)
   React.useLayoutEffect(() => {
     const list = listRef.current
@@ -123,6 +123,9 @@ export function useWindowRows({
     overscan: OVERSCAN,
     scrollMargin,
     rangeExtractor,
+    // Без розміру вікна перший кадр після ввімкнення не має діапазону й не малює навіть закріплених
+    // рядків: сотий доданий рядок не отримав би фокус.
+    initialRect: { width: window.innerWidth, height: window.innerHeight },
   })
   return {
     /** null — віртуалізації немає, малюються всі рядки. */

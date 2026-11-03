@@ -7,15 +7,31 @@ import {
   RepeatingRowMenu,
   type RepeatingRowsTableFrom,
 } from "@/registry/erp/repeating-row-actions"
-import { useWindowRows } from "@/registry/hooks/use-window-rows"
 import { cn } from "@/registry/lib/utils"
 
 /**
- * Список рядків `erp/repeating-rows` (UI05b, ADR-0060): підписи колонок над таблицею й рядки — усі або
- * лише видимі у вікні сторінки, коли їх не менше за `virtualizeFrom`. Віртуальний рядок каже
- * скрінрідеру своє місце й кількість рядків (`aria-posinset`, `aria-setsize`): решти рядків у DOM немає.
- * Рядок — `RepeatingRowItem` зі стабільними діями `useRowHandlers`.
+ * Список рядків `erp/repeating-rows` (UI05b, ADR-0060): підписи колонок над таблицею й рядки — усі або,
+ * коли їх не менше за `virtualRows.from`, віртуальний список `virtualRows.List`
+ * (`erp/repeating-rows-virtual`). Віртуальний список підключає той, кому потрібні сотні рядків: решта
+ * форм не завантажує TanStack Virtual. Рядок — `RepeatingRowItem` зі стабільними діями `useRowHandlers`.
  */
+
+/** Пропси віртуального списку: `VirtualRowsList` з `erp/repeating-rows-virtual`. */
+export interface VirtualRowsProps {
+  fields: readonly { readonly rowId: string }[]
+  renderItem: (index: number) => React.ReactNode
+  tableFrom: RepeatingRowsTableFrom
+  /** Рядки поза екраном, які лишаються в DOM: перший рядок із помилкою для зведення помилок. */
+  keep: readonly number[]
+  /** Рядок у фокусі й рядок, куди зараз піде фокус. */
+  keepLive: () => readonly number[]
+}
+
+/** Віртуальні рядки: з якої кількості рядків і яким списком. */
+export interface RepeatingRowsVirtual {
+  readonly from: number
+  readonly List: React.ComponentType<VirtualRowsProps>
+}
 
 export interface RepeatingRowsListProps {
   fields: readonly { readonly rowId: string }[]
@@ -25,15 +41,11 @@ export interface RepeatingRowsListProps {
   rowClassName?: string
   tableFrom: RepeatingRowsTableFrom
   readOnly: boolean
-  virtualizeFrom?: number
+  virtualRows?: RepeatingRowsVirtual
   /** Помилки групи з `formState`: перший рядок із помилкою лишається в DOM для зведення помилок. */
   rowErrors: unknown
-  /** Рядок у фокусі й рядок, куди зараз піде фокус. */
   keepLive: () => readonly number[]
 }
-
-/** Висота рядка до першого виміру, px: далі — середня з виміряних. */
-const ESTIMATED_ROW_PX = 64
 
 export function RepeatingRowsList({
   fields,
@@ -42,13 +54,11 @@ export function RepeatingRowsList({
   rowClassName,
   tableFrom,
   readOnly,
-  virtualizeFrom,
+  virtualRows,
   rowErrors,
   keepLive,
 }: RepeatingRowsListProps) {
-  const listRef = React.useRef<HTMLOListElement>(null)
   const layout = REPEATING_ROWS_LAYOUTS[tableFrom]
-  const count = fields.length
   const firstError = Array.isArray(rowErrors)
     ? rowErrors.findIndex(Boolean)
     : -1
@@ -56,19 +66,6 @@ export function RepeatingRowsList({
     () => (firstError >= 0 ? [firstError] : []),
     [firstError],
   )
-  const getItemKey = React.useCallback(
-    (index: number) => fields[index]?.rowId ?? index,
-    [fields],
-  )
-  const rows = useWindowRows({
-    count,
-    enabled: virtualizeFrom !== undefined && count >= virtualizeFrom,
-    listRef,
-    getItemKey,
-    keep,
-    keepLive,
-    estimateSize: ESTIMATED_ROW_PX,
-  })
   return (
     <>
       {columnHeader ? (
@@ -80,38 +77,45 @@ export function RepeatingRowsList({
           {readOnly ? null : <span className="size-control shrink-0" />}
         </div>
       ) : null}
-      <ol
-        ref={listRef}
-        className={rows.items ? "relative" : cn("grid gap-3", layout.list)}
-        style={rows.items ? { height: rows.totalSize } : undefined}
-      >
-        {rows.items
-          ? rows.items.map(({ index, start }) => (
-              <li
-                key={fields[index]?.rowId ?? index}
-                ref={rows.measureElement}
-                data-index={index}
-                data-row-index={index}
-                aria-posinset={index + 1}
-                aria-setsize={count}
-                className={cn(
-                  "absolute inset-x-0 top-0 min-w-0",
-                  layout.virtualGap,
-                )}
-                style={{
-                  transform: `translateY(${String(rows.offsetOf(start))}px)`,
-                }}
-              >
-                {renderItem(index)}
-              </li>
-            ))
-          : fields.map((field, index) => (
-              <li key={field.rowId} data-row-index={index} className="min-w-0">
-                {renderItem(index)}
-              </li>
-            ))}
-      </ol>
+      {virtualRows && fields.length >= virtualRows.from ? (
+        <virtualRows.List
+          fields={fields}
+          renderItem={renderItem}
+          tableFrom={tableFrom}
+          keep={keep}
+          keepLive={keepLive}
+        />
+      ) : (
+        <PlainRows
+          fields={fields}
+          renderItem={renderItem}
+          tableFrom={tableFrom}
+        />
+      )}
     </>
+  )
+}
+
+/** Усі рядки в DOM: звичайний список і запасний для віртуального у вкладеній прокрутці. */
+export function PlainRows({
+  fields,
+  renderItem,
+  tableFrom,
+  ref,
+}: Pick<VirtualRowsProps, "fields" | "renderItem" | "tableFrom"> & {
+  ref?: React.Ref<HTMLOListElement>
+}) {
+  return (
+    <ol
+      ref={ref}
+      className={cn("grid gap-3", REPEATING_ROWS_LAYOUTS[tableFrom].list)}
+    >
+      {fields.map((field, index) => (
+        <li key={field.rowId} data-row-index={index} className="min-w-0">
+          {renderItem(index)}
+        </li>
+      ))}
+    </ol>
   )
 }
 

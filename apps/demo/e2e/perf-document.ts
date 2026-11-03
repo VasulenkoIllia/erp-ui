@@ -2,7 +2,8 @@ import { expect, type Page } from "@playwright/test"
 
 /**
  * Дії з великим документом для `pnpm perf` (UI05b, ADR-0060): 500 рядків у розділах і 99 рядків, усі в
- * DOM. Заміри й межі — `perf.spec.ts`.
+ * DOM. Заміри й межі — `perf.spec.ts`. Курсор у полі ставить клік, без End: на macOS End прокручує
+ * сторінку до кінця документа, і локальний замір показав би прокрутку, а не введення.
  */
 export const DOCUMENT_FORM = "/#/document-form"
 
@@ -21,7 +22,6 @@ export async function interactWithFullDocument(page: Page) {
   const row = documentRow(page)
   const price = row(3).getByLabel("Ціна")
   await price.click()
-  await price.press("End")
   await price.pressSequentially("05", { delay: 120 })
   await row(2).getByRole("button", { name: "Дії: Рядок 2" }).click()
   await page.getByRole("menuitem", { name: "Вилучити" }).click()
@@ -48,7 +48,6 @@ export async function interactWithDocument(page: Page) {
   const row = documentRow(page)
   const price = row(3).getByLabel("Ціна")
   await price.click()
-  await price.press("End")
   await price.pressSequentially("05", { delay: 120 })
   await row(3).getByRole("button", { name: "Дії: Рядок 3" }).click()
   await page.getByRole("menuitem", { name: "Вставити рядок нижче" }).click()
@@ -61,7 +60,6 @@ export async function interactWithDocument(page: Page) {
   await expect(row(3).getByLabel("Назва")).toHaveValue("Монтаж")
   const touched = row(4).getByLabel("Ціна")
   await touched.click()
-  await touched.press("End")
   await touched.pressSequentially("1", { delay: 120 })
   await form.getByRole("button", { name: "Додати рядок" }).click()
   await expect(
