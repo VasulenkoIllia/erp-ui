@@ -31,6 +31,12 @@ const NETWORK = {
 }
 const LCP_BUDGET_MS = 2500
 const INP_BUDGET_MS = 200
+/**
+ * «Великий документ»: 250 мс до кроку «легке поле форми» (рішення власника 03.11.2026, ADR-0060, п. 9).
+ * Поле react-hook-form копіює весь стан форми з початковими значеннями всіх рядків, коли рядок з'являється
+ * чи зникає.
+ */
+const DOCUMENT_BUDGET_MS = 250
 /** П'ять прогонів (вікторина наприкінці 1.2): один повільний клік раннера CI не зсуває медіану. */
 const RUNS = 5
 /** Скільки взаємодій щонайменше має побачити браузер за прогін (див. interactWithList). */
@@ -355,12 +361,11 @@ test.describe("швидкість @perf", () => {
         type: "perf",
         description: JSON.stringify(result),
       })
-      // Межа та сама, що й для списку (SPEC §18.5): рядки документа не мають її зсувати. Кадр — та
-      // сама межа для дій меню, які INP не бачить.
-      expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
+      // Кадр — та сама межа для дій меню, які INP не бачить.
+      expect(result.inp, "INP, мс").toBeLessThanOrEqual(DOCUMENT_BUDGET_MS)
       expect(
         result.frame,
         "найдовший кадр під час дій, мс",
-      ).toBeLessThanOrEqual(INP_BUDGET_MS)
+      ).toBeLessThanOrEqual(DOCUMENT_BUDGET_MS)
     })
 })
