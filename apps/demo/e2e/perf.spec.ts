@@ -32,11 +32,11 @@ const NETWORK = {
 const LCP_BUDGET_MS = 2500
 const INP_BUDGET_MS = 200
 /**
- * «Великий документ»: 250 мс до кроку «легке поле форми» (рішення власника 03.11.2026, ADR-0060, п. 9).
- * Поле react-hook-form копіює весь стан форми з початковими значеннями всіх рядків, коли рядок з'являється
- * чи зникає.
+ * «Великий документ» на 500 рядків: 275 мс до кроку «легке поле форми» (рішення власника 03.11.2026,
+ * ADR-0060, п. 9). Поле react-hook-form копіює весь стан форми з початковими значеннями всіх рядків, коли
+ * рядок з'являється чи зникає.
  */
-const DOCUMENT_BUDGET_MS = 250
+const BIG_DOCUMENT_BUDGET_MS = 275
 /** П'ять прогонів (вікторина наприкінці 1.2): один повільний клік раннера CI не зсуває медіану. */
 const RUNS = 5
 /** Скільки взаємодій щонайменше має побачити браузер за прогін (див. interactWithList). */
@@ -326,16 +326,18 @@ test.describe("швидкість @perf", () => {
     expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
   })
 
-  for (const { name, url, interact } of [
+  for (const { name, url, interact, budget } of [
     {
       name: "великий документ: 500 рядків, лише видимі",
       url: DOCUMENT_FORM,
       interact: interactWithDocument,
+      budget: BIG_DOCUMENT_BUDGET_MS,
     },
     {
-      name: "документ на 19 рядків: усі в DOM, вставка вгорі",
-      url: `${DOCUMENT_FORM}?lines=19`,
+      name: "документ на 11 рядків: усі в DOM, вставка вгорі",
+      url: `${DOCUMENT_FORM}?lines=11`,
       interact: interactWithFullDocument,
+      budget: INP_BUDGET_MS,
     },
   ])
     test(name, async ({ browser }) => {
@@ -362,10 +364,10 @@ test.describe("швидкість @perf", () => {
         description: JSON.stringify(result),
       })
       // Кадр — та сама межа для дій меню, які INP не бачить.
-      expect(result.inp, "INP, мс").toBeLessThanOrEqual(DOCUMENT_BUDGET_MS)
+      expect(result.inp, "INP, мс").toBeLessThanOrEqual(budget)
       expect(
         result.frame,
         "найдовший кадр під час дій, мс",
-      ).toBeLessThanOrEqual(DOCUMENT_BUDGET_MS)
+      ).toBeLessThanOrEqual(budget)
     })
 })

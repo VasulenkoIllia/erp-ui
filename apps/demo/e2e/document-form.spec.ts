@@ -135,13 +135,13 @@ test.describe("великий документ", () => {
     await expect(sectionSum).not.toHaveText(before ?? "")
   })
 
-  test("поріг 20 рядків: рядки на екрані зберігають стан, фокус іде за діями", async ({
+  test("поріг 12 рядків: рядки на екрані зберігають стан, фокус іде за діями", async ({
     page,
   }) => {
-    // Усі 20 рядків на екрані: стан рядка поза екраном не тримається (ADR-0060), тут — лише видимих.
+    // Усі 12 рядків на екрані: стан рядка поза екраном не тримається (ADR-0060), тут — лише видимих.
     await page.setViewportSize({ width: 1440, height: 1600 })
-    await openWith(page, {}, `${PAGE}?lines=19`)
-    await expect(rows(page)).toHaveCount(19)
+    await openWith(page, {}, `${PAGE}?lines=11`)
+    await expect(rows(page)).toHaveCount(11)
     await expect(rows(page).first()).not.toHaveAttribute("aria-setsize")
     // Вид нульової знижки живе лише в рядку: перемонтування повернуло б «%».
     await row(page, 10)
@@ -153,21 +153,21 @@ test.describe("великий документ", () => {
 
     await form(page).getByRole("button", { name: "Додати рядок" }).click()
     await expect(
-      row(page, 20).getByRole("combobox", { name: "Товар чи послуга" }),
+      row(page, 12).getByRole("combobox", { name: "Товар чи послуга" }),
     ).toBeFocused()
-    await expect(rows(page).first()).toHaveAttribute("aria-setsize", "20")
+    await expect(rows(page).first()).toHaveAttribute("aria-setsize", "12")
     await expect(amount).toBeVisible()
 
-    await rowAction(page, 20, "Вилучити")
+    await rowAction(page, 12, "Вилучити")
     await expect(
-      row(page, 19).getByRole("button", { name: "Дії: Рядок 19" }),
+      row(page, 11).getByRole("button", { name: "Дії: Рядок 11" }),
     ).toBeFocused()
     await expect(rows(page).first()).not.toHaveAttribute("aria-setsize")
     await expect(amount).toBeVisible()
 
     await form(page).getByRole("button", { name: "Повернути" }).click()
     await expect(
-      row(page, 20).getByRole("combobox", { name: "Товар чи послуга" }),
+      row(page, 12).getByRole("combobox", { name: "Товар чи послуга" }),
     ).toBeFocused()
     await expect(amount).toBeVisible()
   })

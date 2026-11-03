@@ -934,7 +934,7 @@
     }
   },
   "documentFormPage": {
-    "lead": "A 500-line document in a full-page form (UI05b, ADR-0060): sections with amounts, notes, line order and insert below from the line menu. From 20 lines the editor draws only the visible ones; the save bar sticks to the bottom of the screen.",
+    "lead": "A 500-line document in a full-page form (UI05b, ADR-0060): sections with amounts, notes, line order and insert below from the line menu. From 12 lines the editor draws only the visible ones; the save bar sticks to the bottom of the screen.",
     "optionsTitle": "Document",
     "sizeLabel": "Lines in the document",
     "size_one": "{{count}} line",
