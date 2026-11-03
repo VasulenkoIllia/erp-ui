@@ -18,7 +18,6 @@ import {
   NO_DISCOUNT,
   type DocumentTotals,
   type TaxTotal,
-  type Totals,
   type TotalsDiscount,
 } from "@/registry/lib/document-totals"
 import { useFormat } from "@/registry/lib/format"
@@ -35,8 +34,6 @@ import { cn } from "@/registry/lib/utils"
 export interface TotalsPreview {
   /** null — сума документа за межею контракту. */
   readonly totals: DocumentTotals | null
-  /** Суми рядків за індексом у формі; індексу немає — рядок не враховано. */
-  readonly lines: ReadonlyMap<number, Totals>
   readonly skipped: number
   /** Знижку документа не враховано: вона більша за суму рядків чи некоректна. */
   readonly documentDiscountSkipped: boolean
@@ -50,7 +47,8 @@ const isValidDiscount = (discount: TotalsDiscount) =>
 const hasDiscount = (discount: TotalsDiscount) =>
   discount.discountPercent !== 0 || discount.discountAmount !== 0
 
-const isCountable = (line: DocumentLine) =>
+/** Рядок уже можна порахувати: кількість, ціна й знижка правильні. */
+export const isCountable = (line: DocumentLine) =>
   quantitySchema.safeParse(line.quantity).success &&
   priceSchema.safeParse(line.price).success &&
   isValidDiscount(line)
@@ -81,11 +79,6 @@ export function previewTotals(
         : computeDocumentTotals(rows, digits, documentDiscount)
       return {
         totals,
-        lines: new Map(
-          totals
-            ? counted.map((index, position) => [index, totals.lines[position]])
-            : [],
-        ),
         skipped: lines.length - counted.length,
         documentDiscountSkipped:
           documentDiscount === NO_DISCOUNT && hasDiscount(discount),
@@ -128,8 +121,9 @@ function TotalsRow({
   )
 }
 
-interface DocumentLinesTotalsProps {
+export interface DocumentLinesTotalsProps {
   form: UseFormReturn<DocumentLinesValues>
+  /** Рядки товарів і послуг: назви ставок для підсумків. */
   lines: readonly DocumentLine[]
   preview: TotalsPreview
   /** Підсумки сервера збереженого документа: їх видно лише для читання. */

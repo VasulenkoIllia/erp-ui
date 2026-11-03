@@ -13,11 +13,13 @@ import {
   type DocumentLinesValues,
 } from "@/registry/erp/document-lines-schema"
 import { previewTotals } from "@/registry/erp/document-lines-totals"
-import type {
-  DocumentLine,
-  DocumentLineTax,
-  SavedDocumentLine,
-  SavedDocumentTotals,
+import {
+  itemLinesOf,
+  type DocumentBodyLine,
+  type DocumentLine,
+  type DocumentLineTax,
+  type SavedDocumentLine,
+  type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import { computeDocumentTotals } from "@/registry/lib/document-totals"
 import { formatMoney } from "@/registry/lib/format"
@@ -40,6 +42,7 @@ const UNITS = [
 ]
 
 const line = (id: string, patch: Partial<DocumentLine> = {}): DocumentLine => ({
+  kind: "item",
   id,
   name: `Рядок ${id}`,
   itemId: null,
@@ -52,8 +55,19 @@ const line = (id: string, patch: Partial<DocumentLine> = {}): DocumentLine => ({
   ...patch,
 })
 
+const section = (id: string, title: string): DocumentBodyLine => ({
+  kind: "section",
+  id,
+  title,
+})
+const note = (id: string, text: string): DocumentBodyLine => ({
+  kind: "note",
+  id,
+  text,
+})
+
 const values = (
-  lines: DocumentLine[],
+  lines: DocumentBodyLine[],
   discount: Partial<DocumentLinesValues> = {},
 ): DocumentLinesValues => ({
   lines,
@@ -119,6 +133,22 @@ function Editor({
 
 const row = (index: number) =>
   screen.getByRole("group", { name: `Рядок ${String(index)}` })
+/** Дія з меню рядка лише клавіатурою: Enter на меню, стрілки до пункту, Enter. */
+async function rowAction(
+  user: ReturnType<typeof userEvent.setup>,
+  index: number,
+  action: string,
+) {
+  within(row(index))
+    .getByRole("button", { name: `Дії: Рядок ${String(index)}` })
+    .focus()
+  await user.keyboard("{Enter}")
+  const item = await screen.findByRole("menuitem", { name: action })
+  for (let step = 0; step < 10 && document.activeElement !== item; step++)
+    await user.keyboard("{ArrowDown}")
+  expect(item).toHaveFocus()
+  await user.keyboard("{Enter}")
+}
 const totals = () => screen.getByRole("region", { name: "Підсумки" })
 /** Значення рядка підсумків за підписом. */
 function total(label: string) {
@@ -143,7 +173,11 @@ describe("підсумки збігаються з lib/document-totals", () => {
       { discountPercent: 5 },
     )
     render(<Editor initial={initial} />)
-    const expected = computeDocumentTotals(initial.lines, 2, initial)
+    const expected = computeDocumentTotals(
+      itemLinesOf(initial.lines),
+      2,
+      initial,
+    )
     if (!expected) throw new Error("Сума за межею")
     expect(total("Сума до знижок")).toBe(uah(expected.amount))
     expect(total("Знижка в рядках")).toBe(
@@ -194,7 +228,7 @@ describe("підсумки збігаються з lib/document-totals", () => {
       discountAmount: 50_000,
     })
     expect(preview.skipped).toBe(1)
-    expect([...preview.lines.keys()]).toEqual([0])
+    expect(preview.totals?.lines).toHaveLength(1)
     expect(preview.totals?.documentDiscount).toBe(0)
     expect(preview.totals?.total).toBe(12_000)
     expect(preview.documentDiscountSkipped).toBe(true)
@@ -239,16 +273,16 @@ describe("клавіатура", () => {
     expect(within(added).getByText(uahText(75_150))).toBeInTheDocument()
     expect(total("Разом")).toBe(uah(12_000 + 90_180))
 
-    const remove = within(row(1)).getByRole("button", {
-      name: "Вилучити: Рядок 1",
+    await rowAction(user, 1, "Вилучити")
+    await waitFor(() => {
+      expect(within(row(1)).getByLabelText("Назва")).toHaveValue("Монтаж")
     })
-    remove.focus()
-    await user.keyboard("{Enter}")
-    expect(within(row(1)).getByLabelText("Назва")).toHaveValue("Монтаж")
     expect(
-      within(row(1)).getByRole("button", { name: "Вилучити: Рядок 1" }),
+      within(row(1)).getByRole("button", { name: "Дії: Рядок 1" }),
     ).toHaveFocus()
-    expect(total("Разом")).toBe(uah(90_180))
+    await waitFor(() => {
+      expect(total("Разом")).toBe(uah(90_180))
+    })
 
     await user.click(screen.getByRole("button", { name: "Зберегти" }))
     await waitFor(() => {
@@ -332,6 +366,90 @@ describe("клавіатура", () => {
   })
 })
 
+describe("розділи й нотатки", () => {
+  it("розділ і нотатка кнопками під рядками, сума розділу, підсумки без них", async () => {
+    const user = userEvent.setup()
+    render(<Editor initial={values([line("1")])} />)
+    await user.click(screen.getByRole("button", { name: "Додати розділ" }))
+    expect(within(row(2)).getByLabelText("Розділ")).toHaveFocus()
+    await user.keyboard("Монтаж")
+    await user.click(screen.getByRole("button", { name: "Додати рядок" }))
+    await user.keyboard("Робота{Tab}{Control>}a{/Control}2{Tab}{Tab}300{Tab}")
+    // Сума розділу — сума колонки «Сума» його рядків: 2 × 300, без ПДВ зверху.
+    await waitFor(() => {
+      expect(
+        within(row(2)).getByText(uahText(60_000), { selector: "span" }),
+      ).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole("button", { name: "Додати нотатку" }))
+    expect(within(row(4)).getByLabelText("Нотатка")).toHaveFocus()
+    await user.keyboard("Гарантія 12 місяців")
+    // Розділ і нотатка в підсумки не йдуть: (100 + 600) з ПДВ 20 %.
+    await waitFor(() => {
+      expect(total("Разом")).toBe(uah(84_000))
+    })
+  })
+
+  it("меню рядка: вставити розділ нижче й підняти його лише з клавіатури", async () => {
+    const user = userEvent.setup()
+    render(
+      <Editor
+        initial={values([section("s1", "Обладнання"), line("1"), line("2")])}
+      />,
+    )
+    await rowAction(user, 2, "Вставити розділ нижче")
+    await waitFor(() => {
+      expect(within(row(3)).getByLabelText("Розділ")).toHaveFocus()
+    })
+    await user.keyboard("Монтаж")
+    // Заголовок рухається сам: рядок 1 переходить із «Обладнання» в «Монтаж».
+    await rowAction(user, 3, "Підняти")
+    await waitFor(() => {
+      expect(
+        within(row(2)).getByRole("button", { name: "Дії: Рядок 2" }),
+      ).toHaveFocus()
+    })
+    expect(within(row(2)).getByLabelText("Розділ")).toHaveValue("Монтаж")
+    await waitFor(() => {
+      expect(
+        within(row(2)).getByText(uahText(20_000), { selector: "span" }),
+      ).toBeInTheDocument()
+    })
+    expect(
+      within(row(1)).getByText(uahText(0), { selector: "span" }),
+    ).toBeInTheDocument()
+
+    within(row(1)).getByRole("button", { name: "Дії: Рядок 1" }).focus()
+    await user.keyboard("{Enter}")
+    expect(
+      await screen.findByRole("menuitem", { name: "Підняти" }),
+    ).toHaveAttribute("aria-disabled", "true")
+    await user.keyboard("{Escape}")
+    await waitFor(() => {
+      expect(
+        within(row(1)).getByRole("button", { name: "Дії: Рядок 1" }),
+      ).toHaveFocus()
+    })
+  })
+
+  it("порожня назва розділу й текст нотатки — помилка біля поля", async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn<(values: DocumentLinesValues) => void>()
+    render(
+      <Editor
+        initial={values([section("s1", " "), line("1"), note("n1", "")])}
+        onSubmit={onSubmit}
+      />,
+    )
+    await user.click(screen.getByRole("button", { name: "Зберегти" }))
+    expect(
+      await within(row(1)).findByText("Заповніть це поле"),
+    ).toBeInTheDocument()
+    expect(within(row(3)).getByText("Заповніть це поле")).toBeInTheDocument()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+})
+
 describe("помилки біля полів", () => {
   it("порожня назва й ціна, нульова кількість, знижки понад суму", async () => {
     const user = userEvent.setup()
@@ -405,7 +523,7 @@ describe("помилки біля полів", () => {
 describe("лише для читання й знімки довідників", () => {
   it("поля у фокусі без кнопок, підсумки сервера", () => {
     const initial = values([line("1")])
-    const server = computeDocumentTotals(initial.lines, 2)
+    const server = computeDocumentTotals(itemLinesOf(initial.lines), 2)
     if (!server) throw new Error("Сума за межею")
     render(
       <Editor
@@ -415,9 +533,7 @@ describe("лише для читання й знімки довідників", 
       />,
     )
     expect(within(row(1)).getByLabelText("Назва")).toHaveAttribute("readonly")
-    expect(
-      screen.queryByRole("button", { name: /Додати рядок|Вилучити/ }),
-    ).toBeNull()
+    expect(screen.queryByRole("button", { name: /Додати|Дії:/ })).toBeNull()
     // Збережений документ показує числа сервера, а не попередній розрахунок.
     expect(total("Разом")).toBe(uah(99_999))
   })

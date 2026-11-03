@@ -12,6 +12,7 @@
       "realtime": "Real time",
       "document": "Document",
       "documentLines": "Document lines",
+      "documentForm": "Large document",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -917,17 +918,31 @@
     "sample": {
       "product": "Coffee machine",
       "service": "Equipment setup",
-      "delivery": "City delivery"
+      "delivery": "City delivery",
+      "goods": "Equipment",
+      "work": "Work",
+      "note": "12-month warranty on equipment from the delivery date."
     },
     "variantsTitle": "Variants",
     "variantsDescription": "No requests: an empty document in a narrow container, errors next to fields, a document discount above the lines total, a total over the limit and a saved document in dollars, read only, with server amounts.",
     "variants": {
       "empty": "Empty document, narrow container",
-      "errors": "Errors next to fields: name, quantity and line discount",
+      "errors": "Errors next to fields: section name, line name, quantity and discount",
       "documentDiscount": "Document discount above the lines total",
       "outOfRange": "Document total over the contract limit",
-      "saved": "Saved document, read only: price including VAT, document discount, server totals"
+      "saved": "Saved document, read-only: sections with amounts, a note, a price with VAT, a document discount, server totals"
     }
+  },
+  "documentFormPage": {
+    "lead": "A 500-line document in a full-page form (UI05b, ADR-0060): sections with amounts, notes, line order and insert below from the line menu. From 12 lines the editor draws only the visible ones; the save bar sticks to the bottom of the screen.",
+    "optionsTitle": "Document",
+    "sizeLabel": "Lines in the document",
+    "size_one": "{{count}} line",
+    "size_other": "{{count}} lines",
+    "readOnly": "Read-only",
+    "section": "Stage {{index}}",
+    "note": "Prices are valid for 14 days. Installation follows full delivery of the stage equipment.",
+    "saved": "Document saved"
   },
   "numberingPage": {
     "lead": "A document gets its number when it is submitted: a draft has none. The template sets what the number is made of, and the preview shows the next one. Submit a draft on the Document page and the counter goes up.",

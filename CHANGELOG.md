@@ -29,9 +29,16 @@
 - `erp/repeating-rows`: опція `tableFrom` (`lg` чи `4xl`): з якої ширини контейнера рядки стають таблицею. Без неї поведінка та сама.
 - `lib/document-totals` і `lib/document-lines` перейшли в `beta`: є демо «Рядки документа».
 
+- **Розділи й нотатки в рядках документа** (UI05b, ADR-0060): `lib/document-lines` — рядки виду `section` (заголовок розділу) і `note` (текст без суми) серед рядків товарів, `documentSectionSchema`, `documentNoteSchema`, `DocumentBodyLine`, `savedDocumentBodyLineSchema`, `itemLinesOf`; підсумки й перевірки сум бачать лише рядки товарів. Редактор показує суму розділу в його заголовку й має кнопки «Додати розділ» і «Додати нотатку».
+- **Великий документ** у `erp/document-lines-editor` (ADR-0060): кожен рядок підписаний лише на свої значення, підсумки рахуються нижчим пріоритетом, від `virtualizeFrom` рядків (за замовчуванням 12) малюються лише видимі. Рядок у фокусі й перший рядок з помилкою малюються завжди, зведення помилок переводить на рядок поза екраном, рядки мають `aria-posinset` і `aria-setsize`. Демо «Великий документ» на 11 і 500 рядків, `pnpm perf` міряє на ньому відгук і найдовший кадр: 200 мс на 11 рядках, 275 мс на 500 до кроку «легке поле форми».
+- Нові елементи: `hooks/use-window-rows` (віртуальні рядки у вікні сторінки на TanStack Virtual; у вкладеній прокрутці малюються всі рядки), `erp/repeating-rows-list` (список, `RepeatingRowItem`, `useRowHandlers`), `erp/repeating-rows-virtual` (`VirtualRowsList`), `erp/document-line-row`, `erp/document-lines-preview` (`sectionSums`, `lineTotalsOf`).
+- `erp/repeating-rows`: опції `rowActions: "menu"` (дії рядка одним меню з «Вставити нижче»), `insertLabel`, `extraKinds` (інші види рядка зі своїми кнопками), `columnHeader` (підписи колонок над таблицею) і `virtualRows` (віртуальний список з `erp/repeating-rows-virtual`: TanStack Virtual завантажують лише форми, які його передали). Без них поведінка та сама, лише кнопки «Додати…», що переносяться на другий рядок, мають між рядками 8 px. `erp/repeating-row-actions`: `RepeatingRowMenu`, `ActionsColumn`.
+
 ### Змінено
 
 - Контракт рядка документа (ще не випущений): знижка відсотком або сумою, одне з двох, нове обов'язкове поле `discountAmount`; суми рядка й документа мають `documentDiscount`. `computeDocumentTotals` приймає знижку документа третім параметром: вона ділиться між рядками пропорційно, копійки залишку отримує найдорожчий рядок, і зменшує базу ПДВ. Знижка понад свою суму дає `null`, причину каже `documentTotalsIssue`. Нова схема `documentBodySchemaFor`: рядки й знижка документа разом. `documentLinesSchemaFor` ставить помилку знижки в кожен рядок, де вона більша за суму, а не лише в перший; знижку документа `documentBodySchemaFor` перевіряє й тоді, коли помилка в полі шапки модуля.
+- Контракт рядка документа (ще не випущений, ADR-0060): нове обов'язкове поле `kind`; рядок товару — `kind: "item"`. `documentLinesSchemaFor`, `linesTotalsCheck` і `bodyTotalsCheck` приймають рядки всіх видів (`BodyLineLike`). `previewTotals` більше не повертає `lines`: суму рядка рахує сам рядок. Тип `DocumentLinesValues.lines` — `DocumentBodyLine[]`.
+- `erp/document-lines-editor`: дії рядка — меню «Дії: Рядок N» замість кнопки «Вилучити»; підписи колонок над таблицею, у рядках — для скрінрідера. `erp/document-line-fields`: експортовано `LineSum` (колонка «Сума») і `lineSumOf`.
 
 ### Виправлено
 

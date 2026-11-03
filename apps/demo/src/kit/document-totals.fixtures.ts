@@ -19,6 +19,7 @@ export const VAT_0: TotalsLineTax = { id: "vat-0", rate: 0, included: false }
 
 /** Рядок вільним текстом, без довідників. */
 export const ROW = {
+  kind: "item" as const,
   id: "1",
   name: "Послуга",
   itemId: null,

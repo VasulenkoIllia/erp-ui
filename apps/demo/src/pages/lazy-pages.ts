@@ -41,6 +41,10 @@ export const PAGES = {
   documentLines: lazyWithPreload(() =>
     import("./DocumentLinesPage").then((m) => m.DocumentLinesPage),
   ),
+  // Великий документ: розділи, нотатки, віртуальні рядки (ADR-0060).
+  documentForm: lazyWithPreload(() =>
+    import("./DocumentFormPage").then((m) => m.DocumentFormPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

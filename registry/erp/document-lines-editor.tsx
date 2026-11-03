@@ -1,26 +1,27 @@
 import * as React from "react"
 import type { RaRecord } from "ra-core"
-import { useWatch, type FieldValues, type UseFormReturn } from "react-hook-form"
+import type { FieldValues, UseFormReturn } from "react-hook-form"
 
+import type { DocumentLineItem } from "@/registry/erp/document-line-fields"
+import { DocumentLineRow } from "@/registry/erp/document-line-row"
 import {
-  DocumentLineFields,
-  type DocumentLineItem,
-} from "@/registry/erp/document-line-fields"
+  DocumentLinesPreview,
+  DocumentLinesPreviewTotals,
+} from "@/registry/erp/document-lines-preview"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import {
-  DocumentLinesTotals,
-  previewTotals,
-} from "@/registry/erp/document-lines-totals"
-import { RepeatingRows } from "@/registry/erp/repeating-rows"
-import {
-  savedDocumentLineSchema,
-  type DocumentLine,
-  type DocumentLineTax,
-  type DocumentLineUnit,
-  type SavedDocumentTotals,
+  RepeatingRows,
+  type RepeatingRowProps,
+  type RepeatingRowsKind,
+} from "@/registry/erp/repeating-rows"
+import { VirtualRowsList } from "@/registry/erp/repeating-rows-virtual"
+import type {
+  DocumentBodyLine,
+  DocumentLine,
+  DocumentLineTax,
+  DocumentLineUnit,
+  SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
-import type { Totals } from "@/registry/lib/document-totals"
-import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 
@@ -31,7 +32,7 @@ import { cn } from "@/registry/lib/utils"
  * - Рядок: назва вільним текстом чи вибір запису з ресурсу проекту (`item`, підставляє назву, ціну,
  *   одиницю й податок), кількість, одиниця, ціна, знижка відсотком або сумою, податок, сума рядка.
  *   Під рядками — знижка на весь документ і підсумки за ставками.
- * - Контейнер від 56rem — таблиця: підписи видно над першим рядком, далі для скрінрідера. Вужчий —
+ * - Контейнер від 56rem — таблиця: підписи колонок над рядками, у рядках — для скрінрідера. Вужчий —
  *   картки: на телефоні дві колонки, від 28rem — три. Горизонтальної прокрутки немає.
  * - Підсумки — попередній розрахунок у браузері; збережений документ у режимі лише для читання
  *   показує числа сервера (`savedTotals` і `totals` рядків), бо джерело правди — сервер (ADR-0056).
@@ -42,6 +43,15 @@ import { cn } from "@/registry/lib/utils"
  *   `safeExtend`. Додати, змінити й вилучити рядок можна лише з клавіатури, фокус веде `RepeatingRows`.
  *   Форма без `shouldUnregister`: друге поле знижки (відсоток чи сума) не показане, але лишається нулем.
  * - `readOnly` — поля лишаються у фокусі, кнопок немає (SPEC §8.3).
+ * - Розділи й нотатки (UI05b, ADR-0060): рядки виду `section` і `note` серед рядків. Розділ має суму
+ *   своїх рядків. Дії рядка — одним меню: підняти, опустити, вставити рядок, розділ чи нотатку нижче,
+ *   вилучити. Підписи колонок стоять над таблицею, тож першим може бути рядок будь-якого виду.
+ * - Багато рядків: кожен рядок підписаний на свої значення, підсумки рахуються нижчим пріоритетом, а від
+ *   `virtualizeFrom` рядків малюються лише видимі (вікно сторінки, `erp/repeating-rows-virtual`). Варіанти
+ *   `units`, `taxes` і `item` мають бути стабільними (`useMemo`), інакше перемальовуються всі рядки.
+ *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
+ * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
+ *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
  */
 
 export interface DocumentLinesEditorProps<
@@ -63,12 +73,22 @@ export interface DocumentLinesEditorProps<
   label?: React.ReactNode
   description?: React.ReactNode
   maxLines?: number
+  /** З якої кількості рядків малювати лише видимі; за замовчуванням — `VIRTUALIZE_FROM`. */
+  virtualizeFrom?: number
   readOnly?: boolean
   savedTotals?: SavedDocumentTotals
   className?: string
 }
 
+/**
+ * Поріг віртуальних рядків (вікторина власника 03.11.2026, ADR-0060): до нього в DOM усі рядки (пошук
+ * браузера знаходить будь-який), від нього — лише видимі. Дія меню перемальовує всі рядки нижче, і на
+ * телефоні вже понад десяток рядків у DOM виходять за 200 мс.
+ */
+const VIRTUALIZE_FROM = 12
+
 const EMPTY_LINE: Omit<DocumentLine, "id"> = {
+  kind: "item",
   name: "",
   itemId: null,
   quantity: "1",
@@ -86,7 +106,9 @@ const newLineId = () =>
   ).join("")}`
 
 /** Новий рядок: типові значення поверх порожнього, `undefined` не стирає порожнє значення. */
-const newLineOf = (defaults: Partial<Omit<DocumentLine, "id">> = {}) => ({
+const newLineOf = (
+  defaults: Partial<Omit<DocumentLine, "id">> = {},
+): DocumentLine => ({
   ...EMPTY_LINE,
   ...Object.fromEntries(
     Object.entries(defaults).filter(([, value]) => value !== undefined),
@@ -94,15 +116,34 @@ const newLineOf = (defaults: Partial<Omit<DocumentLine, "id">> = {}) => ({
   id: newLineId(),
 })
 
-/** Суми сервера в збереженому рядку (`savedDocumentLineSchema`); рядок форми їх не має. */
-const savedLineTotals = (line: DocumentLine | undefined): Totals | undefined =>
-  line && "totals" in line
-    ? savedDocumentLineSchema.shape.totals.safeParse(line.totals).data
-    : undefined
-
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
   "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,2.8fr)_minmax(5rem,1fr)_minmax(5.5rem,1.3fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
+
+/** Підписи колонок таблиці в порядку полів рядка; сума — праворуч, як у рядках. */
+function LinesHeader() {
+  const t = useErpUiT()
+  const columns = [
+    t("documentLines.name"),
+    t("documentLines.quantity"),
+    t("documentLines.unit"),
+    t("documentLines.price"),
+    t("documentLines.discount"),
+    t("documentLines.tax"),
+  ]
+  return (
+    <>
+      {columns.map((column) => (
+        <span key={column} className="text-sm leading-snug font-medium">
+          {column}
+        </span>
+      ))}
+      <span className="text-end text-sm leading-snug font-medium">
+        {t("documentLines.sum")}
+      </span>
+    </>
+  )
+}
 
 export function DocumentLinesEditor<
   TValues extends DocumentLinesValues,
@@ -118,6 +159,7 @@ export function DocumentLinesEditor<
   label,
   description,
   maxLines,
+  virtualizeFrom = VIRTUALIZE_FROM,
   readOnly = false,
   savedTotals,
   className,
@@ -126,66 +168,83 @@ export function DocumentLinesEditor<
   // Поля редактора однакові в будь-якій формі документа: шапку модуля редактор не чіпає.
   const linesForm = form as unknown as UseFormReturn<DocumentLinesValues>
   const { control } = linesForm
-  const lines = useWatch({ control, name: "lines" })
-  const [discountPercent, discountAmount] = useWatch({
-    control,
-    name: ["discountPercent", "discountAmount"],
+  const defaults = React.useRef(newLine)
+  React.useLayoutEffect(() => {
+    defaults.current = newLine
   })
-  const preview = React.useMemo(
-    () =>
-      previewTotals(lines, currencyDigits(currency), {
-        discountPercent,
-        discountAmount,
-      }),
-    [lines, currency, discountPercent, discountAmount],
+  // Стабільний рядок: `RepeatingRows` не перемальовує рядки, доки не змінились їхні пропси.
+  const renderRow = React.useCallback(
+    ({ index, rowLabel, readOnly: isReadOnly }: RepeatingRowProps) => (
+      <DocumentLineRow
+        form={linesForm}
+        index={index}
+        rowLabel={rowLabel}
+        readOnly={isReadOnly}
+        currency={currency}
+        units={units}
+        taxes={taxes}
+        item={item}
+      />
+    ),
+    [linesForm, currency, units, taxes, item],
+  )
+  const extraKinds = React.useMemo<RepeatingRowsKind<DocumentBodyLine>[]>(
+    () => [
+      {
+        addLabel: t("documentLines.addSection"),
+        insertLabel: t("documentLines.insertSection"),
+        newRow: () => ({ kind: "section", id: newLineId(), title: "" }),
+      },
+      {
+        addLabel: t("documentLines.addNote"),
+        insertLabel: t("documentLines.insertNote"),
+        newRow: () => ({ kind: "note", id: newLineId(), text: "" }),
+      },
+    ],
+    [t],
+  )
+  const virtualRows = React.useMemo(
+    () => ({ from: virtualizeFrom, List: VirtualRowsList }),
+    [virtualizeFrom],
   )
   return (
     <div
       data-slot="document-lines"
       className={cn("@container grid min-w-0 gap-4", className)}
     >
-      <RepeatingRows
+      <DocumentLinesPreview
         control={control}
-        name="lines"
-        label={label ?? t("documentLines.label")}
-        description={description}
-        rowLabel={(index) => t("documentLines.row", { index: index + 1 })}
-        addLabel={t("documentLines.add")}
-        newRow={() => newLineOf(newLine?.())}
-        empty={t("documentLines.empty")}
-        maxRows={maxLines}
-        readOnly={readOnly}
-        tableFrom="4xl"
-        rowClassName={ROW_GRID}
-        renderRow={({ index, rowLabel }) => {
-          const line = lines[index] as DocumentLine | undefined
-          return (
-            <DocumentLineFields
-              form={linesForm}
-              index={index}
-              rowLabel={rowLabel}
-              line={line}
-              totals={
-                (readOnly && savedLineTotals(line)) || preview.lines.get(index)
-              }
-              currency={currency}
-              units={units}
-              taxes={taxes}
-              item={item}
-              readOnly={readOnly}
-            />
-          )
-        }}
-      />
-      <DocumentLinesTotals
-        form={linesForm}
-        lines={lines}
-        preview={preview}
-        savedTotals={savedTotals}
         currency={currency}
-        discount={{ discountPercent, discountAmount }}
         readOnly={readOnly}
-      />
+      >
+        <RepeatingRows
+          control={control}
+          name="lines"
+          label={label ?? t("documentLines.label")}
+          description={description}
+          rowLabel={(index) => t("documentLines.row", { index: index + 1 })}
+          addLabel={t("documentLines.add")}
+          insertLabel={t("documentLines.insert")}
+          newRow={() => newLineOf(defaults.current?.())}
+          extraKinds={extraKinds}
+          empty={t("documentLines.empty")}
+          maxRows={maxLines}
+          canReorder
+          rowActions="menu"
+          columnHeader={<LinesHeader />}
+          virtualRows={virtualRows}
+          readOnly={readOnly}
+          tableFrom="4xl"
+          rowClassName={ROW_GRID}
+          renderRow={renderRow}
+        />
+        <DocumentLinesPreviewTotals
+          form={linesForm}
+          savedTotals={savedTotals}
+          currency={currency}
+          readOnly={readOnly}
+        />
+      </DocumentLinesPreview>
     </div>
   )
 }

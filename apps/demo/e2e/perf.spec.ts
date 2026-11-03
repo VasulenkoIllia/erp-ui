@@ -1,6 +1,12 @@
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
 import { SESSION_KEY, USERS } from "./helpers"
+import {
+  DOCUMENT_FORM,
+  documentRow,
+  interactWithDocument,
+  interactWithFullDocument,
+} from "./perf-document"
 
 /**
  * Бюджети швидкості (ADR-0009, SPEC §18.5) на телефоні середнього класу: CPU у 4 рази повільніше
@@ -25,6 +31,12 @@ const NETWORK = {
 }
 const LCP_BUDGET_MS = 2500
 const INP_BUDGET_MS = 200
+/**
+ * «Великий документ» на 500 рядків: 275 мс до кроку «легке поле форми» (рішення власника 03.11.2026,
+ * ADR-0060, п. 9). Поле react-hook-form копіює весь стан форми з початковими значеннями всіх рядків, коли
+ * рядок з'являється чи зникає.
+ */
+const BIG_DOCUMENT_BUDGET_MS = 275
 /** П'ять прогонів (вікторина наприкінці 1.2): один повільний клік раннера CI не зсуває медіану. */
 const RUNS = 5
 /** Скільки взаємодій щонайменше має побачити браузер за прогін (див. interactWithList). */
@@ -34,7 +46,14 @@ const DATA = "/#/data"
 
 declare global {
   interface Window {
-    __perf: { lcp: number; inp: number; slowest: string }
+    __perf: {
+      lcp: number
+      inp: number
+      slowest: string
+      /** Найдовший кадр від `since` (Long Animation Frames), мс. */
+      frame: number
+      since: number
+    }
   }
 }
 
@@ -56,7 +75,7 @@ async function openThrottled(
   await page.addInitScript(
     ([sessionKey, session]) => {
       localStorage.setItem(sessionKey, session)
-      const perf = { lcp: 0, inp: 0, slowest: "" }
+      const perf = { lcp: 0, inp: 0, slowest: "", frame: 0, since: Infinity }
       window.__perf = perf
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) perf.lcp = entry.startTime
@@ -68,17 +87,30 @@ async function openThrottled(
             perf.inp = entry.duration
             // Для звіту: яка дія найповільніша (подія й елемент).
             const target = entry.target instanceof Element ? entry.target : null
+            // Затримка до обробника, обробка й показ, мс: що саме забрало час.
+            const phases = [
+              entry.processingStart - entry.startTime,
+              entry.processingEnd - entry.processingStart,
+              entry.startTime + entry.duration - entry.processingEnd,
+            ].map(Math.round)
             perf.slowest = `${entry.name} ${target?.tagName.toLowerCase() ?? "?"}${
               target?.getAttribute("aria-label")
                 ? ` «${target.getAttribute("aria-label")}»`
                 : ""
-            } ${(target?.textContent ?? "").trim().slice(0, 30)}`
+            } ${(target?.textContent ?? "").trim().slice(0, 30)} ${phases.join("/")}`
           }
       }).observe({
         type: "event",
         buffered: true,
         durationThreshold: 16,
       } as PerformanceObserverInit)
+      // Дія з меню рядка виконується, коли меню закрилось, поза подією кліку: INP її не бачить, а
+      // найдовший кадр під час дій — бачить.
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries())
+          if (entry.startTime >= perf.since)
+            perf.frame = Math.max(perf.frame, entry.duration)
+      }).observe({ type: "long-animation-frame", buffered: true })
     },
     [
       SESSION_KEY,
@@ -188,24 +220,30 @@ async function measure(
   browser: Browser,
   rate: number,
   viewport: typeof PHONE,
+  url: string,
   ready: (page: Page) => Promise<void>,
   interact: (page: Page) => Promise<void>,
 ) {
   const lcp: number[] = []
   const inp: number[] = []
+  const frame: number[] = []
   const slowest: string[] = []
   for (let run = 0; run < RUNS; run++) {
     const page = await openThrottled(browser, rate, viewport)
     // Збій заміру не лишає живий контекст із уповільненням: він спотворив би наступні.
     try {
-      await page.goto(DATA)
+      await page.goto(url)
       await ready(page)
       // LCP фіксується до першої взаємодії — даємо сторінці домалюватись.
       await page.waitForTimeout(500)
       lcp.push(await page.evaluate(() => window.__perf.lcp))
+      await page.evaluate(() => {
+        window.__perf.since = performance.now()
+      })
       await interact(page)
       await page.waitForTimeout(500)
       inp.push(await page.evaluate(() => window.__perf.inp))
+      frame.push(await page.evaluate(() => window.__perf.frame))
       slowest.push(await page.evaluate(() => window.__perf.slowest))
       // Порожній замір (спостерігачі нічого не отримали) не має пройти як «0 мс».
       const interactions = await page.evaluate(
@@ -222,7 +260,12 @@ async function measure(
       await page.context().close()
     }
   }
-  return { lcp: median(lcp), inp: median(inp), runs: { lcp, inp, slowest } }
+  return {
+    lcp: median(lcp),
+    inp: median(inp),
+    frame: median(frame),
+    runs: { lcp, inp, frame, slowest },
+  }
 }
 
 test.describe("швидкість @perf", () => {
@@ -233,6 +276,7 @@ test.describe("швидкість @perf", () => {
       browser,
       cpu.rate,
       PHONE,
+      DATA,
       async (page) => {
         // Стрес-сторінка (SPEC §18.1): 10 000 рахунків, на 390 px — картки.
         await expect(
@@ -261,6 +305,7 @@ test.describe("швидкість @perf", () => {
         browser,
         cpu.rate,
         DESKTOP,
+        DATA,
         async (page) => {
           await expect(
             page
@@ -280,4 +325,49 @@ test.describe("швидкість @perf", () => {
     })
     expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
   })
+
+  for (const { name, url, interact, budget } of [
+    {
+      name: "великий документ: 500 рядків, лише видимі",
+      url: DOCUMENT_FORM,
+      interact: interactWithDocument,
+      budget: BIG_DOCUMENT_BUDGET_MS,
+    },
+    {
+      name: "документ на 11 рядків: усі в DOM, вставка вгорі",
+      url: `${DOCUMENT_FORM}?lines=11`,
+      interact: interactWithFullDocument,
+      budget: INP_BUDGET_MS,
+    },
+  ])
+    test(name, async ({ browser }) => {
+      test.setTimeout(300_000)
+      const cpu = await calibratedSlowdown(browser)
+      const result = {
+        ...(await measure(
+          browser,
+          cpu.rate,
+          PHONE,
+          url,
+          async (page) => {
+            await expect(documentRow(page)(3).getByLabel("Ціна")).toBeVisible({
+              timeout: 30_000,
+            })
+          },
+          interact,
+        )),
+        cpu,
+      }
+      console.log(`perf ${url}: ${JSON.stringify(result)}`)
+      test.info().annotations.push({
+        type: "perf",
+        description: JSON.stringify(result),
+      })
+      // Кадр — та сама межа для дій меню, які INP не бачить.
+      expect(result.inp, "INP, мс").toBeLessThanOrEqual(budget)
+      expect(
+        result.frame,
+        "найдовший кадр під час дій, мс",
+      ).toBeLessThanOrEqual(budget)
+    })
 })

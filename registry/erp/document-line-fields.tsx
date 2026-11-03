@@ -22,6 +22,7 @@ import {
   NO_DISCOUNT,
   type Totals,
 } from "@/registry/lib/document-totals"
+import { cn } from "@/registry/lib/utils"
 import { currencyLabel, useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import type { ListFilter } from "@/registry/lib/list-state"
@@ -145,7 +146,6 @@ export function DocumentLineFields<T extends RaRecord>({
   readOnly,
 }: DocumentLineFieldsProps<T>) {
   const t = useErpUiT()
-  const format = useFormat()
   const { locale } = useLanguage()
   const path = <K extends keyof DocumentLine>(key: K) =>
     `lines.${index}.${key}` as const
@@ -161,7 +161,6 @@ export function DocumentLineFields<T extends RaRecord>({
     sameTax,
     t("documentLines.noTax"),
   )
-  const sum = totals ? totals.amount - lineDiscountOf(totals) : null
   return (
     <>
       <div className="col-span-2 grid min-w-0 gap-2 @md:col-span-3 @4xl:col-span-1">
@@ -288,22 +287,51 @@ export function DocumentLineFields<T extends RaRecord>({
           />
         )}
       />
-      {/* Сума рахується, а не вводиться: підпис і значення без поля, скрінрідер читає їх підряд. */}
-      <div className="flex min-w-0 flex-col gap-2 @4xl:items-end">
-        <FieldTitle className="leading-snug">
-          {t("documentLines.sum")}
-        </FieldTitle>
-        <span className="flex h-control items-center text-sm tabular-nums">
-          {sum === null ? (
-            <>
-              <span aria-hidden>—</span>
-              <span className="sr-only">{t("documentLines.noSum")}</span>
-            </>
-          ) : (
-            format.money({ amount: sum, currency })
-          )}
-        </span>
-      </div>
+      <LineSum
+        label={t("documentLines.sum")}
+        sum={totals ? lineSumOf(totals) : null}
+        currency={currency}
+      />
     </>
+  )
+}
+
+/** Колонка «Сума»: кількість × ціна мінус знижка рядка, без частки знижки документа. */
+export const lineSumOf = (totals: Totals) =>
+  totals.amount - lineDiscountOf(totals)
+
+/**
+ * Сума рядка чи розділу: рахується, а не вводиться, тож підпис і значення без поля, скрінрідер читає їх
+ * підряд. null — ще не пораховано.
+ */
+export function LineSum({
+  label,
+  sum,
+  currency,
+  className,
+}: {
+  label: string
+  sum: number | null
+  currency: string
+  className?: string
+}) {
+  const t = useErpUiT()
+  const format = useFormat()
+  return (
+    <div
+      className={cn("flex min-w-0 flex-col gap-2 @4xl:items-end", className)}
+    >
+      <FieldTitle className="leading-snug">{label}</FieldTitle>
+      <span className="flex h-control items-center text-sm tabular-nums">
+        {sum === null ? (
+          <>
+            <span aria-hidden>—</span>
+            <span className="sr-only">{t("documentLines.noSum")}</span>
+          </>
+        ) : (
+          format.money({ amount: sum, currency })
+        )}
+      </span>
+    </div>
   )
 }

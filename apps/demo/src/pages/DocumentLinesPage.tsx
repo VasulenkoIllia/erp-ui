@@ -113,6 +113,7 @@ function sampleValues(
     dictionaries.units.find((option) => option.name === name) ?? null
   const vat = dictionaries.taxes.find((tax) => tax.rate === 20) ?? null
   const line = {
+    kind: "item" as const,
     itemId: null,
     unit: null,
     discountPercent: 0,
