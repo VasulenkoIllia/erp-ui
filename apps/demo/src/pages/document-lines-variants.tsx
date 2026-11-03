@@ -8,11 +8,13 @@ import {
   useDocumentLinesSchema,
   type DocumentLinesValues,
 } from "@/registry/erp/document-lines-schema"
-import type {
-  DocumentLine,
-  DocumentLineTax,
-  SavedDocumentLine,
-  SavedDocumentTotals,
+import {
+  itemLinesOf,
+  type DocumentBodyLine,
+  type DocumentLine,
+  type DocumentLineTax,
+  type SavedDocumentBodyLine,
+  type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import {
   computeDocumentTotals,
@@ -44,6 +46,7 @@ const UNITS = [
 ] as const
 
 const LINE: Omit<DocumentLine, "id" | "name"> = {
+  kind: "item",
   itemId: null,
   quantity: "1",
   unit: UNITS[0],
@@ -78,6 +81,7 @@ function useVariants(): readonly Variant[] {
       validate: true,
       values: {
         lines: [
+          { kind: "section", id: "errors-section", title: "" },
           { ...LINE, id: "errors-1", name: "", quantity: "0" },
           {
             ...LINE,
@@ -123,6 +127,7 @@ function useVariants(): readonly Variant[] {
       readOnly: true,
       values: {
         lines: [
+          { kind: "section", id: "saved-section-1", title: t("sample.goods") },
           {
             ...LINE,
             id: "saved-1",
@@ -132,6 +137,7 @@ function useVariants(): readonly Variant[] {
             // Знімок ставки «у ціні», якої в довіднику вже немає: рядок показує її під своєю назвою.
             tax: { id: "vat-20-in", name: "ПДВ 20%", rate: 20, included: true },
           },
+          { kind: "section", id: "saved-section-2", title: t("sample.work") },
           {
             ...LINE,
             id: "saved-2",
@@ -141,6 +147,7 @@ function useVariants(): readonly Variant[] {
             price: "80",
             discountPercent: 5,
           },
+          { kind: "note", id: "saved-note", text: t("sample.note") },
         ],
         discountPercent: 10,
         discountAmount: 0,
@@ -155,15 +162,19 @@ function savedOf({ currency, values }: Variant): {
   totals: SavedDocumentTotals
 } {
   const totals = computeDocumentTotals(
-    values.lines,
+    itemLinesOf(values.lines),
     currencyDigits(currency),
     values,
   )
   if (!totals) throw new Error("Варіант демо за межею суми")
-  const lines: SavedDocumentLine[] = values.lines.flatMap((line, index) => {
-    const lineTotals = totals.lines[index]
-    return lineTotals ? [{ ...line, totals: lineTotals }] : []
-  })
+  // Суми сервера мають лише рядки товарів, за їхнім порядком серед усіх рядків.
+  const itemTotals = totals.lines.values()
+  const lines = values.lines.map(
+    (line): SavedDocumentBodyLine | DocumentBodyLine =>
+      line.kind === "item"
+        ? { ...line, totals: itemTotals.next().value }
+        : line,
+  )
   return { values: { ...values, lines }, totals }
 }
 

@@ -9,12 +9,14 @@ import {
   LINE_NAME_MAX,
   lineTotalsCheck,
   linesTotalsCheck,
+  NOTE_TEXT_MAX,
   priceSchema,
   quantitySchema,
+  SECTION_TITLE_MAX,
   singleDiscount,
   whenBodyValid,
   whenValid,
-  type DocumentLine,
+  type DocumentBodyLine,
 } from "@/registry/lib/document-lines"
 import type { TotalsDiscount } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
@@ -26,13 +28,14 @@ import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
  * але з текстами мовою інтерфейсу біля поля. Кількість, ціну й знижки перевіряють схеми контракту, суми —
  * перевірки контракту (`lineTotalsCheck` і далі), тож правило живе в одному місці. Порожня кількість чи
  * ціна — `""`. Знижка понад суму рядка видна в кожному рядку одразу, знижка документа — коли рядки правильні.
+ * Розділи й нотатки (ADR-0060) — серед рядків: назва розділу й текст нотатки обов'язкові.
  *
  * Модуль додає поля шапки: `useDocumentLinesSchema(currency).safeExtend({ client: … })`.
  */
 
-/** Значення форми, на яких стоїть редактор: рядки й знижка документа. */
+/** Значення форми, на яких стоїть редактор: рядки (з розділами й нотатками) і знижка документа. */
 export interface DocumentLinesValues extends TotalsDiscount {
-  lines: DocumentLine[]
+  lines: DocumentBodyLine[]
 }
 
 /** Коди помилок контракту й форми, які бачить людина. */
@@ -77,17 +80,18 @@ export function useDocumentLinesSchema(currency: string) {
       ...singleDiscount,
       error: issueText("discount_both"),
     }
-    const line = z
+    /** Обов'язковий текст до `max` символів. */
+    const text = (max: number) =>
+      z
+        .string()
+        .trim()
+        .min(1, required)
+        .max(max, t("documentLines.errors.tooLong", { max }))
+    const item = z
       .object({
+        kind: z.literal("item"),
         id: z.string(),
-        name: z
-          .string()
-          .trim()
-          .min(1, required)
-          .max(
-            LINE_NAME_MAX,
-            t("documentLines.errors.tooLong", { max: LINE_NAME_MAX }),
-          ),
+        name: text(LINE_NAME_MAX),
         itemId: z.string().nullable(),
         quantity: decimal(quantitySchema),
         unit: documentLineSchema.shape.unit,
@@ -97,6 +101,19 @@ export function useDocumentLinesSchema(currency: string) {
       })
       .refine(isSingleDiscount, singleDiscountText)
       .superRefine(lineTotalsCheck(digits, issueText), { when: whenValid })
+    const line = z.discriminatedUnion("kind", [
+      item,
+      z.object({
+        kind: z.literal("section"),
+        id: z.string(),
+        title: text(SECTION_TITLE_MAX),
+      }),
+      z.object({
+        kind: z.literal("note"),
+        id: z.string(),
+        text: text(NOTE_TEXT_MAX),
+      }),
+    ])
     return z
       .object({
         lines: z.array(line).superRefine(linesTotalsCheck(digits, issueText), {

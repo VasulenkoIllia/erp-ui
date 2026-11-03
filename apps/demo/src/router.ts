@@ -18,6 +18,7 @@ export const ROUTES = {
   realtime: "/realtime",
   document: "/document",
   documentLines: "/document-lines",
+  documentForm: "/document-form",
   richText: "/rich-text",
   timeline: "/timeline",
   setup: "/setup",

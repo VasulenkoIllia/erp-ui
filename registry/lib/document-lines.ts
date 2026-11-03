@@ -16,6 +16,10 @@
  *   (`documentBodySchemaFor`). Сервер рахує суми сам: `totals` у рядках (`savedDocumentLineSchema`) і
  *   `documentTotalsSchema` у документі.
  * - Запис документа розбирає модуль на картці, частинами: шапку видно й тоді, коли рядки зіпсовані.
+ * - Рядки тіла мають вид `kind` (ADR-0060): `item` — товар чи послуга з сумою, `section` — заголовок
+ *   розділу, `note` — нотатка. Розділ групує рядки після себе до наступного розділу; рядки до першого
+ *   розділу — без розділу. Розділ і нотатка сум не мають і в підсумки не йдуть. Порядок рядків — порядок
+ *   масиву.
  */
 import { z } from "zod"
 
@@ -40,6 +44,12 @@ const PERCENT_STEP = 0.01
 export const LINE_NAME_MAX = 500
 export const UNIT_NAME_MAX = 12
 export const TAX_NAME_MAX = 80
+export const SECTION_TITLE_MAX = 200
+/** Нотатка — кілька речень: умови, гарантія, примітка до розділу. */
+export const NOTE_TEXT_MAX = 2000
+
+export const DOCUMENT_LINE_KINDS = ["item", "section", "note"] as const
+export type DocumentLineKind = (typeof DOCUMENT_LINE_KINDS)[number]
 
 /** zod не перериває перевірку помилкою регулярного виразу, а на зіпсованому значенні вона хибна. */
 export const whenValid = ({ issues }: z.core.ParsePayload) =>
@@ -94,8 +104,10 @@ const documentLineTaxSchema = z.object({
   included: z.boolean(),
 })
 
+/** Рядок товару чи послуги: єдиний вид рядка, що має суму. */
 export const documentLineSchema = z
   .object({
+    kind: z.literal("item"),
     id: z.string(),
     name: z.string().trim().min(1).max(LINE_NAME_MAX),
     itemId: z.string().nullable(),
@@ -111,6 +123,36 @@ export type DocumentLine = z.infer<typeof documentLineSchema>
 /** Знімки довідників у рядку. */
 export type DocumentLineUnit = NonNullable<DocumentLine["unit"]>
 export type DocumentLineTax = NonNullable<DocumentLine["tax"]>
+
+/** Заголовок розділу: групує рядки після себе до наступного розділу. */
+export const documentSectionSchema = z.object({
+  kind: z.literal("section"),
+  id: z.string(),
+  title: z.string().trim().min(1).max(SECTION_TITLE_MAX),
+})
+export type DocumentSection = z.infer<typeof documentSectionSchema>
+
+/** Нотатка: текст між рядками, без суми. */
+export const documentNoteSchema = z.object({
+  kind: z.literal("note"),
+  id: z.string(),
+  text: z.string().trim().min(1).max(NOTE_TEXT_MAX),
+})
+export type DocumentNote = z.infer<typeof documentNoteSchema>
+
+/** Рядок тіла документа будь-якого виду. */
+export type DocumentBodyLine = DocumentLine | DocumentSection | DocumentNote
+
+/** Рядок тіла, з якого рахуються суми: перевірки беруть і рядки форми, і рядки контракту. */
+type BodyLineLike =
+  (TotalsLine & { kind: "item" }) | { kind: "section" } | { kind: "note" }
+
+/** Рядки товарів і послуг за порядком: лише їх бачить `lib/document-totals`. */
+export function itemLinesOf(lines: readonly DocumentBodyLine[]): DocumentLine[]
+export function itemLinesOf(lines: readonly BodyLineLike[]): TotalsLine[]
+export function itemLinesOf(lines: readonly BodyLineLike[]): TotalsLine[] {
+  return lines.flatMap((line) => (line.kind === "item" ? [line] : []))
+}
 
 const totalsShape = {
   /** Кількість × ціна, до знижки. */
@@ -130,6 +172,14 @@ export const savedDocumentLineSchema = documentLineSchema.safeExtend({
   totals: z.object(totalsShape),
 })
 export type SavedDocumentLine = z.infer<typeof savedDocumentLineSchema>
+
+/** Збережені рядки тіла: суми сервера мають лише рядки товарів. */
+export const savedDocumentBodyLineSchema = z.discriminatedUnion("kind", [
+  savedDocumentLineSchema,
+  documentSectionSchema,
+  documentNoteSchema,
+])
+export type SavedDocumentBodyLine = z.infer<typeof savedDocumentBodyLineSchema>
 
 const documentTaxTotalSchema: z.ZodType<TaxTotal> = z.object({
   taxId: z.string(),
@@ -167,26 +217,29 @@ export const lineTotalsCheck =
       })
   }
 
-/** Сума рядків за межею контракту — помилка всієї групи. */
+/** Сума рядків за межею контракту — помилка всієї групи. Розділи й нотатки не рахуються. */
 export const linesTotalsCheck =
-  <T extends TotalsLine>(
+  <T extends BodyLineLike>(
     digits: number,
     text: TotalsIssueText = asCode,
   ): TotalsCheck<T[]> =>
   (lines, context) => {
-    if (documentTotalsIssue(lines, digits)?.code === "out_of_range")
+    if (
+      documentTotalsIssue(itemLinesOf(lines), digits)?.code === "out_of_range"
+    )
       context.addIssue({ code: "custom", message: text("out_of_range") })
   }
 
 /** Знижка документа понад суму рядків після їхніх знижок — помилка на полі знижки документа. */
 export const bodyTotalsCheck =
-  <T extends TotalsDiscount & { lines: TotalsLine[] }>(
+  <T extends TotalsDiscount & { lines: BodyLineLike[] }>(
     digits: number,
     text: TotalsIssueText = asCode,
   ): TotalsCheck<T> =>
   (body, context) => {
     if (
-      documentTotalsIssue(body.lines, digits, body)?.code === "discount_exceeds"
+      documentTotalsIssue(itemLinesOf(body.lines), digits, body)?.code ===
+      "discount_exceeds"
     )
       context.addIssue({
         code: "custom",
@@ -213,13 +266,18 @@ export const whenBodyValid = ({ issues }: z.core.ParsePayload) =>
 /**
  * Рядки документа разом: схема рядка не бачить, що кількість і ціна разом вийшли за межу суми, а знижка
  * сумою — за суму рядка. `digits` — знаків після коми у валюти документа (`currencyDigits` з lib/format).
+ * Розділи й нотатки — серед рядків, на своїх місцях.
  */
 export const documentLinesSchemaFor = (digits: number) =>
   z
     .array(
-      documentLineSchema.superRefine(lineTotalsCheck(digits), {
-        when: whenValid,
-      }),
+      z.discriminatedUnion("kind", [
+        documentLineSchema.superRefine(lineTotalsCheck(digits), {
+          when: whenValid,
+        }),
+        documentSectionSchema,
+        documentNoteSchema,
+      ]),
     )
     .superRefine(linesTotalsCheck(digits), { when: whenValid })
 

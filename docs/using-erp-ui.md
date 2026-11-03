@@ -931,7 +931,7 @@ createTransitionHandlers({ /* … */ numbering: numbering.forResource({ resource
 - Лічильник — на серію чи філію (`perBranch`) і на рік дати документа (`resetYearly`). Видача атомарна, зайнятий номер сервер
   пропускає. Номера в браузері не складайте: перегляд (`nextDocumentNumber`) лише показує, яким він, імовірно, буде.
 
-### Рядки документа (ADR-0056, ADR-0059)
+### Рядки документа (ADR-0056, ADR-0059, ADR-0060)
 
 Редактор рядків пропозиції, замовлення чи рахунку — поле форми документа. Довідники одиниць і податків модуль читає сам
 (ресурси A6 `units`, `taxes`, `dictionary-defaults`) і дає варіантами; рядок зберігає знімок значення.
@@ -950,8 +950,12 @@ const form = useForm({ mode: "onTouched", resolver: zodResolver(schema), default
 />
 ```
 
-- Поля форми: `lines` (`DocumentLine[]` з `lib/document-lines`), `discountPercent`, `discountAmount` — знижка на документ.
+- Поля форми: `lines` (`DocumentBodyLine[]` з `lib/document-lines`), `discountPercent`, `discountAmount` — знижка на документ.
   Знижка рядка й документа — відсотком або сумою в мінорних одиницях, одне з двох.
+- Рядок має вид `kind`: `item` — товар чи послуга, `section` — розділ (`title`) до наступного розділу, `note` — текст без суми
+  (`text`). Підсумки рахуйте з `itemLinesOf(lines)`; сума розділу — лише для показу, сервер її не зберігає.
+- Великий документ редактор тримає сам: від `virtualizeFrom` рядків (100) малює лише видимі, прокручується сторінка. Варіанти
+  `units`, `taxes` і `item` робіть стабільними (`useMemo`), інакше кожен рядок перемальовується на кожен рендер форми.
 - Підсумки під рядками — попередній розрахунок `computeDocumentTotals`; запис із сервера розбирайте `documentBodySchemaFor(digits)`,
   а в режимі лише для читання передайте підсумки сервера в `savedTotals`, а рядки — з `totals` (`savedDocumentLineSchema`).
 - `toLine` і `newLine` дають лише ті поля, що відомі: `undefined` у `toLine` лишає поточне значення рядка, у `newLine` — значення

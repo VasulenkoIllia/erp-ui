@@ -68,11 +68,18 @@ test.describe("рядки документа", () => {
     await page.keyboard.type("1,5")
     await expect(added.getByText("750,00 ₴")).toBeVisible()
 
-    await form(page).getByRole("button", { name: "Вилучити: Рядок 4" }).focus()
+    // Дії рядка — одним меню (ADR-0060): Enter на меню, стрілки до «Вилучити», Enter.
+    await form(page)
+      .getByRole("button", { name: "Дії: Рядок 4" })
+      .press("Enter")
+    const remove = page.getByRole("menuitem", { name: "Вилучити" })
+    await expect(remove).toBeVisible()
+    await page.keyboard.press("End")
+    await expect(remove).toBeFocused()
     await page.keyboard.press("Enter")
     await expect(line(page, 4)).toHaveCount(0)
     await expect(
-      form(page).getByRole("button", { name: "Вилучити: Рядок 3" }),
+      form(page).getByRole("button", { name: "Дії: Рядок 3" }),
     ).toBeFocused()
     await form(page).getByRole("button", { name: "Повернути" }).press("Enter")
     await expect(line(page, 4).getByLabel("Назва")).toHaveValue("Монтаж")
@@ -112,7 +119,7 @@ test.describe("рядки документа", () => {
       "",
     )
     await expect(
-      form(page).getByRole("button", { name: /Додати рядок|Вилучити/ }),
+      form(page).getByRole("button", { name: /Додати|Дії:/ }),
     ).toHaveCount(0)
     await expect(page.locator('[data-slot="save-bar"]')).toHaveCount(0)
   })

@@ -13,9 +13,13 @@ import {
 import { keepFieldFocus } from "@/registry/erp/form"
 import {
   REPEATING_ROWS_LAYOUTS,
-  RepeatingRowActions,
   type RepeatingRowsTableFrom,
 } from "@/registry/erp/repeating-row-actions"
+import {
+  RepeatingRowItem,
+  RepeatingRowsList,
+  useRowHandlers,
+} from "@/registry/erp/repeating-rows-list"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS } from "@/registry/lib/icons"
@@ -48,6 +52,9 @@ import {
  * - Помилка всієї групи (сума частин не 100 %) — під рядками: `refine` на масиві в схемі zod.
  * - `readOnly` — лише поля без кнопок: передайте його полям у `renderRow` (SPEC §8.3).
  * - Перехід зі зведення помилок (`FormErrorSummary`) — на перше поле з помилкою всередині групи.
+ * - Багато рядків (UI05b, ADR-0060): `renderRow` стабільний (`useCallback`), поля підписані на свій рядок;
+ *   понад `virtualizeFrom` — лише видимі рядки (`erp/repeating-rows-list`). `rowActions="menu"` — дії одним
+ *   меню з «Вставити… нижче» для кожного виду (`extraKinds`); `columnHeader` — підписи колонок над таблицею.
  */
 
 export interface RepeatingRowProps {
@@ -55,6 +62,15 @@ export interface RepeatingRowProps {
   /** Назва рядка для скрінрідера: «Частина 2». */
   readonly rowLabel: string
   readonly readOnly: boolean
+}
+
+/** Ще один вид рядка: розділ чи нотатка документа. */
+export interface RepeatingRowsKind<TRow> {
+  /** Кнопка під рядками: «Додати розділ». */
+  readonly addLabel: string
+  /** Пункт меню рядка: «Вставити розділ нижче». */
+  readonly insertLabel: string
+  readonly newRow: () => TRow
 }
 
 export interface RepeatingRowsProps<
@@ -85,16 +101,24 @@ export interface RepeatingRowsProps<
   maxRows?: number
   /** Порядок має значення: кнопки «Підняти» й «Опустити». */
   canReorder?: boolean
+  /** Дії рядка кнопками чи одним меню з вставкою нижче. */
+  rowActions?: "buttons" | "menu"
+  /** Пункт меню рядка для основного виду: «Вставити рядок нижче». */
+  insertLabel?: string
+  /** Інші види рядків: кнопка «Додати…» під рядками й пункт «Вставити… нижче» в меню рядка. */
+  extraKinds?: readonly RepeatingRowsKind<FieldArray<TValues, TName>>[]
+  /** Підписи колонок над таблицею (на широкому контейнері). */
+  columnHeader?: React.ReactNode
+  /** З якої кількості рядків малювати лише видимі; без нього — усі. */
+  virtualizeFrom?: number
   readOnly?: boolean
   className?: string
 }
 
+type RowTarget = "field" | "up" | "down" | "remove"
 type RowFocus =
   | { readonly target: "add" }
-  | {
-      readonly target: "field" | "up" | "down" | "remove"
-      readonly index: number
-    }
+  | { readonly target: RowTarget; readonly index: number }
 
 /** Перше поле рядка: кнопки дій стоять поза `[data-row-fields]`. */
 const ROW_FIELD =
@@ -107,8 +131,11 @@ function focusRow(scope: HTMLElement, focus: RowFocus) {
     return
   }
   const row = scope.querySelector(`[data-row-index="${focus.index}"]`)
+  // У меню рядка дії немає окремою кнопкою: фокус — на саме меню.
   const selector =
-    focus.target === "field" ? ROW_FIELD : `[data-row-action=${focus.target}]`
+    focus.target === "field"
+      ? ROW_FIELD
+      : `[data-row-action=${focus.target}], [data-row-action=menu]`
   row?.querySelector<HTMLElement>(selector)?.focus()
 }
 
@@ -152,6 +179,11 @@ function RepeatingRows<
   minRows = 0,
   maxRows,
   canReorder = false,
+  rowActions = "buttons",
+  insertLabel,
+  extraKinds,
+  columnHeader,
+  virtualizeFrom,
   readOnly = false,
   className,
 }: RepeatingRowsProps<TValues, TName, TTransformed>) {
@@ -161,7 +193,7 @@ function RepeatingRows<
   const pendingFocus = React.useRef<RowFocus | null>(null)
   const focusedRow = React.useRef<number | null>(null)
   // `rowId`, а не типове `id`: рядок сам може мати поле `id`.
-  const { fields, append, insert, move, remove } = useFieldArray<
+  const { fields, insert, move, remove } = useFieldArray<
     TValues,
     TName,
     "rowId",
@@ -175,10 +207,22 @@ function RepeatingRows<
     FieldArray<TValues, TName>
   > | null>(null)
   const canRestore = removed?.remaining === rowKeys(fields)
-  const message = groupError(get(errors, name))
+  const groupErrors: unknown = get(errors, name)
+  const message = groupError(groupErrors)
   const count = fields.length
   const isFull = maxRows !== undefined && count >= maxRows
-  const layout = REPEATING_ROWS_LAYOUTS[tableFrom]
+  const kinds = [
+    { addLabel, insertLabel: insertLabel ?? addLabel, newRow },
+    ...(extraKinds ?? []),
+  ]
+  const insertKey = kinds.map((kind) => kind.insertLabel).join("\n")
+  const insertLabels = React.useMemo(() => insertKey.split("\n"), [insertKey])
+
+  const keepLive = React.useCallback(() => {
+    const focus = pendingFocus.current
+    const next = focus?.target === "add" ? -1 : (focus?.index ?? -1)
+    return [focusedRow.current ?? -1, next]
+  }, [])
 
   React.useEffect(() => {
     const scope = scopeRef.current
@@ -199,10 +243,11 @@ function RepeatingRows<
     )
   }, [fields])
 
-  const add = () => {
-    if (isFull) return
-    pendingFocus.current = { target: "field", index: count }
-    append(newRow(), { shouldFocus: false })
+  const insertRow = (index: number, kind: number) => {
+    const make = kinds[kind]?.newRow
+    if (isFull || !make) return
+    pendingFocus.current = { target: "field", index: index + 1 }
+    insert(index + 1, make(), { shouldFocus: false })
   }
   const removeRow = (index: number) => {
     const row = rowLabel(index)
@@ -233,7 +278,36 @@ function RepeatingRows<
     move(from, to)
     announce(t("repeatingRows.moved", { row: rowLabel(from), place: to + 1 }))
   }
+  const handlers = useRowHandlers({
+    move: moveRow,
+    remove: removeRow,
+    insert: insertRow,
+  })
 
+  const rowItem = (index: number) => (
+    <RepeatingRowItem
+      index={index}
+      rowLabel={rowLabel(index)}
+      readOnly={readOnly}
+      renderRow={renderRow}
+      fieldsClassName={cn(
+        "grid min-w-0 flex-1 gap-3",
+        (index > 0 || columnHeader) &&
+          REPEATING_ROWS_LAYOUTS[tableFrom].laterLabels,
+        rowClassName,
+      )}
+      tableFrom={tableFrom}
+      rowActions={rowActions}
+      count={rowActions === "buttons" ? count : 0}
+      isLast={index === count - 1}
+      labelSpacer={index === 0 && !columnHeader}
+      canReorder={canReorder}
+      canRemove={count > minRows}
+      canInsert={!isFull}
+      insertLabels={insertLabels}
+      handlers={handlers}
+    />
+  )
   const describedBy =
     [description ? `${id}-hint` : "", message ? `${id}-error` : ""]
       .filter(Boolean)
@@ -263,47 +337,17 @@ function RepeatingRows<
         <FieldDescription id={`${id}-hint`}>{description}</FieldDescription>
       ) : null}
       {count ? (
-        <ol className={cn("grid gap-3", layout.list)}>
-          {fields.map((field, index) => {
-            const row = rowLabel(index)
-            return (
-              <li key={field.rowId} data-row-index={index} className="min-w-0">
-                <div
-                  role="group"
-                  aria-label={row}
-                  className={cn(
-                    "flex flex-col gap-2 rounded-lg border p-3",
-                    layout.row,
-                  )}
-                >
-                  <div
-                    data-row-fields
-                    className={cn(
-                      "grid min-w-0 flex-1 gap-3",
-                      index > 0 && layout.laterLabels,
-                      rowClassName,
-                    )}
-                  >
-                    {renderRow({ index, rowLabel: row, readOnly })}
-                  </div>
-                  {readOnly ? null : (
-                    <RepeatingRowActions
-                      index={index}
-                      count={count}
-                      rowLabel={row}
-                      canReorder={canReorder}
-                      canRemove={count > minRows}
-                      isFirst={index === 0}
-                      tableFrom={tableFrom}
-                      onMove={moveRow}
-                      onRemove={removeRow}
-                    />
-                  )}
-                </div>
-              </li>
-            )
-          })}
-        </ol>
+        <RepeatingRowsList
+          fields={fields}
+          renderItem={rowItem}
+          columnHeader={columnHeader}
+          rowClassName={rowClassName}
+          tableFrom={tableFrom}
+          readOnly={readOnly}
+          virtualizeFrom={virtualizeFrom}
+          rowErrors={groupErrors}
+          keepLive={keepLive}
+        />
       ) : empty ? (
         <p className="text-sm text-muted-foreground">{empty}</p>
       ) : null}
@@ -323,20 +367,25 @@ function RepeatingRows<
         </p>
       ) : null}
       {readOnly ? null : (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Button
-            type="button"
-            variant="outline"
-            data-rows-add
-            disabled={isFull}
-            focusableWhenDisabled
-            aria-describedby={isFull ? `${id}-limit` : undefined}
-            onMouseDown={keepFieldFocus}
-            onClick={add}
-          >
-            <ACTION_ICONS.create aria-hidden />
-            {addLabel}
-          </Button>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {kinds.map((kind, index) => (
+            <Button
+              key={kind.addLabel}
+              type="button"
+              variant="outline"
+              data-rows-add={index === 0 ? "" : undefined}
+              disabled={isFull}
+              focusableWhenDisabled
+              aria-describedby={isFull ? `${id}-limit` : undefined}
+              onMouseDown={keepFieldFocus}
+              onClick={() => {
+                insertRow(count - 1, index)
+              }}
+            >
+              <ACTION_ICONS.create aria-hidden />
+              {kind.addLabel}
+            </Button>
+          ))}
           {isFull ? (
             <span id={`${id}-limit`} className="text-sm text-muted-foreground">
               {t("repeatingRows.limit", { count: maxRows })}

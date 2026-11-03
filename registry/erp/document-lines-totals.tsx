@@ -50,7 +50,8 @@ const isValidDiscount = (discount: TotalsDiscount) =>
 const hasDiscount = (discount: TotalsDiscount) =>
   discount.discountPercent !== 0 || discount.discountAmount !== 0
 
-const isCountable = (line: DocumentLine) =>
+/** Рядок уже можна порахувати: кількість, ціна й знижка правильні. */
+export const isCountable = (line: DocumentLine) =>
   quantitySchema.safeParse(line.quantity).success &&
   priceSchema.safeParse(line.price).success &&
   isValidDiscount(line)
@@ -128,8 +129,9 @@ function TotalsRow({
   )
 }
 
-interface DocumentLinesTotalsProps {
+export interface DocumentLinesTotalsProps {
   form: UseFormReturn<DocumentLinesValues>
+  /** Рядки товарів і послуг: назви ставок для підсумків. */
   lines: readonly DocumentLine[]
   preview: TotalsPreview
   /** Підсумки сервера збереженого документа: їх видно лише для читання. */

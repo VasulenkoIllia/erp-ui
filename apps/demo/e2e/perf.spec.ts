@@ -31,6 +31,8 @@ const RUNS = 5
 const MIN_INTERACTIONS = 5
 
 const DATA = "/#/data"
+/** Великий документ (UI05b, ADR-0060): 500 рядків у розділах, форма на сторінці з панеллю збереження. */
+const DOCUMENT_FORM = "/#/document-form"
 
 declare global {
   interface Window {
@@ -183,11 +185,72 @@ async function interactWithGrid(page: Page) {
   }
 }
 
+const documentRow = (page: Page) => (index: number) =>
+  page
+    .getByTestId("document-form")
+    .getByRole("group", { name: `Рядок ${String(index)}`, exact: true })
+
+/**
+ * Документ на 99 рядків — найбільший, де в DOM усі рядки (поріг редактора — 100). «Повернути» вставляє
+ * рядок угорі, тож перемальовуються всі рядки нижче: найгірший випадок без віртуалізації.
+ */
+async function interactWithFullDocument(page: Page) {
+  const form = page.getByTestId("document-form")
+  const row = documentRow(page)
+  const price = row(3).getByLabel("Ціна")
+  await price.click()
+  await price.press("End")
+  await price.pressSequentially("05", { delay: 120 })
+  await row(2).getByRole("button", { name: "Дії: Рядок 2" }).click()
+  await page.getByRole("menuitem", { name: "Вилучити" }).click()
+  await form.getByRole("button", { name: "Повернути" }).click()
+  await expect(
+    row(2).getByRole("combobox", { name: "Товар чи послуга" }),
+  ).toBeFocused()
+  await form.getByRole("button", { name: "Додати рядок" }).click()
+  await expect(
+    row(100).getByRole("combobox", { name: "Товар чи послуга" }),
+  ).toBeFocused()
+  const discount = form.getByLabel("Знижка на документ, у відсотках")
+  await discount.click()
+  await discount.pressSequentially("5", { delay: 120 })
+}
+
+/**
+ * Великий документ на телефоні: введення в поле рядка, вставка рядка з меню, назва нового рядка, «Підняти»,
+ * «Додати рядок» під 500 рядками й знижка на документ. Рядки — картки, у DOM лише видимі.
+ */
+async function interactWithDocument(page: Page) {
+  const form = page.getByTestId("document-form")
+  const row = documentRow(page)
+  const price = row(3).getByLabel("Ціна")
+  await price.click()
+  await price.press("End")
+  await price.pressSequentially("05", { delay: 120 })
+  await row(3).getByRole("button", { name: "Дії: Рядок 3" }).click()
+  await page.getByRole("menuitem", { name: "Вставити рядок нижче" }).click()
+  const name = row(4).getByLabel("Назва")
+  await expect(name).toHaveValue("")
+  await name.click()
+  await name.pressSequentially("Монтаж", { delay: 120 })
+  await row(4).getByRole("button", { name: "Дії: Рядок 4" }).click()
+  await page.getByRole("menuitem", { name: "Підняти" }).click()
+  await expect(row(3).getByLabel("Назва")).toHaveValue("Монтаж")
+  await form.getByRole("button", { name: "Додати рядок" }).click()
+  await expect(
+    row(502).getByRole("combobox", { name: "Товар чи послуга" }),
+  ).toBeFocused()
+  const discount = form.getByLabel("Знижка на документ, у відсотках")
+  await discount.click()
+  await discount.pressSequentially("5", { delay: 120 })
+}
+
 /** Медіана LCP і INP за RUNS прогонів: відкрити сторінку й виконати дії. */
 async function measure(
   browser: Browser,
   rate: number,
   viewport: typeof PHONE,
+  url: string,
   ready: (page: Page) => Promise<void>,
   interact: (page: Page) => Promise<void>,
 ) {
@@ -198,7 +261,7 @@ async function measure(
     const page = await openThrottled(browser, rate, viewport)
     // Збій заміру не лишає живий контекст із уповільненням: він спотворив би наступні.
     try {
-      await page.goto(DATA)
+      await page.goto(url)
       await ready(page)
       // LCP фіксується до першої взаємодії — даємо сторінці домалюватись.
       await page.waitForTimeout(500)
@@ -233,6 +296,7 @@ test.describe("швидкість @perf", () => {
       browser,
       cpu.rate,
       PHONE,
+      DATA,
       async (page) => {
         // Стрес-сторінка (SPEC §18.1): 10 000 рахунків, на 390 px — картки.
         await expect(
@@ -261,6 +325,7 @@ test.describe("швидкість @perf", () => {
         browser,
         cpu.rate,
         DESKTOP,
+        DATA,
         async (page) => {
           await expect(
             page
@@ -280,4 +345,43 @@ test.describe("швидкість @perf", () => {
     })
     expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
   })
+
+  for (const { name, url, interact } of [
+    {
+      name: "великий документ: 500 рядків, лише видимі",
+      url: DOCUMENT_FORM,
+      interact: interactWithDocument,
+    },
+    {
+      name: "документ на 99 рядків: усі в DOM, вставка вгорі",
+      url: `${DOCUMENT_FORM}?lines=99`,
+      interact: interactWithFullDocument,
+    },
+  ])
+    test(name, async ({ browser }) => {
+      test.setTimeout(300_000)
+      const cpu = await calibratedSlowdown(browser)
+      const result = {
+        ...(await measure(
+          browser,
+          cpu.rate,
+          PHONE,
+          url,
+          async (page) => {
+            await expect(documentRow(page)(3).getByLabel("Ціна")).toBeVisible({
+              timeout: 30_000,
+            })
+          },
+          interact,
+        )),
+        cpu,
+      }
+      console.log(`perf ${url}: ${JSON.stringify(result)}`)
+      test.info().annotations.push({
+        type: "perf",
+        description: JSON.stringify(result),
+      })
+      // Межа та сама, що й для списку (SPEC §18.5): рядки документа не мають її зсувати.
+      expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
+    })
 })

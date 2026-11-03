@@ -66,6 +66,8 @@ const SHOT_PAGES = {
   document: "/#/document",
   // Рядки документа (крок UI05a, ADR-0059): редактор на моках товарів і довідників, варіанти.
   documentLines: "/#/document-lines",
+  // Великий документ (крок UI05b, ADR-0060): 500 рядків у розділах, віртуальні рядки, меню рядка.
+  documentForm: "/#/document-form",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
