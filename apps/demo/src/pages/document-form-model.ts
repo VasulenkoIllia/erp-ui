@@ -13,11 +13,11 @@ import { makeProducts } from "@/data/products"
  * A6, а вибраного запису в рядках немає: сторінка міряє редактор, а не мережу (`pnpm perf`).
  */
 
-/** 99 — найбільший документ, у якому в DOM усі рядки (поріг редактора — 100). */
-export const DOCUMENT_SIZES = [12, 99, 500] as const
+/** 19 — найбільший документ, у якому в DOM усі рядки (поріг редактора — 20). */
+export const DOCUMENT_SIZES = [12, 19, 500] as const
 export type DocumentSize = (typeof DOCUMENT_SIZES)[number]
 
-/** Розмір з адреси `?lines=99`: так `pnpm perf` відкриває документ без зайвої дії. */
+/** Розмір з адреси `?lines=19`: так `pnpm perf` відкриває документ без зайвої дії. */
 export const documentSizeOf = (value: string | null): DocumentSize | null =>
   DOCUMENT_SIZES.find((size) => String(size) === value) ?? null
 

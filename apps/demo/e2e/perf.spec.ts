@@ -327,8 +327,8 @@ test.describe("швидкість @perf", () => {
       interact: interactWithDocument,
     },
     {
-      name: "документ на 99 рядків: усі в DOM, вставка вгорі",
-      url: `${DOCUMENT_FORM}?lines=99`,
+      name: "документ на 19 рядків: усі в DOM, вставка вгорі",
+      url: `${DOCUMENT_FORM}?lines=19`,
       interact: interactWithFullDocument,
     },
   ])
