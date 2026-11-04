@@ -65,4 +65,25 @@ export const enDocuments: typeof ukDocuments = {
       reload: "Show the current version",
     },
   },
+  documentFlow: {
+    label: "Document flow",
+    current: "This document",
+    forbidden: "No access",
+    deleted: "Deleted",
+    links: {
+      basedOn: "Based on {{number}}",
+      amendedFrom: "Amended copy of {{number}}",
+      reversalOf: "Reversal of {{number}}",
+    },
+    empty:
+      "No related documents yet. Documents created from this one will appear here.",
+    loading: "Loading related documents",
+    updating: "Updating related documents",
+    error: "Couldn't load related documents.",
+    offline: "No connection, so related documents didn't load.",
+    denied: "You don't have permission to see related documents.",
+    refresh: "Couldn't refresh related documents. Showing the previous ones.",
+    truncated:
+      "Not all related documents are shown. Find the rest in the document lists.",
+  },
 }

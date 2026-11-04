@@ -1,13 +1,13 @@
-import { useGetList, useGetMany, useGetOne } from "ra-core"
+import { useGetList, useGetOne } from "ra-core"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router"
 
 import type { ConflictField } from "@/registry/erp/conflict-dialog"
 import { DocumentActionBar } from "@/registry/erp/document-action-bar"
+import { DocumentFlow } from "@/registry/erp/document-flow"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { RecordStatusBar } from "@/registry/erp/record-header"
-import { RecordLink } from "@/registry/erp/record-link"
 import { StatusBadge } from "@/registry/erp/status-badge"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { announce } from "@/registry/lib/announce"
@@ -33,7 +33,6 @@ import { Section } from "./Section"
 const DEFAULT_ID = "doc-1"
 const LIST_SIZE = 50
 const COMPARED = ["status", "dueDate", "amount"] as const
-const LINKS = ["amendedFrom", "amendedBy", "reversalOf", "reversedBy"] as const
 
 const colleague = () => import("@/mocks/colleague")
 const documentHref = (id: string) =>
@@ -226,7 +225,7 @@ function DocumentCard({ id }: { id: string }) {
               void navigate(documentHref(String(created.id)))
             }}
           />
-          <DocumentLinks document={data} />
+          <RelatedDocuments id={data.id} />
           {data.status === "submitted" ? <ColleaguePays id={data.id} /> : null}
         </div>
       )}
@@ -243,33 +242,25 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-/** Зв'язки життєвого циклу: виправлена копія й сторно — посиланнями з номером документа. */
-function DocumentLinks({ document }: { document: DemoDocument }) {
+/**
+ * Потік документів (UI13, ADR-0061): виправлена копія й сторно з моку `GET /documents/:id/flow`,
+ * посилання ведуть на картку документа.
+ */
+function RelatedDocuments({ id }: { id: string }) {
   const { t } = useTranslation()
-  const companyId = useCompanyId()
-  const present = LINKS.flatMap((key) => {
-    const target = document[key]
-    return target ? [{ key, target }] : []
-  })
-  const { data: linked } = useGetMany<DemoDocument>(
-    DOCUMENT_RESOURCE,
-    { ids: present.map(({ target }) => target), meta: companyScope(companyId) },
-    { enabled: present.length > 0 },
-  )
-  if (!present.length) return null
-  const numberOf = (id: string) => {
-    const found = linked?.find((item) => item.id === id)
-    return found ? <DocumentNumber number={found.number} /> : id
+  const statuses = useDocumentStatuses()
+  const types = {
+    [DOCUMENT_RESOURCE]: {
+      label: t("documentPage.flowType"),
+      href: documentHref,
+      statuses,
+    },
   }
   return (
-    <ul className="space-y-1 text-sm">
-      {present.map(({ key, target }) => (
-        <li key={key}>
-          {t(`documentPage.links.${key}`)}{" "}
-          <RecordLink to={documentHref(target)}>{numberOf(target)}</RecordLink>
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium">{t("documentPage.flowTitle")}</h4>
+      <DocumentFlow resource={DOCUMENT_RESOURCE} id={id} types={types} />
+    </div>
   )
 }
 

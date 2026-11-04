@@ -6,7 +6,7 @@
  * - Версія — того запису, який людина бачила, коли вирішила (`seen`): картка під відкритим діалогом
  *   могла перечитатись, і тоді сервер відповість 409, а не виконає дію над чужими змінами.
  * - Успіх — оголошення для скрінрідера й перечитування ресурсу; новий документ (`amend`, `reverse`)
- *   — `onCreated`.
+ *   — `onCreated`. Потік документів (ADR-0061) перечитується теж, але дія на нього не чекає.
  * - 403 — сервер дії не дає. Причину з позначки `current` (ADR-0037) кнопка тримає, доки не прийде
  *   новий запис; поруч із панеллю — видимий текст, бо підказки на дотик телефон не відкриває.
  * - 409 `conflict` — порівняння того, що бачила людина, з `current`; `retryConflict` повторює дію з
@@ -25,6 +25,7 @@ import { useRecordDenialReason } from "@/registry/hooks/use-record-access"
 import { announce } from "@/registry/lib/announce"
 import { isApiError } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
+import { isDocumentFlowQueryKey } from "@/registry/lib/document-links"
 import {
   createsDocument,
   isDocumentAction,
@@ -244,7 +245,17 @@ export function useRecordTransition<R extends TransitionRecord>({
   const queryClient = useQueryClient()
   const t = useErpUiT()
   const latest = useLatest(record)
-  const reload = () => queryClient.invalidateQueries({ queryKey: [resource] })
+  const reload = () => {
+    // Потік — частина картки нижчого пріоритету: повільний ланцюг на сервері не тримає панель зайнятою.
+    void queryClient.invalidateQueries({
+      queryKey: [resource],
+      predicate: ({ queryKey }) => isDocumentFlowQueryKey(queryKey),
+    })
+    return queryClient.invalidateQueries({
+      queryKey: [resource],
+      predicate: ({ queryKey }) => !isDocumentFlowQueryKey(queryKey),
+    })
+  }
   const messages = useTransitionMessages(record, reload)
   const [pending, setPending] = React.useState<string | null>(null)
   const inFlight = React.useRef(false)
