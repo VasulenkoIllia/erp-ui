@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query"
 import {
   ChevronRightIcon,
   LockIcon,
@@ -6,19 +5,16 @@ import {
   WifiOffIcon,
   type LucideIcon,
 } from "lucide-react"
-import { useDataProvider } from "ra-core"
 import * as React from "react"
 
 import {
   DocumentFlowItem,
   type DocumentFlowType,
 } from "@/registry/erp/document-flow-item"
-import { useCompanyId } from "@/registry/hooks/use-company"
+import { useDocumentFlow } from "@/registry/hooks/use-document-flow"
 import { errorStateKind } from "@/registry/lib/api"
-import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import {
   documentFlowKey,
-  documentFlowQueryKey,
   documentFlowSteps,
   type DocumentFlow as DocumentFlowData,
   type DocumentFlowLink,
@@ -43,8 +39,10 @@ export type { DocumentFlowType }
  *     orders: { label: "Замовлення", href: paths.order, statuses },
  *   }} />
  *
- * - Дані — `getDocumentFlow` провайдера (`GET /<ресурс>/:id/flow`); ключ запиту починається з ресурсу,
- *   тож дія над документом і подія каналу про нього перечитують потік.
+ * - Дані — `useDocumentFlow` (hooks/use-document-flow, `GET /<ресурс>/:id/flow`); ключ запиту
+ *   починається з ресурсу, тож дія над документом і подія каналу про нього перечитують потік.
+ * - «Спробувати ще» переносить фокус на сам потік: кнопка зникає разом зі станом, а фокус не падає на
+ *   `body`.
  * - Тип, якого немає в `types`, підписаний назвою ресурсу й без посилань.
  * - `DocumentFlowView` — те саме без запиту: дані й стан передає модуль (свій запит, демо).
  */
@@ -70,18 +68,9 @@ export interface DocumentFlowViewProps extends DocumentFlowProps {
   error?: unknown
   /** Запит іде: «Спробувати ще» неактивна, а оновлення понад 1 с видно індикатором. */
   isFetching?: boolean
+  /** Запит на паузі без мережі (TanStack Query): без даних — стан «Немає з'єднання», а не скелетон. */
+  isPaused?: boolean
   onRetry?: () => void
-}
-
-/** Потік документа з сервера. */
-export function useDocumentFlow(resource: string, id: string) {
-  const dataProvider = useDataProvider<ErpDataProvider>()
-  const companyId = useCompanyId()
-  return useQuery({
-    queryKey: documentFlowQueryKey(resource, id, companyId),
-    queryFn: ({ signal }) =>
-      dataProvider.getDocumentFlow(resource, id, { signal }),
-  })
 }
 
 export function DocumentFlow(props: DocumentFlowProps) {
@@ -92,6 +81,7 @@ export function DocumentFlow(props: DocumentFlowProps) {
       flow={query.data}
       error={query.error}
       isFetching={query.isFetching}
+      isPaused={query.fetchStatus === "paused"}
       onRetry={() => {
         void query.refetch()
       }}
@@ -108,59 +98,78 @@ export function DocumentFlowView({
   flow,
   error,
   isFetching = false,
+  isPaused = false,
   onRetry,
 }: DocumentFlowViewProps) {
   const t = useErpUiT()
+  const root = React.useRef<HTMLDivElement>(null)
   const isUpdating = useAfterDelay(
     isFetching && flow !== undefined,
     BUSY_DELAY_MS,
   )
-  if (!flow)
-    return error ? (
-      <FlowMessage
-        kind={errorStateKind(error)}
-        isFetching={isFetching}
-        onRetry={onRetry}
-        className={className}
-      />
-    ) : (
-      <DocumentFlowSkeleton className={className} />
-    )
+  const retry = onRetry
+    ? () => {
+        // Кнопка зникає разом зі станом: фокус лишається в потоці, а не падає на `body`.
+        // Без мережі запит знову стає на паузу, стан не змінюється, і фокус лишається на кнопці.
+        if (!isPaused) root.current?.focus()
+        onRetry()
+      }
+    : undefined
   const isCurrent = (node: DocumentFlowNode) =>
     node.resource === resource && node.id === id
-  const hasRelated = flow.documents.some((node) => !isCurrent(node))
-  return (
-    <div
-      data-slot="document-flow"
-      className={cn("@container relative space-y-3", className)}
-    >
-      {isUpdating ? (
-        <Spinner
-          label={t("documentFlow.updating")}
-          className="absolute end-0 top-0"
-        />
-      ) : null}
-      {error ? (
-        <FlowMessage kind="refresh" isFetching={isFetching} onRetry={onRetry} />
-      ) : null}
-      {hasRelated ? (
-        <FlowSteps
-          documents={flow.documents}
-          types={types}
-          label={label ?? t("documentFlow.label")}
-          isCurrent={isCurrent}
-          isBusy={isFetching}
+  let content: React.ReactNode
+  if (!flow)
+    content =
+      error || isPaused ? (
+        <FlowMessage
+          kind={error ? errorStateKind(error) : "offline"}
+          isFetching={isFetching}
+          onRetry={retry}
         />
       ) : (
-        <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-          {t("documentFlow.empty")}
-        </p>
+        <DocumentFlowSkeleton />
+      )
+  else
+    content = (
+      <>
+        {/* Оновлення видно й скрінрідеру через `aria-busy` списку; спінер лише для очей. */}
+        {isUpdating && !error ? (
+          <Spinner aria-hidden className="absolute end-0 top-0" />
+        ) : null}
+        {error ? (
+          <FlowMessage kind="refresh" isFetching={isFetching} onRetry={retry} />
+        ) : null}
+        {flow.documents.some((node) => !isCurrent(node)) ? (
+          <FlowSteps
+            documents={flow.documents}
+            types={types}
+            label={label ?? t("documentFlow.label")}
+            isCurrent={isCurrent}
+            isBusy={isFetching}
+          />
+        ) : (
+          <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+            {t("documentFlow.empty")}
+          </p>
+        )}
+        {flow.truncated ? (
+          <p className="text-sm text-muted-foreground">
+            {t("documentFlow.truncated")}
+          </p>
+        ) : null}
+      </>
+    )
+  return (
+    <div
+      ref={root}
+      tabIndex={-1}
+      data-slot="document-flow"
+      className={cn(
+        "@container relative space-y-3 focus-visible:outline-none",
+        className,
       )}
-      {flow.truncated ? (
-        <p className="text-sm text-muted-foreground">
-          {t("documentFlow.truncated")}
-        </p>
-      ) : null}
+    >
+      {content}
     </div>
   )
 }
@@ -179,22 +188,20 @@ function FlowSteps({
   isCurrent: (node: DocumentFlowNode) => boolean
   isBusy: boolean
 }) {
-  const t = useErpUiT()
   const baseId = React.useId()
   const steps = documentFlowSteps(documents)
   const byKey = new Map(
     documents.map((node) => [documentFlowKey(node.resource, node.id), node]),
   )
-  const numberOf = (link: DocumentFlowLink) => {
-    const target = byKey.get(documentFlowKey(link.resource, link.id))
-    if (target?.number === undefined) return undefined
-    return target.number ?? t("numbering.noNumber")
-  }
+  // Документ без номера в підписі зв'язку нічого не скаже: зв'язок тоді не підписуємо.
+  const numberOf = (link: DocumentFlowLink) =>
+    byKey.get(documentFlowKey(link.resource, link.id))?.number ?? undefined
   return (
     <ol
       aria-label={label}
       aria-busy={isBusy || undefined}
-      className="grid gap-4 @2xl:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] @2xl:gap-x-6"
+      // Рядком лише з 56rem: кроки стоять в один ряд рівними колонками, а не 3 + 1 зі стрілкою на початку.
+      className="grid gap-4 @4xl:auto-cols-fr @4xl:grid-flow-col @4xl:gap-x-6"
     >
       {steps.map((step, index) => {
         const stepId = `${baseId}-${String(index)}`
@@ -203,18 +210,18 @@ function FlowSteps({
           <li
             key={step.resource}
             data-slot="document-flow-step"
-            className="relative min-w-0 ps-7 @2xl:ps-0"
+            className="relative min-w-0 ps-7 @4xl:ps-0"
           >
             {index < steps.length - 1 ? (
               <span
                 aria-hidden
-                className="absolute start-[0.4375rem] top-5 -bottom-4 w-0.5 bg-border @2xl:hidden"
+                className="absolute start-[0.4375rem] top-5 -bottom-4 w-0.5 bg-border @4xl:hidden"
               />
             ) : null}
             <span
               aria-hidden
               className={cn(
-                "absolute start-0 top-0.5 size-4 rounded-full border-2 @2xl:hidden",
+                "absolute start-0 top-0.5 size-4 rounded-full border-2 @4xl:hidden",
                 hasCurrent
                   ? "border-primary bg-primary"
                   : "border-border bg-background",
@@ -224,7 +231,7 @@ function FlowSteps({
               {index > 0 ? (
                 <ChevronRightIcon
                   aria-hidden
-                  className="hidden size-4 shrink-0 text-muted-foreground @2xl:block rtl:rotate-180"
+                  className="hidden size-4 shrink-0 text-muted-foreground @4xl:block rtl:rotate-180"
                 />
               ) : null}
               <span className="min-w-0 break-words">
@@ -261,12 +268,10 @@ function FlowMessage({
   kind,
   isFetching,
   onRetry,
-  className,
 }: {
   kind: keyof typeof MESSAGES
   isFetching: boolean
   onRetry: (() => void) | undefined
-  className?: string
 }) {
   const t = useErpUiT()
   const { icon: Icon, text } = MESSAGES[kind]
@@ -276,10 +281,7 @@ function FlowMessage({
       data-slot="document-flow-state"
       data-kind={kind}
       role={kind === "forbidden" ? undefined : "alert"}
-      className={cn(
-        "flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-4 text-sm",
-        className,
-      )}
+      className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-4 text-sm"
     >
       <p
         className={cn(
@@ -305,7 +307,7 @@ function FlowMessage({
   )
 }
 
-function DocumentFlowSkeleton({ className }: { className?: string }) {
+function DocumentFlowSkeleton() {
   const t = useErpUiT()
   return (
     <div
@@ -313,16 +315,14 @@ function DocumentFlowSkeleton({ className }: { className?: string }) {
       role="status"
       aria-label={t("documentFlow.loading")}
       aria-busy
-      className={cn("@container", className)}
+      className="grid gap-4 @4xl:grid-cols-3"
     >
-      <div className="grid gap-4 @2xl:grid-cols-3">
-        {[0, 1, 2].map((step) => (
-          <div key={step} className="space-y-2">
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-20 w-full rounded-lg" />
-          </div>
-        ))}
-      </div>
+      {[0, 1, 2].map((step) => (
+        <div key={step} className="space-y-2">
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+        </div>
+      ))}
     </div>
   )
 }

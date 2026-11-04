@@ -152,10 +152,14 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
         .getByRole("button")
         .first(),
     ).toBeVisible()
-    // Потік на картці вже з моку, а не скелетон.
+    // Потік на картці вже з моку, а не скелетон: у документа без зв'язків замість кроків пояснення.
+    const flow = page
+      .getByTestId("document-card")
+      .locator('[data-slot="document-flow"]')
+    await expect(flow).toBeVisible()
     await expect(
-      page.getByTestId("document-card").locator('[data-slot="document-flow"]'),
-    ).toBeVisible()
+      flow.locator('[data-slot="document-flow-skeleton"]'),
+    ).toHaveCount(0)
   }
   // Рядки документа: довідники й підпис вибраного товару вже з сервера, а не скелетон і «Завантаження…».
   if (pageId === "documentLines") {

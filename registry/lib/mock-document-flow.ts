@@ -6,12 +6,15 @@
  *     documentFlowSource({ resource: "orders", db: orders.db, node, links: (order) => [ … ] }),
  *   ] })
  *
- * - Джерела — у порядку процесу: так іде й відповідь, тип за типом; у типі — за датою, від старшого.
+ * - Джерела — у порядку процесу: так іде й відповідь, тип за типом. У типі — за датою, від старшого; за
+ *   той самий день документ іде перед створеним із нього.
  * - Обхід від документа запиту йде в обидва боки: за `links` (звідки документ), за записами, чиї `links`
  *   ведуть на нього, і за `related` (куди документ пішов: `amendedBy`, `reversedBy`), доки не набереться
- *   `DOCUMENT_FLOW_LIMIT`. Тоді відповідь має `truncated: true`.
- * - Запису немає в жодній компанії — `deleted` без номера; є, але людина його не бачить (немає права,
- *   чужа компанія, `read:own`) — `forbidden` з номером, як і в контракті: сервер вирішує, чи давати номер.
+ *   `DOCUMENT_FLOW_LIMIT`. Тоді відповідь має `truncated: true`. Документ запиту — завжди перший знайдений.
+ * - Запису немає — `deleted` без номера; є, але людина його не бачить (немає права, `read:own`) —
+ *   `forbidden` з номером (контракт лишає це серверу). Обхід іде й крізь нього: кожен наступний документ
+ *   маскується своїм правом. Запис іншої компанії (ADR-0036) і ресурс без джерела в потік не потрапляють.
+ * - Сховище читається один раз на джерело за запит (`db.all()`), видимість — за одним записом.
  * - Перевірки — як у контракті: сценарій ресурсу запиту, сесія, право `<ресурс>:read` (403), запис (404).
  */
 import { http, type HttpHandler } from "msw/http"
@@ -26,7 +29,11 @@ import {
 } from "@/registry/lib/document-links"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
-import { mockGrantsRecords } from "@/registry/lib/mock-scope"
+import {
+  inMockCompany,
+  mockGrantsRecords,
+  mockSeesRecord,
+} from "@/registry/lib/mock-scope"
 import {
   applyScenario,
   currentMockUser,
@@ -59,33 +66,37 @@ export interface DocumentFlowSourceOptions<T extends MockRecord> {
   related?: (record: T) => MockDocumentRef[]
 }
 
-interface Viewer {
+/** Хто питає: людина, її права й компанія запиту. */
+export interface MockFlowViewer {
   readonly user: MockUser
   readonly permissions: string[]
   readonly companyId: string | null
 }
 
-interface FlowEntry {
+/** Документ потоку з тим, куди обхід піде далі. */
+export interface MockFlowEntry {
   readonly node: DocumentFlowNode
   readonly next: readonly MockDocumentRef[]
   /** Дата для порядку в типі; немає — у кінці. */
   readonly date: string | undefined
 }
 
+/** Записи ресурсу, якими їх бачить людина, на час одного запиту. */
+export interface MockFlowSnapshot {
+  /** Документ запиту: без права — 403, невидимий — 404. */
+  readonly access: (id: string) => "ok" | "forbidden" | "missing"
+  /** Документ потоку; `null` — запису немає, `"hidden"` — запис іншої компанії. */
+  readonly lookup: (id: string) => MockFlowEntry | "hidden" | null
+  /** Зв'язки записів компанії: зворотний обхід від документа до створених із нього. */
+  readonly links: readonly (MockDocumentRef & {
+    readonly links: readonly DocumentFlowLink[]
+  })[]
+}
+
 /** Ресурс документів для потоку без типу запису: джерела різних ресурсів лежать в одному списку. */
 export interface DocumentFlowMockSource {
   readonly resource: string
-  /** Документ, яким його бачить людина; `null` — запису немає ніде. */
-  readonly lookup: (id: string, viewer: Viewer) => FlowEntry | null
-  /** Чи бачить людина документ запиту: без права — 403, невидимий — 404. */
-  readonly access: (
-    id: string,
-    viewer: Viewer,
-  ) => "ok" | "forbidden" | "missing"
-  /** Зв'язки всіх записів ресурсу: зворотний обхід від документа до створених з нього. */
-  readonly links: () => readonly (MockDocumentRef & {
-    readonly links: readonly DocumentFlowLink[]
-  })[]
+  readonly snapshot: (viewer: MockFlowViewer) => MockFlowSnapshot
 }
 
 const stringField = (record: MockRecord, field: string) => {
@@ -117,56 +128,55 @@ export function documentFlowSource<T extends MockRecord>({
   links = lifecycleLinks(resource),
   related = lifecycleRelated(resource),
 }: DocumentFlowSourceOptions<T>): DocumentFlowMockSource {
-  const find = (id: string) => db.all().find((record) => record.id === id)
-  const sees = (id: string, viewer: Viewer) => {
-    const rules = db.accessOf(viewer.user, viewer.permissions)
-    return (
-      mockGrantsRecords(rules, "read") &&
-      db.select({ id }, viewer.companyId, rules).length > 0
-    )
-  }
   return {
     resource,
-    lookup: (id, viewer) => {
-      const record = find(id)
-      if (!record) return null
-      const fields = node(record)
-      const base = { resource, id, links: links(record) }
+    snapshot: (viewer) => {
+      const records = db.all()
+      const byId = new Map(records.map((record) => [record.id, record]))
+      const rules = db.accessOf(viewer.user, viewer.permissions)
+      const canRead = mockGrantsRecords(rules, "read")
+      const inCompany = (record: T) =>
+        inMockCompany(record.companyId, viewer.companyId)
+      const sees = (record: T) => canRead && mockSeesRecord(rules, record)
       return {
-        node: sees(id, viewer)
-          ? { ...base, access: "granted" as const, ...fields }
-          : { ...base, access: "forbidden" as const, number: fields.number },
-        next: related(record),
-        date: fields.date,
+        access: (id) => {
+          if (!canRead) return "forbidden"
+          const record = byId.get(id)
+          return record && inCompany(record) && sees(record) ? "ok" : "missing"
+        },
+        lookup: (id) => {
+          const record = byId.get(id)
+          if (!record) return null
+          if (!inCompany(record)) return "hidden"
+          const fields = node(record)
+          const base = { resource, id, links: links(record) }
+          return {
+            node: sees(record)
+              ? { ...base, access: "granted" as const, ...fields }
+              : {
+                  ...base,
+                  access: "forbidden" as const,
+                  number: fields.number,
+                },
+            next: related(record),
+            date: fields.date,
+          }
+        },
+        links: records.filter(inCompany).map((record) => ({
+          resource,
+          id: record.id,
+          links: links(record),
+        })),
       }
     },
-    access: (id, viewer) => {
-      if (
-        !mockGrantsRecords(db.accessOf(viewer.user, viewer.permissions), "read")
-      )
-        return "forbidden"
-      return sees(id, viewer) ? "ok" : "missing"
-    },
-    links: () =>
-      db.all().map((record) => ({
-        resource,
-        id: record.id,
-        links: links(record),
-      })),
   }
 }
 
-/** Документи потоку від `start` в обидва боки, не більше `DOCUMENT_FLOW_LIMIT`. */
-export function collectDocumentFlow(
-  sources: readonly DocumentFlowMockSource[],
-  start: MockDocumentRef,
-  viewer: Viewer,
-): { documents: DocumentFlowNode[]; truncated: boolean } {
-  const byResource = new Map(sources.map((source) => [source.resource, source]))
-  /** Хто посилається на документ: ключ цілі → документи, створені з неї. */
+/** Хто посилається на документ: ключ цілі → документи, створені з неї. */
+function incomingLinks(snapshots: readonly MockFlowSnapshot[]) {
   const incoming = new Map<string, MockDocumentRef[]>()
-  for (const source of sources)
-    for (const entry of source.links())
+  for (const snapshot of snapshots)
+    for (const entry of snapshot.links)
       for (const link of entry.links) {
         const key = documentFlowKey(link.resource, link.id)
         const from = { resource: entry.resource, id: entry.id }
@@ -174,47 +184,88 @@ export function collectDocumentFlow(
         if (known) known.push(from)
         else incoming.set(key, [from])
       }
-  const found = new Map<string, FlowEntry>()
+  return incoming
+}
+
+const compareDates = (a: string | undefined, b: string | undefined) =>
+  a === b ? 0 : a === undefined ? 1 : b === undefined ? -1 : a < b ? -1 : 1
+
+/**
+ * Глибина документа в типі: скільки документів того самого типу стоїть перед ним за зв'язками.
+ * За той самий день документ іде перед створеним із нього, і в ланцюгу копій теж, а не лише в парі.
+ */
+function depthsInType(found: ReadonlyMap<string, MockFlowEntry>) {
+  const depths = new Map<string, number>()
+  const depthOf = (key: string, seen: Set<string>): number => {
+    const known = depths.get(key)
+    if (known !== undefined) return known
+    const node = found.get(key)?.node
+    // Цикл у зв'язках — хибні дані сервера: обхід зупиняється, а не зависає.
+    if (!node || seen.has(key)) return 0
+    seen.add(key)
+    let depth = 0
+    for (const link of node.links ?? []) {
+      const target = documentFlowKey(link.resource, link.id)
+      if (link.resource === node.resource && found.has(target))
+        depth = Math.max(depth, depthOf(target, seen) + 1)
+    }
+    depths.set(key, depth)
+    return depth
+  }
+  for (const key of found.keys()) depthOf(key, new Set())
+  return depths
+}
+
+/** Документи потоку від `start` в обидва боки, не більше `DOCUMENT_FLOW_LIMIT`. */
+function collectDocumentFlow(
+  sources: readonly DocumentFlowMockSource[],
+  snapshots: ReadonlyMap<string, MockFlowSnapshot>,
+  start: MockDocumentRef,
+): { documents: DocumentFlowNode[]; truncated: boolean } {
+  const incoming = incomingLinks([...snapshots.values()])
+  const found = new Map<string, MockFlowEntry>()
+  const skipped = new Set<string>()
   const queue: MockDocumentRef[] = [start]
   let truncated = false
-  while (queue.length) {
-    const ref = queue.shift()
-    if (!ref) break
+  for (let ref = queue.shift(); ref; ref = queue.shift()) {
     const key = documentFlowKey(ref.resource, ref.id)
-    if (found.has(key)) continue
+    const snapshot = snapshots.get(ref.resource)
+    if (found.has(key) || skipped.has(key) || !snapshot) continue
+    const entry = snapshot.lookup(ref.id)
+    if (entry === "hidden") {
+      skipped.add(key)
+      continue
+    }
     if (found.size === DOCUMENT_FLOW_LIMIT) {
       truncated = true
       break
     }
-    const entry = byResource.get(ref.resource)?.lookup(ref.id, viewer) ?? {
+    const value = entry ?? {
       node: { resource: ref.resource, id: ref.id, access: "deleted" as const },
       next: [],
       date: undefined,
     }
-    found.set(key, entry)
+    found.set(key, value)
     queue.push(
-      ...(entry.node.links ?? []),
-      ...entry.next,
+      ...(value.node.links ?? []),
+      ...value.next,
       ...(incoming.get(key) ?? []),
     )
   }
   const order = new Map(
     sources.map((source, index) => [source.resource, index]),
   )
-  const documents = [...found.values()]
+  const depths = depthsInType(found)
+  const documents = [...found.entries()]
     .sort(
-      (a, b) =>
-        (order.get(a.node.resource) ?? order.size) -
-          (order.get(b.node.resource) ?? order.size) ||
+      ([aKey, a], [bKey, b]) =>
+        (order.get(a.node.resource) ?? 0) - (order.get(b.node.resource) ?? 0) ||
         compareDates(a.date, b.date) ||
-        a.node.id.localeCompare(b.node.id),
+        (depths.get(aKey) ?? 0) - (depths.get(bKey) ?? 0),
     )
-    .map((entry) => entry.node)
+    .map(([, entry]) => entry.node)
   return { documents, truncated }
 }
-
-const compareDates = (a: string | undefined, b: string | undefined) =>
-  a === b ? 0 : a === undefined ? 1 : b === undefined ? -1 : a < b ? -1 : 1
 
 /** `GET /<ресурс>/:id/flow` для кожного джерела. */
 export function createDocumentFlowHandlers({
@@ -236,7 +287,8 @@ export function createDocumentFlowHandlers({
         if (scoped instanceof Response) return scoped
         const viewer = { user, ...scoped }
         const id = String(params.id)
-        const access = source.access(id, viewer)
+        const own = source.snapshot(viewer)
+        const access = own.access(id)
         if (access === "forbidden")
           return errorResponse(403, {
             code: "forbidden",
@@ -247,12 +299,17 @@ export function createDocumentFlowHandlers({
             code: "not_found",
             message: `${source.resource}: not found`,
           })
+        const snapshots = new Map(
+          sources.map((other) => [
+            other.resource,
+            other === source ? own : other.snapshot(viewer),
+          ]),
+        )
         return json(
-          collectDocumentFlow(
-            sources,
-            { resource: source.resource, id },
-            viewer,
-          ),
+          collectDocumentFlow(sources, snapshots, {
+            resource: source.resource,
+            id,
+          }),
         )
       },
     ),

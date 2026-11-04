@@ -673,6 +673,14 @@ export const CODE_ITEMS = {
     demo: "realtime",
     spec: ["PF19", "§8"],
   },
+  "hooks/use-document-flow": {
+    title: "Потік документа з сервера",
+    description:
+      "useDocumentFlow(resource, id): GET /<ресурс>/:id/flow через getDocumentFlow провайдера, ключ запиту від ресурсу, тож дія над документом і подія каналу про нього перечитують потік; показує його erp/document-flow (UI13, ADR-0061).",
+    status: "draft",
+    demo: "document",
+    spec: ["UI13", "§17"],
+  },
   "hooks/use-history-refresh": {
     title: "Свіжа історія картки",
     description:
@@ -1044,7 +1052,7 @@ export const CODE_ITEMS = {
   "lib/document-links": {
     title: "Зв'язки документів і потік",
     description:
-      "Контракт UI13: GET /<ресурс>/:id/flow — документ і пов'язані з ним у порядку процесу; access granted, forbidden (лише тип і номер) чи deleted; links basedOn, amendedFrom, reversalOf; не більше DOCUMENT_FLOW_LIMIT із truncated; documentFlowSteps — кроки за типами, ключ запиту від ресурсу (ADR-0061).",
+      "Контракт UI13: GET /<ресурс>/:id/flow — документ і пов'язані з ним у порядку процесу; документ запиту є завжди; access granted, forbidden (лише тип, номер і зв'язки) чи deleted; links basedOn, amendedFrom, reversalOf; не більше DOCUMENT_FLOW_LIMIT із truncated, повтори відкидаються; documentFlowSteps — кроки за типами, ключ запиту від ресурсу, isDocumentFlowQueryKey (ADR-0061).",
     status: "draft",
     demo: "documentFlow",
     spec: ["UI13", "§17"],
@@ -1052,7 +1060,7 @@ export const CODE_ITEMS = {
   "lib/mock-document-flow": {
     title: "Мок потоку документів",
     description:
-      "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу; запису немає — deleted, невидимий людині — forbidden з номером; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
+      "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу; запису немає — deleted, невидимий людині — forbidden з номером, іншої компанії — не потрапляє; одне читання сховища на запит; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
     status: "draft",
     demo: "document",
     spec: ["UI13", "§17"],
@@ -2518,7 +2526,7 @@ export const CODE_ITEMS = {
   "erp/document-flow": {
     title: "Потік документів",
     description:
-      "DocumentFlow: ланцюг пов'язаних документів на картці за типами в порядку процесу, статус кожного (статуси модуля чи стан кіта), дата й сума, звідки документ (на підставі, виправлена копія, сторно), перехід на картку посиланням; поточний позначено; без права читати й видалений — позначка без посилання; на широкому контейнері кроки рядком, на вузькому вертикально; стани завантаження, порожньо, помилка, офлайн, немає права, не вдалося оновити, обрізаний потік. DocumentFlowView — те саме без запиту, useDocumentFlow — дані (UI13, ADR-0061).",
+      "DocumentFlow: ланцюг пов'язаних документів на картці за типами в порядку процесу, статус кожного (статуси модуля чи стан кіта), дата й сума, звідки документ (на підставі, виправлена копія, сторно), перехід на картку посиланням; поточний позначено; без права читати й видалений — позначка без посилання; з контейнера 56rem кроки рядком, вужче вертикально; стани завантаження, порожньо, помилка, офлайн (зокрема запит на паузі без мережі), немає права, не вдалося оновити, обрізаний потік; «Спробувати ще» лишає фокус у потоці. DocumentFlowView — те саме з даними модуля, запит — hooks/use-document-flow (UI13, ADR-0061).",
     status: "draft",
     demo: "documentFlow",
     spec: ["UI13", "§8.1", "§9", "§10", "§11"],

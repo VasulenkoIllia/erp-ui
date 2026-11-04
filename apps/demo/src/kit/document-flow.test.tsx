@@ -1,8 +1,10 @@
-import { QueryClient } from "@tanstack/react-query"
-import { render, screen, within } from "@testing-library/react"
+import { onlineManager, QueryClient } from "@tanstack/react-query"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { delay, http } from "msw"
 import { setupServer } from "msw/node"
 import { CoreAdminContext } from "ra-core"
+import type { ReactNode } from "react"
 import { MemoryRouter } from "react-router"
 import {
   afterAll,
@@ -14,292 +16,29 @@ import {
   it,
   vi,
 } from "vitest"
-import { z } from "zod"
 
+import { DocumentActionBar } from "@/registry/erp/document-action-bar"
 import {
   DocumentFlow,
   DocumentFlowView,
   type DocumentFlowType,
+  type DocumentFlowViewProps,
 } from "@/registry/erp/document-flow"
-import { ApiError, createApiClient, recordBaseSchema } from "@/registry/lib/api"
+import { ApiError, createApiClient } from "@/registry/lib/api"
+import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
-import {
-  DOCUMENT_FLOW_LIMIT,
-  documentFlowSchema,
-  documentFlowSteps,
-  type DocumentFlow as DocumentFlowData,
-  type DocumentFlowNode,
-} from "@/registry/lib/document-links"
-import { documentLifecycleSchema } from "@/registry/lib/document-lifecycle"
-import {
-  createDocumentFlowHandlers,
-  documentFlowSource,
-} from "@/registry/lib/mock-document-flow"
+import type { DocumentFlow as DocumentFlowData } from "@/registry/lib/document-links"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
-import {
-  createPlatformHandlers,
-  createResourceHandlers,
-  signInMock,
-  type MockUser,
-} from "@/registry/lib/mocks"
+import { signInMock } from "@/registry/lib/mocks"
+
+import { BASE, flowHandlers, orders, quotes } from "./document-flow.fixtures"
 
 /**
- * Крок UI13 (ADR-0061): контракт потоку документів, мок `GET /<ресурс>/:id/flow` за зв'язками й
- * компонент — позначки без права й видаленого, поточний документ, стани.
+ * Крок UI13 (ADR-0061): потік документів на картці — кроки за типами, поточний документ, позначки без
+ * права й видаленого, стани SPEC §8, фокус після повтору, панель дій не чекає потоку.
  */
-const BASE = "http://erp.test/api/v1"
-
-const docSchema = recordBaseSchema
-  .extend({
-    number: z.string().nullable(),
-    date: z.string(),
-    status: z.string(),
-    quoteId: z.string().nullable().optional(),
-  })
-  .extend(documentLifecycleSchema.shape)
-type Doc = z.infer<typeof docSchema>
-
-const doc = (id: string, number: string | null, extra: Partial<Doc> = {}) =>
-  ({
-    id,
-    version: 1,
-    number,
-    date: "2026-11-01",
-    status: "submitted",
-    docStatus: "submitted",
-    ...extra,
-  }) satisfies Doc
-
-const quotes = createResourceHandlers<Doc>({
-  baseUrl: BASE,
-  resource: "quotes",
-  schema: docSchema,
-  data: () => [doc("q1", "ПРО-1", { date: "2026-10-20" })],
-})
-const orders = createResourceHandlers<Doc>({
-  baseUrl: BASE,
-  resource: "orders",
-  schema: docSchema,
-  data: () => [
-    doc("o2", "ЗАМ-2", {
-      quoteId: "q1",
-      docStatus: "cancelled",
-      amendedBy: "o3",
-    }),
-    doc("o3", null, {
-      date: "2026-11-02",
-      docStatus: "draft",
-      amendedFrom: "o2",
-    }),
-    // Виправлену копію видалили: посилання лишилось, запису немає.
-    doc("o4", "ЗАМ-4", { quoteId: "q-gone", date: "2026-11-03" }),
-    doc("o9", "ЗАМ-9", { date: "2026-11-04" }),
-  ],
-})
-
-const fields = (record: Doc) => ({
-  number: record.number,
-  date: record.date,
-  status: record.status,
-  docStatus: record.docStatus,
-})
-const orderLinks = (record: Doc) => [
-  ...(record.quoteId
-    ? [{ kind: "basedOn" as const, resource: "quotes", id: record.quoteId }]
-    : []),
-  ...(record.amendedFrom
-    ? [
-        {
-          kind: "amendedFrom" as const,
-          resource: "orders",
-          id: record.amendedFrom,
-        },
-      ]
-    : []),
-]
-
-const user = (id: string, permissions: string[]): MockUser => ({
-  id,
-  name: id,
-  email: `${id}@test.example`,
-  password: "demo",
-  totpCode: "111111",
-  roles: [],
-  permissions,
-  companies: [],
-  companyId: null,
-  factors: [],
-})
-
-const server = setupServer(
-  ...createPlatformHandlers({
-    baseUrl: BASE,
-    users: [
-      user("full", ["quotes:*", "orders:*"]),
-      user("orders", ["orders:read"]),
-      user("quotes", ["quotes:read"]),
-    ],
-  }),
-  ...createDocumentFlowHandlers({
-    baseUrl: BASE,
-    sources: [
-      documentFlowSource({ resource: "quotes", db: quotes.db, node: fields }),
-      documentFlowSource({
-        resource: "orders",
-        db: orders.db,
-        node: fields,
-        links: orderLinks,
-      }),
-    ],
-  }),
-  ...quotes.handlers,
-  ...orders.handlers,
-)
+const server = setupServer(...flowHandlers)
 const data = createDataProvider(createApiClient({ baseUrl: BASE }))
-
-const summary = (flow: DocumentFlowData) =>
-  flow.documents.map((node) => `${node.resource}:${node.id}:${node.access}`)
-
-beforeAll(() => {
-  server.listen()
-})
-beforeEach(() => {
-  quotes.db.reset()
-  orders.db.reset()
-  resetScenarios()
-  signInMock("full")
-})
-afterEach(() => {
-  server.resetHandlers()
-})
-afterAll(() => {
-  server.close()
-})
-
-describe("контракт потоку", () => {
-  it("документ без права: лише тип і номер, решту полів кіт відкидає", () => {
-    const flow = documentFlowSchema.parse({
-      documents: [
-        {
-          resource: "invoices",
-          id: "i1",
-          access: "forbidden",
-          number: "РАХ-1",
-          date: "2026-11-01",
-          total: { amount: 100, currency: "UAH" },
-        },
-      ],
-    })
-    expect(flow).toEqual({
-      documents: [
-        {
-          resource: "invoices",
-          id: "i1",
-          access: "forbidden",
-          number: "РАХ-1",
-        },
-      ],
-      truncated: false,
-    })
-  })
-
-  it("довша за межу відповідь обрізається й вважається обрізаною; невідомий доступ — помилка", () => {
-    const many = Array.from({ length: DOCUMENT_FLOW_LIMIT + 5 }, (_, i) => ({
-      resource: "orders",
-      id: `o${String(i)}`,
-      access: "deleted",
-    }))
-    const flow = documentFlowSchema.parse({ documents: many })
-    expect(flow.documents).toHaveLength(DOCUMENT_FLOW_LIMIT)
-    expect(flow.truncated).toBe(true)
-    expect(
-      documentFlowSchema.safeParse({
-        documents: [{ resource: "orders", id: "o1", access: "hidden" }],
-      }).success,
-    ).toBe(false)
-  })
-
-  it("кроки — за типом у порядку першої появи", () => {
-    const node = (resource: string, id: string): DocumentFlowNode => ({
-      resource,
-      id,
-      access: "deleted",
-    })
-    const steps = documentFlowSteps([
-      node("orders", "1"),
-      node("invoices", "2"),
-      node("orders", "3"),
-    ])
-    expect(
-      steps.map((step) => [step.resource, step.documents.map((d) => d.id)]),
-    ).toEqual([
-      ["orders", ["1", "3"]],
-      ["invoices", ["2"]],
-    ])
-  })
-})
-
-describe("мок GET /<ресурс>/:id/flow", () => {
-  it("від виправленої копії в обидва боки: пропозиція, скасоване замовлення, копія — тип за типом, у типі за датою", async () => {
-    const flow = await data.getDocumentFlow("orders", "o3")
-    expect(summary(flow)).toEqual([
-      "quotes:q1:granted",
-      "orders:o2:granted",
-      "orders:o3:granted",
-    ])
-    expect(flow.documents[2]).toMatchObject({
-      number: null,
-      docStatus: "draft",
-      links: [{ kind: "amendedFrom", resource: "orders", id: "o2" }],
-    })
-    // Від пропозиції той самий ланцюг: обхід іде й за зворотними зв'язками.
-    expect(summary(await data.getDocumentFlow("quotes", "q1"))).toEqual(
-      summary(flow),
-    )
-  })
-
-  it("без права на пропозиції — позначка з номером без полів; запису немає — видалений", async () => {
-    signInMock("orders")
-    const flow = await data.getDocumentFlow("orders", "o2")
-    expect(flow.documents[0]).toEqual({
-      resource: "quotes",
-      id: "q1",
-      access: "forbidden",
-      number: "ПРО-1",
-      links: [],
-    })
-    const gone = await data.getDocumentFlow("orders", "o4")
-    expect(summary(gone)).toEqual([
-      "quotes:q-gone:deleted",
-      "orders:o4:granted",
-    ])
-  })
-
-  it("без права на ресурс запиту — 403, невідомий документ — 404, сценарій — помилка", async () => {
-    signInMock("quotes")
-    await expect(data.getDocumentFlow("orders", "o2")).rejects.toMatchObject({
-      status: 403,
-    })
-    signInMock("full")
-    await expect(data.getDocumentFlow("orders", "nope")).rejects.toMatchObject({
-      status: 404,
-    })
-    setScenario("error", "orders")
-    await expect(data.getDocumentFlow("orders", "o2")).rejects.toBeInstanceOf(
-      ApiError,
-    )
-  })
-
-  it("понад межу — `truncated` і не більше DOCUMENT_FLOW_LIMIT документів", async () => {
-    const extra = Array.from({ length: DOCUMENT_FLOW_LIMIT + 1 }, (_, i) =>
-      doc(`x${String(i)}`, `ЗАМ-X${String(i)}`, { quoteId: "q1" }),
-    )
-    orders.db.all().push(...extra)
-    const flow = await data.getDocumentFlow("quotes", "q1")
-    expect(flow.documents).toHaveLength(DOCUMENT_FLOW_LIMIT)
-    expect(flow.truncated).toBe(true)
-  })
-})
 
 const TYPES: Record<string, DocumentFlowType> = {
   quotes: { label: "Пропозиція", href: (id) => `/quotes/${id}` },
@@ -338,20 +77,26 @@ const SAMPLE: DocumentFlowData = {
   ],
 }
 
-function renderView(
-  props: Partial<Parameters<typeof DocumentFlowView>[0]> = {},
-) {
-  return render(
+const offline = () => new ApiError(0, { code: "offline", message: "offline" })
+
+/** Той самий екземпляр View з іншими пропсами: як картка, що перемальовується. */
+function renderView(props: Partial<DocumentFlowViewProps> = {}) {
+  const tree = (next: Partial<DocumentFlowViewProps>) => (
     <MemoryRouter>
       <DocumentFlowView
         resource="orders"
         id="o1"
         types={TYPES}
         flow={SAMPLE}
-        {...props}
+        {...next}
       />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
+  const view = render(tree(props))
+  const show = (next: Partial<DocumentFlowViewProps>) => {
+    view.rerender(tree(next))
+  }
+  return { ...view, show }
 }
 
 const item = (step: string, index = 0) => {
@@ -361,6 +106,24 @@ const item = (step: string, index = 0) => {
   if (!found) throw new Error(`${step}: no item ${String(index)}`)
   return found
 }
+
+beforeAll(() => {
+  server.listen()
+})
+beforeEach(() => {
+  quotes.db.reset()
+  orders.db.reset()
+  resetScenarios()
+  signInMock("full")
+})
+afterEach(() => {
+  server.resetHandlers()
+  vi.useRealTimers()
+  onlineManager.setOnline(true)
+})
+afterAll(() => {
+  server.close()
+})
 
 describe("DocumentFlowView", () => {
   it("кроки за типами, посилання на картки, поточний документ без посилання", () => {
@@ -405,9 +168,9 @@ describe("DocumentFlowView", () => {
     ).toBeInTheDocument()
   })
 
-  it("помилка й офлайн — повідомлення з повтором; немає права — без повтору", async () => {
+  it("помилка, офлайн і запит на паузі без мережі — повідомлення з повтором; немає права — без повтору", async () => {
     const onRetry = vi.fn()
-    const { rerender } = renderView({
+    const { show } = renderView({
       flow: undefined,
       error: new ApiError(500, { code: "server", message: "boom" }),
       onRetry,
@@ -417,21 +180,16 @@ describe("DocumentFlowView", () => {
     )
     await userEvent.click(screen.getByRole("button", { name: "Спробувати ще" }))
     expect(onRetry).toHaveBeenCalledOnce()
-    const view = (error: ApiError) => (
-      <MemoryRouter>
-        <DocumentFlowView
-          resource="orders"
-          id="o1"
-          types={TYPES}
-          flow={undefined}
-          error={error}
-          onRetry={onRetry}
-        />
-      </MemoryRouter>
-    )
-    rerender(view(new ApiError(0, { code: "offline", message: "offline" })))
+    show({ flow: undefined, error: offline(), onRetry })
     expect(screen.getByRole("alert")).toHaveTextContent("Немає з'єднання")
-    rerender(view(new ApiError(403, { code: "forbidden", message: "no" })))
+    // Без мережі TanStack Query ставить запит на паузу без помилки: скелетон лишився б назавжди.
+    show({ flow: undefined, isPaused: true, onRetry })
+    expect(screen.getByRole("alert")).toHaveTextContent("Немає з'єднання")
+    show({
+      flow: undefined,
+      error: new ApiError(403, { code: "forbidden", message: "no" }),
+      onRetry,
+    })
     expect(
       screen.getByText("Немає права бачити пов'язані документи."),
     ).toBeInTheDocument()
@@ -439,45 +197,75 @@ describe("DocumentFlowView", () => {
   })
 
   it("завантаження — скелетон; збій оновлення — дані лишаються з повідомленням; обрізаний — підпис", () => {
-    const { rerender } = renderView({ flow: undefined })
+    const { show } = renderView({ flow: undefined })
     expect(
       screen.getByRole("status", {
         name: "Завантаження пов'язаних документів",
       }),
     ).toBeInTheDocument()
-    rerender(
-      <MemoryRouter>
-        <DocumentFlowView
-          resource="orders"
-          id="o1"
-          types={TYPES}
-          flow={{ ...SAMPLE, truncated: true }}
-          error={new ApiError(0, { code: "offline", message: "offline" })}
-          onRetry={() => undefined}
-        />
-      </MemoryRouter>,
-    )
+    show({
+      flow: { ...SAMPLE, truncated: true },
+      error: offline(),
+      onRetry: vi.fn(),
+    })
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Не вдалося оновити пов'язані документи",
     )
     expect(screen.getByRole("link", { name: "ПРО-1" })).toBeInTheDocument()
     expect(screen.getByText(/Показано не всі/)).toBeInTheDocument()
   })
+
+  it("оновлення з видимими даними: до 1 с без індикатора, далі спінер; список зайнятий одразу", () => {
+    vi.useFakeTimers()
+    const { container, show } = renderView()
+    show({ isFetching: true })
+    const spinner = () => container.querySelector('[data-slot="spinner"]')
+    expect(
+      screen.getByRole("list", { name: "Потік документів" }),
+    ).toHaveAttribute("aria-busy", "true")
+    act(() => {
+      vi.advanceTimersByTime(900)
+    })
+    expect(spinner()).toBeNull()
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    expect(spinner()).not.toBeNull()
+    show({ isFetching: false })
+    expect(spinner()).toBeNull()
+  })
 })
 
+const me: Me = {
+  id: "full",
+  name: "full",
+  email: "full@test.example",
+  roles: [],
+  permissions: ["quotes:*", "orders:*"],
+  companies: [],
+  companyId: null,
+  factors: [],
+}
+
+function renderLive(children: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  queryClient.setQueryData<Me>(ME_QUERY_KEY, me)
+  render(
+    <MemoryRouter>
+      <CoreAdminContext dataProvider={data} queryClient={queryClient}>
+        {children}
+      </CoreAdminContext>
+    </MemoryRouter>,
+  )
+  return queryClient
+}
+
 describe("DocumentFlow", () => {
-  it("бере потік із сервера й позначає поточний документ", async () => {
-    render(
-      <MemoryRouter>
-        <CoreAdminContext
-          dataProvider={data}
-          queryClient={
-            new QueryClient({ defaultOptions: { queries: { retry: false } } })
-          }
-        >
-          <DocumentFlow resource="orders" id="o3" types={TYPES} />
-        </CoreAdminContext>
-      </MemoryRouter>,
+  it("бере потік із сервера й перечитує його разом із ресурсом картки", async () => {
+    const queryClient = renderLive(
+      <DocumentFlow resource="orders" id="o3" types={TYPES} />,
     )
     const step = await screen.findByRole("list", { name: "Замовлення" })
     expect(within(step).getByRole("link", { name: "ЗАМ-2" })).toHaveAttribute(
@@ -487,5 +275,75 @@ describe("DocumentFlow", () => {
     expect(within(step).getAllByRole("listitem")[1]).toHaveTextContent(
       "Виправлена копія ЗАМ-2",
     )
+    orders.db.patch("o5", { number: "ЗАМ-55" })
+    await act(() => queryClient.invalidateQueries({ queryKey: ["orders"] }))
+    expect(
+      await within(step).findByRole("link", { name: "ЗАМ-55" }),
+    ).toBeInTheDocument()
+  })
+
+  it("без мережі запит на паузі — повідомлення, а не вічний скелетон; з мережею потік приходить сам", async () => {
+    onlineManager.setOnline(false)
+    renderLive(<DocumentFlow resource="orders" id="o3" types={TYPES} />)
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Немає з'єднання",
+    )
+    const retry = screen.getByRole("button", { name: "Спробувати ще" })
+    await userEvent.click(retry)
+    // Стан не змінився: фокус лишився на кнопці, а не перейшов на потік.
+    expect(retry).toHaveFocus()
+    act(() => {
+      onlineManager.setOnline(true)
+    })
+    expect(
+      await screen.findByRole("list", { name: "Замовлення" }),
+    ).toBeInTheDocument()
+  })
+
+  it("«Спробувати ще» лишає фокус у потоці, а не на body", async () => {
+    setScenario("error", "orders")
+    renderLive(<DocumentFlow resource="orders" id="o3" types={TYPES} />)
+    const retry = await screen.findByRole("button", { name: "Спробувати ще" })
+    resetScenarios()
+    await userEvent.click(retry)
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-slot="document-flow"]'),
+    )
+    expect(
+      await screen.findByRole("list", { name: "Замовлення" }),
+    ).toBeInTheDocument()
+  })
+
+  it("панель дій не чекає, поки повільний сервер перечитає потік", async () => {
+    const created = vi.fn()
+    renderLive(
+      <>
+        <DocumentActionBar
+          resource="orders"
+          record={{ id: "o5", version: 1, status: "cancelled" }}
+          transitions={[
+            { id: "amend", label: "Виправити", from: ["cancelled"] },
+          ]}
+          onCreated={created}
+        />
+        <DocumentFlow resource="orders" id="o5" types={TYPES} />
+      </>,
+    )
+    await screen.findByRole("list", { name: "Замовлення" })
+    let flowRequests = 0
+    server.use(
+      http.get(`${BASE}/orders/:id/flow`, async () => {
+        flowRequests += 1
+        await delay("infinite")
+      }),
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Виправити" }))
+    await vi.waitFor(() => {
+      expect(created).toHaveBeenCalledOnce()
+    })
+    // Потік однаково перечитується після дії, просто панель на нього не чекає.
+    await vi.waitFor(() => {
+      expect(flowRequests).toBe(1)
+    })
   })
 })

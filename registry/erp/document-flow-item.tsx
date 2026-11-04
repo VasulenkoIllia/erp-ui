@@ -83,15 +83,20 @@ export function DocumentFlowItem({
       aria-current={isCurrent ? "page" : undefined}
       className={cn(
         "min-w-0 space-y-1.5 rounded-lg border bg-card p-3 text-sm",
-        isCurrent && "border-primary ring-1 ring-primary",
+        // У forced-colors тінь кільця зникає: поточний — ще й контуром (WCAG 1.4.1).
+        isCurrent &&
+          "border-primary ring-1 ring-primary forced-colors:outline-2 forced-colors:outline-solid",
         node.access !== "granted" && "border-dashed",
       )}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {title === null ? null : href ? (
-          <RecordLink to={href}>
-            <span className="tabular-nums">{title}</span>
-          </RecordLink>
+          // Довгий номер переноситься по дефісах, а не виходить за картку на телефоні.
+          <span className="max-w-full min-w-0 [&>a]:max-w-full">
+            <RecordLink to={href}>
+              <span className="min-w-0 break-words tabular-nums">{title}</span>
+            </RecordLink>
+          </span>
         ) : (
           <span
             className={cn(
