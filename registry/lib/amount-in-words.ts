@@ -62,6 +62,29 @@ export interface AmountInWordsOptions {
 /** Скільки форм слова валюти потрібно: uk — 1, 2, 5; en — однина й множина. */
 const FORMS_COUNT: Record<Language, number> = { uk: 3, en: 2 }
 
+const wordsOf = (
+  currency: string,
+  language: Language,
+  currencies?: AmountInWordsOptions["currencies"],
+) => currencies?.[currency] ?? CURRENCY_WORDS[language][currency]
+
+const hasAllForms = (words: CurrencyWords, language: Language) =>
+  words.major.length >= FORMS_COUNT[language] &&
+  words.minor.length >= FORMS_COUNT[language]
+
+/**
+ * Чи запише `amountInWords` суму цієї валюти цією мовою без помилки: є слова й усі форми слова. Для
+ * аркуша, який без слів друкує суму лише цифрами (`erp/print-document`).
+ */
+export function hasCurrencyWords(
+  currency: string,
+  language: Language,
+  currencies?: AmountInWordsOptions["currencies"],
+): boolean {
+  const words = wordsOf(currency.toUpperCase(), language, currencies)
+  return words !== undefined && hasAllForms(words, language)
+}
+
 const UK_ONES = [
   "",
   "один",
@@ -281,14 +304,13 @@ export function amountInWords(
   }: AmountInWordsOptions = {},
 ): string {
   const currency = money.currency.toUpperCase()
-  const words = currencies?.[currency] ?? CURRENCY_WORDS[language][currency]
+  const words = wordsOf(currency, language, currencies)
   if (!words)
     throw new RangeError(`Немає слів для валюти ${currency} (${language})`)
   // Без усіх форм у документ потрапило б «П'ять  00 » — краще помилка.
-  const formsCount = FORMS_COUNT[language]
-  if (words.major.length < formsCount || words.minor.length < formsCount)
+  if (!hasAllForms(words, language))
     throw new RangeError(
-      `Для валюти ${currency} (${language}) потрібно ${String(formsCount)} форми слова`,
+      `Для валюти ${currency} (${language}) потрібно ${String(FORMS_COUNT[language])} форми слова`,
     )
   if (typeof money.amount === "number" && !Number.isSafeInteger(money.amount))
     throw new RangeError(

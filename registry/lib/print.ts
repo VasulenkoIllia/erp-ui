@@ -10,6 +10,7 @@ import * as React from "react"
 import { useTranslation } from "react-i18next"
 
 import {
+  DEFAULT_LANGUAGE,
   ERP_UI_NAMESPACE,
   LOCALES,
   toLanguage,
@@ -20,10 +21,8 @@ import {
 /** Атрибут аркуша: на сторінці з ним друкується лише він (`tokens/base.css`). */
 export const PRINT_ROOT_ATTRIBUTE = "data-print-root"
 
-/** Аркуш A4, мм, і поля паперу, як у `@page` (`tokens/base.css`). */
+/** Ширина аркуша A4, мм, як у `@page` (`tokens/base.css`). */
 export const A4_WIDTH_MM = 210
-export const A4_HEIGHT_MM = 297
-export const PRINT_MARGIN_MM = 12
 
 const PX_PER_MM = 96 / 25.4
 export const mmToPx = (mm: number) => mm * PX_PER_MM
@@ -52,39 +51,61 @@ async function untilReady(root: ParentNode, timeoutMs: number): Promise<void> {
   const timeout = new Promise<void>((resolve) => {
     timer = setTimeout(resolve, timeoutMs)
   })
-  await Promise.race([printAssetsReady(root), timeout]).finally(() => {
+  // Очікування не зупиняє друк: без Font Loading API чи `decode` (старий WebView, jsdom) друкуємо одразу.
+  const assets = printAssetsReady(root).catch(() => undefined)
+  await Promise.race([assets, timeout]).finally(() => {
     clearTimeout(timer)
   })
 }
 
-/** Заголовок сторінки на час друку; повертає відновлення. */
-function setPrintTitle(title: string | undefined): () => void {
-  if (!title) return () => undefined
-  const previous = document.title
+/**
+ * Заголовок сторінки до друку — один на всі виклики: друк без `afterprint` (частина мобільних браузерів)
+ * не робить назву документа «попереднім» заголовком наступного друку, а порядок слухачів неважливий.
+ */
+let titleBeforePrint: string | null = null
+
+function setPrintTitle(title: string) {
+  titleBeforePrint ??= document.title
   document.title = printFileName(title)
-  return () => {
-    document.title = previous
-  }
 }
+
+function restoreTitle() {
+  if (titleBeforePrint === null) return
+  document.title = titleBeforePrint
+  titleBeforePrint = null
+}
+
+const printRoot = (): ParentNode =>
+  document.querySelector(`[${PRINT_ROOT_ATTRIBUTE}]`) ?? document
 
 export interface PrintPageOptions {
   /** Назва документа: з неї браузер бере назву файла PDF. */
   title?: string
-  /** Де шукати зображення, які треба дочекатися; за замовчуванням уся сторінка. */
+  /** Де шукати зображення, які треба дочекатися; за замовчуванням аркуш, без нього — уся сторінка. */
   root?: ParentNode
   timeoutMs?: number
+  /** Скасувати друк, поки чекаємо зображень: людина пішла зі сторінки, діалог відкрився б для іншої. */
+  signal?: AbortSignal
 }
 
 /** Друк сторінки: дочекатися шрифтів і зображень (не довше `timeoutMs`) і відкрити діалог друку. */
 export async function printPage({
   title,
-  root = document,
+  root = printRoot(),
   timeoutMs = PRINT_READY_TIMEOUT_MS,
+  signal,
 }: PrintPageOptions = {}): Promise<void> {
   await untilReady(root, timeoutMs)
-  const restore = setPrintTitle(title)
-  window.addEventListener("afterprint", restore, { once: true })
-  window.print()
+  if (signal?.aborted) return
+  if (title) setPrintTitle(title)
+  // Той самий слухач додається один раз, хоч скільки було друків без `afterprint`.
+  window.addEventListener("afterprint", restoreTitle, { once: true })
+  try {
+    window.print()
+  } catch (error) {
+    restoreTitle()
+    throw error
+  }
 }
 
 /**
@@ -94,20 +115,15 @@ export async function printPage({
 export function usePrintTitle(title: string | undefined): void {
   React.useEffect(() => {
     if (!title) return
-    let restore: (() => void) | null = null
     const before = () => {
-      restore ??= setPrintTitle(title)
-    }
-    const after = () => {
-      restore?.()
-      restore = null
+      setPrintTitle(title)
     }
     window.addEventListener("beforeprint", before)
-    window.addEventListener("afterprint", after)
+    window.addEventListener("afterprint", restoreTitle)
     return () => {
       window.removeEventListener("beforeprint", before)
-      window.removeEventListener("afterprint", after)
-      after()
+      window.removeEventListener("afterprint", restoreTitle)
+      restoreTitle()
     }
   }, [title])
 }
@@ -127,25 +143,33 @@ export interface PrintLanguage {
  * англійський рахунок в українському інтерфейсі спершу довантажує її. Довантажує й перемальовує
  * react-i18next: він чекає й на завантаження, яке вже почалось (власний `loadLanguages` удруге
  * завершується одразу, і аркуш лишився б запасною мовою). Не довантажилась — запасна українська, як і
- * для інтерфейсу.
+ * для інтерфейсу, разом із `lang`, локаллю й сумою прописом (WCAG 3.1.2).
  */
-export function usePrintLanguage(language?: string): PrintLanguage {
+export function usePrintLanguage(language?: string | null): PrintLanguage {
   const { i18n } = useTranslation()
-  const resolved = toLanguage(
+  const requested = toLanguage(
     language ?? i18n.resolvedLanguage ?? i18n.language,
   )
   const { t, ready } = useTranslation(ERP_UI_NAMESPACE as never, {
-    lng: resolved,
+    lng: requested,
     useSuspense: false,
   })
-  return {
-    language: resolved,
-    locale: LOCALES[resolved],
-    // Як у useErpUiT: власні типи ключів, без CustomTypeOptions проекту; з ними приведення потрібне.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- див. коментар вище
-    t: t as unknown as ErpUiTranslate,
-    isLoading: !ready,
-  }
+  const resolved =
+    ready && !i18n.hasResourceBundle(requested, ERP_UI_NAMESPACE)
+      ? DEFAULT_LANGUAGE
+      : requested
+  // Значення контексту аркуша: новий об'єкт щоразу перемальовував би всі рядки аркуша.
+  return React.useMemo(
+    () => ({
+      language: resolved,
+      locale: LOCALES[resolved],
+      // Як у useErpUiT: власні типи ключів, без CustomTypeOptions проекту; з ними приведення потрібне.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- див. коментар вище
+      t: t as unknown as ErpUiTranslate,
+      isLoading: !ready,
+    }),
+    [resolved, t, ready],
+  )
 }
 
 /** Мова аркуша для блоків друку (`erp/print-document`); дає її `erp/print-preview`. */

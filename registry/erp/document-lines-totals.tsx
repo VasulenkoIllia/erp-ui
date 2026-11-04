@@ -21,7 +21,7 @@ import {
   type TotalsDiscount,
 } from "@/registry/lib/document-totals"
 import { useFormat } from "@/registry/lib/format"
-import { useErpUiT } from "@/registry/lib/i18n"
+import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 
 /**
@@ -99,6 +99,61 @@ export function taxName(lines: readonly DocumentLine[], total: TaxTotal) {
   )
 }
 
+/** Рядок підсумків: підпис і сума в мінорних одиницях. */
+export interface TotalsRowValue {
+  key: string
+  label: string
+  value: number
+}
+
+/**
+ * Рядки підсумків до «Разом», однакові в редакторі й на аркуші друку (`erp/print-document`): сума до
+ * знижок і знижки, якщо вони є, без податку й кожна ставка.
+ */
+export function totalsRowsOf(
+  totals: Omit<DocumentTotals, "lines">,
+  lines: readonly DocumentLine[],
+  t: ErpUiTranslate,
+): TotalsRowValue[] {
+  const lineDiscount = lineDiscountOf(totals)
+  const rows: TotalsRowValue[] = []
+  if (totals.discount > 0)
+    rows.push({
+      key: "amount",
+      label: t("documentLines.totals.amount"),
+      value: totals.amount,
+    })
+  if (lineDiscount > 0)
+    rows.push({
+      key: "lineDiscount",
+      label: t("documentLines.totals.lineDiscount"),
+      value: lineDiscount,
+    })
+  if (totals.documentDiscount > 0)
+    rows.push({
+      key: "documentDiscount",
+      label: t("documentLines.totals.documentDiscount"),
+      value: totals.documentDiscount,
+    })
+  if (totals.taxes.length)
+    rows.push({
+      key: "net",
+      label: t("documentLines.totals.net"),
+      value: totals.net,
+    })
+  for (const tax of totals.taxes) {
+    const name = taxName(lines, tax)
+    rows.push({
+      key: `${tax.taxId}|${String(tax.rate)}|${String(tax.included)}`,
+      label: tax.included
+        ? t("documentLines.totals.taxIncluded", { name })
+        : name,
+      value: tax.tax,
+    })
+  }
+  return rows
+}
+
 function TotalsRow({
   label,
   value,
@@ -148,7 +203,6 @@ export function DocumentLinesTotals({
   const isSaved = Boolean(readOnly && savedTotals)
   const totals = (readOnly && savedTotals) || preview.totals
   const money = (amount: number) => format.money({ amount, currency })
-  const lineDiscount = totals ? lineDiscountOf(totals) : 0
   return (
     <section
       aria-label={t("documentLines.totals.label")}
@@ -167,44 +221,13 @@ export function DocumentLinesTotals({
       />
       {totals ? (
         <dl className="grid gap-1 text-sm">
-          {totals.discount > 0 ? (
+          {totalsRowsOf(totals, lines, t).map((row) => (
             <TotalsRow
-              label={t("documentLines.totals.amount")}
-              value={money(totals.amount)}
+              key={row.key}
+              label={row.label}
+              value={money(row.value)}
             />
-          ) : null}
-          {lineDiscount > 0 ? (
-            <TotalsRow
-              label={t("documentLines.totals.lineDiscount")}
-              value={money(lineDiscount)}
-            />
-          ) : null}
-          {totals.documentDiscount > 0 ? (
-            <TotalsRow
-              label={t("documentLines.totals.documentDiscount")}
-              value={money(totals.documentDiscount)}
-            />
-          ) : null}
-          {totals.taxes.length ? (
-            <TotalsRow
-              label={t("documentLines.totals.net")}
-              value={money(totals.net)}
-            />
-          ) : null}
-          {totals.taxes.map((tax) => {
-            const name = taxName(lines, tax)
-            return (
-              <TotalsRow
-                key={`${tax.taxId}|${String(tax.rate)}|${String(tax.included)}`}
-                label={
-                  tax.included
-                    ? t("documentLines.totals.taxIncluded", { name })
-                    : name
-                }
-                value={money(tax.tax)}
-              />
-            )
-          })}
+          ))}
           <TotalsRow
             label={t("documentLines.totals.total")}
             value={money(totals.total)}

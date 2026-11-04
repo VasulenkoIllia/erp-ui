@@ -33,6 +33,15 @@ export function PrintButton({
 }: PrintButtonProps) {
   const t = useErpUiT()
   const [isPreparing, setPreparing] = React.useState(false)
+  // Кнопку прибрали, поки чекали логотипа: друк скасовано, а не відкрито вже на іншій сторінці.
+  const abort = React.useRef<AbortController | null>(null)
+  React.useEffect(() => {
+    const controller = new AbortController()
+    abort.current = controller
+    return () => {
+      controller.abort()
+    }
+  }, [])
   const label = t("print.action")
   const Icon = ACTION_ICONS.print
   if (deniedReason)
@@ -49,7 +58,7 @@ export function PrintButton({
     )
   const print = () => {
     setPreparing(true)
-    void printPage({ title }).finally(() => {
+    void printPage({ title, signal: abort.current?.signal }).finally(() => {
       setPreparing(false)
     })
   }

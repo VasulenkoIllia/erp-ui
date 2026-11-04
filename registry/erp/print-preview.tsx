@@ -67,7 +67,7 @@ export function PrintPreview({
   className,
 }: PrintPreviewProps) {
   const t = useErpUiT()
-  const sheet = usePrintLanguage(language ?? undefined)
+  const sheet = usePrintLanguage(language)
   usePrintTitle(state ? undefined : title)
   const [isActualSize, setActualSize] = React.useState(false)
   const isLoading = state === "loading" || (!state && sheet.isLoading)
@@ -85,10 +85,10 @@ export function PrintPreview({
             className="w-full @md:w-auto"
           />
         )}
-        {state ? null : (
+        {state || isLoading ? null : (
           <Button
             type="button"
-            variant="outline"
+            variant={isActualSize ? "secondary" : "outline"}
             aria-pressed={isActualSize}
             className="w-full @md:w-auto"
             onClick={() => {

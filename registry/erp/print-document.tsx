@@ -3,10 +3,13 @@ import {
   lineTotalsOf,
   sectionSums,
 } from "@/registry/erp/document-lines-preview"
-import { taxName } from "@/registry/erp/document-lines-totals"
+import {
+  previewTotals,
+  totalsRowsOf,
+} from "@/registry/erp/document-lines-totals"
 import {
   amountInWords,
-  CURRENCY_WORDS,
+  hasCurrencyWords,
   type CurrencyWords,
 } from "@/registry/lib/amount-in-words"
 import type { DocumentState } from "@/registry/lib/document-lifecycle"
@@ -17,8 +20,6 @@ import {
   type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import {
-  computeDocumentTotals,
-  lineDiscountOf,
   NO_DISCOUNT,
   type TotalsDiscount,
 } from "@/registry/lib/document-totals"
@@ -43,12 +44,13 @@ import { cn } from "@/registry/lib/utils"
 
 const WATERMARKED = ["draft", "cancelled"] as const satisfies DocumentState[]
 type Watermarked = (typeof WATERMARKED)[number]
-const isWatermarked = (state?: string): state is Watermarked =>
-  WATERMARKED.some((value) => value === state)
+const isWatermarked = (
+  state: DocumentState | null | undefined,
+): state is Watermarked => WATERMARKED.some((value) => value === state)
 
 /**
  * Назва документа: «Рахунок на оплату № 2026-0001 від 4 листопада 2026». Номер дає проведення
- * (ADR-0058): у чернетки — «Без номера», а на аркуші — позначка «Чернетка» (рішення власника 04.11.2026).
+ * (ADR-0058): у чернетки — «(без номера)», а на аркуші — позначка «Чернетка» (рішення власника 04.11.2026).
  */
 export function PrintDocumentTitle({
   title,
@@ -59,24 +61,25 @@ export function PrintDocumentTitle({
 }: {
   /** Вид документа мовою аркуша: «Рахунок на оплату». */
   title: string
-  number: string | null
+  /** Номер проведеного документа; немає — «(без номера)». */
+  number?: string | null
   /** Календарна дата документа, `YYYY-MM-DD`. */
   date: string
   /** «Сплатити до» чи інший строк, `YYYY-MM-DD`. */
   dueDate?: string | null
-  docStatus?: string
+  docStatus?: DocumentState | null
 }) {
   const { t, locale } = usePrintSheet()
   const day = (value: string) => formatDate(value, "long", locale)
   return (
     <div data-slot="print-document-title" className="grid gap-1 text-center">
-      <h1 className="text-[14pt] font-semibold">
+      <h2 className="text-[14pt] font-semibold">
         {title}{" "}
         {number
           ? t("print.sheet.number", { number })
           : t("print.sheet.noNumber")}{" "}
         {t("print.sheet.date", { date: day(date) })}
-      </h1>
+      </h2>
       {dueDate ? (
         <p>{t("print.sheet.dueDate", { date: day(dueDate) })}</p>
       ) : null}
@@ -92,7 +95,11 @@ export function PrintDocumentTitle({
  * першій сторінці аркуша, на папері — на кожній (`position: fixed` друкується на кожній сторінці).
  * Стан документа озвучує `PrintDocumentTitle`, тож позначка прихована від скрінрідера.
  */
-export function PrintWatermark({ docStatus }: { docStatus?: string }) {
+export function PrintWatermark({
+  docStatus,
+}: {
+  docStatus?: DocumentState | null
+}) {
   const { t } = usePrintSheet()
   if (!isWatermarked(docStatus)) return null
   return (
@@ -142,6 +149,7 @@ export function PrintDocumentLines({
       data-slot="print-document-lines"
       className="w-full border-collapse text-[9pt] [&_td]:border [&_td]:border-border [&_td]:px-[1.5mm] [&_td]:py-[1mm] [&_th]:border [&_th]:border-border [&_th]:px-[1.5mm] [&_th]:py-[1mm]"
     >
+      <caption className="sr-only">{t("documentLines.label")}</caption>
       <thead>
         <tr className="bg-muted text-start">
           <th scope="col" className="w-[8mm] text-end">
@@ -245,7 +253,7 @@ export function PrintDocumentLines({
 export interface PrintDocumentTotalsProps {
   lines: readonly DocumentBodyLine[]
   currency: string
-  /** Підсумки сервера збереженого документа; без них — `computeDocumentTotals` з рядків. */
+  /** Підсумки сервера збереженого документа; без них — підсумки рядків, як у редакторі (`previewTotals`). */
   totals?: SavedDocumentTotals
   /** Знижка на документ, якщо підсумки рахуються тут. */
   discount?: TotalsDiscount
@@ -267,41 +275,11 @@ export function PrintDocumentTotals({
   const { t, locale, language } = usePrintSheet()
   const items = itemLinesOf(lines)
   const resolved =
-    totals ?? computeDocumentTotals(items, currencyDigits(currency), discount)
+    totals ?? previewTotals(items, currencyDigits(currency), discount).totals
   if (!resolved) return null
   const money = (amount: number) => formatMoney({ amount, currency }, locale)
-  const lineDiscount = lineDiscountOf(resolved)
-  const rows: { label: string; value: number }[] = []
-  if (resolved.discount > 0)
-    rows.push({
-      label: t("documentLines.totals.amount"),
-      value: resolved.amount,
-    })
-  if (lineDiscount > 0)
-    rows.push({
-      label: t("documentLines.totals.lineDiscount"),
-      value: lineDiscount,
-    })
-  if (resolved.documentDiscount > 0)
-    rows.push({
-      label: t("documentLines.totals.documentDiscount"),
-      value: resolved.documentDiscount,
-    })
-  if (resolved.taxes.length)
-    rows.push({ label: t("documentLines.totals.net"), value: resolved.net })
-  for (const tax of resolved.taxes) {
-    const name = taxName(items, tax)
-    rows.push({
-      label: tax.included
-        ? t("documentLines.totals.taxIncluded", { name })
-        : name,
-      value: tax.tax,
-    })
-  }
-  const hasWords = Boolean(
-    currencies?.[currency.toUpperCase()] ??
-    CURRENCY_WORDS[language][currency.toUpperCase()],
-  )
+  const rows = totalsRowsOf(resolved, items, t)
+  const hasWords = hasCurrencyWords(currency, language, currencies)
   return (
     <div
       data-slot="print-document-totals"
@@ -310,11 +288,7 @@ export function PrintDocumentTotals({
     >
       <dl className="ms-auto grid w-[85mm] grid-cols-[1fr_auto] gap-x-[4mm] gap-y-0.5 tabular-nums">
         {rows.map((row) => (
-          <TotalsRow
-            key={row.label}
-            label={row.label}
-            value={money(row.value)}
-          />
+          <TotalsRow key={row.key} label={row.label} value={money(row.value)} />
         ))}
         <TotalsRow
           label={t("documentLines.totals.total")}

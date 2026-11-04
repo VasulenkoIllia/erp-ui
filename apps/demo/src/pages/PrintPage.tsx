@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
@@ -21,6 +21,7 @@ import { useCardRecord } from "@/registry/hooks/use-card-record"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
 import type { CompanyProfile } from "@/registry/lib/company"
+import type { DocumentState } from "@/registry/lib/document-lifecycle"
 import type { DocumentBodyLine } from "@/registry/lib/document-lines"
 import { toLanguage, useLanguage } from "@/registry/lib/i18n"
 import { usePrintSheet } from "@/registry/lib/print"
@@ -115,15 +116,19 @@ function InvoicePrint({ id, variant }: { id: string; variant: PrintVariant }) {
   const ui = useLanguage()
   const card = useCardRecord<Invoice>("invoices", id)
   const company = useCompanyProfile()
-  const { invoice, lines } = useMemo(
-    () => parseInvoiceDetail(card.record),
-    [card.record],
-  )
+  const {
+    invoice,
+    lines,
+    error: invalid,
+  } = useMemo(() => parseInvoiceDetail(card.record), [card.record])
+  useEffect(() => {
+    if (invalid) console.error("demo: invoice response", invalid)
+  }, [invalid])
   const language =
     variant === "en" ? "en" : (company.data?.language ?? ui.language)
   const state = stateOf(
     variant,
-    card.failure ?? company.error,
+    card.failure ?? invalid ?? company.error,
     !invoice || !lines || !company.data,
   )
   const retry = () => {
@@ -251,7 +256,7 @@ function DocumentSheet({
   number: string | null
   date: string
   dueDate: string
-  docStatus: string
+  docStatus: DocumentState
   client: string
   lines: readonly DocumentBodyLine[]
   currency: string

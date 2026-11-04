@@ -52,10 +52,11 @@ test.describe("PF08a: друк", () => {
     page,
   }) => {
     await openWith(page, {}, "/#/data/inv-00001")
-    await page.getByRole("link", { name: "Друк" }).click()
+    // Сайдбар теж має «Друк» (сторінка демо): дія картки — в основній області.
+    await page.getByRole("main").getByRole("link", { name: "Друк" }).click()
     await expect(page).toHaveURL(/#\/print\?id=inv-00001$/)
     await expect(sheet(page)).toBeVisible()
-    await expect(sheet(page).getByRole("heading", { level: 1 })).toHaveText(
+    await expect(sheet(page).getByRole("heading", { level: 2 })).toHaveText(
       /^Рахунок на оплату № 2026-0001 від /,
     )
     await expect(sheet(page)).toContainText("Всього на суму:")
@@ -140,7 +141,7 @@ test.describe("PF08a: друк", () => {
     page,
   }) => {
     await openPrint(page, "?variant=draft")
-    await expect(sheet(page).getByRole("heading", { level: 1 })).toHaveText(
+    await expect(sheet(page).getByRole("heading", { level: 2 })).toHaveText(
       /^Рахунок на оплату \(без номера\) від /,
     )
     await expect(
@@ -149,7 +150,7 @@ test.describe("PF08a: друк", () => {
 
     await page.getByRole("link", { name: "Англійською" }).click()
     await expect(sheet(page)).toHaveAttribute("lang", "en")
-    await expect(sheet(page).getByRole("heading", { level: 1 })).toHaveText(
+    await expect(sheet(page).getByRole("heading", { level: 2 })).toHaveText(
       /^Invoice No\. 2026-0001 dated /,
     )
     await expect(sheet(page)).toContainText("Total amount:")
