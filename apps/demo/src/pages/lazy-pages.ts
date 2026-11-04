@@ -49,6 +49,8 @@ export const PAGES = {
   documentFlow: lazyWithPreload(() =>
     import("./DocumentFlowPage").then((m) => m.DocumentFlowPage),
   ),
+  // Друк: аркуш A4, реквізити, рядки документа й варіанти аркуша (ADR-0062).
+  print: lazyWithPreload(() => import("./PrintPage").then((m) => m.PrintPage)),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

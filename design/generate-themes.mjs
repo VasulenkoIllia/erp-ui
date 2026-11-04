@@ -22,6 +22,8 @@ const HEADER = `/*
  * Usage on <html>: data-palette="sapphire|indigo|graphite|teal|terracotta",
  *   class="dark" for dark mode, data-sidebar="dark" for a dark sidebar in light mode,
  *   data-density="compact" for compact density.
+ * Print: dark mode applies to the screen only, paper is always light; data-theme="light" on an element
+ *   keeps it light in dark mode (a sheet in the print preview).
  * Contrast: all key pairs checked to WCAG 2.2 AA (text 4.5:1, input border/focus 3:1) in both modes.
  * Chart colors: validated for colour-vision deficiency (adjacent pairs) on card surfaces.
  * Status colors (success/warning/destructive/info) are identical in every palette.
@@ -142,6 +144,13 @@ function block(selectors, lines) {
   return `${selectors.join(",\n")} {\n${lines.map((l) => `  ${l}`).join("\n")}\n}\n`
 }
 
+/** Блок усередині @media: на два пробіли глибше. */
+const indent = (css) =>
+  css
+    .split("\n")
+    .map((l) => (l ? `  ${l}` : l))
+    .join("\n")
+
 function themeBlock(name, palette, mode, isDefault, isDark) {
   const lines = MAIN_VARS.map(([v, k]) => `--${v}: ${value(mode, k, name)};`)
   mode.charts.forEach((c, i) => lines.push(`--chart-${i + 1}: ${c};`))
@@ -150,10 +159,18 @@ function themeBlock(name, palette, mode, isDefault, isDark) {
   const base = isDark ? ":root.dark" : ":root"
   const selectors = [`${base}[data-palette="${name}"]`]
   if (isDefault) selectors.unshift(base)
+  // Аркуш перегляду друку світлий і в темній темі (PF08, ADR-0062).
+  if (!isDark) {
+    selectors.push(`:root[data-palette="${name}"] [data-theme="light"]`)
+    if (isDefault) selectors.push(`[data-theme="light"]`)
+  }
   const title = isDark
     ? `${palette.name} — dark`
     : `${palette.name} (${palette.hueName}) — light`
-  return `/* ${title} */\n${block(selectors, lines)}`
+  // Папір завжди світлий: темна тема лише для екрана (PF08, ADR-0062).
+  return isDark
+    ? `/* ${title} */\n@media not print {\n${indent(block(selectors, lines))}}\n`
+    : `/* ${title} */\n${block(selectors, lines)}`
 }
 
 function sidebarDarkBlock(name, palette, isDefault) {

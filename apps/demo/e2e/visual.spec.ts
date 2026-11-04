@@ -71,6 +71,8 @@ const SHOT_PAGES = {
   documentForm: "/#/document-form?lines=11",
   // Потік документів (крок UI13, ADR-0061): ланцюг, вузький контейнер, сторно й стани без запитів.
   documentFlow: "/#/document-flow",
+  // Друк (крок PF08a, ADR-0062): рахунок стрес-сторінки на аркуші A4 з логотипом і печаткою демо.
+  print: "/#/print",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
@@ -172,6 +174,20 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   }
   if (pageId === "documentForm")
     await expect(page.getByTestId("document-form")).toBeVisible()
+  // Друк: аркуш із даними, а не скелет, і логотип з печаткою вже завантажені.
+  if (pageId === "print") {
+    const sheet = page.locator('[data-slot="print-sheet"]')
+    await expect(sheet).toBeVisible()
+    await expect
+      .poll(() =>
+        sheet
+          .locator("img")
+          .evaluateAll((images) =>
+            images.every((image) => (image as HTMLImageElement).complete),
+          ),
+      )
+      .toBe(true)
+  }
   // Нумерація: перегляд уже з лічильником сервера, а не «…».
   if (pageId === "numbering")
     await expect(page.locator("output")).toHaveText(/^ДОК-\d{4}-\d{4}$/)

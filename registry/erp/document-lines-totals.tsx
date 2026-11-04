@@ -88,7 +88,7 @@ export function previewTotals(
 }
 
 /** Назва ставки з рядків: підсумок за ставкою має лише id, ставку й позначку «у ціні». */
-function taxName(lines: readonly DocumentLine[], total: TaxTotal) {
+export function taxName(lines: readonly DocumentLine[], total: TaxTotal) {
   return (
     lines.find(
       ({ tax }) =>
