@@ -43,7 +43,9 @@ async function printAssetsReady(root: ParentNode): Promise<void> {
     // Зіпсоване зображення не зупиняє друк: аркуш друкується без нього.
     image.decode().catch(() => undefined),
   )
-  await Promise.all([document.fonts.ready, ...images])
+  // Без Font Loading API (старий WebView) чекаємо лише зображень.
+  const fonts = (document.fonts as FontFaceSet | undefined)?.ready
+  await Promise.all([fonts, ...images])
 }
 
 async function untilReady(root: ParentNode, timeoutMs: number): Promise<void> {
@@ -61,18 +63,22 @@ async function untilReady(root: ParentNode, timeoutMs: number): Promise<void> {
 /**
  * Заголовок сторінки до друку — один на всі виклики: друк без `afterprint` (частина мобільних браузерів)
  * не робить назву документа «попереднім» заголовком наступного друку, а порядок слухачів неважливий.
+ * Заголовок, який змінила сама сторінка (перехід), — уже не наш: його не перезаписуємо старим.
  */
 let titleBeforePrint: string | null = null
+let printTitle: string | null = null
 
 function setPrintTitle(title: string) {
-  titleBeforePrint ??= document.title
-  document.title = printFileName(title)
+  if (document.title !== printTitle) titleBeforePrint = document.title
+  printTitle = printFileName(title)
+  document.title = printTitle
 }
 
 function restoreTitle() {
-  if (titleBeforePrint === null) return
-  document.title = titleBeforePrint
+  if (titleBeforePrint !== null && document.title === printTitle)
+    document.title = titleBeforePrint
   titleBeforePrint = null
+  printTitle = null
 }
 
 const printRoot = (): ParentNode =>
@@ -98,8 +104,9 @@ export async function printPage({
   await untilReady(root, timeoutMs)
   if (signal?.aborted) return
   if (title) setPrintTitle(title)
-  // Той самий слухач додається один раз, хоч скільки було друків без `afterprint`.
-  window.addEventListener("afterprint", restoreTitle, { once: true })
+  // Той самий слухач додається один раз, хоч скільки було друків без `afterprint`; без `once`, бо
+  // разовий слухач поглинув би постійний того самого `usePrintTitle`.
+  window.addEventListener("afterprint", restoreTitle)
   try {
     window.print()
   } catch (error) {

@@ -48,6 +48,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  // Друк без `afterprint` лишає збережений заголовок у модулі: наступний тест починає з чистого.
+  window.dispatchEvent(new Event("afterprint"))
 })
 
 describe("lib/print", () => {
@@ -113,6 +115,16 @@ describe("lib/print", () => {
     expect(document.title).toBe("Рахунок 2")
     window.dispatchEvent(new Event("afterprint"))
     expect(document.title).toBe("Демо")
+  })
+
+  it("заголовок, який сторінка змінила сама після друку, не перезаписується старим", async () => {
+    await printPage({ title: "Рахунок 1" })
+    document.title = "Інша сторінка"
+    window.dispatchEvent(new Event("afterprint"))
+    expect(document.title).toBe("Інша сторінка")
+    await printPage({ title: "Рахунок 2" })
+    window.dispatchEvent(new Event("afterprint"))
+    expect(document.title).toBe("Інша сторінка")
   })
 
   it("чекає лише зображень аркуша: зависле зображення поза ним друк не тримає", async () => {
