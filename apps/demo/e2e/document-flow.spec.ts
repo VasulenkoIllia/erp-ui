@@ -86,8 +86,9 @@ test.describe("UI13: потік документів", () => {
     await openWith(page, {}, "/#/document?id=doc-7")
     const card = page.getByTestId("document-card")
     const flow = card.locator('[data-slot="document-flow"]')
+    // Документ, а не крок, у якому він лежить: крок теж `listitem` із тим самим текстом.
     const reversal = flow
-      .getByRole("listitem")
+      .locator('[data-slot="document-flow-item"]')
       .filter({ hasText: "Сторно ДОК-2026-0005" })
     await expect(reversal).toBeVisible()
     await reversal.getByRole("link", { name: "ДОК-2026-0006" }).click()
