@@ -54,8 +54,76 @@ async function scrollToEnd(page: Page) {
   }).toPass()
 }
 
+/**
+ * До рядка далеко в документі: крок прокрутки — з відстані між видимими рядками, бо висоту невиміряних
+ * рядків список лише оцінює. Повтор, доки рядок не на екрані.
+ */
+async function scrollToRow(page: Page, index: number) {
+  await expect(async () => {
+    await page.evaluate((target) => {
+      const shown = [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-slot="repeating-rows"] li[data-row-index]',
+        ),
+      ]
+        .map((item) => ({
+          index: Number(item.dataset.rowIndex) + 1,
+          top: item.getBoundingClientRect().top,
+        }))
+        .filter((item) => item.top > 0 && item.top < window.innerHeight)
+        .sort((a, b) => a.index - b.index)
+      const first = shown[0]
+      const last = shown.at(-1)
+      if (!first || !last) return
+      const rowHeight =
+        last.index > first.index
+          ? (last.top - first.top) / (last.index - first.index)
+          : 80
+      window.scrollBy(0, (target - first.index - 2) * rowHeight)
+    }, index)
+    await expect(row(page, index)).toBeInViewport({ timeout: 1_000 })
+  }).toPass({ timeout: 20_000 })
+}
+
 test.describe("великий документ", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
+
+  test("підписи колонок липнуть угорі: видно над рядком 400, поле у фокусі не ховають", async ({
+    page,
+  }) => {
+    await openDocument(page)
+    await scrollToRow(page, 400)
+    const header = form(page).locator('[data-slot="repeating-rows-header"]')
+    await expect(header).toBeInViewport()
+    await expect(header).toContainText("Ціна")
+    const [headerBox, noteBox] = await Promise.all([
+      header.boundingBox(),
+      row(page, 400).boundingBox(),
+    ])
+    expect(headerBox && noteBox).toBeTruthy()
+    if (!headerBox || !noteBox) return
+    // Підписи стоять під топбаром і над рядком 400 (нотатка), не перекриваючи його.
+    expect(headerBox.y).toBeGreaterThan(0)
+    expect(headerBox.y + headerBox.height).toBeLessThanOrEqual(noteBox.y)
+    // «Ціна» — над колонкою цін (рядок 402 — товар після розділу).
+    const price = row(page, 402).getByLabel("Ціна")
+    const [label, priceBox] = await Promise.all([
+      header.getByText("Ціна", { exact: true }).boundingBox(),
+      price.boundingBox(),
+    ])
+    expect(label && priceBox).toBeTruthy()
+    if (label && priceBox)
+      expect(Math.abs(label.x - priceBox.x)).toBeLessThan(4)
+    // Фокус іде вгору по рядках: сторінка прокручується так, що поле нижче підписів.
+    await price.focus()
+    for (let step = 0; step < 30; step++) await page.keyboard.press("Shift+Tab")
+    const focused = await page.locator(":focus").boundingBox()
+    const stuck = await header.boundingBox()
+    expect(focused && stuck).toBeTruthy()
+    if (focused && stuck)
+      expect(focused.y).toBeGreaterThanOrEqual(stuck.y + stuck.height)
+    await expectNoHorizontalScroll(page)
+  })
 
   test("500 рядків: у DOM лише видимі, місце й кількість для скрінрідера", async ({
     page,

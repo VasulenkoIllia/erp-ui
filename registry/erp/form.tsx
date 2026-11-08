@@ -1,7 +1,6 @@
 import * as React from "react"
 import { useBlocker, useCanBlock } from "ra-core"
 import {
-  Controller,
   get,
   type Control,
   type ControllerFieldState,
@@ -12,6 +11,7 @@ import {
 } from "react-hook-form"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
+import { useFieldController } from "@/registry/hooks/use-field-controller"
 import {
   KeptOverTabsContext,
   searchWithoutTab,
@@ -32,7 +32,9 @@ import {
  * - `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`: перевірка при виході з поля,
  *   далі — під час виправлення, і при відправці (SPEC §8.3). Схему з текстами помилок будуйте в
  *   компоненті з `t` (`useMemo`), щоб повідомлення були мовою інтерфейсу.
- * - `FormField` — підпис над полем, підказка, помилка біля поля, id і aria для доступності.
+ * - `FormField` — підпис над полем, підказка, помилка біля поля, id і aria для доступності. Поле
+ *   з'єднане з формою легким `useFieldController` (hooks/use-field-controller, ADR-0063), а не `Controller`: поле,
+ *   що з'являється чи зникає, не копіює весь стан форми.
  *   Поле без прав — `readOnly` (у фокусі й для скрінрідера), не `disabled`. Короткий список
  *   варіантів — `FormSelect` з erp/form-select (окремо: список не їде в кожну сторінку з формою).
  * - «Зберегти» ніколи не вимикається: без змін — підказка, під час запиту — зайнята кнопка
@@ -93,51 +95,40 @@ function FormField<
   render,
 }: FormFieldProps<TValues, TName, TTransformed>) {
   const id = React.useId()
+  const { field, fieldState } = useFieldController({ control, name })
+  const invalid = fieldState.invalid
+  const describedBy =
+    [description ? `${id}-hint` : "", invalid ? `${id}-error` : ""]
+      .filter(Boolean)
+      .join(" ") || undefined
   return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => {
-        const invalid = fieldState.invalid
-        const describedBy =
-          [description ? `${id}-hint` : "", invalid ? `${id}-error` : ""]
-            .filter(Boolean)
-            .join(" ") || undefined
-        return (
-          <Field
-            data-invalid={invalid ? true : undefined}
-            data-field-name={name}
-            className={className}
-          >
-            <FieldLabel id={`${id}-label`} htmlFor={id}>
-              {label}
-            </FieldLabel>
-            {render({
-              field,
-              fieldState,
-              labelId: `${id}-label`,
-              control: {
-                id,
-                "aria-invalid": invalid ? true : undefined,
-                "aria-describedby": describedBy,
-                readOnly,
-                disabled,
-              },
-            })}
-            {description ? (
-              <FieldDescription id={`${id}-hint`}>
-                {description}
-              </FieldDescription>
-            ) : null}
-            {invalid ? (
-              <FieldError id={`${id}-error`}>
-                {fieldState.error?.message}
-              </FieldError>
-            ) : null}
-          </Field>
-        )
-      }}
-    />
+    <Field
+      data-invalid={invalid ? true : undefined}
+      data-field-name={name}
+      className={className}
+    >
+      <FieldLabel id={`${id}-label`} htmlFor={id}>
+        {label}
+      </FieldLabel>
+      {render({
+        field,
+        fieldState,
+        labelId: `${id}-label`,
+        control: {
+          id,
+          "aria-invalid": invalid ? true : undefined,
+          "aria-describedby": describedBy,
+          readOnly,
+          disabled,
+        },
+      })}
+      {description ? (
+        <FieldDescription id={`${id}-hint`}>{description}</FieldDescription>
+      ) : null}
+      {invalid ? (
+        <FieldError id={`${id}-error`}>{fieldState.error?.message}</FieldError>
+      ) : null}
+    </Field>
   )
 }
 

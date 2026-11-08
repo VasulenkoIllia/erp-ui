@@ -105,7 +105,7 @@ node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/form,erp/date-input,erp/numb
 
 - Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
 - Пакети `zod` і `@hookform/resolvers` ставить `erp/profile-form`; для своїх форм без нього — `pnpm add zod @hookform/resolvers`.
-- Поле — `FormField` з `control` і `name`; у `render` віддайте `control`-пропси керуванню (`<Input {...control} {...field} />`). Для полів дати, суми й телефону — явно: `ref={field.ref} value={field.value} onValueChange={field.onChange} onBlur={field.onBlur}`. Поле без прав — `readOnly`, не `disabled`. Схема з `.transform`/`z.coerce` — `useForm<Вхід, unknown, Вихід>`.
+- Поле — `FormField` з `control` і `name`; у `render` віддайте `control`-пропси керуванню (`<Input {...control} {...field} />`). Для полів дати, суми й телефону — явно: `ref={field.ref} value={field.value} onValueChange={field.onChange} onBlur={field.onBlur}`. Поле без прав — `readOnly`, не `disabled`. Схема з `.transform`/`z.coerce` — `useForm<Вхід, unknown, Вихід>`. `FormField` з'єднаний з формою легким `useFieldController` (ADR-0063): поле перемальовується лише зі зміною свого стану, тож у рядках і довгих формах беріть його, а не `Controller`.
 - Над полями — `FormErrorSummary` (`errors`, `submitCount`, `labels`); під формою — `UnsavedChangesGuard when={isDirty}` (і під час збереження: після успіху перехід відбудеться сам).
 - «Зберегти» не вимикайте: лише `disabled={isSubmitting} focusableWhenDisabled`. Помилки полів від сервера (422) — `form.setError(name, { type: "server", message })`.
 - Кнопкам форми (відправка, «Скасувати») — `onMouseDown={keepFieldFocus}` з `erp/form` (ADR-0027): поле перевіряється при виході з нього, і без цього помилка під полем зсуває кнопку між натисканням і відпусканням миші — перший клік губиться. Клавіатури й дотику це не змінює.
@@ -1000,7 +1000,7 @@ const form = useForm({ mode: "onTouched", resolver: zodResolver(schema), default
 - Великий документ редактор тримає сам: від `virtualizeFrom` рядків (12) малює лише видимі, прокручується сторінка; у діалозі
   чи шторці з власною прокруткою малює всі. Варіанти `units`, `taxes` і `item` робіть стабільними (`useMemo`), інакше кожен
   рядок перемальовується на кожен рендер форми. Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і
-  `FormErrorSummary`.
+  `FormErrorSummary`. Підписи колонок таблиці липнуть під топбаром (`--app-topbar-height`, ADR-0063).
 - Підсумки під рядками — попередній розрахунок `computeDocumentTotals`; запис із сервера розбирайте `documentBodySchemaFor(digits)`,
   а в режимі лише для читання передайте підсумки сервера в `savedTotals`, а рядки — з `totals` (`savedDocumentLineSchema`).
 - `toLine` і `newLine` дають лише ті поля, що відомі: `undefined` у `toLine` лишає поточне значення рядка, у `newLine` — значення

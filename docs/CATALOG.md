@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 397. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 398. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 
@@ -188,6 +188,7 @@
 | `hooks/use-email-link-token` | Токен із листа поза адресою | useEmailLinkToken(screen): токен посилання з листа (новий пароль, запрошення, вхід за посиланням) — з ?token= адреси, далі геть із рядка адреси й записів історії вкладки (запис замінюється); поки екран змонтовано, живе в sessionStorage вкладки, тож оновлення сторінки форму не губить; перехід із екрана в застосунку його стирає, а clearEmailLinkTokens — вхід і екран входу, куди веде кожен вихід. Ставиться над межею помилок екрана. Роутер — через ra-core. | beta | `login` | PF01, §10 |
 | `hooks/use-export-run` | useExportRun | Збір файла експорту зі сторінок списку: прогрес, скасування, причина збою, збереження файла. | beta | `importExport` | PF07 |
 | `hooks/use-extended-list` | Список модуля з розширенням | useExtendedList(columns, filters, tabs, extension, locked): колонки, фільтри й вкладки списку модуля зі змінами файлу розширення проекту — нові з полів розширення, сховати, перемістити, змінити колонку модуля; locked — колонки, яких розширення не ховає (ADR-0020, ADR-0025). | beta | `contacts` | §7, §17 |
+| `hooks/use-field-controller` | useFieldController | Легке з'єднання поля з формою react-hook-form для FormField: значення, onChange, onBlur, ref і стан поля, як у useController, але поле підписане лише на свою помилку, торкання, зміну й перевірку, тож поле, що з'являється, зникає чи змінює ім'я, не копіює весь стан форми (ADR-0063). | beta | `documentForm` | UI05, §8.3, §18.1 |
 | `hooks/use-focus-heading` | Фокус на h1 після переходу | useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page. useFocusHeadingOnMount(heading): заголовок на місці зниклого вмісту (стан замість сторінки, екран входу після повтору чи виходу) бере фокус, коли фокус загубився. | beta | `data` | §10 |
 | `hooks/use-grid-keyboard` | useGridKeyboard | Клавіатура гріда за W3C APG: одна зупинка Tab, стрілки, Home/End, Ctrl+Home/End, PageUp/PageDown, Enter/F2 у клітинку з кількома елементами (Tab між ними) і Esc назад; клітинки фокусуються кліком; рядок у фокусі рендериться одразу. Для erp/data-table. | beta | `data` | §10 |
 | `hooks/use-history-refresh` | Свіжа історія картки | useHistoryRefresh(version): журнал «Історія» картки перечитується, коли змінюється версія запису; перша версія після завантаження — не зміна (ADR-0019). | beta | `contacts` | §7 |
