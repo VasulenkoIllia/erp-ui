@@ -75,12 +75,21 @@ export function RepeatingRowsList({
   return (
     <>
       {columnHeader ? (
-        // Підписи видно над колонками, а скрінрідер чує підпис кожного поля в рядку.
-        <div aria-hidden className={cn("hidden gap-2", layout.header)}>
+        // Підписи видно над колонками, а скрінрідер чує підпис кожного поля в рядку. Липнуть під
+        // топбаром оболонки (`--app-topbar-height`, tokens/base.css): над рядком 400 видно, що в колонці.
+        <div
+          aria-hidden
+          data-slot="repeating-rows-header"
+          className={cn(
+            "sticky top-[var(--app-topbar-height,0px)] z-10 hidden gap-2 border-b bg-background py-2",
+            layout.header,
+          )}
+        >
           <div className={cn("grid min-w-0 flex-1 gap-3", rowClassName)}>
             {columnHeader}
           </div>
-          {readOnly ? null : <span className="size-control shrink-0" />}
+          {/* Місце колонки дій: лише ширина, щоб липкий рядок підписів не був заввишки з кнопку. */}
+          {readOnly ? null : <span className="w-[var(--control-h)] shrink-0" />}
         </div>
       ) : null}
       {virtualRows ? (

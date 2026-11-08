@@ -1243,6 +1243,11 @@
           "target": "@components/erp/timezone-select.tsx"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -2524,6 +2529,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -3890,6 +3900,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -5051,6 +5066,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -6175,6 +6195,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -7165,6 +7190,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -8396,6 +8426,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -9770,6 +9805,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -10872,6 +10912,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-grid-keyboard.ts",
@@ -39054,6 +39099,32 @@
       }
     },
     {
+      "name": "hooks/use-form-field",
+      "type": "registry:hook",
+      "title": "useFormField",
+      "description": "Легке з'єднання поля з формою react-hook-form для FormField: значення, onChange, onBlur, ref і стан поля, як у useController, але поле підписане лише на свою помилку, торкання, зміну й перевірку, тож поле, що з'являється, зникає чи змінює ім'я, не копіює весь стан форми (ADR-0063).",
+      "dependencies": [
+        "react-hook-form@^7.90.0"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "documentForm",
+        "spec": [
+          "UI05",
+          "§8.3",
+          "§18.1"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-grid-keyboard",
       "type": "registry:hook",
       "title": "useGridKeyboard",
@@ -56820,6 +56891,11 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -57978,6 +58054,11 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -58479,6 +58560,11 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -59010,6 +59096,11 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -59528,6 +59619,11 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -60202,6 +60298,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -61219,6 +61320,11 @@
           "target": "@hooks/use-export-run.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -61659,6 +61765,11 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -63757,6 +63868,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -64030,6 +64146,11 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -65123,6 +65244,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-import-downloads.ts",
@@ -67927,6 +68053,11 @@
           "path": "registry/erp/repeating-rows-list.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-rows-list.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -70737,6 +70868,11 @@
           "target": "@hooks/use-company-profile.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -71203,6 +71339,11 @@
           "path": "registry/hooks/use-company-profile.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -71692,6 +71833,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -73967,6 +74113,11 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -75067,6 +75218,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -76707,6 +76863,11 @@
           "target": "@hooks/use-company.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -77129,6 +77290,11 @@
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -79177,6 +79343,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -80150,6 +80321,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -80439,6 +80615,11 @@
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -80738,6 +80919,11 @@
           "path": "registry/erp/repeating-rows-list.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-rows-list.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -81041,6 +81227,11 @@
           "path": "registry/erp/repeating-rows-list.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-rows-list.tsx"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -84408,6 +84599,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -84858,6 +85054,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
@@ -85139,6 +85340,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
@@ -85456,6 +85662,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-list-state.ts",
@@ -89137,6 +89348,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -89701,6 +89917,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -90257,6 +90478,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -90821,6 +91047,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -91414,6 +91645,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -92878,6 +93114,11 @@
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -97351,6 +97592,11 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
+        },
+        {
           "path": "registry/hooks/use-grid-keyboard.ts",
           "type": "registry:hook",
           "target": "@hooks/use-grid-keyboard.ts"
@@ -98682,6 +98928,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-form-field.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-form-field.ts"
         },
         {
           "path": "registry/hooks/use-tab-param.ts",
