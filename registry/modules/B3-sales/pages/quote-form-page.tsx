@@ -56,6 +56,7 @@ function NewQuote() {
       <QuoteForm
         currency={company.data.baseCurrency ?? FALLBACK_CURRENCY}
         readOnly={false}
+        mayEdit
       />
     )
   return (
@@ -96,9 +97,11 @@ function EditQuote({ id }: { id: string }) {
   const isFree = lock.holder === null
   useEffect(() => {
     if (!mayEdit || !isFree) return
-    void acquire().then(() => {
+    // Збій блокування не заважає редагувати (`useEditLock`): дані береже версія запису.
+    const settle = () => {
       setLockSettled(true)
-    })
+    }
+    void acquire().then(settle, settle)
   }, [mayEdit, isFree])
   const reason = access.isPending
     ? undefined
@@ -141,6 +144,7 @@ function EditQuote({ id }: { id: string }) {
           (mayEdit && !isLockSettled)
         }
         readOnlyReason={reason}
+        mayEdit={mayEdit}
       />
     )
   return (

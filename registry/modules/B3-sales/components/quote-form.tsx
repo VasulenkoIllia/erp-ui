@@ -107,6 +107,11 @@ export interface QuoteFormProps {
   readonly readOnly: boolean
   /** Чому лише для читання: надіслана, без права, редагує інша людина. */
   readonly readOnlyReason?: string | undefined
+  /**
+   * Зміну дозволено (право й позначка запису): довідники рядків вантажаться одразу, навіть поки форма
+   * чекає блокування, щоб редактор не змінювався на скелет, коли блокування візьметься.
+   */
+  readonly mayEdit: boolean
 }
 
 /**
@@ -120,6 +125,7 @@ export function QuoteForm({
   currency,
   readOnly,
   readOnlyReason,
+  mayEdit,
 }: QuoteFormProps) {
   const t = useSalesT()
   const navigate = useNavigate()
@@ -198,6 +204,7 @@ export function QuoteForm({
       currency={currency}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
+      mayEdit={mayEdit}
       quote={quote}
     />
   )
@@ -209,6 +216,7 @@ function QuoteFormView({
   currency,
   readOnly,
   readOnlyReason,
+  mayEdit,
   quote,
 }: {
   state: RecordFormState<QuoteFormValues>
@@ -216,12 +224,13 @@ function QuoteFormView({
   currency: string
   readOnly: boolean
   readOnlyReason: string | undefined
+  mayEdit: boolean
   quote: QuoteCard | undefined
 }) {
   const t = useSalesT()
   const kitT = useErpUiT()
   const { lineItem } = useSalesModule()
-  const dictionaries = useLineDictionaries(!readOnly)
+  const dictionaries = useLineDictionaries(mayEdit)
   const { isDirty, errors, submitCount } = state.form.formState
   // Сталі посилання: форма перемальовується зі станом збереження, а документ буває на сотні рядків.
   const items = useMemo((): readonly RecordFormItem[] => {
@@ -276,7 +285,7 @@ function QuoteFormView({
         submitCount={submitCount}
       />
       <RecordFormFields items={header} />
-      {dictionaries.isPending ? (
+      {dictionaries.isLoading ? (
         // Рядок, доданий до довідників, лишився б без типових одиниці й податку.
         <SectionSkeleton rows={4} />
       ) : (

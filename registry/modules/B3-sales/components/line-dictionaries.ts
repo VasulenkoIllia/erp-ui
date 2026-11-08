@@ -42,8 +42,11 @@ export interface LineDictionaries {
   readonly taxes: readonly DocumentLineTax[]
   /** Типові податок і одиниця нового рядка з налаштувань довідників компанії. */
   readonly newLine: () => Partial<Omit<DocumentLine, "id">>
-  /** Довідники й типові значення ще вантажаться: новий рядок без них лишився б без одиниці й податку. */
-  readonly isPending: boolean
+  /**
+   * Довідники й типові значення ще йдуть із сервера: новий рядок без них лишився б без одиниці й
+   * податку. Без мережі (запит на паузі) чи з помилкою (проект без A6) — `false`: рядок вільним текстом.
+   */
+  readonly isLoading: boolean
 }
 
 export function useLineDictionaries(enabled = true): LineDictionaries {
@@ -89,7 +92,7 @@ export function useLineDictionaries(enabled = true): LineDictionaries {
     units: unitOptions,
     taxes: taxOptions,
     newLine,
-    isPending:
-      enabled && (units.isPending || taxes.isPending || defaults.isPending),
+    isLoading:
+      enabled && (units.isLoading || taxes.isLoading || defaults.isLoading),
   }
 }
