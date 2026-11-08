@@ -1,9 +1,9 @@
 /**
- * Моки модуля B3 на MSW (ADR-0002, ADR-0003): пропозиції з рядками (зберігаються разом із записом,
- * суми рахує «сервер»), дії графа переходів з номером на «Надіслати» (ADR-0057, ADR-0058), масові
- * «Надіслати», «Скасувати» з причиною й «Видалити» чернетки фоновою задачею (ADR-0066). Сценарії
- * `success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline` — ресурсу `quotes`
- * (`lib/mock-scenarios`, панель розробника), права — `quotes:<дія>` поточного користувача моків.
+ * Моки модуля B3 на MSW (ADR-0002, ADR-0003): пропозиції й замовлення з рядками (зберігаються разом із
+ * записом, суми рахує «сервер»), дії графа переходів з номером на проведенні (ADR-0057, ADR-0058),
+ * масові дії графа й «Видалити» чернетки фоновою задачею (ADR-0066). Сценарії `success`, `error`,
+ * `empty`, `slow`, `conflict`, `forbidden`, `offline` — ресурсів `quotes` і `orders`
+ * (`lib/mock-scenarios`, панель розробника), права — `<ресурс>:<дія>` поточного користувача моків.
  *
  *   const seeds = salesNumberingSeeds({ companies })
  *   const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
@@ -11,16 +11,17 @@
  *   setupWorker(...platform, ...numbering.handlers, ...createJobHandlers(), ...sales.handlers)
  *
  * Хід масової задачі (`GET /jobs/:id`) — спільний на застосунок (`createJobHandlers` з lib/mock-jobs),
- * як і нумерація: модуль дає лише `POST /quotes/bulk/<дія>`.
+ * як і нумерація: модуль дає лише `POST /<ресурс>/bulk/<дія>`.
  *
  * Нумерація — спільна для всіх документів проекту (`createNumberingMocks` один на застосунок), тож
- * модуль не створює своєї: дає засів серії й лічильника (`salesNumberingSeeds`) і бере
- * `numbering.forResource`. Поля, статуси й переходи розширення проекту (`SalesMockExtension`) — у схемі,
- * у фікстурах і в графі переходів.
+ * модуль не створює своєї: дає засів серій `quotes` і `orders` з лічильниками (`salesNumberingSeeds`) і
+ * бере `numbering.forResource`. Поля, статуси й переходи розширення проекту (`SalesMockExtension`) — у
+ * схемі, у фікстурах і в графі переходів.
  */
 import { z } from "zod"
 
-import { addDays, todayIn } from "@/lib/dates"
+import type { LocalizedText } from "@/lib/auth"
+import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import { documentBodySchemaFor } from "@/lib/document-lines"
 import { withMockValues } from "@/lib/extension-fields"
 import { currencyDigits } from "@/lib/format"
@@ -42,43 +43,52 @@ import {
   mergeTransitions,
   type ExtensionStatusChanges,
   type ExtensionTransitionChanges,
+  type StatusTransition,
 } from "@/lib/statuses"
 
 import {
+  DEFAULT_ORDER_STATUS,
   DEFAULT_QUOTE_STATUS,
+  ORDER_TRANSITIONS,
+  orderSchemaFor,
+  ORDERS,
   QUOTE_TRANSITIONS,
   QUOTES,
   quoteSchemaFor,
   SALES_RESOURCES,
+  type OrderCard,
   type QuoteCard,
-  type QuoteSchemaExtension,
+  type SalesDocument,
+  type SalesDocumentDetail,
+  type SalesSchemaExtension,
 } from "./contract"
 import type { SalesMockExtension } from "./extension"
 import {
   createSalesFixtures,
+  ORDER_NUMBER_TEMPLATE,
   QUOTE_NUMBER_TEMPLATE,
   type SalesFixtureOptions,
 } from "./fixtures"
-import { quoteSumsOf } from "./quote-totals"
+import { salesSumsOf } from "./sales-totals"
 
 export interface SalesMocksOptions extends SalesFixtureOptions {
-  /** Нумерація проекту з серією `quotes` (`salesNumberingSeeds`): номер на «Надіслати». */
+  /** Нумерація проекту з серіями `quotes` і `orders` (`salesNumberingSeeds`): номер на проведенні. */
   readonly numbering: Pick<NumberingMocks, "forResource">
   /** Поля, статуси й переходи розширення проекту — дані без компонентів. */
   readonly extension?: SalesMockExtension
   /** Початок адрес API, як у `createResourceHandlers` (за замовчуванням `/api/v1`). */
   readonly baseUrl?: string
   /** Свої заборони проекту на записі (`deniedActions`, ADR-0037): зводяться з позначками життєвого циклу. */
-  readonly deniedActions?: { readonly quotes?: MockDeniedRule<QuoteCard> }
+  readonly deniedActions?: {
+    readonly quotes?: MockDeniedRule<QuoteCard>
+    readonly orders?: MockDeniedRule<OrderCard>
+  }
 }
 
-/** Дії графа, які список запускає масово (ADR-0066). */
-const BULK_TRANSITIONS = ["submit", "cancel"] as const
+/** Виправлена копія: друга дата за стільки днів від сьогодні. */
+const AMEND_DUE_DAYS = { quotes: 14, orders: 7 } as const
 
-/** Строк виправленої копії: два тижні від сьогодні. */
-const AMEND_VALID_DAYS = 14
-
-/** Поля, які сервер веде сам: копія їх не бере, а отримує нові. */
+/** Поля, які сервер веде сам: копія їх не бере, а отримує нові (друга дата — теж). */
 const SERVER_FIELDS = new Set([
   "id",
   "version",
@@ -93,7 +103,6 @@ const SERVER_FIELDS = new Set([
   "total",
   "totals",
   "date",
-  "validUntil",
   "deniedActions",
   "pinned",
 ])
@@ -102,17 +111,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 /**
- * Нова пропозиція (`version: 1` — створення чи виправлена копія; PATCH завжди дає версію від 2) — чернетка
- * без номера: номер, стан документа й статус ставить сервер, а не запит.
+ * Новий документ (`version: 1` — створення чи виправлена копія; PATCH завжди дає версію від 2) —
+ * чернетка без номера: номер, стан документа й статус ставить сервер, а не запит.
  */
-const asServerDraft = (record: Record<string, unknown>) =>
+const asServerDraft = (record: Record<string, unknown>, status: string) =>
   record.version === 1
-    ? {
-        ...record,
-        number: null,
-        docStatus: "draft",
-        status: DEFAULT_QUOTE_STATUS,
-      }
+    ? { ...record, number: null, docStatus: "draft", status }
     : record
 
 /** Помилки шапки й тіла без повторів: знижка документа є в обох схемах. */
@@ -127,34 +131,36 @@ function uniqueIssues(issues: readonly z.core.$ZodIssue[]) {
 }
 
 /**
- * Збережений запис, як його перевіряє сервер: шапка (`quoteSchemaFor`), рядки й знижка документа за
- * знаками валюти (`documentBodySchemaFor`), строк не раніше дати; суми рахує сам (`quoteSumsOf`), тож
- * `total` і `totals` із запиту не беруться.
+ * Збережений документ, як його перевіряє сервер: шапка (схема ресурсу), рядки й знижка документа за
+ * знаками валюти (`documentBodySchemaFor`), друга дата не раніше дати; суми рахує сам (`salesSumsOf`),
+ * тож `total` і `totals` із запиту не беруться.
  */
-function storedQuoteSchema(
-  extension?: QuoteSchemaExtension,
-): z.ZodType<QuoteCard> {
-  const header = quoteSchemaFor(extension)
+function storedDocumentSchema<T extends SalesDocument & SalesDocumentDetail>(
+  header: z.ZodType<SalesDocument>,
+  dueField: keyof T & string,
+  draftStatus: string,
+): z.ZodType<T> {
   return z.unknown().transform((input, ctx) => {
     if (!isRecord(input)) {
       ctx.addIssue({ code: "custom", path: [], message: "invalid" })
       return z.NEVER
     }
-    const record = asServerDraft(input)
+    const record = asServerDraft(input, draftStatus)
     const currency = typeof record.currency === "string" ? record.currency : ""
     const body = documentBodySchemaFor(currencyDigits(currency)).safeParse(
       record,
     )
-    const sums = body.success ? quoteSumsOf({ currency, ...body.data }) : null
+    const sums = body.success ? salesSumsOf({ currency, ...body.data }) : null
     const parsed = header.safeParse({ ...record, total: sums?.total ?? 0 })
     const issues = uniqueIssues([
       ...(body.error?.issues ?? []),
       ...(parsed.error?.issues ?? []),
     ])
-    if (parsed.success && parsed.data.validUntil < parsed.data.date)
+    const due = parsed.success ? parsed.data[dueField] : undefined
+    if (parsed.success && typeof due === "string" && due < parsed.data.date)
       issues.push({
         code: "custom",
-        path: ["validUntil"],
+        path: [dueField],
         message: "before_date",
         input,
       })
@@ -175,20 +181,21 @@ function storedQuoteSchema(
         })
       return z.NEVER
     }
-    return { ...parsed.data, lines: sums.lines, totals: sums.totals }
+    // Шапка — за схемою ресурсу, рядки й підсумки — пораховані: це і є збережений документ `T`.
+    return { ...parsed.data, lines: sums.lines, totals: sums.totals } as T
   })
 }
 
 /**
- * Статус розширення з `mockEvery` (`lib/statuses`): кожна N-та пропозиція засіву в статусі, з якого
- * веде дія до нього, — ніби дію вже виконали. Статус без такої дії засів не отримує: документ не
- * стає в статус поза графом.
+ * Статус розширення з `mockEvery` (`lib/statuses`): кожен N-й документ засіву в статусі, з якого веде
+ * дія до нього, — ніби дію вже виконали. Статус без такої дії засів не отримує: документ не стає в
+ * статус поза графом.
  */
-function withTransitionSamples(
-  quotes: QuoteCard[],
+function withTransitionSamples<T extends SalesDocument>(
+  documents: T[],
   statuses?: ExtensionStatusChanges,
   transitions?: ExtensionTransitionChanges,
-): QuoteCard[] {
+): T[] {
   const samples = (statuses?.add ?? []).flatMap((status) => {
     const from = transitions?.add?.find((action) => action.to === status.id)
       ?.from[0]
@@ -197,17 +204,21 @@ function withTransitionSamples(
       : []
   })
   const seen = new Map<string, number>()
-  return quotes.map((quote) => {
-    const sample = samples.find((candidate) => candidate.from === quote.status)
-    if (!sample) return quote
+  return documents.map((document) => {
+    const sample = samples.find(
+      (candidate) => candidate.from === document.status,
+    )
+    if (!sample) return document
     const count = (seen.get(sample.id) ?? 0) + 1
     seen.set(sample.id, count)
-    return count % sample.every === 0 ? { ...quote, status: sample.id } : quote
+    return count % sample.every === 0
+      ? { ...document, status: sample.id }
+      : document
   })
 }
 
 /** Рядки в журналі — рядками «назва × кількість», а не JSON. */
-const linesText = (lines: readonly QuoteCard["lines"][number][]) =>
+const linesText = (lines: readonly SalesDocumentDetail["lines"][number][]) =>
   lines.map((line) =>
     line.kind === "item"
       ? `${line.name} × ${line.quantity}`
@@ -219,25 +230,170 @@ const linesText = (lines: readonly QuoteCard["lines"][number][]) =>
 const labelOf = (name: string) =>
   SALES_RESOURCES.find((resource) => resource.name === name)?.label
 
+/** Підписи полів у журналі, спільні для документів продажу. */
+const COMMON_FIELD_LABELS = {
+  number: { uk: "Номер", en: "Number" },
+  clientName: { uk: "Клієнт", en: "Client" },
+  date: { uk: "Дата", en: "Date" },
+  status: { uk: "Статус", en: "Status" },
+  docStatus: { uk: "Стан документа", en: "Document state" },
+  lines: { uk: "Рядки", en: "Lines" },
+  discountPercent: { uk: "Знижка, %", en: "Discount, %" },
+  discountAmount: { uk: "Знижка сумою", en: "Discount amount" },
+} satisfies Record<string, LocalizedText>
+
 /**
- * Засів серії `quotes` для `createNumberingMocks` (ADR-0058): шаблон мовою даних у кожній компанії й
- * лічильники, які фікстури вже видали. Ті самі опції, що й у `createSalesMocks`.
+ * Засів серій `quotes` і `orders` для `createNumberingMocks` (ADR-0058): шаблон мовою даних у кожній
+ * компанії й лічильники, які фікстури вже видали. Ті самі опції, що й у `createSalesMocks`.
  */
 export function salesNumberingSeeds(options: SalesFixtureOptions = {}): {
   series: MockNumberingSeriesSeed[]
   counters: MockNumberingCounterSeed[]
 } {
-  const template = QUOTE_NUMBER_TEMPLATE[options.locale ?? "uk"]
+  const locale = options.locale ?? "uk"
+  const templates = [
+    { resource: QUOTES, template: QUOTE_NUMBER_TEMPLATE[locale] },
+    { resource: ORDERS, template: ORDER_NUMBER_TEMPLATE[locale] },
+  ]
   return {
-    series: (options.companies ?? [null]).map((companyId) => ({
-      companyId,
-      resource: QUOTES,
-      template,
-    })),
-    counters: createSalesFixtures(options).counters.map((counter) => ({
-      ...counter,
-      resource: QUOTES,
-    })),
+    series: templates.flatMap(({ resource, template }) =>
+      (options.companies ?? [null]).map((companyId) => ({
+        companyId,
+        resource,
+        template,
+      })),
+    ),
+    counters: createSalesFixtures(options).counters,
+  }
+}
+
+/** Ресурс документа продажу в моку: що відрізняє пропозицію від замовлення. */
+interface DocumentMockSpec<T extends SalesDocument & SalesDocumentDetail> {
+  readonly resource: typeof QUOTES | typeof ORDERS
+  schema(extension?: SalesSchemaExtension): z.ZodType<SalesDocument>
+  readonly draftStatus: string
+  readonly dueField: keyof T & string
+  readonly dueLabel: LocalizedText
+  readonly transitions: readonly StatusTransition[]
+  /** Дії графа, які список запускає масово (ADR-0066). */
+  readonly bulk: readonly string[]
+  readonly fixtures: () => T[]
+}
+
+/** Розширення ресурсу для моків: поля, статуси й переходи. */
+type MockDocumentExtension = SalesSchemaExtension & {
+  readonly transitions?: ExtensionTransitionChanges
+}
+
+/** Ресурс, дії графа з номером на проведенні й масові дії одного документа продажу. */
+function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
+  spec: DocumentMockSpec<T>,
+  {
+    numbering,
+    extension,
+    baseUrl,
+    deniedActions,
+  }: {
+    numbering: SalesMocksOptions["numbering"]
+    extension: MockDocumentExtension | undefined
+    baseUrl: string | undefined
+    deniedActions: MockDeniedRule<T> | undefined
+  },
+) {
+  const { resource, dueField } = spec
+  const transitions = mergeTransitions(spec.transitions, extension?.transitions)
+  // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, дії).
+  const fixtures = () =>
+    withMockValues(
+      withTransitionSamples(
+        spec.fixtures(),
+        extension?.statuses,
+        extension?.transitions,
+      ),
+      extension?.fields,
+    )
+  const documents = createResourceHandlers<T>({
+    resource,
+    baseUrl,
+    schema: storedDocumentSchema(
+      spec.schema(extension),
+      dueField,
+      spec.draftStatus,
+    ),
+    data: fixtures,
+    searchFields: ["number", "clientName"],
+    titleField: "clientName",
+    label: labelOf(resource),
+    fieldLabels: {
+      ...COMMON_FIELD_LABELS,
+      [dueField]: spec.dueLabel,
+    } as Partial<Record<keyof T & string, LocalizedText>>,
+    detailFields: ["lines", "totals"],
+    auditValue: { lines: linesText } as Partial<
+      Record<keyof T & string, (value: never) => string[]>
+    >,
+    // Видалена виправлена копія звільняє скасований документ: його можна виправити знову (ADR-0066).
+    afterDelete: (document) => {
+      releaseAmendedFrom(documents.db, document)
+    },
+    // Проведений і скасований не змінюють, виправлений удруге не виправляють (ADR-0057).
+    deniedActions: (actor, document) => {
+      const denied = {
+        ...documentDeniedActions(document),
+        ...deniedActions?.(actor, document),
+      }
+      return Object.keys(denied).length ? denied : undefined
+    },
+  })
+  const documentNumbering = numbering.forResource({
+    resource,
+    db: documents.db,
+  })
+  const documentTransitions = createTransitionHandlers<T>({
+    resource,
+    baseUrl,
+    db: documents.db,
+    transitions,
+    // Виправлена копія — нова чернетка з тими самими клієнтом, рядками й полями розширення.
+    amend: (document) => {
+      const today = todayIn()
+      return {
+        ...Object.fromEntries(
+          Object.entries(document).filter(
+            ([key]) => !SERVER_FIELDS.has(key) && key !== dueField,
+          ),
+        ),
+        date: today,
+        [dueField]: addDays(today, AMEND_DUE_DAYS[resource]),
+        status: spec.draftStatus,
+      }
+    },
+    // Колега в сценарії `conflict` переносить другу дату на тиждень.
+    conflictChange: (document) =>
+      ({
+        [dueField]: addDays(document[dueField] as CalendarDate, 7),
+      }) as Partial<T>,
+    numbering: documentNumbering,
+  })
+  const documentBulk = createBulkHandlers<T>({
+    resource,
+    baseUrl,
+    db: documents.db,
+    // Чернетка без номера — у звіті клієнтом.
+    title: (document) => document.number ?? document.clientName,
+    actions: {
+      ...bulkTransitionActions(
+        { resource, transitions, numbering: documentNumbering },
+        spec.bulk,
+      ),
+      // Проведений і скасований не дає позначка `deniedActions.delete`: невдача з її кодом.
+      delete: { apply: () => ({ remove: true }) },
+    },
+  })
+  return {
+    // Масові дії й дії — перед ресурсом: `POST /<ресурс>/…/<дія>` не має дійти до обробників запису.
+    handlers: [...documentBulk, ...documentTransitions, ...documents.handlers],
+    db: documents.db,
   }
 }
 
@@ -248,98 +404,45 @@ export function createSalesMocks({
   deniedActions,
   ...fixtureOptions
 }: SalesMocksOptions) {
-  const quoteExtension = extension?.quotes
-  const transitions = mergeTransitions(
-    QUOTE_TRANSITIONS,
-    quoteExtension?.transitions,
+  const fixtures = () => createSalesFixtures(fixtureOptions)
+  const quotes = createDocumentMocks<QuoteCard>(
+    {
+      resource: QUOTES,
+      schema: quoteSchemaFor,
+      draftStatus: DEFAULT_QUOTE_STATUS,
+      dueField: "validUntil",
+      dueLabel: { uk: "Дійсна до", en: "Valid until" },
+      transitions: QUOTE_TRANSITIONS,
+      bulk: ["submit", "cancel"],
+      fixtures: () => fixtures().quotes,
+    },
+    {
+      numbering,
+      extension: extension?.quotes,
+      baseUrl,
+      deniedActions: deniedActions?.quotes,
+    },
   )
-  // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, дії).
-  const fixtures = () =>
-    withMockValues(
-      withTransitionSamples(
-        createSalesFixtures(fixtureOptions).quotes,
-        quoteExtension?.statuses,
-        quoteExtension?.transitions,
-      ),
-      quoteExtension?.fields,
-    )
-  const quotes = createResourceHandlers<QuoteCard>({
-    resource: QUOTES,
-    baseUrl,
-    schema: storedQuoteSchema(quoteExtension),
-    data: fixtures,
-    searchFields: ["number", "clientName"],
-    titleField: "clientName",
-    label: labelOf(QUOTES),
-    fieldLabels: {
-      number: { uk: "Номер", en: "Number" },
-      clientName: { uk: "Клієнт", en: "Client" },
-      date: { uk: "Дата", en: "Date" },
-      validUntil: { uk: "Дійсна до", en: "Valid until" },
-      status: { uk: "Статус", en: "Status" },
-      docStatus: { uk: "Стан документа", en: "Document state" },
-      lines: { uk: "Рядки", en: "Lines" },
-      discountPercent: { uk: "Знижка, %", en: "Discount, %" },
-      discountAmount: { uk: "Знижка сумою", en: "Discount amount" },
+  const orders = createDocumentMocks<OrderCard>(
+    {
+      resource: ORDERS,
+      schema: orderSchemaFor,
+      draftStatus: DEFAULT_ORDER_STATUS,
+      dueField: "dueDate",
+      dueLabel: { uk: "Виконати до", en: "Due by" },
+      transitions: ORDER_TRANSITIONS,
+      bulk: ["submit", "complete", "cancel"],
+      fixtures: () => fixtures().orders,
     },
-    detailFields: ["lines", "totals"],
-    auditValue: { lines: linesText },
-    // Видалена виправлена копія звільняє скасовану: її можна виправити знову (ADR-0066).
-    afterDelete: (quote) => {
-      releaseAmendedFrom(quotes.db, quote)
+    {
+      numbering,
+      extension: extension?.orders,
+      baseUrl,
+      deniedActions: deniedActions?.orders,
     },
-    // Проведену й скасовану не змінюють, виправлену вдруге не виправляють (ADR-0057).
-    deniedActions: (actor, quote) => {
-      const denied = {
-        ...documentDeniedActions(quote),
-        ...deniedActions?.quotes?.(actor, quote),
-      }
-      return Object.keys(denied).length ? denied : undefined
-    },
-  })
-  const quoteNumbering = numbering.forResource({
-    resource: QUOTES,
-    db: quotes.db,
-  })
-  const quoteTransitions = createTransitionHandlers<QuoteCard>({
-    resource: QUOTES,
-    baseUrl,
-    db: quotes.db,
-    transitions,
-    // Виправлена копія — нова чернетка з тими самими клієнтом, рядками й полями розширення.
-    amend: (quote) => {
-      const today = todayIn()
-      return {
-        ...Object.fromEntries(
-          Object.entries(quote).filter(([key]) => !SERVER_FIELDS.has(key)),
-        ),
-        date: today,
-        validUntil: addDays(today, AMEND_VALID_DAYS),
-        status: "draft",
-      }
-    },
-    // Колега в сценарії `conflict` продовжує строк на тиждень.
-    conflictChange: (quote) => ({ validUntil: addDays(quote.validUntil, 7) }),
-    numbering: quoteNumbering,
-  })
-  const quoteBulk = createBulkHandlers<QuoteCard>({
-    resource: QUOTES,
-    baseUrl,
-    db: quotes.db,
-    // Чернетка без номера — у звіті клієнтом.
-    title: (quote) => quote.number ?? quote.clientName,
-    actions: {
-      ...bulkTransitionActions(
-        { resource: QUOTES, transitions, numbering: quoteNumbering },
-        BULK_TRANSITIONS,
-      ),
-      // Надіслану й скасовану не дає позначка `deniedActions.delete`: невдача з її кодом.
-      delete: { apply: () => ({ remove: true }) },
-    },
-  })
+  )
   return {
-    // Масові дії й дії — перед ресурсом: `POST /quotes/…/<дія>` не має дійти до обробників запису.
-    handlers: [...quoteBulk, ...quoteTransitions, ...quotes.handlers],
-    db: { quotes: quotes.db },
+    handlers: [...quotes.handlers, ...orders.handlers],
+    db: { quotes: quotes.db, orders: orders.db },
   }
 }

@@ -2,7 +2,8 @@
  * Демо-дані модуля B3 українською й англійською (SPEC §17) — вони ж шаблон даних для першого запуску
  * (PF12). Назви товарів і клієнтів — дані, а не рядки інтерфейсу: мова даних (`locale`) окремо від мови
  * інтерфейсу (SPEC §11). Дати — від сьогодні: надіслана пропозиція з минулим строком показує «Термін
- * минув». Номери — за шаблоном серії `quotes` і лічильником, який засів уже видав (`counters`).
+ * минув», підтверджене замовлення з минулою «Виконати до» — «Прострочено». Номери — за шаблоном серії
+ * ресурсу й лічильником, який засів уже видав (`counters`).
  */
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { DocumentState } from "@/lib/document-lifecycle"
@@ -13,12 +14,21 @@ import type {
 } from "@/lib/document-lines"
 import { formatDocumentNumber } from "@/lib/numbering"
 
-import type { QuoteCard, QuoteStatus } from "./contract"
-import { quoteSumsOf } from "./quote-totals"
+import {
+  ORDERS,
+  QUOTES,
+  type OrderCard,
+  type OrderStatus,
+  type QuoteCard,
+  type QuoteStatus,
+  type SalesDocument,
+  type SalesDocumentDetail,
+} from "./contract"
+import { salesSumsOf } from "./sales-totals"
 
 export type FixtureLocale = "uk" | "en"
 
-/** Клієнт пропозицій: запис ресурсу клієнтів проекту (`organizations` модуля B1). */
+/** Клієнт документів: запис ресурсу клієнтів проекту (`organizations` модуля B1). */
 export interface SalesFixtureClient {
   readonly id: string
   readonly name: string
@@ -33,18 +43,19 @@ export interface SalesFixtureDictionaries {
 
 export interface SalesFixtureOptions {
   readonly locale?: FixtureLocale
-  /** Компанії з пропозиціями; за замовчуванням одна спільна (`null`). */
+  /** Компанії з документами; за замовчуванням одна спільна (`null`). */
   readonly companies?: readonly (string | null)[]
   /** Клієнти компанії з ресурсу клієнтів проекту; за замовчуванням — свої назви модуля. */
   readonly clients?: (companyId: string | null) => readonly SalesFixtureClient[]
   /** Знімки одиниць і податку з довідників компанії; за замовчуванням — свої без `id` довідника. */
   readonly dictionaries?: (companyId: string | null) => SalesFixtureDictionaries
-  /** Сьогодні: від нього дати пропозицій. Тести ставлять сталу дату. */
+  /** Сьогодні: від нього дати документів. Тести ставлять сталу дату. */
   readonly today?: CalendarDate
 }
 
-/** Скільки номерів серії `quotes` видав засів: компанія, рік дати документа, останнє значення. */
+/** Скільки номерів серії ресурсу видав засів: компанія, рік дати документа, останнє значення. */
 export interface SalesFixtureCounter {
+  readonly resource: string
   readonly companyId: string | null
   readonly year: number
   readonly value: number
@@ -52,6 +63,8 @@ export interface SalesFixtureCounter {
 
 export interface SalesFixtures {
   readonly quotes: QuoteCard[]
+  readonly orders: OrderCard[]
+  /** Лічильники серій `quotes` і `orders`. */
   readonly counters: SalesFixtureCounter[]
 }
 
@@ -61,9 +74,17 @@ export const QUOTE_NUMBER_TEMPLATE: Record<FixtureLocale, string> = {
   en: "QT-{YYYY}-{####}",
 }
 
+/** Шаблон серії замовлень мовою даних: «ЗМ-2026-0001». */
+export const ORDER_NUMBER_TEMPLATE: Record<FixtureLocale, string> = {
+  uk: "ЗМ-{YYYY}-{####}",
+  en: "SO-{YYYY}-{####}",
+}
+
 const CURRENCY = "UAH"
 /** Строк пропозиції в засіві: два тижні від дати. */
 const VALID_DAYS = 14
+/** «Виконати до» замовлення в засіві: тиждень від дати. */
+const DUE_DAYS = 7
 
 const CLIENT_NAMES: Record<FixtureLocale, readonly string[]> = {
   uk: [
@@ -134,8 +155,8 @@ const DEFAULT_DICTIONARIES: Record<FixtureLocale, SalesFixtureDictionaries> = {
   },
 }
 
-interface Seed {
-  readonly status: QuoteStatus
+interface Seed<S extends string> {
+  readonly status: S
   readonly docStatus: DocumentState
   /** Днів тому від сьогодні. */
   readonly age: number
@@ -147,8 +168,8 @@ interface Seed {
   readonly amended?: boolean
 }
 
-/** Засів компанії: усі статуси модуля, минулий строк, виправлена копія, великий документ. */
-const SEEDS: readonly Seed[] = [
+/** Засів пропозицій компанії: усі статуси модуля, минулий строк, виправлена копія, великий документ. */
+const QUOTE_SEEDS: readonly Seed<QuoteStatus>[] = [
   { status: "draft", docStatus: "draft", age: 0, items: 3 },
   { status: "draft", docStatus: "draft", age: 1, items: 14, sections: true },
   { status: "sent", docStatus: "submitted", age: 2, items: 4 },
@@ -173,6 +194,36 @@ const SEEDS: readonly Seed[] = [
   { status: "accepted", docStatus: "submitted", age: 31, items: 2 },
 ]
 
+/** Засів замовлень компанії: усі статуси модуля, прострочене, виправлена копія, великий документ. */
+const ORDER_SEEDS: readonly Seed<OrderStatus>[] = [
+  { status: "draft", docStatus: "draft", age: 0, items: 3 },
+  { status: "confirmed", docStatus: "submitted", age: 3, items: 4 },
+  { status: "confirmed", docStatus: "submitted", age: 12, items: 2 },
+  {
+    status: "completed",
+    docStatus: "submitted",
+    age: 18,
+    items: 5,
+    discountPercent: 5,
+  },
+  {
+    status: "cancelled",
+    docStatus: "cancelled",
+    age: 22,
+    items: 3,
+    amended: true,
+  },
+  { status: "draft", docStatus: "draft", age: 5, items: 3 },
+  {
+    status: "confirmed",
+    docStatus: "submitted",
+    age: 1,
+    items: 13,
+    sections: true,
+  },
+  { status: "completed", docStatus: "submitted", age: 30, items: 2 },
+]
+
 const at = <T>(list: readonly T[], index: number): T => {
   const value = list[index % list.length]
   if (value === undefined) throw new Error("B3-sales: empty fixture list")
@@ -181,7 +232,7 @@ const at = <T>(list: readonly T[], index: number): T => {
 
 /** Рядки засіву: товари по черзі, з розділами — заголовок перед кожною групою й нотатка наприкінці. */
 function linesOf(
-  seed: Seed,
+  seed: Seed<string>,
   index: number,
   locale: FixtureLocale,
   dictionaries: SalesFixtureDictionaries,
@@ -215,6 +266,106 @@ function linesOf(
   return lines
 }
 
+/** Як засіяти документи одного ресурсу: засів, префікс `id`, шаблон номера й друга дата. */
+interface DocumentSeedSpec<S extends string> {
+  readonly resource: string
+  readonly seeds: readonly Seed<S>[]
+  readonly prefix: string
+  readonly template: Record<FixtureLocale, string>
+  /** Друга дата документа від його дати: `validUntil` пропозиції, `dueDate` замовлення. */
+  readonly due: (date: CalendarDate) => Record<string, CalendarDate>
+}
+
+/** Компанія засіву: її клієнти, знімки довідників і видача номерів серій. */
+interface SeedContext {
+  readonly companyId: string | null
+  readonly owner: string
+  readonly locale: FixtureLocale
+  readonly today: CalendarDate
+  readonly names: readonly SalesFixtureClient[]
+  readonly snapshots: SalesFixtureDictionaries
+  /** Номер серії ресурсу; `null` — шаблон не дав номера. */
+  readonly issue: (
+    resource: string,
+    template: string,
+    date: CalendarDate,
+  ) => string | null
+}
+
+/**
+ * Документи одного ресурсу в компанії: від старших (номери зростають разом із датою, як їх видавав би
+ * сервер), у порядку засіву; скасований з `amended` і наступний — пара виправленої копії.
+ */
+function seedDocuments<S extends string>(
+  spec: DocumentSeedSpec<S>,
+  context: SeedContext,
+): (SalesDocument & SalesDocumentDetail)[] {
+  const order = spec.seeds
+    .map((seed, index) => ({ seed, index }))
+    .sort((a, b) => b.seed.age - a.seed.age)
+  const created = new Map<number, SalesDocument & SalesDocumentDetail>()
+  for (const { seed, index } of order) {
+    const id = `${spec.prefix}-${context.owner}-${String(index + 1).padStart(2, "0")}`
+    const date = addDays(context.today, -seed.age)
+    // Виправлена копія — для того самого клієнта, що й скасований документ.
+    const client = at(
+      context.names,
+      spec.seeds[index - 1]?.amended ? index - 1 : index,
+    )
+    const body = {
+      currency: CURRENCY,
+      lines: linesOf(seed, index, context.locale, context.snapshots, id),
+      discountPercent: seed.discountPercent ?? 0,
+      discountAmount: 0,
+    }
+    const sums = salesSumsOf(body)
+    if (!sums) throw new Error(`B3-sales: fixture ${id} does not add up`)
+    created.set(index, {
+      id,
+      version: 1,
+      companyId: context.companyId,
+      number:
+        seed.docStatus === "draft"
+          ? null
+          : context.issue(spec.resource, spec.template[context.locale], date),
+      date,
+      ...spec.due(date),
+      clientId: client.id,
+      clientName: client.name,
+      ...body,
+      ...sums,
+      status: seed.status,
+      docStatus: seed.docStatus,
+    })
+  }
+  spec.seeds.forEach((seed, index) => {
+    const original = created.get(index)
+    const copy = created.get(index + 1)
+    if (!seed.amended || !original || !copy) return
+    original.amendedBy = copy.id
+    copy.amendedFrom = original.id
+  })
+  return spec.seeds
+    .map((_, index) => created.get(index))
+    .filter((document) => document !== undefined)
+}
+
+const QUOTE_SPEC: DocumentSeedSpec<QuoteStatus> = {
+  resource: QUOTES,
+  seeds: QUOTE_SEEDS,
+  prefix: "qt",
+  template: QUOTE_NUMBER_TEMPLATE,
+  due: (date) => ({ validUntil: addDays(date, VALID_DAYS) }),
+}
+
+const ORDER_SPEC: DocumentSeedSpec<OrderStatus> = {
+  resource: ORDERS,
+  seeds: ORDER_SEEDS,
+  prefix: "so",
+  template: ORDER_NUMBER_TEMPLATE,
+  due: (date) => ({ dueDate: addDays(date, DUE_DAYS) }),
+}
+
 export function createSalesFixtures({
   locale = "uk",
   companies = [null],
@@ -223,69 +374,36 @@ export function createSalesFixtures({
   today = todayIn(),
 }: SalesFixtureOptions = {}): SalesFixtures {
   const quotes: QuoteCard[] = []
+  const orders: OrderCard[] = []
   const counters = new Map<string, SalesFixtureCounter>()
-  /** Наступний номер серії компанії за роком дати: засів іде від старших до новіших. */
-  const issue = (companyId: string | null, date: CalendarDate) => {
-    const year = Number(date.slice(0, 4))
-    const key = `${companyId ?? "-"}:${String(year)}`
-    const value = (counters.get(key)?.value ?? 0) + 1
-    counters.set(key, { companyId, year, value })
-    return formatDocumentNumber(QUOTE_NUMBER_TEMPLATE[locale], { date, value })
-  }
-  for (const companyId of companies) {
-    const names =
-      clients?.(companyId) ??
-      CLIENT_NAMES[locale].map((name, index) => ({
-        id: `client-${String(index + 1)}`,
-        name,
-      }))
-    const snapshots = dictionaries?.(companyId) ?? DEFAULT_DICTIONARIES[locale]
-    const owner = companyId ?? "shared"
-    // Від старших: номери зростають разом із датою, як їх видавав би сервер.
-    const order = SEEDS.map((seed, index) => ({ seed, index })).sort(
-      (a, b) => b.seed.age - a.seed.age,
-    )
-    const created = new Map<number, QuoteCard>()
-    for (const { seed, index } of order) {
-      const id = `qt-${owner}-${String(index + 1).padStart(2, "0")}`
-      const date = addDays(today, -seed.age)
-      // Виправлена копія — для того самого клієнта, що й скасована.
-      const client = at(names, SEEDS[index - 1]?.amended ? index - 1 : index)
-      const body = {
-        currency: CURRENCY,
-        lines: linesOf(seed, index, locale, snapshots, id),
-        discountPercent: seed.discountPercent ?? 0,
-        discountAmount: 0,
-      }
-      const sums = quoteSumsOf(body)
-      if (!sums) throw new Error(`B3-sales: fixture ${id} does not add up`)
-      created.set(index, {
-        id,
-        version: 1,
-        companyId,
-        number: seed.docStatus === "draft" ? null : issue(companyId, date),
-        date,
-        validUntil: addDays(date, VALID_DAYS),
-        clientId: client.id,
-        clientName: client.name,
-        ...body,
-        ...sums,
-        status: seed.status,
-        docStatus: seed.docStatus,
-      })
+  /** Наступний номер серії ресурсу в компанії за роком дати: засів іде від старших до новіших. */
+  const issueFor =
+    (companyId: string | null) =>
+    (resource: string, template: string, date: CalendarDate) => {
+      const year = Number(date.slice(0, 4))
+      const key = `${resource}:${companyId ?? "-"}:${String(year)}`
+      const value = (counters.get(key)?.value ?? 0) + 1
+      counters.set(key, { resource, companyId, year, value })
+      return formatDocumentNumber(template, { date, value })
     }
-    SEEDS.forEach((seed, index) => {
-      const quote = created.get(index)
-      const copy = created.get(index + 1)
-      if (!seed.amended || !quote || !copy) return
-      quote.amendedBy = copy.id
-      copy.amendedFrom = quote.id
-    })
-    quotes.push(
-      ...SEEDS.map((_, index) => created.get(index)).filter(
-        (quote): quote is QuoteCard => quote !== undefined,
-      ),
-    )
+  for (const companyId of companies) {
+    const context: SeedContext = {
+      companyId,
+      owner: companyId ?? "shared",
+      locale,
+      today,
+      names:
+        clients?.(companyId) ??
+        CLIENT_NAMES[locale].map((name, index) => ({
+          id: `client-${String(index + 1)}`,
+          name,
+        })),
+      snapshots: dictionaries?.(companyId) ?? DEFAULT_DICTIONARIES[locale],
+      issue: issueFor(companyId),
+    }
+    // Засів дає саме ці поля другої дати: `due` специфікації ресурсу.
+    quotes.push(...(seedDocuments(QUOTE_SPEC, context) as QuoteCard[]))
+    orders.push(...(seedDocuments(ORDER_SPEC, context) as OrderCard[]))
   }
-  return { quotes, counters: [...counters.values()] }
+  return { quotes, orders, counters: [...counters.values()] }
 }

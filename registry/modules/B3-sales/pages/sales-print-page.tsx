@@ -13,14 +13,15 @@ import { usePageHeading } from "@/hooks/use-page-heading"
 import { errorStateKind, isApiError } from "@/lib/api"
 import { toLanguage, useLanguage } from "@/lib/i18n"
 
-import { useQuoteTitle } from "../components/quote-display"
-import { useQuoteDetail } from "../components/quote-lines"
-import { QUOTE_SHEET_TITLES, QuoteSheet } from "../components/quote-sheet"
-import { QUOTES, type Quote, type QuoteDetail } from "../contract"
+import { useSalesTitle } from "../components/sales-display"
+import { useSalesDetail } from "../components/sales-lines"
+import { SalesSheet } from "../components/sales-sheet"
+import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
+import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
-/** Стан аркуша: «не знайдено», помилка чи завантаження пропозиції й компанії. */
+/** Стан аркуша: «не знайдено», помилка чи завантаження документа й компанії. */
 function stateOf(
   failure: unknown,
   isLoading: boolean,
@@ -30,39 +31,69 @@ function stateOf(
   return isLoading ? "loading" : undefined
 }
 
+/** Друк пропозиції (ADR-0065). */
+export function QuotePrintPage() {
+  return <SalesPrintPage kind={QUOTE_KIND} />
+}
+
+/** Друк замовлення (ADR-0067). */
+export function OrderPrintPage() {
+  return <SalesPrintPage kind={ORDER_KIND} />
+}
+
 /**
- * Друк пропозиції (PF08, ADR-0062): окрема сторінка картки з одним аркушем A4 мовою документа
+ * Друк документа продажу (PF08, ADR-0062): окрема сторінка картки з одним аркушем A4 мовою документа
  * (`company.language`), «Друкувати» — діалог друку браузера, PDF — «Зберегти як PDF».
  */
-export function QuotePrintPage() {
+function SalesPrintPage<D extends SalesDocument, Due extends string>({
+  kind,
+}: {
+  kind: SalesDocumentKind<D, Due>
+}) {
   const { id = "" } = useParams()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
-  return isPending ? <PageSkeleton rows={6} /> : <QuotePrint key={id} id={id} />
+  return isPending ? (
+    <PageSkeleton rows={6} />
+  ) : (
+    <SalesPrint key={id} kind={kind} id={id} />
+  )
 }
 
-function QuotePrint({ id }: { id: string }) {
+function SalesPrint<D extends SalesDocument, Due extends string>({
+  kind,
+  id,
+}: {
+  kind: SalesDocumentKind<D, Due>
+  id: string
+}) {
   const t = useSalesT()
-  const titleOf = useQuoteTitle()
+  const titleOf = useSalesTitle(kind)
   const ui = useLanguage()
   const { paths } = useSalesModule()
-  const card = useCardRecord<Quote & Partial<QuoteDetail>>(QUOTES, id)
+  const { record, form } = kind.keys
+  const card = useCardRecord<D & Partial<SalesDocumentDetail>>(
+    kind.resource,
+    id,
+  )
   const company = useCompanyProfile()
-  const quote = card.record
-  const detail = useQuoteDetail(quote)
+  const document = card.record
+  const detail = useSalesDetail(document)
   const language = company.data?.language ?? ui.language
-  const isReady = Boolean(quote && detail?.success && company.data)
+  const isReady = Boolean(document && detail?.success && company.data)
   // Рядки не за контрактом чи картка без рядків — помилка даних, а не вічне завантаження.
   const invalid =
     detail?.error ??
-    (quote && !detail && !card.isFetching ? new Error("no lines") : undefined)
+    (document && !detail && !card.isFetching
+      ? new Error("no lines")
+      : undefined)
   const state = stateOf(
     card.pageError ?? card.failure ?? invalid ?? company.error,
     !isReady,
   )
   // Вкладка й фокус після переходу — як на картці: «Друк: Пропозиція КП-2026-0001».
-  const pageTitle = t("quote.printTitle", {
-    title: quote ? titleOf(quote) : t("quote.title"),
+  const pageTitle = t(`${record}.printTitle`, {
+    title: document ? titleOf(document) : t(`${record}.title`),
   })
   const heading = usePageHeading(
     pageTitle,
@@ -74,18 +105,24 @@ function QuotePrint({ id }: { id: string }) {
         {pageTitle}
       </h1>
       <PrintPreview
-        title={`${QUOTE_SHEET_TITLES[toLanguage(language)]} ${quote?.number ?? ""}`.trim()}
+        title={`${kind.sheet.title[toLanguage(language)]} ${document?.number ?? ""}`.trim()}
         language={language}
         state={state}
         onRetry={() => {
           card.retry()
           void company.refetch()
         }}
-        actions={<BackToList to={paths.quote(id)} label={t("form.back")} />}
+        actions={
+          <BackToList
+            to={kind.pathsOf(paths).record(id)}
+            label={t(`${form}.back`)}
+          />
+        }
       >
-        {quote && detail?.success && company.data ? (
-          <QuoteSheet
-            quote={quote}
+        {document && detail?.success && company.data ? (
+          <SalesSheet
+            kind={kind}
+            document={document}
             detail={detail.data}
             company={company.data}
           />

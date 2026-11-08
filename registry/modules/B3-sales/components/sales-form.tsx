@@ -27,71 +27,77 @@ import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
 
-import { QUOTES, quoteCardSchemaFor, type QuoteCard } from "../contract"
-import type { QuoteFormFieldId } from "../extension"
+import type { SalesDocument, SalesDocumentDetail } from "../contract"
+import type { SalesDocumentIds } from "../extension"
 import { useSalesModule } from "../module-context"
+import type { SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 import { useLineDictionaries } from "./line-dictionaries"
-import { useQuoteHeaderItems, type QuoteFormValues } from "./quote-form-items"
+import { useSalesHeaderItems, type SalesFormValues } from "./sales-form-items"
 
-/** Строк нової пропозиції: два тижні від сьогодні. */
-const NEW_VALID_DAYS = 14
-/** Поля шапки модуля: їх надсилає форма; рядки — усім масивом, суми рахує сервер. */
+/** Поля шапки модуля, крім другої дати: їх надсилає форма; рядки — усім масивом, суми рахує сервер. */
 const HEADER_FIELDS = [
   "clientId",
   "clientName",
   "date",
-  "validUntil",
   "discountPercent",
   "discountAmount",
 ] as const
 
-function useQuoteFormSchema(currency: string, extensionShape: z.ZodRawShape) {
-  const t = useSalesT()
+function useSalesFormSchema(
+  due: { readonly field: string; readonly before: string },
+  currency: string,
+  extensionShape: z.ZodRawShape,
+) {
   const kitT = useErpUiT()
   const lines = useDocumentLinesSchema(currency)
   return useMemo(() => {
     const required = kitT("validation.required")
     const day = z.string().refine(isCalendarDate, required)
+    // Ключ другої дати відомий лише під час виконання: разом із полями розширення, як `ZodRawShape`,
+    // інакше тип схеми загубив би поля рядків.
+    const extra: z.ZodRawShape = { [due.field]: day, ...extensionShape }
     return lines
       .safeExtend({
         clientId: z.string().min(1, required),
         clientName: z.string(),
         date: day,
-        validUntil: day,
-        ...extensionShape,
+        ...extra,
       })
       .superRefine((values, context) => {
+        const dueDate: unknown = (values as Record<string, unknown>)[due.field]
         if (
           isCalendarDate(values.date) &&
-          isCalendarDate(values.validUntil) &&
-          values.validUntil < values.date
+          typeof dueDate === "string" &&
+          isCalendarDate(dueDate) &&
+          dueDate < values.date
         )
           context.addIssue({
             code: "custom",
-            path: ["validUntil"],
-            message: t("form.validUntilBefore"),
+            path: [due.field],
+            message: due.before,
           })
       })
-  }, [t, kitT, lines, extensionShape])
+  }, [kitT, lines, extensionShape, due.field, due.before])
 }
 
 /** Значення для запиту: створення — усі поля й валюта, зміна — змінені поля шапки й рядки цілком. */
-function payloadOf(
-  values: QuoteFormValues,
-  keys: readonly Path<QuoteFormValues>[],
-  ext: ExtensionFormApi<QuoteFormFieldId>,
+function payloadOf<Due extends string>(
+  dueField: Due,
+  values: SalesFormValues,
+  keys: readonly Path<SalesFormValues>[],
+  ext: ExtensionFormApi<SalesDocumentIds<Due>["formField"]>,
   currency: string | null,
 ) {
   const changed = new Set<string>(keys)
   // Знімок назви — лише разом із клієнтом (ADR-0056): той самий клієнт, вибраний знову після перейменування.
   if (changed.has("clientName")) changed.add("clientId")
+  const fields: readonly string[] = [...HEADER_FIELDS, dueField]
   return {
     ...Object.fromEntries(
-      HEADER_FIELDS.filter((key) => changed.has(key)).map((key) => [
-        key,
-        values[key],
-      ]),
+      fields
+        .filter((key) => changed.has(key))
+        .map((key): [string, unknown] => [key, values[key]]),
     ),
     ...(changed.has("lines") ? { lines: values.lines } : {}),
     ...ext.payload(values, keys),
@@ -99,13 +105,14 @@ function payloadOf(
   }
 }
 
-export interface QuoteFormProps {
-  /** Пропозиція, яку змінюємо; без неї — створення. */
-  readonly quote?: QuoteCard
-  /** Валюта пропозиції: базова валюта компанії на момент створення. */
+export interface SalesFormProps<D extends SalesDocument, Due extends string> {
+  readonly kind: SalesDocumentKind<D, Due>
+  /** Документ, який змінюємо; без нього — створення. */
+  readonly document?: D & SalesDocumentDetail
+  /** Валюта документа: базова валюта компанії на момент створення. */
   readonly currency: string
   readonly readOnly: boolean
-  /** Чому лише для читання: надіслана, без права, редагує інша людина. */
+  /** Чому лише для читання: проведений, без права, редагує інша людина. */
   readonly readOnlyReason?: string | undefined
   /**
    * Зміну дозволено (право й позначка запису): довідники рядків вантажаться одразу, навіть поки форма
@@ -115,117 +122,125 @@ export interface QuoteFormProps {
 }
 
 /**
- * Форма пропозиції на сторінці (SPEC §7; ADR-0047, ADR-0059): шапка, рядки з розділами й нотатками,
- * знижка документа й підсумки, липка панель збереження. Створення — `POST`, зміна — `PATCH` змінених
- * полів з `version`; конфлікт 409 — порівняння, 422 — помилки біля полів і рядків. Після збереження —
- * картка пропозиції.
+ * Форма документа продажу на сторінці (SPEC §7; ADR-0047, ADR-0059): шапка, рядки з розділами й
+ * нотатками, знижка документа й підсумки, липка панель збереження. Створення — `POST`, зміна — `PATCH`
+ * змінених полів з `version`; конфлікт 409 — порівняння, 422 — помилки біля полів і рядків. Після
+ * збереження — картка документа.
  */
-export function QuoteForm({
-  quote,
+export function SalesForm<D extends SalesDocument, Due extends string>({
+  kind,
+  document,
   currency,
   readOnly,
   readOnlyReason,
   mayEdit,
-}: QuoteFormProps) {
+}: SalesFormProps<D, Due>) {
   const t = useSalesT()
   const navigate = useNavigate()
   const { timeZone } = useFormat()
   const { extension, paths } = useSalesModule()
-  const ext = useExtensionForm<QuoteFormFieldId>(
-    extension.quotes?.fields,
-    extension.quotes?.form,
+  const documentExtension = kind.extensionOf(extension)
+  const ext = useExtensionForm<SalesDocumentIds<Due>["formField"]>(
+    documentExtension?.fields,
+    documentExtension?.form,
   )
-  const schema = useQuoteFormSchema(currency, ext.shape)
+  const dueField = kind.due.field
+  const before = t(kind.due.before)
+  const due = useMemo(() => ({ field: dueField, before }), [dueField, before])
+  const schema = useSalesFormSchema(due, currency, ext.shape)
   const recordSchema = useMemo(
-    () => quoteCardSchemaFor(extension.quotes),
-    [extension.quotes],
+    () => kind.cardSchemaFor(documentExtension),
+    [kind, documentExtension],
   )
   const toValues = useCallback(
-    (record: QuoteCard): QuoteFormValues => ({
+    (record: D & SalesDocumentDetail): SalesFormValues => ({
       clientId: record.clientId,
       clientName: record.clientName,
       date: record.date,
-      validUntil: record.validUntil,
+      [dueField]: kind.dueOf(record),
       lines: record.lines,
       discountPercent: record.discountPercent,
       discountAmount: record.discountAmount,
       ...ext.values(record),
     }),
-    [ext],
+    [ext, kind, dueField],
   )
   // Початкові значення беруться раз: далі форма живе своїм станом (`followRecord`).
-  const [defaultValues] = useState<QuoteFormValues>(() => {
+  const [defaultValues] = useState<SalesFormValues>(() => {
     const today = todayIn(timeZone)
-    return quote
-      ? toValues(quote)
+    return document
+      ? toValues(document)
       : {
           clientId: "",
           clientName: "",
           date: today,
-          validUntil: addDays(today, NEW_VALID_DAYS),
+          [dueField]: addDays(today, kind.due.newDays),
           lines: [],
           discountPercent: 0,
           discountAmount: 0,
           ...ext.values(),
         }
   })
-  const state = useRecordForm<QuoteFormValues, QuoteCard>({
-    resource: QUOTES,
-    record: quote,
+  const { form: keys } = kind.keys
+  const documentPaths = kind.pathsOf(paths)
+  const state = useRecordForm<SalesFormValues, D & SalesDocumentDetail>({
+    resource: kind.resource,
+    record: document,
     followRecord: true,
     schema,
     defaultValues,
     recordSchema,
-    toPayload: (values, keys) =>
-      payloadOf(values, keys, ext, quote ? null : currency),
+    toPayload: (values, changed) =>
+      payloadOf(dueField, values, changed, ext, document ? null : currency),
     serverErrorText: (field, code) =>
-      field === "validUntil" && code === "before_date"
-        ? t("form.validUntilBefore")
-        : undefined,
+      field === dueField && code === "before_date" ? before : undefined,
     toValues,
     onSaved: (saved) => {
-      toast.success(t(quote ? "form.saved" : "form.created"))
-      void navigate(paths.quote(saved.id))
+      toast.success(t(document ? `${keys}.saved` : `${keys}.created`))
+      void navigate(documentPaths.record(saved.id))
     },
     onUnchanged: () => {
-      if (quote) void navigate(paths.quote(quote.id))
+      if (document) void navigate(documentPaths.record(document.id))
     },
   })
-  const moduleItems = useQuoteHeaderItems(state.form, readOnly)
+  const moduleItems = useSalesHeaderItems(kind, state.form, readOnly)
   const { control } = state.form
   const header = useMemo(
     () => applyKeyedChanges(moduleItems, ext.items(control, { readOnly })),
     [moduleItems, ext, control, readOnly],
   )
   return (
-    <QuoteFormView
+    <SalesFormView
+      formKey={keys}
       state={state}
       header={header}
       currency={currency}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
       mayEdit={mayEdit}
-      quote={quote}
+      document={document}
     />
   )
 }
 
-function QuoteFormView({
+function SalesFormView({
+  formKey,
   state,
   header,
   currency,
   readOnly,
   readOnlyReason,
   mayEdit,
-  quote,
+  document,
 }: {
-  state: RecordFormState<QuoteFormValues>
+  formKey: SalesDocumentKind<SalesDocument, string>["keys"]["form"]
+  state: RecordFormState<SalesFormValues>
   header: readonly RecordFormItem[]
   currency: string
   readOnly: boolean
   readOnlyReason: string | undefined
   mayEdit: boolean
-  quote: QuoteCard | undefined
+  document: SalesDocumentDetail | undefined
 }) {
   const t = useSalesT()
   const kitT = useErpUiT()
@@ -239,12 +254,12 @@ function QuoteFormView({
       label: kitT("documentLines.label"),
       text: (lines) =>
         Array.isArray(lines)
-          ? t("form.linesCount", { count: lines.length })
+          ? t(`${formKey}.linesCount`, { count: lines.length })
           : null,
       render: () => null,
     }
     return [...header, linesItem]
-  }, [header, t, kitT])
+  }, [header, t, kitT, formKey])
   const labels = useMemo(
     (): Readonly<Record<string, string>> => ({
       ...Object.fromEntries(items.map((item) => [item.id, item.label])),
@@ -258,7 +273,7 @@ function QuoteFormView({
   return (
     <form
       noValidate
-      data-slot="quote-form"
+      data-slot="sales-form"
       onSubmit={(event) => void state.submit(event)}
       aria-busy={state.isSaving || undefined}
       className="grid gap-6"
@@ -297,7 +312,7 @@ function QuoteFormView({
           item={lineItem}
           newLine={dictionaries.newLine}
           readOnly={readOnly}
-          savedTotals={readOnly ? quote?.totals : undefined}
+          savedTotals={readOnly ? document?.totals : undefined}
         />
       )}
       {readOnly ? null : (

@@ -26,6 +26,7 @@ import {
 } from "@/registry/lib/mocks"
 import { createSalesModule, SALES_MODULE_ID } from "@/registry/modules/B3-sales"
 import {
+  ORDERS,
   QUOTE_STATUSES,
   QUOTES,
   quoteCardSchemaFor,
@@ -39,7 +40,10 @@ import {
 
 import { salesMockExtension } from "@/extensions/B3-sales-fields"
 
-/** Модуль B3, частина «Пропозиції» (ADR-0065): фабрика, фікстури, контракт, дії графа й сценарії. */
+/**
+ * Модуль B3, частина «Пропозиції» (ADR-0065): фабрика, фікстури, контракт, дії графа й сценарії.
+ * Замовлення — `orders-module.test.ts`.
+ */
 const BASE = "http://erp-sales.test/api/v1"
 const COMPANY = "c1"
 const OTHER = "c2"
@@ -138,7 +142,7 @@ const draft = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe("модуль B3: фабрика", () => {
-  it("адреси від basePath, сторінки списку, форми, картки й друку, пункт навігації з правом", () => {
+  it("адреси від basePath, сторінки списку, форми, картки й друку обох документів, пункти навігації з правом", () => {
     const module = createSalesModule({ basePath: "/sales/" })
     expect(module.id).toBe(SALES_MODULE_ID)
     expect(module.paths.editQuote("q1")).toBe("/sales/quotes/q1/edit")
@@ -149,13 +153,24 @@ describe("модуль B3: фабрика", () => {
       "/sales/quotes/:id",
       "/sales/quotes/:id/edit",
       "/sales/quotes/:id/print",
+      "/sales/orders",
+      "/sales/orders/new",
+      "/sales/orders/:id",
+      "/sales/orders/:id/edit",
+      "/sales/orders/:id/print",
       "/sales/",
     ])
+    expect(module.paths.printOrder("o1")).toBe("/sales/orders/o1/print")
     expect(module.nav).toEqual([
       expect.objectContaining({
         id: "B3-quotes",
         href: "/sales/quotes",
         access: { resource: QUOTES, action: "read" },
+      }),
+      expect.objectContaining({
+        id: "B3-orders",
+        href: "/sales/orders",
+        access: { resource: ORDERS, action: "read" },
       }),
     ])
     expect(
@@ -173,7 +188,7 @@ describe("модуль B3: фабрика", () => {
 
   it("без basePath — адреси від кореня й без переходу з адреси модуля", () => {
     const module = createSalesModule()
-    expect(module.routes).toHaveLength(5)
+    expect(module.routes).toHaveLength(10)
     expect(module.routes[0]?.path).toBe("/quotes")
   })
 })
@@ -210,6 +225,7 @@ describe("модуль B3: фікстури", () => {
       ),
     )
     expect(counters).toContainEqual({
+      resource: QUOTES,
       companyId: COMPANY,
       year: 2026,
       value: numbered.length,
@@ -241,13 +257,15 @@ describe("модуль B3: фікстури", () => {
     expect(english.quotes[0]?.clientName).toMatch(/[A-Za-z]/)
   })
 
-  it("засів серії: шаблон у кожній компанії й лічильники фікстур", () => {
+  it("засів серій: шаблони пропозицій і замовлень у кожній компанії й лічильники фікстур", () => {
     expect(seeds.series).toEqual([
       { companyId: COMPANY, resource: QUOTES, template: "КП-{YYYY}-{####}" },
       { companyId: OTHER, resource: QUOTES, template: "КП-{YYYY}-{####}" },
+      { companyId: COMPANY, resource: ORDERS, template: "ЗМ-{YYYY}-{####}" },
+      { companyId: OTHER, resource: ORDERS, template: "ЗМ-{YYYY}-{####}" },
     ])
-    expect(seeds.counters.every((counter) => counter.resource === QUOTES)).toBe(
-      true,
+    expect(new Set(seeds.counters.map((counter) => counter.resource))).toEqual(
+      new Set([QUOTES, ORDERS]),
     )
   })
 })

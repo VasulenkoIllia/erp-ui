@@ -10,20 +10,26 @@ import type { DocumentLinesValues } from "@/components/erp/document-lines-schema
 import { useCompanyId } from "@/hooks/use-company"
 import { companyScope } from "@/lib/company-scope"
 
-import type { QuoteFormFieldId } from "../extension"
+import type { SalesDocument } from "../contract"
+import type { SalesDocumentIds } from "../extension"
 import { useSalesModule, type SalesClients } from "../module-context"
+import type { SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
-/** Значення форми пропозиції: шапка, рядки й знижка документа, поля розширення. */
-export type QuoteFormValues = DocumentLinesValues & {
+/**
+ * Значення форми документа продажу: шапка, рядки й знижка документа, поля розширення; друга дата —
+ * під ключем свого поля (`validUntil`, `dueDate`).
+ */
+export type SalesFormValues = DocumentLinesValues & {
   clientId: string
   /** Знімок назви клієнта (ADR-0056): його надсилає форма разом із `clientId`. */
   clientName: string
   date: string
-  validUntil: string
 } & Record<string, unknown>
 
-type QuoteFormItem = RecordFormItem & { id: QuoteFormFieldId }
+type SalesFormItem<Due extends string> = RecordFormItem & {
+  id: SalesDocumentIds<Due>["formField"]
+}
 
 const textOf = (record: RaRecord, field: string | undefined) => {
   const value: unknown = field ? record[field] : undefined
@@ -44,33 +50,40 @@ function ClientName({ id }: { id: string }) {
 }
 
 /**
- * Поля шапки пропозиції: клієнт (вибір із ресурсу клієнтів проекту з пошуком на сервері), дата й «Дійсна
- * до». Ключі — `QuoteFormFieldId`: розширення ховає, переносить і підписує їх без заміни.
+ * Поля шапки документа продажу: клієнт (вибір із ресурсу клієнтів проекту з пошуком на сервері), дата
+ * й друга дата («Дійсна до», «Виконати до»). Ключі — `SalesDocumentIds["formField"]`: розширення
+ * ховає, переносить і підписує їх без заміни.
  */
-export function useQuoteHeaderItems(
-  form: UseFormReturn<QuoteFormValues>,
+export function useSalesHeaderItems<
+  D extends SalesDocument,
+  Due extends string,
+>(
+  kind: SalesDocumentKind<D, Due>,
+  form: UseFormReturn<SalesFormValues>,
   readOnly: boolean,
-): QuoteFormItem[] {
+): SalesFormItem<Due>[] {
   const t = useSalesT()
   const { clients } = useSalesModule()
   return useMemo(
-    () => headerItems(form, readOnly, clients, t),
-    [form, readOnly, clients, t],
+    () => headerItems(kind, form, readOnly, clients, t),
+    [kind, form, readOnly, clients, t],
   )
 }
 
-function headerItems(
-  form: UseFormReturn<QuoteFormValues>,
+function headerItems<D extends SalesDocument, Due extends string>(
+  kind: SalesDocumentKind<D, Due>,
+  form: UseFormReturn<SalesFormValues>,
   readOnly: boolean,
   clients: SalesClients,
   t: ReturnType<typeof useSalesT>,
-): QuoteFormItem[] {
+): SalesFormItem<Due>[] {
   const { control, setValue } = form
   const label = clientLabel(clients)
+  const keys = kind.keys.form
   return [
     {
       id: "clientId",
-      label: t("form.fields.clientId"),
+      label: t(`${keys}.fields.clientId`),
       text: (id) =>
         typeof id === "string" && id ? <ClientName id={id} /> : null,
       render: (props) => (
@@ -97,9 +110,9 @@ function headerItems(
               optionDescription={(record) =>
                 textOf(record, clients.descriptionField)
               }
-              searchPlaceholder={t("form.clientSearch")}
+              searchPlaceholder={t(`${keys}.clientSearch`)}
               missingLabel={
-                form.getValues("clientName") || t("form.clientMissing")
+                form.getValues("clientName") || t(`${keys}.clientMissing`)
               }
               required
               readOnly={readOnly}
@@ -110,7 +123,7 @@ function headerItems(
     },
     {
       id: "date",
-      label: t("form.fields.date"),
+      label: t(`${keys}.fields.date`),
       render: (props) => (
         <FormField
           {...props}
@@ -130,18 +143,18 @@ function headerItems(
       ),
     },
     {
-      id: "validUntil",
-      label: t("form.fields.validUntil"),
+      id: kind.due.field,
+      label: t(kind.due.formLabel),
       render: (props) => (
         <FormField
           {...props}
           control={control}
-          name="validUntil"
+          name={kind.due.field}
           render={({ field, control: aria }) => (
             <DateInput
               {...aria}
               ref={field.ref}
-              value={field.value}
+              value={typeof field.value === "string" ? field.value : ""}
               onValueChange={field.onChange}
               onBlur={field.onBlur}
               readOnly={readOnly}

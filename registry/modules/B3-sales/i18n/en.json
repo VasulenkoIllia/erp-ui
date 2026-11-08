@@ -149,5 +149,161 @@
     "saved": "Changes saved",
     "linesCount_one": "{{count}} line",
     "linesCount_other": "{{count}} lines"
+  },
+  "orders": {
+    "title": "Orders",
+    "lead": "Client orders: drafts, confirmed and completed orders. An order gets its number when it is confirmed.",
+    "create": "Create order",
+    "createDenied": "You are not allowed to create orders",
+    "search": "Number or client",
+    "tabsLabel": "Order statuses",
+    "tableLabel": "Orders",
+    "count_one": "{{value}} order",
+    "count_other": "{{value}} orders",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "status": "Status",
+      "date": "Date",
+      "dueDate": "Due by",
+      "total": "Total"
+    },
+    "filters": {
+      "clientId": "Client",
+      "date": "Date"
+    },
+    "empty": {
+      "title": "No orders yet",
+      "description": "Create the first client order: lines, discounts and totals, then confirm it."
+    },
+    "bulk": {
+      "rowLabel": "order {{number}}",
+      "rowLabelDraft": "draft for {{client}} of {{date}}",
+      "submit": {
+        "title_one": "Confirm {{value}} order?",
+        "title_other": "Confirm {{value}} orders?",
+        "description": "Only drafts are confirmed: each gets a number and can no longer be changed. Orders in other statuses stay as they are, the report lists them with the reason.",
+        "confirm_one": "Confirm {{value}} order",
+        "confirm_other": "Confirm {{value}} orders",
+        "denied": "You are not allowed to confirm orders",
+        "progress": "Confirming orders",
+        "done": "Orders confirmed: {{value}}",
+        "partial": "Confirmed {{done}} of {{total}}, not confirmed: {{failed}}",
+        "notAllowed": "Only a draft can be confirmed"
+      },
+      "complete": {
+        "title_one": "Mark {{value}} order as completed?",
+        "title_other": "Mark {{value}} orders as completed?",
+        "description": "Only confirmed orders are marked as completed. Drafts, completed and cancelled orders stay as they are, the report lists them with the reason.",
+        "confirm_one": "Mark {{value}} order as completed",
+        "confirm_other": "Mark {{value}} orders as completed",
+        "denied": "You are not allowed to mark orders as completed",
+        "progress": "Marking orders as completed",
+        "done": "Orders completed: {{value}}",
+        "partial": "Marked {{done}} of {{total}}, not marked: {{failed}}",
+        "notAllowed": "Only a confirmed order can be marked as completed"
+      },
+      "cancel": {
+        "title_one": "Cancel {{value}} order?",
+        "title_other": "Cancel {{value}} orders?",
+        "description": "The orders become void but stay in the list. One reason for all, it shows in the history of each. Drafts are not cancelled but deleted.",
+        "confirm_one": "Cancel {{value}} order",
+        "confirm_other": "Cancel {{value}} orders",
+        "denied": "You are not allowed to cancel orders",
+        "progress": "Cancelling orders",
+        "done": "Orders cancelled: {{value}}",
+        "partial": "Cancelled {{done}} of {{total}}, not cancelled: {{failed}}",
+        "notAllowed": "Only a confirmed or completed order can be cancelled: a draft is deleted, a cancelled one is already cancelled"
+      },
+      "delete": {
+        "button": "Delete",
+        "title_one": "Delete {{value}} order?",
+        "title_other": "Delete {{value}} orders?",
+        "description": "Only drafts without a number are deleted, for good. A confirmed order is not deleted but cancelled: such orders stay, the report lists them with the reason.",
+        "confirm_one": "Delete {{value}} order",
+        "confirm_other": "Delete {{value}} orders",
+        "progress": "Deleting drafts",
+        "done": "Drafts deleted: {{value}}",
+        "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
+      }
+    }
+  },
+  "order": {
+    "title": "Order",
+    "titleNumber": "Order {{number}}",
+    "titleDraft": "Order without a number",
+    "back": "Back to orders",
+    "statuses": {
+      "draft": "Draft",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "submit": "Confirm",
+      "complete": "Mark as completed"
+    },
+    "confirm": {
+      "submit": {
+        "title": "Confirm the order?",
+        "description": "The order gets a number and can no longer be changed. A mistake is fixed by cancelling it and making a new copy.",
+        "action": "Confirm order"
+      }
+    },
+    "fields": {
+      "client": "Client",
+      "date": "Date",
+      "dueDate": "Due by",
+      "total": "Total",
+      "status": "Status"
+    },
+    "overdue": "Overdue",
+    "edit": "Edit",
+    "editDenied": "You are not allowed to change orders",
+    "locked": {
+      "submitted": "A confirmed order is not changed: cancel it and make a corrected copy",
+      "cancelled": "A cancelled order is not changed: make a corrected copy"
+    },
+    "delete": {
+      "button": "Delete draft",
+      "denied": "You are not allowed to delete orders",
+      "title": "Delete the draft?",
+      "description": "The draft is deleted for good with its lines. It has no number yet, so numbering does not change.",
+      "descriptionAmended": "The draft is deleted for good with its lines. The cancelled order it was made from can be corrected again.",
+      "confirm": "Delete draft",
+      "done": "Draft deleted",
+      "locked": {
+        "submitted": "A confirmed order is not deleted: cancel it",
+        "cancelled": "A cancelled order is not deleted: it stays in the history"
+      }
+    },
+    "print": "Print",
+    "printTitle": "Print: {{title}}",
+    "steps": "Order stages",
+    "sections": {
+      "lines": "Lines"
+    },
+    "history": "History",
+    "linesInvalid": "Could not show the order lines"
+  },
+  "orderForm": {
+    "createTitle": "New order",
+    "editTitle": "Edit: {{title}}",
+    "back": "Back to the order",
+    "fields": {
+      "clientId": "Client",
+      "date": "Date",
+      "dueDate": "Due by"
+    },
+    "clientSearch": "Client name or code",
+    "clientMissing": "Client is not available",
+    "dueDateBefore": "Not earlier than the order date",
+    "created": "Order created",
+    "saved": "Changes saved",
+    "linesCount_one": "{{count}} line",
+    "linesCount_other": "{{count}} lines"
   }
 }

@@ -1,6 +1,6 @@
 /**
- * Модуль B3 «Пропозиції й замовлення» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0065) — точка входу.
- * Перша частина — пропозиції; замовлення додає крок `B3b`.
+ * Модуль B3 «Пропозиції й замовлення» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0065, ADR-0067) — точка
+ * входу: розділи «Пропозиції» й «Замовлення».
  *
  *   const salesModule = createSalesModule({
  *     basePath: "/sales",
@@ -33,9 +33,22 @@ import {
   type SalesModuleContextValue,
   type SalesPaths,
 } from "./module-context"
-import { QUOTES, SALES_RESOURCES, type SalesResource } from "./resources"
+import {
+  ORDERS,
+  QUOTES,
+  SALES_RESOURCES,
+  type SalesResource,
+} from "./resources"
 
 export type {
+  OrderActionId,
+  OrderColumnId,
+  OrderFieldId,
+  OrderFilterId,
+  OrderFormFieldId,
+  OrderSectionId,
+  OrdersExtension,
+  OrderTabId,
   QuoteActionId,
   QuoteColumnId,
   QuoteFieldId,
@@ -44,6 +57,8 @@ export type {
   QuoteSectionId,
   QuotesExtension,
   QuoteTabId,
+  SalesDocumentExtension,
+  SalesDocumentIds,
   SalesExtension,
   SalesMessages,
   SalesMockExtension,
@@ -52,11 +67,17 @@ export type { SalesClients, SalesPaths } from "./module-context"
 export type { SalesResource } from "./resources"
 // Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
 export type {
+  Order,
+  OrderCard,
+  OrderDetail,
+  OrderStatus,
+  OrderTransitionId,
   Quote,
   QuoteCard,
   QuoteDetail,
   QuoteStatus,
   QuoteTransitionId,
+  SalesDocument,
 } from "./contract"
 export type { ExtensionField } from "@/lib/extension-fields"
 
@@ -89,7 +110,7 @@ export interface SalesModuleOptions<TItem extends RaRecord = RaRecord> {
   /** Розширення проекту (ADR-0020). */
   readonly extension?: SalesExtension
   /**
-   * Клієнти пропозицій: ресурс із назвою (за замовчуванням `organizations` модуля B1) і адреса картки
+   * Клієнти пропозицій і замовлень: ресурс із назвою (за замовчуванням `organizations` модуля B1) і адреса картки
    * клієнта (`contactsModule.paths.organization`). Модуль не імпортує інший модуль: лише назви ресурсів
    * і шляхи.
    */
@@ -104,38 +125,64 @@ const DEFAULT_CLIENTS: SalesClients = {
   descriptionField: "code",
 }
 
+// Пропозиції й замовлення — ті самі чанки: сторінки спільні, різниця — в описі документа.
+const listPage = () => import("./pages/sales-list-page")
+const recordPage = () => import("./pages/sales-record-page")
+const formPage = () => import("./pages/sales-form-page")
+const printPage = () => import("./pages/sales-print-page")
+
 const PAGES = {
-  quotes: lazyWithPreload(() =>
-    import("./pages/quotes-list-page").then((m) => m.QuotesListPage),
-  ),
-  quote: lazyWithPreload(() =>
-    import("./pages/quote-page").then((m) => m.QuotePage),
-  ),
-  form: lazyWithPreload(() =>
-    import("./pages/quote-form-page").then((m) => m.QuoteFormPage),
-  ),
-  print: lazyWithPreload(() =>
-    import("./pages/quote-print-page").then((m) => m.QuotePrintPage),
-  ),
+  quotes: lazyWithPreload(() => listPage().then((m) => m.QuotesListPage)),
+  quote: lazyWithPreload(() => recordPage().then((m) => m.QuotePage)),
+  quoteForm: lazyWithPreload(() => formPage().then((m) => m.QuoteFormPage)),
+  quotePrint: lazyWithPreload(() => printPage().then((m) => m.QuotePrintPage)),
+  orders: lazyWithPreload(() => listPage().then((m) => m.OrdersListPage)),
+  order: lazyWithPreload(() => recordPage().then((m) => m.OrderPage)),
+  orderForm: lazyWithPreload(() => formPage().then((m) => m.OrderFormPage)),
+  orderPrint: lazyWithPreload(() => printPage().then((m) => m.OrderPrintPage)),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: SalesExtension = {}
 
-/** Чанк сторінки за адресою: список, форма, друк чи картка пропозиції. */
+/** Сторінки одного документа: список, картка, форма й друк. */
+interface DocumentPages {
+  readonly list: PreloadableComponent<object>
+  readonly record: PreloadableComponent<object>
+  readonly form: PreloadableComponent<object>
+  readonly print: PreloadableComponent<object>
+}
+
+/** Сторінка документа за адресою під `list` (`…/quotes`): список, нова, зміна, друк чи картка. */
+function pageAt(
+  path: string,
+  list: string,
+  create: string,
+  pages: DocumentPages,
+) {
+  if (path === list) return pages.list
+  const inside = path.startsWith(`${list}/`)
+  if (path === create || (inside && path.endsWith("/edit"))) return pages.form
+  if (inside && path.endsWith("/print")) return pages.print
+  return inside ? pages.record : null
+}
+
+/** Чанк сторінки за адресою: список, форма, друк чи картка пропозиції або замовлення. */
 function preloadFor(paths: SalesPaths) {
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
-    const inside = path.startsWith(`${paths.quotes}/`)
     const target =
-      path === paths.quotes
-        ? PAGES.quotes
-        : path === paths.newQuote || (inside && path.endsWith("/edit"))
-          ? PAGES.form
-          : inside && path.endsWith("/print")
-            ? PAGES.print
-            : inside
-              ? PAGES.quote
-              : null
+      pageAt(path, paths.quotes, paths.newQuote, {
+        list: PAGES.quotes,
+        record: PAGES.quote,
+        form: PAGES.quoteForm,
+        print: PAGES.quotePrint,
+      }) ??
+      pageAt(path, paths.orders, paths.newOrder, {
+        list: PAGES.orders,
+        record: PAGES.order,
+        form: PAGES.orderForm,
+        print: PAGES.orderPrint,
+      })
     void target?.preload()
   }
 }
@@ -164,10 +211,15 @@ export function createSalesModule<TItem extends RaRecord = RaRecord>({
     )
   const routes: RouteObject[] = [
     { path: paths.quotes, element: page(PAGES.quotes) },
-    { path: paths.newQuote, element: page(PAGES.form) },
+    { path: paths.newQuote, element: page(PAGES.quoteForm) },
     { path: `${paths.quotes}/:id`, element: page(PAGES.quote) },
-    { path: `${paths.quotes}/:id/edit`, element: page(PAGES.form) },
-    { path: `${paths.quotes}/:id/print`, element: page(PAGES.print) },
+    { path: `${paths.quotes}/:id/edit`, element: page(PAGES.quoteForm) },
+    { path: `${paths.quotes}/:id/print`, element: page(PAGES.quotePrint) },
+    { path: paths.orders, element: page(PAGES.orders) },
+    { path: paths.newOrder, element: page(PAGES.orderForm) },
+    { path: `${paths.orders}/:id`, element: page(PAGES.order) },
+    { path: `${paths.orders}/:id/edit`, element: page(PAGES.orderForm) },
+    { path: `${paths.orders}/:id/print`, element: page(PAGES.orderPrint) },
   ]
   // Адреса самого модуля (`/sales`) — список пропозицій.
   if (basePath.replace(/\/+$/, ""))
@@ -182,6 +234,13 @@ export function createSalesModule<TItem extends RaRecord = RaRecord>({
       href: paths.quotes,
       icon: MODULE_ICONS.B3,
       access: { resource: QUOTES, action: "read" },
+    },
+    {
+      id: "B3-orders",
+      label: { uk: "Замовлення", en: "Orders" },
+      href: paths.orders,
+      icon: MODULE_ICONS.B3,
+      access: { resource: ORDERS, action: "read" },
     },
   ]
   return {

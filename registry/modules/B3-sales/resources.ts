@@ -5,6 +5,7 @@
 import type { LocalizedText } from "@/lib/auth"
 
 export const QUOTES = "quotes"
+export const ORDERS = "orders"
 
 export interface SalesResource {
   readonly name: string
@@ -28,6 +29,20 @@ export const SALES_RESOURCES: readonly SalesResource[] = [
       "submit",
       "accept",
       "decline",
+      "cancel",
+      "amend",
+    ],
+  },
+  {
+    name: ORDERS,
+    label: { uk: "Замовлення", en: "Orders" },
+    actions: [
+      "read",
+      "create",
+      "update",
+      "delete",
+      "submit",
+      "complete",
       "cancel",
       "amend",
     ],

@@ -13,27 +13,30 @@ import { isApiError } from "@/lib/api"
 import { companyScope } from "@/lib/company-scope"
 import { ACTION_ICONS } from "@/lib/icons"
 
-import { QUOTES, type Quote } from "../contract"
+import type { SalesDocument } from "../contract"
 import { useSalesModule } from "../module-context"
+import type { SalesKindBase } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
-import { useQuoteAccess } from "./quote-access"
+import { useSalesAccess } from "./sales-access"
 
 const DeleteIcon = ACTION_ICONS.delete
 
-/** Після цих відповідей повтор нічого не дасть: пропозицію вже надіслали, видалили чи право забрали. */
+/** Після цих відповідей повтор нічого не дасть: документ уже провели, видалили чи право забрали. */
 const FINAL_STATUSES: ReadonlySet<number> = new Set([403, 404])
 
 /**
- * «Видалити чернетку» в шапці картки (ADR-0066): лише чернетка без номера, право `quotes:delete`.
- * Надіслана й скасована — неактивна кнопка з причиною словами модуля, поки запис редагує інша людина —
- * з причиною блокування (SPEC §8.4). Підтвердження називає наслідок; після видалення — список.
- * Відмова сервера (надіслали за мить до того) — сповіщення з причиною, картка перечитується.
+ * «Видалити чернетку» в шапці картки (ADR-0066): лише чернетка без номера, право `<ресурс>:delete`.
+ * Проведений і скасований документ — неактивна кнопка з причиною словами модуля, поки запис редагує
+ * інша людина — з причиною блокування (SPEC §8.4). Підтвердження називає наслідок; після видалення —
+ * список. Відмова сервера (провели за мить до того) — сповіщення з причиною, картка перечитується.
  */
-export function QuoteDeleteAction({
-  quote,
+export function SalesDeleteAction({
+  kind,
+  document,
   lockReason,
 }: {
-  quote: Quote
+  kind: SalesKindBase
+  document: SalesDocument
   /** Запис редагує інша людина (`useEditLock`). */
   lockReason: string | undefined
 }) {
@@ -43,12 +46,18 @@ export function QuoteDeleteAction({
   const companyId = useCompanyId()
   const errorMessage = useApiErrorMessage()
   const queryClient = useQueryClient()
-  const [remove] = useDelete<Quote>()
-  const { canAccess, isPending, recordReason } = useQuoteAccess("delete", quote)
+  const [remove] = useDelete<SalesDocument>()
+  const { canAccess, isPending, recordReason } = useSalesAccess(
+    kind,
+    "delete",
+    document,
+  )
   const [open, setOpen] = useState(false)
+  const { resource } = kind
+  const { record } = kind.keys
   const reason = canAccess
     ? lockReason
-    : (recordReason ?? t("quote.delete.denied"))
+    : (recordReason ?? t(`${record}.delete.denied`))
   // Дію заборонили, поки діалог відкритий (чернетку взяли в редагування): діалог закривається, а не
   // з'являється сам, коли заборону знімуть.
   if (open && (isPending || reason !== undefined)) setOpen(false)
@@ -56,7 +65,7 @@ export function QuoteDeleteAction({
   const content = (
     <>
       <DeleteIcon aria-hidden />
-      {t("quote.delete.button")}
+      {t(`${record}.delete.button`)}
     </>
   )
   if (reason !== undefined)
@@ -64,18 +73,22 @@ export function QuoteDeleteAction({
   const confirm = async () => {
     try {
       await remove(
-        QUOTES,
-        { id: quote.id, previousData: quote, meta: companyScope(companyId) },
+        resource,
+        {
+          id: document.id,
+          previousData: document,
+          meta: companyScope(companyId),
+        },
         { mutationMode: "pessimistic", returnPromise: true },
       )
-      toast.success(t("quote.delete.done"))
+      toast.success(t(`${record}.delete.done`))
       setOpen(false)
-      void navigate(paths.quotes)
+      void navigate(kind.pathsOf(paths).list)
     } catch (failure: unknown) {
       toast.error(errorMessage(failure))
       if (isApiError(failure) && FINAL_STATUSES.has(failure.status)) {
         setOpen(false)
-        void queryClient.invalidateQueries({ queryKey: [QUOTES] })
+        void queryClient.invalidateQueries({ queryKey: [resource] })
       }
     }
   }
@@ -91,13 +104,13 @@ export function QuoteDeleteAction({
       </Button>
       <ConfirmDialog
         open={open}
-        title={t("quote.delete.title")}
+        title={t(`${record}.delete.title`)}
         description={
-          quote.amendedFrom
-            ? t("quote.delete.descriptionAmended")
-            : t("quote.delete.description")
+          document.amendedFrom
+            ? t(`${record}.delete.descriptionAmended`)
+            : t(`${record}.delete.description`)
         }
-        confirmLabel={t("quote.delete.confirm")}
+        confirmLabel={t(`${record}.delete.confirm`)}
         destructive
         lockWhileBusy
         // Після видалення кнопки вже немає: фокус ставить заголовок списку після переходу.
