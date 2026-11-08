@@ -71,24 +71,29 @@ export function findDocumentLines(
 ): DocumentLinesFound {
   const trimmed = query.trim()
   if (!trimmed) return NOTHING
-  const lineNumber = /^\d+$/.test(trimmed) ? Number(trimmed) : 0
+  // Номер рядка — індекс; рядок, знайдений за номером, за текстом удруге не показується.
+  const numbered = /^\d+$/.test(trimmed) ? Number(trimmed) - 1 : -1
   const matches: DocumentLineMatch[] = []
-  let byNumber: DocumentLineMatch | null = null
   let total = 0
   let section: string | null = null
-  lines.forEach((line, index) => {
+  for (const [index, line] of lines.entries()) {
     const text = textOf(line)
     const own = line.kind === "section" ? null : section
     if (line.kind === "section") section = line.title
-    if (index + 1 === lineNumber)
-      byNumber = { index, field: null, text, section: own }
-    if (!contains(text, trimmed)) return
+    const field =
+      index === numbered
+        ? null
+        : contains(text, trimmed)
+          ? LINE_FIELD[line.kind]
+          : undefined
+    if (field === undefined) continue
     total += 1
-    if (matches.length < limit)
-      matches.push({ index, field: LINE_FIELD[line.kind], text, section: own })
-  })
-  if (!byNumber) return { matches, total }
-  return { matches: [byNumber, ...matches].slice(0, limit), total: total + 1 }
+    const match = { index, field, text, section: own }
+    // Збіг за номером — першим, навіть коли список уже повний.
+    if (field === null) matches.unshift(match)
+    else if (matches.length < limit) matches.push(match)
+  }
+  return { matches: matches.slice(0, limit), total }
 }
 
 export interface DocumentLinesSearchProps {
@@ -112,8 +117,12 @@ export function DocumentLinesSearch({
   const { locale } = useLanguage()
   const { contains } = Autocomplete.useFilter({ sensitivity: "base", locale })
   const [query, setQuery] = React.useState("")
+  const [isOpen, setIsOpen] = React.useState(false)
   const [found, setFound] = React.useState(NOTHING)
+  // Останній запит: список відкривається під час набору, і замикання ще має попередній.
+  const latestQuery = React.useRef("")
   const search = (text: string) => {
+    latestQuery.current = text
     setFound(findDocumentLines(form.getValues("lines"), text, contains))
   }
   return (
@@ -121,6 +130,8 @@ export function DocumentLinesSearch({
       items={found.matches}
       filter={null}
       value={query}
+      // Без запиту списку немає: інакше порожнє поле показало б «Нічого не знайдено».
+      open={isOpen && query.trim() !== ""}
       onValueChange={(value, details) => {
         // Вибір рядка лишає запит у полі: до наступного збігу — той самий список.
         if (details.reason === "item-press") return
@@ -128,8 +139,9 @@ export function DocumentLinesSearch({
         search(value)
       }}
       onOpenChange={(open) => {
+        setIsOpen(open)
         // Рядки могли змінитись, поки список був закритий.
-        if (open) search(query)
+        if (open) search(latestQuery.current)
       }}
       itemToStringValue={(match: DocumentLineMatch) => match.text}
       autoHighlight

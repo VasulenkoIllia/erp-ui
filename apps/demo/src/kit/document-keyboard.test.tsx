@@ -163,6 +163,26 @@ describe("до підсумків", () => {
     ).toBe(true)
   })
 
+  it("у тексті нотатки й із Shift клавіша лишається полю", () => {
+    render(<Editor virtualizeFrom={12} />)
+    const noteText = within(row(7)).getByLabelText("Нотатка")
+    noteText.focus()
+    expect(fireEvent.keyDown(noteText, { key: "End", ctrlKey: true })).toBe(
+      true,
+    )
+    expect(noteText).toHaveFocus()
+    const quantity = within(row(3)).getByLabelText("Кількість")
+    quantity.focus()
+    expect(
+      fireEvent.keyDown(quantity, {
+        key: "End",
+        ctrlKey: true,
+        shiftKey: true,
+      }),
+    ).toBe(true)
+    expect(quantity).toHaveFocus()
+  })
+
   it("пошук і «До підсумків» — від порога віртуальних рядків", async () => {
     const user = userEvent.setup()
     const { unmount } = render(<Editor virtualizeFrom={8} />)
@@ -195,6 +215,25 @@ describe("пошук у рядках", () => {
     })
     // Запит лишається: наступний збіг — з того самого списку.
     expect(search()).toHaveValue("монтаж")
+  })
+
+  it("без запиту списку немає; другий пошук показує свої збіги", async () => {
+    const user = userEvent.setup()
+    render(<Editor />)
+    await user.click(search())
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument()
+    expect(screen.queryByText("Нічого не знайдено")).not.toBeInTheDocument()
+    await user.type(search(), "кабель")
+    await user.keyboard("{Enter}")
+    await waitFor(() => {
+      expect(within(row(1)).getByLabelText("Назва")).toHaveFocus()
+    })
+    await user.clear(search())
+    await user.type(search(), "чайник")
+    const options = await screen.findAllByRole("option")
+    expect(options.map((option) => option.textContent)).toEqual([
+      "Рядок 4, Чайник, Обладнання",
+    ])
   })
 
   it("номер рядка — першим, фокус на перше поле рядка", async () => {
@@ -399,6 +438,22 @@ describe("групи рядків і пошук: чисті функції", () 
       matches: [],
       total: 0,
     })
+    // Рядок 2 — і за номером, і за текстом: один пункт.
+    const both = [
+      item("x", "Кабель"),
+      item("y", "Кабель 2"),
+      item("z", "Кабель 22"),
+    ]
+    expect(
+      findDocumentLines(both, "2", contains).matches.map(({ index, field }) => [
+        index,
+        field,
+      ]),
+    ).toEqual([
+      [1, null],
+      [2, "name"],
+    ])
+    expect(findDocumentLines(both, "2", contains).total).toBe(2)
     const many = Array.from({ length: 60 }, (_, index) =>
       item(String(index), "Кабель"),
     )

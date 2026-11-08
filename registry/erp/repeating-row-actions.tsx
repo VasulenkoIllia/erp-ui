@@ -165,7 +165,7 @@ export function RepeatingRowActions({
 }
 
 /** Перенесення групи рядків цілком у меню її голови (UI05d, ADR-0064). */
-export interface RowGroupMoves {
+export interface RowGroupMenu {
   /** «Перенести розділ із рядками вище» і «…нижче». */
   readonly labels: readonly [up: string, down: string]
   readonly canUp: boolean
@@ -187,7 +187,7 @@ export interface RepeatingRowMenuProps {
   onRemove: (index: number) => void
   onInsert: (index: number, kind: number) => void
   /** Лише в меню голови групи (`RepeatingRows.groups`). */
-  groupMoves?: RowGroupMoves
+  groupMoves?: RowGroupMenu
   onMoveGroup?: (index: number, direction: RowGroupDirection) => void
 }
 

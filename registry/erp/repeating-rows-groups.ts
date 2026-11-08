@@ -48,6 +48,8 @@ export function rowGroupMove(
   const middle = heads[upper + 1]
   if (start === undefined || middle === undefined) return null
   const end = heads[upper + 2] ?? count
+  // Значення й склад рядків форми на мить можуть розійтись: план без рядків нічого не переносить.
+  if (end > count) return null
   const upperSize = middle - start
   const lowerSize = end - middle
   // Нижня група стає на місце верхньої: її рядки по черзі вгору або рядки верхньої по черзі в кінець.

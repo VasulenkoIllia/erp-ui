@@ -361,12 +361,12 @@ function RepeatingRows<
     // Розділ може стати далеко за екраном, а кількість рядків не змінюється.
     focusFar({ target: direction, index: plan.head })
     for (const [from, to] of plan.moves) move(from, to)
+    const moved = { row: rowLabel(index), place: plan.head + 1 }
+    // Розділ без рядків — як звичайний рядок, без «і 0 рядків під ним».
     announce(
-      t("repeatingRows.groupMoved", {
-        row: rowLabel(index),
-        count: plan.size - 1,
-        place: plan.head + 1,
-      }),
+      plan.size > 1
+        ? t("repeatingRows.groupMoved", { ...moved, count: plan.size - 1 })
+        : t("repeatingRows.moved", moved),
     )
   }
   const handlers = useRowHandlers({

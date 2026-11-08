@@ -240,7 +240,7 @@ test.describe("великий документ", () => {
     await expect(amount).toBeVisible()
   })
 
-  test("з поля рядка 3 до знижки документа — Ctrl+End, два натискання", async ({
+  test("з поля рядка 3 до знижки документа — Ctrl+End, дві клавіші", async ({
     page,
   }) => {
     await openDocument(page)
@@ -268,7 +268,10 @@ test.describe("великий документ", () => {
     await page.keyboard.press("ControlOrMeta+f")
     await expect(search).toBeFocused()
     await page.keyboard.type("450")
-    await expect(page.getByRole("option").first()).toHaveText(/^Рядок 450/)
+    const first = page.getByRole("option").first()
+    await expect(first).toHaveText(/^Рядок 450/)
+    // Enter вибирає підсвічений рядок: Base UI підсвічує перший, коли список уже намальовано.
+    await expect(first).toHaveAttribute("data-highlighted")
     await page.keyboard.press("Enter")
     // Рядка 450 не було в DOM: він з'являється, і фокус прокручує до нього сторінку.
     const picker = row(page, 450).getByRole("combobox", {

@@ -143,12 +143,24 @@ const TOTALS = '[data-slot="document-lines-totals"]'
 
 /** Перше поле підсумків — знижка документа: туди веде «До підсумків». */
 function focusTotals(root: HTMLElement | null) {
-  root
-    ?.querySelector<HTMLElement>(
-      `${TOTALS} :is(input:not([type=hidden]), textarea, button)`,
-    )
-    ?.focus()
+  const field = root?.querySelector<HTMLElement>(
+    `${TOTALS} :is(input:not([type=hidden]), textarea, button)`,
+  )
+  field?.focus()
+  return Boolean(field)
 }
+
+/**
+ * Клавіша лишається полю: Shift чи Alt (виділити до кінця), набір через IME, уже оброблена подія,
+ * а Ctrl+End у багаторядковому тексті нотатки — «у кінець тексту».
+ */
+const isFieldKey = (event: KeyboardEvent, target: Element) =>
+  event.shiftKey ||
+  event.altKey ||
+  event.isComposing ||
+  event.defaultPrevented ||
+  (event.key === "End" &&
+    Boolean(target.closest('textarea, [contenteditable="true"]')))
 
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
@@ -262,11 +274,10 @@ export function DocumentLinesEditor<
   }, [])
   const onKeyDown = React.useEffectEvent((event: KeyboardEvent) => {
     const { target } = event
-    if (!(target instanceof Element)) return
+    if (!(target instanceof Element) || isFieldKey(event, target)) return
     if (matchesShortcut(event, SHORTCUTS.documentTotals)) {
-      if (target.closest(TOTALS)) return
-      event.preventDefault()
-      focusTotals(rootRef.current)
+      if (!target.closest(TOTALS) && focusTotals(rootRef.current))
+        event.preventDefault()
     } else if (
       isLong &&
       matchesShortcut(event, SHORTCUTS.documentSearch) &&

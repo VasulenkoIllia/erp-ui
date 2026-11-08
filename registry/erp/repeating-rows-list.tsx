@@ -6,7 +6,7 @@ import {
   RepeatingRowActions,
   RepeatingRowMenu,
   type RepeatingRowsTableFrom,
-  type RowGroupMoves,
+  type RowGroupMenu,
 } from "@/registry/erp/repeating-row-actions"
 import type { RowGroupDirection } from "@/registry/erp/repeating-rows-groups"
 import { cn } from "@/registry/lib/utils"
@@ -137,7 +137,7 @@ export interface RepeatingRowHandlers {
   readonly remove: (index: number) => void
   readonly insert: (index: number, kind: number) => void
   /** Перенести групу з головою `index` цілком (`RepeatingRows.groups`). */
-  readonly moveGroup: (index: number, direction: RowGroupDirection) => void
+  readonly moveGroup?: (index: number, direction: RowGroupDirection) => void
 }
 
 export interface RepeatingRowItemProps {
@@ -162,7 +162,7 @@ export interface RepeatingRowItemProps {
   readonly canInsert: boolean
   readonly insertLabels: readonly string[]
   /** Пункти перенесення групи; лише в голови групи, решта рядків їх не має. */
-  readonly groupLabels?: RowGroupMoves["labels"]
+  readonly groupLabels?: RowGroupMenu["labels"]
   readonly canMoveGroupUp?: boolean
   readonly canMoveGroupDown?: boolean
   readonly handlers: RepeatingRowHandlers
@@ -271,7 +271,7 @@ export function useRowHandlers(
         latest.current.insert(index, kind)
       },
       moveGroup: (index, direction) => {
-        latest.current.moveGroup(index, direction)
+        latest.current.moveGroup?.(index, direction)
       },
     }),
     [],

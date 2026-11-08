@@ -81,6 +81,9 @@ export async function interactWithDocumentKeyboard(page: Page) {
   const search = form.getByRole("combobox", { name: "Пошук у рядках" })
   await search.click()
   await search.pressSequentially("450", { delay: 120 })
+  await expect(page.getByRole("option").first()).toHaveAttribute(
+    "data-highlighted",
+  )
   await page.keyboard.press("Enter")
   await expect(
     row(450).getByRole("combobox", { name: "Товар чи послуга" }),
@@ -89,6 +92,10 @@ export async function interactWithDocumentKeyboard(page: Page) {
   await expect(form.getByLabel("Знижка на документ, у відсотках")).toBeFocused()
   await search.click()
   await search.fill("26")
+  await expect(page.getByRole("option").first()).toHaveText(/^Рядок 26/)
+  await expect(page.getByRole("option").first()).toHaveAttribute(
+    "data-highlighted",
+  )
   await page.keyboard.press("Enter")
   await expect(row(26).getByLabel("Розділ")).toBeFocused()
   await row(26).getByRole("button", { name: "Дії: Рядок 26" }).click()
