@@ -103,7 +103,8 @@ function nullAncestorValue(
 
 /**
  * Значення з події поля вводу або саме значення (`onChange(value)` складного поля), як `getEventValue`
- * react-hook-form: об'єкт (не масив і не дата) з непорожнім `target` — подія.
+ * react-hook-form: об'єкт (не масив і не дата) з непорожнім `target` — подія; позначка — `checked`,
+ * файл — `files`.
  */
 function eventValue(event: unknown): unknown {
   const isEvent =
@@ -117,9 +118,11 @@ function eventValue(event: unknown): unknown {
   const target = Object(event.target) as {
     type?: unknown
     checked?: unknown
+    files?: unknown
     value?: unknown
   }
-  return target.type === "checkbox" ? target.checked : target.value
+  if (target.type === "checkbox") return target.checked
+  return target.type === "file" ? target.files : target.value
 }
 
 /**

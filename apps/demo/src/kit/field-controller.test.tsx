@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { memo, useState } from "react"
+import { memo, useLayoutEffect, useState } from "react"
 import {
   useFieldArray,
   useForm,
@@ -62,13 +62,17 @@ const rowsSchema = z.object({
 })
 type Rows = z.infer<typeof rowsSchema>
 
-function RowsForm() {
+function RowsForm({
+  initialRows = [{ price: "1" }, { price: "" }],
+}: {
+  initialRows?: Rows["rows"]
+}) {
   const form = useForm<Rows>({
-    defaultValues: { rows: [{ price: "1" }, { price: "" }] },
+    defaultValues: { rows: initialRows },
     resolver: zodResolver(rowsSchema),
     mode: "onTouched",
   })
-  const { fields, insert } = useFieldArray({
+  const { fields, insert, remove } = useFieldArray({
     control: form.control,
     name: "rows",
   })
@@ -78,7 +82,7 @@ function RowsForm() {
       onSubmit={(event) => void form.handleSubmit(() => undefined)(event)}
     >
       {fields.map((row, index) => (
-        <TextField
+        <MemoTextField
           key={row.id}
           form={form}
           name={`rows.${index}.price`}
@@ -92,6 +96,14 @@ function RowsForm() {
         }}
       >
         Вставити вгорі
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          remove(0)
+        }}
+      >
+        Вилучити перший
       </button>
       <button type="submit">Зберегти</button>
     </form>
@@ -221,6 +233,183 @@ describe("FormField: легке з'єднання з формою", () => {
     expect(
       screen.getByRole("status", { name: "Стан: Місто" }),
     ).toHaveTextContent("")
+  })
+
+  it("вилучення першого рядка зсуває помилки: поле бере стан свого нового імені", async () => {
+    const user = userEvent.setup()
+    render(
+      <RowsForm initialRows={[{ price: "" }, { price: "2" }, { price: "" }]} />,
+    )
+    await user.click(screen.getByRole("button", { name: "Зберегти" }))
+    await waitFor(() => {
+      expect(
+        screen.getByRole("textbox", { name: "Ціна 3" }),
+      ).toHaveAccessibleDescription("Вкажіть ціну")
+    })
+    await user.click(screen.getByRole("button", { name: "Вилучити перший" }))
+    const first = screen.getByRole("textbox", { name: "Ціна 1" })
+    const second = screen.getByRole("textbox", { name: "Ціна 2" })
+    expect(first).toHaveValue("2")
+    await waitFor(() => {
+      expect(second).toHaveAccessibleDescription("Вкажіть ціну")
+    })
+    expect(first).not.toHaveAttribute("aria-invalid")
+  })
+
+  it("помилка, поставлена між рендером поля і його підпискою, з'являється одразу", async () => {
+    // Ефект компонента, що стоїть раніше, іде після рендеру поля, але до його підписки.
+    function SetErrorOnMount({ form }: { form: UseFormReturn<Person> }) {
+      useLayoutEffect(() => {
+        form.setError("name", { type: "server", message: "Таке ім'я вже є" })
+      }, [form])
+      return null
+    }
+    function EarlyErrorForm() {
+      const form = useForm<Person>({
+        defaultValues: { name: "Олена", city: "Київ" },
+      })
+      return (
+        <form>
+          <SetErrorOnMount form={form} />
+          <MemoTextField form={form} name="name" label="Ім'я" />
+        </form>
+      )
+    }
+    render(<EarlyErrorForm />)
+    await waitFor(() => {
+      expect(name()).toHaveAccessibleDescription("Таке ім'я вже є")
+    })
+  })
+
+  it("onChange бере значення з події, як react-hook-form: позначка, файл, дата й масив — як є", async () => {
+    const user = userEvent.setup()
+    type Values = { agree: boolean; scan: unknown; due: unknown; tags: unknown }
+    function EventsForm() {
+      const form = useForm<Values>({
+        defaultValues: { agree: false, scan: null, due: null, tags: null },
+      })
+      const show = (value: unknown) =>
+        value instanceof Date
+          ? `дата ${value.toISOString().slice(0, 10)}`
+          : value instanceof FileList
+            ? `файл ${value[0]?.name ?? ""}`
+            : JSON.stringify(value)
+      return (
+        <form>
+          <FormField
+            control={form.control}
+            name="agree"
+            label="Згода"
+            render={({ field, control }) => (
+              <>
+                <input
+                  {...control}
+                  ref={field.ref}
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+                <output aria-label="Згода, значення">
+                  {show(field.value)}
+                </output>
+              </>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="scan"
+            label="Скан"
+            render={({ field, control }) => (
+              <>
+                <input
+                  {...control}
+                  ref={field.ref}
+                  type="file"
+                  onChange={field.onChange}
+                />
+                <output aria-label="Скан, значення">{show(field.value)}</output>
+              </>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="due"
+            label="Строк"
+            render={({ field, control }) => (
+              <>
+                <button
+                  {...control}
+                  type="button"
+                  onClick={() => {
+                    field.onChange(new Date("2026-11-30T00:00:00Z"))
+                  }}
+                >
+                  Строк
+                </button>
+                <output aria-label="Строк, значення">
+                  {show(field.value)}
+                </output>
+              </>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="tags"
+            label="Теги"
+            render={({ field, control }) => (
+              <>
+                <button
+                  {...control}
+                  type="button"
+                  onClick={() => {
+                    field.onChange(["опт"])
+                  }}
+                >
+                  Теги
+                </button>
+                <output aria-label="Теги, значення">{show(field.value)}</output>
+              </>
+            )}
+          />
+        </form>
+      )
+    }
+    render(<EventsForm />)
+    const value = (label: string) =>
+      screen.getByRole("status", { name: `${label}, значення` })
+    await user.click(screen.getByRole("checkbox", { name: "Згода" }))
+    expect(value("Згода")).toHaveTextContent("true")
+    await user.upload(
+      screen.getByLabelText("Скан"),
+      new File(["%PDF"], "rahunok.pdf", { type: "application/pdf" }),
+    )
+    expect(value("Скан")).toHaveTextContent("файл rahunok.pdf")
+    await user.click(screen.getByRole("button", { name: "Строк" }))
+    expect(value("Строк")).toHaveTextContent("дата 2026-11-30")
+    await user.click(screen.getByRole("button", { name: "Теги" }))
+    expect(value("Теги")).toHaveTextContent('["опт"]')
+  })
+
+  it("shouldUnregister: початкове значення, яке не копіюється, не валить форму", () => {
+    const format = () => "1 200,00"
+    function FormatForm() {
+      const form = useForm<{ note: { text: string; format: () => string } }>({
+        shouldUnregister: true,
+        defaultValues: { note: { text: "Доставка", format } },
+      })
+      return (
+        <FormField
+          control={form.control}
+          name="note"
+          label="Примітка"
+          render={({ field, control }) => (
+            <output {...control}>{field.value.format()}</output>
+          )}
+        />
+      )
+    }
+    render(<FormatForm />)
+    expect(screen.getByText("1 200,00")).toBeInTheDocument()
   })
 
   it("форма з shouldUnregister прибирає значення поля, яке зникло", async () => {
