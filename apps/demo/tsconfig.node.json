@@ -4,5 +4,11 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e", "scripts"]
+  "include": [
+    "vite.config.ts",
+    "vitest.environment.ts",
+    "playwright.config.ts",
+    "e2e",
+    "scripts"
+  ]
 }

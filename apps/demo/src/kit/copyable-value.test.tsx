@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+// Буфер обміну user-event читає Blob через FileReader з jsdom (apps/demo/vitest.environment.ts).
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
