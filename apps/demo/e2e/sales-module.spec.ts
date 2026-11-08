@@ -13,7 +13,7 @@ import {
  * минув», нова пропозиція через форму, «Надіслати» з номером серії, надіслану змінити не можна,
  * «Скасувати» з причиною й «Виправити», права ролі, друк і сценарії моків. Масові «Надіслати»,
  * «Скасувати» й «Видалити» зі звітом про невдалі, «Видалити чернетку» з картки (ADR-0066). Засів демо —
- * від сьогодні: годинник сторінки стоїть на 08.11.2026, тож наступний номер компанії — КП-2026-0008.
+ * від сьогодні: годинник сторінки йде від 08.11.2026, тож наступний номер компанії — КП-2026-0008.
  */
 const LIST = "/#/m/B3/quotes"
 const NEW = `${LIST}/new`
@@ -54,8 +54,9 @@ async function openConfirm(page: Page, name: string) {
   return dialog
 }
 
+// Годинник іде від 08.11.2026, а не стоїть: масова задача моку рахує, скільки записів обробити, за часом.
 test.beforeEach(async ({ page }) => {
-  await page.clock.setFixedTime(new Date("2026-11-08T10:00:00Z"))
+  await page.clock.install({ time: new Date("2026-11-08T10:00:00Z") })
 })
 
 test.describe("модуль B3: пропозиції", () => {
@@ -173,7 +174,7 @@ test.describe("модуль B3: пропозиції", () => {
   }) => {
     await openWith(page, {}, LIST)
     await expect(page.getByRole("tab", { name: /^Чернетка/ })).toContainText(
-      "3",
+      /(^|\D)3(\D|$)/,
     )
     const drafts = rowsWith(page, "Чернетка")
     await drafts.nth(0).getByRole("checkbox").check()
@@ -193,7 +194,7 @@ test.describe("модуль B3: пропозиції", () => {
       timeout: JOB_TIMEOUT_MS,
     })
     await expect(page.getByRole("tab", { name: /^Чернетка/ })).toContainText(
-      "1",
+      /(^|\D)1(\D|$)/,
     )
     await toast.getByRole("button", { name: "Подробиці" }).click()
     const details = page.getByRole("dialog", { name: "Не вдалося: 1" })
@@ -252,7 +253,9 @@ test.describe("модуль B3: пропозиції", () => {
     await expect(toast).toContainText("Видалено 1 з 2, не видалено: 1", {
       timeout: JOB_TIMEOUT_MS,
     })
-    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("9")
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
+      /(^|\D)9(\D|$)/,
+    )
     await toast.getByRole("button", { name: "Подробиці" }).click()
     await expect(
       page
@@ -271,7 +274,9 @@ test.describe("модуль B3: пропозиції", () => {
     await expectNoA11yViolations(page)
     await confirm.getByRole("button", { name: "Видалити чернетку" }).click()
     await expect(heading(page)).toHaveText("Пропозиції")
-    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("9")
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
+      /(^|\D)9(\D|$)/,
+    )
 
     await openWith(page, {}, SENT)
     const remove = page.getByRole("button", { name: "Видалити чернетку" })

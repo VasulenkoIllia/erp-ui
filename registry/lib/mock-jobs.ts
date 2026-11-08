@@ -25,7 +25,7 @@ import { http, type HttpHandler } from "msw/http"
 import { z } from "zod"
 
 import { API_PREFIX, type FilterValue } from "@/registry/lib/api"
-import { transitionBodySchema } from "@/registry/lib/document-lifecycle"
+import { TRANSITION_REASON_MAX_LENGTH } from "@/registry/lib/document-lifecycle"
 import {
   BULK_PATH,
   JOB_FAILURE_SAMPLE,
@@ -323,8 +323,6 @@ function runOnRecord<T extends MockRecord>(
   }
 }
 
-const bulkReasonSchema = transitionBodySchema.shape.reason
-
 /** Причина з тіла запуску (ADR-0066): помилка 422 або причина; дія без причини її не бере. */
 function bulkReason(
   body: unknown,
@@ -335,12 +333,15 @@ function bulkReason(
     typeof body === "object" && body !== null && "reason" in body
       ? body.reason
       : undefined
-  const parsed = bulkReasonSchema.safeParse(raw)
-  if (!parsed.success)
-    return validation("reason", parsed.error.issues[0]?.message ?? "invalid")
-  if (wanted === "required" && !parsed.data)
-    return validation("reason", "required")
-  return parsed.data ? { reason: parsed.data } : {}
+  if (raw !== undefined && typeof raw !== "string")
+    return validation("reason", "invalid")
+  // Порожня й з самих пробілів — причини немає: для необов'язкової це не помилка.
+  const reason = raw?.trim()
+  if (!reason)
+    return wanted === "required" ? validation("reason", "required") : {}
+  if (reason.length > TRANSITION_REASON_MAX_LENGTH)
+    return validation("reason", "too_long")
+  return { reason }
 }
 
 /** `POST /<ресурс>/bulk/<дія>` для дій ресурсу. */

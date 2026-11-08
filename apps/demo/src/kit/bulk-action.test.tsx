@@ -16,10 +16,17 @@ import { z } from "zod"
 
 import { useBulkAction, type BulkActionTexts } from "@/registry/erp/bulk-action"
 import { useRowSelection } from "@/registry/hooks/use-row-selection"
-import { createApiClient, recordBaseSchema } from "@/registry/lib/api"
+import {
+  createApiClient,
+  isApiError,
+  recordBaseSchema,
+} from "@/registry/lib/api"
 import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
-import { documentLifecycleSchema } from "@/registry/lib/document-lifecycle"
+import {
+  documentLifecycleSchema,
+  TRANSITION_REASON_MAX_LENGTH,
+} from "@/registry/lib/document-lifecycle"
 import {
   createBulkHandlers,
   createJobHandlers,
@@ -52,6 +59,7 @@ const TRANSITIONS: readonly StatusTransition[] = [
     to: "cancelled",
     reason: "required",
   },
+  { id: "flag", from: ["submitted"], to: "submitted", reason: "optional" },
 ]
 
 const docSchema = recordBaseSchema
@@ -99,6 +107,7 @@ const server = setupServer(
     actions: {
       ...bulkTransitionActions({ resource: "docs", transitions: TRANSITIONS }, [
         "cancel",
+        "flag",
       ]),
       delete: { apply: () => ({ remove: true }) },
     },
@@ -275,5 +284,35 @@ describe("erp/bulk-action", () => {
       "Проведений документ не змінюють: скасуйте чи сторнуйте його й зробіть виправлену копію: 1",
     )
     expect(report).toHaveTextContent("ДОК-d2")
+  })
+})
+
+describe("мок масової дії: причина в тілі", () => {
+  const provider = createDataProvider(createApiClient({ baseUrl: BASE }))
+  const refusal = async (promise: Promise<unknown>) => {
+    const error: unknown = await promise.catch((caught: unknown) => caught)
+    if (!isApiError(error)) throw new Error("expected ApiError")
+    return { status: error.status, fieldErrors: error.fieldErrors }
+  }
+
+  it("обов'язкова з самих пробілів — 422 `required`; необов'язкова порожня — запуск без причини; задовга — `too_long`", async () => {
+    expect(
+      await refusal(
+        provider.startBulk("docs", "cancel", { ids: ["d2"] }, { reason: " " }),
+      ),
+    ).toEqual({ status: 422, fieldErrors: { reason: "required" } })
+    await expect(
+      provider.startBulk("docs", "flag", { ids: ["d2"] }, { reason: "  " }),
+    ).resolves.toHaveProperty("jobId")
+    expect(
+      await refusal(
+        provider.startBulk(
+          "docs",
+          "cancel",
+          { ids: ["d2"] },
+          { reason: "x".repeat(TRANSITION_REASON_MAX_LENGTH + 1) },
+        ),
+      ),
+    ).toEqual({ status: 422, fieldErrors: { reason: "too_long" } })
   })
 })

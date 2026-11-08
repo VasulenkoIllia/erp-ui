@@ -46,10 +46,13 @@ export function QuoteDeleteAction({
   const [remove] = useDelete<Quote>()
   const { canAccess, isPending, recordReason } = useQuoteAccess("delete", quote)
   const [open, setOpen] = useState(false)
-  if (isPending) return null
   const reason = canAccess
     ? lockReason
     : (recordReason ?? t("quote.delete.denied"))
+  // Дію заборонили, поки діалог відкритий (чернетку взяли в редагування): діалог закривається, а не
+  // з'являється сам, коли заборону знімуть.
+  if (open && (isPending || reason !== undefined)) setOpen(false)
+  if (isPending) return null
   const content = (
     <>
       <DeleteIcon aria-hidden />
@@ -97,6 +100,8 @@ export function QuoteDeleteAction({
         confirmLabel={t("quote.delete.confirm")}
         destructive
         lockWhileBusy
+        // Після видалення кнопки вже немає: фокус ставить заголовок списку після переходу.
+        returnFocus={() => false}
         onClose={() => {
           setOpen(false)
         }}

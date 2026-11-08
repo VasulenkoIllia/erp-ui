@@ -391,6 +391,11 @@ export function releaseAmendedFrom<T extends MockTransitionRecord>(
   const original = removed.amendedFrom
     ? db.all().find((record) => record.id === removed.amendedFrom)
     : undefined
-  if (original?.amendedBy === removed.id)
-    db.patch(original.id, { amendedBy: null })
+  if (original?.amendedBy !== removed.id) return
+  const result = db.patch(original.id, { amendedBy: null })
+  // Схема ресурсу не бере `amendedBy: null` — помилка налаштування моку, а не відповідь сервера.
+  if (result && "fieldErrors" in result)
+    throw new Error(
+      `Mock: cannot release ${original.id}: ${JSON.stringify(result.fieldErrors)}`,
+    )
 }

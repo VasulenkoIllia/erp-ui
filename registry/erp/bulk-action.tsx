@@ -15,7 +15,7 @@ import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS, type ActionIcon } from "@/registry/lib/icons"
-import type { Job } from "@/registry/lib/jobs"
+import type { BulkSelection, Job } from "@/registry/lib/jobs"
 import { toBulkSelection } from "@/registry/lib/row-selection"
 import { Button } from "@/registry/ui/button"
 
@@ -91,24 +91,25 @@ function useStartBulk(options: BulkActionOptions) {
   const t = useErpUiT()
   const errorMessage = useApiErrorMessage()
   const dataProvider = useDataProvider<ErpDataProvider>()
-  const { resource, action, selection, filter, texts, failureLabel } = options
-  return async (reason: string | undefined): Promise<StartOutcome> => {
-    try {
+  const { resource, action, texts, failureLabel } = options
+  return async (
+    target: BulkSelection,
+    reason: string | undefined,
+  ): Promise<StartOutcome> => {
+    const startJob = async () => {
       // Спершу чанк: якщо він не завантажився, задачу не запущено й видно чому.
       const { showJobProgress } = await loadJobProgress()
       const { jobId } = await dataProvider.startBulk(
         resource,
         action,
-        toBulkSelection(selection.state, filter),
+        target,
         reason === undefined ? undefined : { reason },
       )
-      showJobProgress({
-        jobId,
-        title: texts.progress,
-        summary: texts.summary,
-        failureLabel,
-      })
-      return "started"
+      return { showJobProgress, jobId }
+    }
+    let started: Awaited<ReturnType<typeof startJob>>
+    try {
+      started = await startJob()
     } catch (error) {
       const reasonError = isApiError(error)
         ? error.fieldErrors?.reason
@@ -117,6 +118,14 @@ function useStartBulk(options: BulkActionOptions) {
       toast.error(t("jobs.failed", { message: errorMessage(error) }))
       return "failed"
     }
+    // Поза `try`: задачу вже прийнято, повтор із діалогу запустив би її вдруге.
+    started.showJobProgress({
+      jobId: started.jobId,
+      title: texts.progress,
+      summary: texts.summary,
+      failureLabel,
+    })
+    return "started"
   }
 }
 
@@ -126,8 +135,12 @@ export function useBulkAction(options: BulkActionOptions): BulkAction {
   const { data: me } = useMe()
   const canAccess = hasPermission(me?.permissions ?? [], resource, action)
   const [open, setOpen] = React.useState(false)
-  // Кількість лишається в заголовку, поки діалог зникає після запуску.
-  const [count, setCount] = React.useState(0)
+  // Кількість лишається в заголовку, поки діалог зникає після запуску. Вибір — знімок у момент
+  // кліку: підтверджують саме ці записи, навіть якщо фільтр чи вибір зміниться під діалогом.
+  const [target, setTarget] = React.useState<{
+    count: number
+    selection: BulkSelection
+  }>({ count: 0, selection: { ids: [] } })
   const table = React.useRef<Element | null>(null)
   const start = useStartBulk(options)
   const Icon = icon ? ACTION_ICONS[icon] : null
@@ -143,11 +156,15 @@ export function useBulkAction(options: BulkActionOptions): BulkAction {
         size="sm"
         variant={variant}
         onClick={(event) => {
+          // Лише прогрів чанка: збій покаже запуск задачі.
           loadJobProgress().catch(() => undefined)
           table.current = event.currentTarget.closest(
             '[data-slot="data-table"]',
           )
-          setCount(selected)
+          setTarget({
+            count: selected,
+            selection: toBulkSelection(options.selection.state, options.filter),
+          })
           setOpen(true)
         }}
       >
@@ -162,12 +179,12 @@ export function useBulkAction(options: BulkActionOptions): BulkAction {
     <BulkActionDialog
       options={options}
       open={open}
-      count={count}
+      count={target.count}
       onClose={() => {
         setOpen(false)
       }}
       onConfirm={async (reason) => {
-        const outcome = await start(reason)
+        const outcome = await start(target.selection, reason)
         if (outcome === "started") {
           setOpen(false)
           options.selection.clear()

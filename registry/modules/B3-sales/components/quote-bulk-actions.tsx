@@ -58,6 +58,9 @@ export function useQuoteBulkActions(
   const lockedReason = useQuoteLockedReason()
   const submitTransition = transitions.find((item) => item.id === "submit")
   const cancelTransition = transitions.find((item) => item.id === "cancel")
+  const submitTexts = useBulkTexts("submit")
+  const cancelTexts = useBulkTexts("cancel")
+  const deleteTexts = useBulkTexts("delete")
   const common = { resource: QUOTES, selection, filter }
   const submit = useBulkAction({
     ...common,
@@ -65,7 +68,7 @@ export function useQuoteBulkActions(
     label: submitTransition?.label ?? "",
     icon: "send",
     variant: "default",
-    texts: useBulkTexts("submit"),
+    texts: submitTexts,
     failureLabel: (code) =>
       code === "transition_not_allowed"
         ? t("quotes.bulk.submit.notAllowed")
@@ -78,7 +81,7 @@ export function useQuoteBulkActions(
     icon: "cancelDocument",
     reason: cancelTransition?.reason,
     destructive: true,
-    texts: useBulkTexts("cancel"),
+    texts: cancelTexts,
     failureLabel: (code) =>
       code === "transition_not_allowed"
         ? t("quotes.bulk.cancel.notAllowed")
@@ -90,7 +93,7 @@ export function useQuoteBulkActions(
     label: t("quotes.bulk.delete.button"),
     icon: "delete",
     destructive: true,
-    texts: useBulkTexts("delete"),
+    texts: deleteTexts,
     failureLabel: (code) => lockedReason("delete", code),
   })
   const actions = [
