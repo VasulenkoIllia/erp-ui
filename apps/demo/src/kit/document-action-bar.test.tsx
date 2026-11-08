@@ -259,6 +259,36 @@ describe("DocumentActionBar", () => {
     ).toBeEnabled()
   })
 
+  it("свої тексти підтвердження модуля замість текстів кіта за ключем дії", async () => {
+    const user = userEvent.setup()
+    renderCard(
+      "d1",
+      ["docs:*"],
+      [
+        {
+          id: "submit",
+          label: "Надіслати",
+          from: ["draft"],
+          to: "submitted",
+          confirm: {
+            title: "Надіслати пропозицію?",
+            description: "Пропозиція отримає номер.",
+            action: "Надіслати пропозицію",
+          },
+        },
+      ],
+    )
+    await user.click(await screen.findByRole("button", { name: "Надіслати" }))
+    const dialog = await openConfirm("Надіслати пропозицію?")
+    expect(dialog).toHaveTextContent("Пропозиція отримає номер.")
+    await user.click(
+      within(dialog).getByRole("button", { name: "Надіслати пропозицію" }),
+    )
+    await waitFor(() => {
+      expect(status()).toHaveTextContent("submitted")
+    })
+  })
+
   it("без права — неактивні з причиною для скрінрідера й видимим рядком", async () => {
     renderCard("d2", ["docs:read"])
     const cancel = await screen.findByRole("button", { name: "Скасувати" })

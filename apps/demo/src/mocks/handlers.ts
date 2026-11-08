@@ -30,6 +30,11 @@ import { createTimelineMocks } from "@/registry/modules/N1-timeline/mocks"
 import { createNotificationsMocks } from "@/registry/modules/N5-notifications/mocks"
 import { createUsersMocks } from "@/registry/modules/A2-users/mocks"
 import { createContactsMocks } from "@/registry/modules/B1-contacts/mocks"
+import {
+  createSalesMocks,
+  salesNumberingSeeds,
+} from "@/registry/modules/B3-sales/mocks"
+import type { SalesFixtureOptions } from "@/registry/modules/B3-sales/fixtures"
 
 import {
   INVOICE_APPROVAL_LIMIT,
@@ -58,6 +63,7 @@ import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
+import { salesMockExtension } from "@/extensions/B3-sales-fields"
 import { documentsExtension } from "@/extensions/documents"
 import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
@@ -207,28 +213,6 @@ const importExport = createImportExportMocks({
   ],
 })
 
-/** Модуль N1 «Стрічка запису» (ADR-0054): рахунки й обидві картки B1, «Мої справи» бухгалтера демо. */
-const timeline = createTimelineMocks({
-  targets: [
-    timelineTargetMock({
-      resource: "invoices",
-      db: invoices.db,
-      title: (invoice) => invoice.number,
-    }),
-    timelineTargetMock({
-      resource: "contacts",
-      db: contacts.db.contacts,
-      title: (contact) => contact.name,
-    }),
-    timelineTargetMock({
-      resource: "organizations",
-      db: contacts.db.organizations,
-      title: (organization) => organization.name,
-    }),
-  ],
-  seeds: { ...MY_ACTIVITY_SEEDS, ...TIMELINE_SEEDS },
-})
-
 /**
  * Документи з оплатою, про яку картка ще не знає: колега провів її, а подія прийшла про оплату, не про
  * документ (сторінка «Документ», `@/mocks/colleague`).
@@ -261,15 +245,57 @@ export const documents = createResourceHandlers<DemoDocument>({
 })
 
 /**
+ * Пропозиції модуля B3 (ADR-0065): у кожній компанії демо, клієнти — її організації з модуля B1, одиниці
+ * й ПДВ — знімки довідників A6 компанії. Ті самі опції дають засів серії `quotes` для нумерації.
+ */
+const salesFixtures: SalesFixtureOptions = {
+  companies: COMPANIES.map(({ id }) => id),
+  clients: (companyId) =>
+    contacts.db.organizations
+      .all()
+      .filter((organization) => organization.companyId === companyId)
+      .map(({ id, name }) => ({ id, name })),
+  dictionaries: (companyId) => {
+    const unit = (id: string) => {
+      const found = dictionaries.db.units
+        .all()
+        .find((entry) => entry.id === `${id}-${companyId ?? ""}`)
+      return found ? { id: found.id, name: found.shortName } : null
+    }
+    const vat = dictionaries.db.taxes
+      .all()
+      .find((tax) => tax.id === `vat-20-${companyId ?? ""}`)
+    const pieces = unit("pcs")
+    const hours = unit("h")
+    if (!vat || !pieces || !hours)
+      throw new Error(`demo: dictionaries of ${String(companyId)} are missing`)
+    return {
+      pieces,
+      hours,
+      vat: {
+        id: vat.id,
+        name: vat.name,
+        rate: vat.rate,
+        included: vat.included,
+      },
+    }
+  },
+}
+const salesSeeds = salesNumberingSeeds(salesFixtures)
+
+/**
  * Нумерація (PF03b, ADR-0058): серія документів у кожній компанії демо; засів першої компанії вже видав
  * номери проведеним і скасованим документам. Код філії для `{BRANCH}` — з профілів компаній демо.
  */
 export const numbering = createNumberingMocks({
-  series: COMPANIES.map((company) => ({
-    companyId: company.id,
-    resource: "documents",
-    template: DOCUMENT_NUMBER_TEMPLATE,
-  })),
+  series: [
+    ...COMPANIES.map((company) => ({
+      companyId: company.id,
+      resource: "documents",
+      template: DOCUMENT_NUMBER_TEMPLATE,
+    })),
+    ...salesSeeds.series,
+  ],
   counters: [
     {
       companyId: COMPANIES[0].id,
@@ -277,6 +303,7 @@ export const numbering = createNumberingMocks({
       year: DOCUMENT_SEED_YEAR,
       value: DOCUMENT_NUMBERS_ISSUED,
     },
+    ...salesSeeds.counters,
   ],
   branchCode: (companyId, branchId) =>
     companyId
@@ -316,6 +343,40 @@ const documentFlow = createDocumentFlowHandlers({
   ],
 })
 
+/** Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту. */
+const sales = createSalesMocks({
+  ...salesFixtures,
+  numbering,
+  extension: salesMockExtension,
+})
+
+/** Модуль N1 «Стрічка запису» (ADR-0054): рахунки, обидві картки B1 і пропозиції B3, «Мої справи» бухгалтера демо. */
+const timeline = createTimelineMocks({
+  targets: [
+    timelineTargetMock({
+      resource: "invoices",
+      db: invoices.db,
+      title: (invoice) => invoice.number,
+    }),
+    timelineTargetMock({
+      resource: "contacts",
+      db: contacts.db.contacts,
+      title: (contact) => contact.name,
+    }),
+    timelineTargetMock({
+      resource: "organizations",
+      db: contacts.db.organizations,
+      title: (organization) => organization.name,
+    }),
+    timelineTargetMock({
+      resource: "quotes",
+      db: sales.db.quotes,
+      title: (quote) => quote.number ?? quote.clientName,
+    }),
+  ],
+  seeds: { ...MY_ACTIVITY_SEEDS, ...TIMELINE_SEEDS },
+})
+
 /** Модуль N5 «Сповіщення» (ADR-0046): керівник відділу без своїх сповіщень у засіві команди. */
 const notifications = createNotificationsMocks({ users: ["u-taras"] })
 
@@ -343,6 +404,7 @@ export const handlers = [
       tags: { uk: "Теги", en: "Tags" },
       reasons: { uk: "Причини", en: "Reasons" },
       documents: { uk: "Документи", en: "Documents" },
+      quotes: { uk: "Пропозиції", en: "Quotes" },
       "numbering-series": {
         uk: "Нумерація документів",
         en: "Document numbering",
@@ -365,6 +427,7 @@ export const handlers = [
   ...documentTransitions,
   ...documentFlow,
   ...documents.handlers,
+  ...sales.handlers,
   ...numbering.handlers,
   ...contacts.handlers,
   ...users.handlers,

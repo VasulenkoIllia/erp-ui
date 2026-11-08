@@ -148,11 +148,23 @@ export interface StatusTransition<K extends string = string> {
   readonly reason?: TransitionReason
 }
 
+/** Тексти підтвердження дії мовою інтерфейсу: заголовок, наслідок і кнопка, що його називає. */
+export interface TransitionConfirmText {
+  readonly title: string
+  readonly description: string
+  readonly action: string
+}
+
 /** Перехід мовою інтерфейсу: кнопка дії. */
 export interface ModuleTransition<
   K extends string = string,
 > extends StatusTransition<K> {
   readonly label: string
+  /**
+   * Свої тексти підтвердження модуля: «Надіслати пропозицію?» замість «Провести документ?» кіта.
+   * Без них — тексти кіта за ключем дії (`erp/document-action-dialogs`).
+   */
+  readonly confirm?: TransitionConfirmText
 }
 
 /** Перехід із файлу розширення: підпис мовами, статуси — модуля чи нові статуси розширення. */
