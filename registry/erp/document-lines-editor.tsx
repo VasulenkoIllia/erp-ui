@@ -160,7 +160,11 @@ const isFieldKey = (event: KeyboardEvent, target: Element) =>
   event.isComposing ||
   event.defaultPrevented ||
   (event.key === "End" &&
-    Boolean(target.closest('textarea, [contenteditable="true"]')))
+    Boolean(
+      target.closest(
+        'textarea, [contenteditable]:not([contenteditable="false"])',
+      ),
+    ))
 
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
