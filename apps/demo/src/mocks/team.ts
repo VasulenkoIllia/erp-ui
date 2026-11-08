@@ -21,6 +21,7 @@ export const ROLES: MockRole[] = [
     permissions: [
       "invoices:*",
       "documents:*",
+      "quotes:*",
       "products:*",
       "organizations:*",
       "contacts:*",
@@ -74,6 +75,14 @@ export const ROLES: MockRole[] = [
     permissions: [
       "invoices:read",
       "documents:read",
+      // Пропозиції — без «Скасувати» й «Виправити»: кнопки неактивні з причиною.
+      "quotes:read",
+      "quotes:create",
+      "quotes:update",
+      "quotes:submit",
+      "quotes:accept",
+      "quotes:decline",
+      "quotes:negotiate",
       "organizations:read:own",
       "organizations:create",
       "organizations:update:own",
@@ -110,6 +119,7 @@ export const ROLES: MockRole[] = [
     },
     permissions: [
       "invoices:read",
+      "quotes:read",
       "organizations:read",
       "contacts:read",
       "segments:read",
@@ -164,6 +174,21 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
       "reverse",
       "amend",
       "sendToReview",
+    ],
+  },
+  quotes: {
+    label: { uk: "Пропозиції", en: "Quotes" },
+    group: SALES,
+    actions: [
+      "read",
+      "create",
+      "update",
+      "submit",
+      "accept",
+      "decline",
+      "negotiate",
+      "cancel",
+      "amend",
     ],
   },
   products: {

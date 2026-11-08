@@ -24,7 +24,10 @@ export function NumberingPage() {
           description={t("sectionDescription")}
         >
           <NumberingSettings
-            labels={{ documents: t("labels.documents") }}
+            labels={{
+              documents: t("labels.documents"),
+              quotes: t("labels.quotes"),
+            }}
             headingLevel={3}
           />
         </Section>

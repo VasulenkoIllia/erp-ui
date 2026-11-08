@@ -999,7 +999,8 @@
     "sectionTitle": "Number series",
     "sectionDescription": "An administrator can change the numbering, a team lead can only view it. Mock scenarios for the numbering-series resource are in the developer panel: slow, error, offline, conflict, forbidden, empty.",
     "labels": {
-      "documents": "Documents"
+      "documents": "Documents",
+      "quotes": "Quotes"
     }
   },
   "timelinePage": {

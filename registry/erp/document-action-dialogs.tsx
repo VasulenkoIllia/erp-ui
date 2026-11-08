@@ -12,7 +12,10 @@ import type {
 } from "@/registry/hooks/use-record-transition"
 import { TRANSITION_REASON_MAX_LENGTH } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
-import type { ModuleTransition } from "@/registry/lib/statuses"
+import type {
+  ModuleTransition,
+  TransitionConfirmText,
+} from "@/registry/lib/statuses"
 import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
 import { Textarea } from "@/registry/ui/textarea"
 
@@ -83,10 +86,12 @@ export function TransitionConflict<R extends TransitionRecord>({
         theirs: t("documentActions.conflict.theirs"),
         reload: t("documentActions.conflict.reload"),
         // Кнопка називає наслідок (SPEC §8.2): «Скасувати документ», а не «Скасувати».
-        overwrite: t(
-          `documentActions.confirm.${confirmKey(shown.transition.id)}.action`,
-          { action: shown.transition.label },
-        ),
+        overwrite:
+          shown.transition.confirm?.action ??
+          t(
+            `documentActions.confirm.${confirmKey(shown.transition.id)}.action`,
+            { action: shown.transition.label },
+          ),
       }}
       onReload={onReload}
       onOverwrite={onRetry}
@@ -130,7 +135,8 @@ export function TransitionDialog({
     }
   }
   if (!shown) return null
-  const text = (part: "title" | "description" | "action") =>
+  const text = (part: keyof TransitionConfirmText) =>
+    shown.confirm?.[part] ??
     t(`documentActions.confirm.${confirmKey(shown.id)}.${part}`, {
       action: shown.label,
     })

@@ -897,6 +897,8 @@ const transitions = useResolvedTransitions(
   для `amend` і `reverse`. Дія — `id` переходу й дія права (`invoices:submit`). Порядок перевірок і коди причин — ADR-0057.
 - Проведений і скасований документ бекенд мітить `deniedActions` (`submitted`, `cancelled`), пов'язані проведені документи — `linked`,
   виправлений — `amended`, сторнований — `reversed`. Тексти цих кодів кіт показує сам. Свій код проекту — загальним текстом.
+- Підтвердження «Провести документ?», «Скасувати документ?» — тексти кіта за ключем дії. Модуль зі своїми словами дає переходу
+  `confirm: { title, description, action }` (ADR-0065): «Надіслати пропозицію?» з кнопкою «Надіслати пропозицію».
 - Після сторно перший документ лишається проведеним, поруч з'являється документ-сторно з `reversalOf`.
 - Куди веде дія модуля (`to`), розширення не змінює: інша поведінка — нова дія в `add` зі своїм ключем (`add` з ключем дії модуля не
   діє). Дії кіта — лише зі свого стану `docStatus`, хоч би що дозволяв граф. Сервер і моки беруть той самий граф через
@@ -1053,6 +1055,41 @@ const state = order && company ? undefined : error ? errorStateKind(error) : "lo
 - `PrintButton` чекає логотипа й печатки аркуша (до 3 с) і на час друку ставить у заголовок сторінки назву документа: з неї
   браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
 - Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
+
+### Модуль B3 «Пропозиції й замовлення» (ADR-0065)
+
+Перший модуль документа на рушії хвилі 2: зараз частина «Пропозиції» (список, картка, форма, друк), замовлення додасть B3b.
+
+```ts
+// src/modules.ts
+import { createSalesModule } from "@/modules/B3-sales"
+import { salesExtension } from "@/extensions/B3-sales"
+
+export const salesModule = createSalesModule({
+  basePath: "/sales",
+  extension: salesExtension,
+  clients: { resource: "organizations", labelField: "name", descriptionField: "code", href: contactsModule.paths.organization },
+})
+
+// src/mocks/handlers.ts — нумерація одна на застосунок, модуль дає лише засів серії `quotes`
+import { createSalesMocks, salesNumberingSeeds } from "@/modules/B3-sales/mocks"
+const seeds = salesNumberingSeeds({ companies: ["my-company"] })
+const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
+const sales = createSalesMocks({ companies: ["my-company"], numbering, extension: salesMockExtension })
+setupWorker(...createPlatformHandlers({}), ...numbering.handlers, ...sales.handlers)
+```
+
+- Права: `quotes` з `read`, `create`, `update` і діями графа `submit`, `accept`, `decline`, `cancel`, `amend`, плюс дії розширення.
+- Статуси: «Чернетка», «Надіслано», «Прийнято», «Відхилено», «Скасовано». «Термін минув» — не статус, а позначка надісланої, у
+  якої «Дійсна до» раніше сьогодні: статус сам із часом не змінюється.
+- Змінити можна лише чернетку. Надіслану, прийняту чи відхилену змінюють через «Скасувати» з причиною й «Виправити»: нова чернетка з
+  тим самим клієнтом, рядками й полями розширення.
+- Клієнти — ресурс проекту (`clients`), модуль B1 не імпортується. Товар у рядку — необов'язковий `lineItem` з ресурсу проекту;
+  одиниці, податки й типові значення рядка — ресурси A6 за назвами, без них рядок пишеться вільним текстом.
+- Бекенду: `GET /quotes` без рядків, `GET /quotes/:id` з `lines` і `totals`, суми рахує сервер; `POST /quotes/:id/<дія>`; 422
+  `validUntil: before_date`. Повний контракт — `README.md` модуля.
+- Розширення `SalesExtension` (`quotes`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`, `filters`,
+  `tabs`, `recordFields`, `sections`, `actions`, `aside`, `history`, `editLock`, `form`; `strings`.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 

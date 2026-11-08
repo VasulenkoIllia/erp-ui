@@ -12,6 +12,7 @@ import type { ModuleId } from "@/registry/lib/icons"
 
 import { companyModule } from "@/company-module"
 import { contactsModule } from "@/contacts-module"
+import { salesModule } from "@/sales-module"
 import type { KitModuleKey } from "@/router"
 import { usersModule } from "@/users-module"
 // Останнім: першим у цьому списку модуль міняє порядок виконання, і збирач розбиває вхідний чанк на
@@ -42,6 +43,7 @@ interface KitModule {
 
 export const KIT_MODULES = {
   contacts: contactsModule,
+  salesModule,
   usersModule,
   companyModule,
   auditModule,
@@ -51,7 +53,7 @@ export const KIT_MODULES = {
   timelineModule,
 } as const satisfies Record<KitModuleKey, KitModule>
 
-/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/A2`, `/m/A1`, `/m/A5`, `/m/N5`, `/m/A6`, `/m/A4`, `/m/N1`); інший розділ — заглушка. */
+/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/B3`, `/m/A2`, `/m/A1`, `/m/A5`, `/m/N5`, `/m/A6`, `/m/A4`, `/m/N1`); інший розділ — заглушка. */
 export function kitModuleOf(id: ModuleId): KitModule | undefined {
   return Object.values(KIT_MODULES).find((module) => module.id === id)
 }

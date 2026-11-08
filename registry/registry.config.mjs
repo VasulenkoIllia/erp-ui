@@ -573,7 +573,7 @@ export const CODE_ITEMS = {
     title: "useWindowRows",
     description:
       "Віртуальні рядки форми у вікні сторінки на TanStack Virtual (useWindowVirtualizer): прокручується сама сторінка, рядки поза екраном, які мають лишитися в DOM (у фокусі, куди піде фокус, перший із помилкою), за порядком; висота невиміряних — середня з виміряних; відступ списку переміряється зі зміною висоти сторінки; у вкладеній прокрутці (діалог, шторка) малюються всі рядки (ADR-0060).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI05", "§10", "§18.1"],
   },
@@ -653,7 +653,7 @@ export const CODE_ITEMS = {
     title: "Дія за графом переходів",
     description:
       "useRecordTransition({ resource, record, onCreated }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом, 409 — дані для порівняння, повтор із новою версією; новий документ після amend і reverse (ADR-0057).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4"],
   },
@@ -1053,7 +1053,7 @@ export const CODE_ITEMS = {
     title: "Життєвий цикл документа",
     description:
       "Контракт PF03 за моделлю ERPNext: docStatus draft → submitted → cancelled, дії submit, cancel, amend (виправлена копія з amendedFrom) і reverse (сторно з reversalOf, перший лишається проведеним), тіло дії { version, reason? }, порядок перевірок сервера (ADR-0057).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§17"],
   },
@@ -1077,7 +1077,7 @@ export const CODE_ITEMS = {
     title: "Мок дій за графом переходів",
     description:
       "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§17"],
   },
@@ -1085,14 +1085,14 @@ export const CODE_ITEMS = {
     title: "Рядки документів українською",
     description:
       "Стани й дії документа, підтвердження з причиною, порівняння в конфлікті (ADR-0057), потік документів (ADR-0061): окремий файл, простір імен erp-ui той самий.",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§11"],
   },
   "lib/i18n-en-documents": {
     title: "Рядки документів англійською",
     description: "Ті самі рядки документів англійською.",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§11"],
   },
@@ -1100,7 +1100,7 @@ export const CODE_ITEMS = {
     title: "Нумерація документів",
     description:
       "Контракт PF03b: серія номерів на тип документа (ресурс numbering-series, PATCH шаблону й правил із version), лічильники numbering-counters лише для читання; шаблон із мітками {YYYY} {YY} {MM} {BRANCH} {####}, перевірка шаблону з кодами, номер за шаблоном, лічильник на компанію чи філію й рік, перегляд наступного номера. Номер дає проведення, у чернетки його немає (ADR-0058).",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§17"],
   },
@@ -1108,7 +1108,7 @@ export const CODE_ITEMS = {
     title: "Мок нумерації",
     description:
       "createNumberingMocks: серії на createResourceHandlers (права, 409, 422 шаблону, сценарії), GET /numbering-counters, forResource для опції numbering моку переходів — атомарна видача номера на проведенні, зайнятий номер пропускається (ADR-0058).",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§17"],
   },
@@ -1116,14 +1116,14 @@ export const CODE_ITEMS = {
     title: "Рядки нумерації українською",
     description:
       "Налаштування нумерації, мітки шаблону, помилки шаблону, «Без номера» (ADR-0058): окремий файл, простір імен erp-ui той самий.",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§11"],
   },
   "lib/i18n-en-numbering": {
     title: "Рядки нумерації англійською",
     description: "Ті самі рядки нумерації англійською.",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§11"],
   },
@@ -1131,7 +1131,7 @@ export const CODE_ITEMS = {
     title: "Друк сторінки й мова аркуша",
     description:
       "PF08a: printPage — дочекатися шрифтів і зображень аркуша (логотипа, печатки) не довше PRINT_READY_TIMEOUT_MS і відкрити діалог друку, на час друку заголовок сторінки — назва документа (назва файла PDF); usePrintTitle — те саме для Ctrl+P; usePrintLanguage — рядки кіта мовою документа, окремо від інтерфейсу (SPEC §11), інша мова довантажується; usePrintSheet — мова аркуша для блоків; A4 і поля, як у @page tokens/base.css (ADR-0062).",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§11"],
   },
@@ -1139,14 +1139,14 @@ export const CODE_ITEMS = {
     title: "Рядки друку українською",
     description:
       "Перегляд друку й текст аркуша (print.sheet: реквізити, сторони, колонки рядків, сума прописом, підписи, позначки чернетки й скасованого) (ADR-0062): окремий файл, простір імен erp-ui той самий.",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§11"],
   },
   "lib/i18n-en-print": {
     title: "Рядки друку англійською",
     description: "Ті самі рядки друку англійською.",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§11"],
   },
@@ -1154,14 +1154,14 @@ export const CODE_ITEMS = {
     title: "Рядки редактора рядків документа українською",
     description:
       "Поля рядка, підсумки, знижка на документ, помилки біля полів (ADR-0059): окремий файл, простір імен erp-ui той самий.",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§11"],
   },
   "lib/i18n-en-document-lines": {
     title: "Рядки редактора рядків документа англійською",
     description: "Ті самі рядки редактора рядків документа англійською.",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§11"],
   },
@@ -2542,7 +2542,7 @@ export const CODE_ITEMS = {
     title: "Панель дій документа",
     description:
       "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4", "§9", "§10"],
   },
@@ -2550,7 +2550,7 @@ export const CODE_ITEMS = {
     title: "Діалоги панелі дій документа",
     description:
       "TransitionDialog: підтвердження дії з кнопкою-наслідком і полем причини, кожне відкриття з порожнього поля; TransitionConflict: порівняння того, що людина бачила, з тим, що зараз, і повтор дії з новою версією. Частина erp/document-action-bar (PF03, ADR-0057).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§10"],
   },
@@ -2574,7 +2574,7 @@ export const CODE_ITEMS = {
     title: "Рядки документа",
     description:
       "DocumentLinesEditor на erp/repeating-rows: назва чи вибір запису ресурсу проекту (підставляє назву, ціну, одиницю й податок), кількість, одиниця й податок знімком довідника, ціна, знижка відсотком або сумою, сума рядка; розділи з сумою своїх рядків і нотатки серед рядків; дії рядка одним меню: підняти, опустити, вставити рядок, розділ чи нотатку нижче, вилучити; знижка на документ і підсумки за ставками з lib/document-totals нижчим пріоритетом; таблиця з 56rem із підписами колонок над рядками, картки на вужчому без горизонтальної прокрутки; рядок підписаний на свої значення, від 12 рядків (virtualizeFrom) у DOM лише видимі, 500 рядків у межах INP; додати, змінити й вилучити рядок лише з клавіатури; лише для читання з сумами рядків і підсумками сервера; великий документ з клавіатури: Ctrl+End з рядків — на знижку документа, від virtualizeFrom над рядками пошук у рядках (erp/document-lines-search) і «До підсумків», ⌘F/Ctrl+F у рядках — у пошук, меню розділу переносить розділ разом із рядками (UI05, ADR-0059, ADR-0060, ADR-0064).",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§8", "§9", "§10", "§11"],
   },
@@ -2582,7 +2582,7 @@ export const CODE_ITEMS = {
     title: "Рядок документа будь-якого виду",
     description:
       "DocumentLineRow: підписка лише на свій рядок (useWatch зі знімком і порівнянням), товар чи послуга — DocumentLineFields із сумою з самого рядка, розділ — назва на ширину рядка й сума його рядків, нотатка — текст на всю ширину. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0060).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI05", "§8.3", "§10"],
   },
@@ -2590,7 +2590,7 @@ export const CODE_ITEMS = {
     title: "Попередній розрахунок рядків документа",
     description:
       "DocumentLinesPreview: одна підписка на всі рядки на весь редактор, підсумки й суми розділів нижчим пріоритетом (useDeferredValue), lineTotalsOf — суми рядка з самого рядка, sectionSums — сума колонки «Сума» рядків розділу, DocumentLinesPreviewTotals. Частина erp/document-lines-editor, окремо не ставиться (UI05, ADR-0060).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI05", "§18.1"],
   },
@@ -2598,7 +2598,7 @@ export const CODE_ITEMS = {
     title: "Поля рядка документа",
     description:
       "DocumentLineFields: поля одного рядка в порядку колонок, значення довідника, якого вже немає, лишається під своєю назвою; вибір запису підставляє лише назву, ціну, одиницю й податок; LineSum — сума рядка чи розділу без поля. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§8.3", "§10"],
   },
@@ -2606,7 +2606,7 @@ export const CODE_ITEMS = {
     title: "Знижка рядка чи документа",
     description:
       "DiscountField: знижка відсотком або сумою з перемикачем «%» / «₴», що обнуляє друге значення; вид — за значенням, стерта знижка лишає поле під фокусом; сума в мінорних одиницях без виходу за безпечне ціле. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§8.3", "§10"],
   },
@@ -2614,7 +2614,7 @@ export const CODE_ITEMS = {
     title: "Підсумки рядків документа",
     description:
       "DocumentLinesTotals: знижка на документ, сума до знижок, знижки рядків і документа, без податку, податок за кожною ставкою (у ціні — «У т. ч.»), разом; рядки, які ще не порахувати, і зайва знижка документа не враховуються з поясненням, яке озвучує скрінрідер; сума за межею — повідомлення. previewTotals — попередній розрахунок форми. Частина erp/document-lines-editor на формі DocumentLinesValues, окремо не ставиться (UI05, ADR-0059).",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§8", "§10"],
   },
@@ -2622,7 +2622,7 @@ export const CODE_ITEMS = {
     title: "Пошук у рядках документа",
     description:
       "DocumentLinesSearch: пошук у назвах товарів, назвах розділів і тексті нотаток без урахування регістру й діакритики, число — ще й номер рядка першим; список знайдених рядків із номером і розділом (до 50, решта — точнішим запитом), вибір ставить фокус у поле зі збігом, і рядок поза екраном з'являється; Enter без вибору не відправляє форму. findDocumentLines — чиста функція пошуку. Частина erp/document-lines-editor, окремо не ставиться (UI05d, ADR-0064).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI05", "§10", "§11"],
   },
@@ -2630,7 +2630,7 @@ export const CODE_ITEMS = {
     title: "Схема форми рядків документа",
     description:
       "useDocumentLinesSchema(currency): схема форми рядків і знижки документа з текстами помилок мовою інтерфейсу біля поля; кількість, ціна й знижки — схемами контракту, суми — перевірками контракту: знижка понад суму рядка видна в кожному рядку одразу, помилка поля шапки перевірки сум не вимикає; шапку модуль додає safeExtend. Частина erp/document-lines-editor (UI05, ADR-0059).",
-    status: "draft",
+    status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§8.3", "§11"],
   },
@@ -2638,7 +2638,7 @@ export const CODE_ITEMS = {
     title: "Налаштування нумерації",
     description:
       "NumberingSettings: типи документів компанії зі своїми серіями, вибрана — в адресі; широкий контейнер — список і форма поруч, вузький — одне під одним; без права на зміну — лише перегляд, без права на читання — «Немає доступу»; стани завантаження, помилки, офлайн і порожньо (PF03b, ADR-0058).",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§8", "§9", "§10"],
   },
@@ -2646,7 +2646,7 @@ export const CODE_ITEMS = {
     title: "Форма серії нумерації",
     description:
       "NumberingSeriesForm: шаблон із кнопками міток на місці курсора, «Щороку з 1», «Окремо для кожної філії», перевірка шаблону біля поля (і для коду 422 сервера той самий текст), перегляд наступного номера (erp/numbering-preview); збереження з липкою панеллю й порівнянням у конфлікті. Частина erp/numbering-settings (PF03b, ADR-0058).",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§8.2", "§8.3", "§10"],
   },
@@ -2654,7 +2654,7 @@ export const CODE_ITEMS = {
     title: "Перегляд друку",
     description:
       "PrintPreview: аркуш A4 так, як його надрукує браузер, кнопка «Друкувати» й дії сторінки; на сторінці з аркушем друкується лише він (data-print-root): поля дає @page, рядок таблиці не розривається між сторінками, шапка таблиці повторюється, номер сторінки внизу; аркуш світлий і в темній темі, мова аркуша — мова документа (language), а не інтерфейсу; на вузькому контейнері аркуш зменшено за шириною, «Справжній розмір» — з прокруткою в межах перегляду й з клавіатури; стани завантаження (скелет аркуша, кнопка недоступна з поясненням), помилка й офлайн із повтором, немає права, не знайдено (PF08, ADR-0062).",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§8", "§9", "§10", "§11"],
   },
@@ -2662,7 +2662,7 @@ export const CODE_ITEMS = {
     title: "Кнопка друку",
     description:
       "PrintButton: діалог друку браузера (там же «Зберегти як PDF») після шрифтів і зображень аркуша; title — назва файла PDF; deniedReason — недоступна з поясненням (SPEC §8.4); зайнята, поки готується друк. Без аркуша друкує сторінку без оболонки (PF08, ADR-0062).",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§8.4", "§10"],
   },
@@ -2670,7 +2670,7 @@ export const CODE_ITEMS = {
     title: "Реквізити, логотип і печатка на аркуші",
     description:
       "PrintCompanyHeader — логотип і реквізити компанії; PrintRequisites — повна назва, ЄДРПОУ чи РНОКПП, ІПН платника ПДВ, IBAN групами й банк, адреса, телефон, пошта, сайт, «Платник ПДВ» чи «Не є платником ПДВ», порожній реквізит не друкується; PrintParties — сторони документа; PrintSignatures — посада й ім'я директора, головний бухгалтер, печатка поверх підпису (stamp={false} — без неї). Дані — профіль компанії lib/company, текст — мовою аркуша (PF08, ADR-0062).",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "§11"],
   },
@@ -2678,7 +2678,7 @@ export const CODE_ITEMS = {
     title: "Документ на аркуші",
     description:
       "PrintDocumentTitle — вид, номер і дата, «Сплатити до», у чернетки «(без номера)»; PrintWatermark — позначка навскіс «Чернетка» чи «Скасовано» на кожній сторінці (рішення власника 04.11.2026); PrintDocumentLines — №, назва, кількість, одиниця, ціна, знижка (є в рядках), податок (ставок більше однієї), сума; розділ із сумою своїх рядків (sectionSums), нотатка, «У документі немає рядків»; PrintDocumentTotals — підсумки сервера чи правила редактора (previewTotals, totalsRowsOf) за ставками, разом і «Всього на суму» прописом мовою аркуша, якщо є слова валюти (hasCurrencyWords) (PF08, ADR-0062).",
-    status: "draft",
+    status: "beta",
     demo: "print",
     spec: ["PF08", "UI05", "§11"],
   },
@@ -2686,7 +2686,7 @@ export const CODE_ITEMS = {
     title: "Перегляд наступного номера",
     description:
       "NumberingPreview: наступний номер для шаблону у формі, зокрема ще не збереженого, з лічильників сервера; вибір філії, коли номер має її код; скрінрідер чує номер після паузи в наборі; useNumberingIssueText — текст помилки шаблону для поля, перегляду й коду 422. Частина erp/numbering-series-form (PF03b, ADR-0058).",
-    status: "draft",
+    status: "beta",
     demo: "numbering",
     spec: ["PF03", "§8", "§10"],
   },
@@ -2750,7 +2750,7 @@ export const CODE_ITEMS = {
     title: "Список повторюваних рядків",
     description:
       "RepeatingRowsList: підписи колонок над таблицею й рядки erp/repeating-rows — усі або віртуальний список, який передає форма (erp/repeating-rows-virtual) і який сам малює всі рядки до virtualRows.from, тож решта форм не завантажує TanStack Virtual; перший рядок із помилкою й рядок, куди йде фокус далеко від екрана, лишаються в DOM. RepeatingRowItem — рядок, що перемальовується лише зі своїми пропсами, useRowHandlers — стабільні дії рядків (ADR-0060, ADR-0064).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI42", "UI05", "§9", "§10", "§18.1"],
   },
@@ -2758,7 +2758,7 @@ export const CODE_ITEMS = {
     title: "Віртуальні повторювані рядки",
     description:
       "VirtualRowsList: у DOM лише рядки erp/repeating-rows на екрані й поруч, прокручується сторінка (hooks/use-window-rows); рядок каже скрінрідеру своє місце й кількість рядків; до порога й у вкладеній прокрутці малюються всі рядки, а на порозі рядки на екрані не перемонтовуються. Підключається опцією RepeatingRows.virtualRows (ADR-0060).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI42", "UI05", "§9", "§10", "§18.5"],
   },
@@ -2766,7 +2766,7 @@ export const CODE_ITEMS = {
     title: "Групи повторюваних рядків",
     description:
       "groupHeadsOf, rowGroupFlags, rowGroupMove: рядок-голова відкриває групу до наступної голови, група міняється місцями із сусідньою переносами рядків по одному (кожен зберігає ключ і стан, переноситься менша група); рядки до першої голови з місця не рушають. Частина erp/repeating-rows (UI05d, ADR-0064).",
-    status: "draft",
+    status: "beta",
     demo: "documentForm",
     spec: ["UI42", "UI05"],
   },
@@ -3208,6 +3208,20 @@ export const MODULE_ITEMS = {
       "1) createContactsModule({ basePath, extension }) з @/modules/B1-contacts: routes — у роутер, nav — у навігацію.",
       "2) Моки: createContactsMocks({ extension }) з @/modules/B1-contacts/mocks — handlers у setupWorker.",
       "3) Права ролей: contacts, organizations, segments (read, create, update, delete). Докладно — src/modules/B1-contacts/README.md.",
+    ].join("\n"),
+  },
+  "modules/B3-sales": {
+    title: "Пропозиції й замовлення (B3)",
+    description:
+      "Модуль, частина «Пропозиції»: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, «Термін минув» у надісланої з минулим строком), картка на Object Page (номер, етапи, панель дій графа: «Надіслати» з номером серії, «Клієнт прийняв», «Клієнт відхилив», «Скасувати» з причиною, «Виправити»; рядки лише для читання з підсумками сервера; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями й засівом серії нумерації, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension: поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065).",
+    status: "beta",
+    demo: "salesModule",
+    spec: ["§7", "§14", "§17"],
+    docs: [
+      "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension).",
+      "1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має право).",
+      "2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks, далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker.",
+      "3) Права ролей: quotes (read, create, update, submit, accept, decline, cancel, amend) і дії розширення. Докладно — src/modules/B3-sales/README.md.",
     ].join("\n"),
   },
 }
