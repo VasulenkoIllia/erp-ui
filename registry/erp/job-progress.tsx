@@ -20,6 +20,7 @@ import {
   type Job,
   type JobFailureGroup,
 } from "@/registry/lib/jobs"
+import { isKnownDenialReason } from "@/registry/lib/record-access"
 import { Button } from "@/registry/ui/button"
 import { Progress } from "@/registry/ui/progress"
 import { Spinner } from "@/registry/ui/spinner"
@@ -49,7 +50,10 @@ export interface JobProgressOptions {
   title: string
   /** Підсумок після завершення: «Погоджено 1 150 з 1 200 рахунків». */
   summary?: (job: Job) => string
-  /** Причина невдачі за кодом модуля (`invalid_status`); загальні коди API кіт знає сам. */
+  /**
+   * Причина невдачі за кодом модуля (`invalid_status`); загальні коди API й заборони станом документа
+   * (`submitted`, `linked`…, ADR-0066) кіт знає сам.
+   */
   failureLabel?: (code: string) => string | undefined
   /**
    * Задача завершилась (зокрема з невдачами) чи її стан не дізнатись; після повтору — знову. Напр.,
@@ -103,7 +107,9 @@ function useReason(failureLabel: JobProgressOptions["failureLabel"]) {
     failureLabel?.(code) ??
     (isKnownApiErrorCode(code)
       ? t(`apiErrors.${code}`)
-      : t("jobs.unknownReason", { code }))
+      : isKnownDenialReason(code)
+        ? t(`recordAccess.${code}`)
+        : t("jobs.unknownReason", { code }))
 }
 
 /**

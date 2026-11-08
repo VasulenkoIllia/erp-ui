@@ -9,7 +9,10 @@ export const QUOTES = "quotes"
 export interface SalesResource {
   readonly name: string
   readonly label: LocalizedText
-  /** Дії права `<ресурс>:<дія>`: читання й зміна та дії графа переходів модуля (ADR-0057). */
+  /**
+   * Дії права `<ресурс>:<дія>`: читання, зміна, видалення чернетки й дії графа переходів модуля
+   * (ADR-0057, ADR-0066); масова дія — те саме право.
+   */
   readonly actions: readonly string[]
 }
 
@@ -21,6 +24,7 @@ export const SALES_RESOURCES: readonly SalesResource[] = [
       "read",
       "create",
       "update",
+      "delete",
       "submit",
       "accept",
       "decline",

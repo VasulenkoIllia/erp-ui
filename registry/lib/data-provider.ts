@@ -8,7 +8,7 @@
  *   `version: current.version`.
  * - updateMany/deleteMany — запит на кожен запис.
  * - Масові дії з частковою невдачею — фоновою задачею сервера (lib/jobs, ADR-0018): `startBulk`
- *   → `POST /<ресурс>/bulk/<дія>`, `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
+ *   → `POST /<ресурс>/bulk/<дія>` (з причиною дії — `{ reason }` четвертим аргументом, ADR-0066), `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
  *   перевіряється схемою, чекає до `JOB_POLL_TIMEOUT_MS`), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
  *   `useDataProvider<ErpDataProvider>()`.
  * - Імпорт з файла (lib/imports, ADR-0049): `checkImport` → `POST /<ресурс>/import/check`,
@@ -41,10 +41,12 @@ import {
   type ListSettingsPatch,
 } from "@/registry/lib/list-settings"
 import {
+  BULK_PATH,
   JOB_POLL_TIMEOUT_MS,
   JOBS_PATH,
   jobSchema,
   jobStartedSchema,
+  type BulkOptions,
   type BulkSelection,
   type Job,
   type JobStarted,
@@ -79,6 +81,8 @@ export interface BulkDataProvider {
     resource: string,
     action: string,
     selection: BulkSelection,
+    /** Причина дії, одна на всі записи; без неї в тілі немає `reason` (ADR-0066). */
+    options?: BulkOptions,
   ) => Promise<JobStarted>
   getJob: (id: string, options?: { signal?: AbortSignal }) => Promise<Job>
   retryJob: (id: string) => Promise<JobStarted>
@@ -280,10 +284,12 @@ export function createDataProvider(
       return { data: ids }
     },
 
-    startBulk: (resource, action, selection) =>
+    startBulk: (resource, action, selection, options = {}) =>
       client.post(
-        `${path(resource)}/bulk/${encodeURIComponent(action)}`,
-        selection,
+        `${path(resource)}/${BULK_PATH}/${encodeURIComponent(action)}`,
+        options.reason === undefined
+          ? selection
+          : { ...selection, reason: options.reason },
         { schema: jobStartedSchema },
       ),
 

@@ -116,7 +116,6 @@ export function TransitionDialog({
   returnFocus: (action: string) => void
 }) {
   const t = useErpUiT()
-  const id = React.useId()
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
   const [reason, setReason] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
@@ -174,29 +173,61 @@ export function TransitionDialog({
       lockWhileBusy
       body={
         shown.reason ? (
-          <Field data-invalid={error ? true : undefined}>
-            <FieldLabel htmlFor={`${id}-reason`}>
-              {shown.reason === "required"
-                ? t("documentActions.reason")
-                : t("documentActions.reasonOptional")}
-            </FieldLabel>
-            <Textarea
-              ref={fieldRef}
-              id={`${id}-reason`}
-              value={reason}
-              maxLength={TRANSITION_REASON_MAX_LENGTH}
-              required={shown.reason === "required"}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? `${id}-error` : undefined}
-              onChange={(event) => {
-                setReason(event.target.value)
-                setError(null)
-              }}
-            />
-            {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
-          </Field>
+          <TransitionReasonField
+            ref={fieldRef}
+            reason={shown.reason}
+            value={reason}
+            error={error}
+            onChange={(value) => {
+              setReason(value)
+              setError(null)
+            }}
+          />
         ) : null
       }
     />
+  )
+}
+
+/**
+ * Поле причини дії (ADR-0057): підпис за тим, чи причина обов'язкова, межа довжини контракту, помилка
+ * під полем. Діалог дії над документом і масової дії (erp/bulk-action, ADR-0066).
+ */
+export function TransitionReasonField({
+  ref,
+  reason,
+  value,
+  error,
+  onChange,
+}: {
+  ref?: React.Ref<HTMLTextAreaElement>
+  reason: "required" | "optional"
+  value: string
+  error: string | null
+  onChange: (value: string) => void
+}) {
+  const t = useErpUiT()
+  const id = React.useId()
+  return (
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={`${id}-reason`}>
+        {reason === "required"
+          ? t("documentActions.reason")
+          : t("documentActions.reasonOptional")}
+      </FieldLabel>
+      <Textarea
+        ref={ref}
+        id={`${id}-reason`}
+        value={value}
+        maxLength={TRANSITION_REASON_MAX_LENGTH}
+        required={reason === "required"}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        onChange={(event) => {
+          onChange(event.target.value)
+        }}
+      />
+      {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
+    </Field>
   )
 }

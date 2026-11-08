@@ -14,17 +14,26 @@
  *   компанії запиту, повтор перевіряє право ще раз (A2c1).
  * - Обсяг дії — на кожен запис (ADR-0039): дія лише над своїми запускається, чужий запис — невдача
  *   `forbidden`, невидимий (`read:own`) — `not_found`, вибір «усе, крім» — лише видимі записи.
+ * - Заборона станом документа (позначка `deniedActions` з кодом життєвого циклу: `submitted`,
+ *   `cancelled`, `linked`, `amended`, `reversed`) — невдача з цим кодом, решта заборон — `forbidden`
+ *   (ADR-0066): «надіслану не видаляють» — не те саме, що «немає прав».
+ * - Причина дії (`reason` у тілі, ADR-0066): дія з `reason: "required"` без неї — 422 до запуску;
+ *   причина йде в `apply` і окремою подією журналу кожного зміненого запису, як у дії над одним.
+ * - `apply` може видалити запис (`{ remove: true }`): той самий шлях, що й `DELETE` ресурсу.
  */
 import { http, type HttpHandler } from "msw/http"
 import { z } from "zod"
 
 import { API_PREFIX, type FilterValue } from "@/registry/lib/api"
+import { TRANSITION_REASON_MAX_LENGTH } from "@/registry/lib/document-lifecycle"
 import {
+  BULK_PATH,
   JOB_FAILURE_SAMPLE,
   JOBS_PATH,
   type Job,
   type JobFailureGroup,
 } from "@/registry/lib/jobs"
+import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
@@ -39,6 +48,7 @@ import {
 } from "@/registry/lib/mock-server"
 import { mockDeniedAction, mockGrantsRecords } from "@/registry/lib/mock-scope"
 import type { MockRecord, MockResourceDb } from "@/registry/lib/mocks"
+import { RECORD_DENIAL_REASONS } from "@/registry/lib/record-access"
 
 /** Ресурс для сценаріїв опитування задач у панелі розробника. */
 export const MOCK_JOBS_RESOURCE = "jobs"
@@ -49,12 +59,33 @@ const QUEUE_MS = 300
 
 export type MockBulkOutcome<T> =
   | { changes: Partial<T> }
+  | { remove: true }
   | { code: string; message: string; retryable?: boolean }
 
-export interface MockBulkAction<T extends MockRecord> {
-  /** Дія над записом: зміни або відмова з кодом (`retryable` — повтор може пройти). */
-  apply: (record: T) => MockBulkOutcome<T>
+/** Що знає дія про запуск: причина з тіла й компанія запиту (номер документа серії компанії). */
+export interface MockBulkContext {
+  readonly reason?: string
+  readonly companyId: string | null
 }
+
+export interface MockBulkAction<T extends MockRecord> {
+  /** Дія над записом: зміни, видалення або відмова з кодом (`retryable` — повтор може пройти). */
+  apply: (record: T, context: MockBulkContext) => MockBulkOutcome<T>
+  /** Причина в тілі запуску: `required` — без неї 422 і задачі немає (ADR-0066). */
+  reason?: "required" | "optional"
+}
+
+/**
+ * Заборони станом документа (ADR-0057): у невдачі — їхній код, щоб людина бачила причину. Заборона
+ * правами (спільний, чужий запис, правило проекту) — `forbidden`.
+ */
+const DOCUMENT_DENIALS: ReadonlySet<string> = new Set([
+  RECORD_DENIAL_REASONS.submitted,
+  RECORD_DENIAL_REASONS.cancelled,
+  RECORD_DENIAL_REASONS.linked,
+  RECORD_DENIAL_REASONS.amended,
+  RECORD_DENIAL_REASONS.reversed,
+])
 
 type Failure = JobFailureGroup & { ids: string[] }
 type FailureReason = Omit<JobFailureGroup, "count" | "items"> & {
@@ -217,10 +248,100 @@ export interface MockBulkOptions<T extends MockRecord> {
   actions: Record<string, MockBulkAction<T>>
   /** Поле з назвою запису для списку невдач (номер рахунку). */
   titleField?: keyof T & string
+  /** Назва запису для списку невдач, коли поля мало (чернетка без номера); головніша за `titleField`. */
+  title?: (record: T) => string | undefined
   perSecond?: number
   baseUrl?: string
   /** Годинник (тести). */
   now?: () => number
+}
+
+/** Що потрібно, щоб виконати дію задачі над одним записом. */
+interface BulkRun<T extends MockRecord> {
+  readonly resource: string
+  readonly db: MockResourceDb<T>
+  readonly actionName: string
+  readonly action: MockBulkAction<T>
+  readonly rules: ReturnType<MockResourceDb<T>["accessOf"]>
+  readonly context: MockBulkContext
+  readonly titleOf: (record: T) => string | undefined
+}
+
+/** Дія задачі над одним записом: `null` — успіх, інакше невдача з назвою запису. */
+function runOnRecord<T extends MockRecord>(
+  run: BulkRun<T>,
+  id: string,
+  record: T | undefined,
+): FailureReason | null {
+  const notFound = { code: "not_found", message: "Not found", retryable: false }
+  if (!record) return notFound
+  const title = run.titleOf(record)
+  // Спільний, чужий на дію лише над своїми, заборонений проектом (ADR-0036, ADR-0039) чи станом документа.
+  const denial = mockDeniedAction(run.rules, record, run.actionName)
+  if (denial)
+    return {
+      code: DOCUMENT_DENIALS.has(denial) ? denial : "forbidden",
+      message: `Denied: ${denial}`,
+      retryable: false,
+      title,
+    }
+  // Збій дії над одним записом — невдача цього запису, а не всієї партії.
+  try {
+    const outcome = run.action.apply(record, run.context)
+    if ("code" in outcome)
+      return { ...outcome, retryable: outcome.retryable ?? false, title }
+    if ("remove" in outcome) {
+      if (!run.db.remove(id)) return { ...notFound, title }
+    } else {
+      const result = run.db.patch(id, outcome.changes)
+      if (!result) return { ...notFound, title }
+      if ("fieldErrors" in result)
+        return {
+          code: "validation",
+          message: `Invalid: ${JSON.stringify(result.fieldErrors)}`,
+          retryable: false,
+          title,
+        }
+    }
+    // Причина — окремою подією журналу запису, як у дії над одним (lib/mock-transitions).
+    if (run.context.reason)
+      recordAudit({
+        action: `${run.resource}.${run.actionName}`,
+        category: "data",
+        ...(record.companyId ? { companyId: record.companyId } : {}),
+        target: { type: run.resource, id },
+        reason: run.context.reason,
+      })
+    return null
+  } catch (error) {
+    return {
+      code: "server",
+      message: error instanceof Error ? error.message : String(error),
+      retryable: true,
+      title,
+    }
+  }
+}
+
+/** Причина з тіла запуску (ADR-0066): помилка 422 або причина; дія без причини її не бере. */
+function bulkReason(
+  body: unknown,
+  wanted: MockBulkAction<MockRecord>["reason"],
+): Response | { reason?: string } {
+  if (!wanted) return {}
+  const raw =
+    typeof body === "object" && body !== null && "reason" in body
+      ? body.reason
+      : undefined
+  if (raw !== undefined && typeof raw !== "string")
+    return validation("reason", "invalid")
+  // Порожня й з самих пробілів — причини немає: для необов'язкової це не помилка.
+  const reason = raw?.trim()
+  if (!reason)
+    return wanted === "required" ? validation("reason", "required") : {}
+  if (reason.length > TRANSITION_REASON_MAX_LENGTH)
+    return validation("reason", "too_long")
+  return { reason }
 }
 
 /** `POST /<ресурс>/bulk/<дія>` для дій ресурсу. */
@@ -229,19 +350,31 @@ export function createBulkHandlers<T extends MockRecord>({
   db,
   actions,
   titleField,
+  title,
   perSecond = MOCK_JOB_RATE,
   baseUrl = API_PREFIX,
   now = Date.now,
 }: MockBulkOptions<T>): HttpHandler[] {
+  const titleOf = (record: T) =>
+    title?.(record) ?? (titleField ? String(record[titleField]) : undefined)
   const start = (
     user: MockUser,
-    companyId: string | null,
+    context: MockBulkContext,
     actionName: string,
     action: MockBulkAction<T>,
     ids: string[],
     permissions: readonly string[],
   ): MockJob => {
-    const rules = db.accessOf(user, permissions)
+    const { companyId } = context
+    const run: BulkRun<T> = {
+      resource,
+      db,
+      actionName,
+      action,
+      rules: db.accessOf(user, permissions),
+      context,
+      titleOf,
+    }
     const job: MockJob = {
       id: `job-${randomToken().slice(0, 12)}`,
       userId: user.id,
@@ -258,53 +391,16 @@ export function createBulkHandlers<T extends MockRecord>({
         if (!batch.length) return []
         // Один прохід по записах компанії на партію, а не пошук на кожен запис.
         const byId = new Map(
-          db.select({}, companyId, rules).map((record) => [record.id, record]),
+          db
+            .select({}, companyId, run.rules)
+            .map((record) => [record.id, record]),
         )
-        const notFound = { code: "not_found", message: "Not found" }
-        return batch.map((id) => {
-          const record = byId.get(id)
-          if (!record) return { ...notFound, retryable: false }
-          const title = titleField ? String(record[titleField]) : undefined
-          // Спільний, чужий на дію лише над своїми чи заборонений проектом (ADR-0036, ADR-0039).
-          const denial = mockDeniedAction(rules, record, actionName)
-          if (denial)
-            return {
-              code: "forbidden",
-              message: `Denied: ${denial}`,
-              retryable: false,
-              title,
-            }
-          // Збій дії над одним записом — невдача цього запису, а не всієї партії.
-          try {
-            const outcome = action.apply(record)
-            if (!("changes" in outcome))
-              return {
-                ...outcome,
-                retryable: outcome.retryable ?? false,
-                title,
-              }
-            const result = db.patch(id, outcome.changes)
-            if (!result) return { ...notFound, retryable: false, title }
-            if ("record" in result) return null
-            return {
-              code: "validation",
-              message: `Invalid: ${JSON.stringify(result.fieldErrors)}`,
-              retryable: false,
-              title,
-            }
-          } catch (error) {
-            return {
-              code: "server",
-              message: error instanceof Error ? error.message : String(error),
-              retryable: true,
-              title,
-            }
-          }
-        })
+        return batch.map((id) => runOnRecord(run, id, byId.get(id)))
       },
       grants: (next) => mockGrantsRecords(db.accessOf(user, next), actionName),
+      // Повтор — з тією самою причиною: людина її вже вказала.
       retry: (failed, next) =>
-        start(user, companyId, actionName, action, failed, next),
+        start(user, context, actionName, action, failed, next),
     }
     jobs.set(job.id, job)
     return job
@@ -312,7 +408,7 @@ export function createBulkHandlers<T extends MockRecord>({
 
   return [
     http.post(
-      `${baseUrl}/${resource}/bulk/:action`,
+      `${baseUrl}/${resource}/${BULK_PATH}/:action`,
       async ({ params, request }) => {
         const early = await applyScenario(scenarioFor(resource))
         if (early) return early
@@ -337,6 +433,8 @@ export function createBulkHandlers<T extends MockRecord>({
         const body: unknown = await request.json().catch(() => undefined)
         const parsed = selectionSchema.safeParse(body)
         if (!parsed.success) return validation("selection", "invalid")
+        const reason = bulkReason(body, action.reason)
+        if (reason instanceof Response) return reason
         const { companyId } = access
         let ids: string[]
         if ("ids" in parsed.data) ids = [...new Set(parsed.data.ids)]
@@ -354,7 +452,7 @@ export function createBulkHandlers<T extends MockRecord>({
         if (!ids.length) return validation("selection", "empty")
         const job = start(
           user,
-          companyId,
+          { ...reason, companyId },
           actionName,
           action,
           ids,
