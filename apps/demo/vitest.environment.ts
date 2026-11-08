@@ -9,6 +9,10 @@
  * FileReader лишається з jsdom і Blob з Node не читає. Ним користується буфер обміну
  * user-event (`navigator.clipboard.readText()`), тож такий тест іде у звичайному jsdom:
  * `// @vitest-environment jsdom` на початку файла.
+ *
+ * Файли, які створює сам jsdom (`DataTransfer`, `input.files` без user-event), лишаються
+ * з jsdom: `instanceof File` проти них не спрацює. Підміна діє лише в звичайних пулах
+ * (`forks`, `threads`); у `vmThreads` Vitest викликає `setupVM`, а не `setup`.
  */
 import { builtinEnvironments, type Environment } from "vitest/runtime"
 
