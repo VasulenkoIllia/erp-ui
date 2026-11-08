@@ -1,0 +1,101 @@
+{
+  "quotes": {
+    "title": "Quotes",
+    "lead": "Quotes for clients: drafts, sent quotes and client replies. A quote gets its number when it is sent.",
+    "create": "Create quote",
+    "createDenied": "You are not allowed to create quotes",
+    "search": "Number or client",
+    "tabsLabel": "Quote statuses",
+    "tableLabel": "Quotes",
+    "count_one": "{{value}} quote",
+    "count_other": "{{value}} quotes",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "status": "Status",
+      "date": "Date",
+      "validUntil": "Valid until",
+      "total": "Total"
+    },
+    "filters": {
+      "clientId": "Client",
+      "date": "Date"
+    },
+    "empty": {
+      "title": "No quotes yet",
+      "description": "Create the first quote for a client: lines, discounts and totals, then send it."
+    }
+  },
+  "quote": {
+    "title": "Quote",
+    "titleNumber": "Quote {{number}}",
+    "titleDraft": "Quote without a number",
+    "back": "Back to quotes",
+    "statuses": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "submit": "Send",
+      "accept": "Client accepted",
+      "decline": "Client declined"
+    },
+    "confirm": {
+      "submit": {
+        "title": "Send the quote?",
+        "description": "The quote gets a number and can no longer be changed. Mistakes are fixed by cancelling it and creating a corrected copy.",
+        "action": "Send quote"
+      },
+      "decline": {
+        "title": "Did the client decline the quote?",
+        "description": "The quote becomes declined. You can add the reason to know it later.",
+        "action": "Mark as declined"
+      }
+    },
+    "fields": {
+      "client": "Client",
+      "date": "Date",
+      "validUntil": "Valid until",
+      "total": "Total",
+      "status": "Status"
+    },
+    "expired": "Expired",
+    "edit": "Edit",
+    "editDenied": "You are not allowed to edit quotes",
+    "locked": {
+      "submitted": "A sent quote cannot be changed: cancel it and create a corrected copy",
+      "cancelled": "A cancelled quote cannot be changed: create a corrected copy"
+    },
+    "print": "Print",
+    "printTitle": "Print: {{title}}",
+    "steps": "Quote stages",
+    "sections": {
+      "lines": "Lines"
+    },
+    "history": "History",
+    "linesInvalid": "The quote lines could not be shown"
+  },
+  "form": {
+    "createTitle": "New quote",
+    "editTitle": "Edit: {{title}}",
+    "back": "Back to the quote",
+    "fields": {
+      "clientId": "Client",
+      "date": "Date",
+      "validUntil": "Valid until"
+    },
+    "clientSearch": "Client name or code",
+    "clientMissing": "Client is not available",
+    "validUntilBefore": "Not earlier than the quote date",
+    "created": "Quote created",
+    "saved": "Changes saved",
+    "linesCount_one": "{{count}} line",
+    "linesCount_other": "{{count}} lines"
+  }
+}

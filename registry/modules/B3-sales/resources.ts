@@ -1,0 +1,31 @@
+/**
+ * Ресурси модуля B3 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту, токенів API
+ * й панелі розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
+ */
+import type { LocalizedText } from "@/lib/auth"
+
+export const QUOTES = "quotes"
+
+export interface SalesResource {
+  readonly name: string
+  readonly label: LocalizedText
+  /** Дії права `<ресурс>:<дія>`: читання й зміна та дії графа переходів модуля (ADR-0057). */
+  readonly actions: readonly string[]
+}
+
+export const SALES_RESOURCES: readonly SalesResource[] = [
+  {
+    name: QUOTES,
+    label: { uk: "Пропозиції", en: "Quotes" },
+    actions: [
+      "read",
+      "create",
+      "update",
+      "submit",
+      "accept",
+      "decline",
+      "cancel",
+      "amend",
+    ],
+  },
+]
