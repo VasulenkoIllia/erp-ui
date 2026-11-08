@@ -189,7 +189,7 @@ jobs:
           test "${{ needs.perf.result }}" = success
           test "${{ needs.consumer.result }}" = success
 
-  # Доставка в чистий проект (ADR-0004) на Node 22 (мінімум engines) і 24. Повний набір — з реєстру
+  # Доставка в чистий проект (ADR-0004) на Node 26 (мінімум engines). Повний набір — з реєстру
   # цього коміту, зібраного локально; з GitHub — один елемент: повний набір з'їдав ліміт
   # API (~1000 запитів на годину) і давав 403.
   consumer:
@@ -200,7 +200,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ["22", "24"]
+        node: ["26"]
     steps:
       - uses: actions/checkout@v7
         with:

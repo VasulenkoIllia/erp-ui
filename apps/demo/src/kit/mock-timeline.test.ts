@@ -313,8 +313,7 @@ describe("файл", () => {
     const entry = await api.uploadFile(TARGET, file, "f1")
     expect(entry).toMatchObject({
       kind: "file",
-      // Назву файла jsdom у формі не передає, її перевіряє e2e.
-      file: { size: file.size },
+      file: { name: "рахунок.pdf", size: file.size },
     })
     expect(JSON.stringify(entry)).toContain("files.example")
   })

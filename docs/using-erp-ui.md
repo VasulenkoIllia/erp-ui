@@ -11,6 +11,8 @@
 
 ## 1. Новий проект
 
+Потрібен Node.js 26 або новіший (`.nvmrc` проекту): на ньому CI кіта перевіряє доставку й команду `scripts/erp-ui-kit.mjs`.
+
 ```sh
 pnpm create vite@latest my-erp -- --template react-ts
 cd my-erp
