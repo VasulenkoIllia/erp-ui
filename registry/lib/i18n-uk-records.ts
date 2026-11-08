@@ -94,6 +94,14 @@ export const ukRecords = {
     restored: "Повернуто: {{row}}",
     restore: "Повернути",
     moved: "{{row}}: тепер на місці {{place}}",
+    groupMoved_one:
+      "{{row}} і {{count}} рядок під ним: тепер на місці {{place}}",
+    groupMoved_few:
+      "{{row}} і {{count}} рядки під ним: тепер на місці {{place}}",
+    groupMoved_many:
+      "{{row}} і {{count}} рядків під ним: тепер на місці {{place}}",
+    groupMoved_other:
+      "{{row}} і {{count}} рядка під ним: тепер на місці {{place}}",
     actions: "Дії: {{row}}",
     moveUpItem: "Підняти",
     moveDownItem: "Опустити",

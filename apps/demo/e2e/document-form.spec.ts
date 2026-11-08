@@ -240,6 +240,80 @@ test.describe("великий документ", () => {
     await expect(amount).toBeVisible()
   })
 
+  test("з поля рядка 3 до знижки документа — Ctrl+End, дві клавіші", async ({
+    page,
+  }) => {
+    await openDocument(page)
+    await row(page, 3).getByLabel("Кількість").focus()
+    await page.keyboard.press("Control+End")
+    const discount = form(page).getByLabel("Знижка на документ, у відсотках")
+    await expect(discount).toBeFocused()
+    await expect(discount).toBeInViewport()
+    // Кнопка над рядками веде туди само.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
+    await form(page)
+      .getByRole("button", { name: /^До підсумків/ })
+      .click()
+    await expect(discount).toBeFocused()
+  })
+
+  test("пошук знаходить рядок 450 і ставить на нього фокус; Ctrl+F у рядках — у пошук", async ({
+    page,
+  }) => {
+    await openDocument(page)
+    const search = form(page).getByRole("combobox", { name: "Пошук у рядках" })
+    await row(page, 2).getByLabel("Назва").focus()
+    await page.keyboard.press("ControlOrMeta+f")
+    await expect(search).toBeFocused()
+    await page.keyboard.type("450")
+    const first = page.getByRole("option").first()
+    await expect(first).toHaveText(/^Рядок 450/)
+    // Enter вибирає підсвічений рядок: Base UI підсвічує перший, коли список уже намальовано.
+    await expect(first).toHaveAttribute("data-highlighted")
+    await page.keyboard.press("Enter")
+    // Рядка 450 не було в DOM: він з'являється, і фокус прокручує до нього сторінку.
+    const picker = row(page, 450).getByRole("combobox", {
+      name: "Товар чи послуга",
+    })
+    await expect(picker).toBeFocused()
+    await expect(picker).toBeInViewport()
+    await expect(search).toHaveValue("450")
+
+    // Назва розділу: фокус на поле зі збігом.
+    await search.fill("Етап 19")
+    await page.getByRole("option", { name: /^Рядок 451/ }).click()
+    await expect(row(page, 451).getByLabel("Розділ")).toBeFocused()
+    await expect(row(page, 451).getByLabel("Розділ")).toHaveValue("Етап 19")
+  })
+
+  test("розділ із рядками переноситься вгору й назад, фокус іде за розділом", async ({
+    page,
+  }) => {
+    await openDocument(page)
+    await scrollToRow(page, 26)
+    await expect(row(page, 26).getByLabel("Розділ")).toHaveValue("Етап 2")
+    await rowAction(page, 26, "Перенести розділ із рядками вище")
+    const firstMenu = row(page, 1).getByRole("button", { name: "Дії: Рядок 1" })
+    await expect(firstMenu).toBeFocused()
+    await expect(firstMenu).toBeInViewport()
+    await expect(row(page, 1).getByLabel("Розділ")).toHaveValue("Етап 2")
+
+    await rowAction(page, 1, "Перенести розділ із рядками нижче")
+    const backMenu = row(page, 26).getByRole("button", {
+      name: "Дії: Рядок 26",
+    })
+    await expect(backMenu).toBeFocused()
+    await expect(backMenu).toBeInViewport()
+    await expect(row(page, 26).getByLabel("Розділ")).toHaveValue("Етап 2")
+    await expect(form(page).getByText("Змін немає")).toBeVisible()
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
+    await expect(row(page, 1).getByLabel("Розділ")).toHaveValue("Етап 1")
+  })
+
   for (const theme of ["light", "dark"] as const)
     test(`axe (${theme})`, async ({ page }) => {
       await openDocument(page, theme)

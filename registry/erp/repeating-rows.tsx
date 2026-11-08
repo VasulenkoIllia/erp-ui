@@ -16,6 +16,12 @@ import {
   type RepeatingRowsTableFrom,
 } from "@/registry/erp/repeating-row-actions"
 import {
+  groupHeadsOf,
+  rowGroupFlags,
+  rowGroupMove,
+  type RowGroupDirection,
+} from "@/registry/erp/repeating-rows-groups"
+import {
   RepeatingRowItem,
   RepeatingRowsList,
   useRowHandlers,
@@ -55,7 +61,25 @@ import {
  * - Перехід зі зведення помилок (`FormErrorSummary`) — на перше поле з помилкою всередині групи.
  * - UI05b, ADR-0060: стабільний `renderRow` (`useCallback`), `virtualRows` (`erp/repeating-rows-virtual`),
  *   `rowActions="menu"` з «Вставити… нижче» для кожного виду (`extraKinds`), `columnHeader` над таблицею.
+ * - UI05d, ADR-0064: `groups` — меню голови групи (розділу) переносить групу цілком, фокус іде за нею;
+ *   `handleRef.focusRow` ставить фокус у рядок поза екраном (пошук); `toolbar` — під назвою групи.
  */
+
+/** Групи рядків: рядок `isHead` відкриває групу до наступного такого (розділ документа). */
+export interface RepeatingRowsGroups<TRow> {
+  readonly isHead: (row: TRow) => boolean
+  /** Пункти меню голови: «Перенести розділ із рядками вище» і «…нижче». */
+  readonly labels: readonly [up: string, down: string]
+}
+
+/** Дії з рядками ззовні групи. */
+export interface RepeatingRowsHandle {
+  /**
+   * Фокус у рядок `index`: на поле `field` рядка (ім'я без `lines.3.`) чи на перше поле. Рядок поза екраном
+   * віртуального списку з'являється, і `focus()` прокручує до нього сторінку.
+   */
+  readonly focusRow: (index: number, field?: string) => void
+}
 
 export interface RepeatingRowProps {
   readonly index: number
@@ -111,6 +135,11 @@ export interface RepeatingRowsProps<
   columnHeader?: React.ReactNode
   /** Лише видимі рядки від `from`: `{ from, List: VirtualRowsList }` з `erp/repeating-rows-virtual`. */
   virtualRows?: RepeatingRowsVirtual
+  /** Групи рядків з перенесенням групи цілком; об'єкт стабільний (`useMemo`). */
+  groups?: RepeatingRowsGroups<FieldArray<TValues, TName>>
+  /** Над рядками, під назвою групи: пошук у рядках. */
+  toolbar?: React.ReactNode
+  handleRef?: React.Ref<RepeatingRowsHandle>
   readOnly?: boolean
   className?: string
 }
@@ -118,11 +147,16 @@ export interface RepeatingRowsProps<
 type RowTarget = "field" | "up" | "down" | "remove"
 type RowFocus =
   | { readonly target: "add" }
-  | { readonly target: RowTarget; readonly index: number }
+  | {
+      readonly target: RowTarget
+      readonly index: number
+      /** Повне ім'я поля (`lines.3.name`): фокус на нього, а не на перше поле рядка. */
+      readonly field?: string
+    }
 
+const FIELD_CONTROL = ":is(input:not([type=hidden]), textarea, select, button)"
 /** Перше поле рядка: кнопки дій стоять поза `[data-row-fields]`. */
-const ROW_FIELD =
-  "[data-row-fields] :is(input:not([type=hidden]), textarea, select, button)"
+const ROW_FIELD = `[data-row-fields] ${FIELD_CONTROL}`
 
 /** Фокус після змін рядків: DOM уже оновлено, бо ефект іде після рендера з новими `fields`. */
 function focusRow(scope: HTMLElement, focus: RowFocus) {
@@ -131,12 +165,21 @@ function focusRow(scope: HTMLElement, focus: RowFocus) {
     return
   }
   const row = scope.querySelector(`[data-row-index="${focus.index}"]`)
-  // У меню рядка дії немає окремою кнопкою: фокус — на саме меню.
-  const selector =
-    focus.target === "field"
-      ? ROW_FIELD
-      : `[data-row-action=${focus.target}], [data-row-action=menu]`
-  row?.querySelector<HTMLElement>(selector)?.focus()
+  if (focus.target !== "field") {
+    // У меню рядка дії немає окремою кнопкою: фокус — на саме меню.
+    row
+      ?.querySelector<HTMLElement>(
+        `[data-row-action=${focus.target}], [data-row-action=menu]`,
+      )
+      ?.focus()
+    return
+  }
+  const field = focus.field
+    ? row?.querySelector<HTMLElement>(
+        `[data-field-name="${CSS.escape(focus.field)}"] ${FIELD_CONTROL}`,
+      )
+    : null
+  ;(field ?? row?.querySelector<HTMLElement>(ROW_FIELD))?.focus()
 }
 
 /** Помилка всієї групи: з рядками zodResolver кладе її в `root`, без рядків — на саме поле. */
@@ -184,6 +227,9 @@ function RepeatingRows<
   extraKinds,
   columnHeader,
   virtualRows,
+  groups,
+  toolbar,
+  handleRef,
   readOnly = false,
   className,
 }: RepeatingRowsProps<TValues, TName, TTransformed>) {
@@ -217,6 +263,35 @@ function RepeatingRows<
   ]
   const insertKey = kinds.map((kind) => kind.insertLabel).join("\n")
   const insertLabels = React.useMemo(() => insertKey.split("\n"), [insertKey])
+  const isHead = groups?.isHead
+  const heads = React.useMemo(
+    () => (isHead && values ? groupHeadsOf(values, isHead) : []),
+    [isHead, values],
+  )
+  // Рядок, куди йде фокус далеко від екрана. Віртуальний список перераховує рядки в DOM лише зі зміною
+  // кількості чи меж екрана, тож без цього стану рядок поза екраном не з'явився б. Новий об'єкт і для
+  // того самого рядка, щоб ефект фокуса спрацював.
+  const [revealed, setRevealed] = React.useState<{ index: number } | null>(null)
+  const focusFar = React.useCallback(
+    (focus: RowFocus & { readonly index: number }) => {
+      pendingFocus.current = focus
+      setRevealed({ index: focus.index })
+    },
+    [],
+  )
+  React.useImperativeHandle(
+    handleRef,
+    () => ({
+      focusRow: (index, field) => {
+        focusFar({
+          target: "field",
+          index,
+          field: field ? `${name}.${String(index)}.${field}` : undefined,
+        })
+      },
+    }),
+    [focusFar, name],
+  )
 
   const keepLive = React.useCallback(() => {
     const focus = pendingFocus.current
@@ -231,6 +306,8 @@ function RepeatingRows<
     if (focus) {
       pendingFocus.current = null
       focusRow(scope, focus)
+      // Рядок у фокусі тримає `keepLive`: закріплений для переходу більше не потрібен.
+      setRevealed(null)
       return
     }
     const row = focusedRow.current
@@ -241,7 +318,7 @@ function RepeatingRows<
         ? { target: "field", index: Math.min(row, fields.length - 1) }
         : { target: "add" },
     )
-  }, [fields])
+  }, [fields, revealed])
 
   const insertRow = (index: number, kind: number) => {
     const make = kinds[kind]?.newRow
@@ -278,36 +355,57 @@ function RepeatingRows<
     move(from, to)
     announce(t("repeatingRows.moved", { row: rowLabel(from), place: to + 1 }))
   }
+  const moveGroup = (index: number, direction: RowGroupDirection) => {
+    const plan = rowGroupMove(heads, count, index, direction)
+    if (!plan) return
+    // Розділ може стати далеко за екраном, а кількість рядків не змінюється.
+    focusFar({ target: direction, index: plan.head })
+    for (const [from, to] of plan.moves) move(from, to)
+    const moved = { row: rowLabel(index), place: plan.head + 1 }
+    // Розділ без рядків — як звичайний рядок, без «і 0 рядків під ним».
+    announce(
+      plan.size > 1
+        ? t("repeatingRows.groupMoved", { ...moved, count: plan.size - 1 })
+        : t("repeatingRows.moved", moved),
+    )
+  }
   const handlers = useRowHandlers({
     move: moveRow,
     remove: removeRow,
     insert: insertRow,
+    moveGroup,
   })
 
-  const rowItem = (index: number) => (
-    <RepeatingRowItem
-      index={index}
-      rowLabel={rowLabel(index)}
-      readOnly={readOnly}
-      renderRow={renderRow}
-      fieldsClassName={cn(
-        "grid min-w-0 flex-1 gap-3",
-        (index > 0 || columnHeader) &&
-          REPEATING_ROWS_LAYOUTS[tableFrom].laterLabels,
-        rowClassName,
-      )}
-      tableFrom={tableFrom}
-      rowActions={rowActions}
-      count={rowActions === "buttons" ? count : 0}
-      isLast={index === count - 1}
-      labelSpacer={index === 0 && !columnHeader}
-      canReorder={canReorder}
-      canRemove={count > minRows}
-      canInsert={!isFull}
-      insertLabels={insertLabels}
-      handlers={handlers}
-    />
-  )
+  const rowItem = (index: number) => {
+    const group = groups ? rowGroupFlags(heads, index) : null
+    return (
+      <RepeatingRowItem
+        index={index}
+        rowLabel={rowLabel(index)}
+        readOnly={readOnly}
+        renderRow={renderRow}
+        fieldsClassName={cn(
+          "grid min-w-0 flex-1 gap-3",
+          (index > 0 || columnHeader) &&
+            REPEATING_ROWS_LAYOUTS[tableFrom].laterLabels,
+          rowClassName,
+        )}
+        tableFrom={tableFrom}
+        rowActions={rowActions}
+        count={rowActions === "buttons" ? count : 0}
+        isLast={index === count - 1}
+        labelSpacer={index === 0 && !columnHeader}
+        canReorder={canReorder}
+        canRemove={count > minRows}
+        canInsert={!isFull}
+        insertLabels={insertLabels}
+        groupLabels={group ? groups?.labels : undefined}
+        canMoveGroupUp={group?.canUp}
+        canMoveGroupDown={group?.canDown}
+        handlers={handlers}
+      />
+    )
+  }
   const describedBy =
     [description ? `${id}-hint` : "", message ? `${id}-error` : ""]
       .filter(Boolean)
@@ -336,6 +434,7 @@ function RepeatingRows<
       {description ? (
         <FieldDescription id={`${id}-hint`}>{description}</FieldDescription>
       ) : null}
+      {toolbar}
       {count ? (
         <RepeatingRowsList
           fields={fields}
@@ -346,6 +445,7 @@ function RepeatingRows<
           readOnly={readOnly}
           virtualRows={virtualRows}
           rowErrors={groupErrors}
+          revealed={revealed?.index}
           keepLive={keepLive}
         />
       ) : empty ? (

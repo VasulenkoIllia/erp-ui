@@ -1,6 +1,7 @@
 import * as React from "react"
+import { ArrowDownToLineIcon } from "lucide-react"
 import type { RaRecord } from "ra-core"
-import type { FieldValues, UseFormReturn } from "react-hook-form"
+import { useWatch, type FieldValues, type UseFormReturn } from "react-hook-form"
 
 import type { DocumentLineItem } from "@/registry/erp/document-line-fields"
 import { DocumentLineRow } from "@/registry/erp/document-line-row"
@@ -10,11 +11,18 @@ import {
 } from "@/registry/erp/document-lines-preview"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import {
+  DocumentLinesSearch,
+  type DocumentLineMatch,
+} from "@/registry/erp/document-lines-search"
+import {
   RepeatingRows,
   type RepeatingRowProps,
+  type RepeatingRowsGroups,
+  type RepeatingRowsHandle,
   type RepeatingRowsKind,
 } from "@/registry/erp/repeating-rows"
 import { VirtualRowsList } from "@/registry/erp/repeating-rows-virtual"
+import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
 import type {
   DocumentBodyLine,
   DocumentLine,
@@ -23,7 +31,14 @@ import type {
   SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import { useErpUiT } from "@/registry/lib/i18n"
+import {
+  ariaKeyShortcuts,
+  isMacPlatform,
+  matchesShortcut,
+  SHORTCUTS,
+} from "@/registry/lib/shortcuts"
 import { cn } from "@/registry/lib/utils"
+import { Button } from "@/registry/ui/button"
 
 /**
  * Редактор рядків документа (UI05, ADR-0059): пропозиція, замовлення, рахунок. Група полів форми на
@@ -52,6 +67,10 @@ import { cn } from "@/registry/lib/utils"
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
  * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
  *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
+ * - Великий документ з клавіатури (UI05d, ADR-0064): Ctrl+End з будь-якого місця рядків — на знижку
+ *   документа повз рядки. Від `virtualizeFrom` рядків над рядками — пошук у рядках
+ *   (`erp/document-lines-search`) і кнопка «До підсумків»; ⌘F/Ctrl+F у рядках ставить курсор у пошук,
+ *   у самому полі пошуку — пошук браузера. Меню розділу переносить розділ разом із його рядками.
  */
 
 export interface DocumentLinesEditorProps<
@@ -115,6 +134,37 @@ const newLineOf = (
   ),
   id: newLineId(),
 })
+
+const isSectionLine = (line: DocumentBodyLine) => line.kind === "section"
+const linesCount = (lines: readonly DocumentBodyLine[] | undefined) =>
+  lines?.length ?? 0
+
+const TOTALS = '[data-slot="document-lines-totals"]'
+
+/** Перше поле підсумків — знижка документа: туди веде «До підсумків». */
+function focusTotals(root: HTMLElement | null) {
+  const field = root?.querySelector<HTMLElement>(
+    `${TOTALS} :is(input:not([type=hidden]), textarea, button)`,
+  )
+  field?.focus()
+  return Boolean(field)
+}
+
+/**
+ * Клавіша лишається полю: Shift чи Alt (виділити до кінця), набір через IME, уже оброблена подія,
+ * а Ctrl+End у багаторядковому тексті нотатки — «у кінець тексту».
+ */
+const isFieldKey = (event: KeyboardEvent, target: Element) =>
+  event.shiftKey ||
+  event.altKey ||
+  event.isComposing ||
+  event.defaultPrevented ||
+  (event.key === "End" &&
+    Boolean(
+      target.closest(
+        'textarea, [contenteditable]:not([contenteditable="false"])',
+      ),
+    ))
 
 /** Колонки таблиці й сітка карток (порядок полів — `DocumentLineFields`). */
 const ROW_GRID =
@@ -207,8 +257,87 @@ export function DocumentLinesEditor<
     () => ({ from: virtualizeFrom, List: VirtualRowsList }),
     [virtualizeFrom],
   )
+  const groups = React.useMemo<RepeatingRowsGroups<DocumentBodyLine>>(
+    () => ({
+      isHead: isSectionLine,
+      labels: [
+        t("documentLines.moveSectionUp"),
+        t("documentLines.moveSectionDown"),
+      ],
+    }),
+    [t],
+  )
+  const rootRef = React.useRef<HTMLDivElement>(null)
+  const rowsRef = React.useRef<RepeatingRowsHandle>(null)
+  const searchRef = React.useRef<HTMLInputElement>(null)
+  // Лише кількість рядків: введення в рядках редактор не перемальовує.
+  const count = useWatch({ control, name: "lines", compute: linesCount })
+  const isLong = count >= virtualizeFrom
+  const onFind = React.useCallback((match: DocumentLineMatch) => {
+    rowsRef.current?.focusRow(match.index, match.field ?? undefined)
+  }, [])
+  const onKeyDown = React.useEffectEvent((event: KeyboardEvent) => {
+    const { target } = event
+    if (!(target instanceof Element) || isFieldKey(event, target)) return
+    if (matchesShortcut(event, SHORTCUTS.documentTotals)) {
+      if (!target.closest(TOTALS) && focusTotals(rootRef.current))
+        event.preventDefault()
+    } else if (
+      isLong &&
+      matchesShortcut(event, SHORTCUTS.documentSearch) &&
+      target !== searchRef.current &&
+      target.closest('[data-slot="repeating-rows"]')
+    ) {
+      event.preventDefault()
+      searchRef.current?.focus()
+      searchRef.current?.select()
+    }
+  })
+  // Слухач на самому редакторі: меню й списки вибору стоять у порталі поза ним, там клавіші свої.
+  React.useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const listener = (event: KeyboardEvent) => {
+      onKeyDown(event)
+    }
+    root.addEventListener("keydown", listener)
+    return () => {
+      root.removeEventListener("keydown", listener)
+    }
+  }, [])
+  const toolbar = isLong ? (
+    <div
+      data-slot="document-lines-toolbar"
+      className="flex flex-wrap items-center gap-2"
+    >
+      <DocumentLinesSearch
+        form={linesForm}
+        onFind={onFind}
+        inputRef={searchRef}
+        className="min-w-0 flex-[1_1_16rem] @2xl:max-w-md"
+      />
+      <Button
+        type="button"
+        variant="outline"
+        aria-keyshortcuts={ariaKeyShortcuts(
+          SHORTCUTS.documentTotals,
+          isMacPlatform(),
+        )}
+        onClick={() => {
+          focusTotals(rootRef.current)
+        }}
+      >
+        <ArrowDownToLineIcon aria-hidden />
+        {t("documentLines.toTotals")}
+        <span aria-hidden className="hidden @md:contents">
+          <ShortcutKeys shortcut={SHORTCUTS.documentTotals} />
+        </span>
+      </Button>
+    </div>
+  ) : null
   return (
     <div
+      ref={rootRef}
       data-slot="document-lines"
       className={cn("@container grid min-w-0 gap-4", className)}
     >
@@ -233,6 +362,9 @@ export function DocumentLinesEditor<
           rowActions="menu"
           columnHeader={<LinesHeader />}
           virtualRows={virtualRows}
+          groups={groups}
+          toolbar={toolbar}
+          handleRef={rowsRef}
           readOnly={readOnly}
           tableFrom="4xl"
           rowClassName={ROW_GRID}

@@ -5,6 +5,7 @@ import {
   DOCUMENT_FORM,
   documentRow,
   interactWithDocument,
+  interactWithDocumentKeyboard,
   interactWithFullDocument,
 } from "./perf-document"
 
@@ -334,6 +335,11 @@ test.describe("швидкість @perf", () => {
       name: "документ на 11 рядків: усі в DOM, вставка вгорі",
       url: `${DOCUMENT_FORM}?lines=11`,
       interact: interactWithFullDocument,
+    },
+    {
+      name: "великий документ з клавіатури: пошук, до підсумків, перенесення розділу",
+      url: DOCUMENT_FORM,
+      interact: interactWithDocumentKeyboard,
     },
   ])
     test(name, async ({ browser }) => {
