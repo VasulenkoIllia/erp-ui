@@ -304,6 +304,29 @@ describe("модуль B3: моки", () => {
     expect(created.lines[0]).toMatchObject({ totals: { total: 240000 } })
   })
 
+  it("номер, стан документа й статус із запиту на створення сервер не бере: нова — завжди чернетка", async () => {
+    const { data } = await provider.create<QuoteCard>(QUOTES, {
+      data: draft({
+        number: "КП-2026-9999",
+        docStatus: "submitted",
+        status: "accepted",
+      }),
+    })
+    expect(data).toMatchObject({
+      number: null,
+      docStatus: "draft",
+      status: "draft",
+    })
+  })
+
+  it("знижка документа понад 100% — 422 лише біля поля знижки", async () => {
+    const error = await failureOf(
+      provider.create(QUOTES, { data: draft({ discountPercent: 150 }) }),
+    )
+    expect(error.status).toBe(422)
+    expect(Object.keys(error.fieldErrors ?? {})).toEqual(["discountPercent"])
+  })
+
   it("строк раніше дати, порожній клієнт і хибна ціна рядка — 422 біля полів", async () => {
     const early = await failureOf(
       provider.create(QUOTES, {

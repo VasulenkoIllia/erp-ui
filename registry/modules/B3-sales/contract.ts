@@ -125,7 +125,9 @@ const quoteObject = (extension?: QuoteSchemaExtension) =>
   })
 
 /** Шапка пропозиції зі статусами й полями розширення: рядок списку й шапка картки. */
-export function quoteSchemaFor(extension?: QuoteSchemaExtension) {
+export function quoteSchemaFor(
+  extension?: QuoteSchemaExtension,
+): z.ZodType<Quote> {
   return extendSchema(quoteObject(extension), extension?.fields)
 }
 

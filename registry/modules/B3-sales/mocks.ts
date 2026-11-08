@@ -38,6 +38,7 @@ import {
 } from "@/lib/statuses"
 
 import {
+  DEFAULT_QUOTE_STATUS,
   QUOTE_TRANSITIONS,
   QUOTES,
   quoteSchemaFor,
@@ -87,6 +88,34 @@ const SERVER_FIELDS = new Set([
   "pinned",
 ])
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+/**
+ * Нова пропозиція (`version: 1` — створення чи виправлена копія; PATCH завжди дає версію від 2) — чернетка
+ * без номера: номер, стан документа й статус ставить сервер, а не запит.
+ */
+const asServerDraft = (record: Record<string, unknown>) =>
+  record.version === 1
+    ? {
+        ...record,
+        number: null,
+        docStatus: "draft",
+        status: DEFAULT_QUOTE_STATUS,
+      }
+    : record
+
+/** Помилки шапки й тіла без повторів: знижка документа є в обох схемах. */
+function uniqueIssues(issues: readonly z.core.$ZodIssue[]) {
+  const seen = new Set<string>()
+  return issues.filter((issue) => {
+    const key = `${issue.path.join(".")}:${issue.message}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 /**
  * Збережений запис, як його перевіряє сервер: шапка (`quoteSchemaFor`), рядки й знижка документа за
  * знаками валюти (`documentBodySchemaFor`), строк не раніше дати; суми рахує сам (`quoteSumsOf`), тож
@@ -97,31 +126,34 @@ function storedQuoteSchema(
 ): z.ZodType<QuoteCard> {
   const header = quoteSchemaFor(extension)
   return z.unknown().transform((input, ctx) => {
-    // Нова пропозиція — чернетка без номера: номер і стан документа ставить сервер, а не форма.
-    const record: Record<string, unknown> = {
-      number: null,
-      docStatus: "draft",
-      ...(input as Record<string, unknown> | undefined),
+    if (!isRecord(input)) {
+      ctx.addIssue({ code: "custom", path: [], message: "invalid" })
+      return z.NEVER
     }
+    const record = asServerDraft(input)
     const currency = typeof record.currency === "string" ? record.currency : ""
     const body = documentBodySchemaFor(currencyDigits(currency)).safeParse(
       record,
     )
     const sums = body.success ? quoteSumsOf({ currency, ...body.data }) : null
     const parsed = header.safeParse({ ...record, total: sums?.total ?? 0 })
-    const issues = [
+    const issues = uniqueIssues([
       ...(body.error?.issues ?? []),
       ...(parsed.error?.issues ?? []),
-    ]
-    if (
-      parsed.success &&
-      parsed.data.validUntil < parsed.data.date &&
-      !issues.length
-    )
+    ])
+    if (parsed.success && parsed.data.validUntil < parsed.data.date)
       issues.push({
         code: "custom",
         path: ["validUntil"],
         message: "before_date",
+        input,
+      })
+    // Тіло за схемою, а суми не склались (межа контракту): помилка рядків, а не тихий `undefined`.
+    if (body.success && !sums)
+      issues.push({
+        code: "custom",
+        path: ["lines"],
+        message: "totals_invalid",
         input,
       })
     if (!parsed.success || !sums || issues.length) {

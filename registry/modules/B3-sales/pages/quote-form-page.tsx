@@ -1,5 +1,5 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
-import { useEffect, useEffectEvent } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { useParams } from "react-router"
 
 import { EditLockNotice } from "@/components/erp/edit-lock-notice"
@@ -88,13 +88,18 @@ function EditQuote({ id }: { id: string }) {
     enabled: extension.quotes?.editLock !== false,
   })
   const mayEdit = Boolean(quote) && !access.isPending && access.canAccess
-  // Блокування — на час сторінки: відпускає його сам хук, коли сторінку покинули.
-  const acquire = useEffectEvent(() => {
-    void lock.acquire()
-  })
+  // Поки перше взяття не відповіло, форма лише для читання: введене до відмови пропало б.
+  const [isLockSettled, setLockSettled] = useState(false)
+  // Блокування — на час сторінки: відпускає його сам хук, коли сторінку покинули. Інша людина
+  // відпустила запис — береться знову, інакше форма стала б доступною без блокування.
+  const acquire = useEffectEvent(() => lock.acquire())
+  const isFree = lock.holder === null
   useEffect(() => {
-    if (mayEdit) acquire()
-  }, [mayEdit])
+    if (!mayEdit || !isFree) return
+    void acquire().then(() => {
+      setLockSettled(true)
+    })
+  }, [mayEdit, isFree])
   const reason = access.isPending
     ? undefined
     : access.canAccess
@@ -130,7 +135,11 @@ function EditQuote({ id }: { id: string }) {
       <QuoteForm
         quote={{ ...quote, ...detail.data }}
         currency={quote.currency}
-        readOnly={reason !== undefined || lock.isAcquiring}
+        readOnly={
+          reason !== undefined ||
+          lock.isAcquiring ||
+          (mayEdit && !isLockSettled)
+        }
         readOnlyReason={reason}
       />
     )

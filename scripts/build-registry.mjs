@@ -517,7 +517,8 @@ function moduleEntryProblems(base, files) {
   if (!existsSync(index)) return problems
   const src = readFileSync(index, "utf8")
   // Фабрика може мати параметр типу: `createSalesModule<TItem extends RaRecord>(`.
-  const factory = /export function create(\w+)Module(?:<[^>]*>)?\(/.exec(src)
+  const factory =
+    /export function create(\w+)Module\s*(?:<[\s\S]*?>)?\s*\(/.exec(src)
   if (!factory) {
     problems.push(
       `${base}/index.ts: немає фабрики create<Модуль>Module (ADR-0020, п. 3)`,

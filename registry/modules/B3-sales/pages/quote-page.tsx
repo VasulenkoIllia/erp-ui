@@ -77,9 +77,45 @@ function useCompare(statuses: ResolvedStatuses) {
     }))
 }
 
-function QuoteCard({ id }: { id: string }) {
+/** Етапи основного шляху й панель дій графа під шапкою картки. */
+function QuoteStatusBar({
+  quote,
+  statuses,
+}: {
+  quote: QuoteCardRecord
+  statuses: ResolvedStatuses
+}) {
   const t = useSalesT()
   const navigate = useNavigate()
+  const { paths } = useSalesModule()
+  const transitions = useQuoteTransitions()
+  const compare = useCompare(statuses)
+  return (
+    <div className="grid gap-3">
+      <RecordStatusBar
+        label={t("quote.steps")}
+        steps={MAIN_PATH.map((status) => ({
+          id: status,
+          label: statuses.byId.get(status)?.label ?? status,
+        }))}
+        current={quote.status}
+      />
+      <DocumentActionBar
+        resource={QUOTES}
+        record={quote}
+        transitions={transitions}
+        compare={compare}
+        // Виправлена копія — нова картка: фокус на її заголовок ставить перехід.
+        onCreated={(created: RaRecord) => {
+          void navigate(paths.quote(String(created.id)))
+        }}
+      />
+    </div>
+  )
+}
+
+function QuoteCard({ id }: { id: string }) {
+  const t = useSalesT()
   const titleOf = useQuoteTitle()
   const { extension, paths } = useSalesModule()
   const card = useCardRecord<QuoteCardRecord>(QUOTES, id)
@@ -89,8 +125,6 @@ function QuoteCard({ id }: { id: string }) {
     !card.isPending || card.pageError !== undefined,
   )
   const statuses = useQuoteStatuses()
-  const transitions = useQuoteTransitions()
-  const compare = useCompare(statuses)
   const slots = useRecordSlots({
     record: quote,
     resource: QUOTES,
@@ -139,28 +173,7 @@ function QuoteCard({ id }: { id: string }) {
       header={header}
       notice={<EditLockNotice holder={lock.holder} />}
       statusBar={
-        quote ? (
-          <div className="grid gap-3">
-            <RecordStatusBar
-              label={t("quote.steps")}
-              steps={MAIN_PATH.map((status) => ({
-                id: status,
-                label: statuses.byId.get(status)?.label ?? status,
-              }))}
-              current={quote.status}
-            />
-            <DocumentActionBar
-              resource={QUOTES}
-              record={quote}
-              transitions={transitions}
-              compare={compare}
-              // Виправлена копія — нова картка: фокус на її заголовок ставить перехід.
-              onCreated={(created: RaRecord) => {
-                void navigate(paths.quote(String(created.id)))
-              }}
-            />
-          </div>
-        ) : undefined
+        quote ? <QuoteStatusBar quote={quote} statuses={statuses} /> : undefined
       }
       sections={shownSections}
       // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).

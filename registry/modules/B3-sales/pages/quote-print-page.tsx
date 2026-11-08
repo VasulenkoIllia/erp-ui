@@ -52,8 +52,10 @@ function QuotePrint({ id }: { id: string }) {
   const detail = useQuoteDetail(quote)
   const language = company.data?.language ?? ui.language
   const isReady = Boolean(quote && detail?.success && company.data)
-  // Рядки не за контрактом — помилка даних, а не вічне завантаження.
-  const invalid = detail?.error
+  // Рядки не за контрактом чи картка без рядків — помилка даних, а не вічне завантаження.
+  const invalid =
+    detail?.error ??
+    (quote && !detail && !card.isFetching ? new Error("no lines") : undefined)
   const state = stateOf(
     card.pageError ?? card.failure ?? invalid ?? company.error,
     !isReady,

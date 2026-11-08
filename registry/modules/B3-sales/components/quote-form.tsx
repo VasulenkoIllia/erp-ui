@@ -12,6 +12,7 @@ import {
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
 import { FormErrorSummary, UnsavedChangesGuard } from "@/components/erp/form"
+import { SectionSkeleton } from "@/components/erp/page-state"
 import {
   RecordFormFields,
   useConflictFields,
@@ -83,6 +84,8 @@ function payloadOf(
   currency: string | null,
 ) {
   const changed = new Set<string>(keys)
+  // Знімок назви — лише разом із клієнтом (ADR-0056): той самий клієнт, вибраний знову після перейменування.
+  if (changed.has("clientName")) changed.add("clientId")
   return {
     ...Object.fromEntries(
       HEADER_FIELDS.filter((key) => changed.has(key)).map((key) => [
@@ -182,9 +185,11 @@ export function QuoteForm({
       if (quote) void navigate(paths.quote(quote.id))
     },
   })
-  const header = applyKeyedChanges(
-    useQuoteHeaderItems(state.form, readOnly),
-    ext.items(state.form.control, { readOnly }),
+  const moduleItems = useQuoteHeaderItems(state.form, readOnly)
+  const { control } = state.form
+  const header = useMemo(
+    () => applyKeyedChanges(moduleItems, ext.items(control, { readOnly })),
+    [moduleItems, ext, control, readOnly],
   )
   return (
     <QuoteFormView
@@ -218,23 +223,29 @@ function QuoteFormView({
   const { lineItem } = useSalesModule()
   const dictionaries = useLineDictionaries(!readOnly)
   const { isDirty, errors, submitCount } = state.form.formState
-  const linesItem: RecordFormItem = {
-    id: "lines",
-    label: kitT("documentLines.label"),
-    text: (lines) =>
-      Array.isArray(lines)
-        ? t("form.linesCount", { count: lines.length })
-        : null,
-    render: () => null,
-  }
-  const labels: Readonly<Record<string, string>> = {
-    ...Object.fromEntries(header.map((item) => [item.id, item.label])),
-    lines: linesItem.label,
-    discountPercent: kitT("documentLines.totals.documentDiscount"),
-    discountAmount: kitT("documentLines.totals.documentDiscount"),
-  }
+  // Сталі посилання: форма перемальовується зі станом збереження, а документ буває на сотні рядків.
+  const items = useMemo((): readonly RecordFormItem[] => {
+    const linesItem: RecordFormItem = {
+      id: "lines",
+      label: kitT("documentLines.label"),
+      text: (lines) =>
+        Array.isArray(lines)
+          ? t("form.linesCount", { count: lines.length })
+          : null,
+      render: () => null,
+    }
+    return [...header, linesItem]
+  }, [header, t, kitT])
+  const labels = useMemo(
+    (): Readonly<Record<string, string>> => ({
+      ...Object.fromEntries(items.map((item) => [item.id, item.label])),
+      discountPercent: kitT("documentLines.totals.documentDiscount"),
+      discountAmount: kitT("documentLines.totals.documentDiscount"),
+    }),
+    [items, kitT],
+  )
   const { ref: messageRef, message } = useFormMessage(state, labels)
-  const conflictRows = useConflictFields(state, [...header, linesItem])
+  const conflictRows = useConflictFields(state, items)
   return (
     <form
       noValidate
@@ -265,16 +276,21 @@ function QuoteFormView({
         submitCount={submitCount}
       />
       <RecordFormFields items={header} />
-      <DocumentLinesEditor
-        form={state.form}
-        currency={currency}
-        units={dictionaries.units}
-        taxes={dictionaries.taxes}
-        item={lineItem}
-        newLine={dictionaries.newLine}
-        readOnly={readOnly}
-        savedTotals={readOnly ? quote?.totals : undefined}
-      />
+      {dictionaries.isPending ? (
+        // Рядок, доданий до довідників, лишився б без типових одиниці й податку.
+        <SectionSkeleton rows={4} />
+      ) : (
+        <DocumentLinesEditor
+          form={state.form}
+          currency={currency}
+          units={dictionaries.units}
+          taxes={dictionaries.taxes}
+          item={lineItem}
+          newLine={dictionaries.newLine}
+          readOnly={readOnly}
+          savedTotals={readOnly ? quote?.totals : undefined}
+        />
+      )}
       {readOnly ? null : (
         <SaveBar
           isDirty={isDirty}

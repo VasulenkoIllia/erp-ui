@@ -1,4 +1,5 @@
 import { useGetOne, type RaRecord } from "ra-core"
+import { useMemo } from "react"
 import type { UseFormReturn } from "react-hook-form"
 
 import { DateInput } from "@/components/erp/date-input"
@@ -52,6 +53,18 @@ export function useQuoteHeaderItems(
 ): QuoteFormItem[] {
   const t = useSalesT()
   const { clients } = useSalesModule()
+  return useMemo(
+    () => headerItems(form, readOnly, clients, t),
+    [form, readOnly, clients, t],
+  )
+}
+
+function headerItems(
+  form: UseFormReturn<QuoteFormValues>,
+  readOnly: boolean,
+  clients: SalesClients,
+  t: ReturnType<typeof useSalesT>,
+): QuoteFormItem[] {
   const { control, setValue } = form
   const label = clientLabel(clients)
   return [

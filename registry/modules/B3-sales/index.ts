@@ -51,7 +51,13 @@ export type {
 export type { SalesClients, SalesPaths } from "./module-context"
 export type { SalesResource } from "./resources"
 // Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
-export type { Quote, QuoteStatus, QuoteTransitionId } from "./contract"
+export type {
+  Quote,
+  QuoteCard,
+  QuoteDetail,
+  QuoteStatus,
+  QuoteTransitionId,
+} from "./contract"
 export type { ExtensionField } from "@/lib/extension-fields"
 
 export const SALES_MODULE_ID = "B3"
