@@ -1,7 +1,14 @@
 import * as React from "react"
-import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon } from "lucide-react"
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronsDownIcon,
+  ChevronsUpIcon,
+  EllipsisVerticalIcon,
+} from "lucide-react"
 
 import { keepFieldFocus } from "@/registry/erp/form"
+import type { RowGroupDirection } from "@/registry/erp/repeating-rows-groups"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { cn } from "@/registry/lib/utils"
@@ -157,6 +164,14 @@ export function RepeatingRowActions({
   )
 }
 
+/** Перенесення групи рядків цілком у меню її голови (UI05d, ADR-0064). */
+export interface RowGroupMoves {
+  /** «Перенести розділ із рядками вище» і «…нижче». */
+  readonly labels: readonly [up: string, down: string]
+  readonly canUp: boolean
+  readonly canDown: boolean
+}
+
 export interface RepeatingRowMenuProps {
   index: number
   rowLabel: string
@@ -171,6 +186,9 @@ export interface RepeatingRowMenuProps {
   onMove: (from: number, to: number) => void
   onRemove: (index: number) => void
   onInsert: (index: number, kind: number) => void
+  /** Лише в меню голови групи (`RepeatingRows.groups`). */
+  groupMoves?: RowGroupMoves
+  onMoveGroup?: (index: number, direction: RowGroupDirection) => void
 }
 
 /**
@@ -190,6 +208,8 @@ export function RepeatingRowMenu({
   onMove,
   onRemove,
   onInsert,
+  groupMoves,
+  onMoveGroup,
 }: RepeatingRowMenuProps) {
   const t = useErpUiT()
   const Remove = ACTION_ICONS.delete
@@ -257,6 +277,32 @@ export function RepeatingRowMenu({
               <ArrowDownIcon aria-hidden />
               {t("repeatingRows.moveDownItem")}
             </DropdownMenuItem>
+            {groupMoves ? (
+              <>
+                <DropdownMenuItem
+                  disabled={!groupMoves.canUp}
+                  onClick={() => {
+                    choose(() => {
+                      onMoveGroup?.(index, "up")
+                    })
+                  }}
+                >
+                  <ChevronsUpIcon aria-hidden />
+                  {groupMoves.labels[0]}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!groupMoves.canDown}
+                  onClick={() => {
+                    choose(() => {
+                      onMoveGroup?.(index, "down")
+                    })
+                  }}
+                >
+                  <ChevronsDownIcon aria-hidden />
+                  {groupMoves.labels[1]}
+                </DropdownMenuItem>
+              </>
+            ) : null}
             <DropdownMenuSeparator />
           </>
         ) : null}

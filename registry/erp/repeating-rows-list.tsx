@@ -6,7 +6,9 @@ import {
   RepeatingRowActions,
   RepeatingRowMenu,
   type RepeatingRowsTableFrom,
+  type RowGroupMoves,
 } from "@/registry/erp/repeating-row-actions"
+import type { RowGroupDirection } from "@/registry/erp/repeating-rows-groups"
 import { cn } from "@/registry/lib/utils"
 
 /**
@@ -50,6 +52,8 @@ export interface RepeatingRowsListProps {
   virtualRows?: RepeatingRowsVirtual
   /** Помилки групи з `formState`: перший рядок із помилкою лишається в DOM для зведення помилок. */
   rowErrors: unknown
+  /** Рядок, на який зараз піде фокус з пошуку (`RepeatingRowsHandle.focusRow`): з'являється поза екраном. */
+  revealed?: number | null
   keepLive: () => readonly number[]
 }
 
@@ -62,15 +66,17 @@ export function RepeatingRowsList({
   readOnly,
   virtualRows,
   rowErrors,
+  revealed = null,
   keepLive,
 }: RepeatingRowsListProps) {
   const layout = REPEATING_ROWS_LAYOUTS[tableFrom]
   const firstError = Array.isArray(rowErrors)
     ? rowErrors.findIndex(Boolean)
     : -1
+  // Зміна набору перераховує видимий діапазон (`useWindowRows`): рядок з'являється в тому самому рендері.
   const keep = React.useMemo(
-    () => (firstError >= 0 ? [firstError] : []),
-    [firstError],
+    () => [firstError, revealed ?? -1].filter((index) => index >= 0),
+    [firstError, revealed],
   )
   return (
     <>
@@ -130,6 +136,8 @@ export interface RepeatingRowHandlers {
   readonly move: (from: number, to: number) => void
   readonly remove: (index: number) => void
   readonly insert: (index: number, kind: number) => void
+  /** Перенести групу з головою `index` цілком (`RepeatingRows.groups`). */
+  readonly moveGroup: (index: number, direction: RowGroupDirection) => void
 }
 
 export interface RepeatingRowItemProps {
@@ -153,6 +161,10 @@ export interface RepeatingRowItemProps {
   readonly canRemove: boolean
   readonly canInsert: boolean
   readonly insertLabels: readonly string[]
+  /** Пункти перенесення групи; лише в голови групи, решта рядків їх не має. */
+  readonly groupLabels?: RowGroupMoves["labels"]
+  readonly canMoveGroupUp?: boolean
+  readonly canMoveGroupDown?: boolean
   readonly handlers: RepeatingRowHandlers
 }
 
@@ -175,6 +187,9 @@ export const RepeatingRowItem = React.memo(function RepeatingRowItem({
   canRemove,
   canInsert,
   insertLabels,
+  groupLabels,
+  canMoveGroupUp,
+  canMoveGroupDown,
   handlers,
 }: RepeatingRowItemProps) {
   return (
@@ -207,6 +222,16 @@ export const RepeatingRowItem = React.memo(function RepeatingRowItem({
             onMove={handlers.move}
             onRemove={handlers.remove}
             onInsert={handlers.insert}
+            groupMoves={
+              groupLabels && canMoveGroupUp !== undefined
+                ? {
+                    labels: groupLabels,
+                    canUp: canMoveGroupUp,
+                    canDown: canMoveGroupDown ?? false,
+                  }
+                : undefined
+            }
+            onMoveGroup={handlers.moveGroup}
           />
         </ActionsColumn>
       ) : (
@@ -244,6 +269,9 @@ export function useRowHandlers(
       },
       insert: (index, kind) => {
         latest.current.insert(index, kind)
+      },
+      moveGroup: (index, direction) => {
+        latest.current.moveGroup(index, direction)
       },
     }),
     [],

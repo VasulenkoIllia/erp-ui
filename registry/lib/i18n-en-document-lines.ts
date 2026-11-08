@@ -36,6 +36,18 @@ export const enDocumentLines = {
     noTax: "No tax",
     sum: "Amount",
     noSum: "not calculated yet",
+    toTotals: "To the totals",
+    moveSectionUp: "Move the section with its lines up",
+    moveSectionDown: "Move the section with its lines down",
+    search: {
+      label: "Search the lines",
+      placeholder: "Text or line number",
+      empty: "Nothing found",
+      found_one: "{{count}} line found",
+      found_other: "{{count}} lines found",
+      more: "Showing {{shown}} of {{total}}. Refine the search.",
+      noText: "untitled",
+    },
     totals: {
       label: "Totals",
       amount: "Before discounts",

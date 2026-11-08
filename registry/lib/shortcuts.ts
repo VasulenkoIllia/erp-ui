@@ -45,6 +45,7 @@ export const SHORTCUT_GROUPS = [
   "table",
   "cards",
   "cell",
+  "document",
   "text",
   "avatar",
 ] as const
@@ -103,6 +104,15 @@ export const SHORTCUTS = {
   cellEdit: { group: "cell", keys: [{ key: "F2" }] },
   cellSave: { group: "cell", keys: [{ key: "Enter" }] },
   cellCancel: { group: "cell", keys: [{ key: "Escape" }] },
+
+  // Обробляє erp/document-lines-editor (ADR-0064): Ctrl+End, як у таблиці, — повз рядки до підсумків;
+  // ⌘F/Ctrl+F — пошук у рядках лише в документі з віртуальними рядками, у полі пошуку — браузера.
+  documentTotals: { group: "document", keys: [{ key: "End", ctrl: true }] },
+  documentSearch: {
+    group: "document",
+    keys: [{ key: "f", mod: true }],
+    aliases: [{ key: "F", mod: true }],
+  },
 
   // Обробляє Tiptap (ADR-0052). Посилання без клавіші: ⌘K усюди відкриває палітру.
   textBold: { group: "text", keys: [{ key: "b", mod: true }] },

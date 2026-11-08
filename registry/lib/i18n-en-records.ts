@@ -93,6 +93,10 @@ export const enRecords = {
     restored: "Restored: {{row}}",
     restore: "Restore",
     moved: "{{row}}: now in place {{place}}",
+    groupMoved_one:
+      "{{row}} and {{count}} row below it: now in place {{place}}",
+    groupMoved_other:
+      "{{row}} and {{count}} rows below it: now in place {{place}}",
     actions: "Actions: {{row}}",
     moveUpItem: "Move up",
     moveDownItem: "Move down",

@@ -69,3 +69,39 @@ export async function interactWithDocument(page: Page) {
   await discount.click()
   await discount.pressSequentially("5", { delay: 120 })
 }
+
+/**
+ * Великий документ з клавіатури на телефоні (UI05d, ADR-0064): пошук рядка 450 і перехід до нього,
+ * Ctrl+End до знижки документа, розділ «Етап 2» із рядками вгору й назад. Перехід далеко малює рядки на
+ * новому місці сторінки; перенесення розділу — 25 переносів рядків форми.
+ */
+export async function interactWithDocumentKeyboard(page: Page) {
+  const form = page.getByTestId("document-form")
+  const row = documentRow(page)
+  const search = form.getByRole("combobox", { name: "Пошук у рядках" })
+  await search.click()
+  await search.pressSequentially("450", { delay: 120 })
+  await page.keyboard.press("Enter")
+  await expect(
+    row(450).getByRole("combobox", { name: "Товар чи послуга" }),
+  ).toBeFocused()
+  await page.keyboard.press("Control+End")
+  await expect(form.getByLabel("Знижка на документ, у відсотках")).toBeFocused()
+  await search.click()
+  await search.fill("26")
+  await page.keyboard.press("Enter")
+  await expect(row(26).getByLabel("Розділ")).toBeFocused()
+  await row(26).getByRole("button", { name: "Дії: Рядок 26" }).click()
+  await page
+    .getByRole("menuitem", { name: "Перенести розділ із рядками вище" })
+    .click()
+  const first = row(1).getByRole("button", { name: "Дії: Рядок 1" })
+  await expect(first).toBeFocused()
+  await first.click()
+  await page
+    .getByRole("menuitem", { name: "Перенести розділ із рядками нижче" })
+    .click()
+  await expect(
+    row(26).getByRole("button", { name: "Дії: Рядок 26" }),
+  ).toBeFocused()
+}
