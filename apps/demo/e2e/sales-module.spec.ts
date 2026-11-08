@@ -122,13 +122,19 @@ test.describe("модуль B3: пропозиції", () => {
     await expect(clientLink(page)).toHaveText(client ?? "")
   })
 
-  test("права ролі: менеджер не скасовує, керівник не створює — кнопки неактивні з причиною", async ({
+  // Користувач — на весь тест: другий `openWith` міняє лише хеш, сторінка не перезавантажується.
+  test("права ролі: менеджер не скасовує — кнопка неактивна", async ({
     page,
   }) => {
     await openWith(page, {}, SENT, { user: USERS.sales })
     await expect(
       actionBar(page).getByRole("button", { name: "Скасувати" }),
     ).toBeDisabled()
+  })
+
+  test("права ролі: керівник не створює — кнопка неактивна", async ({
+    page,
+  }) => {
     await openWith(page, {}, LIST, { user: USERS.lead })
     await expect(
       page.getByRole("button", { name: "Створити пропозицію" }),
@@ -152,7 +158,11 @@ test.describe("модуль B3: пропозиції", () => {
     await chooseScenario(page, "Порожньо")
     await expect(page.getByText("Пропозицій ще немає")).toBeVisible()
     await chooseScenario(page, "Немає доступу")
-    await expect(page.getByText("Немає доступу до списку")).toBeVisible()
+    await expect(
+      page
+        .getByRole("main")
+        .getByRole("heading", { name: "Немає доступу", exact: true }),
+    ).toBeVisible()
   })
 })
 

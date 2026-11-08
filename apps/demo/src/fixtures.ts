@@ -99,6 +99,7 @@ export const ERP_EXAMPLE: { id: ModuleId; badge?: number }[] = [
   { id: "O1" },
   { id: "K2", badge: 3 },
   { id: "B1" },
+  { id: "B3" },
   { id: "A1" },
   { id: "A2" },
   { id: "A5" },
