@@ -16,7 +16,7 @@ import { FormField } from "@/registry/erp/form"
 import { Input } from "@/registry/ui/input"
 
 /**
- * Легке з'єднання поля з формою (`hooks/use-form-field`, UI05c, ADR-0063): поле поводиться, як з
+ * Легке з'єднання поля з формою (`hooks/use-field-controller`, UI05c, ADR-0063): поле поводиться, як з
  * `Controller`, але не перемальовується від чужих змін. Тест — і сторож оновлень react-hook-form: хук
  * спирається на внутрішні частини `control`.
  */
@@ -269,16 +269,39 @@ describe("FormField: легке з'єднання з формою", () => {
     expect(values).toHaveTextContent("{}")
   })
 
-  it("вимкнена форма вимикає поле", () => {
-    function DisabledForm() {
-      const form = useForm<{ name: string }>({
-        disabled: true,
-        defaultValues: { name: "Олена" },
+  it("вимкнена форма вимикає поле, і перемикання доходить до поля", async () => {
+    const user = userEvent.setup()
+    function ToggleForm() {
+      const [isDisabled, setDisabled] = useState(true)
+      const form = useForm<Person>({
+        disabled: isDisabled,
+        defaultValues: { name: "Олена", city: "Київ" },
       })
-      return <TextField form={form} name="name" label="Ім'я" />
+      return (
+        <form>
+          {/* Поле під memo читає й зміну: підписане не лише на помилку. */}
+          <MemoTextField form={form} name="name" label="Ім'я" />
+          <button
+            type="button"
+            onClick={() => {
+              setDisabled((value) => !value)
+            }}
+          >
+            Перемкнути
+          </button>
+        </form>
+      )
     }
-    render(<DisabledForm />)
+    render(<ToggleForm />)
     expect(name()).toBeDisabled()
     expect(name()).toHaveValue("Олена")
+    await user.click(screen.getByRole("button", { name: "Перемкнути" }))
+    await waitFor(() => {
+      expect(name()).toBeEnabled()
+    })
+    await user.click(screen.getByRole("button", { name: "Перемкнути" }))
+    await waitFor(() => {
+      expect(name()).toBeDisabled()
+    })
   })
 })

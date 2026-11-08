@@ -11,7 +11,7 @@ import {
 } from "react-hook-form"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
-import { useFormField } from "@/registry/hooks/use-form-field"
+import { useFieldController } from "@/registry/hooks/use-field-controller"
 import {
   KeptOverTabsContext,
   searchWithoutTab,
@@ -33,7 +33,7 @@ import {
  *   далі — під час виправлення, і при відправці (SPEC §8.3). Схему з текстами помилок будуйте в
  *   компоненті з `t` (`useMemo`), щоб повідомлення були мовою інтерфейсу.
  * - `FormField` — підпис над полем, підказка, помилка біля поля, id і aria для доступності. Поле
- *   з'єднане з формою легким `useFormField` (hooks/use-form-field, ADR-0063), а не `Controller`: поле,
+ *   з'єднане з формою легким `useFieldController` (hooks/use-field-controller, ADR-0063), а не `Controller`: поле,
  *   що з'являється чи зникає, не копіює весь стан форми.
  *   Поле без прав — `readOnly` (у фокусі й для скрінрідера), не `disabled`. Короткий список
  *   варіантів — `FormSelect` з erp/form-select (окремо: список не їде в кожну сторінку з формою).
@@ -95,7 +95,7 @@ function FormField<
   render,
 }: FormFieldProps<TValues, TName, TTransformed>) {
   const id = React.useId()
-  const { field, fieldState } = useFormField({ control, name })
+  const { field, fieldState } = useFieldController({ control, name })
   const invalid = fieldState.invalid
   const describedBy =
     [description ? `${id}-hint` : "", invalid ? `${id}-error` : ""]

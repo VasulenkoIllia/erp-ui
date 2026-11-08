@@ -23,7 +23,8 @@ import {
  *
  * Реєстрація поля повторює `useController` крок у крок і спирається на ті самі внутрішні частини
  * `control` (`_subscribe`, `_fields`, `_names`, `_proxyFormState`): оновлюючи react-hook-form, проганяйте
- * `form-field.test.tsx`.
+ * `field-controller.test.tsx`. Це не повна заміна `useController`: правил (`rules`), `defaultValue`,
+ * `disabled` і `shouldUnregister` окремого поля немає, бо `FormField` їх не передає.
  */
 
 type FormControl<
@@ -100,14 +101,37 @@ function nullAncestorValue(
   return undefined
 }
 
-/** Значення з події поля вводу або саме значення (`onChange(value)` складного поля). */
+/**
+ * Значення з події поля вводу або саме значення (`onChange(value)` складного поля), як `getEventValue`
+ * react-hook-form: об'єкт (не масив і не дата) з непорожнім `target` — подія.
+ */
 function eventValue(event: unknown): unknown {
-  if (typeof event !== "object" || event === null || !("target" in event))
-    return event
-  const { target } = event
-  if (typeof target !== "object" || target === null) return event
-  const input = target as { type?: unknown; checked?: unknown; value?: unknown }
-  return input.type === "checkbox" ? input.checked : input.value
+  const isEvent =
+    typeof event === "object" &&
+    event !== null &&
+    !Array.isArray(event) &&
+    !(event instanceof Date) &&
+    "target" in event &&
+    Boolean(event.target)
+  if (!isEvent) return event
+  const target = Object(event.target) as {
+    type?: unknown
+    checked?: unknown
+    value?: unknown
+  }
+  return target.type === "checkbox" ? target.checked : target.value
+}
+
+/**
+ * Копія початкового значення поля для `shouldUnregister`. Значення, якого `structuredClone` не копіює
+ * (функція, проксі), лишається як є, як у `cloneObject` react-hook-form.
+ */
+function copyOf(value: unknown): unknown {
+  try {
+    return structuredClone(value)
+  } catch {
+    return value
+  }
 }
 
 /** Те, що форма бачить замість елемента: фокус на помилці й перевірка браузера. */
@@ -136,7 +160,10 @@ const asFieldRef = (proxy: FieldRefProxy) =>
 
 /** Підписка поля лише на його стан. */
 interface FieldStore {
-  readonly subscribe: (onChange: () => void) => () => void
+  /** `onChange` — лише коли знімок змінився відносно останнього показаного. */
+  readonly subscribe: (
+    onChange: (snapshot: FieldSnapshot) => void,
+  ) => () => void
   readonly getSnapshot: () => FieldSnapshot
   /**
    * Як проксі `useFormState`: форма рахує торкання, зміну й перевірку полів, лише коли їх хтось читає,
@@ -152,23 +179,37 @@ function createFieldStore<
   control: FormControl<TValues, TTransformed>,
   name: FieldPath<TValues>,
 ): FieldStore {
-  // Помилку `FormField` читає завжди; решту — лише якщо читає поле.
-  const tracked: Partial<ReadFormState> = { errors: true }
+  // Помилку `FormField` читає завжди; решту — лише якщо читає поле. Вимкнення форми (`_disableForm`
+  // шле лише `{ disabled }`) поле чує завжди: `field.disabled` з нього. У типі `ReadFormState` ключа
+  // немає, але фільтр підписки react-hook-form дивиться на будь-який ключ стану.
+  const tracked = { errors: true, disabled: true } as Partial<ReadFormState>
   let cached: FieldSnapshot | undefined
+  // Той самий знімок, поки нічого не змінилось: поле без змін не перемальовується.
+  const getSnapshot = () => {
+    const next = readSnapshot(control, name)
+    if (!cached || !sameSnapshot(cached, next)) cached = next
+    return cached
+  }
   return {
-    subscribe: (onChange) =>
-      control._subscribe({
+    subscribe: (onChange) => {
+      // Останній знімок, який брав рендер чи цей обробник, — той, що на екрані.
+      const notifyIfChanged = () => {
+        const shown = cached
+        const next = getSnapshot()
+        if (next !== shown) onChange(next)
+      }
+      const unsubscribe = control._subscribe({
         name,
         exact: true,
         formState: tracked,
-        callback: onChange,
-      }),
-    // Той самий знімок, поки нічого не змінилось: поле без змін не перемальовується.
-    getSnapshot: () => {
-      const next = readSnapshot(control, name)
-      if (!cached || !sameSnapshot(cached, next)) cached = next
-      return cached
+        callback: notifyIfChanged,
+      })
+      // Стан змінився між рендером і підпискою (помилка з ефекту сусіда): одразу, як `resyncIfNeeded`
+      // у `useFormState`.
+      notifyIfChanged()
+      return unsubscribe
     },
+    getSnapshot,
     track: (key) => {
       tracked[key] = true
       if (control._proxyFormState[key] !== "all")
@@ -203,7 +244,7 @@ const fieldStateOf = (
       enumerable: true,
       get: () => (store.track("validatingFields"), snapshot.isValidating),
     },
-  })
+  } satisfies Record<keyof ControllerFieldState, PropertyDescriptor>)
 
 /**
  * Стан поля. Підписка — у `useLayoutEffect` зі звичайним `setState`, як у `useController`, а не
@@ -226,13 +267,8 @@ function useFieldState<
   const snapshot = shown.store === store ? shown.snapshot : store.getSnapshot()
   React.useLayoutEffect(
     () =>
-      store.subscribe(() => {
-        setShown((previous) => {
-          const next = store.getSnapshot()
-          return previous.store === store && previous.snapshot === next
-            ? previous
-            : { store, snapshot: next }
-        })
+      store.subscribe((next) => {
+        setShown({ store, snapshot: next })
       }),
     [store],
   )
@@ -309,7 +345,7 @@ function useFieldRegistration<
     }
     setMounted(true)
     if (shouldUnregister) {
-      const initial: unknown = structuredClone(
+      const initial = copyOf(
         get(
           control._options.values ?? control._defaultValues,
           name,
@@ -339,7 +375,7 @@ function useFieldRegistration<
   return { onChange, onBlur, ref }
 }
 
-export interface UseFormFieldProps<
+export interface UseFieldControllerProps<
   TValues extends FieldValues,
   TName extends FieldPath<TValues>,
   TTransformed extends FieldValues = TValues,
@@ -348,14 +384,14 @@ export interface UseFormFieldProps<
   name: TName
 }
 
-export function useFormField<
+export function useFieldController<
   TValues extends FieldValues,
   TName extends FieldPath<TValues>,
   TTransformed extends FieldValues = TValues,
 >({
   control,
   name,
-}: UseFormFieldProps<TValues, TName, TTransformed>): {
+}: UseFieldControllerProps<TValues, TName, TTransformed>): {
   field: ControllerRenderProps<TValues, TName>
   fieldState: ControllerFieldState
 } {

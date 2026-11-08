@@ -577,8 +577,8 @@ export const CODE_ITEMS = {
     demo: "documentForm",
     spec: ["UI05", "§10", "§18.1"],
   },
-  "hooks/use-form-field": {
-    title: "useFormField",
+  "hooks/use-field-controller": {
+    title: "useFieldController",
     description:
       "Легке з'єднання поля з формою react-hook-form для FormField: значення, onChange, onBlur, ref і стан поля, як у useController, але поле підписане лише на свою помилку, торкання, зміну й перевірку, тож поле, що з'являється, зникає чи змінює ім'я, не копіює весь стан форми (ADR-0063).",
     status: "beta",

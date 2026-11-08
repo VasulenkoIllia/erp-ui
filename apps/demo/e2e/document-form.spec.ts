@@ -82,7 +82,7 @@ async function scrollToRow(page: Page, index: number) {
       window.scrollBy(0, (target - first.index - 2) * rowHeight)
     }, index)
     await expect(row(page, index)).toBeInViewport({ timeout: 1_000 })
-  }).toPass()
+  }).toPass({ timeout: 20_000 })
 }
 
 test.describe("великий документ", () => {

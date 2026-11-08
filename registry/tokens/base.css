@@ -159,6 +159,11 @@
     scroll-padding-top: 4.5rem;
     scroll-padding-bottom: 5rem;
   }
+  /* У діалозі й шторці прокручується їхній вміст, а не сторінка: липке там — від їхнього верху. */
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"] {
+    --app-topbar-height: 0px;
+  }
   /* Липкі підписи колонок таблиці рядків (erp/repeating-rows) стоять під топбаром: поле в фокусі
    * лишається видимим і під ними. */
   html:has([data-slot="repeating-rows-header"]) {
