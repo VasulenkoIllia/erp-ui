@@ -55,6 +55,8 @@
 
 ### Змінено
 
+- **Node 26 і для проектів.** Кіт розробляється й перевіряється на Node 26 (`.nvmrc`), `engines.node` тепер `>=26` замість `>=22.12`, доставку в чистий проект CI перевіряє на Node 26, а не на 22 і 24. Проект на Node 22 чи 24 спершу переходить на 26 (`.nvmrc`, CI, образи Docker), потім бере наступну версію кіта. pnpm кіта 12.14.0. Якщо модульні тести проекту в jsdom шлють файл у `FormData` і на Node 26 падають з `RequestContentLengthMismatchError`, візьміть середовище як у демо: `apps/demo/vitest.environment.ts`.
+
 - У `beta` перейшли елементи документа, на які тепер спирається модуль B3: `lib/document-lifecycle`, `lib/mock-transitions`, `hooks/use-record-transition`, `lib/numbering`, `lib/mock-numbering`, `lib/print`, `erp/document-action-bar`, `erp/document-action-dialogs`, `erp/document-lines-editor` з полями, підсумками, пошуком і схемою, `erp/numbering-settings`, `erp/numbering-series-form`, `erp/numbering-preview`, `erp/print-preview`, `erp/print-button`, `erp/print-requisites`, `erp/print-document`, `erp/repeating-rows-list`, `erp/repeating-rows-virtual`, `erp/repeating-rows-groups`, `hooks/use-window-rows` і їхні переклади. Потік документів (`erp/document-flow`, `lib/document-links`, `lib/mock-document-flow`) лишився `draft` до кроку B3b.
 
 - Теми (`design/themes.css`, оновіть файл тем проекту): темна тема лише для екрана, папір друкується світлим; `data-theme="light"` дає світлу область у темній темі. Кольори тем не змінились.

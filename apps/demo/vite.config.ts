@@ -40,7 +40,7 @@ export default defineConfig({
     ],
   },
   test: {
-    environment: "jsdom",
+    environment: "./vitest.environment.ts",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     // Локально лишаємо ядра вільними; CI — усі ядра раннера.
