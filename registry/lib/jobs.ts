@@ -6,6 +6,13 @@
  *   (усі записи за фільтром списку, крім знятих) → 202 `{ jobId }`. Фільтр — ті самі плоскі поля,
  *   що й у `GET /<ресурс>` (ADR-0002), компанія — `X-Company-Id`. Без права `<ресурс>:<дія>` — 403,
  *   порожній вибір — 422.
+ * - Дія з причиною (скасування документа, ADR-0066): `reason` поруч із вибором, одна на всі записи, до
+ *   `TRANSITION_REASON_MAX_LENGTH`. Дія, що вимагає причину, без неї не починається: 422
+ *   `fieldErrors.reason = "required"`, задачі немає.
+ * - Масова дія графа переходів (ADR-0066) — над кожним записом у його поточній версії: перехід, якого
+ *   немає з його статусу, — невдача `transition_not_allowed`; заборона станом документа (позначка
+ *   `deniedActions`: `submitted`, `linked`…) — невдача з цим кодом, а не `forbidden`, щоб людина бачила
+ *   причину.
  * - `GET /jobs/:id` → задача: стан, скільки всього, оброблено, вдалося; невдачі згруповано за
  *   причиною (`code`): кількість, чи можна повторити, перші записи групи. Відповідь не росте з
  *   кількістю невдач: 8 000 «не чернетка» — одна група.
@@ -24,6 +31,8 @@ import type { FilterValue } from "@/registry/lib/api"
 
 /** Шлях API задач (`/jobs/:id`). */
 export const JOBS_PATH = "jobs"
+/** Сегмент масових дій ресурсу (`/<ресурс>/bulk/<дія>`): не id запису. */
+export const BULK_PATH = "bulk"
 /** Як часто клієнт питає про задачу, що ще йде. */
 export const JOB_POLL_MS = 1000
 /**
@@ -94,6 +103,11 @@ export type JobStarted = z.infer<typeof jobStartedSchema>
 export type BulkSelection =
   | { ids: string[] }
   | { filter: Record<string, FilterValue>; exclude?: string[] }
+
+/** Що ще йде з вибором: причина дії, одна на всі записи (ADR-0066). */
+export interface BulkOptions {
+  reason?: string
+}
 
 /** Задача ще йде: клієнт питає далі. */
 export function isJobActive(job: Pick<Job, "status">): boolean {

@@ -25,6 +25,7 @@ import { useSalesModule } from "../module-context"
 import { useSalesT } from "../use-sales-t"
 import { AccessLink } from "./access-link"
 import { useQuoteAccess } from "./quote-access"
+import { QuoteDeleteAction } from "./quote-delete"
 import { QuoteValidity, useQuoteTitle } from "./quote-display"
 
 const PrintIcon = ACTION_ICONS.print
@@ -46,8 +47,8 @@ function QuoteClient({ quote }: { quote: Quote }) {
 
 /**
  * Шапка картки пропозиції: номер (чернетка — без номера), статус, ключові поля (клієнт, дата, «Дійсна
- * до», сума) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Друк» і дії розширення;
- * без запису — немає.
+ * до», сума) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Видалити чернетку»,
+ * «Друк» і дії розширення; без запису — немає.
  */
 export function useQuoteHeader(
   quote: Quote | undefined,
@@ -101,6 +102,10 @@ export function useQuoteHeader(
           lockReason={lock.reason}
         />
       ),
+    },
+    {
+      id: "delete",
+      node: <QuoteDeleteAction quote={quote} lockReason={lock.reason} />,
     },
     {
       id: "print",

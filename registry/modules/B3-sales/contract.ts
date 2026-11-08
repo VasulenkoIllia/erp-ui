@@ -19,8 +19,16 @@
  *   (ADR-0058), у чернетки й виправленої копії `number: null`. Проведена й скасована пропозиція не
  *   змінюється (`deniedActions.update`); змінити надіслану — «Скасувати» з причиною й «Виправити»
  *   (нова чернетка `amendedFrom`).
- * - Права — `quotes:<дія>`: `read`, `create`, `update` і дії графа (`submit`, `accept`, `decline`,
- *   `cancel`, `amend`) та дії розширення проекту.
+ * - Видалити можна лише чернетку (`DELETE /quotes/:id`, право `quotes:delete`): у надісланої й
+ *   скасованої `deniedActions.delete` (`submitted`, `cancelled`), надіслану скасовують. Видалена
+ *   виправлена копія звільняє скасовану: її можна виправити знову (ADR-0066).
+ * - Масові дії (`lib/jobs`, ADR-0018, ADR-0066): `POST /quotes/bulk/<дія>` з вибором → 202 `{ jobId }`.
+ *   `submit` і `cancel` — дії графа над кожною пропозицією в її поточній версії; `cancel` — з `reason`,
+ *   одна на всі, без неї 422 `fieldErrors.reason = "required"`. `delete` — видалення чернеток. Невдачі
+ *   групами: `transition_not_allowed` (статус не той), `submitted` і `cancelled` (не чернетка), коди
+ *   API; у групі — номер, у чернетки — клієнт.
+ * - Права — `quotes:<дія>`: `read`, `create`, `update`, `delete` і дії графа (`submit`, `accept`,
+ *   `decline`, `cancel`, `amend`) та дії розширення проекту.
  *
  * Створення — `POST` шапки, рядків і знижки документа; зміна — `PATCH` змінених полів з `version`:
  * рядки — завжди всім масивом (`lines`), як колекції B1 (ADR-0028). Помилки рядка — 422 `fieldErrors`

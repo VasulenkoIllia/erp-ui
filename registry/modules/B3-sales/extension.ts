@@ -40,7 +40,7 @@ export type QuoteTabId = "all" | QuoteStatus | (string & {})
 export type QuoteFieldId = "client" | "date" | "validUntil" | "total"
 /** Секції картки. */
 export type QuoteSectionId = "lines"
-export type QuoteActionId = "edit" | "print"
+export type QuoteActionId = "edit" | "delete" | "print"
 /** Поля форми шапки (ключ — ім'я поля запису); рядки й знижка документа — редактор рядків. */
 export type QuoteFormFieldId = "clientId" | "date" | "validUntil"
 

@@ -75,10 +75,11 @@ export const ROLES: MockRole[] = [
     permissions: [
       "invoices:read",
       "documents:read",
-      // Пропозиції — без «Скасувати» й «Виправити»: кнопки неактивні з причиною.
+      // Пропозиції — без «Скасувати» й «Виправити»: кнопки неактивні з причиною. Чернетки видаляє.
       "quotes:read",
       "quotes:create",
       "quotes:update",
+      "quotes:delete",
       "quotes:submit",
       "quotes:accept",
       "quotes:decline",
@@ -183,6 +184,7 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
       "read",
       "create",
       "update",
+      "delete",
       "submit",
       "accept",
       "decline",

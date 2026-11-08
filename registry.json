@@ -9514,7 +9514,7 @@
       "name": "modules/B3-sales",
       "type": "registry:item",
       "title": "Пропозиції й замовлення (B3)",
-      "description": "Модуль, частина «Пропозиції»: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, «Термін минув» у надісланої з минулим строком), картка на Object Page (номер, етапи, панель дій графа: «Надіслати» з номером серії, «Клієнт прийняв», «Клієнт відхилив», «Скасувати» з причиною, «Виправити»; рядки лише для читання з підсумками сервера; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями й засівом серії нумерації, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension: поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065).",
+      "description": "Модуль, частина «Пропозиції»: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, «Термін минув» у надісланої з минулим строком; масові «Надіслати», «Скасувати» з причиною й «Видалити» чернетки зі звітом про невдалі), картка на Object Page (номер, етапи, панель дій графа: «Надіслати» з номером серії, «Клієнт прийняв», «Клієнт відхилив», «Скасувати» з причиною, «Виправити»; «Видалити чернетку»; рядки лише для читання з підсумками сервера; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями, засівом серії нумерації й масовими діями, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension: поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065, ADR-0066).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -9557,6 +9557,11 @@
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/bulk-action.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/bulk-action.tsx"
         },
         {
           "path": "registry/erp/confirm-dialog.tsx",
@@ -9692,6 +9697,16 @@
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
+        },
+        {
+          "path": "registry/erp/job-failures.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/job-failures.tsx"
+        },
+        {
+          "path": "registry/erp/job-progress.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/job-progress.tsx"
         },
         {
           "path": "registry/erp/number-group.tsx",
@@ -9887,6 +9902,11 @@
           "path": "registry/hooks/use-history-refresh.ts",
           "type": "registry:hook",
           "target": "@hooks/use-history-refresh.ts"
+        },
+        {
+          "path": "registry/hooks/use-job.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-job.ts"
         },
         {
           "path": "registry/hooks/use-list-counts.ts",
@@ -10359,6 +10379,11 @@
           "target": "@lib/mock-invitations.ts"
         },
         {
+          "path": "registry/lib/mock-jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-jobs.ts"
+        },
+        {
           "path": "registry/lib/mock-lists.ts",
           "type": "registry:lib",
           "target": "@lib/mock-lists.ts"
@@ -10699,6 +10724,11 @@
           "target": "@ui/popover.tsx"
         },
         {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/progress.tsx"
+        },
+        {
           "path": "registry/ui/select.tsx",
           "type": "registry:ui",
           "target": "@ui/select.tsx"
@@ -10764,9 +10794,19 @@
           "target": "~/src/modules/B3-sales/components/quote-access.ts"
         },
         {
+          "path": "registry/modules/B3-sales/components/quote-bulk-actions.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B3-sales/components/quote-bulk-actions.tsx"
+        },
+        {
           "path": "registry/modules/B3-sales/components/quote-columns.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B3-sales/components/quote-columns.tsx"
+        },
+        {
+          "path": "registry/modules/B3-sales/components/quote-delete.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B3-sales/components/quote-delete.tsx"
         },
         {
           "path": "registry/modules/B3-sales/components/quote-display.tsx",
@@ -10884,7 +10924,7 @@
           "target": "~/src/modules/B3-sales/use-sales-t.ts"
         }
       ],
-      "docs": "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension).\n1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має право).\n2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks, далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker.\n3) Права ролей: quotes (read, create, update, submit, accept, decline, cancel, amend) і дії розширення. Докладно — src/modules/B3-sales/README.md.",
+      "docs": "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension).\n1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункт з access — лише тому, хто має право).\n2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks, далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker.\n3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
       "meta": {
         "layer": "modules",
         "status": "beta",
@@ -20357,7 +20397,7 @@
       "name": "lib/jobs",
       "type": "registry:lib",
       "title": "Масові дії й фонові задачі: контракт",
-      "description": "POST /<ресурс>/bulk/<дія> з вибором → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду з межею часу відповіді 10 с (основа PF15, ADR-0018).",
+      "description": "POST /<ресурс>/bulk/<дія> з вибором і причиною дії, одна на всі (ADR-0066) → 202 { jobId }, GET /jobs/:id (прогрес, невдачі групами за причиною), POST /jobs/:id/retry для невдач, які можна повторити; zod-схеми, опитування раз на секунду з межею часу відповіді 10 с (основа PF15, ADR-0018).",
       "dependencies": [
         "zod@^4.6.6"
       ],
@@ -25263,6 +25303,11 @@
           "target": "@lib/dates.ts"
         },
         {
+          "path": "registry/lib/document-lifecycle.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lifecycle.ts"
+        },
+        {
           "path": "registry/lib/edit-lock.ts",
           "type": "registry:lib",
           "target": "@lib/edit-lock.ts"
@@ -26800,7 +26845,7 @@
       "name": "lib/mock-jobs",
       "type": "registry:lib",
       "title": "Мок масових дій і задач",
-      "description": "createBulkHandlers (дії ресурсу над записами: зміни чи відмова з кодом, повтор) і createJobHandlers (GET /jobs/:id, повтор): задача обробляє записи з часом, зміни йдуть через db.patch; сценарії ресурсу й jobs (ADR-0018).",
+      "description": "createBulkHandlers (дії ресурсу над записами: зміни, видалення чи відмова з кодом, причина з тіла й 422 без обов'язкової, заборона станом документа — невдача з її кодом, повтор — ADR-0066) і createJobHandlers (GET /jobs/:id, повтор): задача обробляє записи з часом, зміни йдуть через db.patch; сценарії ресурсу й jobs (ADR-0018).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -26855,6 +26900,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/document-lifecycle.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lifecycle.ts"
         },
         {
           "path": "registry/lib/edit-lock.ts",
@@ -28953,6 +29003,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -29021,6 +29076,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-jobs.ts"
         },
         {
           "path": "registry/lib/mock-lists.ts",
@@ -33929,7 +33989,7 @@
       "name": "lib/mock-transitions",
       "type": "registry:lib",
       "title": "Мок дій за графом переходів",
-      "description": "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057).",
+      "description": "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066).",
       "dependencies": [
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
@@ -34172,6 +34232,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -34240,6 +34305,11 @@
           "path": "registry/lib/mock-invitations.ts",
           "type": "registry:lib",
           "target": "@lib/mock-invitations.ts"
+        },
+        {
+          "path": "registry/lib/mock-jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-jobs.ts"
         },
         {
           "path": "registry/lib/mock-lists.ts",
@@ -35143,7 +35213,7 @@
       "name": "lib/mocks",
       "type": "registry:lib",
       "title": "Мок-сервер MSW",
-      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select і db.patch — для масових дій (lib/mock-jobs); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "description": "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select, db.patch і db.remove — для масових дій (lib/mock-jobs), afterDelete — що ще змінює сервер після видалення (ADR-0066); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -49969,6 +50039,533 @@
       }
     },
     {
+      "name": "erp/bulk-action",
+      "type": "registry:component",
+      "title": "Масова дія зі списку",
+      "description": "useBulkAction: кнопка панелі вибраного з правом ролі (без нього неактивна з причиною), підтвердження з кількістю й кнопкою-наслідком, поле причини, одна на всі записи (обов'язкова порожня — задача не починається), запуск POST /<ресурс>/bulk/<дія>, прогрес і звіт про невдалі з причиною кожної групи в erp/job-progress; після запуску вибір знімається, фокус — на таблицю (ADR-0018, ADR-0066).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "@tanstack/react-table@^9.3.1",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/bulk-action.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/bulk-action.tsx"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/conflict-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/conflict-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/data-table-selection.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/data-table-selection.tsx"
+        },
+        {
+          "path": "registry/erp/document-action-dialogs.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-action-dialogs.tsx"
+        },
+        {
+          "path": "registry/erp/job-failures.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/job-failures.tsx"
+        },
+        {
+          "path": "registry/erp/job-progress.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/job-progress.tsx"
+        },
+        {
+          "path": "registry/erp/permission-gate.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/permission-gate.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-job.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-job.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-access.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-access.ts"
+        },
+        {
+          "path": "registry/hooks/use-record-transition.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-record-transition.ts"
+        },
+        {
+          "path": "registry/hooks/use-row-selection.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-row-selection.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/announce.ts",
+          "type": "registry:lib",
+          "target": "@lib/announce.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/data-provider.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-provider.ts"
+        },
+        {
+          "path": "registry/lib/data-table-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/data-table-core.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/document-lifecycle.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-lifecycle.ts"
+        },
+        {
+          "path": "registry/lib/document-links.ts",
+          "type": "registry:lib",
+          "target": "@lib/document-links.ts"
+        },
+        {
+          "path": "registry/lib/edit-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/edit-lock.ts"
+        },
+        {
+          "path": "registry/lib/extensions.ts",
+          "type": "registry:lib",
+          "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/format.ts",
+          "type": "registry:lib",
+          "target": "@lib/format.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/icons.tsx",
+          "type": "registry:lib",
+          "target": "@lib/icons.tsx"
+        },
+        {
+          "path": "registry/lib/imports.ts",
+          "type": "registry:lib",
+          "target": "@lib/imports.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/list-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-settings.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/pins.ts",
+          "type": "registry:lib",
+          "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/realtime.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/row-selection.ts",
+          "type": "registry:lib",
+          "target": "@lib/row-selection.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/sse.ts",
+          "type": "registry:lib",
+          "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/statuses.ts",
+          "type": "registry:lib",
+          "target": "@lib/statuses.ts"
+        },
+        {
+          "path": "registry/lib/timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/timeline.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/web-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/web-push.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/checkbox.tsx"
+        },
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/dialog.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/progress.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/table.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        },
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "salesModule",
+        "spec": [
+          "PF15",
+          "§8.1",
+          "§8.2",
+          "§8.4"
+        ]
+      }
+    },
+    {
       "name": "erp/captcha",
       "type": "registry:component",
       "title": "Перевірка «не бот»",
@@ -57790,7 +58387,7 @@
       "name": "erp/document-action-dialogs",
       "type": "registry:component",
       "title": "Діалоги панелі дій документа",
-      "description": "TransitionDialog: підтвердження дії з кнопкою-наслідком і полем причини, кожне відкриття з порожнього поля; TransitionConflict: порівняння того, що людина бачила, з тим, що зараз, і повтор дії з новою версією. Частина erp/document-action-bar (PF03, ADR-0057).",
+      "description": "TransitionDialog: підтвердження дії з кнопкою-наслідком і полем причини, кожне відкриття з порожнього поля; TransitionConflict: порівняння того, що людина бачила, з тим, що зараз, і повтор дії з новою версією; TransitionReasonField — поле причини, спільне з erp/bulk-action. Частина erp/document-action-bar (PF03, ADR-0057, ADR-0066).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -66788,6 +67385,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -67198,6 +67800,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -69636,6 +70243,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
         },
         {
           "path": "registry/lib/session.ts",

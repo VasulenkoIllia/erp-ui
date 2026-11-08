@@ -27,6 +27,45 @@
     "empty": {
       "title": "No quotes yet",
       "description": "Create the first quote for a client: lines, discounts and totals, then send it."
+    },
+    "bulk": {
+      "rowLabel": "quote {{number}}",
+      "rowLabelDraft": "draft for {{client}} of {{date}}",
+      "submit": {
+        "title_one": "Send {{value}} quote?",
+        "title_other": "Send {{value}} quotes?",
+        "description": "Only drafts are sent: each gets a number and can no longer be changed. Quotes in other statuses stay as they are, the report lists them with the reason.",
+        "confirm_one": "Send {{value}} quote",
+        "confirm_other": "Send {{value}} quotes",
+        "denied": "You are not allowed to send quotes",
+        "progress": "Sending quotes",
+        "done": "Quotes sent: {{value}}",
+        "partial": "Sent {{done}} of {{total}}, not sent: {{failed}}",
+        "notAllowed": "Only a draft can be sent"
+      },
+      "cancel": {
+        "title_one": "Cancel {{value}} quote?",
+        "title_other": "Cancel {{value}} quotes?",
+        "description": "The quotes become void but stay in the list. One reason for all, it shows in the history of each. Drafts are not cancelled but deleted.",
+        "confirm_one": "Cancel {{value}} quote",
+        "confirm_other": "Cancel {{value}} quotes",
+        "denied": "You are not allowed to cancel quotes",
+        "progress": "Cancelling quotes",
+        "done": "Quotes cancelled: {{value}}",
+        "partial": "Cancelled {{done}} of {{total}}, not cancelled: {{failed}}",
+        "notAllowed": "Only a sent quote can be cancelled: a draft is deleted, a cancelled one is already cancelled"
+      },
+      "delete": {
+        "button": "Delete",
+        "title_one": "Delete {{value}} quote?",
+        "title_other": "Delete {{value}} quotes?",
+        "description": "Only drafts without a number are deleted, for good. A sent quote is not deleted but cancelled: such quotes stay, the report lists them with the reason.",
+        "confirm_one": "Delete {{value}} quote",
+        "confirm_other": "Delete {{value}} quotes",
+        "progress": "Deleting drafts",
+        "done": "Drafts deleted: {{value}}",
+        "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
+      }
     }
   },
   "quote": {
@@ -71,6 +110,19 @@
     "locked": {
       "submitted": "A sent quote cannot be changed: cancel it and create a corrected copy",
       "cancelled": "A cancelled quote cannot be changed: create a corrected copy"
+    },
+    "delete": {
+      "button": "Delete draft",
+      "denied": "You are not allowed to delete quotes",
+      "title": "Delete the draft?",
+      "description": "The draft is deleted for good together with its lines. It has no number yet, so numbering does not change.",
+      "descriptionAmended": "The draft is deleted for good together with its lines. The cancelled quote it was made from can be corrected again.",
+      "confirm": "Delete draft",
+      "done": "Draft deleted",
+      "locked": {
+        "submitted": "A sent quote is not deleted: cancel it",
+        "cancelled": "A cancelled quote is not deleted: it stays in the history"
+      }
     },
     "print": "Print",
     "printTitle": "Print: {{title}}",

@@ -1,13 +1,17 @@
 /**
  * Моки модуля B3 на MSW (ADR-0002, ADR-0003): пропозиції з рядками (зберігаються разом із записом,
- * суми рахує «сервер»), дії графа переходів з номером на «Надіслати» (ADR-0057, ADR-0058). Сценарії
+ * суми рахує «сервер»), дії графа переходів з номером на «Надіслати» (ADR-0057, ADR-0058), масові
+ * «Надіслати», «Скасувати» з причиною й «Видалити» чернетки фоновою задачею (ADR-0066). Сценарії
  * `success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline` — ресурсу `quotes`
  * (`lib/mock-scenarios`, панель розробника), права — `quotes:<дія>` поточного користувача моків.
  *
  *   const seeds = salesNumberingSeeds({ companies })
  *   const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
  *   const sales = createSalesMocks({ companies, numbering, extension: salesMockExtension })
- *   setupWorker(...platform, ...numbering.handlers, ...sales.handlers)
+ *   setupWorker(...platform, ...numbering.handlers, ...createJobHandlers(), ...sales.handlers)
+ *
+ * Хід масової задачі (`GET /jobs/:id`) — спільний на застосунок (`createJobHandlers` з lib/mock-jobs),
+ * як і нумерація: модуль дає лише `POST /quotes/bulk/<дія>`.
  *
  * Нумерація — спільна для всіх документів проекту (`createNumberingMocks` один на застосунок), тож
  * модуль не створює своєї: дає засів серії й лічильника (`salesNumberingSeeds`) і бере
@@ -25,10 +29,13 @@ import type {
   MockNumberingSeriesSeed,
   NumberingMocks,
 } from "@/lib/mock-numbering"
+import { createBulkHandlers } from "@/lib/mock-jobs"
 import type { MockDeniedRule } from "@/lib/mock-scope"
 import {
+  bulkTransitionActions,
   createTransitionHandlers,
   documentDeniedActions,
+  releaseAmendedFrom,
 } from "@/lib/mock-transitions"
 import { createResourceHandlers } from "@/lib/mocks"
 import {
@@ -64,6 +71,9 @@ export interface SalesMocksOptions extends SalesFixtureOptions {
   /** Свої заборони проекту на записі (`deniedActions`, ADR-0037): зводяться з позначками життєвого циклу. */
   readonly deniedActions?: { readonly quotes?: MockDeniedRule<QuoteCard> }
 }
+
+/** Дії графа, які список запускає масово (ADR-0066). */
+const BULK_TRANSITIONS = ["submit", "cancel"] as const
 
 /** Строк виправленої копії: два тижні від сьогодні. */
 const AMEND_VALID_DAYS = 14
@@ -274,6 +284,10 @@ export function createSalesMocks({
     },
     detailFields: ["lines", "totals"],
     auditValue: { lines: linesText },
+    // Видалена виправлена копія звільняє скасовану: її можна виправити знову (ADR-0066).
+    afterDelete: (quote) => {
+      releaseAmendedFrom(quotes.db, quote)
+    },
     // Проведену й скасовану не змінюють, виправлену вдруге не виправляють (ADR-0057).
     deniedActions: (actor, quote) => {
       const denied = {
@@ -282,6 +296,10 @@ export function createSalesMocks({
       }
       return Object.keys(denied).length ? denied : undefined
     },
+  })
+  const quoteNumbering = numbering.forResource({
+    resource: QUOTES,
+    db: quotes.db,
   })
   const quoteTransitions = createTransitionHandlers<QuoteCard>({
     resource: QUOTES,
@@ -302,11 +320,26 @@ export function createSalesMocks({
     },
     // Колега в сценарії `conflict` продовжує строк на тиждень.
     conflictChange: (quote) => ({ validUntil: addDays(quote.validUntil, 7) }),
-    numbering: numbering.forResource({ resource: QUOTES, db: quotes.db }),
+    numbering: quoteNumbering,
+  })
+  const quoteBulk = createBulkHandlers<QuoteCard>({
+    resource: QUOTES,
+    baseUrl,
+    db: quotes.db,
+    // Чернетка без номера — у звіті клієнтом.
+    title: (quote) => quote.number ?? quote.clientName,
+    actions: {
+      ...bulkTransitionActions(
+        { resource: QUOTES, transitions, numbering: quoteNumbering },
+        BULK_TRANSITIONS,
+      ),
+      // Надіслану й скасовану не дає позначка `deniedActions.delete`: невдача з її кодом.
+      delete: { apply: () => ({ remove: true }) },
+    },
   })
   return {
-    // Дії — перед ресурсом: `POST /quotes/:id/<дія>` не має дійти до обробників запису.
-    handlers: [...quoteTransitions, ...quotes.handlers],
+    // Масові дії й дії — перед ресурсом: `POST /quotes/…/<дія>` не має дійти до обробників запису.
+    handlers: [...quoteBulk, ...quoteTransitions, ...quotes.handlers],
     db: { quotes: quotes.db },
   }
 }

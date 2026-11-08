@@ -158,6 +158,11 @@ export interface MockResourceOptions<T extends MockRecord> {
   responsibleField?: keyof T & string
   /** Свої заборони проекту на записі: зводяться з правилами кіта (`lib/mock-scope`). */
   deniedActions?: MockDeniedRule<T>
+  /**
+   * Після видалення (`DELETE` і `db.remove`): що ще змінює сервер. Видалена виправлена копія звільняє
+   * перший документ (`releaseAmendedFrom` з lib/mock-transitions, ADR-0066).
+   */
+  afterDelete?: (record: T) => void
 }
 
 /**
@@ -253,6 +258,7 @@ export function createResourceHandlers<T extends MockRecord>({
   unique = [],
   responsibleField,
   deniedActions,
+  afterDelete,
 }: MockResourceOptions<T>) {
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
@@ -477,6 +483,14 @@ export function createResourceHandlers<T extends MockRecord>({
     return invalid ? { fieldErrors: invalid } : { record }
   }
 
+  /** Видалити запис: закріплення, журнал і подія, зміни сервера після видалення (`afterDelete`). */
+  const remove = (record: T) => {
+    replace(all().filter((r) => r.id !== record.id))
+    pinStore?.forget(record.id)
+    changed("deleted", record)
+    afterDelete?.(record)
+  }
+
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {
       const access = await guard(request, "read")
@@ -578,9 +592,7 @@ export function createResourceHandlers<T extends MockRecord>({
       if (!removed) return notFound()
       const denied = deniedBy(access.rules, removed, "delete")
       if (denied) return denied
-      replace(all().filter((r) => r.id !== params.id))
-      pinStore?.forget(removed.id)
-      changed("deleted", removed)
+      remove(removed)
       return noContent()
     }),
     ...(pinStore
@@ -630,6 +642,12 @@ export function createResourceHandlers<T extends MockRecord>({
       ) => select(filter, companyId, rules),
       /** Зміна запису з новою версією, журналом і подією — як PATCH, але без перевірки версії. */
       patch,
+      /** Видалення — як DELETE, без перевірки прав (масова дія перевіряє їх сама); false — запису немає. */
+      remove: (id: string): boolean => {
+        const record = all().find((r) => r.id === id)
+        if (record) remove(record)
+        return record !== undefined
+      },
       /** Перевірити новий запис, нічого не зберігаючи: для `import/check`. */
       prepare,
       /** Новий запис із журналом і подією — як POST (імпорт, lib/mock-imports). */

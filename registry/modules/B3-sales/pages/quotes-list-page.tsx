@@ -15,6 +15,7 @@ import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import { AccessLink } from "../components/access-link"
+import { useQuoteBulkActions } from "../components/quote-bulk-actions"
 import { useQuoteColumns } from "../components/quote-columns"
 import { useQuoteStatuses } from "../components/quote-statuses"
 import { QUOTES, type Quote } from "../contract"
@@ -35,7 +36,8 @@ const LOCKED_COLUMNS: readonly QuoteColumnId[] = ["number"]
 /**
  * Список пропозицій на шаблоні List Report сторінками (SPEC §7; ADR-0022): вкладки за статусом (зі
  * статусами розширення), фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом; номер — посилання на
- * картку. «Створити пропозицію» — сторінка форми.
+ * картку. «Створити пропозицію» — сторінка форми. Вибрані — «Надіслати», «Скасувати» з причиною й
+ * «Видалити» фоновою задачею зі звітом про невдалі (ADR-0066).
  */
 export function QuotesListPage() {
   const t = useSalesT()
@@ -126,23 +128,31 @@ function QuoteList() {
     tabs: list.tabs,
     filters: list.filters,
   })
+  const { bulk, dialogs } = useQuoteBulkActions(
+    report.selection,
+    report.list.queryFilter,
+  )
   return (
-    <ListReport
-      report={report}
-      mode="pages"
-      tabsLabel={t("quotes.tabsLabel")}
-      searchPlaceholder={t("quotes.search")}
-      tableLabel={t("quotes.tableLabel")}
-      columns={list.columns}
-      countLabel={(count, value) => t("quotes.count", { count, value })}
-      empty={
-        <PageState
-          kind="empty"
-          icon={MODULE_ICONS.B3}
-          title={t("quotes.empty.title")}
-          description={t("quotes.empty.description")}
-        />
-      }
-    />
+    <>
+      <ListReport
+        report={report}
+        bulk={bulk}
+        mode="pages"
+        tabsLabel={t("quotes.tabsLabel")}
+        searchPlaceholder={t("quotes.search")}
+        tableLabel={t("quotes.tableLabel")}
+        columns={list.columns}
+        countLabel={(count, value) => t("quotes.count", { count, value })}
+        empty={
+          <PageState
+            kind="empty"
+            icon={MODULE_ICONS.B3}
+            title={t("quotes.empty.title")}
+            description={t("quotes.empty.description")}
+          />
+        }
+      />
+      {dialogs}
+    </>
   )
 }

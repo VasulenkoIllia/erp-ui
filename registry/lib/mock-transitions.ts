@@ -6,8 +6,13 @@
  *   запис (404), позначка запису (403 з `current`), тіло (422), версія (409 з `current`), дія з
  *   поточного статусу й стану документа (422 `transition_not_allowed`), причина (422
  *   `fieldErrors.reason`).
- * - Дії, якої немає в графі, обробник не бере: запит іде далі (`/<ресурс>/bulk/<дія>`, імпорт). Тож
- *   реєструйте його перед обробниками ресурсу, а дії графа не називайте `bulk` чи `import`.
+ * - Дії, якої немає в графі, і масових дій (`/<ресурс>/bulk/<дія>`) обробник не бере: запит іде далі
+ *   (масові дії, імпорт). Тож реєструйте його перед обробниками ресурсу, а дії графа не називайте `bulk`
+ *   чи `import`.
+ * - Масово (`createBulkHandlers` з lib/mock-jobs, ADR-0066) — `bulkTransitionActions`: дія графа над
+ *   кожним записом без версії, з його поточного статусу; номер — так само на проведенні.
+ * - `releaseAmendedFrom` — опція `afterDelete` ресурсу: видалена виправлена копія звільняє перший
+ *   документ, його можна виправити знову.
  * - Сценарій `conflict` ресурсу імітує, що колега змінив запис (`conflictChange`) — один раз на версію,
  *   тож повтор із новою версією проходить, як у PATCH, а після `db.reset()` конфлікт знову є.
  * - Зміни йдуть через `db.patch` і `db.insert`: нова версія, журнал, подія каналу; причина — окремою
@@ -19,6 +24,7 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
+import { BULK_PATH } from "@/registry/lib/jobs"
 import {
   createsDocument,
   DOCUMENT_STATE_AFTER,
@@ -30,6 +36,7 @@ import {
 } from "@/registry/lib/document-lifecycle"
 import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
+import type { MockBulkAction } from "@/registry/lib/mock-jobs"
 import { fieldErrors } from "@/registry/lib/mock-records"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
@@ -134,18 +141,13 @@ function createFrom<T extends MockTransitionRecord>(
   return marked && "fieldErrors" in marked ? marked : created
 }
 
-/** Дія над записом: новий документ із позначкою на першому чи новий статус і стан документа. */
-function applyTransition<T extends MockTransitionRecord>(
-  { db, amend, reverse, numbering }: MockTransitionOptions<T>,
-  record: T,
-  transition: StatusTransition,
-  actor: Actor,
+/** Поле номера: документ, що стає проведеним, отримує наступний номер серії, чернетка — жодного. */
+function numberedBy(
+  numbering: MockDocumentNumbering | undefined,
+  companyId: string | null,
 ) {
-  const status = transition.to ?? record.status
-  const companyId = record.companyId ?? actor.companyId
-  /** Поле номера: документ, що стає проведеним, отримує наступний номер серії, чернетка — жодного. */
-  const numbered = (
-    document: Record<string, unknown>,
+  return (
+    document: Readonly<Record<string, unknown>>,
     isSubmitted: boolean,
   ): Record<string, unknown> =>
     numbering
@@ -155,6 +157,36 @@ function applyTransition<T extends MockTransitionRecord>(
             : null,
         }
       : {}
+}
+
+/** Зміни запису від дії, що не створює документа: статус, стан документа, номер на проведенні. */
+function transitionChanges<T extends MockTransitionRecord>(
+  numbering: MockDocumentNumbering | undefined,
+  record: T,
+  transition: StatusTransition,
+  companyId: string | null,
+): Record<string, unknown> {
+  const state = isDocumentAction(transition.id)
+    ? DOCUMENT_STATE_AFTER[transition.id]
+    : undefined
+  return {
+    status: transition.to ?? record.status,
+    ...(state ? { docStatus: state } : {}),
+    ...(state === "submitted"
+      ? numberedBy(numbering, record.companyId ?? companyId)(record, true)
+      : {}),
+  }
+}
+
+/** Дія над записом: новий документ із позначкою на першому чи новий статус і стан документа. */
+function applyTransition<T extends MockTransitionRecord>(
+  { db, amend, reverse, numbering }: MockTransitionOptions<T>,
+  record: T,
+  transition: StatusTransition,
+  actor: Actor,
+) {
+  const status = transition.to ?? record.status
+  const numbered = numberedBy(numbering, record.companyId ?? actor.companyId)
   if (transition.id === "amend" && amend) {
     const body = {
       ...amend(record),
@@ -183,14 +215,10 @@ function applyTransition<T extends MockTransitionRecord>(
       actor,
     )
   }
-  const state = isDocumentAction(transition.id)
-    ? DOCUMENT_STATE_AFTER[transition.id]
-    : undefined
-  return db.patch(record.id, {
-    status,
-    ...(state ? { docStatus: state } : {}),
-    ...(state === "submitted" ? numbered(record, true) : {}),
-  })
+  return db.patch(
+    record.id,
+    transitionChanges(numbering, record, transition, actor.companyId),
+  )
 }
 
 /**
@@ -256,7 +284,7 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
       `${options.baseUrl ?? API_PREFIX}/${resource}/:id/:action`,
       async ({ params, request }) => {
         const action = String(params.action)
-        if (!actions.has(action)) return undefined
+        if (!actions.has(action) || params.id === BULK_PATH) return undefined
         const early = await applyScenario(scenarioFor(resource))
         if (early) return early
         // Тіло — до запису: далі жодного `await`, тож два одночасні запити до одного документа бачать
@@ -307,4 +335,62 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
       },
     ),
   ]
+}
+
+/**
+ * Дії графа для масового запуску (`createBulkHandlers` з lib/mock-jobs, ADR-0066): над кожним записом
+ * без версії — з його поточного статусу й стану документа, інакше невдача `transition_not_allowed`;
+ * причина — як у графі. Дії, що створюють документ (`amend`, `reverse`), масово не запускаються.
+ */
+export function bulkTransitionActions<T extends MockTransitionRecord>(
+  {
+    resource,
+    transitions,
+    numbering,
+  }: Pick<MockTransitionOptions<T>, "resource" | "transitions" | "numbering">,
+  ids: readonly string[],
+): Record<string, MockBulkAction<T>> {
+  const reasonOf = (id: string) =>
+    transitions.find((transition) => transition.id === id)?.reason
+  return Object.fromEntries(
+    ids
+      .filter((id) => !createsDocument(id))
+      .map((id): [string, MockBulkAction<T>] => [
+        id,
+        {
+          reason: reasonOf(id),
+          apply: (record, { companyId }) => {
+            const transition = findTransition(transitions, record.status, id)
+            if (!transition || !lifecycleAllows(id, record.docStatus))
+              return {
+                code: "transition_not_allowed",
+                message: `${resource}: ${id} from ${record.status}`,
+              }
+            return {
+              changes: transitionChanges(
+                numbering,
+                record,
+                transition,
+                companyId,
+              ) as Partial<T>,
+            }
+          },
+        },
+      ]),
+  )
+}
+
+/**
+ * Видалили виправлену копію (чернетку): перший документ знову можна виправити — сервер знімає з нього
+ * `amendedBy` (ADR-0066). Для опції `afterDelete` ресурсу: `(record) => releaseAmendedFrom(db, record)`.
+ */
+export function releaseAmendedFrom<T extends MockTransitionRecord>(
+  db: MockResourceDb<T>,
+  removed: Pick<T, "id" | "amendedFrom">,
+): void {
+  const original = removed.amendedFrom
+    ? db.all().find((record) => record.id === removed.amendedFrom)
+    : undefined
+  if (original?.amendedBy === removed.id)
+    db.patch(original.id, { amendedBy: null })
 }

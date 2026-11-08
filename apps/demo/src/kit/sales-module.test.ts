@@ -7,6 +7,7 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vitest"
 
 import { createApiClient, isApiError } from "@/registry/lib/api"
@@ -14,6 +15,8 @@ import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { addDays, todayIn } from "@/registry/lib/dates"
 import type { DocumentBodyLine } from "@/registry/lib/document-lines"
+import type { Job } from "@/registry/lib/jobs"
+import { createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createNumberingMocks } from "@/registry/lib/mock-numbering"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import {
@@ -81,6 +84,7 @@ const mocks = createSalesMocks({
 const server = setupServer(
   ...createPlatformHandlers({ users: [MANAGER, SELLER], baseUrl: BASE }),
   ...numbering.handlers,
+  ...createJobHandlers({ baseUrl: BASE }),
   ...mocks.handlers,
 )
 const provider = createDataProvider(
@@ -473,5 +477,134 @@ describe("модуль B3: моки", () => {
     expect((await failureOf(list())).status).toBe(403)
     setScenario("offline", QUOTES)
     expect((await failureOf(list())).code).toBe("offline")
+  })
+
+  describe("масові дії й видалення (ADR-0066)", () => {
+    const startBulk = (action: string, ids: string[], reason?: string) =>
+      provider.startBulk(
+        QUOTES,
+        action,
+        { ids },
+        reason === undefined ? undefined : { reason },
+      )
+    /** Мок доробляє записи з часом (lib/mock-jobs): чекаємо кінця задачі. */
+    const finished = async (jobId: string): Promise<Job> => {
+      let job = await provider.getJob(jobId)
+      await vi.waitFor(
+        async () => {
+          job = await provider.getJob(jobId)
+          expect(job.status).toBe("done")
+        },
+        { timeout: 3000, interval: 50 },
+      )
+      return job
+    }
+    /** Невдачі за причиною: код → назви записів у звіті. */
+    const failedBy = (job: Job) =>
+      Object.fromEntries(
+        job.failures.map((group) => [
+          group.code,
+          group.items.map((item) => item.title),
+        ]),
+      )
+    const numberOf = (id: string) => stored(id)?.number
+
+    it("«Надіслати»: чернетки отримують різні номери, надіслана — невдача `transition_not_allowed` з номером", async () => {
+      const sentNumber = numberOf("qt-c1-03")
+      const { jobId } = await startBulk("submit", [
+        "qt-c1-01",
+        "qt-c1-02",
+        "qt-c1-03",
+      ])
+      const job = await finished(jobId)
+      expect(job).toMatchObject({ total: 3, succeeded: 2, failed: 1 })
+      expect(failedBy(job)).toEqual({ transition_not_allowed: [sentNumber] })
+      const sent = ["qt-c1-01", "qt-c1-02"].map((id) => stored(id))
+      for (const quote of sent)
+        expect(quote).toMatchObject({ status: "sent", docStatus: "submitted" })
+      const numbers = sent.map((quote) => quote?.number)
+      expect(
+        numbers.every((number) => /^КП-2026-\d{4}$/.test(number ?? "")),
+      ).toBe(true)
+      expect(new Set(numbers).size).toBe(2)
+    })
+
+    it("«Скасувати» без причини не починається; з причиною — одна на всі, чернетка й скасована — невдачі", async () => {
+      for (const reason of [undefined, "   "]) {
+        const refused = await failureOf(
+          startBulk("cancel", ["qt-c1-03"], reason),
+        )
+        expect(refused.status).toBe(422)
+        expect(refused.fieldErrors).toEqual({ reason: "required" })
+      }
+      expect(stored("qt-c1-03")?.status).toBe("sent")
+      const draftClient = stored("qt-c1-01")?.clientName
+      const cancelledNumber = numberOf("qt-c1-07")
+      const { jobId } = await startBulk(
+        "cancel",
+        ["qt-c1-03", "qt-c1-05", "qt-c1-01", "qt-c1-07"],
+        "Клієнт закрив тендер",
+      )
+      const job = await finished(jobId)
+      expect(job).toMatchObject({ succeeded: 2, failed: 2 })
+      expect(failedBy(job)).toEqual({
+        transition_not_allowed: [draftClient, cancelledNumber],
+      })
+      expect(stored("qt-c1-05")).toMatchObject({
+        status: "cancelled",
+        docStatus: "cancelled",
+      })
+    })
+
+    it("без права на дію — 403 до запуску", async () => {
+      signInMock(SELLER.id)
+      expect(
+        (await failureOf(startBulk("cancel", ["qt-c1-03"], "Причина"))).status,
+      ).toBe(403)
+      expect((await failureOf(startBulk("delete", ["qt-c1-01"]))).status).toBe(
+        403,
+      )
+    })
+
+    it("«Видалити»: лише чернетка; надіслана й скасована — невдачі з кодом стану документа", async () => {
+      const sentNumber = numberOf("qt-c1-03")
+      const cancelledNumber = numberOf("qt-c1-07")
+      const { jobId } = await startBulk("delete", [
+        "qt-c1-01",
+        "qt-c1-03",
+        "qt-c1-07",
+      ])
+      const job = await finished(jobId)
+      expect(job).toMatchObject({ succeeded: 1, failed: 2 })
+      expect(failedBy(job)).toEqual({
+        submitted: [sentNumber],
+        cancelled: [cancelledNumber],
+      })
+      expect(stored("qt-c1-01")).toBeUndefined()
+      expect(stored("qt-c1-03")?.status).toBe("sent")
+    })
+
+    it("«Видалити чернетку» з картки: надіслану — 403; видалена виправлена копія звільняє скасовану", async () => {
+      const refused = await failureOf(
+        provider.delete(QUOTES, { id: "qt-c1-03" }),
+      )
+      expect(refused.status).toBe(403)
+      const accepted = await one("qt-c1-05")
+      const cancelled = await run(accepted.id, "cancel", {
+        version: accepted.version,
+        reason: "Нові ціни",
+      })
+      const copy = await run(accepted.id, "amend", {
+        version: cancelled.version,
+      })
+      await provider.delete(QUOTES, { id: copy.id })
+      expect(stored(copy.id)).toBeUndefined()
+      const original = await one(accepted.id)
+      expect(original.amendedBy ?? null).toBeNull()
+      const again = await run(accepted.id, "amend", {
+        version: original.version,
+      })
+      expect(again).toMatchObject({ status: "draft", amendedFrom: accepted.id })
+    })
   })
 })
