@@ -1008,6 +1008,48 @@ const form = useForm({ mode: "onTouched", resolver: zodResolver(schema), default
 - Бекенд рахує ті самі суми за таблицями ADR-0056 і ADR-0059: знижка документа ділиться між рядками пропорційно, копійки
   залишку — найдорожчому рядку, база ПДВ зменшується. Знижка понад свою суму — 422 `discount_exceeds`.
 
+### Друк (ADR-0062)
+
+Друк — діалог друку браузера, PDF — «Зберегти як PDF» там само; архівний юридичний PDF дає сервер. Перегляд друку — окрема
+сторінка картки з блоками кіта, кнопка «Друк» на картці — посилання на неї.
+
+```tsx
+// /orders/:id/print: дані картки й профіль компанії; мова аркуша — мова документів компанії.
+const { data: company } = useCompanyProfile()
+const state = order && company ? undefined : error ? errorStateKind(error) : "loading"
+
+<PrintPreview title={`${t("orders.print")} ${order?.number ?? ""}`} language={company?.language} state={state} onRetry={retry}>
+  {order && company ? (
+    <>
+      <PrintWatermark docStatus={order.docStatus} />
+      <div className="grid gap-[6mm]">
+        <PrintCompanyHeader company={company} />
+        <PrintDocumentTitle title={sheetT("orders.title")} number={order.number} date={order.date} docStatus={order.docStatus} />
+        <PrintParties parties={[{ label: sheetT("orders.seller"), name: company.legalName }, { label: sheetT("orders.buyer"), name: order.client }]} />
+        <PrintDocumentLines lines={order.lines} currency={order.currency} />
+        <PrintDocumentTotals lines={order.lines} currency={order.currency} totals={order.totals} />
+        <PrintSignatures company={company} />
+      </div>
+    </>
+  ) : null}
+</PrintPreview>
+```
+
+- На сторінці з аркушем (`data-print-root`) друкується лише він, Ctrl+P теж; один аркуш на сторінці. Без аркуша будь-яка
+  сторінка друкується на A4 без оболонки; `data-print="hide"` — не друкувати елемент, `data-print="avoid-break"` — не
+  розривати його між сторінками. Рядок таблиці не розривається, шапка таблиці повторюється на кожній сторінці.
+- Аркуш світлий і в темній темі. Мова аркуша — `language` (мова документа), а не інтерфейсу: тексти аркуша, суми, дати й сума
+  прописом. Вид документа, підписи сторін і назви одиниць — дані модуля мовою документа.
+- Суми рядків і підсумки — сервера (`savedDocumentBodyLineSchema`, `documentTotalsSchema`), сума розділу — та сама, що в
+  редакторі, рядки підсумків — ті самі, що під редактором (`totalsRowsOf`). Сума прописом — для UAH, USD, EUR; інші валюти —
+  словами через `currencies` з усіма формами слова (`hasCurrencyWords`), інакше без суми прописом.
+- Чернетка й скасований друкуються з позначкою «Чернетка» чи «Скасовано» на кожній сторінці, у чернетки «(без номера)».
+- Логотип і печатка — з профілю компанії (`logoUrl`, `stampUrl`); `PrintSignatures stamp={false}` — без печатки. Порожній
+  реквізит не друкується.
+- `PrintButton` чекає логотипа й печатки аркуша (до 3 с) і на час друку ставить у заголовок сторінки назву документа: з неї
+  браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
+- Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
+
 ### Наявний бекенд через адаптер (ADR-0021)
 
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).

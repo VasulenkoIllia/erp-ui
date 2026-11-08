@@ -299,8 +299,8 @@ export function AppShell({
         <SidebarRail />
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Смуга й топбар липнуть разом: «Увійти як…» видно на будь-якій прокрутці. */}
-        <div className="sticky top-0 z-20">
+        {/* Смуга й топбар липнуть разом: «Увійти як…» видно на будь-якій прокрутці. Не друкуються. */}
+        <div className="sticky top-0 z-20 print:hidden">
           {banner}
           <Topbar
             breadcrumbs={breadcrumbs}
@@ -311,7 +311,7 @@ export function AppShell({
         <main
           id={MAIN_ID}
           tabIndex={-1}
-          className="@container flex-1 px-4 py-6 pb-24 outline-none md:px-6 md:pb-6"
+          className="@container flex-1 px-4 py-6 pb-24 outline-none md:px-6 md:pb-6 print:p-0"
         >
           {children}
         </main>

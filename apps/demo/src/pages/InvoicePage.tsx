@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { useLocation as useRouterLocation } from "react-router"
+import { Link, useLocation as useRouterLocation } from "react-router"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { EditLockNotice } from "@/registry/erp/edit-lock-notice"
@@ -32,7 +32,7 @@ import {
   type ObjectPageHeader,
   type ObjectPageSectionItem,
 } from "@/registry/templates/object-page"
-import { Button } from "@/registry/ui/button"
+import { Button, buttonVariants } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
 
 import {
@@ -305,6 +305,7 @@ function useInvoiceHeader(
       id: "edit",
       node: <EditAction invoice={invoice} onEdit={onEdit} lock={lock} />,
     },
+    { id: "print", node: <PrintLink id={invoice.id} /> },
   ]
   return {
     title: t("title", { number: invoice.number }),
@@ -312,6 +313,21 @@ function useInvoiceHeader(
     fields: recordFields,
     actions: applyKeyedChanges(actions, extensionActions),
   }
+}
+
+/** Перегляд друку рахунку (PF08, ADR-0062): аркуш A4 із кнопкою «Друкувати». */
+function PrintLink({ id }: { id: string }) {
+  const t = useCardT()
+  const Print = ACTION_ICONS.print
+  return (
+    <Link
+      to={`${ROUTES.print}?${new URLSearchParams({ id }).toString()}`}
+      className={buttonVariants({ variant: "outline" })}
+    >
+      <Print aria-hidden />
+      {t("print")}
+    </Link>
+  )
 }
 
 function EditAction({

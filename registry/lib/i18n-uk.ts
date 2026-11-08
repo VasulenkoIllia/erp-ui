@@ -6,6 +6,7 @@
 import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ukRecords } from "@/registry/lib/i18n-uk-records"
@@ -1458,6 +1459,7 @@ export const uk = {
   ...ukDocuments,
   ...ukDocumentLines,
   ...ukNumbering,
+  ...ukPrint,
 }
 
 export type ErpUiMessages = typeof uk

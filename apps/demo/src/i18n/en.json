@@ -14,6 +14,7 @@
       "documentLines": "Document lines",
       "documentForm": "Large document",
       "documentFlow": "Document flow",
+      "print": "Print",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -457,7 +458,8 @@
     "edit": "Edit",
     "approveTitle": "Approve invoice {{number}}?",
     "approveDescription": "Only a draft up to 350,000.00 UAH can be approved. The job runs on the server; the result appears in a notification.",
-    "approveConfirm": "Approve invoice"
+    "approveConfirm": "Approve invoice",
+    "print": "Print"
   },
   "invoiceExtension": {
     "delay": "Payment term",
@@ -971,6 +973,26 @@
       "shipped": "Shipped"
     },
     "noRequest": "This variant makes no request. The live flow on mocks is on the Document page."
+  },
+  "printPage": {
+    "lead": "An invoice from the «Data and mocks» page on an A4 sheet as the browser prints it (PF08, ADR-0062): company logo and details, lines with sections, totals by rate, amount in words, signatures and stamp. «Print» opens the browser print dialog, «Save as PDF» is there too; Ctrl+P on this page also prints only the sheet. Until the company uploads its own logo and stamp, the demo shows its own.",
+    "variantsLabel": "Sheet variants",
+    "back": "Back to invoice",
+    "variants": {
+      "invoice": "Invoice",
+      "long": "Long document",
+      "draft": "Draft",
+      "cancelled": "Cancelled",
+      "fop": "Sole trader without VAT",
+      "en": "In English",
+      "plain": "No logo or stamp",
+      "empty": "No lines",
+      "loading": "Loading",
+      "error": "Error",
+      "offline": "Offline",
+      "forbidden": "No access",
+      "notFound": "Not found"
+    }
   },
   "numberingPage": {
     "lead": "A document gets its number when it is submitted: a draft has none. The template sets what the number is made of, and the preview shows the next one. Submit a draft on the Document page and the counter goes up.",

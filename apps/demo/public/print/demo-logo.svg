@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="56" viewBox="0 0 200 56" role="img" aria-label="Зоряна логістика">
+  <path d="M28 4l6.5 15.5L50 21l-12 10.5L41.5 48 28 39.5 14.5 48 18 31.5 6 21l15.5-1.5z" fill="#1d4ed8"/>
+  <circle cx="28" cy="27" r="6" fill="#ffffff"/>
+  <text x="60" y="26" font-family="Geist, Arial, sans-serif" font-size="19" font-weight="700" fill="#0f172a">Зоряна</text>
+  <text x="60" y="46" font-family="Geist, Arial, sans-serif" font-size="15" font-weight="500" fill="#1d4ed8">логістика</text>
+</svg>

@@ -34,7 +34,7 @@ export type InvoiceColumnId =
 /** Ключові поля шапки картки. */
 export type InvoiceFieldId = "client" | "date" | "dueDate" | "amount"
 export type InvoiceSectionId = "lines"
-export type InvoiceActionId = "approve" | "edit"
+export type InvoiceActionId = "approve" | "edit" | "print"
 
 export interface InvoicesExtension {
   /** Нові поля рахунку: схема, підписи, значення для моків. */

@@ -42,6 +42,23 @@ test("themes.css згенеровано з актуальних токенів",
   assert.equal(css, generateThemes(tokens))
 })
 
+test("папір світлий: темна тема лише для екрана, аркуш перегляду світлий (ADR-0062)", () => {
+  const css = generateThemes(tokens)
+  for (const name of Object.keys(tokens)) {
+    assert.match(
+      css,
+      new RegExp(
+        `@media not print \\{\\n  (:root\\.dark,\\n  )?:root\\.dark\\[data-palette="${name}"\\]`,
+      ),
+      `${name}: темна тема не в @media not print`,
+    )
+    assert.ok(
+      css.includes(`:root[data-palette="${name}"] [data-theme="light"]`),
+      `${name}: немає світлої області аркуша`,
+    )
+  }
+})
+
 test("усі обов'язкові пари контрасту проходять", () => {
   const failures = checkContrast(tokens).report.filter((r) => !r.pass)
   assert.deepEqual(failures, [])

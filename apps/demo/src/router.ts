@@ -20,6 +20,7 @@ export const ROUTES = {
   documentLines: "/document-lines",
   documentForm: "/document-form",
   documentFlow: "/document-flow",
+  print: "/print",
   richText: "/rich-text",
   timeline: "/timeline",
   setup: "/setup",

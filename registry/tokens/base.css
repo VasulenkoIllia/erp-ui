@@ -207,3 +207,74 @@
     outline-offset: -2px;
   }
 }
+
+/* Друк (PF08, ADR-0062): будь-яка сторінка друкується на A4 без оболонки, темна тема — лише для
+ * екрана (design/themes.css). Аркуш перегляду друку (erp/print-preview) позначено `data-print-root`:
+ * на сторінці з ним друкується лише він. `data-print="hide"` — не друкувати елемент,
+ * `data-print="avoid-break"` — не розривати його між сторінками. */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+/* Номер сторінки аркуша внизу праворуч: Chromium друкує, інші браузери — без нього. */
+@page erp-sheet {
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-size: 8pt;
+  }
+}
+@media print {
+  :root.dark {
+    color-scheme: light;
+  }
+  [data-slot="sidebar"],
+  [data-slot="bottom-nav"],
+  [data-slot="save-bar"],
+  [data-sonner-toaster],
+  [data-print="hide"] {
+    display: none !important;
+  }
+  tr,
+  img,
+  [data-print="avoid-break"] {
+    break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  /* Решта сторінки, крім предків аркуша, не друкується; предки не додають відступів і прокрутки. */
+  body:has([data-print-root])
+    :not([data-print-root], [data-print-root] *, :has([data-print-root])) {
+    display: none !important;
+  }
+  body:has([data-print-root]) :has([data-print-root]) {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: none !important;
+  }
+  /* Поля паперу дає @page: екранні поля, висота, тінь і масштаб аркуша не друкуються. */
+  [data-print-root] {
+    page: erp-sheet;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    zoom: 1 !important;
+  }
+}

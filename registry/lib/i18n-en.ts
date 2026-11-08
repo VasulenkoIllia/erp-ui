@@ -9,6 +9,7 @@ import { enImport } from "@/registry/lib/i18n-en-import"
 import { enDocuments } from "@/registry/lib/i18n-en-documents"
 import { enDocumentLines } from "@/registry/lib/i18n-en-document-lines"
 import { enNumbering } from "@/registry/lib/i18n-en-numbering"
+import { enPrint } from "@/registry/lib/i18n-en-print"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
 import { enRichText } from "@/registry/lib/i18n-en-rich-text"
@@ -1442,4 +1443,5 @@ export const en = {
   ...enDocuments,
   ...enDocumentLines,
   ...enNumbering,
+  ...enPrint,
 } satisfies ErpUiTranslation
