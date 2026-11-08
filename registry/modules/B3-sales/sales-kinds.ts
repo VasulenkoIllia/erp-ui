@@ -49,17 +49,21 @@ export interface SalesDocumentPaths {
 export type SalesConfirmKey =
   "quote.confirm.submit" | "quote.confirm.decline" | "order.confirm.submit"
 
+/** Ключі рядків документа одного виду разом: список, запис і форма (`i18n/uk.json`). */
+export type SalesDocumentKeys =
+  | { readonly list: "quotes"; readonly record: "quote"; readonly form: "form" }
+  | {
+      readonly list: "orders"
+      readonly record: "order"
+      readonly form: "orderForm"
+    }
+
 export interface SalesDocumentKind<
   D extends SalesDocument,
   Due extends string,
 > {
   readonly resource: string
-  /** Ключі рядків документа: список, запис і форма (`i18n/uk.json`). */
-  readonly keys: {
-    readonly list: "quotes" | "orders"
-    readonly record: "quote" | "order"
-    readonly form: "form" | "orderForm"
-  }
+  readonly keys: SalesDocumentKeys
   /** Друга дата: поле, підписи, позначка минулої дати й статуси, у яких документ іще чекає. */
   readonly due: {
     readonly field: Due

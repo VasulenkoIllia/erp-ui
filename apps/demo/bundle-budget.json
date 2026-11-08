@@ -65,9 +65,9 @@
     "NumberingPage.tsx": 473.8,
     "DocumentFlowPage.tsx": 407.6,
     "PrintPage.tsx": 494.6,
-    "quote-form-page.tsx": 585,
-    "quote-page.tsx": 534.6,
-    "quote-print-page.tsx": 513.3,
-    "quotes-list-page.tsx": 490.8
+    "sales-form-page.tsx": 585,
+    "sales-record-page.tsx": 534.6,
+    "sales-print-page.tsx": 513.3,
+    "sales-list-page.tsx": 490.8
   }
 }

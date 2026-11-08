@@ -130,6 +130,14 @@ function uniqueIssues(issues: readonly z.core.$ZodIssue[]) {
   })
 }
 
+/** Друга дата документа продажу: «Дійсна до» пропозиції, «Виконати до» замовлення. */
+type DueField = "validUntil" | "dueDate"
+
+/** Поле другої дати, яке документ `T` справді має: інше поле не пройде перевірку типів. */
+type DueFieldOf<T> = {
+  [K in DueField]: T extends Record<K, CalendarDate> ? K : never
+}[DueField]
+
 /**
  * Збережений документ, як його перевіряє сервер: шапка (схема ресурсу), рядки й знижка документа за
  * знаками валюти (`documentBodySchemaFor`), друга дата не раніше дати; суми рахує сам (`salesSumsOf`),
@@ -137,7 +145,7 @@ function uniqueIssues(issues: readonly z.core.$ZodIssue[]) {
  */
 function storedDocumentSchema<T extends SalesDocument & SalesDocumentDetail>(
   header: z.ZodType<SalesDocument>,
-  dueField: keyof T & string,
+  dueField: DueFieldOf<T>,
   draftStatus: string,
 ): z.ZodType<T> {
   return z.unknown().transform((input, ctx) => {
@@ -272,7 +280,7 @@ interface DocumentMockSpec<T extends SalesDocument & SalesDocumentDetail> {
   readonly resource: typeof QUOTES | typeof ORDERS
   schema(extension?: SalesSchemaExtension): z.ZodType<SalesDocument>
   readonly draftStatus: string
-  readonly dueField: keyof T & string
+  readonly dueField: DueFieldOf<T>
   readonly dueLabel: LocalizedText
   readonly transitions: readonly StatusTransition[]
   /** Дії графа, які список запускає масово (ADR-0066). */

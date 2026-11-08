@@ -267,14 +267,19 @@ function linesOf(
 }
 
 /** Як засіяти документи одного ресурсу: засів, префікс `id`, шаблон номера й друга дата. */
-interface DocumentSeedSpec<S extends string> {
+interface DocumentSeedSpec<S extends string, Due extends string> {
   readonly resource: string
   readonly seeds: readonly Seed<S>[]
   readonly prefix: string
   readonly template: Record<FixtureLocale, string>
   /** Друга дата документа від його дати: `validUntil` пропозиції, `dueDate` замовлення. */
-  readonly due: (date: CalendarDate) => Record<string, CalendarDate>
+  readonly due: (date: CalendarDate) => Record<Due, CalendarDate>
 }
+
+/** Засіяний документ з другою датою `Due`. */
+type SeededDocument<Due extends string> = SalesDocument &
+  SalesDocumentDetail &
+  Record<Due, CalendarDate>
 
 /** Компанія засіву: її клієнти, знімки довідників і видача номерів серій. */
 interface SeedContext {
@@ -296,14 +301,14 @@ interface SeedContext {
  * Документи одного ресурсу в компанії: від старших (номери зростають разом із датою, як їх видавав би
  * сервер), у порядку засіву; скасований з `amended` і наступний — пара виправленої копії.
  */
-function seedDocuments<S extends string>(
-  spec: DocumentSeedSpec<S>,
+function seedDocuments<S extends string, Due extends string>(
+  spec: DocumentSeedSpec<S, Due>,
   context: SeedContext,
-): (SalesDocument & SalesDocumentDetail)[] {
+): SeededDocument<Due>[] {
   const order = spec.seeds
     .map((seed, index) => ({ seed, index }))
     .sort((a, b) => b.seed.age - a.seed.age)
-  const created = new Map<number, SalesDocument & SalesDocumentDetail>()
+  const created = new Map<number, SeededDocument<Due>>()
   for (const { seed, index } of order) {
     const id = `${spec.prefix}-${context.owner}-${String(index + 1).padStart(2, "0")}`
     const date = addDays(context.today, -seed.age)
@@ -350,7 +355,7 @@ function seedDocuments<S extends string>(
     .filter((document) => document !== undefined)
 }
 
-const QUOTE_SPEC: DocumentSeedSpec<QuoteStatus> = {
+const QUOTE_SPEC: DocumentSeedSpec<QuoteStatus, "validUntil"> = {
   resource: QUOTES,
   seeds: QUOTE_SEEDS,
   prefix: "qt",
@@ -358,7 +363,7 @@ const QUOTE_SPEC: DocumentSeedSpec<QuoteStatus> = {
   due: (date) => ({ validUntil: addDays(date, VALID_DAYS) }),
 }
 
-const ORDER_SPEC: DocumentSeedSpec<OrderStatus> = {
+const ORDER_SPEC: DocumentSeedSpec<OrderStatus, "dueDate"> = {
   resource: ORDERS,
   seeds: ORDER_SEEDS,
   prefix: "so",
@@ -401,9 +406,8 @@ export function createSalesFixtures({
       snapshots: dictionaries?.(companyId) ?? DEFAULT_DICTIONARIES[locale],
       issue: issueFor(companyId),
     }
-    // Засів дає саме ці поля другої дати: `due` специфікації ресурсу.
-    quotes.push(...(seedDocuments(QUOTE_SPEC, context) as QuoteCard[]))
-    orders.push(...(seedDocuments(ORDER_SPEC, context) as OrderCard[]))
+    quotes.push(...seedDocuments(QUOTE_SPEC, context))
+    orders.push(...seedDocuments(ORDER_SPEC, context))
   }
   return { quotes, orders, counters: [...counters.values()] }
 }
