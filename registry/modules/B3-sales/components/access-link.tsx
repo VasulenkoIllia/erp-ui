@@ -5,15 +5,18 @@ import { buttonVariants } from "@/components/ui/button"
 import { ACTION_ICONS } from "@/lib/icons"
 
 import { useSalesModule } from "../module-context"
-import { useQuoteAccess } from "./quote-access"
+import type { SalesKindBase } from "../sales-kinds"
+import { useSalesAccess } from "./sales-access"
 
 /**
- * Перехід на сторінку форми з правом `quotes:<дія>` (ADR-0014): «Створити пропозицію» в шапці списку,
- * «Змінити» в шапці картки. Без права, з позначкою сервера на записі (проведена пропозиція, ADR-0037)
- * чи поки запис редагує інша людина (ADR-0051) — неактивна кнопка з причиною (SPEC §8.4); поки права
- * невідомі — нічого. Форма — сторінкою, а не діалогом: документ буває на сотні рядків.
+ * Перехід на сторінку форми з правом `<ресурс>:<дія>` (ADR-0014): «Створити пропозицію» чи «Створити
+ * замовлення» в шапці списку, «Змінити» в шапці картки. Без права, з позначкою сервера на записі
+ * (проведений документ, ADR-0037) чи поки запис редагує інша людина (ADR-0051) — неактивна кнопка з
+ * причиною (SPEC §8.4); поки права невідомі — нічого. Форма — сторінкою, а не діалогом: документ
+ * буває на сотні рядків.
  */
 export function AccessLink({
+  kind,
   action,
   to,
   icon,
@@ -23,6 +26,7 @@ export function AccessLink({
   record,
   lockReason,
 }: {
+  kind: SalesKindBase
   action: "create" | "update"
   to: string
   icon: keyof typeof ACTION_ICONS
@@ -35,7 +39,11 @@ export function AccessLink({
   lockReason?: string | undefined
 }) {
   const { preload } = useSalesModule()
-  const { canAccess, isPending, recordReason } = useQuoteAccess(action, record)
+  const { canAccess, isPending, recordReason } = useSalesAccess(
+    kind,
+    action,
+    record,
+  )
   const Icon = ACTION_ICONS[icon]
   if (isPending) return null
   const reason = canAccess ? lockReason : (recordReason ?? deniedReason)

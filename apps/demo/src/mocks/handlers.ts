@@ -245,8 +245,9 @@ export const documents = createResourceHandlers<DemoDocument>({
 })
 
 /**
- * Пропозиції модуля B3 (ADR-0065): у кожній компанії демо, клієнти — її організації з модуля B1, одиниці
- * й ПДВ — знімки довідників A6 компанії. Ті самі опції дають засів серії `quotes` для нумерації.
+ * Пропозиції й замовлення модуля B3 (ADR-0065, ADR-0067): у кожній компанії демо, клієнти — її
+ * організації з модуля B1, одиниці й ПДВ — знімки довідників A6 компанії. Ті самі опції дають засів
+ * серій `quotes` і `orders` для нумерації.
  */
 const salesFixtures: SalesFixtureOptions = {
   companies: COMPANIES.map(({ id }) => id),
@@ -405,6 +406,7 @@ export const handlers = [
       reasons: { uk: "Причини", en: "Reasons" },
       documents: { uk: "Документи", en: "Documents" },
       quotes: { uk: "Пропозиції", en: "Quotes" },
+      orders: { uk: "Замовлення", en: "Orders" },
       "numbering-series": {
         uk: "Нумерація документів",
         en: "Document numbering",

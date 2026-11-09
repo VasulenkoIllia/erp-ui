@@ -1,3 +1,4 @@
+import type { MessageKey } from "@/lib/i18n"
 import {
   moduleResources,
   useNamespaceResources,
@@ -7,6 +8,9 @@ import {
 import type { SalesExtension, SalesMessages } from "./extension"
 import uk from "./i18n/uk.json"
 import { useSalesModule } from "./module-context"
+
+/** Ключ рядка модуля: `quote.title`, `orders.bulk.cancel` (без суфіксів множини). */
+export type SalesKey = MessageKey<SalesMessages>
 
 /** Простір імен рядків модуля в i18next. */
 const SALES_NAMESPACE = "B3-sales"

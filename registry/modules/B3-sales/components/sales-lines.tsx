@@ -6,7 +6,12 @@ import type { DocumentLinesValues } from "@/components/erp/document-lines-schema
 import { PageState, SectionSkeleton } from "@/components/erp/page-state"
 import { errorStateKind } from "@/lib/api"
 
-import { quoteDetailSchema, type Quote, type QuoteDetail } from "../contract"
+import {
+  salesDetailSchema,
+  type SalesDocument,
+  type SalesDocumentDetail,
+} from "../contract"
+import type { SalesKindBase } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
 const NO_OPTIONS: readonly never[] = []
@@ -15,22 +20,22 @@ const NO_OPTIONS: readonly never[] = []
  * Рядки й підсумки з відповіді картки: у рядку списку їх немає (`undefined` — ще не прийшли), зіпсовані —
  * помилка даних, а шапку однаково видно.
  */
-export function useQuoteDetail(record: unknown) {
+export function useSalesDetail(record: unknown) {
   const parsed = useMemo(
     () =>
       typeof record === "object" && record !== null && "lines" in record
-        ? quoteDetailSchema.safeParse(record)
+        ? salesDetailSchema.safeParse(record)
         : undefined,
     [record],
   )
   const error = parsed?.error
   useEffect(() => {
-    if (error) console.error("B3-sales: quote lines response", error)
+    if (error) console.error("B3-sales: document lines response", error)
   }, [error])
   return parsed
 }
 
-export interface QuoteLinesState {
+export interface SalesLinesState {
   readonly isPending: boolean
   /** Збій запиту картки, коли шапка вже є з кешу списку. */
   readonly failure: unknown
@@ -38,18 +43,20 @@ export interface QuoteLinesState {
 }
 
 /**
- * Рядки збереженої пропозиції лише для читання (UI05, ADR-0059): суми — сервера (`savedTotals` і
+ * Рядки збереженого документа лише для читання (UI05, ADR-0059): суми — сервера (`savedTotals` і
  * `totals` рядків), від 12 рядків — пошук і «До підсумків», як у формі.
  */
-export function QuoteLines({
-  quote,
+export function SalesLines({
+  kind,
+  document,
   state,
 }: {
-  quote: Quote & Partial<QuoteDetail>
-  state: QuoteLinesState
+  kind: SalesKindBase
+  document: SalesDocument & Partial<SalesDocumentDetail>
+  state: SalesLinesState
 }) {
   const t = useSalesT()
-  const detail = useQuoteDetail(quote)
+  const detail = useSalesDetail(document)
   if (!detail?.success) {
     if (!detail && state.isPending) return <SectionSkeleton rows={4} />
     // Немає відповіді картки — помилка запиту; є, але рядки не за контрактом — помилка даних.
@@ -63,27 +70,33 @@ export function QuoteLines({
       <PageState
         kind="error"
         headingLevel={3}
-        title={t("quote.linesInvalid")}
+        title={t(`${kind.keys.record}.linesInvalid`)}
         onRetry={state.onRetry}
       />
     )
   }
-  return <SavedLines quote={quote} detail={detail.data} />
+  return <SavedLines document={document} detail={detail.data} />
 }
 
-function SavedLines({ quote, detail }: { quote: Quote; detail: QuoteDetail }) {
-  // Форма лише тримає значення для редактора рядків: збережена пропозиція не редагується тут.
+function SavedLines({
+  document,
+  detail,
+}: {
+  document: SalesDocument
+  detail: SalesDocumentDetail
+}) {
+  // Форма лише тримає значення для редактора рядків: збережений документ не редагується тут.
   const form = useForm<DocumentLinesValues>({
     values: {
       lines: detail.lines,
-      discountPercent: quote.discountPercent,
-      discountAmount: quote.discountAmount,
+      discountPercent: document.discountPercent,
+      discountAmount: document.discountAmount,
     },
   })
   return (
     <DocumentLinesEditor
       form={form}
-      currency={quote.currency}
+      currency={document.currency}
       units={NO_OPTIONS}
       taxes={NO_OPTIONS}
       readOnly

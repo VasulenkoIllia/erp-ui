@@ -6,6 +6,7 @@ export const MOCK_RESOURCES = [
   "invoices",
   "documents",
   "quotes",
+  "orders",
   "numbering-series",
   "organizations",
   "contacts",

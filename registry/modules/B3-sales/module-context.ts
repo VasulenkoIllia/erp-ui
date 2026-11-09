@@ -13,21 +13,32 @@ export interface SalesPaths {
   readonly editQuote: (id: string) => string
   /** Друк: окрема сторінка з одним аркушем (ADR-0062). */
   readonly printQuote: (id: string) => string
+  readonly orders: string
+  readonly order: (id: string) => string
+  readonly newOrder: string
+  readonly editOrder: (id: string) => string
+  readonly printOrder: (id: string) => string
 }
 
 export function salesPaths(basePath: string): SalesPaths {
   const base = basePath.replace(/\/+$/, "")
   const quote = (id: string) => `${base}/quotes/${encodeURIComponent(id)}`
+  const order = (id: string) => `${base}/orders/${encodeURIComponent(id)}`
   return {
     quotes: `${base}/quotes`,
     quote,
     newQuote: `${base}/quotes/new`,
     editQuote: (id) => `${quote(id)}/edit`,
     printQuote: (id) => `${quote(id)}/print`,
+    orders: `${base}/orders`,
+    order,
+    newOrder: `${base}/orders/new`,
+    editOrder: (id) => `${order(id)}/edit`,
+    printOrder: (id) => `${order(id)}/print`,
   }
 }
 
-/** Клієнт пропозиції: ресурс, з якого його вибирають, і картка клієнта, якщо вона є в проекті. */
+/** Клієнт документа: ресурс, з якого його вибирають, і картка клієнта, якщо вона є в проекті. */
 export interface SalesClients {
   /** Ресурс API клієнтів: `organizations` модуля B1 чи свій ресурс проекту. */
   readonly resource: string
