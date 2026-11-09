@@ -21,13 +21,13 @@ pnpm add -D tailwindcss @tailwindcss/vite
 # "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@latest init -b base -p nova
 # package.json: "shadcn": "4.22.0" без ^ — та сама CLI для встановлення й оновлення (розділ 8)
-pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.2.0
+pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.3.0
 pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
-git add -A && git commit -m "erp-ui: base v1.2.0"   # команда кіта пише лише в чисте дерево
-node scripts/erp-ui-kit.mjs update v1.2.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
+git add -A && git commit -m "erp-ui: base v1.3.0"   # команда кіта пише лише в чисте дерево
+node scripts/erp-ui-kit.mjs update v1.3.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
 ```
 
-Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.2.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
+Останній рядок ставить решту кіта з тегу (розділи 4–6) одним запитом і записує `kit-files.json`: список встановлених елементів і відбитки файлів кіта. Далі нові елементи — `update v1.3.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
 
 Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
@@ -50,7 +50,7 @@ node scripts/erp-ui-kit.mjs update v1.2.0 --items base,data,mocks,auth,erp/app-g
 ## 2. Компоненти
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add ui/button,ui/dialog
+node scripts/erp-ui-kit.mjs update v1.3.0 --add ui/button,ui/dialog
 npx shadcn@latest list VasulenkoIllia/erp-ui              # усе, що є
 npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 ```
@@ -94,7 +94,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ```
 
 - Мова даних (назви компаній, документи) — окремо від мови інтерфейсу: форматери з `lib/format` приймають локаль явно.
-- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
+- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.3.0 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 - Вибір запису з пошуком на сервері (компанія контакту, відповідальний) — `erp/record-picker` (ADR-0023): значення — `id`, `optionLabel` і `sort` від проекту, «Створити…» — `create.onCreate(query)` відкриває форму проекту, а новий запис проект сам ставить у значення. Реквізити в картці з «Копіювати» — `erp/copyable-value` (`kind`: `code`, `iban`, `phone`, `email`, `url`).
 - Кілька значень із короткого довідника (сегменти, теги, ролі) — `MultiSelect` з `erp/multi-select` (ADR-0027): `options` — `{ value, label, description? }[]` (поки довідник вантажиться — не задавайте; не завантажився — `error` і `onRetry`), значення — масив ключів (`value`, `onValueChange`), `clearable`; на телефоні — шторка з «Готово». Ключ, якого вже немає в довіднику, лишається міткою, і його можна зняти. У `FormField` — `{...control}`, `value={field.value}`, `onValueChange={field.onChange}`, `onBlur={field.onBlur}`. Довідник на сотні записів і пошук на сервері — не сюди: мультивибору з пошуком на сервері ще немає.
@@ -102,7 +102,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ### Форми, дати, суми й підтвердження (ADR-0015)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
+node scripts/erp-ui-kit.mjs update v1.3.0 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
 ```
 
 - Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
@@ -124,7 +124,7 @@ node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/form,erp/date-input,erp/numb
 ## 4. Оболонка застосунку
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/shortcuts-help,erp/user-menu,erp/company-switcher,erp/notification-inbox
+node scripts/erp-ui-kit.mjs update v1.3.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/shortcuts-help,erp/user-menu,erp/company-switcher,erp/notification-inbox
 ```
 
 Застосунок — брама сесії навколо оболонки, екрани входу поруч (розділ 6):
@@ -212,7 +212,7 @@ useRoutes([
 Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add data,mocks,lib/mock-views,lib/query-client
+node scripts/erp-ui-kit.mjs update v1.3.0 --add data,mocks,lib/mock-views,lib/query-client
 npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
 
@@ -382,7 +382,7 @@ export const invoicesExtension: InvoicesExtension = {
 ### Модуль у проекті (ADR-0025)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add modules/B1-contacts
+node scripts/erp-ui-kit.mjs update v1.3.0 --add modules/B1-contacts
 ```
 
 Мінімальний набір для проекту з модулем на моках (тестовий проект `erp-ui-pilot`): `base`, `data`, `mocks`, `auth`, `lib/mock-views`, `lib/query-client`, `erp/app-gate`, `erp/auth-routes`, `erp/app-shell`, `erp/user-menu`, `ui/sonner`, `tools/e2e` і сам модуль — усі з одного тегу. Команда кіта ставить модуль з тегу одним запитом (§8): напряму з GitHub CLI робить на модуль сотні й тисячі запитів, кожен з тайм-аутом 15 с і без повтору.
@@ -696,7 +696,7 @@ const columns: ExportColumn<Contact>[] = [
 Канал подій сервера не обов'язковий: без нього все працює опитуванням, як раніше. Увімкнути:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/realtime-sync,erp/edit-lock-notice,hooks/use-edit-lock
+node scripts/erp-ui-kit.mjs update v1.3.0 --add erp/realtime-sync,erp/edit-lock-notice,hooks/use-edit-lock
 ```
 
 ```tsx
@@ -740,7 +740,7 @@ const start = async () => { if (await lock.acquire()) setEditing(true) }
 редактора не потребує.
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add erp/rich-text-field,erp/rich-text-view,lib/rich-text
+node scripts/erp-ui-kit.mjs update v1.3.0 --add erp/rich-text-field,erp/rich-text-view,lib/rich-text
 ```
 
 ```tsx
@@ -1058,9 +1058,10 @@ const state = order && company ? undefined : error ? errorStateKind(error) : "lo
   браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
 - Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
 
-### Модуль B3 «Пропозиції й замовлення» (ADR-0065)
+### Модуль B3 «Пропозиції й замовлення» (ADR-0065…ADR-0067)
 
-Перший модуль документа на рушії хвилі 2: зараз частина «Пропозиції» (список, картка, форма, друк), замовлення додасть B3b.
+Перший модуль документа на рушії хвилі 2: пропозиції й замовлення (список, картка, форма, друк, масові дії), «Створити
+замовлення» з прийнятої пропозиції, потік документів на картках і «Копіювати документ». Перевірено тестовим проектом на v1.3.0.
 
 ```ts
 // src/modules.ts
@@ -1072,26 +1073,37 @@ export const salesModule = createSalesModule({
   extension: salesExtension,
   clients: { resource: "organizations", labelField: "name", descriptionField: "code", href: contactsModule.paths.organization },
 })
+// маршрути — salesModule.routes, навігація — salesModule.nav (пункти з access), сценарії — salesModule.resources
 
-// src/mocks/handlers.ts — нумерація одна на застосунок, модуль дає лише засів серії `quotes`
+// src/mocks/handlers.ts — нумерація, задачі й потік документів — по одному на застосунок
+import { createDocumentFlowHandlers } from "@/lib/mock-document-flow"
+import { createJobHandlers } from "@/lib/mock-jobs"
+import { createNumberingMocks } from "@/lib/mock-numbering"
 import { createSalesMocks, salesNumberingSeeds } from "@/modules/B3-sales/mocks"
-const seeds = salesNumberingSeeds({ companies: ["my-company"] })
-const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
-const sales = createSalesMocks({ companies: ["my-company"], numbering, extension: salesMockExtension })
-setupWorker(...createPlatformHandlers({}), ...numbering.handlers, ...sales.handlers)
+const options = { companies: ["my-company"], clients: (companyId) => myOrganizations(companyId) }
+const seeds = salesNumberingSeeds(options)   // серії `quotes` і `orders`
+const numbering = createNumberingMocks({ series: seeds.series, counters: seeds.counters })
+const sales = createSalesMocks({ ...options, numbering, extension: salesMockExtension })
+const flow = createDocumentFlowHandlers({ sources: [...otherFlowSources, ...sales.flowSources] })
+setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.handlers, ...flow, ...sales.handlers)
 ```
 
-- Права: `quotes` з `read`, `create`, `update` і діями графа `submit`, `accept`, `decline`, `cancel`, `amend`, плюс дії розширення.
-- Статуси: «Чернетка», «Надіслано», «Прийнято», «Відхилено», «Скасовано». «Термін минув» — не статус, а позначка надісланої, у
-  якої «Дійсна до» раніше сьогодні: статус сам із часом не змінюється.
-- Змінити можна лише чернетку. Надіслану, прийняту чи відхилену змінюють через «Скасувати» з причиною й «Виправити»: нова чернетка з
-  тим самим клієнтом, рядками й полями розширення.
-- Клієнти — ресурс проекту (`clients`), модуль B1 не імпортується. Товар у рядку — необов'язковий `lineItem` з ресурсу проекту;
-  одиниці, податки й типові значення рядка — ресурси A6 за назвами, без них рядок пишеться вільним текстом.
-- Бекенду: `GET /quotes` без рядків, `GET /quotes/:id` з `lines` і `totals`, суми рахує сервер; `POST /quotes/:id/<дія>`; 422
-  `validUntil: before_date`. Повний контракт — `README.md` модуля.
-- Розширення `SalesExtension` (`quotes`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`, `filters`,
-  `tabs`, `recordFields`, `sections`, `actions`, `aside`, `history`, `editLock`, `form`; `strings`.
+- Права: `quotes` з `read`, `create`, `update`, `delete` і діями графа `submit`, `accept`, `decline`, `order` («Створити замовлення»,
+  сервер вимагає ще й `orders:create`), `cancel`, `amend`; `orders` з `read`, `create`, `update`, `delete`, `submit`, `complete`,
+  `cancel`, `amend`; плюс дії розширення. Масова дія — те саме право. Дія без права неактивна з причиною.
+- Статуси пропозиції: «Чернетка», «Надіслано», «Прийнято», «Відхилено», «Скасовано»; «Термін минув» — позначка надісланої з минулим
+  «Дійсна до», а не статус. Замовлення: «Чернетка», «Підтверджено», «Виконано», «Скасовано», позначка «Прострочено».
+- Змінити можна лише чернетку. Проведену змінюють через «Скасувати» з причиною й «Виправити»: нова чернетка з тим самим клієнтом,
+  рядками й полями розширення. Пропозицію, з якої створено нескасоване замовлення, не скасувати.
+- Клієнти — ресурс клієнтів проекту в опції `clients`, за замовчуванням `organizations` модуля B1; сам модуль B1 не
+  імпортується. Товар у рядку — необов'язковий `lineItem` з ресурсу проекту; одиниці, податки й типові значення рядка — ресурси A6
+  за назвами, без них рядок пишеться вільним текстом.
+- Бекенду: `GET /quotes` без рядків, `GET /quotes/:id` з `lines` і `totals`, суми рахує сервер; `POST /quotes/:id/<дія>`,
+  `POST /quotes/:id/order` → 201 нове замовлення; `POST /quotes/bulk/<дія>` → задача; `GET /quotes/:id/flow`; так само `/orders`.
+  Бекенд без `/flow` ховає секцію: `quotes.sections.hide: ["flow"]` і так само `orders`. Повний контракт — `README.md` модуля.
+- Розширення `SalesExtension` (`quotes`, `orders`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`,
+  `filters`, `tabs`, `recordFields`, `sections` (`lines`, `flow`), `actions` (`edit`, `copy`, `delete`, `print`), `aside`, `history`,
+  `editLock`, `form`; `strings`. Проект без замовлень ховає `quotes.transitions.hide: ["order"]`.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 
@@ -1111,7 +1123,7 @@ setupWorker(...createPlatformHandlers({}), ...numbering.handlers, ...sales.handl
 ## 6. Вхід і акаунт
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.2.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
+node scripts/erp-ui-kit.mjs update v1.3.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
 ```
 
 Що показати на сторінці входу, вирішує бекенд (`GET /auth/methods`, ADR-0010): пароль, код на email чи в SMS, ключ доступу, Google, Apple, будь-який OIDC, реєстрація, відновлення. Маршрути — поза брамою сесії (розділ 4), усі одним викликом `createAuthRoutes` з `erp/auth-routes` (ADR-0029):
@@ -1222,10 +1234,10 @@ node scripts/erp-ui-kit.mjs check                     # файли кіта не
   git status --short   # чисте дерево
   T="$(mktemp -d)"
   for f in erp-ui-kit erp-ui-kit-lib erp-ui-kit-deps; do
-    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.2.0" \
+    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f.mjs?ref=v1.3.0" \
       -H "Accept: application/vnd.github.raw" > "$T/$f.mjs"
   done
-  node "$T/erp-ui-kit.mjs" update v1.2.0 --items base,data,mocks,auth,modules/B1-contacts
+  node "$T/erp-ui-kit.mjs" update v1.3.0 --items base,data,mocks,auth,modules/B1-contacts
   rm -rf "$T"
   ```
 
