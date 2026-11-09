@@ -1,8 +1,9 @@
 /**
  * Документи продажу модуля B3 (ADR-0065, ADR-0067): чим пропозиція відрізняється від замовлення для
  * спільних сторінок і компонентів модуля — ресурс, ключі рядків, друга дата, статуси, граф дій,
- * адреси й аркуш друку. Решта (список, картка, форма, друк, видалення чернетки) — однакова; масові
- * дії списку — свої в кожного (`quote-bulk-actions`, `order-bulk-actions`).
+ * адреси, аркуш друку й документ, який створює дія графа (замовлення з пропозиції). Решта (список,
+ * картка, форма, друк, видалення чернетки, потік документів, «Копіювати») — однакова; масові дії списку
+ * — свої в кожного (`quote-bulk-actions`, `order-bulk-actions`).
  */
 import type { z } from "zod"
 
@@ -12,6 +13,7 @@ import type { StatusTone, StatusTransition } from "@/lib/statuses"
 import {
   AWAITING_COMPLETION,
   AWAITING_REPLY,
+  CREATE_ORDER,
   ORDER_STATUSES,
   ORDER_TRANSITIONS,
   orderCardSchemaFor,
@@ -36,14 +38,22 @@ import type {
 import type { SalesPaths } from "./module-context"
 import type { SalesKey } from "./use-sales-t"
 
+/** Параметр адреси нової форми з документом, який копіюють: `…/new?copy=<id>`. */
+export const COPY_PARAM = "copy"
+
 /** Адреси сторінок документа від `basePath` фабрики. */
 export interface SalesDocumentPaths {
   readonly list: string
   readonly record: (id: string) => string
   readonly create: string
+  /** Нова форма, заповнена документом `id` («Копіювати»). */
+  readonly copy: (id: string) => string
   readonly edit: (id: string) => string
   readonly print: (id: string) => string
 }
+
+const copyPath = (create: string) => (id: string) =>
+  `${create}?${new URLSearchParams({ [COPY_PARAM]: id }).toString()}`
 
 /** Префікс рядків підтвердження дії модуля: `title`, `description`, `action`. */
 export type SalesConfirmKey =
@@ -103,6 +113,16 @@ export interface SalesDocumentKind<
     readonly title: Readonly<Record<Language, string>>
     readonly due: Readonly<Record<Language, (date: string) => string>>
   }
+  /**
+   * Документ, який дія графа створює на підставі цього (замовлення з пропозиції, ADR-0067): поле
+   * зв'язку з `id` створеного, посилання на нього під панеллю дій і його картка після дії.
+   */
+  readonly creates?: {
+    readonly action: string
+    readonly field: keyof D & string
+    readonly open: SalesKey
+    readonly path: (paths: SalesPaths) => (id: string) => string
+  }
 }
 
 /** Те, що не залежить від запису: ресурс, ключі рядків, адреси. */
@@ -154,6 +174,7 @@ export const QUOTE_KIND: QuoteKind = {
     submit: "quote.actions.submit",
     accept: "quote.actions.accept",
     decline: "quote.actions.decline",
+    [CREATE_ORDER]: "quote.actions.order",
   },
   confirms: {
     submit: "quote.confirm.submit",
@@ -165,6 +186,7 @@ export const QUOTE_KIND: QuoteKind = {
     list: paths.quotes,
     record: paths.quote,
     create: paths.newQuote,
+    copy: copyPath(paths.newQuote),
     edit: paths.editQuote,
     print: paths.printQuote,
   }),
@@ -175,6 +197,12 @@ export const QUOTE_KIND: QuoteKind = {
       uk: (date) => `Пропозиція дійсна до ${date}`,
       en: (date) => `Valid until ${date}`,
     },
+  },
+  creates: {
+    action: CREATE_ORDER,
+    field: "orderId",
+    open: "quote.order.open",
+    path: (paths) => paths.order,
   },
 }
 
@@ -210,6 +238,7 @@ export const ORDER_KIND: OrderKind = {
     list: paths.orders,
     record: paths.order,
     create: paths.newOrder,
+    copy: copyPath(paths.newOrder),
     edit: paths.editOrder,
     print: paths.printOrder,
   }),

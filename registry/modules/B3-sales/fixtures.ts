@@ -3,7 +3,9 @@
  * (PF12). Назви товарів і клієнтів — дані, а не рядки інтерфейсу: мова даних (`locale`) окремо від мови
  * інтерфейсу (SPEC §11). Дати — від сьогодні: надіслана пропозиція з минулим строком показує «Термін
  * минув», підтверджене замовлення з минулою «Виконати до» — «Прострочено». Номери — за шаблоном серії
- * ресурсу й лічильником, який засів уже видав (`counters`).
+ * ресурсу й лічильником, який засів уже видав (`counters`). Одне виконане замовлення створено з
+ * прийнятої пропозиції (`quoteId` і `orderId`): видно потік, «Створити замовлення» неактивне з
+ * причиною, а пропозицію не скасувати (`linked`); друга прийнята пропозиція — без замовлення.
  */
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { DocumentState } from "@/lib/document-lifecycle"
@@ -168,6 +170,11 @@ interface Seed<S extends string> {
   readonly amended?: boolean
 }
 
+/** Засів замовлення, створеного з пропозиції: індекс засіву пропозиції, клієнт і рядки — її. */
+interface OrderSeed extends Seed<OrderStatus> {
+  readonly fromQuote?: number
+}
+
 /** Засів пропозицій компанії: усі статуси модуля, минулий строк, виправлена копія, великий документ. */
 const QUOTE_SEEDS: readonly Seed<QuoteStatus>[] = [
   { status: "draft", docStatus: "draft", age: 0, items: 3 },
@@ -194,8 +201,11 @@ const QUOTE_SEEDS: readonly Seed<QuoteStatus>[] = [
   { status: "accepted", docStatus: "submitted", age: 31, items: 2 },
 ]
 
-/** Засів замовлень компанії: усі статуси модуля, прострочене, виправлена копія, великий документ. */
-const ORDER_SEEDS: readonly Seed<OrderStatus>[] = [
+/**
+ * Засів замовлень компанії: усі статуси модуля, прострочене, виправлена копія, великий документ і
+ * виконане з прийнятої пропозиції (наступного дня після неї).
+ */
+const ORDER_SEEDS: readonly OrderSeed[] = [
   { status: "draft", docStatus: "draft", age: 0, items: 3 },
   { status: "confirmed", docStatus: "submitted", age: 3, items: 4 },
   { status: "confirmed", docStatus: "submitted", age: 12, items: 2 },
@@ -221,7 +231,13 @@ const ORDER_SEEDS: readonly Seed<OrderStatus>[] = [
     items: 13,
     sections: true,
   },
-  { status: "completed", docStatus: "submitted", age: 30, items: 2 },
+  {
+    status: "completed",
+    docStatus: "submitted",
+    age: 30,
+    items: 2,
+    fromQuote: QUOTE_SEEDS.length - 1,
+  },
 ]
 
 const at = <T>(list: readonly T[], index: number): T => {
@@ -371,6 +387,41 @@ const ORDER_SPEC: DocumentSeedSpec<OrderStatus, "dueDate"> = {
   due: (date) => ({ dueDate: addDays(date, DUE_DAYS) }),
 }
 
+/**
+ * Замовлення засіву, створені з пропозиції (`fromQuote`): клієнт, рядки й знижка — пропозиції, суми —
+ * знову з них, зв'язок в обидва боки (`quoteId`, `orderId`). Документи компанії — у порядку засіву.
+ */
+function linkOrdersToQuotes(
+  quotes: readonly QuoteCard[],
+  orders: OrderCard[],
+): void {
+  ORDER_SEEDS.forEach((seed, index) => {
+    const quote =
+      seed.fromQuote === undefined ? undefined : quotes[seed.fromQuote]
+    const order = orders[index]
+    if (!quote || !order) return
+    const body = {
+      currency: quote.currency,
+      lines: quote.lines.map((line) => ({
+        ...line,
+        id: line.id.replace(quote.id, order.id),
+      })),
+      discountPercent: quote.discountPercent,
+      discountAmount: quote.discountAmount,
+    }
+    const sums = salesSumsOf(body)
+    if (!sums) throw new Error(`B3-sales: fixture ${order.id} does not add up`)
+    Object.assign(order, {
+      clientId: quote.clientId,
+      clientName: quote.clientName,
+      ...body,
+      ...sums,
+      quoteId: quote.id,
+    })
+    quote.orderId = order.id
+  })
+}
+
 export function createSalesFixtures({
   locale = "uk",
   companies = [null],
@@ -406,8 +457,11 @@ export function createSalesFixtures({
       snapshots: dictionaries?.(companyId) ?? DEFAULT_DICTIONARIES[locale],
       issue: issueFor(companyId),
     }
-    quotes.push(...seedDocuments(QUOTE_SPEC, context))
-    orders.push(...seedDocuments(ORDER_SPEC, context))
+    const companyQuotes = seedDocuments(QUOTE_SPEC, context)
+    const companyOrders = seedDocuments(ORDER_SPEC, context)
+    linkOrdersToQuotes(companyQuotes, companyOrders)
+    quotes.push(...companyQuotes)
+    orders.push(...companyOrders)
   }
   return { quotes, orders, counters: [...counters.values()] }
 }

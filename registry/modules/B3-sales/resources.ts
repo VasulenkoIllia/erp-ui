@@ -29,6 +29,8 @@ export const SALES_RESOURCES: readonly SalesResource[] = [
       "submit",
       "accept",
       "decline",
+      // «Створити замовлення» з прийнятої (ADR-0067): ще й `orders:create`.
+      "order",
       "cancel",
       "amend",
     ],

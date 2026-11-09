@@ -8,10 +8,19 @@
  *   const seeds = salesNumberingSeeds({ companies })
  *   const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
  *   const sales = createSalesMocks({ companies, numbering, extension: salesMockExtension })
- *   setupWorker(...platform, ...numbering.handlers, ...createJobHandlers(), ...sales.handlers)
+ *   const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources] })
+ *   setupWorker(...platform, ...numbering.handlers, ...createJobHandlers(), ...flow, ...sales.handlers)
  *
  * Хід масової задачі (`GET /jobs/:id`) — спільний на застосунок (`createJobHandlers` з lib/mock-jobs),
- * як і нумерація: модуль дає лише `POST /<ресурс>/bulk/<дія>`.
+ * як і нумерація: модуль дає лише `POST /<ресурс>/bulk/<дія>`. Потік документів (`GET /<ресурс>/:id/flow`,
+ * ADR-0061) — теж один на застосунок (`createDocumentFlowHandlers` з lib/mock-document-flow): модуль
+ * дає джерела `flowSources` у порядку процесу (пропозиції, замовлення), а документи інших модулів
+ * (рахунки K2a) стають у той самий потік своїми джерелами.
+ *
+ * Замовлення з пропозиції (`POST /quotes/:id/order`, ADR-0067): нова чернетка з клієнтом, рядками й
+ * знижкою пропозиції, `quoteId` на замовленні й `orderId` на пропозиції; повторно — 403 `linked`.
+ * Пропозицію з нескасованим замовленням не скасовують (`linked`, і масово). Видалена чернетка
+ * замовлення звільняє пропозицію.
  *
  * Нумерація — спільна для всіх документів проекту (`createNumberingMocks` один на застосунок), тож
  * модуль не створює своєї: дає засів серій `quotes` і `orders` з лічильниками (`salesNumberingSeeds`) і
@@ -36,9 +45,12 @@ import {
   bulkTransitionActions,
   createTransitionHandlers,
   documentDeniedActions,
+  mockCreatedDocument,
   releaseAmendedFrom,
+  type MockCreatedDocument,
 } from "@/lib/mock-transitions"
 import { createResourceHandlers } from "@/lib/mocks"
+import type { RecordDeniedActions } from "@/lib/record-access"
 import {
   mergeTransitions,
   type ExtensionStatusChanges,
@@ -47,6 +59,7 @@ import {
 } from "@/lib/statuses"
 
 import {
+  CREATE_ORDER,
   DEFAULT_ORDER_STATUS,
   DEFAULT_QUOTE_STATUS,
   ORDER_TRANSITIONS,
@@ -69,6 +82,13 @@ import {
   QUOTE_NUMBER_TEMPLATE,
   type SalesFixtureOptions,
 } from "./fixtures"
+import {
+  NEW_DUE_DAYS,
+  orderFromQuote,
+  quoteOrderDenials,
+  releaseQuoteOrder,
+  salesFlowSources,
+} from "./mock-links"
 import { salesSumsOf } from "./sales-totals"
 
 export interface SalesMocksOptions extends SalesFixtureOptions {
@@ -85,10 +105,10 @@ export interface SalesMocksOptions extends SalesFixtureOptions {
   }
 }
 
-/** Виправлена копія: друга дата за стільки днів від сьогодні. */
-const AMEND_DUE_DAYS = { quotes: 14, orders: 7 } as const
-
-/** Поля, які сервер веде сам: копія їх не бере, а отримує нові (друга дата — теж). */
+/**
+ * Поля, які сервер веде сам: копія їх не бере, а отримує нові (друга дата — теж). `quoteId`
+ * виправлена копія замовлення бере: вона замінює скасоване в тому самому процесі.
+ */
 const SERVER_FIELDS = new Set([
   "id",
   "version",
@@ -100,6 +120,7 @@ const SERVER_FIELDS = new Set([
   "amendedBy",
   "reversalOf",
   "reversedBy",
+  "orderId",
   "total",
   "totals",
   "date",
@@ -285,6 +306,8 @@ interface DocumentMockSpec<T extends SalesDocument & SalesDocumentDetail> {
   readonly transitions: readonly StatusTransition[]
   /** Дії графа, які список запускає масово (ADR-0066). */
   readonly bulk: readonly string[]
+  /** Зв'язки з іншим видом (`orderId`, `quoteId`): їх ставить лише сервер, не POST і PATCH клієнта. */
+  readonly serverFields: readonly (keyof T & string)[]
   readonly fixtures: () => T[]
 }
 
@@ -301,11 +324,20 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
     extension,
     baseUrl,
     deniedActions,
+    linkDenials,
+    creates,
+    afterDelete,
   }: {
     numbering: SalesMocksOptions["numbering"]
     extension: MockDocumentExtension | undefined
     baseUrl: string | undefined
     deniedActions: MockDeniedRule<T> | undefined
+    /** Позначки зв'язків з іншими документами модуля (`linked`). */
+    linkDenials?: (document: T) => RecordDeniedActions | undefined
+    /** Дії, що створюють документ іншого ресурсу (`creates` графа). */
+    creates?: Readonly<Record<string, MockCreatedDocument<T>>>
+    /** Що ще звільняє видалена чернетка: пропозицію видаленого замовлення. */
+    afterDelete?: (document: T) => void
   },
 ) {
   const { resource, dueField } = spec
@@ -337,17 +369,20 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
       [dueField]: spec.dueLabel,
     } as Partial<Record<keyof T & string, LocalizedText>>,
     detailFields: ["lines", "totals"],
+    serverFields: spec.serverFields,
     auditValue: { lines: linesText } as Partial<
       Record<keyof T & string, (value: never) => string[]>
     >,
     // Видалена виправлена копія звільняє скасований документ: його можна виправити знову (ADR-0066).
     afterDelete: (document) => {
       releaseAmendedFrom(documents.db, document)
+      afterDelete?.(document)
     },
     // Проведений і скасований не змінюють, виправлений удруге не виправляють (ADR-0057).
     deniedActions: (actor, document) => {
       const denied = {
         ...documentDeniedActions(document),
+        ...linkDenials?.(document),
         ...deniedActions?.(actor, document),
       }
       return Object.keys(denied).length ? denied : undefined
@@ -372,7 +407,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
           ),
         ),
         date: today,
-        [dueField]: addDays(today, AMEND_DUE_DAYS[resource]),
+        [dueField]: addDays(today, NEW_DUE_DAYS[resource]),
         status: spec.draftStatus,
       }
     },
@@ -382,6 +417,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
         [dueField]: addDays(document[dueField] as CalendarDate, 7),
       }) as Partial<T>,
     numbering: documentNumbering,
+    ...(creates ? { creates } : {}),
   })
   const documentBulk = createBulkHandlers<T>({
     resource,
@@ -413,24 +449,7 @@ export function createSalesMocks({
   ...fixtureOptions
 }: SalesMocksOptions) {
   const fixtures = () => createSalesFixtures(fixtureOptions)
-  const quotes = createDocumentMocks<QuoteCard>(
-    {
-      resource: QUOTES,
-      schema: quoteSchemaFor,
-      draftStatus: DEFAULT_QUOTE_STATUS,
-      dueField: "validUntil",
-      dueLabel: { uk: "Дійсна до", en: "Valid until" },
-      transitions: QUOTE_TRANSITIONS,
-      bulk: ["submit", "cancel"],
-      fixtures: () => fixtures().quotes,
-    },
-    {
-      numbering,
-      extension: extension?.quotes,
-      baseUrl,
-      deniedActions: deniedActions?.quotes,
-    },
-  )
+  // Замовлення — першими: дія пропозиції «Створити замовлення» пише в їхнє сховище.
   const orders = createDocumentMocks<OrderCard>(
     {
       resource: ORDERS,
@@ -440,6 +459,7 @@ export function createSalesMocks({
       dueLabel: { uk: "Виконати до", en: "Due by" },
       transitions: ORDER_TRANSITIONS,
       bulk: ["submit", "complete", "cancel"],
+      serverFields: ["quoteId"],
       fixtures: () => fixtures().orders,
     },
     {
@@ -447,10 +467,44 @@ export function createSalesMocks({
       extension: extension?.orders,
       baseUrl,
       deniedActions: deniedActions?.orders,
+      // `quotes` — нижче: видалення буває лише після створення обох ресурсів.
+      afterDelete: (order) => {
+        releaseQuoteOrder(quotes.db, order)
+      },
+    },
+  )
+  const quotes = createDocumentMocks<QuoteCard>(
+    {
+      resource: QUOTES,
+      schema: quoteSchemaFor,
+      draftStatus: DEFAULT_QUOTE_STATUS,
+      dueField: "validUntil",
+      dueLabel: { uk: "Дійсна до", en: "Valid until" },
+      transitions: QUOTE_TRANSITIONS,
+      bulk: ["submit", "cancel"],
+      serverFields: ["orderId"],
+      fixtures: () => fixtures().quotes,
+    },
+    {
+      numbering,
+      extension: extension?.quotes,
+      baseUrl,
+      deniedActions: deniedActions?.quotes,
+      linkDenials: (quote) => quoteOrderDenials(quote, orders.db),
+      creates: {
+        [CREATE_ORDER]: mockCreatedDocument<QuoteCard, OrderCard>({
+          resource: ORDERS,
+          db: orders.db,
+          body: orderFromQuote,
+          mark: (orderId) => ({ orderId }),
+        }),
+      },
     },
   )
   return {
     handlers: [...quotes.handlers, ...orders.handlers],
     db: { quotes: quotes.db, orders: orders.db },
+    /** Джерела потоку документів у порядку процесу: для `createDocumentFlowHandlers` застосунку. */
+    flowSources: salesFlowSources(quotes.db, orders.db),
   }
 }

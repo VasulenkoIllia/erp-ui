@@ -48,8 +48,9 @@ function SalesClient({ document }: { document: SalesDocument }) {
 
 /**
  * Шапка картки документа продажу: номер (чернетка — без номера), статус, ключові поля (клієнт, дата,
- * друга дата, сума) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Видалити
- * чернетку», «Друк» і дії розширення; без запису — немає.
+ * друга дата, сума) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова
+ * форма з тими самими клієнтом і рядками, право `<ресурс>:create`), «Видалити чернетку», «Друк» і дії
+ * розширення; без запису — немає.
  */
 export function useSalesHeader<D extends SalesDocument, Due extends string>(
   kind: SalesDocumentKind<D, Due>,
@@ -116,6 +117,19 @@ export function useSalesHeader<D extends SalesDocument, Due extends string>(
       ),
     },
     {
+      id: "copy",
+      node: (
+        <AccessLink
+          kind={kind}
+          action="create"
+          to={documentPaths.copy(document.id)}
+          icon="duplicate"
+          label={t(`${record}.copy`)}
+          deniedReason={t(`${kind.keys.list}.createDenied`)}
+        />
+      ),
+    },
+    {
       id: "delete",
       node: (
         <SalesDeleteAction
@@ -156,8 +170,8 @@ export function useSalesHeader<D extends SalesDocument, Due extends string>(
 }
 
 /**
- * «Змінити» й «Друк» у палітрі команд (ADR-0044): права й причина ті самі, що в кнопок шапки. Поки
- * права невідомі, «Змінити» немає, як і кнопки.
+ * «Змінити», «Копіювати» й «Друк» у палітрі команд (ADR-0044): права й причина ті самі, що в кнопок
+ * шапки. Поки права невідомі, «Змінити» й «Копіювати» немає, як і кнопок.
  */
 export function useSalesPaletteActions(
   kind: SalesKindBase,
@@ -172,6 +186,7 @@ export function useSalesPaletteActions(
     "update",
     document,
   )
+  const create = useSalesAccess(kind, "create", undefined)
   if (!document) return []
   const { record } = kind.keys
   const documentPaths = kind.pathsOf(paths)
@@ -181,7 +196,16 @@ export function useSalesPaletteActions(
     icon: PrintIcon,
     onSelect: () => void navigate(documentPaths.print(document.id)),
   }
-  if (isPending) return [print]
+  if (isPending || create.isPending) return [print]
+  const copy: PaletteAction = {
+    id: "copy",
+    label: t(`${record}.copy`),
+    icon: ACTION_ICONS.duplicate,
+    deniedReason: create.canAccess
+      ? undefined
+      : t(`${kind.keys.list}.createDenied`),
+    onSelect: () => void navigate(documentPaths.copy(document.id)),
+  }
   const edit: PaletteAction = {
     id: "edit",
     label: t(`${record}.edit`),
@@ -191,5 +215,5 @@ export function useSalesPaletteActions(
       : (recordReason ?? t(`${record}.editDenied`)),
     onSelect: () => void navigate(documentPaths.edit(document.id)),
   }
-  return [edit, print]
+  return [edit, copy, print]
 }

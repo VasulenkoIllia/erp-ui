@@ -9,7 +9,10 @@ import {
 } from "@/registry/erp/document-action-dialogs"
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useMe } from "@/registry/hooks/use-me"
-import { useRecordDenialReason } from "@/registry/hooks/use-record-access"
+import {
+  useRecordDenialReason,
+  type RecordDenialText,
+} from "@/registry/hooks/use-record-access"
 import {
   useRecordTransition,
   type TransitionRecord,
@@ -29,7 +32,9 @@ import { Spinner } from "@/registry/ui/spinner"
  *
  * - Дія без права ролі чи заборонена записом (`deniedActions`, ADR-0037) — неактивна з причиною
  *   (SPEC §8.4); на вузькому контейнері причина ще й видимим рядком під кнопкою: дотик підказки не
- *   відкриває.
+ *   відкриває. Причину заборони записом модуль може сказати своїми словами (`lockedReason`).
+ * - Дія, що створює документ іншого ресурсу (`creates`: замовлення з пропозиції), веде до нього
+ *   через `onCreated`, як виправлена копія.
  * - Провести, скасувати, сторнувати й дія з причиною — через підтвердження з кнопкою-наслідком;
  *   решта — одразу. Поки дія йде, кнопки зайняті, а не зникають.
  * - Відмова сервера (403) — причина на кнопці й текстом під панеллю; конфлікт версій (409) —
@@ -44,8 +49,13 @@ export interface DocumentActionBarProps<R extends TransitionRecord> {
   transitions: readonly ModuleTransition[]
   /** Поля для порівняння в конфлікті; без них чи без розбіжностей — версія. */
   compare?: (seen: R, current: R) => ConflictField[]
-  /** Новий документ після `amend` чи `reverse`: перейти до нього. */
+  /** Новий документ після `amend`, `reverse` чи дії з `creates`: перейти до нього. */
   onCreated?: (created: RaRecord, action: string) => void
+  /**
+   * Причина заборони записом словами модуля за дією й кодом (`linked` пропозиції із замовленням —
+   * «Із пропозиції вже створено замовлення…»); `undefined` — текст кіта.
+   */
+  lockedReason?: RecordDenialText
   className?: string
 }
 
@@ -115,12 +125,18 @@ function DocumentActionBar<R extends TransitionRecord>({
   transitions,
   compare,
   onCreated,
+  lockedReason,
   className,
 }: DocumentActionBarProps<R>) {
   const t = useErpUiT()
   const { data: me, isPending } = useMe()
-  const denialReason = useRecordDenialReason()
-  const flow = useRecordTransition({ resource, record, onCreated })
+  const denialReason = useRecordDenialReason(lockedReason)
+  const flow = useRecordTransition({
+    resource,
+    record,
+    onCreated,
+    lockedReason,
+  })
   const [asking, setAsking] = React.useState<{
     transition: ModuleTransition
     seen: R

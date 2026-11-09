@@ -54,7 +54,8 @@ function useBulkTexts(key: SalesBulkKey, denied: string): BulkActionTexts {
 
 /**
  * Дія графа для вибраних документів (ADR-0066): підпис і причина — з графа зі змінами розширення,
- * невдача «не з того статусу» — словами модуля (`<ключ>.notAllowed`).
+ * невдача «не з того статусу» — словами модуля (`<ключ>.notAllowed`), заборона станом чи зв'язком
+ * (`linked` пропозиції із замовленням, ADR-0067) — теж словами модуля.
  */
 export function useSalesBulkTransition(
   { kind, selection, filter }: SalesBulkScope,
@@ -72,13 +73,15 @@ export function useSalesBulkTransition(
   },
 ): BulkAction {
   const t = useSalesT()
+  const lockedReason = useSalesLockedReason(kind)
   const texts = useBulkTexts(key, t(`${key}.denied`))
-  const isCancel = transition?.id === "cancel"
+  const action = transition?.id ?? ""
+  const isCancel = action === "cancel"
   return useBulkAction({
     resource: kind.resource,
     selection,
     filter,
-    action: transition?.id ?? "",
+    action,
     label: transition?.label ?? "",
     icon,
     variant: isPrimary ? "default" : "outline",
@@ -86,7 +89,9 @@ export function useSalesBulkTransition(
     destructive: isCancel,
     texts,
     failureLabel: (code) =>
-      code === "transition_not_allowed" ? t(`${key}.notAllowed`) : undefined,
+      code === "transition_not_allowed"
+        ? t(`${key}.notAllowed`)
+        : lockedReason(action, code),
   })
 }
 

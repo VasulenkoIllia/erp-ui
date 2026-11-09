@@ -140,6 +140,29 @@ export type DocumentNote = z.infer<typeof documentNoteSchema>
 /** Рядок тіла документа будь-якого виду. */
 export type DocumentBodyLine = DocumentLine | DocumentSection | DocumentNote
 
+/** Тимчасовий `id` нового рядка форми; `getRandomValues`, бо `randomUUID` є лише на HTTPS. */
+export const newDocumentLineId = () =>
+  `line-${Array.from(crypto.getRandomValues(new Uint32Array(2)), (part) =>
+    part.toString(36),
+  ).join("")}`
+
+/**
+ * Рядки іншого документа для нової форми («Копіювати документ»): ті самі товари, розділи й нотатки
+ * в тому самому порядку з новими тимчасовими `id` і без сум сервера (`totals`): їх порахує сервер
+ * нового документа, а `id` рядків першого документа не потрапляють у другий.
+ */
+export function copiedDocumentLines(
+  lines: readonly (DocumentBodyLine | SavedDocumentBodyLine)[],
+): DocumentBodyLine[] {
+  return lines.map((line): DocumentBodyLine => {
+    if (line.kind !== "item" || !("totals" in line))
+      return { ...line, id: newDocumentLineId() }
+    const { totals, ...item } = line
+    void totals
+    return { ...item, id: newDocumentLineId() }
+  })
+}
+
 /** Рядок тіла, з якого рахуються суми: перевірки беруть і рядки форми, і рядки контракту. */
 /** Рядок тіла документа для підсумків: товар чи послуга з полями розрахунку, розділ чи нотатка. */
 export type BodyLineLike =

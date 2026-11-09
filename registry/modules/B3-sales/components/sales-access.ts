@@ -1,6 +1,9 @@
-import { useRecordAccess, type RecordAccess } from "@/hooks/use-record-access"
-import { recordDenial } from "@/lib/record-access"
+import { useCallback } from "react"
 
+import { useRecordAccess, type RecordAccess } from "@/hooks/use-record-access"
+import { RECORD_DENIAL_REASONS, recordDenial } from "@/lib/record-access"
+
+import { CREATE_ORDER } from "../contract"
 import type { SalesKindBase } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
@@ -30,17 +33,26 @@ export function useSalesAccess(
 }
 
 /**
- * Причина заборони станом документа словами модуля (`submitted`, `cancelled`) для дії `action`:
- * видалення — свої тексти, решта дій — «не змінюють». Інший код — `undefined`, текст кіта. Для картки й
- * звіту масової дії.
+ * Причина заборони станом документа словами модуля (`submitted`, `cancelled`, `linked`) для дії
+ * `action`: видалення — свої тексти, решта дій — «не змінюють»; `linked` — є документ, створений із
+ * цього (замовлення з пропозиції, ADR-0067): «Створити замовлення» вдруге — «уже створено», решта дій —
+ * «спершу скасуйте». Інший код — `undefined`, текст кіта. Для картки, панелі дій і звіту масової дії.
  */
 export function useSalesLockedReason(kind: SalesKindBase) {
   const t = useSalesT()
   const { record } = kind.keys
-  return (action: string, code: string): string | undefined => {
-    if (!isLifecycleCode(code)) return undefined
-    return action === "delete"
-      ? t(`${record}.delete.locked.${code}`)
-      : t(`${record}.locked.${code}`)
-  }
+  // Стабільна між рендерами: панель дій і `useRecordDenialReason` мемоізують причину за нею.
+  return useCallback(
+    (action: string, code: string): string | undefined => {
+      if (code === RECORD_DENIAL_REASONS.linked)
+        return record === "quote" && action === CREATE_ORDER
+          ? t("quote.order.exists")
+          : t(`${record}.locked.linked`)
+      if (!isLifecycleCode(code)) return undefined
+      return action === "delete"
+        ? t(`${record}.delete.locked.${code}`)
+        : t(`${record}.locked.${code}`)
+    },
+    [t, record],
+  )
 }
