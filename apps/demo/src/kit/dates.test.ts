@@ -5,6 +5,7 @@ import {
   calendarDateToDate,
   dateInputFormat,
   dateIssue,
+  endOfDayIn,
   formatDateInput,
   isCalendarDate,
   isTime,
@@ -46,6 +47,25 @@ describe("календарні дати", () => {
     const now = new Date("2026-10-13T22:30:00Z")
     expect(todayIn("Europe/Kyiv", now)).toBe("2026-10-14")
     expect(todayIn("America/New_York", now)).toBe("2026-10-13")
+  })
+
+  it("кінець дня — у заданому поясі, і в день переходу годинника", () => {
+    expect(endOfDayIn("2026-11-09", "Europe/Kyiv").toISOString()).toBe(
+      "2026-11-09T21:59:59.999Z",
+    )
+    expect(endOfDayIn("2026-11-09", "America/New_York").toISOString()).toBe(
+      "2026-11-10T04:59:59.999Z",
+    )
+    // Київ: 29.03 годинник на годину вперед (UTC+3), 25.10 — назад (UTC+2).
+    expect(endOfDayIn("2026-03-29", "Europe/Kyiv").toISOString()).toBe(
+      "2026-03-29T20:59:59.999Z",
+    )
+    expect(endOfDayIn("2026-10-25", "Europe/Kyiv").toISOString()).toBe(
+      "2026-10-25T21:59:59.999Z",
+    )
+    expect(endOfDayIn("2026-11-09", "UTC").toISOString()).toBe(
+      "2026-11-09T23:59:59.999Z",
+    )
   })
 })
 

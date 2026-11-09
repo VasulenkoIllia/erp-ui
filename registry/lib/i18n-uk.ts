@@ -7,6 +7,7 @@ import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import { ukParty } from "@/registry/lib/i18n-uk-party"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
@@ -880,6 +881,12 @@ export const uk = {
       company: {
         updated: "Зміна реквізитів компанії",
       },
+      period_lock: {
+        updated: "Зміна закритого періоду",
+        exception_granted: "Виняток закритого періоду",
+        exception_revoked: "Відкликання винятку закритого періоду",
+        exception_used: "Зміна в закритому періоді за винятком",
+      },
       integrations: {
         api_token_created: "Новий токен API",
         api_token_revoked: "Відкликання токена API",
@@ -1464,6 +1471,7 @@ export const uk = {
   ...ukNumbering,
   ...ukPrint,
   ...ukParty,
+  ...ukPeriodLock,
 }
 
 export type ErpUiMessages = typeof uk

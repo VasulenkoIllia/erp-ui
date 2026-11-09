@@ -46,6 +46,8 @@ export const RECORD_DENIAL_REASONS = {
   amended: "amended",
   /** Документ уже сторновано: ні скасувати, ні сторнувати ще раз. */
   reversed: "reversed",
+  /** Дата документа в закритому періоді (PF13, ADR-0069): змінити можна лише з винятком. */
+  periodLocked: "period_locked",
 } as const
 
 export type RecordDenialReason =

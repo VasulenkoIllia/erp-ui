@@ -23,6 +23,8 @@
  * - Дія з `creates` (документ іншого ресурсу на підставі цього, ADR-0061) — опція `creates` з
  *   `mockCreatedDocument`: новий документ — чернетка того ресурсу, право `<ресурс>:create` теж
  *   потрібне (403), позначка на першому документі (`mark`); відповідь 201 — новий документ.
+ * - `afterTransition` — після успішної дії: закриті періоди (PF13, ADR-0069) пишуть у журнал дію над
+ *   документом закритого періоду під винятком (`createPeriodLockMocks(...).forResource(...)`).
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -163,6 +165,15 @@ export interface MockTransitionOptions<T extends MockTransitionRecord> {
   numbering?: MockDocumentNumbering
   /** Дії з `creates`: документ іншого ресурсу за ключем дії (`mockCreatedDocument`). */
   creates?: Readonly<Record<string, MockCreatedDocument<T>>>
+  /**
+   * Після успішної дії: що ще пише сервер. `record` — запис до дії. Закриті періоди (PF13): дія за
+   * винятком — у журнал (`createPeriodLockMocks(...).forResource(...).afterTransition`).
+   */
+  afterTransition?: (
+    record: T,
+    action: string,
+    actor: MockTransitionActor,
+  ) => void
   baseUrl?: string
 }
 
@@ -419,13 +430,18 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
           })
         const checked = checkTransition(options, record, action, raw, current)
         if (checked instanceof Response) return checked
-        if (creates) return runCreates(db, record, creates, actor)
+        if (creates) {
+          const response = runCreates(db, record, creates, actor)
+          if (response.ok) options.afterTransition?.(record, action, actor)
+          return response
+        }
         const result = applyTransition(options, record, checked.transition, {
           companyId: access.companyId,
           user,
         })
         if (!result) return notFound(resource)
         if ("fieldErrors" in result) return validation(result.fieldErrors)
+        options.afterTransition?.(record, action, actor)
         if (checked.body.reason)
           recordAudit({
             action: `${resource}.${action}`,

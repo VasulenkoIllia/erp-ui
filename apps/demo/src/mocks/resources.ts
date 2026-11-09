@@ -8,6 +8,8 @@ export const MOCK_RESOURCES = [
   "quotes",
   "orders",
   "numbering-series",
+  "period-lock",
+  "period-lock-exceptions",
   "organizations",
   "contacts",
   "segments",

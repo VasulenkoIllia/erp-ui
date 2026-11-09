@@ -33,6 +33,7 @@
       "roles": "Roles & permissions",
       "company": "Company",
       "numbering": "Document numbering",
+      "periodLock": "Closed periods",
       "fields": "Dates & numbers",
       "forms": "Forms",
       "pickers": "Picker & details",
@@ -887,6 +888,7 @@
     },
     "fields": {
       "client": "Client",
+      "date": "Date",
       "dueDate": "Due date",
       "amount": "Amount",
       "state": "Document state",
@@ -907,7 +909,8 @@
       "denied": "The server denies actions, narrow container",
       "none": "No actions for this status"
     },
-    "extension": "The project extension adds the “In review” status and the “Send for review” action for drafts, and allows “Submit” from review too."
+    "extension": "The project extension adds the “In review” status and the “Send for review” action for drafts, and allows “Submit” from review too.",
+    "periodLockHint": "Correct a mistake with a reversal dated today: it falls into an open period."
   },
   "documentLinesPage": {
     "lead": "The line editor of a quote, order or invoice (UI05, ADR-0059): a name or a product from the catalogue, quantity, unit, price, a percentage or amount discount, tax and totals. A document discount is split between the lines and reduces the VAT base.",
@@ -1025,6 +1028,33 @@
     "labels": {
       "documents": "Documents",
       "quotes": "Quotes"
+    }
+  },
+  "periodLockPage": {
+    "lead": "An accountant has already reconciled a closed period: documents dated in it can't be created or changed. A reversal dated today corrects a mistake, and an exception gives temporary permission. In the demo, periods are closed through 20/10/2026.",
+    "settingsTitle": "Closing date and company years",
+    "settingsDescription": "An administrator can change it, a team lead can only view it. You can reopen a closed period with a reason that goes to the audit log. Mock scenarios for the period-lock resource are in the developer panel.",
+    "exceptionsDescription": "Ivan Petrenko has an exception for two hours from the demo start. Grant yourself an exception, and documents in the closed period become available until it ends. Mock scenarios for the period-lock-exceptions resource are in the developer panel.",
+    "documentTitle": "A document in a closed period",
+    "documentDescription": "A draft in an open period: enter 15/10/2026 and save, the server answers with an error next to the field. A draft and a reversal in a closed period: a banner above the document and the reason on the action buttons.",
+    "samplesLabel": "Demo documents",
+    "samples": {
+      "doc-1": "Draft, 02/11/2026",
+      "doc-6": "Draft, 18/10/2026",
+      "doc-8": "Reversal, 12/10/2026"
+    },
+    "dateLabel": "Document date",
+    "dateSaved": "Document date saved",
+    "hint": "Correct a mistake with a reversal dated today: it falls into an open period.",
+    "variantsTitle": "Banner variants",
+    "variantsDescription": "States without server requests.",
+    "variants": {
+      "locked": "A document in a closed period",
+      "exception": "You have an exception",
+      "reason": "Fix the date of an October act",
+      "error": "Couldn't check the closed period",
+      "narrow": "Failure, narrow container",
+      "open": "A document in an open period or a backend without closed periods: no banner."
     }
   },
   "timelinePage": {

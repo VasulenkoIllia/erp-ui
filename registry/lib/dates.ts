@@ -99,6 +99,41 @@ export function todayIn(
   return fromParts(get("year"), get("month"), get("day"))
 }
 
+/** На скільки мілісекунд годинник поясу йде попереду UTC у мить `at` (без поясу — пристрій). */
+function zoneOffsetMs(at: number, timeZone?: string): number {
+  if (!timeZone) return -new Date(at).getTimezoneOffset() * 60_000
+  const fields = new Intl.DateTimeFormat("en", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).formatToParts(new Date(at))
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(fields.find((field) => field.type === type)?.value)
+  const wall = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour"),
+    get("minute"),
+    get("second"),
+  )
+  return wall - (at - (((at % 1000) + 1000) % 1000))
+}
+
+/** Остання мілісекунда календарного дня в поясі (за замовчуванням — пристрою): кінець строку «до кінця дня». */
+export function endOfDayIn(value: CalendarDate, timeZone?: string): Date {
+  const nextMidnight = toUtc(addDays(value, 1)).getTime()
+  const guess = nextMidnight - zoneOffsetMs(nextMidnight, timeZone)
+  // Зміна часу між здогадом і північчю: зсув у саму мить півночі.
+  const start = nextMidnight - zoneOffsetMs(guess, timeZone)
+  return new Date(start - 1)
+}
+
 export function addDays(value: CalendarDate, days: number): CalendarDate {
   return fromUtc(new Date(toUtc(value).getTime() + days * DAY_MS))
 }

@@ -7,6 +7,7 @@ import type { ConflictField } from "@/registry/erp/conflict-dialog"
 import { DocumentActionBar } from "@/registry/erp/document-action-bar"
 import { DocumentFlow } from "@/registry/erp/document-flow"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
+import { PeriodLockBanner } from "@/registry/erp/period-lock-banner"
 import { RecordStatusBar } from "@/registry/erp/record-header"
 import { StatusBadge } from "@/registry/erp/status-badge"
 import { useCompanyId } from "@/registry/hooks/use-company"
@@ -142,12 +143,15 @@ function DocumentCard({ id }: { id: string }) {
       heading.current?.focus()
     }
   }, [data])
-  const show = (key: (typeof COMPARED)[number], document: DemoDocument) =>
+  const show = (
+    key: (typeof COMPARED)[number] | "date",
+    document: DemoDocument,
+  ) =>
     key === "status"
       ? (statuses.byId.get(document.status)?.label ?? document.status)
       : key === "amount"
         ? format.money({ amount: document.amount, currency: document.currency })
-        : format.date(document.dueDate, "date")
+        : format.date(document[key], "date")
   const compare = (
     seen: DemoDocument,
     current: DemoDocument,
@@ -189,10 +193,14 @@ function DocumentCard({ id }: { id: string }) {
               status={statuses.byId.get(data.status) ?? data.status}
             />
           </div>
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
             <Field
               label={t("documentPage.fields.client")}
               value={data.client}
+            />
+            <Field
+              label={t("documentPage.fields.date")}
+              value={show("date", data)}
             />
             <Field
               label={t("documentPage.fields.dueDate")}
@@ -214,6 +222,14 @@ function DocumentCard({ id }: { id: string }) {
               label: kitT(`documentStates.${state}`),
             }))}
             current={data.docStatus}
+          />
+          <PeriodLockBanner
+            date={data.date}
+            hint={
+              data.docStatus === "submitted"
+                ? t("documentPage.periodLockHint")
+                : undefined
+            }
           />
           <DocumentActionBar
             resource={DOCUMENT_RESOURCE}
