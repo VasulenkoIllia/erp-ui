@@ -66,7 +66,7 @@ test.describe("PF13: закриті періоди", () => {
     ).toHaveAttribute("aria-disabled", "true")
     await expect(
       bar.getByRole("button", { name: "Сторнувати" }),
-    ).not.toHaveAttribute("aria-disabled")
+    ).not.toHaveAttribute("aria-disabled", "true")
   })
 
   test("виняток собі — документ закритого періоду знову змінюється, видача в журналі", async ({
@@ -82,18 +82,20 @@ test.describe("PF13: закриті періоди", () => {
     await dialog.getByRole("button", { name: "Дати виняток" }).click()
     await expect(dialog).toBeHidden()
     const list = page.getByRole("list", { name: "Чинні винятки" })
-    await expect(list.getByText("Олена Коваль")).toBeVisible()
+    await expect(list.getByText("Олена Коваль", { exact: true })).toBeVisible()
 
     await expect(sample(page).getByText(/Для вас діє виняток до/)).toBeVisible()
     await expect(
       actions(page).getByRole("button", { name: "Провести" }),
-    ).not.toHaveAttribute("aria-disabled")
+    ).not.toHaveAttribute("aria-disabled", "true")
     await expectNoA11yViolations(page)
 
     // Перехід у застосунку: мок і журнал живуть у цій сторінці, перезавантаження їх скинуло б.
     await page
       .getByRole("navigation", { name: "Основна навігація" })
       .getByRole("link", { name: "Журнал аудиту" })
+      // Журнал демо (`/settings/audit`); другий такий пункт — модуль A5 з тим самим журналом.
+      .first()
       .click()
     await expect(
       page.getByText("Виняток закритого періоду").first(),

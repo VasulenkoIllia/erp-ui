@@ -14,8 +14,8 @@ import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
-  PERIOD_LOCK,
   PERIOD_LOCK_EXCEPTION_MAX_DAYS,
+  PERIOD_LOCK,
   PERIOD_LOCK_EXCEPTIONS,
   type PeriodLockException,
 } from "@/registry/lib/period-lock"
@@ -237,6 +237,7 @@ function useRevoke() {
       toast.success(
         t("periodLock.exceptions.revoked", { name: exception.userName }),
       )
+      // Відкликали свій — `usePeriodLock` побачить це й перечитає заборони записів.
       void queryClient.invalidateQueries({ queryKey: [PERIOD_LOCK] })
       return true
     } catch (error) {

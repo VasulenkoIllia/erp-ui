@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { http } from "msw"
 import { setupServer } from "msw/node"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext, useGetOne } from "ra-core"
 import type * as React from "react"
 import {
   afterAll,
@@ -124,6 +124,12 @@ function renderWith(node: React.ReactNode, id = "admin", permissions = ADMIN) {
 
 const format = (date: string) => date.split("-").reverse().join(".")
 
+/** Документ на тій самій сторінці, що й смуга. */
+function DocumentProbe() {
+  useGetOne("docs", { id: "doc-1" })
+  return null
+}
+
 const audit = (): AuditEvent[] =>
   JSON.parse(localStorage.getItem("erp-ui:mock-audit") ?? "[]") as AuditEvent[]
 
@@ -223,8 +229,9 @@ describe("PeriodLockBanner", () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it("виняток закінчився — смуга закритого періоду, навіть коли сервер ще віддає той самий запис", async () => {
+  it("виняток закінчився — смуга закритого періоду, навіть коли сервер ще віддає той самий запис; документ перечитано", async () => {
     const until = new Date(Date.now() + 300).toISOString()
+    let documentReads = 0
     server.use(
       http.get(`${BASE}/period-lock/current`, () =>
         Response.json({
@@ -234,13 +241,31 @@ describe("PeriodLockBanner", () => {
           exception: { until, reason: "Акт" },
         }),
       ),
+      http.get(`${BASE}/docs/doc-1`, () => {
+        documentReads += 1
+        return Response.json({ id: "doc-1", version: 1 })
+      }),
     )
-    renderWith(<PeriodLockBanner date={lockedThrough} />, "lucky", [])
+    renderWith(
+      <>
+        <PeriodLockBanner date={lockedThrough} />
+        <DocumentProbe />
+      </>,
+      "lucky",
+      [],
+    )
     expect(await screen.findByText(/Причина: Акт/)).toBeVisible()
+    await waitFor(() => {
+      expect(documentReads).toBe(1)
+    })
     expect(
       await screen.findByText(/у закритому періоді/, {}, { timeout: 2000 }),
     ).toBeVisible()
     expect(screen.queryByText(/Причина: Акт/)).toBeNull()
+    // Заборони документа (`deniedActions`) сервер рахує з винятком: без нього запис перечитується.
+    await waitFor(() => {
+      expect(documentReads).toBe(2)
+    })
   })
 })
 

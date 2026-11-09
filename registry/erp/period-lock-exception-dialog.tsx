@@ -23,8 +23,8 @@ import {
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
 import {
-  PERIOD_LOCK,
   PERIOD_LOCK_EXCEPTION_MAX_DAYS,
+  PERIOD_LOCK,
   PERIOD_LOCK_EXCEPTIONS,
   PERIOD_LOCK_REASON_MAX_LENGTH,
   periodLockExceptionSchema,
@@ -173,7 +173,7 @@ export function PeriodLockExceptionDialog({
     },
     toValues: () => EMPTY,
     onSaved: (exception) => {
-      // Виняток міг бути свій: смуга й поле дати мають його побачити.
+      // Виняток міг бути свій: `usePeriodLock` побачить його й перечитає заборони записів.
       void queryClient.invalidateQueries({ queryKey: [PERIOD_LOCK] })
       toast.success(
         t("periodLock.exceptions.granted", {

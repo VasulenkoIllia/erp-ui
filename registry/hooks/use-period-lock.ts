@@ -5,10 +5,13 @@
  * - Бекенд без закритих періодів (404) — закритих періодів немає: смуги й підказки немає, поле дати
  *   звичайне. Сервер однаково перевіряє дату сам, інтерфейс лише не пропонує того, що він відхилить.
  * - Чинний виняток закінчився, поки сторінка відкрита, — у ту ж мить смуга й поле дати показують
- *   закритий період і запис перечитується (навіть коли відповідь та сама, інтерфейс не чекає змін).
+ *   закритий період (навіть коли відповідь та сама, інтерфейс не чекає змін).
+ * - Свій виняток з'явився, зник чи закінчився — решта даних сторінки перечитується: заборони записів
+ *   (`deniedActions`) сервер рахує з урахуванням винятку.
  * - Запис спільний для смуги, поля дати й налаштувань: після збереження налаштувань ra-core перечитує
  *   його всюди.
  */
+import { useQueryClient } from "@tanstack/react-query"
 import { useGetOne } from "ra-core"
 import * as React from "react"
 
@@ -85,6 +88,7 @@ export function usePeriodLock(): PeriodLockState {
       clearTimeout(timer)
     }
   }, [until, refetch])
+  useRefreshOnOwnException(lock !== undefined, until ?? null)
   const lockedThrough = lock?.lockedThrough ?? null
   return {
     lock,
@@ -103,6 +107,23 @@ export function usePeriodLock(): PeriodLockState {
     },
     isClosed: (date) => isPeriodLocked(date, lockedThrough) && !exception,
   }
+}
+
+/** Свій виняток змінився (не перше читання) — перечитати решту даних: `deniedActions` записів інші. */
+function useRefreshOnOwnException(isLoaded: boolean, until: string | null) {
+  const queryClient = useQueryClient()
+  const seen = React.useRef<string | null | undefined>(undefined)
+  React.useEffect(() => {
+    if (!isLoaded) return
+    const previous = seen.current
+    seen.current = until
+    if (previous === undefined || previous === until) return
+    // Кілька смуг на сторінці — один запит: запит, що вже йде, не скасовується.
+    void queryClient.invalidateQueries(
+      { predicate: (query) => query.queryKey[0] !== PERIOD_LOCK },
+      { cancelRefetch: false },
+    )
+  }, [isLoaded, until, queryClient])
 }
 
 export interface PostingDate {
