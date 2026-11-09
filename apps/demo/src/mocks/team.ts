@@ -444,8 +444,8 @@ export const COMPANY_PROFILES: Record<string, MockCompanyProfile> = {
     phone: "+380441234567",
     email: "office@zoriana.example",
     website: "zoriana.example",
-    director: { name: "Олена Коваль", position: "Директор" },
-    accountant: "Олена Коваль",
+    director: { name: "Коваль Олена Вікторівна", position: "Директор" },
+    accountant: "Коваль Олена Вікторівна",
     branches: [
       {
         id: "br-lviv",

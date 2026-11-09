@@ -15,6 +15,7 @@
       "documentForm": "Large document",
       "documentFlow": "Document flow",
       "print": "Print",
+      "partyDetails": "Document parties",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -992,6 +993,29 @@
       "offline": "Offline",
       "forbidden": "No access",
       "notFound": "Not found"
+    }
+  },
+  "partyDetailsPage": {
+    "lead": "Document parties as Customer or Contractor (UI45, ADR-0068): legal entity or sole proprietor, requisites with code checks, a signatory with a signature line like “Olena KOVAL”, the “represented by” phrase in the genitive case typed by hand, and “acting under”. “Fill from …” fills only empty fields: what you typed stays. An empty requisite is not printed.",
+    "fillCompany": "Fill from the company profile",
+    "fillCounterparty": "Fill from the counterparty card",
+    "companyLoading": "The company profile is still loading",
+    "companyFailed": "The company profile did not load: refresh the page",
+    "pickCounterparty": "Choose a counterparty first",
+    "counterparty": "Counterparty card",
+    "counterpartyPlaceholder": "Choose a counterparty",
+    "contract": {
+      "title": "Agreement with two parties",
+      "lead": "Choose the role of our company, fill the parties from the company profile and the counterparty card, change something by hand and fill again: your change stays. The sheet below shows the preamble and the signed requisites in the document language.",
+      "check": "Check requisites",
+      "valid": "Party requisites are valid"
+    },
+    "states": {
+      "title": "States",
+      "lead": "Read-only (no permission to change; fields stay focusable and readable by screen readers), sole proprietor (no title or “represented by”: a sole proprietor acts personally), errors next to fields, and the fill button without source data: inactive with a reason.",
+      "readOnly": "Read-only",
+      "fop": "Sole proprietor",
+      "invalid": "Errors and a source without data"
     }
   },
   "numberingPage": {

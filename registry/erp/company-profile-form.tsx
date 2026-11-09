@@ -306,9 +306,15 @@ function ProfileFields({ profile }: { profile: CompanyProfile }) {
       <FieldSet className="gap-4">
         <FieldLegend>{t("companySettings.sections.signers")}</FieldLegend>
         <div className="grid gap-4 @lg:grid-cols-2">
-          {text("directorName", { maxLength: 100 })}
+          {text("directorName", {
+            maxLength: 100,
+            hint: t("companySettings.fullNameHint"),
+          })}
           {text("directorPosition", { maxLength: 100 })}
-          {text("accountant", { maxLength: 100 })}
+          {text("accountant", {
+            maxLength: 100,
+            hint: t("companySettings.fullNameHint"),
+          })}
         </div>
       </FieldSet>
 

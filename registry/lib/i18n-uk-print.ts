@@ -49,6 +49,14 @@ export const ukPrint = {
       inWords: "Всього на суму: {{amount}}",
       accountant: "Головний бухгалтер",
       signature: "Підпис",
+      party: {
+        title: "Реквізити й підписи сторін",
+        customer: "Замовник",
+        contractor: "Виконавець",
+        representedBy: "в особі {{value}}",
+        basis: "що діє на підставі {{value}}",
+        as: "(надалі «{{role}}»)",
+      },
     },
   },
 }

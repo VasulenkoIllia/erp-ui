@@ -9,6 +9,7 @@ import { enImport } from "@/registry/lib/i18n-en-import"
 import { enDocuments } from "@/registry/lib/i18n-en-documents"
 import { enDocumentLines } from "@/registry/lib/i18n-en-document-lines"
 import { enNumbering } from "@/registry/lib/i18n-en-numbering"
+import { enParty } from "@/registry/lib/i18n-en-party"
 import { enPrint } from "@/registry/lib/i18n-en-print"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
@@ -1192,6 +1193,8 @@ export const en = {
     directorName: "Director (full name)",
     directorPosition: "Director's title",
     accountant: "Chief accountant (full name)",
+    fullNameHint:
+      "Surname, first name, patronymic: documents are signed as “Olena KOVAL”",
     palette: "Company palette",
     paletteNone: "Same as the brand",
     paletteHint:
@@ -1444,4 +1447,5 @@ export const en = {
   ...enDocumentLines,
   ...enNumbering,
   ...enPrint,
+  ...enParty,
 } satisfies ErpUiTranslation
