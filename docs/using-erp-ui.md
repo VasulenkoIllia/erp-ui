@@ -1058,9 +1058,10 @@ const state = order && company ? undefined : error ? errorStateKind(error) : "lo
   браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
 - Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
 
-### Модуль B3 «Пропозиції й замовлення» (ADR-0065)
+### Модуль B3 «Пропозиції й замовлення» (ADR-0065…ADR-0067)
 
-Перший модуль документа на рушії хвилі 2: зараз частина «Пропозиції» (список, картка, форма, друк), замовлення додасть B3b.
+Перший модуль документа на рушії хвилі 2: пропозиції й замовлення (список, картка, форма, друк, масові дії), «Створити
+замовлення» з прийнятої пропозиції, потік документів на картках і «Копіювати документ». Перевірено тестовим проектом на v1.3.0.
 
 ```ts
 // src/modules.ts
@@ -1072,26 +1073,36 @@ export const salesModule = createSalesModule({
   extension: salesExtension,
   clients: { resource: "organizations", labelField: "name", descriptionField: "code", href: contactsModule.paths.organization },
 })
+// маршрути — salesModule.routes, навігація — salesModule.nav (пункти з access), сценарії — salesModule.resources
 
-// src/mocks/handlers.ts — нумерація одна на застосунок, модуль дає лише засів серії `quotes`
+// src/mocks/handlers.ts — нумерація, задачі й потік документів — по одному на застосунок
+import { createDocumentFlowHandlers } from "@/lib/mock-document-flow"
+import { createJobHandlers } from "@/lib/mock-jobs"
+import { createNumberingMocks } from "@/lib/mock-numbering"
 import { createSalesMocks, salesNumberingSeeds } from "@/modules/B3-sales/mocks"
-const seeds = salesNumberingSeeds({ companies: ["my-company"] })
-const numbering = createNumberingMocks({ series: [...seeds.series], counters: [...seeds.counters] })
-const sales = createSalesMocks({ companies: ["my-company"], numbering, extension: salesMockExtension })
-setupWorker(...createPlatformHandlers({}), ...numbering.handlers, ...sales.handlers)
+const options = { companies: ["my-company"], clients: (companyId) => myOrganizations(companyId) }
+const seeds = salesNumberingSeeds(options)   // серії `quotes` і `orders`
+const numbering = createNumberingMocks({ series: seeds.series, counters: seeds.counters })
+const sales = createSalesMocks({ ...options, numbering, extension: salesMockExtension })
+const flow = createDocumentFlowHandlers({ sources: [...otherFlowSources, ...sales.flowSources] })
+setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.handlers, ...flow, ...sales.handlers)
 ```
 
-- Права: `quotes` з `read`, `create`, `update` і діями графа `submit`, `accept`, `decline`, `cancel`, `amend`, плюс дії розширення.
-- Статуси: «Чернетка», «Надіслано», «Прийнято», «Відхилено», «Скасовано». «Термін минув» — не статус, а позначка надісланої, у
-  якої «Дійсна до» раніше сьогодні: статус сам із часом не змінюється.
-- Змінити можна лише чернетку. Надіслану, прийняту чи відхилену змінюють через «Скасувати» з причиною й «Виправити»: нова чернетка з
-  тим самим клієнтом, рядками й полями розширення.
+- Права: `quotes` з `read`, `create`, `update`, `delete` і діями графа `submit`, `accept`, `decline`, `order` («Створити замовлення»,
+  сервер вимагає ще й `orders:create`), `cancel`, `amend`; `orders` з `read`, `create`, `update`, `delete`, `submit`, `complete`,
+  `cancel`, `amend`; плюс дії розширення. Масова дія — те саме право. Дія без права неактивна з причиною.
+- Статуси пропозиції: «Чернетка», «Надіслано», «Прийнято», «Відхилено», «Скасовано»; «Термін минув» — позначка надісланої з минулим
+  «Дійсна до», а не статус. Замовлення: «Чернетка», «Підтверджено», «Виконано», «Скасовано», позначка «Прострочено».
+- Змінити можна лише чернетку. Проведену змінюють через «Скасувати» з причиною й «Виправити»: нова чернетка з тим самим клієнтом,
+  рядками й полями розширення. Пропозицію, з якої створено нескасоване замовлення, не скасувати.
 - Клієнти — ресурс проекту (`clients`), модуль B1 не імпортується. Товар у рядку — необов'язковий `lineItem` з ресурсу проекту;
   одиниці, податки й типові значення рядка — ресурси A6 за назвами, без них рядок пишеться вільним текстом.
-- Бекенду: `GET /quotes` без рядків, `GET /quotes/:id` з `lines` і `totals`, суми рахує сервер; `POST /quotes/:id/<дія>`; 422
-  `validUntil: before_date`. Повний контракт — `README.md` модуля.
-- Розширення `SalesExtension` (`quotes`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`, `filters`,
-  `tabs`, `recordFields`, `sections`, `actions`, `aside`, `history`, `editLock`, `form`; `strings`.
+- Бекенду: `GET /quotes` без рядків, `GET /quotes/:id` з `lines` і `totals`, суми рахує сервер; `POST /quotes/:id/<дія>`,
+  `POST /quotes/:id/order` → 201 нове замовлення; `POST /quotes/bulk/<дія>` → задача; `GET /quotes/:id/flow`; так само `/orders`.
+  Бекенд без `/flow` ховає секцію: `quotes.sections.hide: ["flow"]` і так само `orders`. Повний контракт — `README.md` модуля.
+- Розширення `SalesExtension` (`quotes`, `orders`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`,
+  `filters`, `tabs`, `recordFields`, `sections` (`lines`, `flow`), `actions` (`edit`, `copy`, `delete`, `print`), `aside`, `history`,
+  `editLock`, `form`; `strings`. Проект без замовлень ховає `quotes.transitions.hide: ["order"]`.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 
