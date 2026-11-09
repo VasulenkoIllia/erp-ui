@@ -1,3 +1,4 @@
+import { addDays } from "@/registry/lib/dates"
 import { extendSchema, withMockValues } from "@/registry/lib/extension-fields"
 import {
   createPlatformHandlers,
@@ -14,6 +15,7 @@ import {
 } from "@/registry/lib/mock-transitions"
 import { createListSettingsHandlers } from "@/registry/lib/mock-lists"
 import { createNumberingMocks } from "@/registry/lib/mock-numbering"
+import { createPeriodLockMocks } from "@/registry/lib/mock-period-lock"
 import { timelineTargetMock } from "@/registry/lib/mock-timeline-store"
 import { createSavedViewHandlers } from "@/registry/lib/mock-views"
 import { RECORD_DENIAL_REASONS } from "@/registry/lib/record-access"
@@ -51,6 +53,7 @@ import {
   DOCUMENT_NUMBER_TEMPLATE,
   DOCUMENT_NUMBERS_ISSUED,
   DOCUMENT_SEED_YEAR,
+  DOCUMENTS_LOCKED_THROUGH,
   documentSchema,
   makeDocuments,
   reverseDocument,
@@ -219,9 +222,54 @@ const importExport = createImportExportMocks({
  */
 export const documentPayments = new Set<string>()
 
+const HOUR_MS = 3_600_000
+
+/**
+ * Закриті періоди (PF13, ADR-0069): у першій компанії демо закрито по `DOCUMENTS_LOCKED_THROUGH`, тож
+ * частина документів сторінки «Документ» лежить у закритому періоді. Виняток на дві години від запуску
+ * демо має Іван Петренко.
+ */
+export const periodLock = createPeriodLockMocks({
+  seeds: [
+    {
+      companyId: COMPANIES[0].id,
+      lockedThrough: DOCUMENTS_LOCKED_THROUGH,
+      exceptions: [
+        {
+          userId: "u-ivan",
+          userName: "Іван Петренко",
+          until: new Date(Date.now() + 2 * HOUR_MS).toISOString(),
+          reason: "Виправити дату акта за жовтень",
+          grantedBy: { id: "u-olena", name: "Олена Коваль" },
+          grantedAt: new Date().toISOString(),
+        },
+      ],
+    },
+  ],
+})
+
+/** Перший відкритий день компанії документа: туди лягають виправлена копія й сторно. */
+const firstOpenDay = (document: DemoDocument) => {
+  const lockedThrough = periodLock.lockedThrough(document.companyId ?? null)
+  return lockedThrough ? addDays(lockedThrough, 1) : null
+}
+
+/** Граф «модуля» документів зі змінами розширення: дії переходів і позначки закритого періоду. */
+const documentGraph = mergeTransitions(
+  DOCUMENT_TRANSITIONS,
+  documentsExtension.transitions,
+)
+
+/** Документи демо — облікові: закриття періоду їх стосується (рішення власника 09.11.2026). */
+const documentLock = periodLock.forResource<DemoDocument>({
+  resource: "documents",
+  dateField: "date",
+  actions: documentGraph.map((transition) => transition.id),
+})
+
 /**
  * Документи сторінки «Документ» (PF03, ADR-0057): позначки життєвого циклу кіта й правило демо —
- * оплачений документ не скасовують (`linked`), а сторнують.
+ * оплачений документ не скасовують (`linked`), а сторнують. Закритий період (PF13) мітить решту дій.
  */
 export const documents = createResourceHandlers<DemoDocument>({
   resource: "documents",
@@ -236,12 +284,18 @@ export const documents = createResourceHandlers<DemoDocument>({
     status: { uk: "Статус", en: "Status" },
     docStatus: { uk: "Стан документа", en: "Document state" },
   },
-  deniedActions: (_actor, document) => {
-    const denied = { ...documentDeniedActions(document) }
+  deniedActions: (actor, document) => {
+    // Причини життєвого циклу важливіші: закритий період додає лише дії, яких ще ніщо не забороняє.
+    const denied = {
+      ...documentLock.deniedActions(actor, document),
+      ...documentDeniedActions(document),
+    }
     if (document.status === "paid" || documentPayments.has(document.id))
       denied.cancel ??= RECORD_DENIAL_REASONS.linked
     return Object.keys(denied).length ? denied : undefined
   },
+  validateWrite: documentLock.validateWrite,
+  afterWrite: documentLock.afterWrite,
 })
 
 /**
@@ -317,14 +371,12 @@ export const numbering = createNumberingMocks({
 const documentTransitions = createTransitionHandlers({
   resource: "documents",
   db: documents.db,
-  transitions: mergeTransitions(
-    DOCUMENT_TRANSITIONS,
-    documentsExtension.transitions,
-  ),
-  amend: amendDocument,
-  reverse: reverseDocument,
+  transitions: documentGraph,
+  amend: (document) => amendDocument(document, firstOpenDay(document)),
+  reverse: (document) => reverseDocument(document, firstOpenDay(document)),
   conflictChange: colleagueDocumentChange,
   numbering: numbering.forResource({ resource: "documents", db: documents.db }),
+  afterTransition: documentLock.afterTransition,
 })
 
 /** Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту. */
@@ -415,6 +467,11 @@ export const handlers = [
         uk: "Нумерація документів",
         en: "Document numbering",
       },
+      "period-lock": { uk: "Закриті періоди", en: "Closed periods" },
+      "period-lock-exceptions": {
+        uk: "Винятки закритого періоду",
+        en: "Closed period exceptions",
+      },
     },
     auditSeeds: [...AUDIT_SEEDS, ...audit.seeds],
     webhookEvents: WEBHOOK_EVENTS,
@@ -435,6 +492,7 @@ export const handlers = [
   ...documents.handlers,
   ...sales.handlers,
   ...numbering.handlers,
+  ...periodLock.handlers,
   ...contacts.handlers,
   ...users.handlers,
   ...company.handlers,

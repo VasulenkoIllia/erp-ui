@@ -64,6 +64,8 @@ export const ROLES: MockRole[] = [
       "reasons:*",
       "dictionary-defaults:*",
       "numbering-series:*",
+      "period-lock:*",
+      "period-lock-exceptions:*",
     ],
   },
   {
@@ -317,6 +319,17 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
     label: { uk: "Нумерація документів", en: "Document numbering" },
     group: ADMIN,
     actions: ["read", "update"],
+  },
+  // Закриті періоди (PF13, ADR-0069): читає кожен у компанії, тож у матриці лише зміна.
+  "period-lock": {
+    label: { uk: "Закриті періоди", en: "Closed periods" },
+    group: ADMIN,
+    actions: ["update"],
+  },
+  "period-lock-exceptions": {
+    label: { uk: "Винятки закритого періоду", en: "Closed period exceptions" },
+    group: ADMIN,
+    actions: ["read", "create", "delete"],
   },
   "import-runs": {
     label: { uk: "Історія імпорту", en: "Import history" },

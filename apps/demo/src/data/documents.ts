@@ -153,6 +153,12 @@ export const DOCUMENT_NUMBERS_ISSUED = SEEDS.filter(
 /** Рік дати документів засіву: лічильник цього року вже видав `DOCUMENT_NUMBERS_ISSUED`. */
 export const DOCUMENT_SEED_YEAR = Number(isoDay(0).slice(0, 4))
 
+/**
+ * Закрито по (PF13, ADR-0069): «20.10.2026», тож чернетка-копія `doc-6`, сторнований `doc-7` і сторно
+ * `doc-8` лежать у закритому періоді, а решта — у відкритому.
+ */
+export const DOCUMENTS_LOCKED_THROUGH = isoDay(-13)
+
 /** Документи першої компанії демо: інша компанія їх не бачить, як і решту даних (ADR-0036). */
 export function makeDocuments(): DemoDocument[] {
   const companyId = COMPANIES[0].id
@@ -181,9 +187,19 @@ export function makeDocuments(): DemoDocument[] {
 }
 
 /** Виправлена копія: нова чернетка з тими самими даними; номер дасть проведення. */
-export const amendDocument = (document: DemoDocument) => ({
+/**
+ * Дата нового документа: «сьогодні» демо (02.11.2026), а коли період закрито пізніше — перший відкритий
+ * день (PF13, ADR-0069): виправлена копія й сторно не народжуються в закритому періоді.
+ */
+const openDay = (firstOpen?: string | null) =>
+  firstOpen && firstOpen > isoDay(0) ? firstOpen : isoDay(0)
+
+export const amendDocument = (
+  document: DemoDocument,
+  firstOpen?: string | null,
+) => ({
   client: document.client,
-  date: isoDay(0),
+  date: openDay(firstOpen),
   dueDate: document.dueDate,
   amount: document.amount,
   currency: document.currency,
@@ -191,10 +207,13 @@ export const amendDocument = (document: DemoDocument) => ({
 })
 
 /** Сторно: проведений документ із тією самою сумою з мінусом сьогоднішньою датою; номер — наступний у серії. */
-export const reverseDocument = (document: DemoDocument) => ({
+export const reverseDocument = (
+  document: DemoDocument,
+  firstOpen?: string | null,
+) => ({
   client: document.client,
-  date: isoDay(0),
-  dueDate: isoDay(0),
+  date: openDay(firstOpen),
+  dueDate: openDay(firstOpen),
   amount: -document.amount,
   currency: document.currency,
   status: "submitted",

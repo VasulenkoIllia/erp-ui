@@ -63,6 +63,8 @@ export const enRecords = {
     amended:
       "This document has already been amended: work with the amended copy",
     reversed: "This document has already been reversed",
+    period_locked:
+      "The period is closed: documents dated in a closed period can't be changed",
     denied: "This action isn't allowed for this record",
   },
   recordForm: {
@@ -82,6 +84,8 @@ export const enRecords = {
       duplicate: "Another record already has this value",
       tooLong: "The value is too long",
       invalid: "The server didn't accept this value. Please check it.",
+      periodLocked:
+        "This period is closed: choose a date after the closed period",
     },
   },
   repeatingRows: {

@@ -115,6 +115,10 @@ export const PAGES = {
   numbering: lazyWithPreload(() =>
     import("./NumberingPage").then((m) => m.NumberingPage),
   ),
+  // Закриті періоди: дата закриття, роки компанії, винятки, документ у закритому періоді (ADR-0069).
+  periodLock: lazyWithPreload(() =>
+    import("./PeriodLockPage").then((m) => m.PeriodLockPage),
+  ),
   securityPolicy: lazyWithPreload(() =>
     import("./SecurityPolicyPage").then((m) => m.SecurityPolicyPage),
   ),

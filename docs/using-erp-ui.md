@@ -1089,6 +1089,29 @@ const { data: company } = useCompanyProfile()
   реквізити й підписи сторін, `partyRequisiteLines` — рядки для `PrintParties`. `t` і підписи ролей — мовою аркуша
   (`usePrintSheet`, `print.sheet.party.customer`). Порожній реквізит не друкується, ФОП — без посади й «в особі».
 
+### Закриті періоди (ADR-0069)
+
+Компанія має одну дату закриття (`GET`/`PATCH /period-lock/current`, `lockedThrough` — останній закритий день). Документ із
+датою по неї включно не створюється й не змінюється, чернетка теж: сервер відповідає `422` з кодом `period_locked` біля поля
+дати, а в записі ставить `deniedActions` з причиною `period_locked` на всі дії, крім сторно. Сторно датується сьогодні.
+Які документи йдуть за датою, вирішує модуль: облікові (рахунок, акт, накладна) — так, пропозиції й замовлення — ні.
+
+```tsx
+const posting = usePostingDate()
+
+<PeriodLockBanner date={record.date} hint={t("invoices.periodLockHint")} />
+<DocumentActionBar … />
+// поле дати форми: { id: "date", description: posting.hint, render: … <DateInput … min={posting.min} /> }
+```
+
+- Налаштування — `PeriodLockSettings` (дата, «Закрити <місяць>», причина відкриття, роки компанії) і `PeriodLockExceptions`
+  (виняток одній людині до часу з причиною) на сторінці налаштувань; права `period-lock:update`,
+  `period-lock-exceptions:read|create|delete`.
+- Бекенд без закритих періодів відповідає `404`: смуги немає, сторінка налаштувань пише, що сервер їх не тримає.
+- Моки: `createPeriodLockMocks({ seeds })` один на застосунок, `handlers` — до обробників; документам модуля —
+  `forResource({ resource, dateField, actions })`: `deniedActions` (злийте з позначками життєвого циклу, ті — останніми),
+  `validateWrite` і `afterWrite` — в опції ресурсу, `afterTransition` — у `createTransitionHandlers`.
+
 ### Модуль B3 «Пропозиції й замовлення» (ADR-0065…ADR-0067)
 
 Перший модуль документа на рушії хвилі 2: пропозиції й замовлення (список, картка, форма, друк, масові дії), «Створити

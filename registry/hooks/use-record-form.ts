@@ -116,6 +116,8 @@ const SERVER_ERROR_KEYS: Readonly<Record<string, ErpUiKey>> = {
   required: "validation.required",
   duplicate: "recordForm.serverErrors.duplicate",
   tooLong: "recordForm.serverErrors.tooLong",
+  // Дата документа в закритому періоді (PF13, ADR-0069): помилка біля поля дати.
+  period_locked: "recordForm.serverErrors.periodLocked",
 }
 
 const NO_RECORD = new Error("erp-ui: save response has no record")

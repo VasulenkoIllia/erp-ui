@@ -10,6 +10,7 @@ import { enDocuments } from "@/registry/lib/i18n-en-documents"
 import { enDocumentLines } from "@/registry/lib/i18n-en-document-lines"
 import { enNumbering } from "@/registry/lib/i18n-en-numbering"
 import { enParty } from "@/registry/lib/i18n-en-party"
+import { enPeriodLock } from "@/registry/lib/i18n-en-period-lock"
 import { enPrint } from "@/registry/lib/i18n-en-print"
 import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
@@ -868,6 +869,12 @@ export const en = {
       company: {
         updated: "Company details changed",
       },
+      period_lock: {
+        updated: "Closed period change",
+        exception_granted: "Closed period exception",
+        exception_revoked: "Closed period exception revoked",
+        exception_used: "Change in a closed period under an exception",
+      },
       integrations: {
         api_token_created: "New API token",
         api_token_revoked: "API token revoked",
@@ -1448,4 +1455,5 @@ export const en = {
   ...enNumbering,
   ...enPrint,
   ...enParty,
+  ...enPeriodLock,
 } satisfies ErpUiTranslation

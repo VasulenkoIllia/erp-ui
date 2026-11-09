@@ -104,6 +104,8 @@ const SHOT_PAGES = {
   company: "/#/settings/company",
   // Нумерація (крок PF03b, ADR-0058): серія документів із переглядом наступного номера.
   numbering: "/#/settings/numbering",
+  // Закриті періоди (крок PF13, ADR-0069): дата закриття, роки, винятки, документ закритого періоду.
+  periodLock: "/#/settings/period-lock",
   inbox: "/#/notifications",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */
@@ -193,6 +195,20 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   // Нумерація: перегляд уже з лічильником сервера, а не «…».
   if (pageId === "numbering")
     await expect(page.locator("output")).toHaveText(/^ДОК-\d{4}-\d{4}$/)
+  // Закриті періоди: запис, винятки й документ уже з сервера, а не скелетони.
+  if (pageId === "periodLock") {
+    await expect(
+      page.getByText(/^(Закрито по|Closed through) .+\.$/),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("list", { name: /^(Чинні винятки|Active exceptions)$/ }),
+    ).toBeVisible()
+    await expect(
+      page
+        .getByTestId("period-lock-document")
+        .locator('[data-slot="period-lock-banner"]'),
+    ).toBeVisible()
+  }
   if (pageId === "companyCurrencies")
     await expect(listStatus(page)).toHaveText(/\d (валют|currenc)/)
   if (pageId === "companyRates")

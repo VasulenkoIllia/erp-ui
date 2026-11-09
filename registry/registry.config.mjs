@@ -276,7 +276,7 @@ export const CODE_ITEMS = {
   "lib/dates": {
     title: "Календарні дати й періоди",
     description:
-      'Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» в поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.',
+      'Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» й кінець дня (`endOfDayIn`) у поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.',
     status: "beta",
     demo: "fields",
     spec: ["UI39", "§11"],
@@ -412,7 +412,7 @@ export const CODE_ITEMS = {
   "lib/mocks": {
     title: "Мок-сервер MSW",
     description:
-      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select, db.patch і db.remove — для масових дій (lib/mock-jobs), afterDelete — що ще змінює сервер після видалення (ADR-0066); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028).",
+      "createPlatformHandlers (вхід, /me, вподобання, безпека, аудит, вебхуки, сповіщення) і createResourceHandlers (CRUD, фільтри, сортування, пагінація, права, версії, компанії, позначка заборон deniedActions на спільних записах — ADR-0037, «свої» записи й свій код проекту responsibleField і deniedActions — ADR-0039; зміни — у журнал аудиту й на шину подій) за контрактами API; db.select, db.patch і db.remove — для масових дій (lib/mock-jobs), afterDelete — що ще змінює сервер після видалення (ADR-0066); pins: true — закріплення записів (lib/mock-lists); detailFields — вкладені колекції зберігаються з записом, у список не йдуть, auditValue — їх показ у «було → стало» (ADR-0028). Своя перевірка сервера перед записом із запиту (validateWrite, 422) і дії після нього (afterWrite): закриті періоди PF13 (ADR-0069).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -556,7 +556,7 @@ export const CODE_ITEMS = {
   "hooks/use-record-form": {
     title: "Збереження форми запису",
     description:
-      "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються; toPayload отримує запис, до якого застосовують зміну (після конфлікту — збережений зараз), fieldOfServerError — поле форми для помилки елемента колекції, serverErrorText — свій текст для коду 422 ресурсу (ADR-0002, ADR-0026, ADR-0028).",
+      "useRecordForm: форма на react-hook-form з налаштуваннями кіта й схемою zod, створення (POST) і зміна (PATCH лише змінених полів з version); конфлікт 409 — порівняння змінених полів (current розбирає схема запису), «Зберегти мої зміни» чи «Взяти збережене»; 422 fieldErrors — біля полів; «Змін немає»; офлайн — одразу помилка; захист від повторної відправки; списки ресурсу перечитуються; toPayload отримує запис, до якого застосовують зміну (після конфлікту — збережений зараз), fieldOfServerError — поле форми для помилки елемента колекції, serverErrorText — свій текст для коду 422 ресурсу (ADR-0002, ADR-0026, ADR-0028). Код 422 period_locked — «Цей період закрито» біля поля дати (PF13, ADR-0069).",
     status: "beta",
     demo: "contacts",
     spec: ["§8.2", "§8.3", "§17"],
@@ -656,6 +656,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4"],
+  },
+  "hooks/use-period-lock": {
+    title: "Закритий період в інтерфейсі",
+    description:
+      "usePeriodLock: запис period-lock/current компанії, чинний виняток того, хто дивиться (закінчився — перечитування в ту ж мить), isClosed(date); бекенд без закритих періодів (404) — закритих періодів немає; стани завантаження, збою й офлайн. usePostingDate: перший відкритий день (min для DateInput) і підказка під полем дати документа; дату закритого періоду з клавіатури відхиляє сервер 422 period_locked біля поля (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§8", "§8.3"],
   },
   "hooks/use-record-access": {
     title: "Дія над записом",
@@ -1076,7 +1084,7 @@ export const CODE_ITEMS = {
   "lib/mock-transitions": {
     title: "Мок дій за графом переходів",
     description:
-      "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066); дія з creates — документ іншого ресурсу на підставі запису (mockCreatedDocument: чернетка, право <ресурс>:create, позначка на першому, 201; ADR-0061, ADR-0067).",
+      "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066); дія з creates — документ іншого ресурсу на підставі запису (mockCreatedDocument: чернетка, право <ресурс>:create, позначка на першому, 201; ADR-0061, ADR-0067). afterTransition — що ще пише сервер після дії: зміна за винятком закритого періоду в журнал (PF13, ADR-0069).",
     status: "beta",
     demo: "document",
     spec: ["PF03", "§17"],
@@ -1111,6 +1119,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "numbering",
     spec: ["PF03", "§17"],
+  },
+  "lib/mock-period-lock": {
+    title: "Мок закритих періодів",
+    description:
+      "createPeriodLockMocks: GET і PATCH /period-lock/current (право period-lock:update, дата лише в минулому, причина відкриття, 409, журнал), винятки period-lock-exceptions (одній людині компанії до 7 днів, причина, один чинний на людину, прострочені не видно, журнал видачі й відкликання), сценарії обох ресурсів; forResource — правила сервера для документів модуля: позначка period_locked на записі, крім reverse, 422 біля поля дати, зміна за винятком — у журнал (опції validateWrite, afterWrite, afterTransition) (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§17"],
   },
   "lib/i18n-uk-numbering": {
     title: "Рядки нумерації українською",
@@ -1165,6 +1181,21 @@ export const CODE_ITEMS = {
     demo: "partyDetails",
     spec: ["UI45", "§11"],
   },
+  "lib/i18n-uk-period-lock": {
+    title: "Рядки закритих періодів українською",
+    description:
+      "Дата закриття, причина відкриття, смуга документа, підказка поля дати, роки компанії, винятки (ADR-0069): окремий файл, простір імен erp-ui той самий.",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§11"],
+  },
+  "lib/i18n-en-period-lock": {
+    title: "Рядки закритих періодів англійською",
+    description: "Ті самі рядки закритих періодів англійською.",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§11"],
+  },
   "lib/i18n-uk-document-lines": {
     title: "Рядки редактора рядків документа українською",
     description:
@@ -1183,7 +1214,7 @@ export const CODE_ITEMS = {
   "lib/record-access": {
     title: "Права на рівні запису: контракт",
     description:
-      "Позначка сервера на записі deniedActions { <дія>: <код причини> } у списку, картці, відповідях POST і PATCH і current 409: що з цим записом не можна тому, хто питає; немає поля — діють права ролі. recordDenial(record, action), коди причин зі своїм текстом кіта (shared — спільний запис); сервер однаково перевіряє кожен запит (ADR-0037).",
+      "Позначка сервера на записі deniedActions { <дія>: <код причини> } у списку, картці, відповідях POST і PATCH і current 409: що з цим записом не можна тому, хто питає; немає поля — діють права ролі. recordDenial(record, action), коди причин зі своїм текстом кіта (shared — спільний запис); сервер однаково перевіряє кожен запит (ADR-0037). Код period_locked — дата документа в закритому періоді (PF13, ADR-0069).",
     status: "beta",
     demo: "contacts",
     spec: ["§8.4", "§17", "A2"],
@@ -1346,6 +1377,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "partyDetails",
     spec: ["UI45", "§11", "LC12"],
+  },
+  "lib/period-lock": {
+    title: "Закриті періоди",
+    description:
+      "Контракт закритих періодів (PF13): period-lock/current — дата «закрито по» компанії й чинний виняток того, хто питає; винятки period-lock-exceptions — одній людині до часу не далі ніж за 7 днів, із причиною; код period_locked позначки запису й помилки поля дати; сторно дозволене (PERIOD_LOCK_ALLOWED_ACTIONS); isPeriodLocked, reopensPeriod, isLockDateTooLate, isExceptionActive, exceptionUntilIssue; роки компанії fiscalYears з fiscalYearStartMonth профілю (поточний і два попередні, стан щодо закриття), previousMonthEnd (ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§17"],
   },
   "lib/mock-team": {
     title: "Мок ролей і запрошень",
@@ -2712,6 +2751,46 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "partyDetails",
     spec: ["UI45", "§8.3", "§11", "LC12"],
+  },
+  "erp/period-lock-banner": {
+    title: "Смуга закритого періоду",
+    description:
+      "PeriodLockBanner({ date, hint }): дата документа в закритому періоді — «Період закрито по …» і що з документом не можна; чинний виняток того, хто дивиться, — до коли й причина; у відкритому періоді, під час завантаження й без підтримки бекенду смуги немає; збій і офлайн — смуга з «Спробувати ще»; не оголошується при появі; вузький контейнер — кнопка під текстом. PeriodLockNotice — та сама смуга з явними даними (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§8", "§9", "§10", "§11"],
+  },
+  "erp/period-lock-settings": {
+    title: "Налаштування закритих періодів",
+    description:
+      "PeriodLockSettings: стан «Закрито по …», поле дати (лише минулий день, календар до вчора, та сама перевірка, що в сервера), «Закрити жовтень 2026» ставить кінець минулого місяця, причина з'являється, лише коли період відкривають знову; збереження з липкою панеллю й порівнянням у конфлікті; без period-lock:update — лише перегляд; роки компанії erp/fiscal-year-list; стани завантаження, помилки, офлайн і бекенд без закритих періодів (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§8", "§8.3", "§9", "§10"],
+  },
+  "erp/fiscal-year-list": {
+    title: "Роки компанії",
+    description:
+      "FiscalYearList: поточний фінансовий рік і два попередні з місяця початку профілю компанії, межі й стан текстом (закрито, закрито по …, відкрито, поточний); «Закрити рік» для року, що скінчився, — після підтвердження з наслідком; без права — без кнопок; конфлікт — повідомлення й перечитаний запис. Частина erp/period-lock-settings (PF13, ADR-0069, ADR-0043).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "A1", "§8.2", "§9", "§10"],
+  },
+  "erp/period-lock-exceptions": {
+    title: "Винятки закритого періоду",
+    description:
+      "PeriodLockExceptions: чинні винятки — кому, до коли, причина, хто й коли дав; «Дати виняток» і «Відкликати» (одразу, фокус на «Дати виняток»); без права читати — «Немає доступу», без права дати чи відкликати — кнопка неактивна з причиною; після змін перечитується й запис закритого періоду; стани завантаження, порожньо, помилка й офлайн (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§8", "§8.4", "§9", "§10"],
+  },
+  "erp/period-lock-exception-dialog": {
+    title: "Діалог винятку закритого періоду",
+    description:
+      "PeriodLockExceptionDialog: кому (людина компанії), на скільки (година, до кінця дня, до кінця вибраного дня не далі ніж за тиждень), причина обов'язкова; час рахується в мить відправки; помилки 422 сервера біля поля (уже має виняток, не в компанії, час минув чи задалеко). Частина erp/period-lock-exceptions (PF13, ADR-0069).",
+    status: "beta",
+    demo: "periodLock",
+    spec: ["PF13", "§8.3", "§10", "§11"],
   },
   "erp/print-requisites": {
     title: "Реквізити, логотип і печатка на аркуші",

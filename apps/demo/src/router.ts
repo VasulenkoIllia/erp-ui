@@ -34,6 +34,7 @@ export const ROUTES = {
   roles: "/settings/roles",
   company: "/settings/company",
   numbering: "/settings/numbering",
+  periodLock: "/settings/period-lock",
   profile: "/settings/profile",
   notifications: "/settings/notifications",
   securityPolicy: "/settings/security-policy",

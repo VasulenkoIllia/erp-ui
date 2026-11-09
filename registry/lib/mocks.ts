@@ -164,10 +164,33 @@ export interface MockResourceOptions<T extends MockRecord> {
    */
   afterDelete?: (record: T) => void
   /**
+   * Своя перевірка сервера перед записом із запиту (`POST`, `PATCH` після версії): помилки полів — 422.
+   * `next` — запис зі змінами ще до схеми; дії сервера (`db.patch`, `db.insert`) її не проходять.
+   * Закриті періоди (PF13): `validateWrite` з `createPeriodLockMocks(...).forResource(...)`.
+   */
+  validateWrite?: (
+    next: Readonly<Record<string, unknown>>,
+    write: MockWrite<T>,
+  ) => Record<string, string> | undefined
+  /**
+   * Після запису з запиту (`POST`, `PATCH`, `DELETE`): що ще пише сервер. `next` — збережений запис,
+   * для видалення — `undefined`. Закриті періоди: зміна за винятком — у журнал.
+   */
+  afterWrite?: (next: T | undefined, write: MockWrite<T>) => void
+  /**
    * Поля, які веде лише сервер (зв'язки документів: `orderId` пропозиції): POST і PATCH із тіла запиту
    * їх не беруть, а дії сервера (`db.insert`, `db.patch`) — беруть.
    */
   serverFields?: readonly (keyof T & string)[]
+}
+
+/** Хто й де пише запис із запиту: для `validateWrite` і `afterWrite`. */
+export interface MockWrite<T> {
+  readonly user: MockUser
+  /** Компанія запиту (`null` — застосунок без компаній). */
+  readonly companyId: string | null
+  /** Запис до зміни: для створення його немає. */
+  readonly previous?: T
 }
 
 /**
@@ -264,6 +287,8 @@ export function createResourceHandlers<T extends MockRecord>({
   responsibleField,
   deniedActions,
   afterDelete,
+  validateWrite,
+  afterWrite,
   serverFields = [],
 }: MockResourceOptions<T>) {
   // Позначку заборон (ADR-0037) і поля `serverFields` веде сервер: з тіла запиту їх не беремо.
@@ -558,8 +583,12 @@ export function createResourceHandlers<T extends MockRecord>({
       if ("fieldErrors" in prepared)
         return validationError(prepared.fieldErrors)
       const { record } = prepared
+      const write = { user: access.user, companyId: access.companyId }
+      const refused = validateWrite?.(record, write)
+      if (refused) return validationError(refused)
       replace([record, ...all()])
       changed("created", record)
+      afterWrite?.(record, write)
       return json(withMockDeniedActions(access.rules, full(record)), {
         status: 201,
       })
@@ -588,9 +617,17 @@ export function createResourceHandlers<T extends MockRecord>({
           current: withMockDeniedActions(access.rules, full(latest)),
         })
       }
+      const write = {
+        user: access.user,
+        companyId: access.companyId,
+        previous: latest,
+      }
+      const refused = validateWrite?.({ ...latest, ...changes }, write)
+      if (refused) return validationError(refused)
       const result = patch(latest.id, changes)
       if (!result) return notFound()
       if ("fieldErrors" in result) return validationError(result.fieldErrors)
+      afterWrite?.(result.record, write)
       return json(withMockDeniedActions(access.rules, full(result.record)))
     }),
 
@@ -602,6 +639,11 @@ export function createResourceHandlers<T extends MockRecord>({
       const denied = deniedBy(access.rules, removed, "delete")
       if (denied) return denied
       remove(removed)
+      afterWrite?.(undefined, {
+        user: access.user,
+        companyId: access.companyId,
+        previous: removed,
+      })
       return noContent()
     }),
     ...(pinStore
