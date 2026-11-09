@@ -1,3 +1,5 @@
+import { useCallback } from "react"
+
 import { useRecordAccess, type RecordAccess } from "@/hooks/use-record-access"
 import { RECORD_DENIAL_REASONS, recordDenial } from "@/lib/record-access"
 
@@ -39,14 +41,18 @@ export function useSalesAccess(
 export function useSalesLockedReason(kind: SalesKindBase) {
   const t = useSalesT()
   const { record } = kind.keys
-  return (action: string, code: string): string | undefined => {
-    if (code === RECORD_DENIAL_REASONS.linked)
-      return record === "quote" && action === CREATE_ORDER
-        ? t("quote.order.exists")
-        : t(`${record}.locked.linked`)
-    if (!isLifecycleCode(code)) return undefined
-    return action === "delete"
-      ? t(`${record}.delete.locked.${code}`)
-      : t(`${record}.locked.${code}`)
-  }
+  // Стабільна між рендерами: панель дій і `useRecordDenialReason` мемоізують причину за нею.
+  return useCallback(
+    (action: string, code: string): string | undefined => {
+      if (code === RECORD_DENIAL_REASONS.linked)
+        return record === "quote" && action === CREATE_ORDER
+          ? t("quote.order.exists")
+          : t(`${record}.locked.linked`)
+      if (!isLifecycleCode(code)) return undefined
+      return action === "delete"
+        ? t(`${record}.delete.locked.${code}`)
+        : t(`${record}.locked.${code}`)
+    },
+    [t, record],
+  )
 }

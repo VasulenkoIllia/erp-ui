@@ -173,6 +173,20 @@ test.describe("модуль B3: замовлення з пропозиції", (
     })
     await expect(leave).toBeVisible()
     await leave.getByRole("button", { name: "Залишитися" }).click()
+
+    // «Скасувати зміни» повертає значення копії, а не порожню форму.
+    const firstName = page
+      .getByRole("group", { name: "Рядок 1", exact: true })
+      .getByLabel("Назва")
+    await firstName.fill("Інша назва")
+    await page
+      .getByRole("button", { name: "Скасувати зміни", exact: true })
+      .click()
+    const discard = await openConfirm(page, "Скасувати зміни?")
+    await discard
+      .getByRole("button", { name: "Скасувати зміни", exact: true })
+      .click()
+    await expect(firstName).toHaveValue(FIRST_LINE)
     await page.getByRole("button", { name: "Зберегти" }).click()
     await expect(heading(page)).toHaveText("Пропозиція без номера")
     await expect(clientLink(page)).toHaveText(client ?? "")

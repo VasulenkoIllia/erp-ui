@@ -135,12 +135,7 @@ function NewDocument<D extends SalesDocument, Due extends string>({
       />
     ) : copyId ? (
       // Інший документ у тій самій адресі — нова форма: значення копії беруться раз.
-      <CopiedDocument
-        key={copyId}
-        kind={kind}
-        id={copyId}
-        currency={currency}
-      />
+      <CopiedDocument key={copyId} kind={kind} id={copyId} />
     ) : (
       <SalesForm kind={kind} currency={currency} readOnly={false} mayEdit />
     )
@@ -155,16 +150,14 @@ function NewDocument<D extends SalesDocument, Due extends string>({
 
 /**
  * Копія документа (ADR-0067): нова форма з його клієнтом, рядками, знижкою й полями розширення, дата —
- * сьогодні; документ з'являється лише після «Зберегти». Валюта — базова валюта компанії, як у нового.
+ * сьогодні; документ з'являється лише після «Зберегти». Валюта — документа-джерела: ціни рядків у ній.
  */
 function CopiedDocument<D extends SalesDocument, Due extends string>({
   kind,
   id,
-  currency,
 }: {
   kind: SalesDocumentKind<D, Due>
   id: string
-  currency: string
 }) {
   const t = useSalesT()
   const titleOf = useSalesTitle(kind)
@@ -180,7 +173,7 @@ function CopiedDocument<D extends SalesDocument, Due extends string>({
       <SalesForm
         kind={kind}
         source={source.ready}
-        currency={currency}
+        currency={source.ready.currency}
         readOnly={false}
         mayEdit
       />

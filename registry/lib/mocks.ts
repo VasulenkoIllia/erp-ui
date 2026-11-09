@@ -163,6 +163,11 @@ export interface MockResourceOptions<T extends MockRecord> {
    * перший документ (`releaseAmendedFrom` з lib/mock-transitions, ADR-0066).
    */
   afterDelete?: (record: T) => void
+  /**
+   * Поля, які веде лише сервер (зв'язки документів: `orderId` пропозиції): POST і PATCH із тіла запиту
+   * їх не беруть, а дії сервера (`db.insert`, `db.patch`) — беруть.
+   */
+  serverFields?: readonly (keyof T & string)[]
 }
 
 /**
@@ -259,7 +264,16 @@ export function createResourceHandlers<T extends MockRecord>({
   responsibleField,
   deniedActions,
   afterDelete,
+  serverFields = [],
 }: MockResourceOptions<T>) {
+  // Позначку заборон (ADR-0037) і поля `serverFields` веде сервер: з тіла запиту їх не беремо.
+  const serverOnly = new Set<string>(["deniedActions", ...serverFields])
+  const fromClient = async (request: Request) =>
+    Object.fromEntries(
+      Object.entries((await request.json()) as Record<string, unknown>).filter(
+        ([key]) => !serverOnly.has(key),
+      ),
+    )
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
   let stored: T[] | null = null
@@ -536,11 +550,11 @@ export function createResourceHandlers<T extends MockRecord>({
     http.post(url, async ({ request }) => {
       const access = await guard(request, "create")
       if (access instanceof Response) return access
-      // Позначку заборон (ADR-0037) веде сервер: з тіла запиту її не беремо.
-      const { deniedActions: clientDenied, ...body } =
-        (await request.json()) as Record<string, unknown>
-      void clientDenied
-      const prepared = prepare(body, access.companyId, access.user)
+      const prepared = prepare(
+        await fromClient(request),
+        access.companyId,
+        access.user,
+      )
       if ("fieldErrors" in prepared)
         return validationError(prepared.fieldErrors)
       const { record } = prepared
@@ -559,12 +573,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const denied = deniedBy(access.rules, current, "update")
       if (denied) return denied
       const index = all().indexOf(current)
-      const {
-        version,
-        deniedActions: clientDenied,
-        ...changes
-      } = (await request.json()) as Record<string, unknown>
-      void clientDenied
+      const { version, ...changes } = await fromClient(request)
       // Сценарій conflict імітує, що інший користувач зберіг запис перед нами — один раз
       // на запис, тож «Зберегти мої зміни» з новою версією після цього проходить.
       if (scenarioFor(resource) === "conflict" && !bumped.delete(current.id)) {

@@ -13,6 +13,7 @@ import {
 import { createApiClient, isApiError } from "@/registry/lib/api"
 import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
+import { copiedDocumentLines } from "@/registry/lib/document-lines"
 import type { Job } from "@/registry/lib/jobs"
 import { createDocumentFlowHandlers } from "@/registry/lib/mock-document-flow"
 import { createJobHandlers } from "@/registry/lib/mock-jobs"
@@ -301,6 +302,38 @@ describe("модуль B3: замовлення з пропозиції (мок)
     )
     expect(copy.orderId).toBeUndefined()
     expect(copy.status).toBe("draft")
+  })
+
+  it("зв'язок ставить лише сервер: `quoteId` у створенні замовлення й `orderId` у зміні пропозиції не беруться", async () => {
+    const seeded = await order(SEED_ORDER)
+    const { data: created } = await provider.create<OrderCard>(ORDERS, {
+      data: {
+        clientId: seeded.clientId,
+        clientName: seeded.clientName,
+        currency: seeded.currency,
+        date: TODAY,
+        dueDate: TODAY,
+        lines: copiedDocumentLines(seeded.lines),
+        discountPercent: seeded.discountPercent,
+        discountAmount: seeded.discountAmount,
+        quoteId: ACCEPTED,
+      },
+    })
+    expect(orderSchema.parse(created).quoteId).toBeUndefined()
+    expect((await quote(ACCEPTED)).deniedActions?.cancel).toBeUndefined()
+
+    const draft = mocks.db.quotes
+      .all()
+      .find((item) => item.companyId === COMPANY && item.docStatus === "draft")
+    if (!draft) throw new Error("no draft quote")
+    const { data: patched } = await provider.update<QuoteCard>(QUOTES, {
+      id: draft.id,
+      data: { clientName: "Інший клієнт", orderId: SEED_ORDER },
+      previousData: draft,
+    })
+    const saved = quoteSchema.parse(patched)
+    expect(saved.clientName).toBe("Інший клієнт")
+    expect(saved.orderId).toBeUndefined()
   })
 
   it("масове «Скасувати»: пропозиція із замовленням — невдача `linked`, решта скасована", async () => {

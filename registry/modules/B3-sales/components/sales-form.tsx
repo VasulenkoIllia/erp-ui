@@ -222,10 +222,21 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
     },
   })
   const { form } = state
-  // До першого малювання: порожня форма копії не блимає.
-  useLayoutEffect(() => {
+  // Значення копії поверх порожньої форми: до першого малювання (порожня форма не блимає) і після
+  // «Скасувати зміни» — копія так само не збережена, тож вихід і далі питає.
+  const applyCopy = useCallback(() => {
     if (copied) form.reset(copied, { keepDefaultValues: true })
   }, [copied, form])
+  useLayoutEffect(applyCopy, [applyCopy])
+  const view: RecordFormState<SalesFormValues> = copied
+    ? {
+        ...state,
+        discard: () => {
+          state.discard()
+          applyCopy()
+        },
+      }
+    : state
   const moduleItems = useSalesHeaderItems(kind, state.form, readOnly)
   const { control } = state.form
   const header = useMemo(
@@ -235,7 +246,7 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
   return (
     <SalesFormView
       formKey={keys}
-      state={state}
+      state={view}
       header={header}
       currency={currency}
       readOnly={readOnly}

@@ -155,8 +155,9 @@ export function copiedDocumentLines(
   lines: readonly (DocumentBodyLine | SavedDocumentBodyLine)[],
 ): DocumentBodyLine[] {
   return lines.map((line): DocumentBodyLine => {
-    if (line.kind !== "item") return { ...line, id: newDocumentLineId() }
-    const { totals, ...item } = line as SavedDocumentLine
+    if (line.kind !== "item" || !("totals" in line))
+      return { ...line, id: newDocumentLineId() }
+    const { totals, ...item } = line
     void totals
     return { ...item, id: newDocumentLineId() }
   })

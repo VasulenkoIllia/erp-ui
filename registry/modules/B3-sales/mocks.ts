@@ -306,6 +306,8 @@ interface DocumentMockSpec<T extends SalesDocument & SalesDocumentDetail> {
   readonly transitions: readonly StatusTransition[]
   /** Дії графа, які список запускає масово (ADR-0066). */
   readonly bulk: readonly string[]
+  /** Зв'язки з іншим видом (`orderId`, `quoteId`): їх ставить лише сервер, не POST і PATCH клієнта. */
+  readonly serverFields: readonly (keyof T & string)[]
   readonly fixtures: () => T[]
 }
 
@@ -367,6 +369,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
       [dueField]: spec.dueLabel,
     } as Partial<Record<keyof T & string, LocalizedText>>,
     detailFields: ["lines", "totals"],
+    serverFields: spec.serverFields,
     auditValue: { lines: linesText } as Partial<
       Record<keyof T & string, (value: never) => string[]>
     >,
@@ -456,6 +459,7 @@ export function createSalesMocks({
       dueLabel: { uk: "Виконати до", en: "Due by" },
       transitions: ORDER_TRANSITIONS,
       bulk: ["submit", "complete", "cancel"],
+      serverFields: ["quoteId"],
       fixtures: () => fixtures().orders,
     },
     {
@@ -478,6 +482,7 @@ export function createSalesMocks({
       dueLabel: { uk: "Дійсна до", en: "Valid until" },
       transitions: QUOTE_TRANSITIONS,
       bulk: ["submit", "cancel"],
+      serverFields: ["orderId"],
       fixtures: () => fixtures().quotes,
     },
     {
