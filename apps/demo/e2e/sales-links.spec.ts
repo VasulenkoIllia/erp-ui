@@ -31,8 +31,14 @@ const actionBar = (page: Page) =>
   page.getByRole("group", { name: "Дії документа" })
 const flow = (page: Page) =>
   page.getByRole("list", { name: "Потік документів" })
+/** Документ потоку, а не крок, у якому він лежить: крок теж `listitem` із тим самим текстом. */
+const flowItems = (page: Page) =>
+  flow(page).locator('[data-slot="document-flow-item"]')
 const flowItem = (page: Page, text: string | RegExp) =>
-  flow(page).getByRole("listitem").filter({ hasText: text })
+  flowItems(page).filter({ hasText: text })
+/** Назва першого рядка: форма й картка чернетки показують рядки полями. */
+const firstLineName = (page: Page) =>
+  page.getByRole("group", { name: "Рядок 1", exact: true }).getByLabel("Назва")
 /** Клієнт у шапці картки — посилання на картку організації B1. */
 const clientLink = (page: Page) =>
   page.locator("main a[href*='/m/B1/organizations/']").first()
@@ -73,7 +79,7 @@ test.describe("модуль B3: замовлення з пропозиції", (
     await expect(heading(page)).toHaveText("Замовлення без номера")
     await expect(page).toHaveURL(/#\/m\/B3\/orders\/(?!new)[^/]+$/)
     await expect(clientLink(page)).toHaveText(client ?? "")
-    await expect(page.getByText(FIRST_LINE).first()).toBeVisible()
+    await expect(firstLineName(page)).toHaveValue(FIRST_LINE)
     const current = flowItem(page, "Цей документ")
     await expect(current).toHaveAttribute("aria-current", "page")
     await expect(current).toContainText(`На підставі ${quoteNumber ?? ""}`)
@@ -159,11 +165,12 @@ test.describe("модуль B3: замовлення з пропозиції", (
     await expect(page.getByRole("combobox", { name: "Клієнт" })).toHaveText(
       client ?? "",
     )
-    await expect(
-      page
-        .getByRole("group", { name: "Рядок 1", exact: true })
-        .getByLabel("Назва"),
-    ).toHaveValue(FIRST_LINE)
+    await expect(firstLineName(page)).toHaveValue(FIRST_LINE)
+    // Унизу форми: посередині екрана липка панель збереження частково накриває кнопку меню рядка, і
+    // axe рахує її замалою ціллю (target-size), хоча прокруткою вона доступна.
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+    })
     await expectNoA11yViolations(page)
 
     // Копія не збережена: вихід питає, а «Залишитися» лишає форму.
@@ -175,9 +182,7 @@ test.describe("модуль B3: замовлення з пропозиції", (
     await leave.getByRole("button", { name: "Залишитися" }).click()
 
     // «Скасувати зміни» повертає значення копії, а не порожню форму.
-    const firstName = page
-      .getByRole("group", { name: "Рядок 1", exact: true })
-      .getByLabel("Назва")
+    const firstName = firstLineName(page)
     await firstName.fill("Інша назва")
     await page
       .getByRole("button", { name: "Скасувати зміни", exact: true })
@@ -190,7 +195,7 @@ test.describe("модуль B3: замовлення з пропозиції", (
     await page.getByRole("button", { name: "Зберегти" }).click()
     await expect(heading(page)).toHaveText("Пропозиція без номера")
     await expect(clientLink(page)).toHaveText(client ?? "")
-    await expect(page.getByText(FIRST_LINE).first()).toBeVisible()
+    await expect(firstLineName(page)).toHaveValue(FIRST_LINE)
   })
 
   test("«Копіювати» замовлення: нове замовлення-чернетка з тими самими рядками", async ({
@@ -203,8 +208,11 @@ test.describe("модуль B3: замовлення з пропозиції", (
     await page.getByRole("button", { name: "Зберегти" }).click()
     await expect(heading(page)).toHaveText("Замовлення без номера")
     await expect(clientLink(page)).toHaveText(client ?? "")
-    // Копія — окремий документ, а не «на підставі»: у потоці лише вона.
-    await expect(flow(page).getByRole("listitem")).toHaveCount(1)
+    // Копія — окремий документ, а не «на підставі»: пов'язаних документів у потоці немає.
+    await expect(
+      page.getByText(/^Пов'язаних документів ще немає/),
+    ).toBeVisible()
+    await expect(flow(page)).toHaveCount(0)
   })
 
   test("права ролі: керівник не створює замовлення й не копіює — кнопки неактивні", async ({
