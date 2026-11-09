@@ -70,6 +70,7 @@
   },
   "quote": {
     "title": "Quote",
+    "flow": "Quote",
     "titleNumber": "Quote {{number}}",
     "titleDraft": "Quote without a number",
     "back": "Back to quotes",
@@ -83,7 +84,12 @@
     "actions": {
       "submit": "Send",
       "accept": "Client accepted",
-      "decline": "Client declined"
+      "decline": "Client declined",
+      "order": "Create order"
+    },
+    "order": {
+      "open": "Open order",
+      "exists": "An order has already been created from this quote"
     },
     "confirm": {
       "submit": {
@@ -106,10 +112,12 @@
     },
     "expired": "Expired",
     "edit": "Edit",
+    "copy": "Copy",
     "editDenied": "You are not allowed to edit quotes",
     "locked": {
       "submitted": "A sent quote cannot be changed: cancel it and create a corrected copy",
-      "cancelled": "A cancelled quote cannot be changed: create a corrected copy"
+      "cancelled": "A cancelled quote cannot be changed: create a corrected copy",
+      "linked": "An order was created from this quote: cancel or delete it first"
     },
     "delete": {
       "button": "Delete draft",
@@ -128,13 +136,15 @@
     "printTitle": "Print: {{title}}",
     "steps": "Quote stages",
     "sections": {
-      "lines": "Lines"
+      "lines": "Lines",
+      "flow": "Document flow"
     },
     "history": "History",
     "linesInvalid": "The quote lines could not be shown"
   },
   "form": {
     "createTitle": "New quote",
+    "copyOf": "Copy of \"{{title}}\". The new quote appears after you select Save.",
     "editTitle": "Edit: {{title}}",
     "back": "Back to the quote",
     "fields": {
@@ -233,6 +243,7 @@
   },
   "order": {
     "title": "Order",
+    "flow": "Order",
     "titleNumber": "Order {{number}}",
     "titleDraft": "Order without a number",
     "back": "Back to orders",
@@ -262,10 +273,12 @@
     },
     "overdue": "Overdue",
     "edit": "Edit",
+    "copy": "Copy",
     "editDenied": "You are not allowed to change orders",
     "locked": {
       "submitted": "A confirmed order is not changed: cancel it and make a corrected copy",
-      "cancelled": "A cancelled order is not changed: make a corrected copy"
+      "cancelled": "A cancelled order is not changed: make a corrected copy",
+      "linked": "Submitted documents were created from this order: cancel them first"
     },
     "delete": {
       "button": "Delete draft",
@@ -284,13 +297,15 @@
     "printTitle": "Print: {{title}}",
     "steps": "Order stages",
     "sections": {
-      "lines": "Lines"
+      "lines": "Lines",
+      "flow": "Document flow"
     },
     "history": "History",
     "linesInvalid": "Could not show the order lines"
   },
   "orderForm": {
     "createTitle": "New order",
+    "copyOf": "Copy of \"{{title}}\". The new order appears after you select Save.",
     "editTitle": "Edit: {{title}}",
     "back": "Back to the order",
     "fields": {

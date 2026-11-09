@@ -8,7 +8,11 @@ import { useCanAccess } from "ra-core"
 import { useCallback } from "react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
-import { isKnownDenialReason, recordDenial } from "@/registry/lib/record-access"
+import {
+  isKnownDenialReason,
+  kitAction,
+  recordDenial,
+} from "@/registry/lib/record-access"
 
 export interface RecordAccess {
   /** Права ролі ще невідомі: дії поки немає, а не «немає доступу», що за мить стане кнопкою. */
@@ -20,23 +24,34 @@ export interface RecordAccess {
 }
 
 /**
- * Текст причини, з якої запис забороняє дію (`edit` зводиться до `update`), або `undefined`.
- * Для колонок списку: хук викликають раз, а функцію — у комірці кожного рядка.
+ * Свій текст модуля для коду причини дії (`linked` у пропозиції — «Із пропозиції вже створено
+ * замовлення»); `undefined` — текст кіта.
  */
-export function useRecordDenialReason(): (
-  record: unknown,
+export type RecordDenialText = (
   action: string,
-) => string | undefined {
+  code: string,
+) => string | undefined
+
+/**
+ * Текст причини, з якої запис забороняє дію (`edit` зводиться до `update`), або `undefined`.
+ * Для колонок списку: хук викликають раз, а функцію — у комірці кожного рядка. `moduleText` — слова
+ * модуля для кодів, які він пояснює сам; решта — текст кіта.
+ */
+export function useRecordDenialReason(
+  moduleText?: RecordDenialText,
+): (record: unknown, action: string) => string | undefined {
   const t = useErpUiT()
   return useCallback(
     (record, action) => {
       const code = recordDenial(record, action)
       if (code === undefined) return undefined
+      const own = moduleText?.(kitAction(action), code)
+      if (own !== undefined) return own
       return isKnownDenialReason(code)
         ? t(`recordAccess.${code}`)
         : t("recordAccess.denied")
     },
-    [t],
+    [t, moduleText],
   )
 }
 

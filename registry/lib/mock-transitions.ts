@@ -20,6 +20,9 @@
  * - `documentDeniedActions` — позначки життєвого циклу для опції `deniedActions` ресурсу.
  * - `numbering` (PF03b, ADR-0058): номер отримує документ, що стає проведеним, — на `submit` і сторно;
  *   виправлена копія народжується чернеткою без номера.
+ * - Дія з `creates` (документ іншого ресурсу на підставі цього, ADR-0061) — опція `creates` з
+ *   `mockCreatedDocument`: новий документ — чернетка того ресурсу, право `<ресурс>:create` теж
+ *   потрібне (403), позначка на першому документі (`mark`); відповідь 201 — новий документ.
  */
 import { http, type HttpHandler } from "msw/http"
 
@@ -76,6 +79,72 @@ export type MockTransitionRecord = MockRecord & {
   readonly status: string
 } & Partial<DocumentLifecycle>
 
+/** Хто виконує дію: компанія запиту, людина та її права. */
+export interface MockTransitionActor {
+  readonly companyId: string | null
+  readonly user: MockUser
+  readonly permissions: string[]
+}
+
+/**
+ * Документ іншого ресурсу, який дія створює на підставі запису (`creates` переходу): ресурс, право
+ * створювати й саме створення. Дає `mockCreatedDocument`; тип запису нового ресурсу схований у ньому.
+ */
+export interface MockCreatedDocument<T extends MockTransitionRecord> {
+  readonly resource: string
+  canCreate(actor: MockTransitionActor): boolean
+  /** Новий документ: `id` і картка для відповіді з позначками того, хто питає; чи помилки полів. */
+  create(
+    record: T,
+    actor: MockTransitionActor,
+  ):
+    | { readonly id: string; readonly card: object }
+    | { readonly fieldErrors: Record<string, string> }
+  /** Позначка на першому документі після створення (`{ orderId }`); без неї перший не змінюється. */
+  mark?(createdId: string): Record<string, unknown>
+}
+
+/**
+ * Документ ресурсу `resource` зі сховища `db`, який дія створює на підставі запису `T`: `body` — що
+ * перенести й зв'язок (`quoteId`); кіт додає `docStatus: "draft"`. Номер чернетка не отримує.
+ */
+export function mockCreatedDocument<
+  T extends MockTransitionRecord,
+  C extends MockTransitionRecord,
+>({
+  resource,
+  db,
+  body,
+  mark,
+}: {
+  resource: string
+  db: MockResourceDb<C>
+  body: (record: T) => Record<string, unknown>
+  mark?: (createdId: string) => Record<string, unknown>
+}): MockCreatedDocument<T> {
+  return {
+    resource,
+    canCreate: ({ user, permissions }) =>
+      mockGrantsRecords(db.accessOf(user, permissions), "create"),
+    create: (record, { companyId, user, permissions }) => {
+      const created = db.insert(
+        { ...body(record), docStatus: "draft" },
+        companyId,
+        user,
+      )
+      if (!("record" in created)) return created
+      return {
+        id: created.record.id,
+        card: withMockDeniedActions(
+          db.accessOf(user, permissions),
+          db.card(created.record),
+        ),
+      }
+    },
+    ...(mark ? { mark } : {}),
+  }
+}
+
 export interface MockTransitionOptions<T extends MockTransitionRecord> {
   resource: string
   db: MockResourceDb<T>
@@ -92,6 +161,8 @@ export interface MockTransitionOptions<T extends MockTransitionRecord> {
   conflictChange?: (record: T) => Partial<T>
   /** Номер документа на проведенні: `createNumberingMocks(...).forResource(...)`. */
   numbering?: MockDocumentNumbering
+  /** Дії з `creates`: документ іншого ресурсу за ключем дії (`mockCreatedDocument`). */
+  creates?: Readonly<Record<string, MockCreatedDocument<T>>>
   baseUrl?: string
 }
 
@@ -226,7 +297,7 @@ function applyTransition<T extends MockTransitionRecord>(
  * причина. Відповідь помилки чи тіло й перехід для дії.
  */
 function checkTransition<T extends MockTransitionRecord>(
-  { resource, transitions, amend, reverse }: MockTransitionOptions<T>,
+  { resource, transitions, amend, reverse, creates }: MockTransitionOptions<T>,
   record: T,
   action: string,
   raw: unknown,
@@ -250,12 +321,38 @@ function checkTransition<T extends MockTransitionRecord>(
     })
   if (transition.reason === "required" && !body.reason)
     return validation({ reason: "required" })
-  if (createsDocument(action) && !(action === "amend" ? amend : reverse))
+  const hasBody = createsDocument(action)
+    ? Boolean(action === "amend" ? amend : reverse)
+    : transition.creates === undefined || Boolean(creates?.[action])
+  if (!hasBody)
     return errorResponse(500, {
       code: "server",
       message: `Mock: ${resource} has no ${action} body`,
     })
   return { body, transition }
+}
+
+/**
+ * Документ іншого ресурсу на підставі запису (дія з `creates`): новий документ, позначка на першому;
+ * відповідь — 201 з новим документом чи 422 з помилками полів.
+ */
+function runCreates<T extends MockTransitionRecord>(
+  db: MockResourceDb<T>,
+  record: T,
+  creates: MockCreatedDocument<T>,
+  actor: MockTransitionActor,
+): Response {
+  const created = creates.create(record, actor)
+  if ("fieldErrors" in created) return validation(created.fieldErrors)
+  const marked = creates.mark
+    ? db.patch(record.id, creates.mark(created.id))
+    : undefined
+  // Схема ресурсу не бере позначку — помилка налаштування моку, а не відповідь сервера.
+  if (marked && "fieldErrors" in marked)
+    throw new Error(
+      `Mock: cannot mark ${record.id}: ${JSON.stringify(marked.fieldErrors)}`,
+    )
+  return json(created.card, { status: 201 })
 }
 
 /** `POST /<ресурс>/:id/<дія>` за графом модуля. */
@@ -295,10 +392,17 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
         const access = mockRequestPermissions(request, user)
         if (access instanceof Response) return access
         const rules = db.accessOf(user, access.permissions)
+        const actor = { ...access, user }
+        const creates = options.creates?.[action]
         if (!mockGrantsRecords(rules, action))
           return errorResponse(403, {
             code: "forbidden",
             message: `Missing permission ${resource}:${action}`,
+          })
+        if (creates && !creates.canCreate(actor))
+          return errorResponse(403, {
+            code: "forbidden",
+            message: `Missing permission ${creates.resource}:create`,
           })
         const id = String(params.id)
         const found = db.select({ id }, access.companyId, rules)[0]
@@ -315,6 +419,7 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
           })
         const checked = checkTransition(options, record, action, raw, current)
         if (checked instanceof Response) return checked
+        if (creates) return runCreates(db, record, creates, actor)
         const result = applyTransition(options, record, checked.transition, {
           companyId: access.companyId,
           user,
@@ -340,7 +445,8 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
 /**
  * Дії графа для масового запуску (`createBulkHandlers` з lib/mock-jobs, ADR-0066): над кожним записом
  * без версії — з його поточного статусу й стану документа, інакше невдача `transition_not_allowed`;
- * причина — як у графі. Дії, що створюють документ (`amend`, `reverse`), масово не запускаються.
+ * причина — як у графі. Дії, що створюють документ (`amend`, `reverse`, дія з `creates`), масово не
+ * запускаються.
  */
 export function bulkTransitionActions<T extends MockTransitionRecord>(
   {
@@ -350,11 +456,12 @@ export function bulkTransitionActions<T extends MockTransitionRecord>(
   }: Pick<MockTransitionOptions<T>, "resource" | "transitions" | "numbering">,
   ids: readonly string[],
 ): Record<string, MockBulkAction<T>> {
-  const reasonOf = (id: string) =>
-    transitions.find((transition) => transition.id === id)?.reason
+  const graphOf = (id: string) =>
+    transitions.find((transition) => transition.id === id)
+  const reasonOf = (id: string) => graphOf(id)?.reason
   return Object.fromEntries(
     ids
-      .filter((id) => !createsDocument(id))
+      .filter((id) => !createsDocument(id) && !graphOf(id)?.creates)
       .map((id): [string, MockBulkAction<T>] => [
         id,
         {

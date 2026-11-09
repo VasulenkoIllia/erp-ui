@@ -24,6 +24,7 @@ import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import {
   createTransitionHandlers,
   documentDeniedActions,
+  mockCreatedDocument,
 } from "@/registry/lib/mock-transitions"
 import {
   createPlatformHandlers,
@@ -36,7 +37,8 @@ import type { ModuleTransition } from "@/registry/lib/statuses"
 
 /**
  * Крок PF03a (ADR-0057): панель дій документа — дії графа зі статусу, неактивні з причиною,
- * підтвердження з причиною, відмова сервера на кнопці, порівняння в конфлікті.
+ * підтвердження з причиною, відмова сервера на кнопці, порівняння в конфлікті. Крок B3b2 (ADR-0067):
+ * причини заборон словами модуля (`lockedReason`) і дія, що створює документ іншого ресурсу (`creates`).
  */
 const BASE = "http://erp.test/api/v1"
 
@@ -58,8 +60,21 @@ const TRANSITIONS: readonly ModuleTransition[] = [
   { id: "amend", label: "Виправити", from: ["cancelled"] },
 ]
 
+/** Дія, що створює документ іншого ресурсу: рахунок на підставі проведеного документа. */
+const BILL: ModuleTransition = {
+  id: "bill",
+  label: "Створити рахунок",
+  from: ["submitted"],
+  creates: "bills",
+}
+
 const docSchema = recordBaseSchema
-  .extend({ number: z.string(), status: z.string(), dueDate: z.string() })
+  .extend({
+    number: z.string(),
+    status: z.string(),
+    dueDate: z.string(),
+    billId: z.string().nullable().optional(),
+  })
   .extend(documentLifecycleSchema.shape)
 type Doc = z.infer<typeof docSchema>
 
@@ -103,6 +118,13 @@ const docs = createResourceHandlers<Doc>({
   },
 })
 
+const bills = createResourceHandlers<Doc>({
+  baseUrl: BASE,
+  resource: "bills",
+  schema: docSchema,
+  data: () => [],
+})
+
 const user: MockUser = {
   id: "u1",
   name: "Оксана",
@@ -110,7 +132,7 @@ const user: MockUser = {
   password: "demo",
   totpCode: "111111",
   roles: [],
-  permissions: ["docs:*"],
+  permissions: ["docs:*", "bills:*"],
   companies: [],
   companyId: null,
   factors: [],
@@ -122,7 +144,19 @@ const server = setupServer(
     baseUrl: BASE,
     resource: "docs",
     db: docs.db,
-    transitions: TRANSITIONS,
+    transitions: [...TRANSITIONS, BILL],
+    creates: {
+      bill: mockCreatedDocument<Doc, Doc>({
+        resource: "bills",
+        db: bills.db,
+        body: (doc) => ({
+          number: `Р-${doc.number}`,
+          status: "draft",
+          dueDate: doc.dueDate,
+        }),
+        mark: (billId) => ({ billId }),
+      }),
+    },
     amend: (doc) => ({
       number: `${doc.number}-1`,
       status: "draft",
@@ -131,6 +165,7 @@ const server = setupServer(
     conflictChange: () => ({ dueDate: "2026-11-17" }),
   }),
   ...docs.handlers,
+  ...bills.handlers,
 )
 
 const me = (permissions: string[]): Me => ({
@@ -149,10 +184,12 @@ function Card({
   id,
   transitions,
   onCreated,
+  lockedReason,
 }: {
   id: string
   transitions: readonly ModuleTransition[]
-  onCreated?: (id: string) => void
+  onCreated?: (id: string, action: string) => void
+  lockedReason?: (action: string, code: string) => string | undefined
 }) {
   const { data } = useGetOne<Doc>("docs", { id })
   if (!data) return null
@@ -176,7 +213,8 @@ function Card({
                 },
               ]
         }
-        onCreated={(created) => onCreated?.(String(created.id))}
+        onCreated={(created, action) => onCreated?.(String(created.id), action)}
+        lockedReason={lockedReason}
       />
     </>
   )
@@ -186,17 +224,23 @@ function renderCard(
   id: string,
   permissions = ["docs:*"],
   transitions = TRANSITIONS,
+  lockedReason?: (action: string, code: string) => string | undefined,
 ) {
   const queryClient = new QueryClient()
   queryClient.setQueryData<Me>(ME_QUERY_KEY, me(permissions))
   const created: string[] = []
+  const actions: string[] = []
   const dataProvider = createDataProvider(createApiClient({ baseUrl: BASE }))
   const tree = (cardId: string) => (
     <CoreAdminContext queryClient={queryClient} dataProvider={dataProvider}>
       <Card
         id={cardId}
         transitions={transitions}
-        onCreated={(newId) => created.push(newId)}
+        onCreated={(newId, action) => {
+          created.push(newId)
+          actions.push(action)
+        }}
+        lockedReason={lockedReason}
       />
     </CoreAdminContext>
   )
@@ -205,7 +249,7 @@ function renderCard(
   const show = (cardId: string) => {
     view.rerender(tree(cardId))
   }
-  return { ...view, created, queryClient, show }
+  return { ...view, created, actions, queryClient, show }
 }
 
 const bar = () => screen.getByRole("group", { name: "Дії документа" })
@@ -225,6 +269,7 @@ beforeAll(() => {
 })
 beforeEach(() => {
   docs.db.reset()
+  bills.db.reset()
   paidByColleague.clear()
   resetScenarios()
   signInMock("u1")
@@ -374,6 +419,60 @@ describe("DocumentActionBar", () => {
     expect(
       screen.getByRole("button", { name: "Позначити оплаченим" }),
     ).toBeEnabled()
+  })
+
+  it("причина заборони записом словами модуля — на кнопці й після відмови сервера", async () => {
+    const user = userEvent.setup()
+    const lockedReason = (action: string, code: string) =>
+      action === "cancel" && code === "linked"
+        ? "Спершу скасуйте оплату"
+        : undefined
+    renderCard("d2", ["docs:*"], TRANSITIONS, lockedReason)
+    await screen.findByRole("button", { name: "Скасувати" })
+    paidByColleague.add("d2")
+    await user.click(screen.getByRole("button", { name: "Скасувати" }))
+    const dialog = await openConfirm("Скасувати документ?")
+    await user.type(within(dialog).getByLabelText("Причина"), "Помилка")
+    await user.click(
+      within(dialog).getByRole("button", { name: "Скасувати документ" }),
+    )
+    expect(await within(bar()).findByRole("alert")).toHaveTextContent(
+      "«Скасувати» не виконано. Спершу скасуйте оплату",
+    )
+    const cancel = within(bar()).getByRole("button", { name: "Скасувати" })
+    await waitFor(() => {
+      expect(cancel).toHaveAccessibleDescription("Спершу скасуйте оплату")
+    })
+  })
+
+  it("дія з `creates` — новий документ іншого ресурсу для переходу; списки ресурсу перечитуються, позначка на першому", async () => {
+    const user = userEvent.setup()
+    const { created, actions, queryClient } = renderCard(
+      "d2",
+      ["docs:*", "bills:*"],
+      [...TRANSITIONS, BILL],
+    )
+    const listKey = ["bills", "getList", {}]
+    queryClient.setQueryData(listKey, { data: [], total: 0 })
+    await user.click(
+      await screen.findByRole("button", { name: "Створити рахунок" }),
+    )
+    await waitFor(() => {
+      expect(created).toHaveLength(1)
+    })
+    expect(actions).toEqual(["bill"])
+    expect(bills.db.all().map((bill) => bill.id)).toEqual(created)
+    expect(bills.db.all()[0]).toMatchObject({
+      number: "Р-ДОК-2",
+      status: "draft",
+      docStatus: "draft",
+    })
+    expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true)
+    expect(docs.db.all().find((doc) => doc.id === "d2")?.billId).toBe(
+      created[0],
+    )
+    // Статус першого не змінився: дія лише створила документ.
+    expect(status()).toHaveTextContent("submitted")
   })
 
   it("виправити — новий документ для переходу; скасованого з копією вдруге не виправляють", async () => {

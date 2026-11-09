@@ -139,13 +139,18 @@ export type TransitionReason = "required" | "optional"
 /**
  * Дозволений перехід: дія `id` (право `<ресурс>:<дія>`, ключ `deniedActions`, шлях
  * `POST /<ресурс>/:id/<дія>`) зі статусів `from` у `to`. Без `to` статус не змінюється: дія лише
- * створює інший документ (`amend`).
+ * створює інший документ (`amend`, чи документ ресурсу `creates`).
  */
 export interface StatusTransition<K extends string = string> {
   readonly id: string
   readonly from: readonly K[]
   readonly to?: K
   readonly reason?: TransitionReason
+  /**
+   * Ресурс документа, який дія створює на підставі цього (`basedOn`, ADR-0061): замовлення з
+   * пропозиції. Відповідь 201 — новий документ цього ресурсу; панель дій веде до нього (`onCreated`).
+   */
+  readonly creates?: string
 }
 
 /** Тексти підтвердження дії мовою інтерфейсу: заголовок, наслідок і кнопка, що його називає. */
@@ -167,8 +172,11 @@ export interface ModuleTransition<
   readonly confirm?: TransitionConfirmText
 }
 
-/** Перехід із файлу розширення: підпис мовами, статуси — модуля чи нові статуси розширення. */
-export interface ExtensionTransition extends StatusTransition {
+/**
+ * Перехід із файлу розширення: підпис мовами, статуси — модуля чи нові статуси розширення. Документа
+ * іншого ресурсу дія розширення не створює: це контракт модуля з його моком.
+ */
+export interface ExtensionTransition extends Omit<StatusTransition, "creates"> {
   readonly label: LocalizedText
 }
 

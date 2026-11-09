@@ -23,12 +23,13 @@ import {
 } from "@/registry/erp/repeating-rows"
 import { VirtualRowsList } from "@/registry/erp/repeating-rows-virtual"
 import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
-import type {
-  DocumentBodyLine,
-  DocumentLine,
-  DocumentLineTax,
-  DocumentLineUnit,
-  SavedDocumentTotals,
+import {
+  newDocumentLineId,
+  type DocumentBodyLine,
+  type DocumentLine,
+  type DocumentLineTax,
+  type DocumentLineUnit,
+  type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
@@ -118,12 +119,6 @@ const EMPTY_LINE: Omit<DocumentLine, "id"> = {
   tax: null,
 }
 
-/** Тимчасовий id нового рядка; `getRandomValues`, бо `randomUUID` є лише на HTTPS. */
-const newLineId = () =>
-  `line-${Array.from(crypto.getRandomValues(new Uint32Array(2)), (part) =>
-    part.toString(36),
-  ).join("")}`
-
 /** Новий рядок: типові значення поверх порожнього, `undefined` не стирає порожнє значення. */
 const newLineOf = (
   defaults: Partial<Omit<DocumentLine, "id">> = {},
@@ -132,7 +127,7 @@ const newLineOf = (
   ...Object.fromEntries(
     Object.entries(defaults).filter(([, value]) => value !== undefined),
   ),
-  id: newLineId(),
+  id: newDocumentLineId(),
 })
 
 const isSectionLine = (line: DocumentBodyLine) => line.kind === "section"
@@ -243,12 +238,12 @@ export function DocumentLinesEditor<
       {
         addLabel: t("documentLines.addSection"),
         insertLabel: t("documentLines.insertSection"),
-        newRow: () => ({ kind: "section", id: newLineId(), title: "" }),
+        newRow: () => ({ kind: "section", id: newDocumentLineId(), title: "" }),
       },
       {
         addLabel: t("documentLines.addNote"),
         insertLabel: t("documentLines.insertNote"),
-        newRow: () => ({ kind: "note", id: newLineId(), text: "" }),
+        newRow: () => ({ kind: "note", id: newDocumentLineId(), text: "" }),
       },
     ],
     [t],

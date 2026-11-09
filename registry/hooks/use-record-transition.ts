@@ -5,9 +5,11 @@
  * - Поки дія йде, інша не запускається: подвійне натискання дію не повторює.
  * - Версія — того запису, який людина бачила, коли вирішила (`seen`): картка під відкритим діалогом
  *   могла перечитатись, і тоді сервер відповість 409, а не виконає дію над чужими змінами.
- * - Успіх — оголошення для скрінрідера й перечитування ресурсу; новий документ (`amend`, `reverse`)
- *   — `onCreated`. Потік документів (ADR-0061) перечитується теж, але дія на нього не чекає.
- * - 403 — сервер дії не дає. Причину з позначки `current` (ADR-0037) кнопка тримає, доки не прийде
+ * - Успіх — оголошення для скрінрідера й перечитування ресурсу; новий документ (`amend`, `reverse` чи
+ *   документ ресурсу `creates` — замовлення з пропозиції) — `onCreated`, а списки ресурсу `creates`
+ *   перечитуються. Потік документів (ADR-0061) перечитується теж, але дія на нього не чекає.
+ * - 403 — сервер дії не дає. Причину з позначки `current` (ADR-0037; словами модуля, якщо він дав
+ *   `lockedReason`) кнопка тримає, доки не прийде
  *   новий запис; поруч із панеллю — видимий текст, бо підказки на дотик телефон не відкриває.
  * - 409 `conflict` — порівняння того, що бачила людина, з `current`; `retryConflict` повторює дію з
  *   новою версією.
@@ -21,7 +23,10 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useDataProvider, type Identifier, type RaRecord } from "ra-core"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
-import { useRecordDenialReason } from "@/registry/hooks/use-record-access"
+import {
+  useRecordDenialReason,
+  type RecordDenialText,
+} from "@/registry/hooks/use-record-access"
 import { announce } from "@/registry/lib/announce"
 import { isApiError } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
@@ -134,10 +139,11 @@ function useLatest<R extends TransitionRecord>(record: R) {
 function useTransitionMessages<R extends TransitionRecord>(
   record: R,
   reload: () => Promise<void>,
+  lockedReason: RecordDenialText | undefined,
 ) {
   const t = useErpUiT()
   const errorText = useApiErrorMessage()
-  const denialReason = useRecordDenialReason()
+  const denialReason = useRecordDenialReason(lockedReason)
   /** Текст і версія, яку він описує: свіже перечитування з тією самою версією його не стирає. */
   const [feedback, setFeedback] = React.useState<
     (TransitionFeedback & { readonly about: TransitionRecord }) | null
@@ -232,14 +238,21 @@ function useTransitionMessages<R extends TransitionRecord>(
   }
 }
 
+/** Дія створює новий документ: виправлена копія, сторно чи документ іншого ресурсу (`creates`). */
+const createsRecord = (transition: ModuleTransition) =>
+  createsDocument(transition.id) || transition.creates !== undefined
+
 export function useRecordTransition<R extends TransitionRecord>({
   resource,
   record,
   onCreated,
+  lockedReason,
 }: {
   resource: string
   record: R
   onCreated?: (created: RaRecord, action: string) => void
+  /** Причини заборон записом словами модуля (`erp/document-action-bar`). */
+  lockedReason?: RecordDenialText
 }) {
   const dataProvider = useDataProvider<ErpDataProvider>()
   const queryClient = useQueryClient()
@@ -256,7 +269,7 @@ export function useRecordTransition<R extends TransitionRecord>({
       predicate: ({ queryKey }) => !isDocumentFlowQueryKey(queryKey),
     })
   }
-  const messages = useTransitionMessages(record, reload)
+  const messages = useTransitionMessages(record, reload, lockedReason)
   const [pending, setPending] = React.useState<string | null>(null)
   const inFlight = React.useRef(false)
   const isCurrent = (seen: R) =>
@@ -283,7 +296,10 @@ export function useRecordTransition<R extends TransitionRecord>({
           : t("documentActions.done.other", { action: transition.label }),
       )
       await reload()
-      if (isCurrent(seen) && createsDocument(transition.id))
+      // Новий документ іншого ресурсу — у його списках і потоках: перехід до нього на них не чекає.
+      if (transition.creates)
+        void queryClient.invalidateQueries({ queryKey: [transition.creates] })
+      if (isCurrent(seen) && createsRecord(transition))
         onCreated?.(result, transition.id)
       return "done"
     } catch (error) {

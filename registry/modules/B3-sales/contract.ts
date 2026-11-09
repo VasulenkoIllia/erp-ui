@@ -29,6 +29,17 @@
  *   `transition_not_allowed` (статус не той), `submitted` і `cancelled` (не чернетка), коди API; у групі
  *   — номер, у чернетки — клієнт.
  * - Права — `<ресурс>:<дія>`: `read`, `create`, `update`, `delete`, дії графа модуля й розширення.
+ * - Замовлення з пропозиції (ADR-0067, доповнення B3b2): `POST /quotes/:id/order` з `version` з
+ *   прийнятої пропозиції → 201 нове замовлення-чернетка з клієнтом, рядками й знижкою пропозиції.
+ *   Право — `quotes:order` і `orders:create` (403). Зв'язок зберігає сервер: `quoteId` замовлення
+ *   (`basedOn` у потоці) і `orderId` пропозиції; клієнт їх не надсилає. Пропозиція лишається
+ *   «Прийнято». Повторно — 403 з позначкою `deniedActions.order = "linked"`: друге замовлення не
+ *   створюється. Видалена чернетка замовлення звільняє пропозицію (`orderId: null`). Виправлена копія
+ *   скасованого замовлення бере `quoteId` першого.
+ * - Прийняту пропозицію, з якої є нескасоване замовлення, не скасовують: `deniedActions.cancel =
+ *   "linked"`, і масове «Скасувати» дає невдачу з цим кодом. Спершу скасувати чи видалити замовлення.
+ * - Потік документів (ADR-0061): `GET /<ресурс>/:id/flow` — пропозиції, потім замовлення; зв'язок
+ *   замовлення з пропозицією — `basedOn`, виправленої копії — `amendedFrom`.
  *
  * Створення — `POST` шапки, рядків і знижки документа; зміна — `PATCH` змінених полів з `version`:
  * рядки — завжди всім масивом (`lines`), як колекції B1 (ADR-0028). Помилки рядка — 422 `fieldErrors`
@@ -59,6 +70,8 @@ import {
   type StatusTransition,
 } from "@/lib/statuses"
 
+import { ORDERS } from "./resources"
+
 export { ORDERS, QUOTES, SALES_RESOURCES } from "./resources"
 
 /** Статуси пропозиції модуля (рішення власника 08.11.2026); розширення додає свої (`statuses`). */
@@ -75,15 +88,20 @@ export const DEFAULT_QUOTE_STATUS: QuoteStatus = "draft"
 /** Статуси, у яких пропозиція чекає відповіді клієнта: тут минулий строк — позначка «Термін минув». */
 export const AWAITING_REPLY: readonly string[] = ["sent"]
 
+/** Дія пропозиції «Створити замовлення»: шлях `POST /quotes/:id/order`, право `quotes:order`. */
+export const CREATE_ORDER = "order"
+
 /**
  * Граф переходів пропозиції (ADR-0057): основна дія статусу — першою. «Надіслати» — проведення з
- * номером; відповідь клієнта — «Прийнято» чи «Відхилено» (причина за бажанням); «Скасувати» з причиною —
- * і для прийнятої, щоб виправити її; «Виправити» — нова чернетка зі скасованої.
+ * номером; відповідь клієнта — «Прийнято» чи «Відхилено» (причина за бажанням); з прийнятої —
+ * «Створити замовлення» (статус не змінюється, ADR-0067); «Скасувати» з причиною — і для прийнятої,
+ * щоб виправити її; «Виправити» — нова чернетка зі скасованої.
  */
 export const QUOTE_TRANSITIONS = [
   { id: "submit", from: ["draft"], to: "sent" },
   { id: "accept", from: ["sent"], to: "accepted" },
   { id: "decline", from: ["sent"], to: "declined", reason: "optional" },
+  { id: CREATE_ORDER, from: ["accepted"], creates: ORDERS },
   {
     id: "cancel",
     from: ["sent", "accepted", "declined"],
@@ -144,8 +162,19 @@ const salesDocumentShape = recordBaseSchema
   })
   .extend(documentLifecycleSchema.shape)
 
-const quoteShape = salesDocumentShape.extend({ validUntil: calendarDateSchema })
-const orderShape = salesDocumentShape.extend({ dueDate: calendarDateSchema })
+/** Зв'язок, який веде сервер: `id` документа іншого ресурсу; `null` — зв'язку немає. */
+const serverLinkSchema = z.string().min(1).nullable().optional()
+
+const quoteShape = salesDocumentShape.extend({
+  validUntil: calendarDateSchema,
+  /** Замовлення, створене з пропозиції (`POST /quotes/:id/order`). */
+  orderId: serverLinkSchema,
+})
+const orderShape = salesDocumentShape.extend({
+  dueDate: calendarDateSchema,
+  /** Пропозиція, на підставі якої створено замовлення (`basedOn` у потоці). */
+  quoteId: serverLinkSchema,
+})
 
 /** Рядки й підсумки детального запису (`GET /<ресурс>/:id`): у рядку списку їх немає. */
 export const salesDetailSchema = z.object({
@@ -220,10 +249,11 @@ export type SalesDocument = z.output<typeof salesDocumentShape> & {
 } & ExtensionValues
 /** Пропозиція в списку й шапці картки. */
 export type Quote = SalesDocument &
-  Pick<z.output<typeof quoteShape>, "validUntil">
+  Pick<z.output<typeof quoteShape>, "validUntil" | "orderId">
 /** Пропозиція з рядками й підсумками — детальний запис картки. */
 export type QuoteCard = Quote & QuoteDetail
 /** Замовлення в списку й шапці картки. */
-export type Order = SalesDocument & Pick<z.output<typeof orderShape>, "dueDate">
+export type Order = SalesDocument &
+  Pick<z.output<typeof orderShape>, "dueDate" | "quoteId">
 /** Замовлення з рядками й підсумками — детальний запис картки. */
 export type OrderCard = Order & OrderDetail

@@ -327,7 +327,17 @@ const documentTransitions = createTransitionHandlers({
   numbering: numbering.forResource({ resource: "documents", db: documents.db }),
 })
 
-/** Потік документів (UI13, ADR-0061): виправлені копії й сторно за зв'язками життєвого циклу. */
+/** Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту. */
+const sales = createSalesMocks({
+  ...salesFixtures,
+  numbering,
+  extension: salesMockExtension,
+})
+
+/**
+ * Потік документів (UI13, ADR-0061) — один на застосунок: «Документ» демо з виправленими копіями й
+ * сторно, пропозиції й замовлення B3 зі зв'язком «на підставі» (ADR-0067).
+ */
 const documentFlow = createDocumentFlowHandlers({
   sources: [
     documentFlowSource({
@@ -341,14 +351,8 @@ const documentFlow = createDocumentFlowHandlers({
         total: { amount: document.amount, currency: document.currency },
       }),
     }),
+    ...sales.flowSources,
   ],
-})
-
-/** Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту. */
-const sales = createSalesMocks({
-  ...salesFixtures,
-  numbering,
-  extension: salesMockExtension,
 })
 
 /** Модуль N1 «Стрічка запису» (ADR-0054): рахунки, обидві картки B1 і пропозиції B3, «Мої справи» бухгалтера демо. */

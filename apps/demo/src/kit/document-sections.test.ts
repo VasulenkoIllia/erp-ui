@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { sectionSums } from "@/registry/erp/document-lines-preview"
 import {
+  copiedDocumentLines,
   documentBodySchemaFor,
   itemLinesOf,
   NOTE_TEXT_MAX,
@@ -144,5 +145,30 @@ describe("суми розділів", () => {
     const lines = [section("s1"), { ...ROW, totals }]
     expect(sectionSums(lines, 2).get("s1")).toBe(1_000)
     expect(sectionSums(lines, 2, true).get("s1")).toBe(3_000)
+  })
+})
+
+describe("копія рядків для нової форми (ADR-0067)", () => {
+  it("ті самі рядки, розділи й нотатки в тому самому порядку з новими id, без сум сервера", () => {
+    const lines = [section("s1"), item("l1", "100"), note("n1")]
+    const sums = computeDocumentTotals(itemLinesOf(lines), 2, body(lines))
+    if (!sums) throw new Error("totals")
+    const saved = savedDocumentBodyLineSchema
+      .array()
+      .parse(
+        lines.map((line, index) =>
+          line.kind === "item"
+            ? { ...line, totals: sums.lines[index - 1] }
+            : line,
+        ),
+      )
+    const copied = copiedDocumentLines(saved)
+    expect(copied.map((line) => line.kind)).toEqual(["section", "item", "note"])
+    expect(copied.some((line) => "totals" in line)).toBe(false)
+    const ids = copied.map((line) => line.id)
+    expect(ids.some((id) => ["s1", "l1", "n1"].includes(id))).toBe(false)
+    expect(new Set(ids).size).toBe(3)
+    expect(copied[1]).toMatchObject({ kind: "item", price: "100" })
+    expect(documentBodySchemaFor(2).safeParse(body(copied)).success).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import type { Path } from "react-hook-form"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
@@ -23,6 +23,7 @@ import { SaveBar } from "@/components/erp/save-bar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
+import { copiedDocumentLines } from "@/lib/document-lines"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
@@ -109,6 +110,12 @@ export interface SalesFormProps<D extends SalesDocument, Due extends string> {
   readonly kind: SalesDocumentKind<D, Due>
   /** Документ, який змінюємо; без нього — створення. */
   readonly document?: D & SalesDocumentDetail
+  /**
+   * Документ, який копіюють («Копіювати», ADR-0067): нова форма з його клієнтом, рядками, знижкою й
+   * полями розширення, дата — сьогодні, друга дата — як у нового. Форма одразу з незбереженими змінами:
+   * документ з'являється лише після «Зберегти». Разом із `document` не діє.
+   */
+  readonly source?: D & SalesDocumentDetail
   /** Валюта документа: базова валюта компанії на момент створення. */
   readonly currency: string
   readonly readOnly: boolean
@@ -130,6 +137,7 @@ export interface SalesFormProps<D extends SalesDocument, Due extends string> {
 export function SalesForm<D extends SalesDocument, Due extends string>({
   kind,
   document,
+  source,
   currency,
   readOnly,
   readOnlyReason,
@@ -165,21 +173,31 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
     }),
     [ext, kind, dueField],
   )
-  // Початкові значення беруться раз: далі форма живе своїм станом (`followRecord`).
-  const [defaultValues] = useState<SalesFormValues>(() => {
+  // Початкові значення беруться раз: далі форма живе своїм станом (`followRecord`). Копія — значення
+  // поверх порожньої форми: вони незбережені, тож «Зберегти» створює документ, а вихід питає.
+  const [{ defaultValues, copied }] = useState(() => {
     const today = todayIn(timeZone)
-    return document
-      ? toValues(document)
-      : {
-          clientId: "",
-          clientName: "",
-          date: today,
-          [dueField]: addDays(today, kind.due.newDays),
-          lines: [],
-          discountPercent: 0,
-          discountAmount: 0,
-          ...ext.values(),
-        }
+    const dates = { date: today, [dueField]: addDays(today, kind.due.newDays) }
+    const blank: SalesFormValues = {
+      clientId: "",
+      clientName: "",
+      ...dates,
+      lines: [],
+      discountPercent: 0,
+      discountAmount: 0,
+      ...ext.values(),
+    }
+    return {
+      defaultValues: document ? toValues(document) : blank,
+      copied:
+        source && !document
+          ? {
+              ...toValues(source),
+              ...dates,
+              lines: copiedDocumentLines(source.lines),
+            }
+          : null,
+    }
   })
   const { form: keys } = kind.keys
   const documentPaths = kind.pathsOf(paths)
@@ -203,6 +221,11 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
       if (document) void navigate(documentPaths.record(document.id))
     },
   })
+  const { form } = state
+  // До першого малювання: порожня форма копії не блимає.
+  useLayoutEffect(() => {
+    if (copied) form.reset(copied, { keepDefaultValues: true })
+  }, [copied, form])
   const moduleItems = useSalesHeaderItems(kind, state.form, readOnly)
   const { control } = state.form
   const header = useMemo(

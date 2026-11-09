@@ -3,7 +3,9 @@
  *
  *   createDocumentFlowHandlers({ sources: [
  *     documentFlowSource({ resource: "quotes", db: quotes.db, node: (quote) => ({ … }) }),
- *     documentFlowSource({ resource: "orders", db: orders.db, node, links: (order) => [ … ] }),
+ *     documentFlowSource({ resource: "orders", db: orders.db, node, links: (order) => [
+ *       ...documentLifecycleLinks("orders")(order), { kind: "basedOn", resource: "quotes", id: … },
+ *     ] }),
  *   ] })
  *
  * - Джерела — у порядку процесу: так іде й відповідь, тип за типом. У типі — за датою, від старшого; за
@@ -104,8 +106,11 @@ const stringField = (record: MockRecord, field: string) => {
   return typeof value === "string" && value ? value : undefined
 }
 
-/** Зв'язки життєвого циклу (ADR-0057) одного ресурсу. */
-const lifecycleLinks =
+/**
+ * Зв'язки життєвого циклу (ADR-0057) одного ресурсу — `links` джерела за замовчуванням; модуль зі
+ * своїм зв'язком (`basedOn`) додає його до них.
+ */
+export const documentLifecycleLinks =
   (resource: string) =>
   (record: MockRecord): DocumentFlowLink[] =>
     (["amendedFrom", "reversalOf"] as const).flatMap((kind) => {
@@ -125,7 +130,7 @@ export function documentFlowSource<T extends MockRecord>({
   resource,
   db,
   node,
-  links = lifecycleLinks(resource),
+  links = documentLifecycleLinks(resource),
   related = lifecycleRelated(resource),
 }: DocumentFlowSourceOptions<T>): DocumentFlowMockSource {
   return {

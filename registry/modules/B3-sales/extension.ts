@@ -47,9 +47,9 @@ export interface SalesDocumentIds<Due extends string = string> {
   tab: "all" | (string & {})
   /** Ключові поля шапки картки. */
   field: "client" | "date" | Due | "total"
-  /** Секції картки. */
-  section: "lines"
-  action: "edit" | "delete" | "print"
+  /** Секції картки: рядки й потік документів (ADR-0061). */
+  section: "lines" | "flow"
+  action: "edit" | "copy" | "delete" | "print"
   /** Поля форми шапки (ключ — ім'я поля запису); рядки й знижка документа — редактор рядків. */
   formField: "clientId" | "date" | Due
 }

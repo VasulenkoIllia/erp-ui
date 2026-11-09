@@ -7,7 +7,7 @@ import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton } from "@/components/erp/page-state"
 import { RecordStatusBar } from "@/components/erp/record-header"
 import { RecordHistory } from "@/components/erp/record-history"
-import { BackToList } from "@/components/erp/record-link"
+import { BackToList, RecordLink } from "@/components/erp/record-link"
 import {
   ObjectPage,
   useRecordSlots,
@@ -22,7 +22,9 @@ import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import type { ResolvedStatuses } from "@/lib/statuses"
 
+import { useSalesLockedReason } from "../components/sales-access"
 import { useSalesTitle } from "../components/sales-display"
+import { SalesFlow } from "../components/sales-flow"
 import {
   useSalesHeader,
   useSalesPaletteActions,
@@ -52,9 +54,10 @@ export function OrderPage() {
 
 /**
  * Картка документа продажу на шаблоні Object Page (SPEC §7; ADR-0057, ADR-0062): шапка з номером і
- * статусом, етапи, панель дій графа, рядки лише для читання з підсумками сервера, «Історія» з журналу
- * аудиту чи стрічка зі слота `aside` (ADR-0054) — праворуч на широкому, вкладкою на вузькому. Новий
- * документ після «Виправити» — його картка.
+ * статусом, етапи, панель дій графа, рядки лише для читання з підсумками сервера, потік документів
+ * (ADR-0061), «Історія» з журналу аудиту чи стрічка зі слота `aside` (ADR-0054) — праворуч на широкому,
+ * вкладкою на вузькому. Новий документ після «Виправити» — його картка, після «Створити замовлення» —
+ * картка замовлення.
  */
 function SalesRecordPage<D extends SalesDocument, Due extends string>({
   kind,
@@ -110,7 +113,20 @@ function useCompare<D extends SalesDocument, Due extends string>(
       }))
 }
 
-/** Етапи основного шляху й панель дій графа під шапкою картки. */
+/** `id` документа, створеного з цього (`kind.creates`): поле зв'язку, яке веде сервер. */
+function createdIdOf<D extends SalesDocument, Due extends string>(
+  kind: SalesDocumentKind<D, Due>,
+  document: D,
+): string | undefined {
+  const value: unknown = kind.creates ? document[kind.creates.field] : undefined
+  return typeof value === "string" && value ? value : undefined
+}
+
+/**
+ * Етапи основного шляху й панель дій графа під шапкою картки; причини заборон — словами модуля. Є
+ * документ, створений із цього (замовлення з пропозиції), — посилання на нього під панеллю: кнопка
+ * створити вдруге неактивна з причиною.
+ */
 function SalesStatusBar<D extends SalesDocument, Due extends string>({
   kind,
   document,
@@ -125,6 +141,8 @@ function SalesStatusBar<D extends SalesDocument, Due extends string>({
   const { paths } = useSalesModule()
   const transitions = useSalesTransitions(kind)
   const compare = useCompare(kind, statuses)
+  const lockedReason = useSalesLockedReason(kind)
+  const createdId = createdIdOf(kind, document)
   return (
     <div className="grid gap-3">
       <RecordStatusBar
@@ -140,11 +158,23 @@ function SalesStatusBar<D extends SalesDocument, Due extends string>({
         record={document}
         transitions={transitions}
         compare={compare}
-        // Виправлена копія — нова картка: фокус на її заголовок ставить перехід.
-        onCreated={(created: RaRecord) => {
-          void navigate(kind.pathsOf(paths).record(String(created.id)))
+        lockedReason={lockedReason}
+        // Виправлена копія чи створене замовлення — нова картка: фокус на її заголовок ставить перехід.
+        onCreated={(created: RaRecord, action: string) => {
+          const card =
+            kind.creates?.action === action
+              ? kind.creates.path(paths)
+              : kind.pathsOf(paths).record
+          void navigate(card(String(created.id)))
         }}
       />
+      {kind.creates && createdId ? (
+        <p className="text-sm">
+          <RecordLink to={kind.creates.path(paths)(createdId)}>
+            {t(kind.creates.open)}
+          </RecordLink>
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -200,6 +230,11 @@ function SalesCard<D extends SalesDocument, Due extends string>({
               }}
             />
           ),
+        },
+        {
+          id: "flow",
+          title: t(`${keys}.sections.flow`),
+          content: <SalesFlow kind={kind} id={id} />,
         },
       ]
     : []

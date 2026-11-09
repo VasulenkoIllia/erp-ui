@@ -300,7 +300,7 @@ export const CODE_ITEMS = {
   "lib/document-lines": {
     title: "Контракт рядка документа",
     description:
-      "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor; ті самі перевірки сум (lineTotalsCheck, linesTotalsCheck, bodyTotalsCheck) бере схема форми з текстами мовою інтерфейсу; вид рядка kind: товар, заголовок розділу чи нотатка серед рядків, у суми йдуть лише товари (itemLinesOf), збережені рядки тіла — savedDocumentBodyLineSchema (ADR-0056, ADR-0059, ADR-0060).",
+      "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor; ті самі перевірки сум (lineTotalsCheck, linesTotalsCheck, bodyTotalsCheck) бере схема форми з текстами мовою інтерфейсу; вид рядка kind: товар, заголовок розділу чи нотатка серед рядків, у суми йдуть лише товари (itemLinesOf), збережені рядки тіла — savedDocumentBodyLineSchema; newDocumentLineId — тимчасовий id нового рядка, copiedDocumentLines — рядки іншого документа для нової форми з новими id і без сум сервера (ADR-0056, ADR-0059, ADR-0060, ADR-0067).",
     status: "beta",
     demo: "documentLines",
     spec: ["UI05", "§17"],
@@ -652,7 +652,7 @@ export const CODE_ITEMS = {
   "hooks/use-record-transition": {
     title: "Дія за графом переходів",
     description:
-      "useRecordTransition({ resource, record, onCreated }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом, 409 — дані для порівняння, повтор із новою версією; новий документ після amend і reverse (ADR-0057).",
+      "useRecordTransition({ resource, record, onCreated, lockedReason }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом (словами модуля, якщо дав lockedReason), 409 — дані для порівняння, повтор із новою версією; новий документ після amend, reverse і дії з creates — onCreated, списки ресурсу creates перечитуються (ADR-0057, ADR-0067).",
     status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4"],
@@ -660,7 +660,7 @@ export const CODE_ITEMS = {
   "hooks/use-record-access": {
     title: "Дія над записом",
     description:
-      "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку (ADR-0037).",
+      "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку, зі словами модуля для своїх кодів (RecordDenialText, ADR-0037, ADR-0067).",
     status: "beta",
     demo: "contacts",
     spec: ["§8.4", "§17", "A2"],
@@ -685,7 +685,7 @@ export const CODE_ITEMS = {
     title: "Потік документа з сервера",
     description:
       "useDocumentFlow(resource, id): GET /<ресурс>/:id/flow через getDocumentFlow провайдера, ключ запиту від ресурсу, тож дія над документом і подія каналу про нього перечитують потік; показує його erp/document-flow (UI13, ADR-0061).",
-    status: "draft",
+    status: "beta",
     demo: "document",
     spec: ["UI13", "§17"],
   },
@@ -1061,22 +1061,22 @@ export const CODE_ITEMS = {
     title: "Зв'язки документів і потік",
     description:
       "Контракт UI13: GET /<ресурс>/:id/flow — документ і пов'язані з ним у порядку процесу; документ запиту є завжди; access granted, forbidden (лише тип, номер і зв'язки) чи deleted; links basedOn, amendedFrom, reversalOf; не більше DOCUMENT_FLOW_LIMIT із truncated, повтори відкидаються; documentFlowSteps — кроки за типами, ключ запиту від ресурсу, isDocumentFlowQueryKey (ADR-0061).",
-    status: "draft",
+    status: "beta",
     demo: "documentFlow",
     spec: ["UI13", "§17"],
   },
   "lib/mock-document-flow": {
     title: "Мок потоку документів",
     description:
-      "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу; запису немає — deleted, невидимий людині — forbidden з номером, іншої компанії — не потрапляє; одне читання сховища на запит; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
-    status: "draft",
+      "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу (documentLifecycleLinks — до них модуль додає свій basedOn); запису немає — deleted, невидимий людині — forbidden з номером, іншої компанії — не потрапляє; одне читання сховища на запит; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
+    status: "beta",
     demo: "document",
     spec: ["UI13", "§17"],
   },
   "lib/mock-transitions": {
     title: "Мок дій за графом переходів",
     description:
-      "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066).",
+      "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066); дія з creates — документ іншого ресурсу на підставі запису (mockCreatedDocument: чернетка, право <ресурс>:create, позначка на першому, 201; ADR-0061, ADR-0067).",
     status: "beta",
     demo: "document",
     spec: ["PF03", "§17"],
@@ -1184,7 +1184,7 @@ export const CODE_ITEMS = {
   "lib/statuses": {
     title: "Статуси запису модуля",
     description:
-      "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason? }, розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
+      "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason?, creates? } (creates — ресурс документа, який дія створює на підставі цього, ADR-0067), розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
     status: "beta",
     demo: "contacts",
     spec: ["§6.3", "§17"],
@@ -2549,7 +2549,7 @@ export const CODE_ITEMS = {
   "erp/document-action-bar": {
     title: "Панель дій документа",
     description:
-      "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057).",
+      "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057); причини заборон записом словами модуля — lockedReason; дія з creates (замовлення з пропозиції) веде до нового документа через onCreated (ADR-0067).",
     status: "beta",
     demo: "document",
     spec: ["PF03", "§8.2", "§8.4", "§9", "§10"],
@@ -2566,7 +2566,7 @@ export const CODE_ITEMS = {
     title: "Потік документів",
     description:
       "DocumentFlow: ланцюг пов'язаних документів на картці за типами в порядку процесу, статус кожного (статуси модуля чи стан кіта), дата й сума, звідки документ (на підставі, виправлена копія, сторно), перехід на картку посиланням; поточний позначено; без права читати й видалений — позначка без посилання; з контейнера 56rem кроки рядком, вужче вертикально; стани завантаження, порожньо, помилка, офлайн (зокрема запит на паузі без мережі), немає права, не вдалося оновити, обрізаний потік; «Спробувати ще» лишає фокус у потоці. DocumentFlowView — те саме з даними модуля, запит — hooks/use-document-flow (UI13, ADR-0061).",
-    status: "draft",
+    status: "beta",
     demo: "documentFlow",
     spec: ["UI13", "§8.1", "§9", "§10", "§11"],
   },
@@ -2574,7 +2574,7 @@ export const CODE_ITEMS = {
     title: "Документ у потоці",
     description:
       "DocumentFlowItem: номер посиланням на картку, бейдж статусу, дата й сума, підписи зв'язків; позначки «Немає доступу» й «Видалено» без посилання, «Цей документ» без посилання. Частина erp/document-flow, окремо не ставиться (UI13, ADR-0061).",
-    status: "draft",
+    status: "beta",
     demo: "documentFlow",
     spec: ["UI13", "§10"],
   },
@@ -3221,15 +3221,15 @@ export const MODULE_ITEMS = {
   "modules/B3-sales": {
     title: "Пропозиції й замовлення (B3)",
     description:
-      "Модуль, розділи «Пропозиції» й «Замовлення» на спільних сторінках документа продажу: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, позначка минулої другої дати — «Термін минув» у надісланої пропозиції, «Прострочено» в підтвердженого замовлення; масові дії графа й «Видалити» чернетки зі звітом про невдалі), картка на Object Page (номер, етапи, панель дій графа: пропозиція — «Надіслати», «Клієнт прийняв», «Клієнт відхилив», замовлення — «Підтвердити», «Позначити виконаним»; «Скасувати» з причиною, «Виправити»; «Видалити чернетку»; рядки лише для читання з підсумками сервера; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до» чи «Виконати до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями, засівом серій нумерації quotes і orders та масовими діями, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension (quotes і orders): поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065, ADR-0066, ADR-0067).",
+      "Модуль, розділи «Пропозиції» й «Замовлення» на спільних сторінках документа продажу: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, позначка минулої другої дати — «Термін минув» у надісланої пропозиції, «Прострочено» в підтвердженого замовлення; масові дії графа й «Видалити» чернетки зі звітом про невдалі), картка на Object Page (номер, етапи, панель дій графа: пропозиція — «Надіслати», «Клієнт прийняв», «Клієнт відхилив», замовлення — «Підтвердити», «Позначити виконаним»; «Скасувати» з причиною, «Виправити»; «Видалити чернетку»; «Створити замовлення» з прийнятої пропозиції — чернетка з клієнтом і рядками, зв'язок «на підставі», повторно — неактивне з причиною й посиланням на замовлення, пропозицію із замовленням не скасувати; «Копіювати» — заповнена форма, документ лише після збереження; рядки лише для читання з підсумками сервера; потік документів; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до» чи «Виконати до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями, засівом серій нумерації quotes і orders та масовими діями, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension (quotes і orders): поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065, ADR-0066, ADR-0067).",
     status: "beta",
     demo: "salesModule",
     spec: ["§7", "§14", "§17"],
     docs: [
       "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension, ключі quotes і orders).",
       "1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункти «Пропозиції» й «Замовлення» з access — лише тому, хто має право).",
-      "2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker.",
-      "3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, cancel, amend), orders (read, create, update, delete, submit, complete, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
+      "2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker; flowSources — у createDocumentFlowHandlers застосунку (@/lib/mock-document-flow, потік документів на картках).",
+      "3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, order — «Створити замовлення», ще й orders:create, cancel, amend), orders (read, create, update, delete, submit, complete, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
     ].join("\n"),
   },
 }

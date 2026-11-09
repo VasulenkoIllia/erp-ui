@@ -9514,7 +9514,7 @@
       "name": "modules/B3-sales",
       "type": "registry:item",
       "title": "Пропозиції й замовлення (B3)",
-      "description": "Модуль, розділи «Пропозиції» й «Замовлення» на спільних сторінках документа продажу: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, позначка минулої другої дати — «Термін минув» у надісланої пропозиції, «Прострочено» в підтвердженого замовлення; масові дії графа й «Видалити» чернетки зі звітом про невдалі), картка на Object Page (номер, етапи, панель дій графа: пропозиція — «Надіслати», «Клієнт прийняв», «Клієнт відхилив», замовлення — «Підтвердити», «Позначити виконаним»; «Скасувати» з причиною, «Виправити»; «Видалити чернетку»; рядки лише для читання з підсумками сервера; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до» чи «Виконати до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями, засівом серій нумерації quotes і orders та масовими діями, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension (quotes і orders): поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065, ADR-0066, ADR-0067).",
+      "description": "Модуль, розділи «Пропозиції» й «Замовлення» на спільних сторінках документа продажу: список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом, позначка минулої другої дати — «Термін минув» у надісланої пропозиції, «Прострочено» в підтвердженого замовлення; масові дії графа й «Видалити» чернетки зі звітом про невдалі), картка на Object Page (номер, етапи, панель дій графа: пропозиція — «Надіслати», «Клієнт прийняв», «Клієнт відхилив», замовлення — «Підтвердити», «Позначити виконаним»; «Скасувати» з причиною, «Виправити»; «Видалити чернетку»; «Створити замовлення» з прийнятої пропозиції — чернетка з клієнтом і рядками, зв'язок «на підставі», повторно — неактивне з причиною й посиланням на замовлення, пропозицію із замовленням не скасувати; «Копіювати» — заповнена форма, документ лише після збереження; рядки лише для читання з підсумками сервера; потік документів; історія чи стрічка зі слота), форма на сторінці (клієнт із ресурсу проекту, дата, «Дійсна до» чи «Виконати до», редактор рядків із розділами й нотатками, знижка документа, конфлікт 409, «Редагує …»), друк на аркуші A4 мовою документа; контракт, моки зі сценаріями, засівом серій нумерації quotes і orders та масовими діями, фікстури uk/en, рядки uk/en; фабрика createSalesModule, тип розширення SalesExtension (quotes і orders): поля, статуси, переходи, колонки, фільтри, вкладки, шапка, секції, дії, стрічка, форма (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0065, ADR-0066, ADR-0067).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -9627,6 +9627,16 @@
           "path": "registry/erp/document-discount-field.tsx",
           "type": "registry:component",
           "target": "@components/erp/document-discount-field.tsx"
+        },
+        {
+          "path": "registry/erp/document-flow.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-flow.tsx"
+        },
+        {
+          "path": "registry/erp/document-flow-item.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/document-flow-item.tsx"
         },
         {
           "path": "registry/erp/document-line-fields.tsx",
@@ -9862,6 +9872,11 @@
           "path": "registry/hooks/use-company-profile.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company-profile.ts"
+        },
+        {
+          "path": "registry/hooks/use-document-flow.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-document-flow.ts"
         },
         {
           "path": "registry/hooks/use-edit-lock.ts",
@@ -10354,6 +10369,11 @@
           "target": "@lib/mock-company-roles.ts"
         },
         {
+          "path": "registry/lib/mock-document-flow.ts",
+          "type": "registry:lib",
+          "target": "@lib/mock-document-flow.ts"
+        },
+        {
           "path": "registry/lib/mock-factors.ts",
           "type": "registry:lib",
           "target": "@lib/mock-factors.ts"
@@ -10824,6 +10844,11 @@
           "target": "~/src/modules/B3-sales/components/sales-display.tsx"
         },
         {
+          "path": "registry/modules/B3-sales/components/sales-flow.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/B3-sales/components/sales-flow.tsx"
+        },
+        {
           "path": "registry/modules/B3-sales/components/sales-form-items.tsx",
           "type": "registry:file",
           "target": "~/src/modules/B3-sales/components/sales-form-items.tsx"
@@ -10884,6 +10909,11 @@
           "target": "~/src/modules/B3-sales/index.ts"
         },
         {
+          "path": "registry/modules/B3-sales/mock-links.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/B3-sales/mock-links.ts"
+        },
+        {
           "path": "registry/modules/B3-sales/mocks.ts",
           "type": "registry:file",
           "target": "~/src/modules/B3-sales/mocks.ts"
@@ -10939,7 +10969,7 @@
           "target": "~/src/modules/B3-sales/use-sales-t.ts"
         }
       ],
-      "docs": "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension, ключі quotes і orders).\n1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункти «Пропозиції» й «Замовлення» з access — лише тому, хто має право).\n2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker.\n3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, cancel, amend), orders (read, create, update, delete, submit, complete, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
+      "docs": "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension, ключі quotes і orders).\n1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункти «Пропозиції» й «Замовлення» з access — лише тому, хто має право).\n2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker; flowSources — у createDocumentFlowHandlers застосунку (@/lib/mock-document-flow, потік документів на картках).\n3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, order — «Створити замовлення», ще й orders:create, cancel, amend), orders (read, create, update, delete, submit, complete, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
       "meta": {
         "layer": "modules",
         "status": "beta",
@@ -16846,7 +16876,7 @@
       "name": "lib/document-lines",
       "type": "registry:lib",
       "title": "Контракт рядка документа",
-      "description": "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor; ті самі перевірки сум (lineTotalsCheck, linesTotalsCheck, bodyTotalsCheck) бере схема форми з текстами мовою інтерфейсу; вид рядка kind: товар, заголовок розділу чи нотатка серед рядків, у суми йдуть лише товари (itemLinesOf), збережені рядки тіла — savedDocumentBodyLineSchema (ADR-0056, ADR-0059, ADR-0060).",
+      "description": "Спільні zod-схеми пропозиції, замовлення й рахунку: кількість і ціна десятковими рядками, вільний текст чи запис ресурсу проекту, знімок одиниці й податку, знижка відсотком або сумою (одне з двох), суми рядка окремим об'єктом totals, підсумки документа, перевірка межі суми й знижки разом за рядками, тіло документа зі знижкою на документ — documentBodySchemaFor; ті самі перевірки сум (lineTotalsCheck, linesTotalsCheck, bodyTotalsCheck) бере схема форми з текстами мовою інтерфейсу; вид рядка kind: товар, заголовок розділу чи нотатка серед рядків, у суми йдуть лише товари (itemLinesOf), збережені рядки тіла — savedDocumentBodyLineSchema; newDocumentLineId — тимчасовий id нового рядка, copiedDocumentLines — рядки іншого документа для нової форми з новими id і без сум сервера (ADR-0056, ADR-0059, ADR-0060, ADR-0067).",
       "dependencies": [
         "zod@^4.6.6"
       ],
@@ -16924,7 +16954,7 @@
       ],
       "meta": {
         "layer": "lib",
-        "status": "draft",
+        "status": "beta",
         "demo": "documentFlow",
         "spec": [
           "UI13",
@@ -23988,7 +24018,7 @@
       "name": "lib/mock-document-flow",
       "type": "registry:lib",
       "title": "Мок потоку документів",
-      "description": "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу; запису немає — deleted, невидимий людині — forbidden з номером, іншої компанії — не потрапляє; одне читання сховища на запит; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
+      "description": "createDocumentFlowHandlers і documentFlowSource: GET /<ресурс>/:id/flow за зв'язками записів мок-ресурсів в обидва боки, за замовчуванням зв'язки життєвого циклу (documentLifecycleLinks — до них модуль додає свій basedOn); запису немає — deleted, невидимий людині — forbidden з номером, іншої компанії — не потрапляє; одне читання сховища на запит; сценарії моків, 403 і 404 за контрактом (ADR-0061).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -24467,7 +24497,7 @@
       ],
       "meta": {
         "layer": "lib",
-        "status": "draft",
+        "status": "beta",
         "demo": "document",
         "spec": [
           "UI13",
@@ -34004,7 +34034,7 @@
       "name": "lib/mock-transitions",
       "type": "registry:lib",
       "title": "Мок дій за графом переходів",
-      "description": "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066).",
+      "description": "createTransitionHandlers: POST /<ресурс>/:id/<дія> з перевірками контракту, сценаріями моків і зміною колеги для conflict; виправлена копія й сторно через db; documentDeniedActions — позначки життєвого циклу (ADR-0057); bulkTransitionActions — дії графа масово без версії, releaseAmendedFrom — видалена виправлена копія звільняє перший документ (ADR-0066); дія з creates — документ іншого ресурсу на підставі запису (mockCreatedDocument: чернетка, право <ресурс>:create, позначка на першому, 201; ADR-0061, ADR-0067).",
       "dependencies": [
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
@@ -37250,7 +37280,7 @@
       "name": "lib/statuses",
       "type": "registry:lib",
       "title": "Статуси запису модуля",
-      "description": "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason? }, розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
+      "description": "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason?, creates? } (creates — ресурс документа, який дія створює на підставі цього, ADR-0067), розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
       "dependencies": [
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
@@ -39504,7 +39534,7 @@
       ],
       "meta": {
         "layer": "hooks",
-        "status": "draft",
+        "status": "beta",
         "demo": "document",
         "spec": [
           "UI13",
@@ -42987,7 +43017,7 @@
       "name": "hooks/use-record-access",
       "type": "registry:hook",
       "title": "Дія над записом",
-      "description": "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку (ADR-0037).",
+      "description": "useRecordAccess({ resource, action, record }): право ролі (useCanAccess) і позначка сервера на записі (deniedActions) разом — canAccess, isPending і причина заборони запису текстом для неактивної дії (SPEC §8.4); useRecordDenialReason — причина для комірок списку, зі словами модуля для своїх кодів (RecordDenialText, ADR-0037, ADR-0067).",
       "dependencies": [
         "i18next@^26.4.4",
         "ra-core@^5.15.4",
@@ -43816,7 +43846,7 @@
       "name": "hooks/use-record-transition",
       "type": "registry:hook",
       "title": "Дія за графом переходів",
-      "description": "useRecordTransition({ resource, record, onCreated }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом, 409 — дані для порівняння, повтор із новою версією; новий документ після amend і reverse (ADR-0057).",
+      "description": "useRecordTransition({ resource, record, onCreated, lockedReason }): POST /<ресурс>/:id/<дія> з версією й причиною, одна дія за раз; 403 — причина з позначки current на кнопці й текстом (словами модуля, якщо дав lockedReason), 409 — дані для порівняння, повтор із новою версією; новий документ після amend, reverse і дії з creates — onCreated, списки ресурсу creates перечитуються (ADR-0057, ADR-0067).",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "i18next@^26.4.4",
@@ -57930,7 +57960,7 @@
       "name": "erp/document-action-bar",
       "type": "registry:component",
       "title": "Панель дій документа",
-      "description": "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057).",
+      "description": "DocumentActionBar: дії графа переходів зі статусу запису, основна першою; без права чи з забороною сервера — неактивна з причиною, на вузькому контейнері ще й видимим рядком; підтвердження з причиною; відмова сервера на кнопці, конфлікт версій — порівняння (PF03, ADR-0057); причини заборон записом словами модуля — lockedReason; дія з creates (замовлення з пропозиції) веде до нового документа через onCreated (ADR-0067).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -59535,7 +59565,7 @@
       ],
       "meta": {
         "layer": "erp",
-        "status": "draft",
+        "status": "beta",
         "demo": "documentFlow",
         "spec": [
           "UI13",
@@ -59959,7 +59989,7 @@
       ],
       "meta": {
         "layer": "erp",
-        "status": "draft",
+        "status": "beta",
         "demo": "documentFlow",
         "spec": [
           "UI13",

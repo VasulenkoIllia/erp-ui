@@ -1,11 +1,12 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
-import { useEffect, useEffectEvent, useState } from "react"
-import { useParams } from "react-router"
+import { useEffect, useEffectEvent, useState, type ReactNode } from "react"
+import { useParams, useSearchParams } from "react-router"
 
 import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { BackToList } from "@/components/erp/record-link"
 import { ListReportHeader } from "@/components/templates/list-report"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { useEditLock } from "@/hooks/use-edit-lock"
@@ -18,7 +19,12 @@ import { SalesForm } from "../components/sales-form"
 import { useSalesDetail } from "../components/sales-lines"
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
-import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
+import {
+  COPY_PARAM,
+  ORDER_KIND,
+  QUOTE_KIND,
+  type SalesDocumentKind,
+} from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
 /** Компанія без базової валюти (профіль ще не налаштовано): гривня, як у модулі A1. */
@@ -35,7 +41,8 @@ export function OrderFormPage() {
 }
 
 /**
- * Сторінка форми документа продажу (SPEC §7, ADR-0047): створення (`…/new`) і зміна чернетки
+ * Сторінка форми документа продажу (SPEC §7, ADR-0047): створення (`…/new`), копія документа
+ * (`…/new?copy=<id>`, ADR-0067: заповнена форма, документ — лише після «Зберегти») і зміна чернетки
  * (`…/:id/edit`). Зміна бере блокування «Редагує …» (ADR-0051) на час сторінки; проведений документ,
  * запис без права чи взятий іншою людиною — та сама форма лише для читання з причиною.
  */
@@ -55,6 +62,53 @@ function SalesFormPage<D extends SalesDocument, Due extends string>({
   )
 }
 
+/**
+ * Документ із рядками для форми (зміна чи копія): `fallback` — стан запиту картки (помилка, скелетон,
+ * рядки не за контрактом), інакше `ready` — документ із рядками.
+ */
+function useFormSource<D extends SalesDocument, Due extends string>(
+  kind: SalesDocumentKind<D, Due>,
+  id: string,
+) {
+  const t = useSalesT()
+  const card = useCardRecord<D & Partial<SalesDocumentDetail>>(
+    kind.resource,
+    id,
+  )
+  const document = card.record
+  const detail = useSalesDetail(document)
+  const pageError = card.pageError
+  const fallback: ReactNode =
+    pageError !== undefined ? (
+      <PageState
+        kind={
+          isApiError(pageError) && pageError.status === 404
+            ? "not-found"
+            : errorStateKind(pageError)
+        }
+        onRetry={card.retry}
+      />
+    ) : !document || (!detail && card.isFetching) ? (
+      <PageSkeleton rows={6} />
+    ) : !detail ? (
+      // Відповіді картки з рядками немає: помилка запиту.
+      <PageState
+        kind={card.failure ? errorStateKind(card.failure) : "error"}
+        onRetry={card.retry}
+      />
+    ) : !detail.success ? (
+      // Рядки не за контрактом: форма не відкривається, щоб не зберегти зіпсоване.
+      <PageState
+        kind="error"
+        title={t(`${kind.keys.record}.linesInvalid`)}
+        onRetry={card.retry}
+      />
+    ) : null
+  const ready: (D & SalesDocumentDetail) | undefined =
+    document && detail?.success ? { ...document, ...detail.data } : undefined
+  return { card, document, ready, fallback }
+}
+
 function NewDocument<D extends SalesDocument, Due extends string>({
   kind,
 }: {
@@ -62,10 +116,13 @@ function NewDocument<D extends SalesDocument, Due extends string>({
 }) {
   const t = useSalesT()
   const { paths } = useSalesModule()
+  const [params] = useSearchParams()
+  const copyId = params.get(COPY_PARAM)
   const { list, record, form } = kind.keys
   const heading = usePageHeading(t(`${form}.createTitle`))
   const company = useCompanyProfile()
   const access = useCanAccess({ resource: kind.resource, action: "create" })
+  const currency = company.data?.baseCurrency ?? FALLBACK_CURRENCY
   const body =
     company.isPending || access.isPending ? (
       <PageSkeleton rows={6} />
@@ -76,19 +133,57 @@ function NewDocument<D extends SalesDocument, Due extends string>({
         kind={errorStateKind(company.error)}
         onRetry={() => void company.refetch()}
       />
-    ) : (
-      <SalesForm
+    ) : copyId ? (
+      // Інший документ у тій самій адресі — нова форма: значення копії беруться раз.
+      <CopiedDocument
+        key={copyId}
         kind={kind}
-        currency={company.data.baseCurrency ?? FALLBACK_CURRENCY}
-        readOnly={false}
-        mayEdit
+        id={copyId}
+        currency={currency}
       />
+    ) : (
+      <SalesForm kind={kind} currency={currency} readOnly={false} mayEdit />
     )
   return (
     <div className="space-y-6">
       <BackToList to={kind.pathsOf(paths).list} label={t(`${record}.back`)} />
       <ListReportHeader title={t(`${form}.createTitle`)} headingRef={heading} />
       {body}
+    </div>
+  )
+}
+
+/**
+ * Копія документа (ADR-0067): нова форма з його клієнтом, рядками, знижкою й полями розширення, дата —
+ * сьогодні; документ з'являється лише після «Зберегти». Валюта — базова валюта компанії, як у нового.
+ */
+function CopiedDocument<D extends SalesDocument, Due extends string>({
+  kind,
+  id,
+  currency,
+}: {
+  kind: SalesDocumentKind<D, Due>
+  id: string
+  currency: string
+}) {
+  const t = useSalesT()
+  const titleOf = useSalesTitle(kind)
+  const source = useFormSource(kind, id)
+  if (source.fallback !== null || !source.ready) return source.fallback
+  return (
+    <div className="grid gap-6">
+      <Alert>
+        <AlertDescription>
+          {t(`${kind.keys.form}.copyOf`, { title: titleOf(source.ready) })}
+        </AlertDescription>
+      </Alert>
+      <SalesForm
+        kind={kind}
+        source={source.ready}
+        currency={currency}
+        readOnly={false}
+        mayEdit
+      />
     </div>
   )
 }
@@ -104,12 +199,7 @@ function EditDocument<D extends SalesDocument, Due extends string>({
   const titleOf = useSalesTitle(kind)
   const { extension, paths } = useSalesModule()
   const { record: keys, form } = kind.keys
-  const card = useCardRecord<D & Partial<SalesDocumentDetail>>(
-    kind.resource,
-    id,
-  )
-  const document = card.record
-  const detail = useSalesDetail(document)
+  const { card, document, ready, fallback } = useFormSource(kind, id)
   const title = document
     ? t(`${form}.editTitle`, { title: titleOf(document) })
     : t(`${keys}.title`)
@@ -143,37 +233,15 @@ function EditDocument<D extends SalesDocument, Due extends string>({
     : access.canAccess
       ? lock.reason
       : (access.recordReason ?? t(`${keys}.editDenied`))
-  const pageError = card.pageError
   const body =
-    pageError !== undefined ? (
-      <PageState
-        kind={
-          isApiError(pageError) && pageError.status === 404
-            ? "not-found"
-            : errorStateKind(pageError)
-        }
-        onRetry={card.retry}
-      />
-    ) : !document || access.isPending || (!detail && card.isFetching) ? (
+    fallback ??
+    (!ready || access.isPending ? (
       <PageSkeleton rows={6} />
-    ) : !detail ? (
-      // Відповіді картки з рядками немає: помилка запиту.
-      <PageState
-        kind={card.failure ? errorStateKind(card.failure) : "error"}
-        onRetry={card.retry}
-      />
-    ) : !detail.success ? (
-      // Рядки не за контрактом: форма не відкривається, щоб не зберегти зіпсоване.
-      <PageState
-        kind="error"
-        title={t(`${keys}.linesInvalid`)}
-        onRetry={card.retry}
-      />
     ) : (
       <SalesForm
         kind={kind}
-        document={{ ...document, ...detail.data }}
-        currency={document.currency}
+        document={ready}
+        currency={ready.currency}
         readOnly={
           reason !== undefined ||
           lock.isAcquiring ||
@@ -182,7 +250,7 @@ function EditDocument<D extends SalesDocument, Due extends string>({
         readOnlyReason={reason}
         mayEdit={mayEdit}
       />
-    )
+    ))
   return (
     <div className="space-y-6">
       <BackToList
