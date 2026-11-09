@@ -35,8 +35,8 @@ const COMPANY: CompanyProfile = {
   iban: "UA213223130000026007233566001",
   bankName: "АТ «Демо Банк»",
   address: "01001, м. Київ, вул. Зоряна, 1",
-  director: { name: "Олена Коваль", position: "Директор" },
-  accountant: "Ірина Шевчук",
+  director: { name: "Коваль Олена Вікторівна", position: "Директор" },
+  accountant: "Шевчук Ірина Петрівна",
   logoUrl: "logo.svg",
   stampUrl: "stamp.svg",
   branches: [],
@@ -249,7 +249,9 @@ describe("реквізити, логотип і печатка", () => {
   it("підписи директора й бухгалтера з печаткою; без печатки й без директора", () => {
     const { rerender } = render(<PrintSignatures company={COMPANY} />)
     expect(screen.getByText("Директор")).toBeInTheDocument()
-    expect(screen.getByText("Ірина Шевчук")).toBeInTheDocument()
+    // Підпис з ПІБ — ім'я й прізвище великими (SPEC §11, UI45).
+    expect(screen.getByText("Олена КОВАЛЬ")).toBeInTheDocument()
+    expect(screen.getByText("Ірина ШЕВЧУК")).toBeInTheDocument()
     expect(
       screen.getByRole("img", { name: "Печатка: ТОВ «Зоряна логістика»" }),
     ).toHaveAttribute("src", "stamp.svg")

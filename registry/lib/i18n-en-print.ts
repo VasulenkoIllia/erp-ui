@@ -43,6 +43,14 @@ export const enPrint = {
       inWords: "Total amount: {{amount}}",
       accountant: "Chief accountant",
       signature: "Signature",
+      party: {
+        title: "Details and signatures of the parties",
+        customer: "Customer",
+        contractor: "Contractor",
+        representedBy: "represented by {{value}}",
+        basis: "acting under {{value}}",
+        as: "(the “{{role}}”)",
+      },
     },
   },
 }

@@ -6,6 +6,7 @@
 import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
 import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
@@ -1207,6 +1208,8 @@ export const uk = {
     directorName: "Керівник (ПІБ)",
     directorPosition: "Посада керівника",
     accountant: "Головний бухгалтер (ПІБ)",
+    fullNameHint:
+      "Прізвище, ім'я, по батькові: на документах підпис «Олена КОВАЛЬ»",
     palette: "Палітра компанії",
     paletteNone: "Як у бренду",
     paletteHint:
@@ -1460,6 +1463,7 @@ export const uk = {
   ...ukDocumentLines,
   ...ukNumbering,
   ...ukPrint,
+  ...ukParty,
 }
 
 export type ErpUiMessages = typeof uk

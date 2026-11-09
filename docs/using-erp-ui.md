@@ -1058,6 +1058,37 @@ const state = order && company ? undefined : error ? errorStateKind(error) : "lo
   браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
 - Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
 
+### Реквізити сторін (ADR-0068)
+
+Сторона документа (`lib/document-parties`, `PartyDetails`) — знімок у документі: вид, назва, код, ІПН, IBAN і банк, адреса,
+контакти, підписант, «в особі» в родовому відмінку (вручну, одним полем) і «діє на підставі». Наша компанія виступає
+замовником чи виконавцем, контрагент — другою роллю.
+
+```tsx
+const party = usePartyDetailsSchema()
+const schema = useMemo(() => z.object({ ourRole: z.enum(PARTY_ROLES), ours: party, theirs: party }), [party])
+const { data: company } = useCompanyProfile()
+
+<PartyRoleField form={form} name="ourRole" />
+<PartyDetailsFields
+  form={form}
+  name="ours"
+  legend={t("partyDetails.ours", { role: t(`partyDetails.roles.${ourRole}`) })}
+  source={{ label: t("contracts.fillCompany"), values: company && partyFromCompany(company), unavailableReason: t("contracts.companyLoading") }}
+/>
+<PartyDetailsFields form={form} name="theirs" legend={t(`partyDetails.roles.${otherPartyRole(ourRole)}`)} source={counterpartySource} />
+```
+
+- Схема — `usePartyDetailsSchema` з `erp/party-details-schema`: у знімок ФОП не йдуть посада й «в особі». `source.unavailableReason`
+  обов'язковий: поки даних немає, кнопка неактивна з цією причиною.
+- «Заповнити з …» бере з джерела лише порожні поля; вид — разом із кодом, поки код порожній. Що дати з картки контрагента,
+  вирішує модуль: у картці B1 немає підписанта й «діє на підставі».
+- ПІБ — у порядку «Прізвище Ім'я По батькові»: з нього підпис «Олена КОВАЛЬ» (`signatureName`), і під полем видно, як
+  підпишуть документ. `PrintSignatures` друкує так само директора й бухгалтера профілю компанії.
+- На аркуші: `partyClause(party, роль, t)` — «…, в особі …, що діє на підставі … (надалі «Замовник»)», `PrintPartyDetails` —
+  реквізити й підписи сторін, `partyRequisiteLines` — рядки для `PrintParties`. `t` і підписи ролей — мовою аркуша
+  (`usePrintSheet`, `print.sheet.party.customer`). Порожній реквізит не друкується, ФОП — без посади й «в особі».
+
 ### Модуль B3 «Пропозиції й замовлення» (ADR-0065…ADR-0067)
 
 Перший модуль документа на рушії хвилі 2: пропозиції й замовлення (список, картка, форма, друк, масові дії), «Створити

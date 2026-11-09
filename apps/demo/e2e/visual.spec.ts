@@ -73,6 +73,8 @@ const SHOT_PAGES = {
   documentFlow: "/#/document-flow",
   // Друк (крок PF08a, ADR-0062): рахунок стрес-сторінки на аркуші A4 з логотипом і печаткою демо.
   print: "/#/print",
+  // Реквізити сторін (крок UI45, ADR-0068): форма сторін, аркуш договору й стани.
+  partyDetails: "/#/party-details",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",

@@ -51,6 +51,10 @@ export const PAGES = {
   ),
   // Друк: аркуш A4, реквізити, рядки документа й варіанти аркуша (ADR-0062).
   print: lazyWithPreload(() => import("./PrintPage").then((m) => m.PrintPage)),
+  // Реквізити сторін: поля сторони, заповнення порожніх, аркуш договору (ADR-0068).
+  partyDetails: lazyWithPreload(() =>
+    import("./PartyDetailsPage").then((m) => m.PartyDetailsPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),
