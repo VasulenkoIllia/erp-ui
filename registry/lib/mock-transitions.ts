@@ -95,11 +95,15 @@ export interface MockTransitionActor {
 export interface MockCreatedDocument<T extends MockTransitionRecord> {
   readonly resource: string
   canCreate(actor: MockTransitionActor): boolean
-  /** Новий документ: `id` і картка для відповіді з позначками того, хто питає; чи помилки полів. */
-  create(
+  /**
+   * Новий документ: `id` і картка для відповіді з позначками того, хто питає; чи помилки полів. Властивістю, а
+   * не методом: тип запису перевіряється строго, тож документ іншого модуля, який чекає більше полів, не
+   * пройде перевірку типів.
+   */
+  readonly create: (
     record: T,
     actor: MockTransitionActor,
-  ):
+  ) =>
     | { readonly id: string; readonly card: object }
     | { readonly fieldErrors: Record<string, string> }
   /** Позначка на першому документі після створення (`{ orderId }`); без неї перший не змінюється. */

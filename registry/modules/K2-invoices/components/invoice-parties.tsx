@@ -40,8 +40,9 @@ export function InvoiceParties({ invoice }: { invoice: Invoice }) {
             <dt className="text-sm text-muted-foreground">{label}</dt>
             <dd className="grid gap-0.5">
               <span className="font-medium">{name}</span>
-              {partyRequisiteLines(party, kitT).map((line) => (
-                <span key={line} className="text-sm">
+              {partyRequisiteLines(party, kitT).map((line, index) => (
+                // Однаковий текст двох полів реквізитів не дає однакового ключа.
+                <span key={`${String(index)}:${line}`} className="text-sm">
                   {line}
                 </span>
               ))}

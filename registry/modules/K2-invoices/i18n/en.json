@@ -139,7 +139,7 @@
       "order": "Order"
     },
     "qr": {
-      "missing": "The payment QR code is not printed on the sheet: {{reason}}.",
+      "missing": "The payment QR code is not printed on the sheet: {{reason}}. Invoice details are a snapshot taken at creation: fix the company profile, and new invoices will pick up the correct ones.",
       "issues": {
         "currency": "the NBU QR code exists only for invoices in hryvnia",
         "iban": "the supplier details have no valid IBAN",

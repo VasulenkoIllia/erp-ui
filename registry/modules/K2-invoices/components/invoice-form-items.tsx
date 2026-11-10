@@ -101,15 +101,18 @@ function headerItems(
               label={props.label}
               value={field.value || null}
               onValueChange={(id, record) => {
+                const isOther = (id ?? "") !== field.value
                 field.onChange(id ?? "")
                 // Знімок назви — разом із вибором: без запису (очистили) назви немає.
                 setValue("clientName", record ? label(record) : "", {
                   shouldDirty: true,
                 })
-                // Інший клієнт — його реквізити: покупець попереднього клієнта тут уже хибний.
-                if (record)
+                // Інший клієнт — його реквізити: покупець попереднього клієнта тут уже хибний. Той самий
+                // клієнт удруге не стирає дописане вручну («в особі», підписант).
+                if (record && isOther)
                   setValue("buyer", partyDetailsFrom(buyer(record)), {
                     shouldDirty: true,
+                    shouldValidate: form.formState.isSubmitted,
                   })
               }}
               onBlur={field.onBlur}
