@@ -221,6 +221,21 @@ describe("моки A1", () => {
     ).resolves.toBeTruthy()
   })
 
+  it("курс менший за шостий знак — 422 біля курсу: перерахунок документа (ADR-0071) такого не бере", async () => {
+    const error = await failureOf(
+      provider.create(EXCHANGE_RATES, {
+        data: { currency: "CHF", date: "2026-01-16", rate: 0.0000004 },
+      }),
+    )
+    expect(error).toMatchObject({ status: 422 })
+    expect(error?.fieldErrors?.rate).toBe("invalid")
+    await expect(
+      provider.create(EXCHANGE_RATES, {
+        data: { currency: "CHF", date: "2026-01-16", rate: 0.000001 },
+      }),
+    ).resolves.toBeTruthy()
+  })
+
   it("зміна курсу на вже зайняту дату — 422, той самий запис — без помилки", async () => {
     const { data } = await listRates({ currency: "PLN" })
     const [latest, previous] = data
@@ -313,6 +328,31 @@ describe("моки A1", () => {
     first.active = false
     mocks.db.currencies.reset()
     expect(mocks.db.currencies.all()[0]?.active).toBe(true)
+  })
+
+  it("`rateOn`: курс на дату чи останній перед нею в тій самій компанії; раніше за перший — null (ADR-0071)", () => {
+    const mocks = createCompanyMocks({ companies: [COMPANY.id, "other"] })
+    const usd = mocks.db.rates
+      .all()
+      .filter(
+        (rate) => rate.companyId === COMPANY.id && rate.currency === "USD",
+      )
+      .sort((a, b) => a.date.localeCompare(b.date))
+    const [oldest, second] = usd
+    if (!oldest || !second) throw new Error("no USD rates")
+    expect(mocks.rateOn(COMPANY.id, "USD", second.date)).toEqual({
+      rate: second.rate,
+      date: second.date,
+    })
+    // На дату після останнього курсу береться останній.
+    const latest = usd.at(-1)
+    expect(mocks.rateOn(COMPANY.id, "USD", "2999-01-01")).toEqual({
+      rate: latest?.rate,
+      date: latest?.date,
+    })
+    expect(mocks.rateOn(COMPANY.id, "USD", "2000-01-01")).toBeNull()
+    expect(mocks.rateOn(COMPANY.id, "GBP", second.date)).toBeNull()
+    expect(mocks.rateOn("unknown", "USD", second.date)).toBeNull()
   })
 
   it("поле розширення курсу зберігається за схемою проекту", async () => {

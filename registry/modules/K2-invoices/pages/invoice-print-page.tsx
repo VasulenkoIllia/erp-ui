@@ -75,9 +75,12 @@ function InvoicePrint({ id }: { id: string }) {
       {qr && !qr.ok ? (
         <Alert data-print="hide" data-slot="invoice-qr-missing">
           <AlertDescription>
-            {t("invoice.qr.missing", {
-              reason: t(`invoice.qr.issues.${qr.issue}`),
-            })}
+            {/* Рахунок у валюті без QR — так і має бути (ADR-0071): реквізити вписують у рахунок, а не в профіль. */}
+            {qr.issue === "currency" && invoice
+              ? t("invoice.qr.foreignCurrency", { currency: invoice.currency })
+              : t("invoice.qr.missing", {
+                  reason: t(`invoice.qr.issues.${qr.issue}`),
+                })}
           </AlertDescription>
         </Alert>
       ) : null}

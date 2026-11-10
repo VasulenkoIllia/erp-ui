@@ -9,15 +9,20 @@ import {
 /**
  * Модуль K2 «Рахунки клієнтам» (ADR-0070, крок K2a): список на місці заглушки `/m/K2`, «Виставити» з
  * номером серії, друк із QR-кодом оплати НБУ, закритий період і сторно, рахунок із замовлення B3, форма
- * зі сторонами. Годинник — 08.11.2026, закрито по 20.10.2026: давні рахунки засіву лежать у закритому
- * періоді, а номери засіву компанії бухгалтера — РХ-2026-0001…0007 (найстаріший — перший).
+ * зі сторонами; рахунок у валюті з сумою в гривнях поруч (ADR-0071, крок K2b). Годинник — 08.11.2026,
+ * закрито по 20.10.2026: давні рахунки засіву лежать у закритому періоді, а номери засіву компанії
+ * бухгалтера — РХ-2026-0001…0008 (найстаріший — перший, останній — рахунок у євро сьогодні).
  */
 const LIST = "/#/m/K2/invoices"
 const DRAFT = `${LIST}/inv-zoriana-01`
 const ISSUED = `${LIST}/inv-zoriana-03`
 /** Виставлений 24.09.2026 — у закритому періоді, номер РХ-2026-0001. */
 const CLOSED = `${LIST}/inv-zoriana-10`
-const NEXT_NUMBER = "РХ-2026-0008"
+const NEXT_NUMBER = "РХ-2026-0009"
+/** Рахунки у валюті: чернетка в доларах, виставлений сьогодні в євро, чернетка в злотих без курсу. */
+const USD_DRAFT = `${LIST}/inv-zoriana-11`
+const EUR_ISSUED = `${LIST}/inv-zoriana-12`
+const PLN_NO_RATE = `${LIST}/inv-zoriana-13`
 const CONFIRMED_ORDER = "/#/m/B3/orders/so-zoriana-02"
 
 const heading = (page: Page) => page.getByRole("heading", { level: 1 })
@@ -53,10 +58,10 @@ test.describe("модуль K2: рахунки клієнтам", () => {
     await openWith(page, {}, "/#/m/K2")
     await expect(page).toHaveURL(/#\/m\/K2\/invoices$/)
     await expect(heading(page)).toHaveText("Рахунки клієнтам")
-    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("10")
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("13")
     await page.getByRole("tab", { name: /^Виставлено/ }).click()
-    // Шапка й чотири виставлені: два з минулою «Сплатити до».
-    await expect(page.getByRole("row")).toHaveCount(5)
+    // Шапка й п'ять виставлених: два з минулою «Сплатити до».
+    await expect(page.getByRole("row")).toHaveCount(6)
     await expect(
       page.getByRole("row").filter({ hasText: "Прострочено" }),
     ).toHaveCount(2)
@@ -188,6 +193,85 @@ test.describe("модуль K2: рахунки клієнтам", () => {
   })
 })
 
+test.describe("модуль K2: рахунок у валюті", () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test("сума в гривнях поруч: у списку під сумою, на картці з курсом і датою; без курсу — пояснення", async ({
+    page,
+  }) => {
+    await openWith(page, {}, LIST)
+    await page.getByRole("tab", { name: /^Виставлено/ }).click()
+    const eurRow = page.getByRole("row").filter({
+      has: page.getByRole("link", { name: "РХ-2026-0008", exact: true }),
+    })
+    await expect(eurRow).toContainText("EUR")
+    await expect(eurRow).toContainText("₴")
+
+    await openWith(page, {}, EUR_ISSUED)
+    await expect(heading(page)).toHaveText("Рахунок РХ-2026-0008")
+    const main = page.getByRole("main")
+    await expect(main).toContainText("У базовій валюті")
+    await expect(main).toContainText("Курс 48,1 на 08.11.2026")
+    await expect(main).not.toContainText("закріпиться")
+    await expectNoA11yViolations(page)
+
+    await openWith(page, {}, USD_DRAFT)
+    await expect(heading(page)).toHaveText("Рахунок без номера")
+    await expect(page.getByRole("main")).toContainText(
+      "закріпиться, коли рахунок виставлять",
+    )
+
+    await openWith(page, {}, PLN_NO_RATE)
+    await expect(page.getByRole("main")).toContainText(
+      "Курсу PLN на 27.10.2026 чи раніше в таблиці курсів немає",
+    )
+  })
+
+  test("друк рахунку в євро: без QR-коду, пояснення над аркушем про валютні реквізити", async ({
+    page,
+  }) => {
+    await openWith(page, {}, `${EUR_ISSUED}/print`)
+    await expect(page.locator("[data-print-root]")).toContainText(
+      "Рахунок на оплату",
+    )
+    await expect(
+      page.locator('[data-slot="invoice-qr-missing"]'),
+    ).toContainText("Рахунок у EUR друкується без QR-коду")
+  })
+
+  test("новий рахунок у доларах: підказка про курс; «Виставити» закріплює курс", async ({
+    page,
+  }) => {
+    await openWith(page, {}, `${LIST}/new`)
+    await expect(heading(page)).toHaveText("Новий рахунок")
+    await page.getByRole("combobox", { name: "Клієнт" }).click()
+    await page.getByRole("option").first().click()
+    await page.getByRole("combobox", { name: "Валюта" }).click()
+    await page.getByRole("option", { name: /^USD/ }).click()
+    await expect(page.getByRole("main")).toContainText(
+      "Сума в UAH рахується за курсом на дату рахунку",
+    )
+    await page.getByRole("button", { name: "Додати рядок" }).click()
+    const line = page.getByRole("group", { name: "Рядок 1", exact: true })
+    await line.getByLabel("Назва").fill("Консультація")
+    await line.getByLabel("Ціна").fill("100")
+    await page.getByRole("button", { name: "Зберегти" }).click()
+    await expect(heading(page)).toHaveText("Рахунок без номера")
+    await expect(page.getByRole("main")).toContainText(
+      "Курс 41,25 на 08.11.2026",
+    )
+    await expect(page.getByRole("main")).toContainText("закріпиться")
+    await actionBar(page).getByRole("button", { name: "Виставити" }).click()
+    const confirm = await openConfirm(page, "Виставити рахунок?")
+    await confirm.getByRole("button", { name: "Виставити рахунок" }).click()
+    await expect(heading(page)).toHaveText(`Рахунок ${NEXT_NUMBER}`)
+    await expect(page.getByRole("main")).toContainText(
+      "Курс 41,25 на 08.11.2026",
+    )
+    await expect(page.getByRole("main")).not.toContainText("закріпиться")
+  })
+})
+
 test.describe("модуль K2: телефон", () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
@@ -199,5 +283,8 @@ test.describe("модуль K2: телефон", () => {
     await expect(heading(page)).toHaveText(/^Рахунок РХ-2026-/)
     await expectNoHorizontalScroll(page)
     await expectNoA11yViolations(page)
+    await openWith(page, {}, EUR_ISSUED)
+    await expect(page.getByRole("main")).toContainText("У базовій валюті")
+    await expectNoHorizontalScroll(page)
   })
 })

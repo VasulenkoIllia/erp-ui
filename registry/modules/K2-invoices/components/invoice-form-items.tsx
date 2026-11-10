@@ -1,10 +1,11 @@
 import { useGetOne, type RaRecord } from "ra-core"
 import { useMemo } from "react"
-import type { UseFormReturn } from "react-hook-form"
+import { useWatch, type UseFormReturn } from "react-hook-form"
 
 import { DateInput } from "@/components/erp/date-input"
 import type { DocumentLinesValues } from "@/components/erp/document-lines-schema"
 import { FormField } from "@/components/erp/form"
+import { FormSelect } from "@/components/erp/form-select"
 import type { RecordFormItem } from "@/components/erp/record-form"
 import { RecordPicker } from "@/components/erp/record-picker"
 import { useCompanyId } from "@/hooks/use-company"
@@ -15,6 +16,10 @@ import { partyDetailsFrom, type PartyDetails } from "@/lib/document-parties"
 import type { InvoiceFormFieldId } from "../extension"
 import { useInvoicesModule, type InvoiceClients } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
+import {
+  useInvoiceCurrencyChoice,
+  type InvoiceCurrencyChoice,
+} from "./invoice-currency"
 
 /** Значення форми рахунку: шапка, сторони, рядки й знижка документа, поля розширення. */
 export type InvoiceFormValues = DocumentLinesValues & {
@@ -23,6 +28,8 @@ export type InvoiceFormValues = DocumentLinesValues & {
   clientName: string
   date: string
   dueDate: string
+  /** ISO 4217: базова валюта компанії чи інша валюта компанії (ADR-0071). */
+  currency: string
   supplier: PartyDetails
   buyer: PartyDetails
 } & Record<string, unknown>
@@ -53,23 +60,88 @@ function ClientName({ id }: { id: string }) {
   return data ? clientLabel(clients)(data) : id
 }
 
+/** Поле «Валюта»: варіанти й підказка; без опції `currencies` фабрики поля немає. */
+interface CurrencyField extends InvoiceCurrencyChoice {
+  readonly hint: string | undefined
+}
+
+/**
+ * Поле «Валюта» (ADR-0071), коли проект дав валюти компанії: підказка про курс — у рахунку не в базовій
+ * валюті, про збій переліку — коли валют компанії не отримали.
+ */
+function useCurrencyField(
+  form: UseFormReturn<InvoiceFormValues>,
+  base: string | undefined,
+): CurrencyField | null {
+  const t = useInvoicesT()
+  const { currencies } = useInvoicesModule()
+  const current = useWatch({ control: form.control, name: "currency" })
+  const choice = useInvoiceCurrencyChoice(base, current)
+  return useMemo(() => {
+    if (!currencies) return null
+    const hint = choice.failed
+      ? t("invoiceForm.currenciesFailed")
+      : base && current !== base
+        ? t("invoiceForm.currencyHint", { base })
+        : undefined
+    return { ...choice, hint }
+  }, [currencies, choice, current, base, t])
+}
+
 /**
  * Поля шапки рахунку: клієнт (вибір із ресурсу клієнтів проекту з пошуком на сервері; новий клієнт — нові
- * реквізити покупця з його картки), дата з першим відкритим днем закритого періоду (PF13) і «Сплатити до».
- * Ключі — `InvoiceFormFieldId`: розширення ховає, переносить і підписує їх без заміни.
+ * реквізити покупця з його картки), дата з першим відкритим днем закритого періоду (PF13), «Сплатити до» й
+ * валюта, коли проект дав валюти компанії (ADR-0071). Ключі — `InvoiceFormFieldId`: розширення ховає,
+ * переносить і підписує їх без заміни.
  */
 export function useInvoiceHeaderItems(
   form: UseFormReturn<InvoiceFormValues>,
   readOnly: boolean,
+  baseCurrency: string | undefined,
 ): InvoiceFormItem[] {
   const t = useInvoicesT()
   const { clients } = useInvoicesModule()
   // Новий об'єкт на кожен рендер: у залежностях — лише значення.
   const { min, hint } = usePostingDate()
+  const currency = useCurrencyField(form, baseCurrency)
   return useMemo(
-    () => headerItems(form, readOnly, clients, { min, hint }, t),
-    [form, readOnly, clients, min, hint, t],
+    () => [
+      ...headerItems(form, readOnly, clients, { min, hint }, t),
+      ...(currency ? [currencyItem(form, readOnly, currency, t)] : []),
+    ],
+    [form, readOnly, clients, min, hint, currency, t],
   )
+}
+
+function currencyItem(
+  form: UseFormReturn<InvoiceFormValues>,
+  readOnly: boolean,
+  currency: CurrencyField,
+  t: ReturnType<typeof useInvoicesT>,
+): InvoiceFormItem {
+  return {
+    id: "currency",
+    label: t("invoiceForm.fields.currency"),
+    ...(currency.hint ? { description: currency.hint } : {}),
+    render: (props) => (
+      <FormField
+        {...props}
+        control={form.control}
+        name="currency"
+        render={({ field, control: aria }) => (
+          <FormSelect
+            {...aria}
+            ref={field.ref}
+            items={currency.items}
+            value={field.value}
+            onValueChange={field.onChange}
+            onBlur={field.onBlur}
+            readOnly={readOnly}
+          />
+        )}
+      />
+    ),
+  }
 }
 
 function headerItems(

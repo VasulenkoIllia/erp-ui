@@ -305,6 +305,14 @@ export const CODE_ITEMS = {
     demo: "salesModule",
     spec: ["UI05", "§17"],
   },
+  "lib/currency-conversion": {
+    title: "Сума документа в базовій валюті",
+    description:
+      "documentExchangeSchema: блок контракту документа у валюті — базова валюта, курс і його дата з таблиці курсів компанії, підсумок у базовій валюті (null — курсу немає); convertMinorAmount: мінорні одиниці однієї валюти в іншу за курсом до шести знаків, у BigInt, половина від нуля; documentExchangeOf: перерахунок, як його віддає сервер (null — документ у базовій валюті). Сума в базовій валюті — довідка поруч, а не заміна суми документа (ADR-0071).",
+    status: "beta",
+    demo: "invoicesModule",
+    spec: ["PF02", "§11"],
+  },
   "lib/document-lines": {
     title: "Контракт рядка документа",
     description:
@@ -3257,7 +3265,7 @@ export const MODULE_ITEMS = {
   "modules/A1-company": {
     title: "Компанія й валюти (A1)",
     description:
-      "Модуль: картка компанії на Object Page з вкладками «Реквізити», «Логотип і печатка», «Філії», «Локалізація» (базова валюта, мова, часовий пояс, початок фінансового року) й історією; валюти компанії й таблиця курсів на List Report (фільтри за валютою, датою й джерелом, форми в діалозі, один курс на дату, курс із зовнішнього джерела лише для перегляду); контракт, моки зі сценаріями, фікстури, рядки uk/en; фабрика createCompanyModule з маршрутами, навігацією й правами, тип розширення CompanyExtension (ADR-0020, ADR-0025, ADR-0043).",
+      "Модуль: картка компанії на Object Page з вкладками «Реквізити», «Логотип і печатка», «Філії», «Локалізація» (базова валюта, мова, часовий пояс, початок фінансового року) й історією; валюти компанії й таблиця курсів на List Report (фільтри за валютою, датою й джерелом, форми в діалозі, один курс на дату, курс із зовнішнього джерела лише для перегляду); контракт, моки зі сценаріями й курсом на дату для моків документів у валюті (rateOn, ADR-0071), фікстури, рядки uk/en; фабрика createCompanyModule з маршрутами, навігацією й правами, тип розширення CompanyExtension (ADR-0020, ADR-0025, ADR-0043).",
     status: "beta",
     demo: "companyModule",
     spec: ["§7", "§14", "§17", "A1", "PF02"],
@@ -3385,14 +3393,14 @@ export const MODULE_ITEMS = {
   "modules/K2-invoices": {
     title: "Рахунки клієнтам (K2)",
     description:
-      "Модуль, розділ «Рахунки клієнтам»: обліковий документ — список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук, позначка «Прострочено» виставленого з минулою «Сплатити до», сума сторно з мінусом, масові «Виставити», «Скасувати» з причиною й «Видалити» чернетки), картка на Object Page (номер, етапи, смуга закритого періоду, панель дій графа: «Виставити» з номером серії, «Скасувати» з причиною, «Виправити», «Сторнувати» — проведений рахунок «Сторно» з датою сьогодні; рядки з підсумками сервера, сторони, потік документів, історія чи стрічка зі слота), форма на сторінці (клієнт із реквізитами покупця з його картки, дата з першим відкритим днем, «Сплатити до», сторони з профілю компанії й картки клієнта, редактор рядків, конфлікт 409, «Редагує …»), «Копіювати», друк на аркуші A4 мовою документа з QR-кодом оплати НБУ; «Виставити рахунок» із замовлення B3 (один рахунок на замовлення, поля розширення з тим самим ключем переходять у рахунок); контракт, моки зі сценаріями, закритим періодом, засівом серії sales-invoices і масовими діями, фікстури uk/en, рядки uk/en; фабрика createInvoicesModule, тип розширення InvoicesExtension (ключ invoices) (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0068, ADR-0069, ADR-0070).",
+      "Модуль, розділ «Рахунки клієнтам»: обліковий документ — список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук, позначка «Прострочено» виставленого з минулою «Сплатити до», сума сторно з мінусом, масові «Виставити», «Скасувати» з причиною й «Видалити» чернетки), картка на Object Page (номер, етапи, смуга закритого періоду, панель дій графа: «Виставити» з номером серії, «Скасувати» з причиною, «Виправити», «Сторнувати» — проведений рахунок «Сторно» з датою сьогодні; рядки з підсумками сервера, сторони, потік документів, історія чи стрічка зі слота), форма на сторінці (клієнт із реквізитами покупця з його картки, дата з першим відкритим днем, «Сплатити до», сторони з профілю компанії й картки клієнта, редактор рядків, конфлікт 409, «Редагує …»), «Копіювати», друк на аркуші A4 мовою документа з QR-кодом оплати НБУ (лише гривня); рахунок у валюті компанії з сумою в базовій валюті поруч — курс на дату рахунку, свіжий у чернетці й закріплений на «Виставити», сторно за курсом першого (ADR-0071); «Виставити рахунок» із замовлення B3 (один рахунок на замовлення, поля розширення з тим самим ключем переходять у рахунок); контракт, моки зі сценаріями, закритим періодом, засівом серії sales-invoices і масовими діями, фікстури uk/en, рядки uk/en; фабрика createInvoicesModule, тип розширення InvoicesExtension (ключ invoices) (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0068, ADR-0069, ADR-0070, ADR-0071).",
     status: "beta",
     demo: "invoicesModule",
     spec: ["§7", "§14", "§17"],
     docs: [
       "Модуль K2 встановлено в src/modules/K2-invoices. Файли модуля не правте: зміни під клієнта — у src/extensions/K2-invoices.ts (тип InvoicesExtension, ключ invoices).",
-      "1) createInvoicesModule({ basePath, extension, clients, sources, lineItem }) з @/modules/K2-invoices: routes — у роутер, nav — у навігацію (пункт «Рахунки клієнтам» з access sales-invoices:read). clients.party — реквізити покупця з запису клієнта; sources — адреси карток замовлень і пропозицій B3 для потоку. У createSalesModule — invoices: { href: invoicesPaths(basePath).invoice }.",
-      "2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серія sales-invoices), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }).",
+      '1) createInvoicesModule({ basePath, extension, clients, sources, currencies, lineItem }) з @/modules/K2-invoices: routes — у роутер, nav — у навігацію (пункт «Рахунки клієнтам» з access sales-invoices:read). clients.party — реквізити покупця з запису клієнта; sources — адреси карток замовлень і пропозицій B3 для потоку; currencies: { resource: "currencies" } — валюти компанії модуля A1 (поле «Валюта» у формі, сума в базовій валюті поруч). У createSalesModule — invoices: { href: invoicesPaths(basePath).invoice }.',
+      "2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серія sales-invoices), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder, rates }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }); rates — базова валюта й rateOn моків A1.",
       "3) Права ролей: sales-invoices (read, create, update, delete, submit, cancel, reverse, amend) і дії розширення; рахунок із замовлення — orders:invoice разом із sales-invoices:create. Докладно — src/modules/K2-invoices/README.md.",
     ].join("\n"),
   },

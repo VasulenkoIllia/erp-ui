@@ -37,13 +37,13 @@ export interface InvoiceIds {
   filter: "clientId" | "date"
   /** Вкладки списку: «Усі» і статуси; статус розширення — теж вкладка з його ключем. */
   tab: "all" | InvoiceStatus | (string & {})
-  /** Ключові поля шапки картки. */
-  field: "client" | "date" | "dueDate" | "total"
+  /** Ключові поля шапки картки; `baseTotal` — сума в базовій валюті рахунку у валюті (ADR-0071). */
+  field: "client" | "date" | "dueDate" | "total" | "baseTotal"
   /** Секції картки: рядки, сторони й потік документів (ADR-0061, ADR-0068). */
   section: "lines" | "parties" | "flow"
   action: "edit" | "copy" | "delete" | "print"
   /** Поля форми шапки (ключ — ім'я поля запису); рядки, знижка й сторони — свої блоки форми. */
-  formField: "clientId" | "date" | "dueDate"
+  formField: "clientId" | "date" | "dueDate" | "currency"
 }
 export type InvoiceColumnId = InvoiceIds["column"]
 export type InvoiceFilterId = InvoiceIds["filter"]

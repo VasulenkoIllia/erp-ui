@@ -12,6 +12,7 @@
  * - `exchange-rates` — курси: скільки базової валюти за 1 одиницю `currency` на дату `date`
  *   (`YYYY-MM-DD`, без часу). Один курс на валюту й дату (422 `date: duplicate`). `source` ставить
  *   сервер: `manual` — ввела людина, `nbu` — завантажив сервер проекту, інший код — показуємо як є.
+ *   Курс — до шести знаків, не менший за `MIN_RATE` (0,000001), інакше 422 `rate: invalid`.
  *   Фільтри: `currency`, `date_gte`, `date_lte`, `source`; сортування `date`, `currency`, `rate`.
  * - Курс із зовнішнього джерела людина не змінює: сервер мітить його `deniedActions`
  *   (`{ update: "source", delete: "source" }`, ADR-0037) і відповідає 403.
@@ -45,6 +46,8 @@ export const RATE_SOURCE_DENIAL = "source"
 
 /** Знаків після коми в курсі: НБУ публікує чотири, запас для малих валют. */
 export const RATE_DECIMALS = 6
+/** Найменший курс — одиниця шостого знака: менший перерахунок документа (ADR-0071) не бере. */
+export const MIN_RATE = 10 ** -RATE_DECIMALS
 
 const currencyCode = z.string().regex(/^[A-Z]{3}$/, "invalid")
 /** Запис належить компанії запиту. */
@@ -63,7 +66,7 @@ export const exchangeRateSchema = recordBaseSchema.extend({
   ...recordShape,
   currency: currencyCode,
   date: z.string().refine(isCalendarDate, "invalid"),
-  rate: z.number().positive("invalid"),
+  rate: z.number().min(MIN_RATE, "invalid"),
   source: z.string().default(MANUAL_RATE_SOURCE),
 })
 export type ExchangeRate = z.infer<typeof exchangeRateSchema>

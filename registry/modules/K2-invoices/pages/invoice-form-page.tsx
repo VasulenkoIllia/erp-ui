@@ -27,9 +27,6 @@ import { COPY_PARAM, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
-/** Компанія без базової валюти (профіль ще не налаштовано): гривня, як у модулі A1. */
-const FALLBACK_CURRENCY = "UAH"
-
 /**
  * Сторінка форми рахунку (SPEC §7, ADR-0047, ADR-0070): створення (`…/new`), копія рахунку
  * (`…/new?copy=<id>`: заповнена форма, рахунок — лише після «Зберегти») і зміна чернетки (`…/:id/edit`).
@@ -93,7 +90,6 @@ function NewInvoice() {
   const heading = usePageHeading(t("invoiceForm.createTitle"))
   const company = useCompanyProfile()
   const access = useCanAccess({ resource: INVOICES, action: "create" })
-  const currency = company.data?.baseCurrency ?? FALLBACK_CURRENCY
   const body =
     company.isPending || access.isPending ? (
       <PageSkeleton rows={6} />
@@ -108,12 +104,7 @@ function NewInvoice() {
       // Інший рахунок у тій самій адресі — нова форма: значення копії беруться раз.
       <CopiedInvoice key={copyId} id={copyId} />
     ) : (
-      <InvoiceForm
-        company={company.data}
-        currency={currency}
-        readOnly={false}
-        mayEdit
-      />
+      <InvoiceForm company={company.data} readOnly={false} mayEdit />
     )
   return (
     <div className="space-y-6">
@@ -146,12 +137,7 @@ function CopiedInvoice({ id }: { id: string }) {
           {t("invoiceForm.copyOf", { title: titleOf(source.ready) })}
         </AlertDescription>
       </Alert>
-      <InvoiceForm
-        source={source.ready}
-        currency={source.ready.currency}
-        readOnly={false}
-        mayEdit
-      />
+      <InvoiceForm source={source.ready} readOnly={false} mayEdit />
     </div>
   )
 }
@@ -201,7 +187,6 @@ function EditInvoice({ id }: { id: string }) {
     ) : (
       <InvoiceForm
         invoice={ready}
-        currency={ready.currency}
         readOnly={
           reason !== undefined ||
           lock.isAcquiring ||

@@ -20,6 +20,8 @@
  * - `documentDeniedActions` — позначки життєвого циклу для опції `deniedActions` ресурсу.
  * - `numbering` (PF03b, ADR-0058): номер отримує документ, що стає проведеним, — на `submit` і сторно;
  *   виправлена копія народжується чернеткою без номера.
+ * - `submitFields` — що ще сервер закріплює на проведенні (`submit`, і масово): курс і суму в базовій валюті
+ *   документа у валюті (ADR-0071). Сторно бере їх від першого документа тілом `reverse`.
  * - Дія з `creates` (документ іншого ресурсу на підставі цього, ADR-0061) — опція `creates` з
  *   `mockCreatedDocument`: новий документ — чернетка того ресурсу, право `<ресурс>:create` теж
  *   потрібне (403), позначка на першому документі (`mark`); відповідь 201 — новий документ.
@@ -167,6 +169,11 @@ export interface MockTransitionOptions<T extends MockTransitionRecord> {
   conflictChange?: (record: T) => Partial<T>
   /** Номер документа на проведенні: `createNumberingMocks(...).forResource(...)`. */
   numbering?: MockDocumentNumbering
+  /**
+   * Поля, які сервер закріплює на проведенні (`submit`, і масово): курс і сума в базовій валюті документа
+   * у валюті (ADR-0071). `record` — документ до дії. Статус, стан документа й номер вони не перекривають.
+   */
+  submitFields?: (record: T) => Partial<T>
   /** Дії з `creates`: документ іншого ресурсу за ключем дії (`mockCreatedDocument`). */
   creates?: Readonly<Record<string, MockCreatedDocument<T>>>
   /**
@@ -245,9 +252,15 @@ function numberedBy(
       : {}
 }
 
-/** Зміни запису від дії, що не створює документа: статус, стан документа, номер на проведенні. */
+/**
+ * Зміни запису від дії, що не створює документа: статус, стан документа, номер і закріплені поля на
+ * проведенні.
+ */
 function transitionChanges<T extends MockTransitionRecord>(
-  numbering: MockDocumentNumbering | undefined,
+  {
+    numbering,
+    submitFields,
+  }: Pick<MockTransitionOptions<T>, "numbering" | "submitFields">,
   record: T,
   transition: StatusTransition,
   companyId: string | null,
@@ -255,10 +268,12 @@ function transitionChanges<T extends MockTransitionRecord>(
   const state = isDocumentAction(transition.id)
     ? DOCUMENT_STATE_AFTER[transition.id]
     : undefined
+  const submitted = state === "submitted"
   return {
+    ...(submitted ? submitFields?.(record) : {}),
     status: transition.to ?? record.status,
     ...(state ? { docStatus: state } : {}),
-    ...(state === "submitted"
+    ...(submitted
       ? numberedBy(numbering, record.companyId ?? companyId)(record, true)
       : {}),
   }
@@ -266,11 +281,12 @@ function transitionChanges<T extends MockTransitionRecord>(
 
 /** Дія над записом: новий документ із позначкою на першому чи новий статус і стан документа. */
 function applyTransition<T extends MockTransitionRecord>(
-  { db, amend, reverse, numbering }: MockTransitionOptions<T>,
+  options: MockTransitionOptions<T>,
   record: T,
   transition: StatusTransition,
   actor: Actor,
 ) {
+  const { db, amend, reverse, numbering } = options
   const status = transition.to ?? record.status
   const numbered = numberedBy(numbering, record.companyId ?? actor.companyId)
   if (transition.id === "amend" && amend) {
@@ -303,7 +319,7 @@ function applyTransition<T extends MockTransitionRecord>(
   }
   return db.patch(
     record.id,
-    transitionChanges(numbering, record, transition, actor.companyId),
+    transitionChanges(options, record, transition, actor.companyId),
   )
 }
 
@@ -469,13 +485,13 @@ export function createTransitionHandlers<T extends MockTransitionRecord>(
  * запускаються.
  */
 export function bulkTransitionActions<T extends MockTransitionRecord>(
-  {
-    resource,
-    transitions,
-    numbering,
-  }: Pick<MockTransitionOptions<T>, "resource" | "transitions" | "numbering">,
+  options: Pick<
+    MockTransitionOptions<T>,
+    "resource" | "transitions" | "numbering" | "submitFields"
+  >,
   ids: readonly string[],
 ): Record<string, MockBulkAction<T>> {
+  const { resource, transitions } = options
   const graphOf = (id: string) =>
     transitions.find((transition) => transition.id === id)
   const reasonOf = (id: string) => graphOf(id)?.reason
@@ -495,7 +511,7 @@ export function bulkTransitionActions<T extends MockTransitionRecord>(
               }
             return {
               changes: transitionChanges(
-                numbering,
+                options,
                 record,
                 transition,
                 companyId,

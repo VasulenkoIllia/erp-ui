@@ -10,7 +10,8 @@ import { salesModule } from "@/sales-module"
 /**
  * Модуль K2 «Рахунки клієнтам» в демо на місці заглушки `/m/K2` (ADR-0025, ADR-0070): клієнти —
  * організації модуля B1 з посиланням на їхню картку й реквізитами покупця, потік документів — з
- * посиланнями на замовлення й пропозиції модуля B3, товар рядка — мок `products`.
+ * посиланнями на замовлення й пропозиції модуля B3, товар рядка — мок `products`, валюти рахунку — валюти
+ * компанії модуля A1 (ADR-0071).
  */
 export const invoicesModule = createInvoicesModule({
   basePath: MODULE_ROUTES.invoicesModule,
@@ -23,6 +24,7 @@ export const invoicesModule = createInvoicesModule({
     party: organizationParty,
   },
   sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
+  currencies: { resource: "currencies" },
   lineItem: {
     resource: "products",
     optionLabel: (product: Product) => product.name,

@@ -4,7 +4,9 @@
  * від мови інтерфейсу (SPEC §11). Дати — від сьогодні: виставлений рахунок із минулою «Сплатити до»
  * показує «Прострочено». Засів має всі статуси модуля, виправлену копію скасованого, сторнований рахунок
  * зі сторно й великий рахунок із розділами; старші рахунки лежать у закритому періоді демо (PF13), якщо
- * його закрито. Номери — за шаблоном серії й лічильником, який засів уже видав (`counters`).
+ * його закрито. Номери — за шаблоном серії й лічильником, який засів уже видав (`counters`). Три рахунки у
+ * валюті (ADR-0071): чернетка в доларах, виставлений сьогодні в євро й чернетка в злотих на дату, на яку
+ * курсу ще немає; суму в базовій валюті вони мають лише з `rates`.
  */
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { DocumentState } from "@/lib/document-lifecycle"
@@ -22,6 +24,7 @@ import {
   type InvoiceCard,
   type InvoiceStatus,
 } from "./contract"
+import { invoiceExchange, type InvoiceMockRates } from "./mock-exchange"
 import type { InvoiceMockParties } from "./mock-links"
 
 export type FixtureLocale = "uk" | "en"
@@ -52,6 +55,11 @@ export interface InvoiceFixtureOptions {
   ) => InvoiceFixtureDictionaries
   /** Сьогодні: від нього дати рахунків. Тести ставлять сталу дату. */
   readonly today?: CalendarDate
+  /**
+   * Курси компанії (ADR-0071): базова валюта й курс на дату (`createCompanyMocks(...).rateOn` модуля A1).
+   * Без них рахунок у валюті не має суми в базовій валюті.
+   */
+  readonly rates?: InvoiceMockRates
 }
 
 /** Скільки номерів серії видав засів: компанія, рік дати рахунку, останнє значення. */
@@ -74,6 +82,8 @@ export const INVOICE_NUMBER_TEMPLATE: Record<FixtureLocale, string> = {
 }
 
 const CURRENCY = "UAH"
+/** Ціни рахунків у валюті засіву — у стільки разів менші за гривневі. */
+const FOREIGN_PRICE_DIVISOR = 40
 
 /** Постачальник засіву без профілю компанії: правильні тестові ЄДРПОУ, ІПН і IBAN — QR-код читається. */
 const DEFAULT_SUPPLIER: Record<FixtureLocale, Partial<PartyDetails>> = {
@@ -194,11 +204,14 @@ interface Seed {
   readonly amended?: boolean
   /** Сторнований: наступний засів — його сторно (`reversedBy`). */
   readonly reversed?: boolean
+  /** Валюта рахунку, якщо не гривня (ADR-0071). */
+  readonly currency?: string
 }
 
 /**
  * Засів рахунків компанії: чернетки (одна велика з розділами), виставлені (свіжий, прострочений, зі
- * знижкою, давній у закритому періоді), скасований із виправленою копією, сторнований зі сторно.
+ * знижкою, давній у закритому періоді), скасований із виправленою копією, сторнований зі сторно; у кінці —
+ * рахунки у валюті, щоб номери гривневих лишились тими самими.
  */
 const SEEDS: readonly Seed[] = [
   { status: "draft", docStatus: "draft", age: 0, items: 3 },
@@ -229,6 +242,16 @@ const SEEDS: readonly Seed[] = [
   },
   { status: "reversal", docStatus: "submitted", age: 4, items: 2 },
   { status: "issued", docStatus: "submitted", age: 45, items: 3 },
+  { status: "draft", docStatus: "draft", age: 1, items: 2, currency: "USD" },
+  {
+    status: "issued",
+    docStatus: "submitted",
+    age: 0,
+    items: 3,
+    currency: "EUR",
+  },
+  // Курси злотих у таблиці демо — за останні 10 днів: на цю дату курсу немає.
+  { status: "draft", docStatus: "draft", age: 12, items: 2, currency: "PLN" },
 ]
 
 const at = <T>(list: readonly T[], index: number): T => {
@@ -247,6 +270,7 @@ interface SeedContext {
   readonly supplier: PartyDetails
   readonly snapshots: InvoiceFixtureDictionaries
   readonly issue: (date: CalendarDate) => string | null
+  readonly rates: InvoiceMockRates | undefined
 }
 
 /** Засіяний рахунок `index` компанії: копія й сторно беруть клієнта, рядки й знижку першого. */
@@ -263,13 +287,22 @@ function seedInvoice(
     previous?.amended || previous?.reversed ? index - 1 : index
   const source = at(SEEDS, sourceIndex)
   const client = at(context.clients, sourceIndex)
+  const currency = source.currency ?? CURRENCY
+  const priceOf = (price: string) =>
+    currency === CURRENCY
+      ? price
+      : (Number(price) / FOREIGN_PRICE_DIVISOR).toFixed(2)
   const body = {
-    currency: CURRENCY,
+    currency,
     lines: fixtureDocumentLines({
       prefix: id,
       count: source.items,
       offset: sourceIndex,
-      items: ITEMS.map((item) => ({ ...item, name: item[context.locale] })),
+      items: ITEMS.map((item) => ({
+        ...item,
+        name: item[context.locale],
+        price: priceOf(item.price),
+      })),
       dictionaries: context.snapshots,
       sections: source.sections ? SECTION_TITLES[context.locale] : undefined,
     }),
@@ -278,6 +311,8 @@ function seedInvoice(
   }
   const sums = documentSumsOf(body)
   if (!sums) throw new Error(`K2-invoices: fixture ${id} does not add up`)
+  // Сторно — з мінусом у шапці: рядки й підсумки ті самі, що в першого.
+  const total = seed.status === "reversal" ? -sums.total : sums.total
   return {
     id,
     version: 1,
@@ -292,8 +327,11 @@ function seedInvoice(
     orderId: null,
     ...body,
     ...sums,
-    // Сторно — з мінусом у шапці: рядки й підсумки ті самі, що в першого.
-    total: seed.status === "reversal" ? -sums.total : sums.total,
+    total,
+    exchange: invoiceExchange(
+      { companyId: context.companyId, currency, date, total },
+      context.rates,
+    ),
     status: seed.status,
     docStatus: seed.docStatus,
   }
@@ -353,6 +391,7 @@ export function createInvoiceFixtures({
   supplier,
   dictionaries,
   today = todayIn(),
+  rates,
 }: InvoiceFixtureOptions = {}): InvoiceFixtures {
   const invoices: InvoiceCard[] = []
   const counters = new Map<string, InvoiceFixtureCounter>()
@@ -380,6 +419,7 @@ export function createInvoiceFixtures({
         ),
         snapshots: dictionaries?.(companyId) ?? DEFAULT_DICTIONARIES[locale],
         issue: issueFor(companyId),
+        rates,
       }),
     )
   }
