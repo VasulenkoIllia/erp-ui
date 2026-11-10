@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react"
-import { useWatch, type Path } from "react-hook-form"
+import type { Path } from "react-hook-form"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -24,7 +24,7 @@ import { SaveBar } from "@/components/erp/save-bar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useLineDictionaries } from "@/hooks/use-line-dictionaries"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
-import type { CompanyProfile } from "@/lib/company"
+import { DEFAULT_BASE_CURRENCY, type CompanyProfile } from "@/lib/company"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
 import { copiedDocumentLines } from "@/lib/document-lines"
 import {
@@ -50,7 +50,7 @@ import {
   useInvoiceHeaderItems,
   type InvoiceFormValues,
 } from "./invoice-form-items"
-import { useBaseCurrency } from "./invoice-currency"
+import { useBaseCurrency, useFormCurrencySync } from "./invoice-currency"
 import { InvoicePartiesFields } from "./invoice-parties-fields"
 
 /** Поля шапки модуля: їх надсилає форма; рядки — усім масивом, сторона — цілою, суми рахує сервер. */
@@ -170,10 +170,13 @@ export function InvoiceForm({
   )
   const before = t("invoiceForm.dueDateBefore")
   const baseCurrency = useBaseCurrency(company)
+  const initialCurrency =
+    invoice?.currency ??
+    source?.currency ??
+    baseCurrency ??
+    DEFAULT_BASE_CURRENCY
   // Знаки суми — валюти, вибраної у формі: схему рядків будуємо за нею (оновлюється разом із полем).
-  const [schemaCurrency, setSchemaCurrency] = useState(
-    () => invoice?.currency ?? source?.currency ?? baseCurrency,
-  )
+  const [schemaCurrency, setSchemaCurrency] = useState(initialCurrency)
   const schema = useInvoiceFormSchema(schemaCurrency, before, ext.shape)
   const recordSchema = useMemo(
     () => invoiceCardSchemaFor(invoiceExtension),
@@ -204,7 +207,7 @@ export function InvoiceForm({
       clientId: "",
       clientName: "",
       ...dates,
-      currency: baseCurrency,
+      currency: initialCurrency,
       supplier: supplierOf(company),
       buyer: emptyPartyDetails(),
       lines: [],
@@ -245,9 +248,7 @@ export function InvoiceForm({
     },
   })
   const { form } = state
-  const currency = useWatch({ control: form.control, name: "currency" })
-  // Інша валюта у формі (поле, «Скасувати зміни», запис колеги) — інші знаки суми в схемі.
-  if (currency !== schemaCurrency) setSchemaCurrency(currency)
+  useFormCurrencySync(form, schemaCurrency, setSchemaCurrency)
   // Значення копії поверх порожньої форми: до першого малювання (порожня форма не блимає) і після
   // «Скасувати зміни» — копія так само не збережена, тож вихід і далі питає.
   const applyCopy = useCallback(() => {
@@ -273,7 +274,7 @@ export function InvoiceForm({
     <InvoiceFormView
       state={view}
       header={header}
-      currency={currency}
+      currency={schemaCurrency}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
       mayEdit={mayEdit}

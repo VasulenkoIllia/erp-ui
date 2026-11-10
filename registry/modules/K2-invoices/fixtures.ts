@@ -287,7 +287,7 @@ function seedInvoice(
     previous?.amended || previous?.reversed ? index - 1 : index
   const source = at(SEEDS, sourceIndex)
   const client = at(context.clients, sourceIndex)
-  const currency = seed.currency ?? CURRENCY
+  const currency = source.currency ?? CURRENCY
   const priceOf = (price: string) =>
     currency === CURRENCY
       ? price

@@ -43,6 +43,6 @@ export function reversedExchange(
   if (!exchange) return null
   return {
     ...exchange,
-    baseTotal: exchange.baseTotal === null ? null : -exchange.baseTotal,
+    baseTotal: exchange.baseTotal === null ? null : -exchange.baseTotal || 0,
   }
 }

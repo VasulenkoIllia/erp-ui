@@ -97,7 +97,7 @@ export function InvoiceAmount({ invoice }: { invoice: Invoice }) {
   const { exchange } = invoice
   if (!exchange) return <InvoiceTotal invoice={invoice} />
   return (
-    <span className="inline-grid justify-items-end">
+    <span className="relative inline-grid justify-items-end">
       <InvoiceTotal invoice={invoice} />
       <span className="text-xs text-muted-foreground tabular-nums">
         <span className="sr-only">{t("invoice.exchange.inBase")} </span>

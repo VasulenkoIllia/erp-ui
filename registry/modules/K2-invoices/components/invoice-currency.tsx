@@ -1,26 +1,48 @@
 import { useGetList } from "ra-core"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
+import { useWatch, type UseFormReturn } from "react-hook-form"
 
 import type { FormSelectItem } from "@/components/erp/form-select"
 import { useCompanyId } from "@/hooks/use-company"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { useHasPermission } from "@/hooks/use-me"
-import type { CompanyProfile } from "@/lib/company"
+import { DEFAULT_BASE_CURRENCY, type CompanyProfile } from "@/lib/company"
 import { companyScope } from "@/lib/company-scope"
 import { currencyName } from "@/lib/currencies"
 import { useLanguage } from "@/lib/i18n"
 
 import { useInvoicesModule } from "../module-context"
+import type { InvoiceFormValues } from "./invoice-form-items"
 
 /** Валют компанії менше за цю межу: перелік не обрізається. */
 const CURRENCY_LIMIT = 200
-/** Компанія без базової валюти (профіль ще не налаштовано): гривня, як у модулі A1. */
-const FALLBACK_CURRENCY = "UAH"
 
-/** Базова валюта компанії для форми: профіль сторінки, а без нього — спільний кеш профілю. */
-export function useBaseCurrency(company: CompanyProfile | undefined): string {
+/**
+ * Базова валюта компанії для форми: профіль сторінки, а без нього — спільний кеш профілю. Поки профілю
+ * немає (вантажиться чи не прийшов) — `undefined`: форма не вгадує базову й не показує хибної підказки.
+ */
+export function useBaseCurrency(
+  company: CompanyProfile | undefined,
+): string | undefined {
   const profile = useCompanyProfile(!company)
-  return (company ?? profile.data)?.baseCurrency ?? FALLBACK_CURRENCY
+  const loaded = company ?? profile.data
+  return loaded && (loaded.baseCurrency ?? DEFAULT_BASE_CURRENCY)
+}
+
+/**
+ * Валюта у формі (поле, «Скасувати зміни», запис колеги) — у стан схеми: інші знаки суми рядків. Після
+ * спроби зберегти рядки перевіряються одразу, а не лише на наступному «Зберегти».
+ */
+export function useFormCurrencySync(
+  form: UseFormReturn<InvoiceFormValues>,
+  schemaCurrency: string,
+  setSchemaCurrency: (currency: string) => void,
+) {
+  const currency = useWatch({ control: form.control, name: "currency" })
+  if (currency !== schemaCurrency) setSchemaCurrency(currency)
+  useEffect(() => {
+    if (form.formState.isSubmitted) void form.trigger("lines")
+  }, [schemaCurrency, form])
 }
 
 interface CurrencyRecord {
@@ -42,7 +64,7 @@ export interface InvoiceCurrencyChoice {
  * — лише базова: валюта рахунку не зникає з поля.
  */
 export function useInvoiceCurrencyChoice(
-  base: string,
+  base: string | undefined,
   current: string,
 ): InvoiceCurrencyChoice {
   const { currencies } = useInvoicesModule()
@@ -63,7 +85,13 @@ export function useInvoiceCurrencyChoice(
     const active = (data ?? [])
       .filter((currency) => currency.active !== false)
       .map((currency) => currency.code)
-    const codes = [...new Set([base, ...active, current].filter(Boolean))]
+    const codes = [
+      ...new Set(
+        [base, ...active, current].filter((code): code is string =>
+          Boolean(code),
+        ),
+      ),
+    ]
     return {
       items: codes.map((code) => ({
         value: code,

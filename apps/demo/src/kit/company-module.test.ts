@@ -221,6 +221,21 @@ describe("моки A1", () => {
     ).resolves.toBeTruthy()
   })
 
+  it("курс менший за шостий знак — 422 біля курсу: перерахунок документа (ADR-0071) такого не бере", async () => {
+    const error = await failureOf(
+      provider.create(EXCHANGE_RATES, {
+        data: { currency: "CHF", date: "2026-01-16", rate: 0.0000004 },
+      }),
+    )
+    expect(error).toMatchObject({ status: 422 })
+    expect(error?.fieldErrors?.rate).toBe("invalid")
+    await expect(
+      provider.create(EXCHANGE_RATES, {
+        data: { currency: "CHF", date: "2026-01-16", rate: 0.000001 },
+      }),
+    ).resolves.toBeTruthy()
+  })
+
   it("зміна курсу на вже зайняту дату — 422, той самий запис — без помилки", async () => {
     const { data } = await listRates({ currency: "PLN" })
     const [latest, previous] = data

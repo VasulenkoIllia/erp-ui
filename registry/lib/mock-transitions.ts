@@ -171,9 +171,9 @@ export interface MockTransitionOptions<T extends MockTransitionRecord> {
   numbering?: MockDocumentNumbering
   /**
    * Поля, які сервер закріплює на проведенні (`submit`, і масово): курс і сума в базовій валюті документа
-   * у валюті (ADR-0071). `record` — документ до дії.
+   * у валюті (ADR-0071). `record` — документ до дії. Статус, стан документа й номер вони не перекривають.
    */
-  submitFields?: (record: T) => Record<string, unknown>
+  submitFields?: (record: T) => Partial<T>
   /** Дії з `creates`: документ іншого ресурсу за ключем дії (`mockCreatedDocument`). */
   creates?: Readonly<Record<string, MockCreatedDocument<T>>>
   /**
@@ -268,14 +268,13 @@ function transitionChanges<T extends MockTransitionRecord>(
   const state = isDocumentAction(transition.id)
     ? DOCUMENT_STATE_AFTER[transition.id]
     : undefined
+  const submitted = state === "submitted"
   return {
+    ...(submitted ? submitFields?.(record) : {}),
     status: transition.to ?? record.status,
     ...(state ? { docStatus: state } : {}),
-    ...(state === "submitted"
-      ? {
-          ...submitFields?.(record),
-          ...numberedBy(numbering, record.companyId ?? companyId)(record, true),
-        }
+    ...(submitted
+      ? numberedBy(numbering, record.companyId ?? companyId)(record, true)
       : {}),
   }
 }

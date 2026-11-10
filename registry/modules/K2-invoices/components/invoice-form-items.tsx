@@ -71,7 +71,7 @@ interface CurrencyField extends InvoiceCurrencyChoice {
  */
 function useCurrencyField(
   form: UseFormReturn<InvoiceFormValues>,
-  base: string,
+  base: string | undefined,
 ): CurrencyField | null {
   const t = useInvoicesT()
   const { currencies } = useInvoicesModule()
@@ -81,7 +81,7 @@ function useCurrencyField(
     if (!currencies) return null
     const hint = choice.failed
       ? t("invoiceForm.currenciesFailed")
-      : current !== base
+      : base && current !== base
         ? t("invoiceForm.currencyHint", { base })
         : undefined
     return { ...choice, hint }
@@ -97,7 +97,7 @@ function useCurrencyField(
 export function useInvoiceHeaderItems(
   form: UseFormReturn<InvoiceFormValues>,
   readOnly: boolean,
-  baseCurrency: string,
+  baseCurrency: string | undefined,
 ): InvoiceFormItem[] {
   const t = useInvoicesT()
   const { clients } = useInvoicesModule()
