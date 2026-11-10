@@ -4,10 +4,12 @@
  *
  * - Рядок кредит-ноти — частка рядка рахунку за кількістю, а не новий розрахунок «кількість × ціна»: так у
  *   ньому вже є частка знижки документа рахунку, а ПДВ не округлюється вдруге.
- * - Частка накопичувальна: кредит-нота, що повертає кількість від `before` до `before + quantity`, бере
- *   `частка(before + quantity) − частка(before)`, де `частка(q) = сума × q / кількість у рахунку` з
+ * - Частка накопичувальна: кредит-нота, що повертає кількість понад уже повернену виставленими `before`, бере
+ *   `частка(before + quantity) − уже повернені суми`, де `частка(q) = сума × q / кількість у рахунку` з
  *   математичним округленням. Тож сума кредит-нот не більша за рахунок, а повне повернення частинами дає рівно
  *   суму рахунку: остання частина бере залишок (10,03 × 2 з ПДВ 4,01 — дві кредит-ноти з ПДВ 2,01 і 2,00).
+ *   Віднімаються саме повернені суми, а не `частка(before)`: після сторно однієї з кредит-нот суми решти не
+ *   збігаються з часткою їхньої кількості, і різниця часток дала б понад рахунок на копійку.
  * - Частки беруться від суми до знижки, знижки рядка, частки знижки документа й податку; решта — з них так
  *   само, як у `lib/document-totals`: податок поверх ціни — `total = net + tax`, податок у ціні —
  *   `net = total − tax`.
@@ -17,7 +19,11 @@ import type {
   SavedDocumentLine,
   SavedDocumentTotals,
 } from "@/lib/document-lines"
-import type { TaxTotal, Totals } from "@/lib/document-totals"
+import {
+  lineDiscountOf,
+  type TaxTotal,
+  type Totals,
+} from "@/lib/document-totals"
 
 /** Тисячні: кількість має до трьох знаків після коми (`QUANTITY_DECIMALS_MAX`). */
 const QUANTITY_SCALE = 1000n
@@ -55,29 +61,54 @@ export interface CreditedLineBasis {
   readonly totals: Totals
 }
 
+/** Уже повернене з рядка рахунку виставленими кредит-нотами: кількість і суми їхніх рядків. */
+export interface CreditedPart {
+  readonly quantity: string
+  readonly totals: Totals
+}
+
+const NO_TOTALS: Totals = {
+  amount: 0,
+  discount: 0,
+  documentDiscount: 0,
+  net: 0,
+  tax: 0,
+  total: 0,
+}
+
+/** З рядка ще нічого не повернули. */
+export const NOTHING_CREDITED: CreditedPart = {
+  quantity: "0",
+  totals: NO_TOTALS,
+}
+
 /**
- * Суми рядка кредит-ноти, що повертає `quantity` після вже повернених `before` з рядка рахунку `basis`.
+ * Суми рядка кредит-ноти, що повертає `quantity` після вже поверненого `before` з рядка рахунку `basis`.
  * `taxIncluded` — податок у ціні рядка. Кількість понад рахунок — RangeError: її відхиляє перевірка раніше.
  */
 export function creditedLineTotals(
   basis: CreditedLineBasis,
-  before: string,
+  before: CreditedPart,
   quantity: string,
   taxIncluded: boolean,
 ): Totals {
   const whole = quantityUnits(basis.quantity)
-  const from = quantityUnits(before)
-  const to = from + quantityUnits(quantity)
+  const to = quantityUnits(before.quantity) + quantityUnits(quantity)
   if (whole === 0n || to > whole)
     throw new RangeError("Кількість кредит-ноти більша за рахунок")
-  const part = (amount: number) =>
-    Number(shareOf(amount, to, whole) - shareOf(amount, from, whole))
+  // Повернені суми бувають на копійку більші за частку своєї кількості (після сторно): частина не від'ємна.
+  const part = (amount: number, credited: number) =>
+    Math.max(0, Number(shareOf(amount, to, whole)) - credited)
   const { totals } = basis
-  const amount = part(totals.amount)
-  const documentDiscount = part(totals.documentDiscount)
+  const amount = part(totals.amount, before.totals.amount)
+  const documentDiscount = part(
+    totals.documentDiscount,
+    before.totals.documentDiscount,
+  )
   const discount =
-    part(totals.discount - totals.documentDiscount) + documentDiscount
-  const tax = part(totals.tax)
+    part(lineDiscountOf(totals), lineDiscountOf(before.totals)) +
+    documentDiscount
+  const tax = part(totals.tax, before.totals.tax)
   const payable = amount - discount
   return taxIncluded
     ? {
@@ -107,21 +138,21 @@ const TOTALS_KEYS = [
   "total",
 ] as const satisfies readonly (keyof Totals)[]
 
+/** Сума двох наборів сум рядка. */
+export const addTotals = (a: Totals, b: Totals): Totals => {
+  const sum = { ...a }
+  for (const key of TOTALS_KEYS) sum[key] += b[key]
+  return sum
+}
+
 /** Підсумки кредит-ноти: сума рядків і підсумки за ставками, як у `lib/document-totals`. */
 export function creditNoteTotals(
   lines: readonly SavedDocumentLine[],
 ): SavedDocumentTotals {
-  const sum: Totals = {
-    amount: 0,
-    discount: 0,
-    documentDiscount: 0,
-    net: 0,
-    tax: 0,
-    total: 0,
-  }
+  let sum = NO_TOTALS
   const taxes = new Map<string, TaxTotal>()
   for (const line of lines) {
-    for (const key of TOTALS_KEYS) sum[key] += line.totals[key]
+    sum = addTotals(sum, line.totals)
     if (!line.tax) continue
     const { id, rate, included } = line.tax
     const key = `${id}|${String(rate)}|${String(included)}`
@@ -147,7 +178,7 @@ export function creditNoteTotals(
  */
 export function creditedLine(
   line: SavedDocumentLine,
-  before: string,
+  before: CreditedPart,
   quantity: string,
 ): SavedDocumentLine {
   const totals = creditedLineTotals(
@@ -165,9 +196,13 @@ export function creditedLine(
   }
 }
 
-/** Рядок рахунку для форми: до `CreditedLineBasis` — скільки ще можна повернути разом із цією кредит-нотою. */
+/**
+ * Рядок рахунку для форми: до `CreditedLineBasis` — скільки ще можна повернути разом із цією кредит-нотою й
+ * суми, які вже повернули інші виставлені кредит-ноти.
+ */
 export interface CreditNoteLineBasis extends CreditedLineBasis {
   readonly available: string
+  readonly credited: Totals
 }
 
 /** Кількість у формі за контрактом і не більша за залишок рахунку. */
@@ -189,9 +224,12 @@ export function creditNoteLinePreview(
 ): Totals | null {
   if (quantity === line.quantity) return line.totals
   if (!basis || !isWithinBasis(basis, quantity)) return null
-  const before = quantityText(
-    quantityUnits(basis.quantity) - quantityUnits(basis.available),
-  )
+  const before: CreditedPart = {
+    quantity: quantityText(
+      quantityUnits(basis.quantity) - quantityUnits(basis.available),
+    ),
+    totals: basis.credited,
+  }
   return creditedLineTotals(
     basis,
     before,

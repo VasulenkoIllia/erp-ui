@@ -90,7 +90,11 @@ export function CreditNoteLinesFields({
     }
     return sum
   }, [lines, byId, note.basis])
-  const linesError = errors.lines?.root?.message ?? errors.lines?.message
+  // Без рядків — підказка одразу, а не лише після «Зберегти»; про помилку відправки каже зведення помилок.
+  const linesError =
+    errors.lines?.root?.message ??
+    errors.lines?.message ??
+    (fields.length === 0 ? t("creditNoteForm.lines.required") : undefined)
   return (
     <section
       aria-labelledby={headingId}
@@ -136,9 +140,7 @@ export function CreditNoteLinesFields({
         })}
       </ul>
       {linesError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {linesError}
-        </p>
+        <p className="text-sm text-destructive">{linesError}</p>
       ) : null}
       <p className="flex flex-wrap justify-end gap-x-3 text-base font-medium">
         <span>{t("creditNoteForm.lines.total")}</span>

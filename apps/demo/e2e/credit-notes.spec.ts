@@ -82,6 +82,7 @@ test.describe("модуль K2: кредит-ноти", () => {
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve)))
     await expectNoA11yViolations(page)
     await first.fill("1")
+    await expect(first).toHaveValue("1")
     await lines(page)
       .last()
       .getByRole("button", { name: /^Прибрати рядок/ })

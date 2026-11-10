@@ -37,10 +37,14 @@ import {
   type InvoiceCard,
 } from "@/registry/modules/K2-invoices/contract"
 import {
+  addTotals,
   creditedLineTotals,
   creditNoteTotals,
+  NOTHING_CREDITED,
   quantityText,
   quantityUnits,
+  type CreditedLineBasis,
+  type CreditedPart,
 } from "@/registry/modules/K2-invoices/credit-note-sums"
 import {
   createInvoicesMocks,
@@ -68,22 +72,33 @@ describe("кредит-нота K2: суми частками рядка рах�
     if (!totals) throw new Error("basis does not add up")
     return { quantity, totals }
   }
+  /** Кредит-ноти по черзі, як рахує сервер: кожна — після повернених попередніми. */
+  const inTurn = (basis: CreditedLineBasis, quantities: readonly string[]) => {
+    let before: CreditedPart = NOTHING_CREDITED
+    return quantities.map((quantity) => {
+      const part = creditedLineTotals(basis, before, quantity, false)
+      before = {
+        quantity: quantityText(
+          quantityUnits(before.quantity) + quantityUnits(quantity),
+        ),
+        totals: addTotals(before.totals, part),
+      }
+      return part
+    })
+  }
 
   it("10,03 × 2 частинами: ПДВ 2,01 і 2,00 — разом рівно рахунок", () => {
     const basis = basisOf("2", "10.03")
     expect(basis.totals).toMatchObject({ net: 2006, tax: 401, total: 2407 })
-    const first = creditedLineTotals(basis, "0", "1", false)
-    const second = creditedLineTotals(basis, "1", "1", false)
+    const [first, second] = inTurn(basis, ["1", "1"])
     expect(first).toMatchObject({ net: 1003, tax: 201, total: 1204 })
     expect(second).toMatchObject({ net: 1003, tax: 200, total: 1203 })
-    expect(first.total + second.total).toBe(basis.totals.total)
+    expect((first?.total ?? 0) + (second?.total ?? 0)).toBe(basis.totals.total)
   })
 
   it("частки накопичувальні: три по одній із чотирьох не перевищують рахунок, остання бере залишок", () => {
     const basis = basisOf("4", "0.005", vat)
-    const parts = ["0", "1", "2", "3"].map((before) =>
-      creditedLineTotals(basis, before, "1", false),
-    )
+    const parts = inTurn(basis, ["1", "1", "1", "1"])
     for (const key of ["amount", "net", "tax", "total"] as const) {
       expect(parts.every((part) => part[key] >= 0)).toBe(true)
       expect(parts.reduce((sum, part) => sum + part[key], 0)).toBe(
@@ -94,15 +109,43 @@ describe("кредит-нота K2: суми частками рядка рах�
 
   it("податок у ціні й знижка рядка: `net = total − tax`, знижка — частка", () => {
     const basis = basisOf("3", "120", { ...vat, included: true }, 10)
-    const part = creditedLineTotals(basis, "0", "1", true)
+    const part = creditedLineTotals(basis, NOTHING_CREDITED, "1", true)
     expect(part.total).toBe(part.amount - part.discount)
     expect(part.net).toBe(part.total - part.tax)
     expect(part.discount).toBe(Math.round(basis.totals.discount / 3))
   })
 
+  it("після сторно однієї з кредит-нот решта разом однаково не більша за рахунок", () => {
+    // 3 × 3,3333 = 10,00: частки однієї одиниці — 3,33 і 3,34.
+    const basis = basisOf("3", "3.3333")
+    const [first, second] = inTurn(basis, ["1", "1"])
+    if (!first || !second) throw new Error("no parts")
+    expect(first.amount).not.toBe(second.amount)
+    // Першу сторнували: лишилась друга, далі ще дві по одній.
+    const third = creditedLineTotals(
+      basis,
+      { quantity: "1", totals: second },
+      "1",
+      false,
+    )
+    const fourth = creditedLineTotals(
+      basis,
+      { quantity: "2", totals: addTotals(second, third) },
+      "1",
+      false,
+    )
+    for (const key of ["amount", "net", "tax", "total"] as const)
+      expect(second[key] + third[key] + fourth[key]).toBe(basis.totals[key])
+  })
+
   it("кількість понад рахунок — RangeError; кількість — тисячними без зайвих нулів", () => {
     expect(() =>
-      creditedLineTotals(basisOf("2", "10"), "1.5", "1", false),
+      creditedLineTotals(
+        basisOf("2", "10"),
+        { ...NOTHING_CREDITED, quantity: "1.5" },
+        "1",
+        false,
+      ),
     ).toThrow(RangeError)
     expect(quantityUnits("2.125")).toBe(2125n)
     expect(quantityText(1500n)).toBe("1.5")

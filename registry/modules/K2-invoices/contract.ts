@@ -263,12 +263,14 @@ const availableSchema = z.union([z.literal("0"), quantitySchema])
 
 /**
  * Рядок рахунку-підстави для форми кредит-ноти: кількість у рахунку, скільки з неї ще можна повернути
- * разом із цією кредит-нотою, і суми рядка рахунку — з них форма рахує частку, як сервер.
+ * разом із цією кредит-нотою, суми рядка рахунку й суми, які вже повернули інші виставлені кредит-ноти, — з
+ * них форма рахує частку, як сервер.
  */
 export const creditNoteBasisSchema = z.object({
   quantity: quantitySchema,
   available: availableSchema,
   totals: savedDocumentLineSchema.shape.totals,
+  credited: savedDocumentLineSchema.shape.totals,
 })
 export type CreditNoteBasis = z.infer<typeof creditNoteBasisSchema>
 

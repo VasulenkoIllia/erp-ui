@@ -34,10 +34,13 @@ import {
   type InvoiceCard,
 } from "./contract"
 import {
+  addTotals,
   creditedLine,
   creditNoteTotals,
+  NOTHING_CREDITED,
   quantityText,
   quantityUnits,
+  type CreditedPart,
 } from "./credit-note-sums"
 import { creditedExchange } from "./mock-exchange"
 
@@ -59,34 +62,49 @@ export const isOpenInvoice = (invoice: InvoiceCard) =>
   !invoice.reversedBy &&
   invoice.status !== REVERSAL_STATUS
 
-/** Повернена кількість за `id` рядка рахунку, тисячними: виставлені кредит-ноти рахунку без `except`. */
-export function creditedQuantities(
+/** Повернене з рядка рахунку: кількість тисячними й суми рядків кредит-нот. */
+export interface CreditedLine {
+  readonly units: bigint
+  readonly totals: CreditedPart["totals"]
+}
+
+/** Повернене за `id` рядка рахунку: виставлені кредит-ноти рахунку без `except`. */
+export function creditedLines(
   notes: readonly CreditNoteCard[],
   invoiceId: string,
   except?: string,
-): Map<string, bigint> {
-  const credited = new Map<string, bigint>()
+): Map<string, CreditedLine> {
+  const credited = new Map<string, CreditedLine>()
   for (const note of notes) {
     if (note.invoiceId !== invoiceId || note.id === except) continue
     if (!isActiveCreditNote(note)) continue
-    for (const line of note.lines)
-      credited.set(
-        line.id,
-        (credited.get(line.id) ?? 0n) + quantityUnits(line.quantity),
-      )
+    for (const line of note.lines) {
+      const sum = credited.get(line.id)
+      credited.set(line.id, {
+        units: (sum?.units ?? 0n) + quantityUnits(line.quantity),
+        totals: sum ? addTotals(sum.totals, line.totals) : line.totals,
+      })
+    }
   }
   return credited
 }
 
+/** Повернене з рядка для розрахунку частки (`credit-note-sums`). */
+const creditedPart = (credited: CreditedLine | undefined): CreditedPart =>
+  credited
+    ? { quantity: quantityText(credited.units), totals: credited.totals }
+    : NOTHING_CREDITED
+
 /** Рядки рахунку, які ще можна повернути, з кількістю залишку. */
 export function remainingLines(
   invoice: InvoiceCard,
-  credited: ReadonlyMap<string, bigint>,
+  credited: ReadonlyMap<string, CreditedLine>,
 ): { line: SavedDocumentLine; available: bigint }[] {
   return itemLinesOf(invoice.lines)
     .map((line) => ({
       line,
-      available: quantityUnits(line.quantity) - (credited.get(line.id) ?? 0n),
+      available:
+        quantityUnits(line.quantity) - (credited.get(line.id)?.units ?? 0n),
     }))
     .filter(({ available }) => available > 0n)
 }
@@ -124,7 +142,7 @@ export type CreditNoteBody = Pick<
 export function creditNoteBody(
   invoice: InvoiceCard,
   input: unknown,
-  credited: ReadonlyMap<string, bigint>,
+  credited: ReadonlyMap<string, CreditedLine>,
 ):
   | { readonly issues: Issue[] }
   | { readonly issues: null; readonly body: CreditNoteBody } {
@@ -154,15 +172,18 @@ export function creditNoteBody(
       continue
     }
     seen.add(id)
-    const before = credited.get(id) ?? 0n
-    if (before + quantityUnits(quantity) > quantityUnits(line.quantity)) {
+    const before = credited.get(id)
+    if (
+      (before?.units ?? 0n) + quantityUnits(quantity) >
+      quantityUnits(line.quantity)
+    ) {
       issues.push({
         path: ["lines", index, "quantity"],
         message: EXCEEDS_INVOICE,
       })
       continue
     }
-    lines.push(creditedLine(line, quantityText(before), quantity))
+    lines.push(creditedLine(line, creditedPart(before), quantity))
   }
   if (issues.length) return { issues }
   const totals = creditNoteTotals(lines)
@@ -200,7 +221,7 @@ export function invoiceCreditDeniedActions(
   action: string,
 ): Record<string, string> | undefined {
   if (!isOpenInvoice(invoice)) return undefined
-  const credited = creditedQuantities(notes, invoice.id)
+  const credited = creditedLines(notes, invoice.id)
   const denied: Record<string, string> = {}
   if (credited.size) {
     denied.cancel = RECORD_DENIAL_REASONS.linked
@@ -232,7 +253,7 @@ export function creditNoteFromInvoice(
     invoiceId: invoice.id,
     date,
     status: DEFAULT_INVOICE_STATUS,
-    lines: remainingLines(invoice, creditedQuantities(notes, invoice.id)).map(
+    lines: remainingLines(invoice, creditedLines(notes, invoice.id)).map(
       ({ line, available }) => ({
         id: line.id,
         quantity: quantityText(available),
@@ -262,23 +283,20 @@ export function creditNoteBasis(
   if (note.docStatus !== "draft") return undefined
   const invoice = invoiceOf(stores, note.invoiceId)
   if (!invoice) return undefined
-  const credited = creditedQuantities(
-    stores.creditNotes(),
-    note.invoiceId,
-    note.id,
-  )
+  const credited = creditedLines(stores.creditNotes(), note.invoiceId, note.id)
   return Object.fromEntries(
     itemLinesOf(invoice.lines)
       .filter((line) => note.lines.some((own) => own.id === line.id))
       .map((line) => {
-        const available =
-          quantityUnits(line.quantity) - (credited.get(line.id) ?? 0n)
+        const before = credited.get(line.id)
+        const available = quantityUnits(line.quantity) - (before?.units ?? 0n)
         return [
           line.id,
           {
             quantity: line.quantity,
             available: quantityText(available > 0n ? available : 0n),
             totals: line.totals,
+            credited: creditedPart(before).totals,
           },
         ]
       }),
@@ -299,7 +317,8 @@ export function creditNoteDeniedActions(
   const built = creditNoteBody(
     invoice,
     note.lines,
-    creditedQuantities(stores.creditNotes(), note.invoiceId, note.id),
+    creditedLines(stores.creditNotes(), note.invoiceId, note.id),
   )
+  // Інших помилок рядків у збереженій чернетці немає: їх відхиляє схема запису ще на збереженні.
   return built.issues ? { submit: EXCEEDS_INVOICE } : undefined
 }

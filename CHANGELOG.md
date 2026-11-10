@@ -34,6 +34,7 @@
 - Демо: картка документа показує дату й смугу закритого періоду; документи демо до 20.10.2026 лежать у закритому періоді (PF13).
 - Модуль B3: файли `sales-totals.ts` і `components/line-dictionaries.ts` перейшли в кіт (`lib/document-sums`, `hooks/use-line-dictionaries`). Проект, що імпортував їх із `@/modules/B3-sales/…`, бере `documentSumsOf` і `useLineDictionaries` з кіта; `SalesFixtureDictionaries` тепер псевдонім `DocumentFixtureDictionaries`.
 - «Створити замовлення» з пропозиції переносить у замовлення значення полів розширення з тим самим ключем (ADR-0070).
+- Модуль K2: тип `InvoiceTransitionId` отримав значення `creditNote` (дія графа рахунку з `creates`): вичерпний `switch` чи `Record<InvoiceTransitionId, …>` у проекті потребує нової гілки.
 - Модуль K2: рахунок із виставленою кредит-нотою не скасовується й не сторнується (`deniedActions` `linked`); проект, чий бекенд кредит-нот не має, ховає «Створити кредит-ноту» розширенням `invoices.transitions.hide: ["creditNote"]`.
 - Моки документів: `storedDocumentSchema` не робить чернеткою новий документ зі `reversalOf` (сторно сервер створює проведеним), а зв'язки `amendedFrom`, `amendedBy`, `reversalOf`, `reversedBy` ресурсів B3 і K2 — поля сервера: з тіла запиту клієнта вони не беруться.
 - Демо: `/m/K2` веде на модуль K2; заглушку з лічильником «на погодженні» отримав розділ K3.
