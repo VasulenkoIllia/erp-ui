@@ -16,7 +16,12 @@ import { formatDate } from "@/lib/format"
 import type { Language } from "@/lib/i18n"
 import { usePrintSheet } from "@/lib/print"
 
-import { REVERSAL_STATUS, type Invoice, type InvoiceDetail } from "../contract"
+import {
+  REVERSAL_STATUS,
+  type Invoice,
+  type InvoiceDetail,
+  type K2Document,
+} from "../contract"
 import { invoicePaymentQr } from "./invoice-payment"
 
 /** Тексти аркуша мовою документа (дані модуля, а не рядки інтерфейсу, ADR-0062). */
@@ -41,6 +46,27 @@ const SHEET = {
 export const invoiceSheetTitle = (invoice: Invoice, language: Language) =>
   (invoice.status === REVERSAL_STATUS ? SHEET.reversal : SHEET.title)[language]
 
+/** Постачальник і покупець аркуша документа з реквізитами знімків (ADR-0068). */
+export function SheetParties({ document }: { document: K2Document }) {
+  const { t } = usePrintSheet()
+  return (
+    <PrintParties
+      parties={[
+        {
+          label: t("print.sheet.supplier"),
+          name: document.supplier.name,
+          details: partyRequisiteLines(document.supplier, t),
+        },
+        {
+          label: t("print.sheet.buyer"),
+          name: document.buyer.name || document.clientName,
+          details: partyRequisiteLines(document.buyer, t),
+        },
+      ]}
+    />
+  )
+}
+
 /**
  * Аркуш рахунку з блоків кіта (PF08, ADR-0062, ADR-0068, ADR-0070): шапка компанії, «Рахунок на оплату» з
  * номером і датою, «Сплатити до …», постачальник і покупець з реквізитами знімків рахунку, рядки, підсумки
@@ -56,7 +82,7 @@ export function InvoiceSheet({
   detail: InvoiceDetail
   company: CompanyProfile
 }) {
-  const { t, language, locale } = usePrintSheet()
+  const { language, locale } = usePrintSheet()
   const qr = invoicePaymentQr(invoice, detail.totals)
   return (
     <>
@@ -76,20 +102,7 @@ export function InvoiceSheet({
             </p>
           )}
         </div>
-        <PrintParties
-          parties={[
-            {
-              label: t("print.sheet.supplier"),
-              name: invoice.supplier.name,
-              details: partyRequisiteLines(invoice.supplier, t),
-            },
-            {
-              label: t("print.sheet.buyer"),
-              name: invoice.buyer.name || invoice.clientName,
-              details: partyRequisiteLines(invoice.buyer, t),
-            },
-          ]}
-        />
+        <SheetParties document={invoice} />
         <PrintDocumentLines lines={detail.lines} currency={invoice.currency} />
         <PrintDocumentTotals
           lines={detail.lines}

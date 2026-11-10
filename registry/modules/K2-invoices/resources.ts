@@ -10,6 +10,12 @@ import type { LocalizedText } from "@/lib/auth"
  */
 export const INVOICES = "sales-invoices"
 
+/**
+ * Кредит-ноти клієнтам (ADR-0072): окремий документ на підставі виставленого рахунку, свій номер і список.
+ * `sales-credit-notes`, бо кредит-ноти постачальників (K3) — інший ресурс.
+ */
+export const CREDIT_NOTES = "sales-credit-notes"
+
 export interface InvoicesResource {
   readonly name: string
   readonly label: LocalizedText
@@ -24,6 +30,21 @@ export const INVOICES_RESOURCES: readonly InvoicesResource[] = [
   {
     name: INVOICES,
     label: { uk: "Рахунки клієнтам", en: "Customer invoices" },
+    actions: [
+      "read",
+      "create",
+      "update",
+      "delete",
+      "submit",
+      "cancel",
+      "reverse",
+      "amend",
+      "creditNote",
+    ],
+  },
+  {
+    name: CREDIT_NOTES,
+    label: { uk: "Кредит-ноти", en: "Credit notes" },
     actions: [
       "read",
       "create",

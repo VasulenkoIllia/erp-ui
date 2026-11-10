@@ -70,7 +70,10 @@ export const quantitySchema = decimalSchema(QUANTITY_DECIMALS_MAX).refine(
   { error: "positive", when: whenValid },
 )
 export const priceSchema = decimalSchema(PRICE_DECIMALS_MAX)
-/** Від'ємних сум у документі поки немає, кредит-нота розширить це на своєму кроці. */
+/**
+ * Суми рядка невід'ємні: кредит-нота — окремий документ із додатними сумами (ADR-0072), знак мінус має лише
+ * `total` шапки сторно.
+ */
 const lineAmountSchema = moneyAmountSchema.min(0)
 
 /** Поля знижки рядка й документа. */

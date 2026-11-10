@@ -22,6 +22,10 @@
  *   (`releaseOrder`).
  * - Нумерація — спільна для всіх документів проекту: модуль дає засів серії `sales-invoices`
  *   (`invoicesNumberingSeeds`) і бере `numbering.forResource`.
+ * - Кредит-ноти (ADR-0072) — свій ресурс `sales-credit-notes` у тих самих моках: дія рахунку `creditNote`
+ *   створює чернетку, кількість рядка разом із виставленими кредит-нотами не більша, ніж у рахунку, картка
+ *   рахунку має `creditedTotal`, рахунок із виставленою кредит-нотою не скасовують і не сторнують (`linked`).
+ *   Серія номерів `sales-credit-notes` — у `invoicesNumberingSeeds`, сховище — `creditNotesDb`.
  * - Рахунок у валюті (ADR-0071): з `rates` (базова валюта й `rateOn` моків A1) сервер рахує `exchange` —
  *   у чернетки на кожен запис, на «Виставити» закріплює; сторно бере курс першого. Курс чернетки моки
  *   оновлюють під час запису, а не читання: новий курс у таблиці чернетка побачить після збереження.
@@ -57,6 +61,8 @@ import { createResourceHandlers } from "@/lib/mocks"
 import { mergeTransitions } from "@/lib/statuses"
 
 import {
+  CREATE_CREDIT_NOTE,
+  CREDIT_NOTES,
   DEFAULT_INVOICE_STATUS,
   INVOICE_DUE_DAYS,
   INVOICE_TRANSITIONS,
@@ -66,7 +72,16 @@ import {
   REVERSAL_STATUS,
   type InvoiceCard,
 } from "./contract"
+import {
+  createCreditNoteFixtures,
+  CREDIT_NOTE_NUMBER_TEMPLATE,
+} from "./credit-note-fixtures"
 import type { InvoicesMockExtension } from "./extension"
+import { createCreditNoteHandlers } from "./mock-credit-note-handlers"
+import {
+  creditedTotalOf,
+  invoiceCreditDeniedActions,
+} from "./mock-credit-notes"
 import { invoiceExchange, reversedExchange } from "./mock-exchange"
 import {
   createInvoiceFixtures,
@@ -151,21 +166,32 @@ const partyText = (party: PartyDetails) =>
   [party.name, party.code].filter(Boolean).join(", ")
 
 /**
- * Засів серії `sales-invoices` для `createNumberingMocks` (ADR-0058): шаблон мовою даних у кожній
- * компанії й лічильники, які фікстури вже видали. Ті самі опції, що й у `createInvoicesMocks`.
+ * Засів серій `sales-invoices` і `sales-credit-notes` для `createNumberingMocks` (ADR-0058, ADR-0072):
+ * шаблони мовою даних у кожній компанії й лічильники, які фікстури вже видали. Ті самі опції, що й у
+ * `createInvoicesMocks`.
  */
 export function invoicesNumberingSeeds(options: InvoiceFixtureOptions = {}): {
   series: MockNumberingSeriesSeed[]
   counters: MockNumberingCounterSeed[]
 } {
-  const template = INVOICE_NUMBER_TEMPLATE[options.locale ?? "uk"]
+  const locale = options.locale ?? "uk"
+  const fixtures = createInvoiceFixtures(options)
+  const templates = [
+    [INVOICES, INVOICE_NUMBER_TEMPLATE[locale]],
+    [CREDIT_NOTES, CREDIT_NOTE_NUMBER_TEMPLATE[locale]],
+  ] as const
   return {
-    series: (options.companies ?? [null]).map((companyId) => ({
-      companyId,
-      resource: INVOICES,
-      template,
-    })),
-    counters: createInvoiceFixtures(options).counters,
+    series: (options.companies ?? [null]).flatMap((companyId) =>
+      templates.map(([resource, template]) => ({
+        companyId,
+        resource,
+        template,
+      })),
+    ),
+    counters: [
+      ...fixtures.counters,
+      ...createCreditNoteFixtures(fixtures.invoices, options).counters,
+    ],
   }
 }
 
@@ -184,10 +210,13 @@ export function createInvoicesMocks({
     INVOICE_TRANSITIONS,
     invoiceExtension?.transitions,
   )
+  // Кредит-ноту до рахунку закритого періоду роблять, як сторно: вона датується сьогодні (ADR-0072).
   const lock = periodLock?.forResource<InvoiceCard>({
     resource: INVOICES,
     dateField: "date",
-    actions: transitions.map((transition) => transition.id),
+    actions: transitions
+      .map((transition) => transition.id)
+      .filter((id) => id !== CREATE_CREDIT_NOTE),
   })
   /** Дата нового документа сервера: сьогодні, а в закритому періоді — перший відкритий день. */
   const openDay = (companyId: string | null | undefined): CalendarDate => {
@@ -229,7 +258,16 @@ export function createInvoicesMocks({
     label: INVOICES_RESOURCES[0]?.label,
     fieldLabels: FIELD_LABELS,
     detailFields: ["lines", "totals"],
-    serverFields: [...LIFECYCLE_LINK_FIELDS, "orderId", "exchange"],
+    // Сума виставлених кредит-нот — лише в картці: список її не віддає.
+    detail: (invoice) => ({
+      creditedTotal: creditedTotalOf(invoice.id, creditNotes.db.all()),
+    }),
+    serverFields: [
+      ...LIFECYCLE_LINK_FIELDS,
+      "orderId",
+      "exchange",
+      "creditedTotal",
+    ],
     auditValue: {
       lines: documentLinesText,
       supplier: partyText,
@@ -244,6 +282,11 @@ export function createInvoicesMocks({
     deniedActions: (actor, invoice) => {
       const denied = {
         ...lock?.deniedActions(actor, invoice),
+        ...invoiceCreditDeniedActions(
+          invoice,
+          creditNotes.db.all(),
+          CREATE_CREDIT_NOTE,
+        ),
         ...documentDeniedActions(invoice),
         ...deniedActions?.(actor, invoice),
       }
@@ -252,6 +295,19 @@ export function createInvoicesMocks({
     ...(lock
       ? { validateWrite: lock.validateWrite, afterWrite: lock.afterWrite }
       : {}),
+  })
+  const creditNotes = createCreditNoteHandlers({
+    invoices: invoices.db,
+    numbering,
+    extension: extension?.creditNotes,
+    baseUrl,
+    periodLock,
+    openDay,
+    data: () =>
+      createCreditNoteFixtures(
+        createInvoiceFixtures(fixtureOptions).invoices,
+        fixtureOptions,
+      ).creditNotes,
   })
   const invoiceNumbering = numbering.forResource({
     resource: INVOICES,
@@ -292,6 +348,7 @@ export function createInvoicesMocks({
     conflictChange: (invoice) => ({ dueDate: addDays(invoice.dueDate, 7) }),
     numbering: invoiceNumbering,
     submitFields,
+    creates: { [CREATE_CREDIT_NOTE]: creditNotes.fromInvoice },
     ...(lock ? { afterTransition: lock.afterTransition } : {}),
   })
   const invoiceBulk = createBulkHandlers<InvoiceCard>({
@@ -329,8 +386,15 @@ export function createInvoicesMocks({
     })
   return {
     // Масові дії й дії — перед ресурсом: `POST /sales-invoices/…/<дія>` не має дійти до обробників запису.
-    handlers: [...invoiceBulk, ...invoiceTransitions, ...invoices.handlers],
+    handlers: [
+      ...invoiceBulk,
+      ...invoiceTransitions,
+      ...creditNotes.handlers,
+      ...invoices.handlers,
+    ],
     db: invoices.db,
+    /** Кредит-ноти (ADR-0072): скидання в тестах, події моку. */
+    creditNotesDb: creditNotes.db,
     /** Рахунок-чернетка з замовлення B3: `createSalesMocks({ invoices: { create: fromOrder, hasActive } })`. */
     fromOrder,
     /** З замовлення є рахунок, що діє (не скасований і не сторнований): замовлення тоді не скасовують. */
@@ -341,6 +405,6 @@ export function createInvoicesMocks({
           (invoice) => invoice.orderId === orderId && isActiveInvoice(invoice),
         ),
     /** Джерела потоку документів: для `createDocumentFlowHandlers` застосунку, після джерел B3. */
-    flowSources: [invoicesFlowSource(invoices.db)],
+    flowSources: [invoicesFlowSource(invoices.db), creditNotes.flowSource],
   }
 }

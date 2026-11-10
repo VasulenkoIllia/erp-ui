@@ -2,14 +2,21 @@ import { partyRequisiteLines } from "@/components/erp/print-requisites"
 import type { PartyDetails } from "@/lib/document-parties"
 import { useErpUiT } from "@/lib/i18n"
 
-import type { Invoice } from "../contract"
+import type { K2Document } from "../contract"
+import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesT } from "../use-invoices-t"
 
 /**
  * Сторони рахунку на картці (UI45, ADR-0068): постачальник і покупець зі знімків рахунку — назва й
  * реквізити рядками без порожніх значень, як на аркуші; поруч із 32rem контейнера, вужче — одна під одною.
  */
-export function InvoiceParties({ invoice }: { invoice: Invoice }) {
+export function InvoiceParties({
+  kind,
+  invoice,
+}: {
+  kind: K2DocumentKind
+  invoice: K2Document
+}) {
   const t = useInvoicesT()
   const kitT = useErpUiT()
   const parties: {
@@ -20,13 +27,13 @@ export function InvoiceParties({ invoice }: { invoice: Invoice }) {
   }[] = [
     {
       id: "supplier",
-      label: t("invoice.parties.supplier"),
+      label: t(`${kind.key}.parties.supplier`),
       name: invoice.supplier.name,
       party: invoice.supplier,
     },
     {
       id: "buyer",
-      label: t("invoice.parties.buyer"),
+      label: t(`${kind.key}.parties.buyer`),
       // Покупець без повної назви — назвою клієнта рахунку.
       name: invoice.buyer.name || invoice.clientName,
       party: invoice.buyer,

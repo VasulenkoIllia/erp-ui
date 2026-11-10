@@ -38,7 +38,7 @@ test.describe("ролі й права (ADR-0014)", () => {
       exact: true,
     })
     await expect(allInvoices).toHaveAttribute("aria-checked", "mixed")
-    await expect(page.getByText("Дозволів: 3")).toBeVisible()
+    await expect(page.getByText("Дозволів: 4")).toBeVisible()
     await expectNoA11yViolations(page)
 
     await page
@@ -49,9 +49,9 @@ test.describe("ролі й права (ADR-0014)", () => {
       name: "Зміни ролі «Аудитор» не збережено",
     })
     await unsaved.getByRole("button", { name: "Повернутися до ролі" }).click()
-    await expect(page.getByText("Дозволів: 4")).toBeVisible()
+    await expect(page.getByText("Дозволів: 5")).toBeVisible()
     await allInvoices.check()
-    await expect(page.getByText("Дозволів: 8")).toBeVisible()
+    await expect(page.getByText("Дозволів: 9")).toBeVisible()
     await page.getByRole("button", { name: "Зберегти", exact: true }).click()
     await confirmWithPassword(page)
     await expect(toast(page, "Роль збережено")).toBeVisible()

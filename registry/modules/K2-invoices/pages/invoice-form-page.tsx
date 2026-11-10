@@ -13,7 +13,7 @@ import { useEditLock } from "@/hooks/use-edit-lock"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { errorStateKind, isApiError } from "@/lib/api"
 
-import { useInvoiceAccess } from "../components/invoice-access"
+import { useDocumentAccess } from "../components/invoice-access"
 import { useInvoiceTitle } from "../components/invoice-display"
 import { InvoiceForm } from "../components/invoice-form"
 import { useInvoiceDetail } from "../components/invoice-lines"
@@ -23,7 +23,7 @@ import {
   type InvoiceCard,
   type InvoiceDetail,
 } from "../contract"
-import { COPY_PARAM, invoiceDocumentPaths } from "../invoice-kind"
+import { COPY_PARAM, INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
@@ -154,7 +154,7 @@ function EditInvoice({ id }: { id: string }) {
     title,
     !card.isPending || card.pageError !== undefined,
   )
-  const access = useInvoiceAccess("update", invoice)
+  const access = useDocumentAccess(INVOICE_KIND, "update", invoice)
   const lock = useEditLock({
     resource: INVOICES,
     id,

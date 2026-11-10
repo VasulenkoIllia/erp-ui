@@ -46,3 +46,19 @@ export function reversedExchange(
     baseTotal: exchange.baseTotal === null ? null : -exchange.baseTotal || 0,
   }
 }
+
+/**
+ * Кредит-нота — за курсом рахунку-підстави (ADR-0072): ті самі валюта, курс і дата курсу, сума в базовій
+ * валюті — від суми кредит-ноти тим самим правилом округлення; рахунок у базовій валюті — `null`.
+ */
+export function creditedExchange(
+  basis: DocumentExchange | null | undefined,
+  document: { readonly currency: string; readonly total: number },
+): DocumentExchange | null {
+  if (!basis) return null
+  const rate =
+    basis.rate !== null && basis.rateDate !== null
+      ? { rate: basis.rate, date: basis.rateDate }
+      : null
+  return documentExchangeOf(document, basis.baseCurrency, rate)
+}

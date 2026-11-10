@@ -1,13 +1,16 @@
 /**
- * Рахунок модуля K2 для сторінок і компонентів (ADR-0070): тони й підписи статусів, основний шлях етапів,
- * свої підписи й підтвердження дій, адреси сторінок. Наступний документ модуля (кредит-нота K2b) стане
- * поруч своїм описом.
+ * Рахунок модуля K2 для сторінок і компонентів (ADR-0070): статуси, граф дій зі своїми підписами й
+ * підтвердженнями, етапи, адреси сторінок. Кредит-нота (ADR-0072) — поруч своїм описом
+ * (`credit-note-kind.ts`), спільний тип — `document-kind.ts`.
  */
-import type { StatusTone } from "@/lib/statuses"
-
-import { INVOICE_STATUSES, type InvoiceStatus } from "./contract"
+import {
+  CREATE_CREDIT_NOTE,
+  INVOICE_STATUSES,
+  INVOICE_TRANSITIONS,
+  INVOICES,
+} from "./contract"
+import { DOCUMENT_TONES, type K2DocumentKind } from "./document-kind"
 import type { InvoicesPaths } from "./module-context"
-import type { InvoicesKey } from "./use-invoices-t"
 
 /** Параметр адреси нової форми з документом, який копіюють: `…/new?copy=<id>`. */
 export const COPY_PARAM = "copy"
@@ -37,30 +40,18 @@ export function invoiceDocumentPaths(
   }
 }
 
-const TONES: Record<InvoiceStatus, StatusTone> = {
-  draft: "neutral",
-  issued: "info",
-  cancelled: "destructive",
-  reversed: "warning",
-  reversal: "neutral",
+/** Рахунок: «Виставити» зі своїм підтвердженням, «Кредит-нота» — документ на підставі (ADR-0072). */
+export const INVOICE_KIND: K2DocumentKind = {
+  resource: INVOICES,
+  key: "invoice",
+  statuses: INVOICE_STATUSES.map((id) => ({ id, tone: DOCUMENT_TONES[id] })),
+  transitions: INVOICE_TRANSITIONS,
+  actionLabels: {
+    submit: "invoice.actions.submit",
+    [CREATE_CREDIT_NOTE]: "invoice.actions.creditNote",
+  },
+  confirms: { submit: "invoice.confirm.submit" },
+  mainPath: ["draft", "issued"],
+  pathsOf: invoiceDocumentPaths,
+  extensionOf: (extension) => extension.invoices,
 }
-
-/** Статуси рахунку з тоном і ключем підпису. */
-export const INVOICE_STATUS_ITEMS = INVOICE_STATUSES.map((id) => ({
-  id,
-  tone: TONES[id],
-  label: `invoice.statuses.${id}` as const,
-}))
-
-/** Основний шлях для смуги етапів; решта статусів — бейджем. */
-export const INVOICE_MAIN_PATH: readonly string[] = ["draft", "issued"]
-
-/** Дії зі своїм підписом модуля; решта — підписи кіта (`documentActions.<дія>`). */
-export const INVOICE_ACTION_LABELS: Readonly<
-  Partial<Record<string, InvoicesKey>>
-> = { submit: "invoice.actions.submit" }
-
-/** Дії зі своїми текстами підтвердження: «Виставити рахунок?» замість «Провести документ?». */
-export const INVOICE_CONFIRMS: Readonly<
-  Partial<Record<string, "invoice.confirm.submit">>
-> = { submit: "invoice.confirm.submit" }

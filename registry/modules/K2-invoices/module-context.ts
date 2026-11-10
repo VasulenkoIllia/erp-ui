@@ -14,6 +14,11 @@ export interface InvoicesPaths {
   readonly editInvoice: (id: string) => string
   /** Друк: окрема сторінка з одним аркушем (ADR-0062). */
   readonly printInvoice: (id: string) => string
+  /** Кредит-ноти (ADR-0072): список, картка, зміна чернетки й друк; нову створює дія рахунку. */
+  readonly creditNotes: string
+  readonly creditNote: (id: string) => string
+  readonly editCreditNote: (id: string) => string
+  readonly printCreditNote: (id: string) => string
 }
 
 /**
@@ -23,12 +28,18 @@ export interface InvoicesPaths {
 export function invoicesPaths(basePath: string): InvoicesPaths {
   const base = basePath.replace(/\/+$/, "")
   const invoice = (id: string) => `${base}/invoices/${encodeURIComponent(id)}`
+  const creditNote = (id: string) =>
+    `${base}/credit-notes/${encodeURIComponent(id)}`
   return {
     invoices: `${base}/invoices`,
     invoice,
     newInvoice: `${base}/invoices/new`,
     editInvoice: (id) => `${invoice(id)}/edit`,
     printInvoice: (id) => `${invoice(id)}/print`,
+    creditNotes: `${base}/credit-notes`,
+    creditNote,
+    editCreditNote: (id) => `${creditNote(id)}/edit`,
+    printCreditNote: (id) => `${creditNote(id)}/print`,
   }
 }
 

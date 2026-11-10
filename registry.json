@@ -11220,7 +11220,7 @@
       "name": "modules/K2-invoices",
       "type": "registry:item",
       "title": "Рахунки клієнтам (K2)",
-      "description": "Модуль, розділ «Рахунки клієнтам»: обліковий документ — список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук, позначка «Прострочено» виставленого з минулою «Сплатити до», сума сторно з мінусом, масові «Виставити», «Скасувати» з причиною й «Видалити» чернетки), картка на Object Page (номер, етапи, смуга закритого періоду, панель дій графа: «Виставити» з номером серії, «Скасувати» з причиною, «Виправити», «Сторнувати» — проведений рахунок «Сторно» з датою сьогодні; рядки з підсумками сервера, сторони, потік документів, історія чи стрічка зі слота), форма на сторінці (клієнт із реквізитами покупця з його картки, дата з першим відкритим днем, «Сплатити до», сторони з профілю компанії й картки клієнта, редактор рядків, конфлікт 409, «Редагує …»), «Копіювати», друк на аркуші A4 мовою документа з QR-кодом оплати НБУ (лише гривня); рахунок у валюті компанії з сумою в базовій валюті поруч — курс на дату рахунку, свіжий у чернетці й закріплений на «Виставити», сторно за курсом першого (ADR-0071); «Виставити рахунок» із замовлення B3 (один рахунок на замовлення, поля розширення з тим самим ключем переходять у рахунок); контракт, моки зі сценаріями, закритим періодом, засівом серії sales-invoices і масовими діями, фікстури uk/en, рядки uk/en; фабрика createInvoicesModule, тип розширення InvoicesExtension (ключ invoices) (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0068, ADR-0069, ADR-0070, ADR-0071).",
+      "description": "Модуль, розділи «Рахунки клієнтам» і «Кредит-ноти»: обліковий документ — список на List Report (вкладки за статусом, фільтри «Клієнт» і «Дата», пошук, позначка «Прострочено» виставленого з минулою «Сплатити до», сума сторно з мінусом, масові «Виставити», «Скасувати» з причиною й «Видалити» чернетки), картка на Object Page (номер, етапи, смуга закритого періоду, панель дій графа: «Виставити» з номером серії, «Скасувати» з причиною, «Виправити», «Сторнувати» — проведений рахунок «Сторно» з датою сьогодні; рядки з підсумками сервера, сторони, потік документів, історія чи стрічка зі слота), форма на сторінці (клієнт із реквізитами покупця з його картки, дата з першим відкритим днем, «Сплатити до», сторони з профілю компанії й картки клієнта, редактор рядків, конфлікт 409, «Редагує …»), «Копіювати», друк на аркуші A4 мовою документа з QR-кодом оплати НБУ (лише гривня); рахунок у валюті компанії з сумою в базовій валюті поруч — курс на дату рахунку, свіжий у чернетці й закріплений на «Виставити», сторно за курсом першого (ADR-0071); «Виставити рахунок» із замовлення B3 (один рахунок на замовлення, поля розширення з тим самим ключем переходять у рахунок); кредит-нота окремим документом на підставі виставленого рахунку («Створити кредит-ноту»: рядки, які ще не повернули, кількість не більша за рахунок — перевіряє сервер, номер своєї серії «КН-…», валюта й курс рахунку, дата сьогодні в закритому періоді; список, картка, форма чернетки, друк, потік документів; на картці рахунку — сума кредит-нот, рахунок із виставленою кредит-нотою не скасувати й не сторнувати, ADR-0072); контракт, моки зі сценаріями, закритим періодом, засівом серій sales-invoices і sales-credit-notes та масовими діями, фікстури uk/en, рядки uk/en; фабрика createInvoicesModule, тип розширення InvoicesExtension (ключі invoices і creditNotes) (ADR-0020, ADR-0025, ADR-0057, ADR-0058, ADR-0062, ADR-0068, ADR-0069, ADR-0070, ADR-0071, ADR-0072).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -12606,6 +12606,41 @@
           "target": "~/src/modules/K2-invoices/components/access-link.tsx"
         },
         {
+          "path": "registry/modules/K2-invoices/components/credit-note-form.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/credit-note-form.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/credit-note-header.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/credit-note-header.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/credit-note-lines-fields.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/credit-note-lines-fields.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/credit-note-sheet.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/credit-note-sheet.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/document-list.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/document-list.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/document-print.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/document-print.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/document-status-bar.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/document-status-bar.tsx"
+        },
+        {
           "path": "registry/modules/K2-invoices/components/invoice-access.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/components/invoice-access.ts"
@@ -12691,6 +12726,26 @@
           "target": "~/src/modules/K2-invoices/contract.ts"
         },
         {
+          "path": "registry/modules/K2-invoices/credit-note-fixtures.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/credit-note-fixtures.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/credit-note-kind.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/credit-note-kind.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/credit-note-sums.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/credit-note-sums.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/document-kind.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/document-kind.ts"
+        },
+        {
           "path": "registry/modules/K2-invoices/extension.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/extension.ts"
@@ -12721,6 +12776,16 @@
           "target": "~/src/modules/K2-invoices/invoice-kind.ts"
         },
         {
+          "path": "registry/modules/K2-invoices/mock-credit-note-handlers.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/mock-credit-note-handlers.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/mock-credit-notes.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/mock-credit-notes.ts"
+        },
+        {
           "path": "registry/modules/K2-invoices/mock-exchange.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/mock-exchange.ts"
@@ -12739,6 +12804,26 @@
           "path": "registry/modules/K2-invoices/module-context.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/module-context.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/pages/credit-note-form-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/pages/credit-note-form-page.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/pages/credit-note-list-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/pages/credit-note-list-page.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/pages/credit-note-print-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/pages/credit-note-print-page.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/pages/credit-note-record-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/pages/credit-note-record-page.tsx"
         },
         {
           "path": "registry/modules/K2-invoices/pages/invoice-form-page.tsx",
@@ -12776,7 +12861,7 @@
           "target": "~/src/modules/K2-invoices/use-invoices-t.ts"
         }
       ],
-      "docs": "Модуль K2 встановлено в src/modules/K2-invoices. Файли модуля не правте: зміни під клієнта — у src/extensions/K2-invoices.ts (тип InvoicesExtension, ключ invoices).\n1) createInvoicesModule({ basePath, extension, clients, sources, currencies, lineItem }) з @/modules/K2-invoices: routes — у роутер, nav — у навігацію (пункт «Рахунки клієнтам» з access sales-invoices:read). clients.party — реквізити покупця з запису клієнта; sources — адреси карток замовлень і пропозицій B3 для потоку; currencies: { resource: \"currencies\" } — валюти компанії модуля A1 (поле «Валюта» у формі, сума в базовій валюті поруч). У createSalesModule — invoices: { href: invoicesPaths(basePath).invoice }.\n2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серія sales-invoices), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder, rates }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }); rates — базова валюта й rateOn моків A1.\n3) Права ролей: sales-invoices (read, create, update, delete, submit, cancel, reverse, amend) і дії розширення; рахунок із замовлення — orders:invoice разом із sales-invoices:create. Докладно — src/modules/K2-invoices/README.md.",
+      "docs": "Модуль K2 встановлено в src/modules/K2-invoices. Файли модуля не правте: зміни під клієнта — у src/extensions/K2-invoices.ts (тип InvoicesExtension, ключі invoices і creditNotes).\n1) createInvoicesModule({ basePath, extension, clients, sources, currencies, lineItem }) з @/modules/K2-invoices: routes — у роутер, nav — у навігацію (пункти «Рахунки клієнтам» з access sales-invoices:read і «Кредит-ноти» з access sales-credit-notes:read). clients.party — реквізити покупця з запису клієнта; sources — адреси карток замовлень і пропозицій B3 для потоку; currencies: { resource: \"currencies\" } — валюти компанії модуля A1 (поле «Валюта» у формі, сума в базовій валюті поруч). У createSalesModule — invoices: { href: invoicesPaths(basePath).invoice }.\n2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серії sales-invoices і sales-credit-notes), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder, rates }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }); rates — базова валюта й rateOn моків A1.\n3) Права ролей: sales-invoices (read, create, update, delete, submit, cancel, reverse, amend, creditNote — «Створити кредит-ноту», ще й sales-credit-notes:create), sales-credit-notes (read, create, update, delete, submit, cancel, reverse, amend) і дії розширення; рахунок із замовлення — orders:invoice разом із sales-invoices:create. Докладно — src/modules/K2-invoices/README.md.",
       "meta": {
         "layer": "modules",
         "status": "beta",

@@ -25,6 +25,7 @@ import {
   REVERSAL_STATUS,
   type Invoice,
   type InvoiceCard,
+  type K2Document,
 } from "./contract"
 
 /** Ресурс замовлень модуля B3: зв'язок `basedOn` у потоці документів. */
@@ -98,13 +99,13 @@ export const isActiveInvoice = (invoice: Invoice) =>
   !invoice.reversedBy &&
   invoice.status !== REVERSAL_STATUS
 
-/** Рахунок у потоці: номер, дата, статус модуля, стан і сума (у сторно — з мінусом). */
-const flowNode = (invoice: Invoice) => ({
-  number: invoice.number,
-  date: invoice.date,
-  status: invoice.status,
-  docStatus: invoice.docStatus,
-  total: { amount: invoice.total, currency: invoice.currency },
+/** Документ модуля в потоці: номер, дата, статус модуля, стан і сума (у сторно — з мінусом). */
+export const documentFlowNode = (document: K2Document) => ({
+  number: document.number,
+  date: document.date,
+  status: document.status,
+  docStatus: document.docStatus,
+  total: { amount: document.total, currency: document.currency },
 })
 
 /** Джерело потоку рахунків: зв'язки життєвого циклу й «На підставі» замовлення B3. */
@@ -114,7 +115,7 @@ export function invoicesFlowSource(
   return documentFlowSource({
     resource: INVOICES,
     db: invoices,
-    node: flowNode,
+    node: documentFlowNode,
     links: (invoice) => [
       ...documentLifecycleLinks(INVOICES)(invoice),
       ...(invoice.orderId

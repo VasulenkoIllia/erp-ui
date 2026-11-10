@@ -38,10 +38,21 @@
  *   й картки клієнта, `orderId` (`basedOn` у потоці). Поля розширення рахунку беруть значення поля
  *   замовлення з тим самим ключем, якщо воно підходить. Один рахунок на замовлення: повторно — 403 `linked`.
  *   Видалена чернетка звільняє замовлення; виправлена копія скасованого бере `orderId` першого.
- * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення),
- *   `amendedFrom`, `reversalOf`.
+ * - Кредит-нота (ADR-0072, рішення власника 10.11.2026) — окремий документ ресурсу `sales-credit-notes` на
+ *   підставі виставленого рахунку: `POST /sales-invoices/:id/creditNote` → 201 чернетка з клієнтом, сторонами,
+ *   валютою й курсом рахунку, датою сьогодні (перший відкритий день, і коли період рахунку закрито) і рядками
+ *   рахунку з кількістю, яку ще не повернули. Кредит-нот на рахунок буває кілька. У чернетці рядок прибирають
+ *   чи зменшують кількість; назву, ціну, знижки й податок бере сервер з рахунку. Кількість рядка разом із
+ *   виставленими кредит-нотами не більша, ніж у рахунку (422 `exceeds_invoice` біля кількості). Суми рядка —
+ *   частка сум рядка рахунку за кількістю, остання частина — залишок: сума кредит-нот не більша за рахунок, а
+ *   повне повернення частинами дає рівно суму рахунку. Статус рахунку кредит-нота не змінює: картка рахунку
+ *   має `creditedTotal` — суму виставлених кредит-нот; рахунок із виставленою кредит-нотою не скасовують і не
+ *   сторнують (`linked`), повністю покритий — без нової кредит-ноти (`credited`).
+ * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення; рахунок у
+ *   кредит-ноти), `amendedFrom`, `reversalOf`.
  * - Права — `sales-invoices:<дія>`: `read`, `create`, `update`, `delete`, `submit`, `cancel`, `reverse`,
- *   `amend` і дії розширення.
+ *   `amend`, `creditNote` і дії розширення; кредит-ноти — `sales-credit-notes:<дія>` (створення з рахунку —
+ *   ще й `sales-credit-notes:create`).
  *
  * Створення — `POST` шапки, сторін, рядків і знижки документа; зміна — `PATCH` змінених полів з `version`:
  * рядки й сторона — цілим значенням. Помилки рядка — 422 `fieldErrors` з шляхом `lines.<індекс>.<поле>`,
@@ -56,7 +67,9 @@ import { documentLifecycleSchema } from "@/lib/document-lifecycle"
 import {
   discountShape,
   documentTotalsSchema,
+  quantitySchema,
   savedDocumentBodyLineSchema,
+  savedDocumentLineSchema,
 } from "@/lib/document-lines"
 import { partyDetailsSchema } from "@/lib/document-parties"
 import {
@@ -70,7 +83,9 @@ import {
   type StatusTransition,
 } from "@/lib/statuses"
 
-export { INVOICES, INVOICES_RESOURCES } from "./resources"
+import { CREDIT_NOTES } from "./resources"
+
+export { CREDIT_NOTES, INVOICES, INVOICES_RESOURCES } from "./resources"
 
 /** Статуси рахунку модуля (рішення власника 10.11.2026); розширення додає свої (`statuses`). */
 export const INVOICE_STATUSES = [
@@ -91,11 +106,11 @@ export const INVOICE_DUE_DAYS = 5
 export const AWAITING_PAYMENT: readonly string[] = ["issued"]
 
 /**
- * Граф переходів рахунку (ADR-0057, ADR-0069): «Виставити» — проведення з номером; «Скасувати» з причиною й
- * «Виправити» скасований — помилку у відкритому періоді; «Сторнувати» з причиною — і в закритому: сторно
- * датується сьогодні.
+ * Життєвий цикл документа модуля (ADR-0057, ADR-0069): «Виставити» — проведення з номером; «Скасувати» з
+ * причиною й «Виправити» скасований — помилку у відкритому періоді; «Сторнувати» з причиною — і в
+ * закритому: сторно датується сьогодні. Однаковий у рахунку й кредит-ноті.
  */
-export const INVOICE_TRANSITIONS = [
+const LIFECYCLE_TRANSITIONS = [
   { id: "submit", from: ["draft"], to: "issued" },
   {
     id: "cancel",
@@ -111,6 +126,27 @@ export const INVOICE_TRANSITIONS = [
   },
   { id: "amend", from: ["cancelled"] },
 ] as const satisfies readonly StatusTransition<InvoiceStatus>[]
+
+/** Дія графа рахунку: кредит-нота на підставі виставленого рахунку (ADR-0072). */
+export const CREATE_CREDIT_NOTE = "creditNote"
+
+/**
+ * Коди відмов сервера для кредит-нот (ADR-0072): 422 біля кількості рядка й причини дій графа.
+ * - `exceedsInvoice` — кількість рядка разом із виставленими кредит-нотами більша, ніж у рахунку.
+ * - `invoiceInactive` — рахунок скасовано чи сторновано: чернетку кредит-ноти не виставити.
+ * - `credited` — рахунок повністю покрито кредит-нотами: нової не зробити.
+ */
+export const CREDIT_NOTE_ISSUES = {
+  exceedsInvoice: "exceeds_invoice",
+  invoiceInactive: "invoice_inactive",
+  credited: "credited",
+} as const
+
+/** Граф переходів рахунку: життєвий цикл і «Кредит-нота» — і в закритому періоді, як сторно. */
+export const INVOICE_TRANSITIONS = [
+  ...LIFECYCLE_TRANSITIONS,
+  { id: CREATE_CREDIT_NOTE, from: ["issued"], creates: CREDIT_NOTES },
+] as const satisfies readonly StatusTransition<InvoiceStatus>[]
 export type InvoiceTransitionId = (typeof INVOICE_TRANSITIONS)[number]["id"]
 
 const calendarDateSchema = z.string().refine(isCalendarDate)
@@ -118,15 +154,13 @@ const calendarDateSchema = z.string().refine(isCalendarDate)
 /** Зв'язок, який веде сервер: `id` документа іншого ресурсу; `null` — зв'язку немає. */
 const serverLinkSchema = z.string().min(1).nullable().optional()
 
-/** Шапка рахунку. */
-const invoiceShape = recordBaseSchema
+/** Шапка документа модуля: рахунку й кредит-ноти. */
+const documentShape = recordBaseSchema
   .extend({
     companyId: z.string().nullable().optional(),
     /** Номер дає сервер на проведенні (ADR-0058): у чернетки його немає. */
     number: z.string().min(1).nullable(),
     date: calendarDateSchema,
-    /** «Сплатити до». */
-    dueDate: calendarDateSchema,
     clientId: z.string().min(1),
     clientName: z.string().trim().min(1),
     /** ISO 4217. */
@@ -134,16 +168,26 @@ const invoiceShape = recordBaseSchema
     ...discountShape,
     /** Підсумок із податком, мінорні одиниці: рахує сервер; у сторно — з мінусом. */
     total: moneyAmountSchema,
-    /** Рахунок у валюті: курс і підсумок у базовій валюті (ADR-0071); у базовій валюті — `null`. */
+    /** Документ у валюті: курс і підсумок у базовій валюті (ADR-0071); у базовій валюті — `null`. */
     exchange: documentExchangeSchema.nullable().optional(),
     /** Постачальник — наша компанія, знімок на момент створення (ADR-0068). */
     supplier: partyDetailsSchema,
     /** Покупець — клієнт, знімок на момент створення. */
     buyer: partyDetailsSchema,
-    /** Замовлення модуля B3, з якого виставлено рахунок (`basedOn` у потоці). */
-    orderId: serverLinkSchema,
   })
   .extend(documentLifecycleSchema.shape)
+
+/** Шапка рахунку. */
+const invoiceShape = documentShape.extend({
+  /** «Сплатити до». */
+  dueDate: calendarDateSchema,
+  /** Замовлення модуля B3, з якого виставлено рахунок (`basedOn` у потоці). */
+  orderId: serverLinkSchema,
+  /**
+   * Сума виставлених кредит-нот рахунку в його валюті (ADR-0072): веде сервер, віддає картка, а не список.
+   */
+  creditedTotal: moneyAmountSchema.min(0).optional(),
+})
 
 /** Рядки й підсумки детального запису (`GET /sales-invoices/:id`): у рядку списку їх немає. */
 export const invoiceDetailSchema = z.object({
@@ -188,3 +232,86 @@ export type Invoice = z.output<typeof invoiceShape> & {
 } & ExtensionValues
 /** Рахунок із рядками й підсумками — детальний запис картки. */
 export type InvoiceCard = Invoice & InvoiceDetail
+
+/** Документ модуля для спільних частин сторінок: шапка рахунку чи кредит-ноти без своїх полів. */
+export type K2Document = z.output<typeof documentShape> & {
+  status: string
+} & ExtensionValues
+
+/* ------------------------------- Кредит-нота ------------------------------- */
+
+/** Статуси кредит-ноти (ADR-0072): ті самі, що в рахунку; розширення додає свої. */
+export const CREDIT_NOTE_STATUSES = INVOICE_STATUSES
+export type CreditNoteStatus = InvoiceStatus
+/** Граф переходів кредит-ноти: життєвий цикл документа, як у рахунку. */
+export const CREDIT_NOTE_TRANSITIONS = LIFECYCLE_TRANSITIONS
+export type CreditNoteTransitionId =
+  (typeof CREDIT_NOTE_TRANSITIONS)[number]["id"]
+
+/**
+ * Шапка кредит-ноти: рахунок-підстава й знімки його номера й дати для списку й аркуша (кредит-ноту роблять
+ * лише з виставленого рахунку, тож номер у нього є).
+ */
+const creditNoteShape = documentShape.extend({
+  invoiceId: z.string().min(1),
+  invoiceNumber: z.string().min(1),
+  invoiceDate: calendarDateSchema,
+})
+
+/** Кількість, яку ще можна повернути: нуль теж буває. */
+const availableSchema = z.union([z.literal("0"), quantitySchema])
+
+/**
+ * Рядок рахунку-підстави для форми кредит-ноти: кількість у рахунку, скільки з неї ще можна повернути
+ * разом із цією кредит-нотою, і суми рядка рахунку — з них форма рахує частку, як сервер.
+ */
+export const creditNoteBasisSchema = z.object({
+  quantity: quantitySchema,
+  available: availableSchema,
+  totals: savedDocumentLineSchema.shape.totals,
+})
+export type CreditNoteBasis = z.infer<typeof creditNoteBasisSchema>
+
+/**
+ * Рядки й підсумки кредит-ноти (`GET /sales-credit-notes/:id`): лише рядки товарів, `id` рядка — `id` рядка
+ * рахунку; `basis` за `id` рядка — лише в чернетці.
+ */
+export const creditNoteDetailSchema = z.object({
+  lines: z.array(savedDocumentLineSchema),
+  totals: documentTotalsSchema,
+  basis: z.record(z.string(), creditNoteBasisSchema).optional(),
+})
+export type CreditNoteDetail = z.infer<typeof creditNoteDetailSchema>
+
+const creditNoteObject = (
+  extension?: InvoiceSchemaExtension<CreditNoteStatus>,
+) =>
+  creditNoteShape.extend({
+    status: statusSchema(CREDIT_NOTE_STATUSES, extension?.statuses).default(
+      DEFAULT_INVOICE_STATUS,
+    ),
+  })
+
+/** Шапка кредит-ноти зі статусами й полями розширення: рядок списку й шапка картки. */
+export function creditNoteSchemaFor(
+  extension?: InvoiceSchemaExtension<CreditNoteStatus>,
+): z.ZodType<CreditNote> {
+  return extendSchema(creditNoteObject(extension), extension?.fields)
+}
+
+/** Детальний запис кредит-ноти: шапка з рядками, підсумками й рядками рахунку для форми. */
+export function creditNoteCardSchemaFor(
+  extension?: InvoiceSchemaExtension<CreditNoteStatus>,
+): z.ZodType<CreditNoteCard> {
+  return extendSchema(
+    creditNoteObject(extension).extend(creditNoteDetailSchema.shape),
+    extension?.fields,
+  )
+}
+
+/** Кредит-нота в списку й шапці картки. */
+export type CreditNote = z.output<typeof creditNoteShape> & {
+  status: string
+} & ExtensionValues
+/** Кредит-нота з рядками й підсумками — детальний запис картки. */
+export type CreditNoteCard = CreditNote & CreditNoteDetail

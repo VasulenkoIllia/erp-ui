@@ -13,11 +13,11 @@ import { isApiError } from "@/lib/api"
 import { companyScope } from "@/lib/company-scope"
 import { ACTION_ICONS } from "@/lib/icons"
 
-import { INVOICES, type Invoice } from "../contract"
-import { invoiceDocumentPaths } from "../invoice-kind"
+import type { K2Document } from "../contract"
+import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
-import { useInvoiceAccess } from "./invoice-access"
+import { useDocumentAccess } from "./invoice-access"
 
 const DeleteIcon = ACTION_ICONS.delete
 
@@ -25,17 +25,23 @@ const DeleteIcon = ACTION_ICONS.delete
 const FINAL_STATUSES: ReadonlySet<number> = new Set([403, 404])
 
 /**
- * «Видалити чернетку» в шапці картки рахунку (ADR-0066): лише чернетка без номера, право
- * `sales-invoices:delete`. Виставлений і скасований рахунок — неактивна кнопка з причиною словами модуля,
+ * «Видалити чернетку» в шапці картки документа модуля (ADR-0066): лише чернетка без номера, право
+ * `<ресурс>:delete`. Виставлений і скасований документ — неактивна кнопка з причиною словами модуля,
  * закритий період — причиною кіта, поки запис редагує
- * інша людина — з причиною блокування (SPEC §8.4). Підтвердження називає наслідок (чернетка з замовлення
- * звільняє його, ADR-0070); після видалення — список. Відмова сервера (провели за мить до того) — сповіщення з причиною, картка перечитується.
+ * інша людина — з причиною блокування (SPEC §8.4). Підтвердження називає наслідок (`description`: чернетка
+ * з замовлення звільняє його, ADR-0070); після видалення — список. Відмова сервера (провели за мить до того)
+ * — сповіщення з причиною, картка перечитується.
  */
-export function InvoiceDeleteAction({
-  invoice,
+export function DocumentDeleteAction({
+  kind,
+  document,
+  description,
   lockReason,
 }: {
-  invoice: Invoice
+  kind: K2DocumentKind
+  document: K2Document
+  /** Наслідок видалення в підтвердженні. */
+  description: string
   /** Запис редагує інша людина (`useEditLock`). */
   lockReason: string | undefined
 }) {
@@ -45,15 +51,17 @@ export function InvoiceDeleteAction({
   const companyId = useCompanyId()
   const errorMessage = useApiErrorMessage()
   const queryClient = useQueryClient()
-  const [remove] = useDelete<Invoice>()
-  const { canAccess, isPending, recordReason } = useInvoiceAccess(
+  const [remove] = useDelete<K2Document>()
+  const { key, resource } = kind
+  const { canAccess, isPending, recordReason } = useDocumentAccess(
+    kind,
     "delete",
-    invoice,
+    document,
   )
   const [open, setOpen] = useState(false)
   const reason = canAccess
     ? lockReason
-    : (recordReason ?? t("invoice.delete.denied"))
+    : (recordReason ?? t(`${key}.delete.denied`))
   // Дію заборонили, поки діалог відкритий (чернетку взяли в редагування): діалог закривається, а не
   // з'являється сам, коли заборону знімуть.
   if (open && (isPending || reason !== undefined)) setOpen(false)
@@ -61,7 +69,7 @@ export function InvoiceDeleteAction({
   const content = (
     <>
       <DeleteIcon aria-hidden />
-      {t("invoice.delete.button")}
+      {t(`${key}.delete.button`)}
     </>
   )
   if (reason !== undefined)
@@ -69,22 +77,22 @@ export function InvoiceDeleteAction({
   const confirm = async () => {
     try {
       await remove(
-        INVOICES,
+        resource,
         {
-          id: invoice.id,
-          previousData: invoice,
+          id: document.id,
+          previousData: document,
           meta: companyScope(companyId),
         },
         { mutationMode: "pessimistic", returnPromise: true },
       )
-      toast.success(t("invoice.delete.done"))
+      toast.success(t(`${key}.delete.done`))
       setOpen(false)
-      void navigate(invoiceDocumentPaths(paths).list)
+      void navigate(kind.pathsOf(paths).list)
     } catch (failure: unknown) {
       toast.error(errorMessage(failure))
       if (isApiError(failure) && FINAL_STATUSES.has(failure.status)) {
         setOpen(false)
-        void queryClient.invalidateQueries({ queryKey: [INVOICES] })
+        void queryClient.invalidateQueries({ queryKey: [resource] })
       }
     }
   }
@@ -100,15 +108,9 @@ export function InvoiceDeleteAction({
       </Button>
       <ConfirmDialog
         open={open}
-        title={t("invoice.delete.title")}
-        description={
-          invoice.amendedFrom
-            ? t("invoice.delete.descriptionAmended")
-            : invoice.orderId
-              ? t("invoice.delete.descriptionOrder")
-              : t("invoice.delete.description")
-        }
-        confirmLabel={t("invoice.delete.confirm")}
+        title={t(`${key}.delete.title`)}
+        description={description}
+        confirmLabel={t(`${key}.delete.confirm`)}
         destructive
         lockWhileBusy
         // Після видалення кнопки вже немає: фокус ставить заголовок списку після переходу.
