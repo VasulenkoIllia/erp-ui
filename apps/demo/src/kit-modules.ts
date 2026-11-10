@@ -22,6 +22,7 @@ import { notificationsModule } from "@/notifications-module"
 import { dictionariesModule } from "@/dictionaries-module"
 import { importExportModule } from "@/import-export-module"
 import { timelineModule } from "@/timeline-module"
+import { invoicesModule } from "@/invoices-module"
 
 /**
  * Модулі кіта в демо (ADR-0025): так проект ставить модуль — фабрика з адресою й розширенням
@@ -51,9 +52,10 @@ export const KIT_MODULES = {
   dictionariesModule,
   importExportModule,
   timelineModule,
+  invoicesModule,
 } as const satisfies Record<KitModuleKey, KitModule>
 
-/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/B3`, `/m/A2`, `/m/A1`, `/m/A5`, `/m/N5`, `/m/A6`, `/m/A4`, `/m/N1`); інший розділ — заглушка. */
+/** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/B3`, `/m/K2`, `/m/A2`, `/m/A1`, `/m/A5`, `/m/N5`, `/m/A6`, `/m/A4`, `/m/N1`); інший розділ — заглушка. */
 export function kitModuleOf(id: ModuleId): KitModule | undefined {
   return Object.values(KIT_MODULES).find((module) => module.id === id)
 }

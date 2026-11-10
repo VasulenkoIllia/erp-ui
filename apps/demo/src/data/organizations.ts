@@ -3,6 +3,8 @@
  * веде модуль (`createContactsMocks` у mocks/handlers.ts), а сторінки «Вибір і реквізити» (UI40,
  * UI43) і «Організації» (List Report і Object Page, ADR-0024) показують ті самі записи.
  */
+import type { PartyDetails } from "@/registry/lib/document-parties"
+
 export type { Organization } from "@/registry/modules/B1-contacts/contract"
 
 /**
@@ -37,3 +39,26 @@ export const organizationCompanyOf = (index: number) =>
     : index % 5 === 4
       ? "kovalenko"
       : "zoriana"
+
+const textOf = (record: Readonly<Record<string, unknown>>, field: string) => {
+  const value = record[field]
+  return typeof value === "string" ? value : ""
+}
+
+/**
+ * Реквізити покупця з організації B1 для рахунку K2 (ADR-0068): вид, назва, код, IBAN основного
+ * рахунку, телефон і пошта; повної адреси в рядку списку немає — місто. Решту людина допише у формі.
+ */
+export function organizationParty(
+  record: Readonly<Record<string, unknown>>,
+): Partial<PartyDetails> {
+  return {
+    kind: record.type === "fop" ? "fop" : "legal",
+    name: textOf(record, "name"),
+    code: textOf(record, "code"),
+    iban: textOf(record, "iban"),
+    phone: textOf(record, "phone"),
+    email: textOf(record, "email"),
+    address: textOf(record, "city"),
+  }
+}

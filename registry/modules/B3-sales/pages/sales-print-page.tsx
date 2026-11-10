@@ -2,15 +2,11 @@ import { useAuthenticated } from "ra-core"
 import { useParams } from "react-router"
 
 import { PageSkeleton } from "@/components/erp/page-state"
-import {
-  PrintPreview,
-  type PrintPreviewState,
-} from "@/components/erp/print-preview"
+import { PrintPreview, printPreviewState } from "@/components/erp/print-preview"
 import { BackToList } from "@/components/erp/record-link"
 import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
-import { errorStateKind, isApiError } from "@/lib/api"
 import { toLanguage, useLanguage } from "@/lib/i18n"
 
 import { useSalesTitle } from "../components/sales-display"
@@ -20,16 +16,6 @@ import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
 import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
-
-/** Стан аркуша: «не знайдено», помилка чи завантаження документа й компанії. */
-function stateOf(
-  failure: unknown,
-  isLoading: boolean,
-): PrintPreviewState | undefined {
-  if (isApiError(failure) && failure.status === 404) return "not-found"
-  if (failure) return errorStateKind(failure)
-  return isLoading ? "loading" : undefined
-}
 
 /** Друк пропозиції (ADR-0065). */
 export function QuotePrintPage() {
@@ -87,7 +73,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
     (document && !detail && !card.isFetching
       ? new Error("no lines")
       : undefined)
-  const state = stateOf(
+  const state = printPreviewState(
     card.pageError ?? card.failure ?? invalid ?? company.error,
     !isReady,
   )

@@ -97,7 +97,8 @@ export const DEMO_USER = {
 /** Розділи прикладу ERP у навігації демо: модулі з SPEC §14 і лічильник «на погодженні». */
 export const ERP_EXAMPLE: { id: ModuleId; badge?: number }[] = [
   { id: "O1" },
-  { id: "K2", badge: 3 },
+  { id: "K2" },
+  { id: "K3", badge: 3 },
   { id: "B1" },
   { id: "B3" },
   { id: "A1" },

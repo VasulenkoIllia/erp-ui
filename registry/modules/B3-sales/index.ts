@@ -30,6 +30,7 @@ import {
   SalesModuleContext,
   salesPaths,
   type SalesClients,
+  type SalesInvoices,
   type SalesModuleContextValue,
   type SalesPaths,
 } from "./module-context"
@@ -63,7 +64,7 @@ export type {
   SalesMessages,
   SalesMockExtension,
 } from "./extension"
-export type { SalesClients, SalesPaths } from "./module-context"
+export type { SalesClients, SalesInvoices, SalesPaths } from "./module-context"
 export type { SalesResource } from "./resources"
 // Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
 export type {
@@ -117,6 +118,11 @@ export interface SalesModuleOptions<TItem extends RaRecord = RaRecord> {
   readonly clients?: SalesClients
   /** Вибір товару чи послуги в рядку з ресурсу проекту (`products`); без нього — вільний текст. */
   readonly lineItem?: DocumentLineItem<TItem>
+  /**
+   * Рахунки модуля K2 (ADR-0070): «Виставити рахунок» із замовлення, посилання й потік. Без них дії
+   * немає. Адреса — `invoicesPaths(basePath).invoice` модуля K2, щоб фабрики не залежали одна від одної.
+   */
+  readonly invoices?: SalesInvoices
 }
 
 const DEFAULT_CLIENTS: SalesClients = {
@@ -192,8 +198,9 @@ export function createSalesModule<TItem extends RaRecord = RaRecord>({
   extension = NO_EXTENSION,
   clients = DEFAULT_CLIENTS,
   lineItem,
+  invoices,
 }: SalesModuleOptions<TItem> = {}): SalesModule {
-  const paths = salesPaths(basePath)
+  const paths = salesPaths(basePath, invoices)
   const preload = preloadFor(paths)
   const context: SalesModuleContextValue = {
     extension,

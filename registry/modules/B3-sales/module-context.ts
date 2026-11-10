@@ -18,9 +18,20 @@ export interface SalesPaths {
   readonly newOrder: string
   readonly editOrder: (id: string) => string
   readonly printOrder: (id: string) => string
+  /** Картка рахунку модуля K2 (`invoices` фабрики); без неї «Виставити рахунок» немає. */
+  readonly invoice?: (id: string) => string
 }
 
-export function salesPaths(basePath: string): SalesPaths {
+/** Рахунки модуля K2 у проекті (ADR-0070): модуль не імпортується, лише адреса картки рахунку. */
+export interface SalesInvoices {
+  /** Картка рахунку: `invoicesPaths(basePath).invoice` модуля K2. */
+  readonly href: (id: string) => string
+}
+
+export function salesPaths(
+  basePath: string,
+  invoices?: SalesInvoices,
+): SalesPaths {
   const base = basePath.replace(/\/+$/, "")
   const quote = (id: string) => `${base}/quotes/${encodeURIComponent(id)}`
   const order = (id: string) => `${base}/orders/${encodeURIComponent(id)}`
@@ -35,6 +46,7 @@ export function salesPaths(basePath: string): SalesPaths {
     newOrder: `${base}/orders/new`,
     editOrder: (id) => `${order(id)}/edit`,
     printOrder: (id) => `${order(id)}/print`,
+    ...(invoices ? { invoice: invoices.href } : {}),
   }
 }
 

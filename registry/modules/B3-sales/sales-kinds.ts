@@ -13,6 +13,7 @@ import type { StatusTone, StatusTransition } from "@/lib/statuses"
 import {
   AWAITING_COMPLETION,
   AWAITING_REPLY,
+  CREATE_INVOICE,
   CREATE_ORDER,
   ORDER_STATUSES,
   ORDER_TRANSITIONS,
@@ -114,14 +115,15 @@ export interface SalesDocumentKind<
     readonly due: Readonly<Record<Language, (date: string) => string>>
   }
   /**
-   * Документ, який дія графа створює на підставі цього (замовлення з пропозиції, ADR-0067): поле
-   * зв'язку з `id` створеного, посилання на нього під панеллю дій і його картка після дії.
+   * Документ, який дія графа створює на підставі цього (замовлення з пропозиції, ADR-0067; рахунок із
+   * замовлення, ADR-0070): поле зв'язку з `id` створеного, посилання на нього під панеллю дій і його
+   * картка після дії. Без адреси картки (`undefined`) дії в графі немає: проект не підключив той модуль.
    */
   readonly creates?: {
     readonly action: string
     readonly field: keyof D & string
     readonly open: SalesKey
-    readonly path: (paths: SalesPaths) => (id: string) => string
+    readonly path: (paths: SalesPaths) => ((id: string) => string) | undefined
   }
 }
 
@@ -230,6 +232,7 @@ export const ORDER_KIND: OrderKind = {
   actionLabels: {
     submit: "order.actions.submit",
     complete: "order.actions.complete",
+    [CREATE_INVOICE]: "order.actions.invoice",
   },
   confirms: { submit: "order.confirm.submit" },
   mainPath: ["draft", "confirmed", "completed"],
@@ -250,4 +253,27 @@ export const ORDER_KIND: OrderKind = {
       en: (date) => `Due by ${date}`,
     },
   },
+  creates: {
+    action: CREATE_INVOICE,
+    field: "invoiceId",
+    open: "order.invoice.open",
+    path: (paths) => paths.invoice,
+  },
+}
+
+/**
+ * Граф виду без дії, що створює документ модуля, якого в проекті немає («Виставити рахунок» без
+ * `invoices` фабрики, ADR-0070).
+ */
+export function transitionsOf(
+  kind: Pick<
+    SalesDocumentKind<SalesDocument, string>,
+    "transitions" | "creates"
+  >,
+  paths: SalesPaths,
+): readonly StatusTransition[] {
+  const { creates } = kind
+  return creates && !creates.path(paths)
+    ? kind.transitions.filter((transition) => transition.id !== creates.action)
+    : kind.transitions
 }

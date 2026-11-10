@@ -38,6 +38,16 @@
  *   скасованого замовлення бере `quoteId` першого.
  * - Прийняту пропозицію, з якої є нескасоване замовлення, не скасовують: `deniedActions.cancel =
  *   "linked"`, і масове «Скасувати» дає невдачу з цим кодом. Спершу скасувати чи видалити замовлення.
+ * - Рахунок із замовлення (ADR-0070), коли проект підключив модуль K2: `POST /orders/:id/invoice` з
+ *   `version` з підтвердженого чи виконаного замовлення → 201 рахунок-чернетка ресурсу `sales-invoices` з
+ *   клієнтом, рядками й знижкою замовлення, датою сьогодні. Право — `orders:invoice` і
+ *   `sales-invoices:create`. Зв'язок веде сервер: `orderId` рахунку й `invoiceId` замовлення. Один рахунок
+ *   на замовлення (рішення власника 10.11.2026): повторно — 403 `deniedActions.invoice = "linked"`; поки є
+ *   рахунок, який не скасовано й не сторновано, замовлення не скасовують (`cancel: "linked"`). Видалена
+ *   чернетка рахунку звільняє замовлення.
+ * - Документ на підставі (замовлення з пропозиції, рахунок із замовлення) бере поля розширення джерела з
+ *   тим самим ключем, якщо значення проходить схему поля нового документа (рішення власника 10.11.2026,
+ *   `inheritedFieldValues` з `lib/extension-fields`).
  * - Потік документів (ADR-0061): `GET /<ресурс>/:id/flow` — пропозиції, потім замовлення; зв'язок
  *   замовлення з пропозицією — `basedOn`, виправленої копії — `amendedFrom`.
  *
@@ -70,9 +80,9 @@ import {
   type StatusTransition,
 } from "@/lib/statuses"
 
-import { ORDERS } from "./resources"
+import { ORDERS, SALES_INVOICES } from "./resources"
 
-export { ORDERS, QUOTES, SALES_RESOURCES } from "./resources"
+export { ORDERS, QUOTES, SALES_INVOICES, SALES_RESOURCES } from "./resources"
 
 /** Статуси пропозиції модуля (рішення власника 08.11.2026); розширення додає свої (`statuses`). */
 export const QUOTE_STATUSES = [
@@ -126,13 +136,25 @@ export const DEFAULT_ORDER_STATUS: OrderStatus = "draft"
 export const AWAITING_COMPLETION: readonly string[] = ["confirmed"]
 
 /**
- * Граф переходів замовлення (ADR-0057, ADR-0067): «Підтвердити» — проведення з номером серії `orders`;
- * «Позначити виконаним» з підтвердженого; «Скасувати» з причиною — і для виконаного, щоб виправити
- * помилку; «Виправити» — нова чернетка зі скасованого.
+ * Дія замовлення «Виставити рахунок» (ADR-0070): шлях `POST /orders/:id/invoice`, право `orders:invoice` і
+ * `sales-invoices:create`. Є в графі, лише коли проект підключив рахунки (`invoices` фабрики й моків).
+ */
+export const CREATE_INVOICE = "invoice"
+
+/**
+ * Граф переходів замовлення (ADR-0057, ADR-0067, ADR-0070): «Підтвердити» — проведення з номером серії
+ * `orders`; «Позначити виконаним» з підтвердженого; «Виставити рахунок» з підтвердженого й виконаного
+ * (статус не змінюється); «Скасувати» з причиною — і для виконаного, щоб виправити помилку; «Виправити» —
+ * нова чернетка зі скасованого.
  */
 export const ORDER_TRANSITIONS = [
   { id: "submit", from: ["draft"], to: "confirmed" },
   { id: "complete", from: ["confirmed"], to: "completed" },
+  {
+    id: CREATE_INVOICE,
+    from: ["confirmed", "completed"],
+    creates: SALES_INVOICES,
+  },
   {
     id: "cancel",
     from: ["confirmed", "completed"],
@@ -174,6 +196,8 @@ const orderShape = salesDocumentShape.extend({
   dueDate: calendarDateSchema,
   /** Пропозиція, на підставі якої створено замовлення (`basedOn` у потоці). */
   quoteId: serverLinkSchema,
+  /** Рахунок, виставлений із замовлення (`POST /orders/:id/invoice`, ADR-0070). */
+  invoiceId: serverLinkSchema,
 })
 
 /** Рядки й підсумки детального запису (`GET /<ресурс>/:id`): у рядку списку їх немає. */
@@ -254,6 +278,6 @@ export type Quote = SalesDocument &
 export type QuoteCard = Quote & QuoteDetail
 /** Замовлення в списку й шапці картки. */
 export type Order = SalesDocument &
-  Pick<z.output<typeof orderShape>, "dueDate" | "quoteId">
+  Pick<z.output<typeof orderShape>, "dueDate" | "quoteId" | "invoiceId">
 /** Замовлення з рядками й підсумками — детальний запис картки. */
 export type OrderCard = Order & OrderDetail

@@ -146,6 +146,14 @@ export function fillEmptyPartyFields(
   return { values, filled }
 }
 
+/**
+ * Повна сторона з часткових реквізитів (профіль компанії, картка клієнта, засів моків): вид — з джерела,
+ * решта полів порожні. Поля юрособи у ФОП не беруться.
+ */
+export function partyDetailsFrom(source: Partial<PartyDetails>): PartyDetails {
+  return fillEmptyPartyFields(emptyPartyDetails(source.kind), source).values
+}
+
 /** «ФОП Коваленко Олена Вікторівна» → ПІБ: так підписант ФОП береться з назви. */
 const FOP_NAME_PREFIX = /^(?:ФОП|фізична\s+особа[\s-]+підприємець)\s+/iu
 

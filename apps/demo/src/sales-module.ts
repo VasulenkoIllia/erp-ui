@@ -1,4 +1,5 @@
 import { createSalesModule } from "@/registry/modules/B3-sales"
+import { invoicesPaths } from "@/registry/modules/K2-invoices"
 
 import { contactsModule } from "@/contacts-module"
 import type { Product } from "@/data/products"
@@ -7,7 +8,8 @@ import { MODULE_ROUTES } from "@/router"
 
 /**
  * Модуль B3 «Пропозиції й замовлення» в демо на місці заглушки `/m/B3` (ADR-0025): клієнти —
- * організації модуля B1 з посиланням на їхню картку, товар рядка — мок `products`.
+ * організації модуля B1 з посиланням на їхню картку, товар рядка — мок `products`. «Виставити рахунок»
+ * на замовленні веде на картку рахунку модуля K2 (ADR-0070): лише адреса, без фабрики модуля.
  */
 export const salesModule = createSalesModule({
   basePath: MODULE_ROUTES.salesModule,
@@ -28,4 +30,5 @@ export const salesModule = createSalesModule({
       price: String(product.price),
     }),
   },
+  invoices: { href: invoicesPaths(MODULE_ROUTES.invoicesModule).invoice },
 })

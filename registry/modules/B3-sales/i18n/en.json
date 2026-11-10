@@ -255,7 +255,8 @@
     },
     "actions": {
       "submit": "Confirm",
-      "complete": "Mark as completed"
+      "complete": "Mark as completed",
+      "invoice": "Issue invoice"
     },
     "confirm": {
       "submit": {
@@ -263,6 +264,11 @@
         "description": "The order gets a number and can no longer be changed. A mistake is fixed by cancelling it and making a new copy.",
         "action": "Confirm order"
       }
+    },
+    "invoice": {
+      "open": "Open invoice",
+      "exists": "An invoice has already been issued from this order",
+      "flow": "Invoice"
     },
     "fields": {
       "client": "Client",

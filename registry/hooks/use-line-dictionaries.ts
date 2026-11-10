@@ -1,18 +1,19 @@
 import { useGetList, useGetOne } from "ra-core"
 import { useCallback, useMemo } from "react"
 
-import { useCompanyId } from "@/hooks/use-company"
-import { companyScope } from "@/lib/company-scope"
+import { useCompanyId } from "@/registry/hooks/use-company"
+import { companyScope } from "@/registry/lib/company-scope"
 import type {
   DocumentLine,
   DocumentLineTax,
   DocumentLineUnit,
-} from "@/lib/document-lines"
+} from "@/registry/lib/document-lines"
 
 /**
- * Довідники рядків пропозиції — ресурси модуля A6 за назвами (модуль не імпортує інший модуль):
- * активні одиниці й ставки та типові значення компанії для нового рядка. Проект без A6 (довідника
- * немає чи немає права) — порожні списки: рядок пишеться вільним текстом без одиниці й податку.
+ * Довідники рядків документа (пропозиції, замовлення, рахунку) — ресурси модуля A6 за назвами (модуль не
+ * імпортує інший модуль): активні одиниці й ставки та типові значення компанії для нового рядка. Проект
+ * без A6 (довідника немає чи немає права) — порожні списки: рядок пишеться вільним текстом без одиниці
+ * й податку. Перенесено з модуля B3 (ADR-0070).
  */
 const UNITS = "units"
 const TAXES = "taxes"
