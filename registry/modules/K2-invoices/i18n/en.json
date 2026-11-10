@@ -96,9 +96,17 @@
       "date": "Date",
       "dueDate": "Due date",
       "total": "Amount",
+      "baseTotal": "In base currency",
       "status": "Status"
     },
     "overdue": "Overdue",
+    "exchange": {
+      "inBase": "in base currency:",
+      "noRateShort": "no rate",
+      "noRate": "No {{currency}} rate on or before {{date}} in the exchange rates",
+      "rate": "Rate {{rate}} on {{date}}",
+      "rateDraft": "{{rate}}, fixed when the invoice is issued"
+    },
     "periodLockHint": "A mistake in an invoice of a closed period is fixed by a reversal dated today.",
     "edit": "Edit",
     "copy": "Copy",
@@ -140,6 +148,7 @@
     },
     "qr": {
       "missing": "The payment QR code is not printed on the sheet: {{reason}}. Invoice details are a snapshot taken at creation: fix the company profile, and new invoices will pick up the correct ones.",
+      "foreignCurrency": "An invoice in {{currency}} is printed without a QR code: the NBU QR code is for hryvnia only. Enter the currency account details in this invoice's supplier block.",
       "issues": {
         "currency": "the NBU QR code exists only for invoices in hryvnia",
         "iban": "the supplier details have no valid IBAN",
@@ -160,11 +169,14 @@
     "fields": {
       "clientId": "Client",
       "date": "Date",
-      "dueDate": "Due date"
+      "dueDate": "Due date",
+      "currency": "Currency"
     },
     "clientSearch": "Client name or code",
     "clientMissing": "Client unavailable",
     "dueDateBefore": "Not earlier than the invoice date",
+    "currencyHint": "The {{base}} amount uses the rate on the invoice date; issuing the invoice fixes the rate.",
+    "currenciesFailed": "Could not load the company's currencies: only the base currency is available.",
     "created": "Invoice created",
     "saved": "Changes saved",
     "linesCount_one": "{{count}} line",

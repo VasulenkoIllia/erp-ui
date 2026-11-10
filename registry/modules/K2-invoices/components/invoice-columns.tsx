@@ -11,13 +11,14 @@ import type { InvoiceColumnId } from "../extension"
 import { invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
-import { InvoiceDueDate, InvoiceNumber, InvoiceTotal } from "./invoice-display"
+import { InvoiceAmount, InvoiceDueDate, InvoiceNumber } from "./invoice-display"
 
 type InvoiceColumn = DataTableColumn<Invoice> & { id: InvoiceColumnId }
 
 /**
  * Колонки списку рахунків: номер-посилання на картку (чернетка — «Без номера»), клієнт, статус, дата,
- * «Сплатити до» з позначкою «Прострочено», сума з податком (у сторно — з мінусом); на телефоні — картки
+ * «Сплатити до» з позначкою «Прострочено», сума з податком (у сторно — з мінусом; у рахунку у валюті під
+ * нею — у базовій валюті, ADR-0071); на телефоні — картки
  * (номер, клієнт під ним, статус-бейдж). Ключі — `InvoiceColumnId`.
  */
 export function useInvoiceColumns(
@@ -92,7 +93,7 @@ export function useInvoiceColumns(
       {
         id: "total",
         header: t("invoices.columns.total"),
-        cell: (invoice) => <InvoiceTotal invoice={invoice} />,
+        cell: (invoice) => <InvoiceAmount invoice={invoice} />,
         sortField: "total",
         firstSortOrder: "DESC",
         align: "end",

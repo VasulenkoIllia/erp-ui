@@ -11,7 +11,11 @@
  * - Курс із зовнішнього джерела — `deniedActions` і 403 на зміну чи видалення (ADR-0037).
  * - `latestRate` і `latestRateDate` валюти веде мок: після кожної зміни курсів (подія шини) бере
  *   найновіший курс тієї ж валюти в тій самій компанії. Підписка — на весь час життя моків, як у A2.
+ * - `rateOn(companyId, currency, date)` — курс на дату чи останній перед нею: ним моки документів у валюті
+ *   рахують суму в базовій валюті (ADR-0071), модулі один одного не імпортують.
  */
+import type { ExchangeRateOn } from "@/lib/currency-conversion"
+import type { CalendarDate } from "@/lib/dates"
 import { withMockValues } from "@/lib/extension-fields"
 import { subscribeMockEvents } from "@/lib/mock-server"
 import { createResourceHandlers } from "@/lib/mocks"
@@ -103,8 +107,27 @@ export function createCompanyMocks({
     }
   })
 
+  /** Курс валюти компанії на дату чи останній перед нею; `null` — такого курсу немає. */
+  const rateOn = (
+    companyId: string | null,
+    currency: string,
+    date: CalendarDate,
+  ): ExchangeRateOn | null => {
+    let found: ExchangeRate | undefined
+    for (const rate of rates.db.all())
+      if (
+        (rate.companyId ?? null) === companyId &&
+        rate.currency === currency &&
+        rate.date <= date &&
+        (!found || rate.date > found.date)
+      )
+        found = rate
+    return found ? { rate: found.rate, date: found.date } : null
+  }
+
   return {
     handlers: [...currencies.handlers, ...rates.handlers],
     db: { currencies: currencies.db, rates: rates.db },
+    rateOn,
   }
 }

@@ -7,6 +7,7 @@
  *     extension: invoicesExtension,
  *     clients: { resource: "organizations", labelField: "name", href: contactsModule.paths.organization },
  *     sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
+ *     currencies: { resource: "currencies" },
  *   })
  *   <Routes>{invoicesModule.routes.map(…)}</Routes>  // чи useRoutes(invoicesModule.routes)
  *
@@ -31,6 +32,7 @@ import {
   InvoicesModuleContext,
   invoicesPaths,
   type InvoiceClients,
+  type InvoiceCurrencies,
   type InvoicesModuleContextValue,
   type InvoiceSources,
   type InvoicesPaths,
@@ -58,6 +60,7 @@ export type {
 export {
   invoicesPaths,
   type InvoiceClients,
+  type InvoiceCurrencies,
   type InvoiceSources,
   type InvoicesPaths,
 } from "./module-context"
@@ -108,6 +111,11 @@ export interface InvoicesModuleOptions<TItem extends RaRecord = RaRecord> {
   readonly clients?: InvoiceClients
   /** Адреси карток пропозицій і замовлень модуля B3 для потоку документів (`salesModule.paths`). */
   readonly sources?: InvoiceSources
+  /**
+   * Валюти рахунку (ADR-0071): ресурс валют компанії (`currencies` модуля A1). Без опції рахунок у базовій
+   * валюті компанії й поля «Валюта» у формі немає; з нею рахунок у валюті показує суму в базовій поруч.
+   */
+  readonly currencies?: InvoiceCurrencies
   /** Вибір товару чи послуги в рядку з ресурсу проекту (`products`); без нього — вільний текст. */
   readonly lineItem?: DocumentLineItem<TItem>
 }
@@ -160,6 +168,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
   extension = NO_EXTENSION,
   clients = DEFAULT_CLIENTS,
   sources = NO_SOURCES,
+  currencies,
   lineItem,
 }: InvoicesModuleOptions<TItem> = {}): InvoicesModule {
   const paths = invoicesPaths(basePath)
@@ -169,6 +178,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
     paths,
     clients,
     sources,
+    currencies,
     // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
     lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
     preload,

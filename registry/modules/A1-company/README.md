@@ -72,3 +72,5 @@ setupWorker(...createPlatformHandlers({ companyProfiles }), ...company.handlers)
 ```
 
 Компанію дають моки платформи (`companyProfiles`), модуль їх не дублює. Сценарії (`success`, `error`, `empty`, `slow`, `conflict`, `forbidden`, `offline`) — для `currencies` і `exchange-rates` окремо, у панелі розробника чи `lib/mock-scenarios`. Те саме для `company`, крім `empty`: компанія є завжди.
+
+`company.rateOn(companyId, currency, date)` — курс валюти компанії на дату чи останній перед нею (`null` — такого немає): ним моки документів у валюті рахують суму в базовій валюті (рахунки K2 — опція `rates`, ADR-0071). Модулі один одного не імпортують: зв'язок — у застосунку.

@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react"
-import type { Path } from "react-hook-form"
+import { useWatch, type Path } from "react-hook-form"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -50,6 +50,7 @@ import {
   useInvoiceHeaderItems,
   type InvoiceFormValues,
 } from "./invoice-form-items"
+import { useBaseCurrency } from "./invoice-currency"
 import { InvoicePartiesFields } from "./invoice-parties-fields"
 
 /** Поля шапки модуля: їх надсилає форма; рядки — усім масивом, сторона — цілою, суми рахує сервер. */
@@ -58,6 +59,7 @@ const HEADER_FIELDS = [
   "clientName",
   "date",
   "dueDate",
+  "currency",
   "discountPercent",
   "discountAmount",
   "supplier",
@@ -81,6 +83,7 @@ function useInvoiceFormSchema(
         clientName: z.string(),
         date: day,
         dueDate: day,
+        currency: z.string().length(3, required),
         supplier: party,
         buyer: party,
         ...extensionShape,
@@ -100,12 +103,11 @@ function useInvoiceFormSchema(
   }, [kitT, lines, party, extensionShape, dueBefore])
 }
 
-/** Значення для запиту: створення — усі поля й валюта, зміна — змінені поля шапки, сторони й рядки цілком. */
+/** Значення для запиту: створення — усі поля, зміна — змінені поля шапки, сторони й рядки цілком. */
 function payloadOf(
   values: InvoiceFormValues,
   keys: readonly Path<InvoiceFormValues>[],
   ext: ExtensionFormApi<InvoiceFormFieldId>,
-  currency: string | null,
 ) {
   const changed = new Set<string>(keys)
   // Знімок назви — лише разом із клієнтом (ADR-0056): той самий клієнт, вибраний знову після перейменування.
@@ -118,7 +120,6 @@ function payloadOf(
     ),
     ...(changed.has("lines") ? { lines: values.lines } : {}),
     ...ext.payload(values, keys),
-    ...(currency ? { currency } : {}),
   }
 }
 
@@ -136,8 +137,6 @@ export interface InvoiceFormProps {
   readonly source?: InvoiceCard
   /** Профіль компанії: постачальник нового рахунку. */
   readonly company?: CompanyProfile
-  /** Валюта рахунку: базова валюта компанії на момент створення. */
-  readonly currency: string
   readonly readOnly: boolean
   /** Чому лише для читання: виставлений, без права, редагує інша людина, закритий період. */
   readonly readOnlyReason?: string | undefined
@@ -149,13 +148,13 @@ export interface InvoiceFormProps {
  * Форма рахунку на сторінці (SPEC §7; ADR-0047, ADR-0059, ADR-0068, ADR-0069): шапка, сторони, рядки з
  * розділами й нотатками, знижка документа й підсумки, липка панель збереження. Створення — `POST`, зміна —
  * `PATCH` змінених полів з `version`; конфлікт 409 — порівняння, 422 — помилки біля полів, рядків і сторін
- * (дата в закритому періоді — `period_locked` біля дати). Після збереження — картка рахунку.
+ * (дата в закритому періоді — `period_locked` біля дати). Після збереження — картка рахунку. Валюта нового
+ * рахунку — базова валюта компанії; іншу дає поле «Валюта», коли проект дав валюти компанії (ADR-0071).
  */
 export function InvoiceForm({
   invoice,
   source,
   company,
-  currency,
   readOnly,
   readOnlyReason,
   mayEdit,
@@ -170,7 +169,12 @@ export function InvoiceForm({
     invoiceExtension?.form,
   )
   const before = t("invoiceForm.dueDateBefore")
-  const schema = useInvoiceFormSchema(currency, before, ext.shape)
+  const baseCurrency = useBaseCurrency(company)
+  // Знаки суми — валюти, вибраної у формі: схему рядків будуємо за нею (оновлюється разом із полем).
+  const [schemaCurrency, setSchemaCurrency] = useState(
+    () => invoice?.currency ?? source?.currency ?? baseCurrency,
+  )
+  const schema = useInvoiceFormSchema(schemaCurrency, before, ext.shape)
   const recordSchema = useMemo(
     () => invoiceCardSchemaFor(invoiceExtension),
     [invoiceExtension],
@@ -181,6 +185,7 @@ export function InvoiceForm({
       clientName: record.clientName,
       date: record.date,
       dueDate: record.dueDate,
+      currency: record.currency,
       supplier: record.supplier,
       buyer: record.buyer,
       lines: record.lines,
@@ -199,6 +204,7 @@ export function InvoiceForm({
       clientId: "",
       clientName: "",
       ...dates,
+      currency: baseCurrency,
       supplier: supplierOf(company),
       buyer: emptyPartyDetails(),
       lines: [],
@@ -226,8 +232,7 @@ export function InvoiceForm({
     schema,
     defaultValues,
     recordSchema,
-    toPayload: (values, changed) =>
-      payloadOf(values, changed, ext, invoice ? null : currency),
+    toPayload: (values, changed) => payloadOf(values, changed, ext),
     serverErrorText: (field, code) =>
       field === "dueDate" && code === "before_date" ? before : undefined,
     toValues,
@@ -240,6 +245,9 @@ export function InvoiceForm({
     },
   })
   const { form } = state
+  const currency = useWatch({ control: form.control, name: "currency" })
+  // Інша валюта у формі (поле, «Скасувати зміни», запис колеги) — інші знаки суми в схемі.
+  if (currency !== schemaCurrency) setSchemaCurrency(currency)
   // Значення копії поверх порожньої форми: до першого малювання (порожня форма не блимає) і після
   // «Скасувати зміни» — копія так само не збережена, тож вихід і далі питає.
   const applyCopy = useCallback(() => {
@@ -255,7 +263,7 @@ export function InvoiceForm({
         },
       }
     : state
-  const moduleItems = useInvoiceHeaderItems(state.form, readOnly)
+  const moduleItems = useInvoiceHeaderItems(state.form, readOnly, baseCurrency)
   const { control } = state.form
   const header = useMemo(
     () => applyKeyedChanges(moduleItems, ext.items(control, { readOnly })),

@@ -315,6 +315,31 @@ describe("моки A1", () => {
     expect(mocks.db.currencies.all()[0]?.active).toBe(true)
   })
 
+  it("`rateOn`: курс на дату чи останній перед нею в тій самій компанії; раніше за перший — null (ADR-0071)", () => {
+    const mocks = createCompanyMocks({ companies: [COMPANY.id, "other"] })
+    const usd = mocks.db.rates
+      .all()
+      .filter(
+        (rate) => rate.companyId === COMPANY.id && rate.currency === "USD",
+      )
+      .sort((a, b) => a.date.localeCompare(b.date))
+    const [oldest, second] = usd
+    if (!oldest || !second) throw new Error("no USD rates")
+    expect(mocks.rateOn(COMPANY.id, "USD", second.date)).toEqual({
+      rate: second.rate,
+      date: second.date,
+    })
+    // На дату після останнього курсу береться останній.
+    const latest = usd.at(-1)
+    expect(mocks.rateOn(COMPANY.id, "USD", "2999-01-01")).toEqual({
+      rate: latest?.rate,
+      date: latest?.date,
+    })
+    expect(mocks.rateOn(COMPANY.id, "USD", "2000-01-01")).toBeNull()
+    expect(mocks.rateOn(COMPANY.id, "GBP", second.date)).toBeNull()
+    expect(mocks.rateOn("unknown", "USD", second.date)).toBeNull()
+  })
+
   it("поле розширення курсу зберігається за схемою проекту", async () => {
     const { data } = await provider.create<ExchangeRate & { note?: string }>(
       EXCHANGE_RATES,

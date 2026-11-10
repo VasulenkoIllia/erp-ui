@@ -378,6 +378,13 @@ const invoiceFixtures: InvoiceFixtureOptions = {
   ...(salesFixtures.dictionaries
     ? { dictionaries: salesFixtures.dictionaries }
     : {}),
+  // Рахунок у валюті (ADR-0071): курс на дату з таблиці курсів модуля A1. Профілі демо базової валюти не
+  // задають — гривня, як у формі рахунку.
+  rates: {
+    baseCurrency: (companyId) =>
+      (companyId ? COMPANY_PROFILES[companyId]?.baseCurrency : null) ?? "UAH",
+    rateOn: company.rateOn,
+  },
 }
 const invoiceSeeds = invoicesNumberingSeeds(invoiceFixtures)
 

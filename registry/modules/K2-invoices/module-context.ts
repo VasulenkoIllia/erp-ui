@@ -50,6 +50,14 @@ export interface InvoiceClients {
 }
 
 /**
+ * Валюти рахунку (ADR-0071): ресурс валют компанії з полями `code` (ISO 4217) і `active`, як `currencies`
+ * модуля A1. Базова валюта компанії є у виборі завжди, вимкнена валюта — лише в рахунку, де вона вже стоїть.
+ */
+export interface InvoiceCurrencies {
+  readonly resource: string
+}
+
+/**
  * Документи модуля B3, з яких виставляють рахунки (ADR-0070): адреси карток для потоку документів. Модуль
  * B3 не імпортується — лише адреси (`salesModule.paths`).
  */
@@ -63,6 +71,8 @@ export interface InvoicesModuleContextValue {
   readonly paths: InvoicesPaths
   readonly clients: InvoiceClients
   readonly sources: InvoiceSources
+  /** Валюти рахунку; без них рахунок у базовій валюті компанії, поля «Валюта» у формі немає. */
+  readonly currencies?: InvoiceCurrencies | undefined
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined
   /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */

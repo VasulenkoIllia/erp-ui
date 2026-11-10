@@ -46,12 +46,14 @@ import { createInvoiceFixtures } from "@/registry/modules/K2-invoices/fixtures"
 import {
   createInvoicesMocks,
   invoicesNumberingSeeds,
+  type InvoiceMockRates,
 } from "@/registry/modules/K2-invoices/mocks"
 
 /**
  * Модуль K2 «Рахунки клієнтам» (ADR-0070, крок K2a): фабрика, фікстури, моки — створення, виставлення з
  * номером, сторно з мінусом, закритий період (PF13), рахунок із замовлення B3 з полями розширення, один
- * рахунок на замовлення й звільнення після видалення чернетки, потік документів.
+ * рахунок на замовлення й звільнення після видалення чернетки, потік документів; рахунок у валюті з сумою
+ * в базовій (ADR-0071, крок K2b).
  */
 const BASE = "http://erp-invoices.test/api/v1"
 const COMPANY = "c1"
@@ -95,7 +97,26 @@ const channel: ExtensionField = {
   mockValues: ["website"],
 }
 
-const options = { companies: [COMPANY, OTHER], today: TODAY } as const
+/** Таблиця курсів тестів (ADR-0071): `<валюта>:<дата>` → гривень за одиницю; злотих немає. */
+const RATE_SEEDS: readonly (readonly [string, number])[] = [
+  ["USD:2026-11-07", 41.25],
+  ["USD:2026-11-08", 41.5],
+  ["EUR:2026-11-08", 48],
+]
+const rateTable = new Map(RATE_SEEDS)
+const rates: InvoiceMockRates = {
+  baseCurrency: () => "UAH",
+  rateOn: (_companyId, currency, date) => {
+    const found = [...rateTable]
+      .map(([key, rate]) => ({ key, rate, date: key.slice(4) }))
+      .filter((row) => row.key.startsWith(`${currency}:`) && row.date <= date)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .at(-1)
+    return found ? { rate: found.rate, date: found.date } : null
+  },
+}
+
+const options = { companies: [COMPANY, OTHER], today: TODAY, rates } as const
 const salesSeeds = salesNumberingSeeds(options)
 const invoiceSeeds = invoicesNumberingSeeds(options)
 const numbering = createNumberingMocks({
@@ -244,6 +265,25 @@ describe("модуль K2: фікстури", () => {
     })
   })
 
+  it("рахунки у валюті: долар і євро з курсом на дату, злоті без курсу, гривневі — без блоку курсу", () => {
+    const byId = (id: string) => company.find((item) => item.id === id)
+    expect(byId("inv-c1-11")).toMatchObject({
+      currency: "USD",
+      exchange: { baseCurrency: "UAH", rate: 41.25, rateDate: "2026-11-07" },
+    })
+    const eur = byId("inv-c1-12")
+    expect(eur).toMatchObject({ status: "issued", currency: "EUR" })
+    expect(eur?.exchange?.baseTotal).toBe((eur?.total ?? 0) * 48)
+    expect(byId("inv-c1-13")?.exchange).toEqual({
+      baseCurrency: "UAH",
+      rate: null,
+      rateDate: null,
+      baseTotal: null,
+    })
+    for (const item of company.filter((row) => row.currency === "UAH"))
+      expect(item.exchange).toBeNull()
+  })
+
   it("сторно — ті самі рядки й підсумки з мінусом у шапці; пари сторно й виправленої копії зв'язані", () => {
     const reversed = company.find((item) => item.status === "reversed")
     const reversal = company.find((item) => item.status === "reversal")
@@ -265,6 +305,8 @@ describe("модуль K2: моки рахунків", () => {
   })
   beforeEach(() => {
     localStorage.clear()
+    rateTable.clear()
+    for (const [key, rate] of RATE_SEEDS) rateTable.set(key, rate)
     invoices.db.reset()
     sales.db.orders.reset()
     sales.db.quotes.reset()
@@ -292,6 +334,82 @@ describe("модуль K2: моки рахунків", () => {
       // 2 × 1 000 грн + ПДВ 20%, у копійках.
       total: 240_000,
       supplier: { name: "ТОВ «Тест»", code: "41726300", iban: "" },
+    })
+  })
+
+  it("рахунок у валюті: курс чернетки — свіжий на кожен запис, «Виставити» закріплює курс і суму", async () => {
+    const { data } = await provider.create<InvoiceCard>(INVOICES, {
+      data: draft({ currency: "USD" }),
+    })
+    const created = cardSchema.parse(data)
+    // 2 × 1 000 $ + ПДВ 20% = 2 400 $ × 41,5.
+    expect(created.exchange).toEqual({
+      baseCurrency: "UAH",
+      rate: 41.5,
+      rateDate: TODAY,
+      baseTotal: 9_960_000,
+    })
+    const { data: moved } = await provider.update<InvoiceCard>(INVOICES, {
+      id: created.id,
+      data: { date: "2026-11-07", version: created.version },
+      previousData: created,
+    })
+    const draftAgain = cardSchema.parse(moved)
+    expect(draftAgain.exchange).toMatchObject({
+      rate: 41.25,
+      rateDate: "2026-11-07",
+      baseTotal: 9_900_000,
+    })
+    // Курс виправили до виставлення — «Виставити» бере свіжий і закріплює.
+    rateTable.set("USD:2026-11-07", 42)
+    const issued = cardSchema.parse(
+      await run(INVOICES, created.id, "submit", {
+        version: draftAgain.version,
+      }),
+    )
+    expect(issued.exchange).toMatchObject({ rate: 42, baseTotal: 10_080_000 })
+    rateTable.set("USD:2026-11-07", 43)
+    const reversal = cardSchema.parse(
+      await run(INVOICES, created.id, "reverse", {
+        version: issued.version,
+        reason: "Помилка в ціні",
+      }),
+    )
+    expect((await invoice(created.id)).exchange).toMatchObject({ rate: 42 })
+    // Сторно — за курсом першого рахунку, сума в базовій з мінусом.
+    expect(reversal.exchange).toEqual({
+      baseCurrency: "UAH",
+      rate: 42,
+      rateDate: "2026-11-07",
+      baseTotal: -10_080_000,
+    })
+  })
+
+  it("гривня — без блоку курсу, його з запиту не беруть; валюта без курсу — порожні курс і сума, виставити можна", async () => {
+    const { data } = await provider.create<InvoiceCard>(INVOICES, {
+      data: draft({
+        exchange: {
+          baseCurrency: "UAH",
+          rate: 1,
+          rateDate: TODAY,
+          baseTotal: 1,
+        },
+      }),
+    })
+    expect(cardSchema.parse(data).exchange).toBeNull()
+    const { data: zloty } = await provider.create<InvoiceCard>(INVOICES, {
+      data: draft({ currency: "PLN" }),
+    })
+    const pln = cardSchema.parse(zloty)
+    const issued = cardSchema.parse(
+      await run(INVOICES, pln.id, "submit", { version: pln.version }),
+    )
+    expect(issued.number).toMatch(/^РХ-2026-\d{4}$/)
+    expect(issued.exchange).toEqual({
+      baseCurrency: "UAH",
+      rate: null,
+      rateDate: null,
+      baseTotal: null,
     })
   })
 

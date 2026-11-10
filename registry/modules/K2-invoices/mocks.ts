@@ -22,6 +22,9 @@
  *   (`releaseOrder`).
  * - Нумерація — спільна для всіх документів проекту: модуль дає засів серії `sales-invoices`
  *   (`invoicesNumberingSeeds`) і бере `numbering.forResource`.
+ * - Рахунок у валюті (ADR-0071): з `rates` (базова валюта й `rateOn` моків A1) сервер рахує `exchange` —
+ *   у чернетки на кожен запис, на «Виставити» закріплює; сторно бере курс першого. Курс чернетки моки
+ *   оновлюють під час запису, а не читання: новий курс у таблиці чернетка побачить після збереження.
  */
 import type { LocalizedText } from "@/lib/auth"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
@@ -64,6 +67,7 @@ import {
   type InvoiceCard,
 } from "./contract"
 import type { InvoicesMockExtension } from "./extension"
+import { invoiceExchange, reversedExchange } from "./mock-exchange"
 import {
   createInvoiceFixtures,
   INVOICE_NUMBER_TEMPLATE,
@@ -78,6 +82,7 @@ import {
 } from "./mock-links"
 
 export type { InvoiceOrderSource } from "./mock-links"
+export type { InvoiceMockRates } from "./mock-exchange"
 
 /** Закриті періоди застосунку: правила сервера для ресурсу й дата закриття компанії. */
 type PeriodLockMocks = Pick<
@@ -117,6 +122,7 @@ const SERVER_FIELDS = new Set([
   ...LIFECYCLE_LINK_FIELDS,
   "total",
   "totals",
+  "exchange",
   "date",
   "dueDate",
   "deniedActions",
@@ -172,6 +178,7 @@ export function createInvoicesMocks({
   releaseOrder,
   ...fixtureOptions
 }: InvoicesMocksOptions) {
+  const { rates } = fixtureOptions
   const invoiceExtension = extension?.invoices
   const transitions = mergeTransitions(
     INVOICE_TRANSITIONS,
@@ -199,16 +206,22 @@ export function createInvoicesMocks({
       ),
       invoiceExtension?.fields,
     )
+  const stored = storedDocumentSchema<InvoiceCard>(
+    invoiceSchemaFor(invoiceExtension),
+    {
+      dueField: "dueDate",
+      draftStatus: DEFAULT_INVOICE_STATUS,
+      totalSign: (record) => (record.status === REVERSAL_STATUS ? -1 : 1),
+    },
+  )
   const invoices = createResourceHandlers<InvoiceCard>({
     resource: INVOICES,
     baseUrl,
-    schema: storedDocumentSchema<InvoiceCard>(
-      invoiceSchemaFor(invoiceExtension),
-      {
-        dueField: "dueDate",
-        draftStatus: DEFAULT_INVOICE_STATUS,
-        totalSign: (record) => (record.status === REVERSAL_STATUS ? -1 : 1),
-      },
+    // Курс чернетки — свіжий на кожен запис; проведений і скасований тримають закріплений (ADR-0071).
+    schema: stored.transform((invoice): InvoiceCard =>
+      invoice.docStatus === "draft"
+        ? { ...invoice, exchange: invoiceExchange(invoice, rates) }
+        : invoice,
     ),
     data: fixtures,
     searchFields: ["number", "clientName"],
@@ -216,7 +229,7 @@ export function createInvoicesMocks({
     label: INVOICES_RESOURCES[0]?.label,
     fieldLabels: FIELD_LABELS,
     detailFields: ["lines", "totals"],
-    serverFields: [...LIFECYCLE_LINK_FIELDS, "orderId"],
+    serverFields: [...LIFECYCLE_LINK_FIELDS, "orderId", "exchange"],
     auditValue: {
       lines: documentLinesText,
       supplier: partyText,
@@ -244,6 +257,10 @@ export function createInvoicesMocks({
     resource: INVOICES,
     db: invoices.db,
   })
+  /** «Виставити» закріплює курс на дату рахунку й суму в базовій валюті (ADR-0071). */
+  const submitFields = (invoice: InvoiceCard) => ({
+    exchange: invoiceExchange(invoice, rates),
+  })
   const invoiceTransitions = createTransitionHandlers<InvoiceCard>({
     resource: INVOICES,
     baseUrl,
@@ -259,7 +276,8 @@ export function createInvoicesMocks({
         status: DEFAULT_INVOICE_STATUS,
       }
     },
-    // Сторно — проведений рахунок із тими самими рядками й сторонами, сума в списку з мінусом.
+    // Сторно — проведений рахунок із тими самими рядками й сторонами, сума в списку з мінусом; курс —
+    // першого рахунку, тож у базовій валюті сторно гасить його до копійки.
     reverse: (invoice) => {
       const date = openDay(invoice.companyId)
       return {
@@ -267,11 +285,13 @@ export function createInvoicesMocks({
         date,
         dueDate: date,
         status: REVERSAL_STATUS,
+        exchange: reversedExchange(invoice.exchange),
       }
     },
     // Колега в сценарії `conflict` переносить «Сплатити до» на тиждень.
     conflictChange: (invoice) => ({ dueDate: addDays(invoice.dueDate, 7) }),
     numbering: invoiceNumbering,
+    submitFields,
     ...(lock ? { afterTransition: lock.afterTransition } : {}),
   })
   const invoiceBulk = createBulkHandlers<InvoiceCard>({
@@ -282,7 +302,12 @@ export function createInvoicesMocks({
     title: (invoice) => invoice.number ?? invoice.clientName,
     actions: {
       ...bulkTransitionActions(
-        { resource: INVOICES, transitions, numbering: invoiceNumbering },
+        {
+          resource: INVOICES,
+          transitions,
+          numbering: invoiceNumbering,
+          submitFields,
+        },
         ["submit", "cancel"],
       ),
       // Виставлений і скасований не дає позначка `deniedActions.delete`: невдача з її кодом.

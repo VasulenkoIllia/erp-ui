@@ -28,6 +28,7 @@ import { AccessLink } from "./access-link"
 import { useInvoiceAccess } from "./invoice-access"
 import { InvoiceDeleteAction } from "./invoice-delete"
 import {
+  InvoiceBaseTotal,
   InvoiceDueDate,
   InvoiceTotal,
   useInvoiceTitle,
@@ -52,7 +53,7 @@ function InvoiceClient({ invoice }: { invoice: Invoice }) {
 
 /**
  * Шапка картки рахунку: номер (чернетка — без номера), статус, ключові поля (клієнт, дата, «Сплатити до»,
- * сума) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими
+ * сума, у рахунку у валюті — сума в базовій валюті з курсом, ADR-0071) з полями розширення, «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими
  * самими клієнтом і рядками, право `sales-invoices:create`), «Видалити чернетку», «Друк» і дії
  * розширення; без запису — немає.
  */
@@ -92,6 +93,12 @@ export function useInvoiceHeader(
       value: <InvoiceTotal invoice={invoice} />,
     },
   ]
+  if (invoice.exchange)
+    fields.push({
+      id: "baseTotal",
+      label: t("invoice.fields.baseTotal"),
+      value: <InvoiceBaseTotal invoice={invoice} exchange={invoice.exchange} />,
+    })
   const actions: (ObjectPageAction & { id: InvoiceActionId })[] = [
     {
       id: "edit",

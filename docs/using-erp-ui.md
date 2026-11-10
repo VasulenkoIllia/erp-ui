@@ -1163,10 +1163,11 @@ setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.
   invoices.fromOrder, hasActive: invoices.hasActive } })`. Без опції дії немає. Поля розширення з тим самим ключем переходять із
   пропозиції в замовлення й із замовлення в рахунок, якщо значення підходить полю нового документа (ADR-0070).
 
-### Модуль K2 «Рахунки клієнтам» (ADR-0070)
+### Модуль K2 «Рахунки клієнтам» (ADR-0070, ADR-0071)
 
 Обліковий документ: закритий період (ADR-0069) його стосується. Список, картка, форма, «Копіювати», друк «Рахунок на оплату» з
-QR-кодом оплати НБУ, масові дії, «Виставити рахунок» із замовлення B3 (один рахунок на замовлення).
+QR-кодом оплати НБУ, масові дії, «Виставити рахунок» із замовлення B3 (один рахунок на замовлення), рахунок у валюті компанії з
+сумою в базовій валюті поруч.
 
 ```ts
 // src/modules.ts
@@ -1181,11 +1182,13 @@ export const invoicesModule = createInvoicesModule({
     party: (organization) => ({ name: organization.name, code: organization.code, iban: organization.iban }),
   },
   sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
+  currencies: { resource: "currencies" }, // валюти компанії модуля A1; без опції — лише базова валюта
 })
 // у B3: createSalesModule({ …, invoices: { href: invoicesPaths("/finance").invoice } })
 
 // src/mocks/handlers.ts — після createPeriodLockMocks і нумерації; моки B3 — після рахунків
-const invoices = createInvoicesMocks({ ...options, numbering, periodLock, releaseOrder: (removed) => sales.releaseOrderInvoice(removed) })
+const invoices = createInvoicesMocks({ ...options, numbering, periodLock, releaseOrder: (removed) => sales.releaseOrderInvoice(removed),
+  rates: { baseCurrency: () => "UAH", rateOn: company.rateOn } }) // company = createCompanyMocks(...) модуля A1
 const sales = createSalesMocks({ ...options, numbering, invoices: { create: invoices.fromOrder, hasActive: invoices.hasActive } })
 const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...invoices.flowSources] })
 ```
@@ -1196,8 +1199,12 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   до». «Оплачено» з'явиться з модулем оплат K4.
 - Сторно — новий проведений рахунок із датою сьогодні (перший відкритий день), тими самими рядками й `totals`, `total` з мінусом.
 - Сторони — знімки `PartyDetails` (ADR-0068): постачальник з профілю компанії, покупець — з запису клієнта функцією `clients.party`.
+- Рахунок у валюті (ADR-0071): сервер віддає блок `exchange` (`lib/currency-conversion`): курс на дату рахунку чи останній перед
+  нею, підсумок у базовій валюті (`total × курс`, половина від нуля). Чернетка — свіжий курс, «Виставити» закріплює, сторно — за
+  курсом першого з мінусом; курсу немає — рахунок однаково виставляють. Сума в базовій валюті — поруч, а не замість суми документа:
+  у списку під сумою, на картці поле «У базовій валюті» з курсом. Самі нічого не перераховуйте в браузері.
 - QR-код оплати друкується лише у виставленого рахунку в гривнях із правильними IBAN, кодом і назвою постачальника; інакше над
-  аркушем пояснення, чого бракує. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
+  аркушем пояснення, чого бракує. Валютні реквізити вписують у блок постачальника самого рахунку. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
   кількох банківських застосунках.
 - Бекенду: `GET /sales-invoices`, `GET /sales-invoices/:id` з `lines` і `totals`, `POST`/`PATCH` із `supplier` і `buyer` цілими,
   `POST /sales-invoices/:id/<дія>`, `POST /sales-invoices/bulk/<дія>`, `GET /sales-invoices/:id/flow`, `POST /orders/:id/invoice`.
