@@ -114,8 +114,11 @@ test.describe("модуль K2: рахунки клієнтам", () => {
       .click()
     await expect(heading(page)).toHaveText(`Рахунок ${NEXT_NUMBER}`)
     await expect(page.getByText("Період закрито по 20.10.2026")).toHaveCount(0)
+    // Рядок самого сторно теж містить номер першого рахунку: шукаємо рядок за посиланням на перший.
     await expect(
-      flowItems(page).filter({ hasText: "РХ-2026-0001" }),
+      flowItems(page).filter({
+        has: page.getByRole("link", { name: "РХ-2026-0001", exact: true }),
+      }),
     ).toContainText("Сторновано")
     await expectNoA11yViolations(page)
   })
