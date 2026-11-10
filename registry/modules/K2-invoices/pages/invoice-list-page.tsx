@@ -1,5 +1,4 @@
 import { useAuthenticated } from "ra-core"
-import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
@@ -15,12 +14,13 @@ import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import { AccessLink } from "../components/access-link"
+import { useDocumentListFilters } from "../components/document-list"
 import { useInvoiceBulkActions } from "../components/invoice-bulk-actions"
 import { useInvoiceColumns } from "../components/invoice-columns"
-import { useInvoiceStatuses } from "../components/invoice-statuses"
+import { useDocumentStatuses } from "../components/invoice-statuses"
 import { INVOICES, type Invoice } from "../contract"
 import type { InvoiceIds } from "../extension"
-import { invoiceDocumentPaths } from "../invoice-kind"
+import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
@@ -51,6 +51,7 @@ export function InvoicesListPage() {
       id: "create",
       node: (
         <AccessLink
+          kind={INVOICE_KIND}
           action="create"
           to={invoiceDocumentPaths(paths).create}
           icon="create"
@@ -77,44 +78,11 @@ export function InvoicesListPage() {
 
 /** Колонки, фільтри й вкладки зі змінами розширення та стан списку з адреси. */
 function useInvoiceList() {
-  const t = useInvoicesT()
-  const { extension, clients } = useInvoicesModule()
+  const { extension } = useInvoicesModule()
   const [searchParams, setSearchParams] = useSearchParams()
-  const statuses = useInvoiceStatuses()
+  const statuses = useDocumentStatuses(INVOICE_KIND)
   const columns = useInvoiceColumns(statuses)
-  const filters = useMemo(
-    () => [
-      {
-        kind: "record" as const,
-        id: "clientId" as const,
-        field: "clientId",
-        label: t("invoices.filters.clientId"),
-        resource: clients.resource,
-        labelField: clients.labelField,
-        ...(clients.descriptionField
-          ? { descriptionField: clients.descriptionField }
-          : {}),
-      },
-      {
-        kind: "date-range" as const,
-        id: "date" as const,
-        field: "date",
-        label: t("invoices.filters.date"),
-      },
-    ],
-    [t, clients],
-  )
-  const tabs = useMemo(
-    () => [
-      { id: "all", label: t("invoices.tabs.all"), filter: {} },
-      ...statuses.options.map((status) => ({
-        id: status.id,
-        label: status.label,
-        filter: { status: status.id },
-      })),
-    ],
-    [t, statuses.options],
-  )
+  const { filters, tabs } = useDocumentListFilters(INVOICE_KIND, statuses)
   const extended = useExtendedList<Invoice, InvoiceIds>(
     columns,
     filters,

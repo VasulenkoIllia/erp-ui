@@ -19,14 +19,14 @@ import { useFormat } from "@/lib/format"
 import { ACTION_ICONS } from "@/lib/icons"
 import type { ResolvedStatuses } from "@/lib/statuses"
 
-import type { Invoice } from "../contract"
+import type { Invoice, K2Document } from "../contract"
 import type { InvoiceActionId, InvoiceFieldId } from "../extension"
-import { invoiceDocumentPaths } from "../invoice-kind"
+import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 import { AccessLink } from "./access-link"
-import { useInvoiceAccess } from "./invoice-access"
-import { InvoiceDeleteAction } from "./invoice-delete"
+import { useDocumentAccess } from "./invoice-access"
+import { DocumentDeleteAction } from "./invoice-delete"
 import {
   InvoiceBaseTotal,
   InvoiceDueDate,
@@ -36,24 +36,29 @@ import {
 
 const PrintIcon = ACTION_ICONS.print
 
-/** Клієнт рахунку: посилання на його картку, якщо вона є в проекті, інакше — назва текстом. */
-function InvoiceClient({ invoice }: { invoice: Invoice }) {
+/** Клієнт документа: посилання на його картку, якщо вона є в проекті, інакше — назва текстом. */
+export function DocumentClient({
+  document,
+}: {
+  document: Pick<K2Document, "clientId" | "clientName">
+}) {
   const { clients } = useInvoicesModule()
   return clients.href ? (
     <Link
-      to={clients.href(invoice.clientId)}
+      to={clients.href(document.clientId)}
       className="underline-offset-4 hover:underline focus-visible:underline"
     >
-      {invoice.clientName}
+      {document.clientName}
     </Link>
   ) : (
-    invoice.clientName
+    document.clientName
   )
 }
 
 /**
  * Шапка картки рахунку: номер (чернетка — без номера), статус, ключові поля (клієнт, дата, «Сплатити до»,
- * сума, у рахунку у валюті — сума в базовій валюті з курсом, ADR-0071) з полями розширення, «Змінити»
+ * сума, у рахунку у валюті — сума в базовій валюті з курсом, ADR-0071; з виставленими кредит-нотами — їхня
+ * сума, ADR-0072) з полями розширення, «Змінити»
  * (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими самими клієнтом і рядками, право
  * `sales-invoices:create`), «Видалити чернетку», «Друк» і дії розширення; без запису — немає.
  */
@@ -75,7 +80,7 @@ export function useInvoiceHeader(
     {
       id: "client",
       label: t("invoice.fields.client"),
-      value: <InvoiceClient invoice={invoice} />,
+      value: <DocumentClient document={invoice} />,
     },
     {
       id: "date",
@@ -99,11 +104,22 @@ export function useInvoiceHeader(
       label: t("invoice.fields.baseTotal"),
       value: <InvoiceBaseTotal invoice={invoice} exchange={invoice.exchange} />,
     })
+  // Статус рахунку кредит-нота не змінює: поруч — сума виставлених кредит-нот (ADR-0072).
+  if (invoice.creditedTotal)
+    fields.push({
+      id: "credited",
+      label: t("invoice.fields.credited"),
+      value: format.money({
+        amount: invoice.creditedTotal,
+        currency: invoice.currency,
+      }),
+    })
   const actions: (ObjectPageAction & { id: InvoiceActionId })[] = [
     {
       id: "edit",
       node: (
         <AccessLink
+          kind={INVOICE_KIND}
           action="update"
           to={documentPaths.edit(invoice.id)}
           icon="edit"
@@ -118,6 +134,7 @@ export function useInvoiceHeader(
       id: "copy",
       node: (
         <AccessLink
+          kind={INVOICE_KIND}
           action="create"
           to={documentPaths.copy(invoice.id)}
           icon="duplicate"
@@ -128,7 +145,20 @@ export function useInvoiceHeader(
     },
     {
       id: "delete",
-      node: <InvoiceDeleteAction invoice={invoice} lockReason={lock.reason} />,
+      node: (
+        <DocumentDeleteAction
+          kind={INVOICE_KIND}
+          document={invoice}
+          description={
+            invoice.amendedFrom
+              ? t("invoice.delete.descriptionAmended")
+              : invoice.orderId
+                ? t("invoice.delete.descriptionOrder")
+                : t("invoice.delete.description")
+          }
+          lockReason={lock.reason}
+        />
+      ),
     },
     {
       id: "print",
@@ -171,11 +201,12 @@ export function useInvoicePaletteActions(
   const t = useInvoicesT()
   const navigate = useNavigate()
   const { paths } = useInvoicesModule()
-  const { canAccess, isPending, recordReason } = useInvoiceAccess(
+  const { canAccess, isPending, recordReason } = useDocumentAccess(
+    INVOICE_KIND,
     "update",
     invoice,
   )
-  const create = useInvoiceAccess("create", undefined)
+  const create = useDocumentAccess(INVOICE_KIND, "create", undefined)
   if (!invoice) return []
   const documentPaths = invoiceDocumentPaths(paths)
   const print: PaletteAction = {

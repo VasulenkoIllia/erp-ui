@@ -1,6 +1,6 @@
 /**
- * Модуль K2 «Рахунки клієнтам» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0070) — точка входу: розділ
- * «Рахунки клієнтам».
+ * Модуль K2 «Рахунки клієнтам» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0070, ADR-0072) — точка входу:
+ * розділи «Рахунки клієнтам» і «Кредит-ноти» (кредит-ноту створює дія виставленого рахунку).
  *
  *   const invoicesModule = createInvoicesModule({
  *     basePath: "/finance",
@@ -38,12 +38,22 @@ import {
   type InvoicesPaths,
 } from "./module-context"
 import {
+  CREDIT_NOTES,
   INVOICES,
   INVOICES_RESOURCES,
   type InvoicesResource,
 } from "./resources"
 
 export type {
+  CreditNoteActionId,
+  CreditNoteColumnId,
+  CreditNoteDocumentExtension,
+  CreditNoteFieldId,
+  CreditNoteFilterId,
+  CreditNoteFormFieldId,
+  CreditNoteIds,
+  CreditNoteSectionId,
+  CreditNoteTabId,
   InvoiceActionId,
   InvoiceColumnId,
   InvoiceDocumentExtension,
@@ -67,6 +77,11 @@ export {
 export type { InvoicesResource } from "./resources"
 // Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
 export type {
+  CreditNote,
+  CreditNoteCard,
+  CreditNoteDetail,
+  CreditNoteStatus,
+  CreditNoteTransitionId,
   Invoice,
   InvoiceCard,
   InvoiceDetail,
@@ -139,12 +154,35 @@ const PAGES = {
   print: lazyWithPreload(() =>
     import("./pages/invoice-print-page").then((m) => m.InvoicePrintPage),
   ),
+  creditNotes: lazyWithPreload(() =>
+    import("./pages/credit-note-list-page").then((m) => m.CreditNotesListPage),
+  ),
+  creditNote: lazyWithPreload(() =>
+    import("./pages/credit-note-record-page").then((m) => m.CreditNotePage),
+  ),
+  creditNoteForm: lazyWithPreload(() =>
+    import("./pages/credit-note-form-page").then((m) => m.CreditNoteFormPage),
+  ),
+  creditNotePrint: lazyWithPreload(() =>
+    import("./pages/credit-note-print-page").then((m) => m.CreditNotePrintPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: InvoicesExtension = {}
 const NO_SOURCES: InvoiceSources = {}
 
-/** Чанк сторінки за адресою: список, нова, зміна, друк чи картка рахунку. */
+/** Чанк сторінки кредит-ноти за адресою: список, зміна, друк чи картка. */
+function creditNotePage(paths: InvoicesPaths, path: string) {
+  if (path === paths.creditNotes) return PAGES.creditNotes
+  if (!path.startsWith(`${paths.creditNotes}/`)) return null
+  return path.endsWith("/edit")
+    ? PAGES.creditNoteForm
+    : path.endsWith("/print")
+      ? PAGES.creditNotePrint
+      : PAGES.creditNote
+}
+
+/** Чанк сторінки за адресою: список, нова, зміна, друк чи картка рахунку чи кредит-ноти. */
 function preloadFor(paths: InvoicesPaths) {
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
@@ -158,7 +196,7 @@ function preloadFor(paths: InvoicesPaths) {
             ? PAGES.print
             : inside
               ? PAGES.record
-              : null
+              : creditNotePage(paths, path)
     void target?.preload()
   }
 }
@@ -195,6 +233,16 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
     { path: `${paths.invoices}/:id`, element: page(PAGES.record) },
     { path: `${paths.invoices}/:id/edit`, element: page(PAGES.form) },
     { path: `${paths.invoices}/:id/print`, element: page(PAGES.print) },
+    { path: paths.creditNotes, element: page(PAGES.creditNotes) },
+    { path: `${paths.creditNotes}/:id`, element: page(PAGES.creditNote) },
+    {
+      path: `${paths.creditNotes}/:id/edit`,
+      element: page(PAGES.creditNoteForm),
+    },
+    {
+      path: `${paths.creditNotes}/:id/print`,
+      element: page(PAGES.creditNotePrint),
+    },
   ]
   // Адреса самого модуля (`/finance`) — список рахунків.
   if (basePath.replace(/\/+$/, ""))
@@ -209,6 +257,13 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
       href: paths.invoices,
       icon: MODULE_ICONS.K2,
       access: { resource: INVOICES, action: "read" },
+    },
+    {
+      id: "K2-credit-notes",
+      label: { uk: "Кредит-ноти", en: "Credit notes" },
+      href: paths.creditNotes,
+      icon: MODULE_ICONS.K2,
+      access: { resource: CREDIT_NOTES, action: "read" },
     },
   ]
   return {

@@ -9,44 +9,41 @@ import {
   type ResolvedStatuses,
 } from "@/lib/statuses"
 
-import { INVOICE_TRANSITIONS } from "../contract"
-import {
-  INVOICE_ACTION_LABELS,
-  INVOICE_CONFIRMS,
-  INVOICE_STATUS_ITEMS,
-} from "../invoice-kind"
+import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
-/** Статуси рахунку мовою інтерфейсу зі статусами розширення проекту. */
-export function useInvoiceStatuses(): ResolvedStatuses {
+/** Статуси документа модуля мовою інтерфейсу зі статусами розширення проекту. */
+export function useDocumentStatuses(kind: K2DocumentKind): ResolvedStatuses {
   const t = useInvoicesT()
   const { extension } = useInvoicesModule()
   const statuses = useMemo(
     () =>
-      INVOICE_STATUS_ITEMS.map(({ id, tone, label }) => ({
+      kind.statuses.map(({ id, tone }) => ({
         id,
-        label: t(label),
+        label: t(`${kind.key}.statuses.${id}`),
         tone,
       })),
-    [t],
+    [t, kind],
   )
-  return useResolvedStatuses(statuses, extension.invoices?.statuses)
+  return useResolvedStatuses(statuses, kind.extensionOf(extension)?.statuses)
 }
 
 /**
- * Граф дій зі змінами розширення: «Виставити» зі своїм підписом і підтвердженням, «Скасувати»,
- * «Сторнувати» й «Виправити» — підписи кіта.
+ * Граф дій зі змінами розширення: «Виставити» зі своїм підписом і підтвердженням, «Кредит-нота» рахунку —
+ * своїм підписом, «Скасувати», «Сторнувати» й «Виправити» — підписи кіта.
  */
-export function useInvoiceTransitions(): readonly ModuleTransition[] {
+export function useDocumentTransitions(
+  kind: K2DocumentKind,
+): readonly ModuleTransition[] {
   const t = useInvoicesT()
   const kitT = useErpUiT()
   const { extension } = useInvoicesModule()
   const transitions = useMemo(
     () =>
-      INVOICE_TRANSITIONS.map((transition) => {
-        const label = INVOICE_ACTION_LABELS[transition.id]
-        const confirm = INVOICE_CONFIRMS[transition.id]
+      kind.transitions.map((transition) => {
+        const label = kind.actionLabels[transition.id]
+        const confirm = kind.confirms[transition.id]
         return {
           ...transition,
           label: label
@@ -63,7 +60,10 @@ export function useInvoiceTransitions(): readonly ModuleTransition[] {
             : undefined,
         }
       }),
-    [t, kitT],
+    [t, kitT, kind],
   )
-  return useResolvedTransitions(transitions, extension.invoices?.transitions)
+  return useResolvedTransitions(
+    transitions,
+    kind.extensionOf(extension)?.transitions,
+  )
 }

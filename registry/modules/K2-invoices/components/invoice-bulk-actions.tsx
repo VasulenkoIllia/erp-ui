@@ -16,8 +16,9 @@ import type { ModuleTransition } from "@/lib/statuses"
 
 import { INVOICES, type Invoice } from "../contract"
 import { useInvoicesT } from "../use-invoices-t"
-import { useInvoiceLockedReason } from "./invoice-access"
-import { useInvoiceTransitions } from "./invoice-statuses"
+import { INVOICE_KIND } from "../invoice-kind"
+import { useDocumentLockedReason } from "./invoice-access"
+import { useDocumentTransitions } from "./invoice-statuses"
 
 /** Масові дії списку з рядками модуля: префікс `invoices.bulk.<дія>` в `i18n/uk.json`. */
 type InvoiceBulkKey = `invoices.bulk.${"submit" | "cancel" | "delete"}`
@@ -70,7 +71,7 @@ function useInvoiceBulkTransition(
   },
 ): BulkAction {
   const t = useInvoicesT()
-  const lockedReason = useInvoiceLockedReason()
+  const lockedReason = useDocumentLockedReason(INVOICE_KIND)
   const texts = useBulkTexts(key, t(`${key}.denied`))
   const action = transition?.id ?? ""
   return useBulkAction({
@@ -97,7 +98,7 @@ function useInvoiceBulkDelete({
   filter,
 }: InvoiceBulkScope): BulkAction {
   const t = useInvoicesT()
-  const lockedReason = useInvoiceLockedReason()
+  const lockedReason = useDocumentLockedReason(INVOICE_KIND)
   const texts = useBulkTexts("invoices.bulk.delete", t("invoice.delete.denied"))
   return useBulkAction({
     resource: INVOICES,
@@ -136,7 +137,7 @@ export function useInvoiceBulkActions(
   filter: Record<string, FilterValue>,
 ): { bulk: ListReportBulk<Invoice>; dialogs: React.ReactNode } {
   const scope = { selection, filter }
-  const transitions = useInvoiceTransitions()
+  const transitions = useDocumentTransitions(INVOICE_KIND)
   const submitTransition = transitions.find((item) => item.id === "submit")
   const cancelTransition = transitions.find((item) => item.id === "cancel")
   const submit = useInvoiceBulkTransition(scope, {

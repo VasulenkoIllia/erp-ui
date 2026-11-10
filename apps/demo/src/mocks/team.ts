@@ -24,6 +24,7 @@ export const ROLES: MockRole[] = [
       "quotes:*",
       "orders:*",
       "sales-invoices:*",
+      "sales-credit-notes:*",
       "products:*",
       "organizations:*",
       "contacts:*",
@@ -97,8 +98,10 @@ export const ROLES: MockRole[] = [
       "orders:delete",
       "orders:submit",
       "orders:complete",
-      // Рахунки виставляє бухгалтер: менеджер їх бачить, «Виставити рахунок» — неактивна з причиною.
+      // Рахунки й кредит-ноти виставляє бухгалтер: менеджер їх бачить, «Виставити рахунок» — неактивна з
+      // причиною.
       "sales-invoices:read",
+      "sales-credit-notes:read",
       "organizations:read:own",
       "organizations:create",
       "organizations:update:own",
@@ -124,7 +127,12 @@ export const ROLES: MockRole[] = [
       uk: "Лише перегляд рахунків і журналу аудиту",
       en: "Read-only invoices and audit log",
     },
-    permissions: ["invoices:read", "sales-invoices:read", "audit:read"],
+    permissions: [
+      "invoices:read",
+      "sales-invoices:read",
+      "sales-credit-notes:read",
+      "audit:read",
+    ],
   },
   {
     id: "lead",
@@ -138,6 +146,7 @@ export const ROLES: MockRole[] = [
       "quotes:read",
       "orders:read",
       "sales-invoices:read",
+      "sales-credit-notes:read",
       "organizations:read",
       "contacts:read",
       "segments:read",
@@ -228,6 +237,21 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
   },
   "sales-invoices": {
     label: { uk: "Рахунки клієнтам", en: "Customer invoices" },
+    group: SALES,
+    actions: [
+      "read",
+      "create",
+      "update",
+      "delete",
+      "submit",
+      "cancel",
+      "reverse",
+      "amend",
+      "creditNote",
+    ],
+  },
+  "sales-credit-notes": {
+    label: { uk: "Кредит-ноти", en: "Credit notes" },
     group: SALES,
     actions: [
       "read",

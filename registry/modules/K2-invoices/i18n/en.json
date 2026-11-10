@@ -82,7 +82,8 @@
       "reversal": "Reversal"
     },
     "actions": {
-      "submit": "Issue"
+      "submit": "Issue",
+      "creditNote": "Create credit note"
     },
     "confirm": {
       "submit": {
@@ -97,6 +98,7 @@
       "dueDate": "Due date",
       "total": "Amount",
       "baseTotal": "In base currency",
+      "credited": "Credit notes",
       "status": "Status"
     },
     "overdue": "Overdue",
@@ -113,7 +115,9 @@
     "editDenied": "You are not allowed to change invoices",
     "locked": {
       "submitted": "An issued invoice is not changed: cancel it and make a corrected copy, or reverse it",
-      "cancelled": "A cancelled invoice is not changed: make a corrected copy"
+      "cancelled": "A cancelled invoice is not changed: make a corrected copy",
+      "linked": "Credit notes are issued against this invoice: cancel or reverse them first",
+      "credited": "The invoice is already fully covered by credit notes"
     },
     "delete": {
       "button": "Delete draft",
@@ -189,5 +193,126 @@
       "fillClient": "Fill in from the client card",
       "clientFirst": "Choose the client first: the details come from their card"
     }
+  },
+  "creditNotes": {
+    "title": "Credit notes",
+    "lead": "Customer credit notes against issued invoices: the client returned goods or the amount went down. A credit note gets its number when it is issued.",
+    "search": "Number, client or invoice",
+    "tabsLabel": "Credit note statuses",
+    "tableLabel": "Credit notes",
+    "count_one": "{{value}} credit note",
+    "count_other": "{{value}} credit notes",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "invoice": "Invoice",
+      "status": "Status",
+      "date": "Date",
+      "total": "Amount"
+    },
+    "filters": {
+      "clientId": "Client",
+      "date": "Date"
+    },
+    "empty": {
+      "title": "No credit notes yet",
+      "description": "Create a credit note on the card of an issued invoice: “Create credit note”, then keep the returned lines and quantities."
+    }
+  },
+  "creditNote": {
+    "title": "Credit note",
+    "flow": "Credit note",
+    "titleNumber": "Credit note {{number}}",
+    "titleDraft": "Credit note without a number",
+    "back": "To credit notes",
+    "statuses": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "cancelled": "Cancelled",
+      "reversed": "Reversed",
+      "reversal": "Reversal"
+    },
+    "actions": {
+      "submit": "Issue"
+    },
+    "confirm": {
+      "submit": {
+        "title": "Issue the credit note?",
+        "description": "The credit note gets a number and can no longer be changed. A mistake is fixed by cancelling it with a new copy or by a reversal.",
+        "action": "Issue credit note"
+      }
+    },
+    "fields": {
+      "client": "Client",
+      "invoice": "Invoice",
+      "date": "Date",
+      "total": "Amount",
+      "baseTotal": "In base currency",
+      "status": "Status"
+    },
+    "periodLockHint": "A mistake in a credit note of a closed period is fixed by a reversal: it is dated today.",
+    "edit": "Edit",
+    "editDenied": "You cannot edit credit notes",
+    "locked": {
+      "submitted": "An issued credit note cannot be changed: cancel it and make a corrected copy, or reverse it",
+      "cancelled": "A cancelled credit note cannot be changed: make a corrected copy",
+      "exceeds_invoice": "Other credit notes have already returned some of these lines: lower the quantity in the draft",
+      "invoice_inactive": "The invoice is cancelled or reversed: the credit note cannot be issued"
+    },
+    "delete": {
+      "button": "Delete draft",
+      "denied": "You cannot delete credit notes",
+      "title": "Delete the draft?",
+      "description": "The draft will be deleted for good with its lines. It has no number yet, so numbering stays the same.",
+      "descriptionAmended": "The draft will be deleted for good with its lines. The cancelled credit note it was made from can be corrected again.",
+      "confirm": "Delete draft",
+      "done": "Draft deleted",
+      "locked": {
+        "submitted": "An issued credit note is not deleted: cancel or reverse it",
+        "cancelled": "A cancelled credit note is not deleted: it stays in the history"
+      }
+    },
+    "print": "Print",
+    "printTitle": "Print: {{title}}",
+    "steps": "Credit note stages",
+    "sections": {
+      "lines": "Lines",
+      "parties": "Parties",
+      "flow": "Document flow"
+    },
+    "parties": {
+      "supplier": "Supplier",
+      "buyer": "Buyer"
+    },
+    "history": "History",
+    "linesInvalid": "Could not show the credit note lines"
+  },
+  "creditNoteForm": {
+    "editTitle": "Edit: {{title}}",
+    "back": "To the credit note",
+    "fields": {
+      "date": "Date"
+    },
+    "lines": {
+      "label": "Returned lines",
+      "hint": "Keep the lines being returned and set the quantity. Price, discount and tax come from the invoice.",
+      "name": "Name",
+      "price": "Price",
+      "quantity": "Quantity",
+      "sum": "Amount",
+      "available": "of {{available}} {{unit}}",
+      "remove": "Remove line “{{name}}”",
+      "removed": "Line “{{name}}” removed",
+      "exceeds": "At most {{available}}",
+      "exceedsInvoice": "That much is no longer left in the invoice: other credit notes returned part of it",
+      "required": "Keep at least one line",
+      "total": "Credit note amount"
+    },
+    "saved": "Changes saved",
+    "linesCount_one": "{{count}} line",
+    "linesCount_other": "{{count}} lines"
   }
 }

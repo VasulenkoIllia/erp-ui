@@ -7,7 +7,9 @@ import { compareCalendarDates, todayIn } from "@/lib/dates"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
 
-import { AWAITING_PAYMENT, type Invoice } from "../contract"
+import { AWAITING_PAYMENT, type Invoice, type K2Document } from "../contract"
+import type { K2DocumentKind } from "../document-kind"
+import { INVOICE_KIND } from "../invoice-kind"
 import { useInvoicesT } from "../use-invoices-t"
 
 /** Номер рахунку; чернетка номера не має, поки її не виставлять (ADR-0058). */
@@ -20,14 +22,20 @@ export function InvoiceNumber({ number }: { number: string | null }) {
   )
 }
 
-/** Назва рахунку для заголовка й палітри: «Рахунок РХ-2026-0001»; чернетка — без номера. */
-export function useInvoiceTitle() {
+/**
+ * Назва документа для заголовка й палітри: «Рахунок РХ-2026-0001», «Кредит-нота КН-2026-0001»; чернетка —
+ * без номера.
+ */
+export function useDocumentTitle(kind: K2DocumentKind) {
   const t = useInvoicesT()
-  return (invoice: Pick<Invoice, "number">) =>
-    invoice.number
-      ? t("invoice.titleNumber", { number: invoice.number })
-      : t("invoice.titleDraft")
+  return (document: Pick<K2Document, "number">) =>
+    document.number
+      ? t(`${kind.key}.titleNumber`, { number: document.number })
+      : t(`${kind.key}.titleDraft`)
 }
+
+/** Назва рахунку для заголовка й палітри: «Рахунок РХ-2026-0001»; чернетка — без номера. */
+export const useInvoiceTitle = () => useDocumentTitle(INVOICE_KIND)
 
 /**
  * «Сплатити до» минула у виставленого рахунку (рішення власника 10.11.2026): окремого статусу немає,
@@ -66,7 +74,7 @@ export function InvoiceDueDate({ invoice }: { invoice: Invoice }) {
 }
 
 /** Сума з податком; у сторно — з мінусом (рахує сервер). */
-export function InvoiceTotal({ invoice }: { invoice: Invoice }) {
+export function InvoiceTotal({ invoice }: { invoice: K2Document }) {
   const format = useFormat()
   return (
     <span className="tabular-nums">
@@ -91,7 +99,7 @@ function useBaseTotalText() {
  * Сума рахунку в колонці списку (ADR-0071): сума документа, а під нею, дрібніше, — у базовій валюті, коли
  * рахунок у валюті. Довідка поруч, а не заміна: сортування й сума рядка — у валюті рахунку.
  */
-export function InvoiceAmount({ invoice }: { invoice: Invoice }) {
+export function InvoiceAmount({ invoice }: { invoice: K2Document }) {
   const t = useInvoicesT()
   const baseText = useBaseTotalText()
   const { exchange } = invoice
@@ -108,15 +116,18 @@ export function InvoiceAmount({ invoice }: { invoice: Invoice }) {
 }
 
 /**
- * Сума в базовій валюті на картці (ADR-0071): сума, курс і його дата; у чернетці — що «Виставити» курс
- * закріпить; курсу немає — на яку дату його бракує.
+ * Сума в базовій валюті на картці (ADR-0071): сума, курс і його дата; у чернетці рахунку — що «Виставити»
+ * курс закріпить; курсу немає — на яку дату його бракує. Кредит-нота бере курс рахунку (`isRateFixed`,
+ * ADR-0072): у її чернетці курс уже закріплено.
  */
 export function InvoiceBaseTotal({
   invoice,
   exchange,
+  isRateFixed = false,
 }: {
-  invoice: Invoice
+  invoice: K2Document
   exchange: DocumentExchange
+  isRateFixed?: boolean
 }) {
   const t = useInvoicesT()
   const format = useFormat()
@@ -141,7 +152,7 @@ export function InvoiceBaseTotal({
     <span className="grid gap-0.5">
       <span className="tabular-nums">{amount}</span>
       <span className="text-xs text-muted-foreground">
-        {invoice.docStatus === "draft"
+        {invoice.docStatus === "draft" && !isRateFixed
           ? t("invoice.exchange.rateDraft", { rate })
           : rate}
       </span>

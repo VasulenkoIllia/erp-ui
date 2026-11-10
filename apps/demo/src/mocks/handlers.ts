@@ -538,6 +538,7 @@ export const handlers = [
       quotes: { uk: "Пропозиції", en: "Quotes" },
       orders: { uk: "Замовлення", en: "Orders" },
       "sales-invoices": { uk: "Рахунки клієнтам", en: "Customer invoices" },
+      "sales-credit-notes": { uk: "Кредит-ноти", en: "Credit notes" },
       "numbering-series": {
         uk: "Нумерація документів",
         en: "Document numbering",

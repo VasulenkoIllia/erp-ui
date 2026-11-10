@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react"
 import { useForm } from "react-hook-form"
+import type { z } from "zod"
 
 import { DocumentLinesEditor } from "@/components/erp/document-lines-editor"
 import type { DocumentLinesValues } from "@/components/erp/document-lines-schema"
@@ -8,9 +9,10 @@ import { errorStateKind } from "@/lib/api"
 
 import {
   invoiceDetailSchema,
-  type Invoice,
   type InvoiceDetail,
+  type K2Document,
 } from "../contract"
+import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesT } from "../use-invoices-t"
 
 const NO_OPTIONS: readonly never[] = []
@@ -19,20 +21,27 @@ const NO_OPTIONS: readonly never[] = []
  * Рядки й підсумки з відповіді картки: у рядку списку їх немає (`undefined` — ще не прийшли), зіпсовані —
  * помилка даних, а шапку однаково видно.
  */
-export function useInvoiceDetail(record: unknown) {
+export function useDocumentDetail<S extends z.ZodType>(
+  record: unknown,
+  schema: S,
+) {
   const parsed = useMemo(
     () =>
       typeof record === "object" && record !== null && "lines" in record
-        ? invoiceDetailSchema.safeParse(record)
+        ? schema.safeParse(record)
         : undefined,
-    [record],
+    [record, schema],
   )
   const error = parsed?.error
   useEffect(() => {
-    if (error) console.error("K2-invoices: invoice lines response", error)
+    if (error) console.error("K2-invoices: document lines response", error)
   }, [error])
   return parsed
 }
+
+/** Рядки й підсумки рахунку (і кредит-ноти на картці й аркуші: та сама схема рядків). */
+export const useInvoiceDetail = (record: unknown) =>
+  useDocumentDetail(record, invoiceDetailSchema)
 
 export interface InvoiceLinesState {
   readonly isPending: boolean
@@ -42,14 +51,17 @@ export interface InvoiceLinesState {
 }
 
 /**
- * Рядки збереженого рахунку лише для читання (UI05, ADR-0059): суми — сервера (`savedTotals` і `totals`
- * рядків), від 12 рядків — пошук і «До підсумків», як у формі.
+ * Рядки збереженого документа лише для читання (UI05, ADR-0059): суми — сервера (`savedTotals` і `totals`
+ * рядків), від 12 рядків — пошук і «До підсумків», як у формі. Рядки кредит-ноти — лише товари, тож та
+ * сама схема рядків рахунку.
  */
 export function InvoiceLines({
+  kind,
   invoice,
   state,
 }: {
-  invoice: Invoice & Partial<InvoiceDetail>
+  kind: K2DocumentKind
+  invoice: K2Document & Partial<InvoiceDetail>
   state: InvoiceLinesState
 }) {
   const t = useInvoicesT()
@@ -67,7 +79,7 @@ export function InvoiceLines({
       <PageState
         kind="error"
         headingLevel={3}
-        title={t("invoice.linesInvalid")}
+        title={t(`${kind.key}.linesInvalid`)}
         onRetry={state.onRetry}
       />
     )
@@ -79,7 +91,7 @@ function SavedLines({
   invoice,
   detail,
 }: {
-  invoice: Invoice
+  invoice: K2Document
   detail: InvoiceDetail
 }) {
   // Форма лише тримає значення для редактора рядків: збережений документ не редагується тут.

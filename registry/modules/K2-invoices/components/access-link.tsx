@@ -4,17 +4,19 @@ import { DeniedAction } from "@/components/erp/permission-gate"
 import { buttonVariants } from "@/components/ui/button"
 import { ACTION_ICONS } from "@/lib/icons"
 
+import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesModule } from "../module-context"
-import { useInvoiceAccess } from "./invoice-access"
+import { useDocumentAccess } from "./invoice-access"
 
 /**
- * Перехід на сторінку форми з правом `sales-invoices:<дія>` (ADR-0014): «Створити рахунок» у шапці списку,
+ * Перехід на сторінку форми з правом `<ресурс документа>:<дія>` (ADR-0014): «Створити рахунок» у шапці списку,
  * «Змінити» й «Копіювати» в шапці картки. Без права, з позначкою сервера на записі
  * (проведений документ, ADR-0037) чи поки запис редагує інша людина (ADR-0051) — неактивна кнопка з
  * причиною (SPEC §8.4); поки права невідомі — нічого. Форма — сторінкою, а не діалогом: документ
  * буває на сотні рядків.
  */
 export function AccessLink({
+  kind,
   action,
   to,
   icon,
@@ -24,6 +26,8 @@ export function AccessLink({
   record,
   lockReason,
 }: {
+  /** Документ модуля: рахунок чи кредит-нота. */
+  kind: K2DocumentKind
   action: "create" | "update"
   to: string
   icon: keyof typeof ACTION_ICONS
@@ -36,7 +40,8 @@ export function AccessLink({
   lockReason?: string | undefined
 }) {
   const { preload } = useInvoicesModule()
-  const { canAccess, isPending, recordReason } = useInvoiceAccess(
+  const { canAccess, isPending, recordReason } = useDocumentAccess(
+    kind,
     action,
     record,
   )

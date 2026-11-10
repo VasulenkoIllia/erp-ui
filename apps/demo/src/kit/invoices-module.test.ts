@@ -37,6 +37,7 @@ import {
 } from "@/registry/modules/B3-sales/mocks"
 import { createInvoicesModule } from "@/registry/modules/K2-invoices"
 import {
+  CREDIT_NOTES,
   INVOICE_DUE_DAYS,
   invoiceCardSchemaFor,
   INVOICES,
@@ -221,7 +222,7 @@ const draft = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe("модуль K2: фабрика", () => {
-  it("адреси від basePath, сторінки списку, форми, картки й друку, пункт навігації з правом читання", () => {
+  it("адреси від basePath, сторінки списку, форми, картки й друку рахунків і кредит-нот, пункти навігації з правом читання", () => {
     const module = createInvoicesModule({ basePath: "/finance/" })
     expect(module.paths.invoice("i1")).toBe("/finance/invoices/i1")
     expect(module.paths.printInvoice("i1")).toBe("/finance/invoices/i1/print")
@@ -231,10 +232,18 @@ describe("модуль K2: фабрика", () => {
       "/finance/invoices/:id",
       "/finance/invoices/:id/edit",
       "/finance/invoices/:id/print",
+      "/finance/credit-notes",
+      "/finance/credit-notes/:id",
+      "/finance/credit-notes/:id/edit",
+      "/finance/credit-notes/:id/print",
       "/finance/",
     ])
     expect(module.nav.map(({ id, access }) => ({ id, access }))).toEqual([
       { id: "K2-invoices", access: { resource: INVOICES, action: "read" } },
+      {
+        id: "K2-credit-notes",
+        access: { resource: CREDIT_NOTES, action: "read" },
+      },
     ])
   })
 })
