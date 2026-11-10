@@ -519,7 +519,7 @@ test.describe("скриншоти кроків 0.5b3 @screenshots", () => {
       const dialog = page.getByRole("dialog", { name: "Новий токен API" })
       await dialog.getByLabel("Назва").fill("Інтеграція з 1С")
       await dialog
-        .getByRole("group", { name: "Рахунки" })
+        .getByRole("group", { name: "Рахунки", exact: true })
         .getByRole("checkbox", { name: "Перегляд" })
         .check()
       await expectNoA11yViolations(page)
@@ -692,7 +692,7 @@ test.describe("скриншоти кроків 0.5b4 @screenshots", () => {
       await dialog.getByLabel("Адреса").fill("https://crm.example.com/hooks")
       await dialog.getByLabel("Опис (необов'язково)").fill("CRM партнера")
       await dialog
-        .getByRole("group", { name: "Рахунки" })
+        .getByRole("group", { name: "Рахунки", exact: true })
         .getByRole("checkbox", { name: "Рахунок змінено" })
         .check()
       await settled(page)

@@ -5,10 +5,15 @@
  */
 import { addDays, todayIn } from "@/lib/dates"
 import {
+  inheritedFieldValues,
+  type ExtensionField,
+} from "@/lib/extension-fields"
+import {
   documentFlowSource,
   documentLifecycleLinks,
   type DocumentFlowMockSource,
 } from "@/lib/mock-document-flow"
+import type { MockCreatedDocument } from "@/lib/mock-transitions"
 import type { MockResourceDb } from "@/lib/mocks"
 import {
   RECORD_DENIAL_REASONS,
@@ -16,6 +21,7 @@ import {
 } from "@/lib/record-access"
 
 import {
+  CREATE_INVOICE,
   CREATE_ORDER,
   DEFAULT_ORDER_STATUS,
   ORDERS,
@@ -39,12 +45,16 @@ const flowNode = (document: SalesDocument) => ({
 
 /**
  * Замовлення з пропозиції: клієнт, валюта, рядки й знижка пропозиції, зв'язок `quoteId`; дата —
- * сьогодні, «Виконати до» — за тиждень. Поля розширення пропозиції в замовлення не переходять: у
- * замовлення свої.
+ * сьогодні, «Виконати до» — за тиждень. Поля розширення замовлення (`fields`) беруть значення поля
+ * пропозиції з тим самим ключем, якщо воно підходить (рішення власника 10.11.2026, ADR-0070).
  */
-export function orderFromQuote(quote: QuoteCard): Record<string, unknown> {
+export function orderFromQuote(
+  quote: QuoteCard,
+  fields?: readonly ExtensionField[],
+): Record<string, unknown> {
   const today = todayIn()
   return {
+    ...inheritedFieldValues(quote, fields),
     clientId: quote.clientId,
     clientName: quote.clientName,
     currency: quote.currency,
@@ -76,6 +86,47 @@ export function quoteOrderDenials(
     [CREATE_ORDER]: RECORD_DENIAL_REASONS.linked,
     ...(isActive ? { cancel: RECORD_DENIAL_REASONS.linked } : {}),
   }
+}
+
+/** Рахунки модуля K2 у моках замовлень (ADR-0070): створення з замовлення й чи є рахунок, що діє. */
+export interface SalesInvoiceMocks {
+  /** Рахунок-чернетка з замовлення: `createInvoicesMocks(...).fromOrder`. */
+  readonly create: MockCreatedDocument<OrderCard>
+  /** З замовлення є рахунок, який не скасовано й не сторновано: замовлення тоді не скасовують. */
+  hasActive(orderId: string): boolean
+}
+
+/**
+ * Замовлення з рахунком (ADR-0070): другий рахунок не виставляється (`invoice`), а поки рахунок діє —
+ * замовлення не скасовують (`cancel`). Обидві позначки — `linked`.
+ */
+export function orderInvoiceDenials(
+  order: OrderCard,
+  invoices: SalesInvoiceMocks,
+): RecordDeniedActions | undefined {
+  if (!order.invoiceId) return undefined
+  return {
+    [CREATE_INVOICE]: RECORD_DENIAL_REASONS.linked,
+    ...(invoices.hasActive(order.id)
+      ? { cancel: RECORD_DENIAL_REASONS.linked }
+      : {}),
+  }
+}
+
+/** Видалили чернетку рахунку, виставлену з замовлення: замовлення знову може дати рахунок. */
+export function releaseOrderInvoice(
+  orders: MockResourceDb<OrderCard>,
+  removed: { readonly id: string; readonly orderId?: string | null },
+): void {
+  const order = removed.orderId
+    ? orders.all().find((candidate) => candidate.id === removed.orderId)
+    : undefined
+  if (order?.invoiceId !== removed.id) return
+  const result = orders.patch(order.id, { invoiceId: null })
+  if (result && "fieldErrors" in result)
+    throw new Error(
+      `Mock: cannot release ${order.id}: ${JSON.stringify(result.fieldErrors)}`,
+    )
 }
 
 /** Видалили чернетку замовлення, створену з пропозиції: пропозиція знову може дати замовлення. */

@@ -33,20 +33,25 @@ test.describe("ролі й права (ADR-0014)", () => {
     ).toHaveAttribute("aria-readonly", "true")
 
     await roles.getByRole("button", { name: /Аудитор/ }).click()
-    const allInvoices = page.getByRole("checkbox", { name: "Усе: Рахунки" })
+    const allInvoices = page.getByRole("checkbox", {
+      name: "Усе: Рахунки",
+      exact: true,
+    })
     await expect(allInvoices).toHaveAttribute("aria-checked", "mixed")
-    await expect(page.getByText("Дозволів: 2")).toBeVisible()
+    await expect(page.getByText("Дозволів: 3")).toBeVisible()
     await expectNoA11yViolations(page)
 
-    await page.getByRole("checkbox", { name: "Експорт: Рахунки" }).check()
+    await page
+      .getByRole("checkbox", { name: "Експорт: Рахунки", exact: true })
+      .check()
     await roles.getByRole("button", { name: /Бухгалтер/ }).click()
     const unsaved = page.getByRole("dialog", {
       name: "Зміни ролі «Аудитор» не збережено",
     })
     await unsaved.getByRole("button", { name: "Повернутися до ролі" }).click()
-    await expect(page.getByText("Дозволів: 3")).toBeVisible()
+    await expect(page.getByText("Дозволів: 4")).toBeVisible()
     await allInvoices.check()
-    await expect(page.getByText("Дозволів: 7")).toBeVisible()
+    await expect(page.getByText("Дозволів: 8")).toBeVisible()
     await page.getByRole("button", { name: "Зберегти", exact: true }).click()
     await confirmWithPassword(page)
     await expect(toast(page, "Роль збережено")).toBeVisible()

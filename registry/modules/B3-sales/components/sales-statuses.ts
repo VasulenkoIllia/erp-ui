@@ -11,7 +11,7 @@ import {
 
 import type { SalesDocument } from "../contract"
 import { useSalesModule } from "../module-context"
-import type { SalesDocumentKind } from "../sales-kinds"
+import { transitionsOf, type SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
 /** Статуси документа мовою інтерфейсу зі статусами розширення проекту. */
@@ -42,10 +42,10 @@ export function useSalesTransitions<
 >(kind: SalesDocumentKind<D, Due>): readonly ModuleTransition[] {
   const t = useSalesT()
   const kitT = useErpUiT()
-  const { extension } = useSalesModule()
+  const { extension, paths } = useSalesModule()
   const transitions = useMemo(
     () =>
-      kind.transitions.map((transition) => {
+      transitionsOf(kind, paths).map((transition) => {
         const label = kind.actionLabels[transition.id]
         const confirm = kind.confirms[transition.id]
         return {
@@ -64,7 +64,7 @@ export function useSalesTransitions<
             : undefined,
         }
       }),
-    [t, kitT, kind],
+    [t, kitT, kind, paths],
   )
   return useResolvedTransitions(
     transitions,

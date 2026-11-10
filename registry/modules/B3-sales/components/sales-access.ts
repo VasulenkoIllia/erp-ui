@@ -3,7 +3,7 @@ import { useCallback } from "react"
 import { useRecordAccess, type RecordAccess } from "@/hooks/use-record-access"
 import { RECORD_DENIAL_REASONS, recordDenial } from "@/lib/record-access"
 
-import { CREATE_ORDER } from "../contract"
+import { CREATE_INVOICE, CREATE_ORDER } from "../contract"
 import type { SalesKindBase } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
@@ -35,8 +35,8 @@ export function useSalesAccess(
 /**
  * Причина заборони станом документа словами модуля (`submitted`, `cancelled`, `linked`) для дії
  * `action`: видалення — свої тексти, решта дій — «не змінюють»; `linked` — є документ, створений із
- * цього (замовлення з пропозиції, ADR-0067): «Створити замовлення» вдруге — «уже створено», решта дій —
- * «спершу скасуйте». Інший код — `undefined`, текст кіта. Для картки, панелі дій і звіту масової дії.
+ * цього (замовлення з пропозиції, ADR-0067; рахунок із замовлення, ADR-0070): створити вдруге — «уже
+ * створено», решта дій — «спершу скасуйте». Інший код — `undefined`, текст кіта. Для картки, панелі дій і звіту масової дії.
  */
 export function useSalesLockedReason(kind: SalesKindBase) {
   const t = useSalesT()
@@ -44,10 +44,13 @@ export function useSalesLockedReason(kind: SalesKindBase) {
   // Стабільна між рендерами: панель дій і `useRecordDenialReason` мемоізують причину за нею.
   return useCallback(
     (action: string, code: string): string | undefined => {
-      if (code === RECORD_DENIAL_REASONS.linked)
-        return record === "quote" && action === CREATE_ORDER
-          ? t("quote.order.exists")
-          : t(`${record}.locked.linked`)
+      if (code === RECORD_DENIAL_REASONS.linked) {
+        if (record === "quote" && action === CREATE_ORDER)
+          return t("quote.order.exists")
+        if (record === "order" && action === CREATE_INVOICE)
+          return t("order.invoice.exists")
+        return t(`${record}.locked.linked`)
+      }
       if (!isLifecycleCode(code)) return undefined
       return action === "delete"
         ? t(`${record}.delete.locked.${code}`)

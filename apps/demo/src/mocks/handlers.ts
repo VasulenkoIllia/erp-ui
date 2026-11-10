@@ -1,4 +1,5 @@
 import { addDays } from "@/registry/lib/dates"
+import { partyFromCompany } from "@/registry/lib/document-parties"
 import { extendSchema, withMockValues } from "@/registry/lib/extension-fields"
 import {
   createPlatformHandlers,
@@ -37,6 +38,11 @@ import {
   salesNumberingSeeds,
 } from "@/registry/modules/B3-sales/mocks"
 import type { SalesFixtureOptions } from "@/registry/modules/B3-sales/fixtures"
+import {
+  createInvoicesMocks,
+  invoicesNumberingSeeds,
+} from "@/registry/modules/K2-invoices/mocks"
+import type { InvoiceFixtureOptions } from "@/registry/modules/K2-invoices/fixtures"
 
 import {
   INVOICE_APPROVAL_LIMIT,
@@ -59,7 +65,11 @@ import {
   reverseDocument,
   type DemoDocument,
 } from "@/data/documents"
-import { organizationCompanyOf, responsibleOf } from "@/data/organizations"
+import {
+  organizationCompanyOf,
+  organizationParty,
+  responsibleOf,
+} from "@/data/organizations"
 import { MY_ACTIVITY_SEEDS, TIMELINE_SEEDS } from "@/data/timeline"
 import { makeProducts, productSchema, type Product } from "@/data/products"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
@@ -67,6 +77,7 @@ import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
 import { contactsMockExtension } from "@/extensions/B1-contacts-fields"
 import { salesMockExtension } from "@/extensions/B3-sales-fields"
+import { invoicesMockExtension } from "@/extensions/K2-sales-invoices-fields"
 import { documentsExtension } from "@/extensions/documents"
 import { COMPANIES } from "@/fixtures"
 import { invoiceFields } from "@/extensions/K2-invoices-fields"
@@ -339,6 +350,38 @@ const salesFixtures: SalesFixtureOptions = {
 const salesSeeds = salesNumberingSeeds(salesFixtures)
 
 /**
+ * Рахунки модуля K2 (ADR-0070): клієнти — організації компанії з реквізитами покупця, постачальник —
+ * реквізити з профілю компанії демо, рядки — ті самі знімки довідників, що й у B3.
+ */
+const invoiceFixtures: InvoiceFixtureOptions = {
+  companies: salesFixtures.companies ?? [],
+  clients: (companyId) =>
+    contacts.db.organizations
+      .all()
+      .filter((organization) => organization.companyId === companyId)
+      .map((organization) => ({
+        id: organization.id,
+        name: organization.name,
+        party: organizationParty(organization),
+      })),
+  supplier: (companyId) => {
+    const profile = companyId ? COMPANY_PROFILES[companyId] : undefined
+    return profile
+      ? partyFromCompany({
+          legalName: "",
+          kind: "legal",
+          ...profile,
+          vatPayer: profile.vatPayer ?? false,
+        })
+      : {}
+  },
+  ...(salesFixtures.dictionaries
+    ? { dictionaries: salesFixtures.dictionaries }
+    : {}),
+}
+const invoiceSeeds = invoicesNumberingSeeds(invoiceFixtures)
+
+/**
  * Нумерація (PF03b, ADR-0058): серія документів у кожній компанії демо; засів першої компанії вже видав
  * номери проведеним і скасованим документам. Код філії для `{BRANCH}` — з профілів компаній демо.
  */
@@ -350,6 +393,7 @@ export const numbering = createNumberingMocks({
       template: DOCUMENT_NUMBER_TEMPLATE,
     })),
     ...salesSeeds.series,
+    ...invoiceSeeds.series,
   ],
   counters: [
     {
@@ -359,6 +403,7 @@ export const numbering = createNumberingMocks({
       value: DOCUMENT_NUMBERS_ISSUED,
     },
     ...salesSeeds.counters,
+    ...invoiceSeeds.counters,
   ],
   branchCode: (companyId, branchId) =>
     companyId
@@ -379,16 +424,37 @@ const documentTransitions = createTransitionHandlers({
   afterTransition: documentLock.afterTransition,
 })
 
-/** Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту. */
+/**
+ * Модуль K2 «Рахунки клієнтам» (ADR-0070): обліковий документ — закритий період демо його стосується.
+ * Видалена чернетка рахунку з замовлення звільняє замовлення B3 (моки B3 — нижче, виклик — на запит).
+ */
+const salesInvoices = createInvoicesMocks({
+  ...invoiceFixtures,
+  numbering,
+  extension: invoicesMockExtension,
+  periodLock,
+  releaseOrder: (removed) => {
+    sales.releaseOrderInvoice(removed)
+  },
+})
+
+/**
+ * Модуль B3 «Пропозиції й замовлення» (ADR-0065): поле, статус і дія розширення проекту; «Виставити
+ * рахунок» із замовлення — рахунок модуля K2.
+ */
 const sales = createSalesMocks({
   ...salesFixtures,
   numbering,
   extension: salesMockExtension,
+  invoices: {
+    create: salesInvoices.fromOrder,
+    hasActive: salesInvoices.hasActive,
+  },
 })
 
 /**
  * Потік документів (UI13, ADR-0061) — один на застосунок: «Документ» демо з виправленими копіями й
- * сторно, пропозиції й замовлення B3 зі зв'язком «на підставі» (ADR-0067).
+ * сторно, пропозиції й замовлення B3 зі зв'язком «на підставі» (ADR-0067), рахунки K2 із замовлень.
  */
 const documentFlow = createDocumentFlowHandlers({
   sources: [
@@ -404,6 +470,7 @@ const documentFlow = createDocumentFlowHandlers({
       }),
     }),
     ...sales.flowSources,
+    ...salesInvoices.flowSources,
   ],
 })
 
@@ -463,6 +530,7 @@ export const handlers = [
       documents: { uk: "Документи", en: "Documents" },
       quotes: { uk: "Пропозиції", en: "Quotes" },
       orders: { uk: "Замовлення", en: "Orders" },
+      "sales-invoices": { uk: "Рахунки клієнтам", en: "Customer invoices" },
       "numbering-series": {
         uk: "Нумерація документів",
         en: "Document numbering",
@@ -491,6 +559,7 @@ export const handlers = [
   ...documentFlow,
   ...documents.handlers,
   ...sales.handlers,
+  ...salesInvoices.handlers,
   ...numbering.handlers,
   ...periodLock.handlers,
   ...contacts.handlers,

@@ -71,7 +71,9 @@ test.describe("A2: ролі й права", () => {
     await expect(roleHeading(page)).toHaveText("Аудитор")
 
     // Інша роль зі списку — свій діалог; «Не зберігати» — одразу до неї, без другого питання.
-    await page.getByRole("checkbox", { name: "Експорт: Рахунки" }).check()
+    await page
+      .getByRole("checkbox", { name: "Експорт: Рахунки", exact: true })
+      .check()
     await roleButton(page, /Бухгалтер/).click()
     const unsaved = page.getByRole("dialog", {
       name: "Зміни ролі «Аудитор» не збережено",
@@ -82,7 +84,9 @@ test.describe("A2: ролі й права", () => {
     await expect(page.getByRole("dialog")).toBeHidden()
 
     // Піти зі сторінки з незбереженими змінами — питання охорони переходу.
-    await page.getByRole("checkbox", { name: "Експорт: Рахунки" }).uncheck()
+    await page
+      .getByRole("checkbox", { name: "Експорт: Рахунки", exact: true })
+      .uncheck()
     await navLink(page, "/m/A2/users").click()
     const leave = page.getByRole("alertdialog", {
       name: "Вийти без збереження?",
@@ -90,7 +94,7 @@ test.describe("A2: ролі й права", () => {
     await leave.getByRole("button", { name: "Залишитися" }).click()
     await expect(page).toHaveURL(/#\/m\/A2\/roles/)
     await expect(
-      page.getByRole("checkbox", { name: "Експорт: Рахунки" }),
+      page.getByRole("checkbox", { name: "Експорт: Рахунки", exact: true }),
     ).not.toBeChecked()
 
     // «Нова роль» з незбереженими змінами — те саме питання, «Повернутися» лишає зміни.
@@ -101,7 +105,7 @@ test.describe("A2: ролі й права", () => {
     await ask.getByRole("button", { name: "Повернутися до ролі" }).click()
     await expect(ask).toBeHidden()
     await expect(
-      page.getByRole("checkbox", { name: "Експорт: Рахунки" }),
+      page.getByRole("checkbox", { name: "Експорт: Рахунки", exact: true }),
     ).not.toBeChecked()
 
     // «Копіювати» → «Не зберігати»: чернетку відкинуто, копія — зі збереженої ролі.
@@ -111,7 +115,7 @@ test.describe("A2: ролі й права", () => {
     await copy.getByRole("button", { name: "Скасувати" }).click()
     await expect(copy).toBeHidden()
     await expect(
-      page.getByRole("checkbox", { name: "Експорт: Рахунки" }),
+      page.getByRole("checkbox", { name: "Експорт: Рахунки", exact: true }),
     ).toBeChecked()
   })
 
@@ -203,6 +207,7 @@ test.describe("A2: ролі й права", () => {
     await openWith(page, {}, `${ROLES}?role=auditor`)
     const exportInvoices = page.getByRole("checkbox", {
       name: "Експорт: Рахунки",
+      exact: true,
     })
     await exportInvoices.check()
     const save = page.getByRole("button", { name: "Зберегти", exact: true })
@@ -265,7 +270,7 @@ test.describe("A2: ролі й права", () => {
       "Лише перегляд: змінювати ролі може той, хто має право на зміну ролей."
     await expect(page.getByText(hint)).toBeVisible()
     await expect(
-      page.getByRole("checkbox", { name: "Перегляд: Рахунки" }),
+      page.getByRole("checkbox", { name: "Перегляд: Рахунки", exact: true }),
     ).toHaveAccessibleDescription(hint)
     await expect(page.getByRole("button", { name: "Нова роль" })).toHaveCount(0)
     await expect(page.getByRole("button", { name: "Зберегти" })).toHaveCount(0)

@@ -1,0 +1,181 @@
+{
+  "invoices": {
+    "title": "Customer invoices",
+    "lead": "Customer invoices: drafts, issued, cancelled and reversals. An invoice gets its number when it is issued.",
+    "create": "Create invoice",
+    "createDenied": "You are not allowed to create invoices",
+    "search": "Number or client",
+    "tabsLabel": "Invoice statuses",
+    "tableLabel": "Customer invoices",
+    "count_one": "{{value}} invoice",
+    "count_other": "{{value}} invoices",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "client": "Client",
+      "status": "Status",
+      "date": "Date",
+      "dueDate": "Due date",
+      "total": "Amount"
+    },
+    "filters": {
+      "clientId": "Client",
+      "date": "Date"
+    },
+    "empty": {
+      "title": "No invoices yet",
+      "description": "Create an invoice for a client or issue it from an order: lines, discounts and totals, then issue it."
+    },
+    "bulk": {
+      "rowLabel": "invoice {{number}}",
+      "rowLabelDraft": "draft for {{client}} of {{date}}",
+      "submit": {
+        "title_one": "Issue {{value}} invoice?",
+        "title_other": "Issue {{value}} invoices?",
+        "description": "Only drafts are issued: each gets a number and can no longer be changed. Invoices in other statuses or in a closed period stay as they are; the report lists them with the reason.",
+        "confirm_one": "Issue {{value}} invoice",
+        "confirm_other": "Issue {{value}} invoices",
+        "denied": "You are not allowed to issue invoices",
+        "progress": "Issuing invoices",
+        "done": "Invoices issued: {{value}}",
+        "partial": "Issued {{done}} of {{total}}, not issued: {{failed}}",
+        "notAllowed": "Only a draft can be issued"
+      },
+      "cancel": {
+        "title_one": "Cancel {{value}} invoice?",
+        "title_other": "Cancel {{value}} invoices?",
+        "description": "The invoices become void but stay in the list. One reason for all, shown in the history of each. Drafts are deleted, not cancelled; an invoice in a closed period is reversed.",
+        "confirm_one": "Cancel {{value}} invoice",
+        "confirm_other": "Cancel {{value}} invoices",
+        "denied": "You are not allowed to cancel invoices",
+        "progress": "Cancelling invoices",
+        "done": "Invoices cancelled: {{value}}",
+        "partial": "Cancelled {{done}} of {{total}}, not cancelled: {{failed}}",
+        "notAllowed": "Only an issued invoice can be cancelled: a draft is deleted, a cancelled one is already cancelled"
+      },
+      "delete": {
+        "button": "Delete",
+        "title_one": "Delete {{value}} invoice?",
+        "title_other": "Delete {{value}} invoices?",
+        "description": "Only drafts without a number are deleted for good. An issued invoice is cancelled or reversed, not deleted: such invoices stay; the report lists them with the reason.",
+        "confirm_one": "Delete {{value}} invoice",
+        "confirm_other": "Delete {{value}} invoices",
+        "progress": "Deleting drafts",
+        "done": "Drafts deleted: {{value}}",
+        "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
+      }
+    }
+  },
+  "invoice": {
+    "title": "Invoice",
+    "flow": "Invoice",
+    "titleNumber": "Invoice {{number}}",
+    "titleDraft": "Invoice without a number",
+    "back": "Back to invoices",
+    "statuses": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "cancelled": "Cancelled",
+      "reversed": "Reversed",
+      "reversal": "Reversal"
+    },
+    "actions": {
+      "submit": "Issue"
+    },
+    "confirm": {
+      "submit": {
+        "title": "Issue the invoice?",
+        "description": "The invoice gets a number and can no longer be changed. Mistakes are fixed by cancelling and a new copy, or by a reversal.",
+        "action": "Issue invoice"
+      }
+    },
+    "fields": {
+      "client": "Client",
+      "date": "Date",
+      "dueDate": "Due date",
+      "total": "Amount",
+      "status": "Status"
+    },
+    "overdue": "Overdue",
+    "periodLockHint": "A mistake in an invoice of a closed period is fixed by a reversal dated today.",
+    "edit": "Edit",
+    "copy": "Copy",
+    "editDenied": "You are not allowed to change invoices",
+    "locked": {
+      "submitted": "An issued invoice is not changed: cancel it and make a corrected copy, or reverse it",
+      "cancelled": "A cancelled invoice is not changed: make a corrected copy"
+    },
+    "delete": {
+      "button": "Delete draft",
+      "denied": "You are not allowed to delete invoices",
+      "title": "Delete the draft?",
+      "description": "The draft is deleted for good together with its lines. It has no number yet, so numbering does not change.",
+      "descriptionAmended": "The draft is deleted for good together with its lines. The cancelled invoice it was made from can be corrected again.",
+      "descriptionOrder": "The draft is deleted for good together with its lines. The order it was issued from can be invoiced again.",
+      "confirm": "Delete draft",
+      "done": "Draft deleted",
+      "locked": {
+        "submitted": "An issued invoice is not deleted: cancel or reverse it",
+        "cancelled": "A cancelled invoice is not deleted: it stays in the history"
+      }
+    },
+    "print": "Print",
+    "printTitle": "Print: {{title}}",
+    "steps": "Invoice stages",
+    "sections": {
+      "lines": "Lines",
+      "parties": "Parties",
+      "flow": "Document flow"
+    },
+    "parties": {
+      "supplier": "Supplier",
+      "buyer": "Buyer",
+      "invalid": "Could not show the party details"
+    },
+    "sources": {
+      "quote": "Quote",
+      "order": "Order"
+    },
+    "qr": {
+      "missing": "The payment QR code is not printed on the sheet: {{reason}}. Invoice details are a snapshot taken at creation: fix the company profile, and new invoices will pick up the correct ones.",
+      "issues": {
+        "currency": "the NBU QR code exists only for invoices in hryvnia",
+        "iban": "the supplier details have no valid IBAN",
+        "code": "the supplier details have no valid EDRPOU or RNOKPP code",
+        "name": "the supplier name is empty or longer than 140 characters",
+        "purpose": "the payment purpose is too long",
+        "amount": "the invoice amount is outside the transfer limits"
+      }
+    },
+    "history": "History",
+    "linesInvalid": "Could not show the invoice lines"
+  },
+  "invoiceForm": {
+    "createTitle": "New invoice",
+    "copyOf": "Copy of «{{title}}». The new invoice appears after «Save».",
+    "editTitle": "Edit: {{title}}",
+    "back": "Back to invoice",
+    "fields": {
+      "clientId": "Client",
+      "date": "Date",
+      "dueDate": "Due date"
+    },
+    "clientSearch": "Client name or code",
+    "clientMissing": "Client unavailable",
+    "dueDateBefore": "Not earlier than the invoice date",
+    "created": "Invoice created",
+    "saved": "Changes saved",
+    "linesCount_one": "{{count}} line",
+    "linesCount_other": "{{count}} lines",
+    "parties": {
+      "supplier": "Supplier: our company",
+      "buyer": "Buyer",
+      "fillCompany": "Fill in from the company profile",
+      "companyLoading": "The company profile is still loading",
+      "fillClient": "Fill in from the client card",
+      "clientFirst": "Choose the client first: the details come from their card"
+    }
+  }
+}

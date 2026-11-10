@@ -21,6 +21,7 @@ import {
 } from "@/components/erp/record-form"
 import { SaveBar } from "@/components/erp/save-bar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useLineDictionaries } from "@/hooks/use-line-dictionaries"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
 import { copiedDocumentLines } from "@/lib/document-lines"
@@ -33,7 +34,6 @@ import type { SalesDocumentIds } from "../extension"
 import { useSalesModule } from "../module-context"
 import type { SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
-import { useLineDictionaries } from "./line-dictionaries"
 import { useSalesHeaderItems, type SalesFormValues } from "./sales-form-items"
 
 /** Поля шапки модуля, крім другої дати: їх надсилає форма; рядки — усім масивом, суми рахує сервер. */

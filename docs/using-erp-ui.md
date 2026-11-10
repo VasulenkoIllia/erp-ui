@@ -1158,6 +1158,50 @@ setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.
 - Розширення `SalesExtension` (`quotes`, `orders`): `fields`, `statuses` і `transitions` (свій статус і дія до нього), `columns`,
   `filters`, `tabs`, `recordFields`, `sections` (`lines`, `flow`), `actions` (`edit`, `copy`, `delete`, `print`), `aside`, `history`,
   `editLock`, `form`; `strings`. Проект без замовлень ховає `quotes.transitions.hide: ["order"]`.
+- Рахунки модуля K2: опція `invoices: { href: invoicesPaths(basePath).invoice }` фабрики дає на замовленні «Виставити рахунок»
+  (право `orders:invoice`, сервер вимагає ще й `sales-invoices:create`), а моки — `createSalesMocks({ invoices: { create:
+  invoices.fromOrder, hasActive: invoices.hasActive } })`. Без опції дії немає. Поля розширення з тим самим ключем переходять із
+  пропозиції в замовлення й із замовлення в рахунок, якщо значення підходить полю нового документа (ADR-0070).
+
+### Модуль K2 «Рахунки клієнтам» (ADR-0070)
+
+Обліковий документ: закритий період (ADR-0069) його стосується. Список, картка, форма, «Копіювати», друк «Рахунок на оплату» з
+QR-кодом оплати НБУ, масові дії, «Виставити рахунок» із замовлення B3 (один рахунок на замовлення).
+
+```ts
+// src/modules.ts
+import { createInvoicesModule, invoicesPaths } from "@/modules/K2-invoices"
+export const invoicesModule = createInvoicesModule({
+  basePath: "/finance",
+  extension: invoicesExtension,
+  clients: {
+    resource: "organizations",
+    labelField: "name",
+    href: contactsModule.paths.organization,
+    party: (organization) => ({ name: organization.name, code: organization.code, iban: organization.iban }),
+  },
+  sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
+})
+// у B3: createSalesModule({ …, invoices: { href: invoicesPaths("/finance").invoice } })
+
+// src/mocks/handlers.ts — після createPeriodLockMocks і нумерації; моки B3 — після рахунків
+const invoices = createInvoicesMocks({ ...options, numbering, periodLock, releaseOrder: (removed) => sales.releaseOrderInvoice(removed) })
+const sales = createSalesMocks({ ...options, numbering, invoices: { create: invoices.fromOrder, hasActive: invoices.hasActive } })
+const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...invoices.flowSources] })
+```
+
+- Права: `sales-invoices` з `read`, `create`, `update`, `delete` і діями графа `submit` («Виставити»), `cancel`, `reverse`, `amend`;
+  плюс дії розширення. Серія номерів — `sales-invoices` (`invoicesNumberingSeeds`).
+- Статуси: «Чернетка», «Виставлено», «Скасовано», «Сторновано», «Сторно»; «Прострочено» — позначка виставленого з минулою «Сплатити
+  до». «Оплачено» з'явиться з модулем оплат K4.
+- Сторно — новий проведений рахунок із датою сьогодні (перший відкритий день), тими самими рядками й `totals`, `total` з мінусом.
+- Сторони — знімки `PartyDetails` (ADR-0068): постачальник з профілю компанії, покупець — з запису клієнта функцією `clients.party`.
+- QR-код оплати друкується лише у виставленого рахунку в гривнях із правильними IBAN, кодом і назвою постачальника; інакше над
+  аркушем пояснення, чого бракує. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
+  кількох банківських застосунках.
+- Бекенду: `GET /sales-invoices`, `GET /sales-invoices/:id` з `lines` і `totals`, `POST`/`PATCH` із `supplier` і `buyer` цілими,
+  `POST /sales-invoices/:id/<дія>`, `POST /sales-invoices/bulk/<дія>`, `GET /sales-invoices/:id/flow`, `POST /orders/:id/invoice`.
+  Повний контракт — `README.md` модуля.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 

@@ -143,6 +143,7 @@ function SalesStatusBar<D extends SalesDocument, Due extends string>({
   const compare = useCompare(kind, statuses)
   const lockedReason = useSalesLockedReason(kind)
   const createdId = createdIdOf(kind, document)
+  const createdPath = kind.creates?.path(paths)
   return (
     <div className="grid gap-3">
       <RecordStatusBar
@@ -162,15 +163,15 @@ function SalesStatusBar<D extends SalesDocument, Due extends string>({
         // Виправлена копія чи створене замовлення — нова картка: фокус на її заголовок ставить перехід.
         onCreated={(created: RaRecord, action: string) => {
           const card =
-            kind.creates?.action === action
+            (kind.creates?.action === action
               ? kind.creates.path(paths)
-              : kind.pathsOf(paths).record
+              : undefined) ?? kind.pathsOf(paths).record
           void navigate(card(String(created.id)))
         }}
       />
-      {kind.creates && createdId ? (
+      {kind.creates && createdPath && createdId ? (
         <p className="text-sm">
-          <RecordLink to={kind.creates.path(paths)(createdId)}>
+          <RecordLink to={createdPath(createdId)}>
             {t(kind.creates.open)}
           </RecordLink>
         </p>

@@ -131,6 +131,26 @@ export function withMockValues<T extends object>(
 }
 
 /**
+ * Поля розширення документа на підставі (рішення власника 10.11.2026, ADR-0070): нового документа поле з
+ * тим самим ключем, що й у документа-джерела, отримує його значення, якщо воно проходить схему поля
+ * нового документа (той самий список, тип). Решта полів лишається порожньою. Так переходять поля
+ * пропозиції в замовлення й замовлення в рахунок; правило — сервера, моки беруть цю функцію.
+ */
+export function inheritedFieldValues(
+  source: object,
+  fields: readonly ExtensionField[] = [],
+): Record<string, ExtensionFieldValue> {
+  const values: Record<string, ExtensionFieldValue> = {}
+  for (const field of fields) {
+    const value: unknown = Reflect.get(source, field.id)
+    if (value === undefined || value === null) continue
+    const parsed = valueSchema(field).safeParse(value)
+    if (parsed.success) values[field.id] = parsed.data
+  }
+  return values
+}
+
+/**
  * Журнал змін у моках (`createResourceHandlers` з `lib/mocks`): підписи полів розширення в «було →
  * стало» і значення зі списку — підписом мовою даних (`language`), а не ключем. Так/ні журнал
  * підписує сам. Запис із довідника — тим самим полем назви (`labelField`), що й список, із

@@ -5,6 +5,7 @@ import {
   useLoadingAnnouncement,
   type PageStateKind,
 } from "@/registry/erp/page-state"
+import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { PrintButton } from "@/registry/erp/print-button"
 import { useElementSize } from "@/registry/hooks/use-element-size"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -38,6 +39,19 @@ import { Skeleton } from "@/registry/ui/skeleton"
  */
 export type PrintPreviewState =
   "loading" | Exclude<PageStateKind, "empty" | "no-results">
+
+/**
+ * Стан аркуша з запитів сторінки друку: 404 — «не знайдено», інший збій — його стан, інакше завантаження,
+ * поки даних аркуша немає; `undefined` — аркуш готовий.
+ */
+export function printPreviewState(
+  failure: unknown,
+  isLoading: boolean,
+): PrintPreviewState | undefined {
+  if (isApiError(failure) && failure.status === 404) return "not-found"
+  if (failure) return errorStateKind(failure)
+  return isLoading ? "loading" : undefined
+}
 
 export interface PrintPreviewProps {
   /** Назва документа: на час друку — заголовок сторінки, з нього браузер бере назву файла PDF. */

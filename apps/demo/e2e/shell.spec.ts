@@ -95,7 +95,7 @@ test.describe("оболонка: десктоп", () => {
     ).toHaveCount(0)
     await page.keyboard.press("Enter")
     await expect(palette).toBeHidden()
-    await expect(page).toHaveURL(/#\/m\/K2$/)
+    await expect(page).toHaveURL(/#\/m\/K2\/invoices$/)
 
     // Пошук за ключовими словами й ID модуля; нічого не знайдено — повідомлення.
     await page.keyboard.press("Control+k")
@@ -226,7 +226,7 @@ test.describe("оболонка: телефон", () => {
     await expect(sheet).toBeVisible()
     await sheet.getByRole("link", { name: "Рахунки клієнтам" }).click()
     await expect(sheet).toBeHidden()
-    await expect(page).toHaveURL(/#\/m\/K2$/)
+    await expect(page).toHaveURL(/#\/m\/K2\/invoices$/)
     await expect(
       page.getByRole("heading", { level: 1, name: "Рахунки клієнтам" }),
     ).toBeVisible()

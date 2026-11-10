@@ -9,11 +9,12 @@
  */
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { DocumentState } from "@/lib/document-lifecycle"
-import type {
-  DocumentBodyLine,
-  DocumentLineTax,
-  DocumentLineUnit,
-} from "@/lib/document-lines"
+import type { DocumentBodyLine } from "@/lib/document-lines"
+import { documentSumsOf } from "@/lib/document-sums"
+import {
+  fixtureDocumentLines,
+  type DocumentFixtureDictionaries,
+} from "@/lib/mock-documents"
 import { formatDocumentNumber } from "@/lib/numbering"
 
 import {
@@ -26,7 +27,6 @@ import {
   type SalesDocument,
   type SalesDocumentDetail,
 } from "./contract"
-import { salesSumsOf } from "./sales-totals"
 
 export type FixtureLocale = "uk" | "en"
 
@@ -37,11 +37,7 @@ export interface SalesFixtureClient {
 }
 
 /** Знімки довідників компанії для рядків (A6): одиниця штук і годин, ставка ПДВ. */
-export interface SalesFixtureDictionaries {
-  readonly pieces: DocumentLineUnit
-  readonly hours: DocumentLineUnit
-  readonly vat: DocumentLineTax
-}
+export type SalesFixtureDictionaries = DocumentFixtureDictionaries
 
 export interface SalesFixtureOptions {
   readonly locale?: FixtureLocale
@@ -254,32 +250,15 @@ function linesOf(
   dictionaries: SalesFixtureDictionaries,
   prefix: string,
 ): DocumentBodyLine[] {
-  const lines: DocumentBodyLine[] = []
-  const groupSize = Math.ceil(seed.items / SECTION_TITLES[locale].length)
-  for (let item = 0; item < seed.items; item += 1) {
-    if (seed.sections && item % groupSize === 0)
-      lines.push({
-        kind: "section",
-        id: `${prefix}-s${String(item)}`,
-        title: at(SECTION_TITLES[locale], item / groupSize),
-      })
-    const product = at(ITEMS, index + item)
-    lines.push({
-      kind: "item",
-      id: `${prefix}-l${String(item)}`,
-      name: product[locale],
-      itemId: null,
-      quantity: String((item % 3) + 1),
-      unit: product.hours ? dictionaries.hours : dictionaries.pieces,
-      price: product.price,
-      discountPercent: item % 4 === 3 ? 10 : 0,
-      discountAmount: 0,
-      tax: dictionaries.vat,
-    })
-  }
-  if (seed.sections)
-    lines.push({ kind: "note", id: `${prefix}-n`, text: NOTE_TEXT[locale] })
-  return lines
+  return fixtureDocumentLines({
+    prefix,
+    count: seed.items,
+    offset: index,
+    items: ITEMS.map((item) => ({ ...item, name: item[locale] })),
+    dictionaries,
+    sections: seed.sections ? SECTION_TITLES[locale] : undefined,
+    note: seed.sections ? NOTE_TEXT[locale] : undefined,
+  })
 }
 
 /** Як засіяти документи одного ресурсу: засів, префікс `id`, шаблон номера й друга дата. */
@@ -339,7 +318,7 @@ function seedDocuments<S extends string, Due extends string>(
       discountPercent: seed.discountPercent ?? 0,
       discountAmount: 0,
     }
-    const sums = salesSumsOf(body)
+    const sums = documentSumsOf(body)
     if (!sums) throw new Error(`B3-sales: fixture ${id} does not add up`)
     created.set(index, {
       id,
@@ -409,7 +388,7 @@ function linkOrdersToQuotes(
       discountPercent: quote.discountPercent,
       discountAmount: quote.discountAmount,
     }
-    const sums = salesSumsOf(body)
+    const sums = documentSumsOf(body)
     if (!sums) throw new Error(`B3-sales: fixture ${order.id} does not add up`)
     Object.assign(order, {
       clientId: quote.clientId,

@@ -6,6 +6,11 @@ import type { LocalizedText } from "@/lib/auth"
 
 export const QUOTES = "quotes"
 export const ORDERS = "orders"
+/**
+ * Ресурс рахунків модуля K2 (ADR-0070): дія замовлення «Виставити рахунок» створює документ у ньому.
+ * Модуль K2 не імпортується — лише назва ресурсу.
+ */
+export const SALES_INVOICES = "sales-invoices"
 
 export interface SalesResource {
   readonly name: string
@@ -45,6 +50,8 @@ export const SALES_RESOURCES: readonly SalesResource[] = [
       "delete",
       "submit",
       "complete",
+      // «Виставити рахунок» з підтвердженого чи виконаного (ADR-0070): ще й `sales-invoices:create`.
+      "invoice",
       "cancel",
       "amend",
     ],

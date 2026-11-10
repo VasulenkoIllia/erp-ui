@@ -43,15 +43,16 @@ jobs:
       - run: pnpm check:bundle
 
   # e2e росте з кожним кроком (скриншоти × палітри × теми × ширини) — тому частинами паралельно.
+  # Чотири частини, а не три: на трьох частина йшла до 19 хв 50 с при ліміті задачі 20 хв.
   e2e:
-    name: e2e (${{ matrix.shard }}/3)
+    name: e2e (${{ matrix.shard }}/4)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -69,7 +70,7 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter @erp-ui/demo exec playwright install --with-deps chromium
 
-      - run: pnpm e2e --shard=${{ matrix.shard }}/3
+      - run: pnpm e2e --shard=${{ matrix.shard }}/4
 
       - name: Upload Playwright report
         if: failure()

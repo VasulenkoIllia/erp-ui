@@ -156,11 +156,11 @@ test.describe("токени API (ADR-0012)", () => {
     await expect(dialog.getByText("Оберіть хоча б одне право")).toBeVisible()
     await dialog.getByLabel("Назва").fill("Інтеграція з 1С")
     await dialog
-      .getByRole("group", { name: "Рахунки" })
+      .getByRole("group", { name: "Рахунки", exact: true })
       .getByRole("checkbox", { name: "Перегляд" })
       .check()
     await dialog
-      .getByRole("group", { name: "Рахунки" })
+      .getByRole("group", { name: "Рахунки", exact: true })
       .getByRole("checkbox", { name: "Створення" })
       .check()
     await expectNoA11yViolations(page)
