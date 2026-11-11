@@ -62,6 +62,7 @@ export const isReleaseTag = (ref) => /^v\d+\.\d+\.\d+$/.test(ref)
 export const isPlainRelativePath = (file) =>
   typeof file === "string" &&
   file.length > 0 &&
+  file !== "." &&
   !/[\\\0]/.test(file) &&
   !path.posix.isAbsolute(file) &&
   !file.endsWith("/") &&
@@ -75,7 +76,15 @@ export const isPlainRelativePath = (file) =>
  */
 export function isRegularFileInside(root, file) {
   const full = path.resolve(root, file)
-  if (!lstatSync(full, { throwIfNoEntry: false })?.isFile()) return false
+  let stat
+  try {
+    stat = lstatSync(full, { throwIfNoEntry: false })
+  } catch (error) {
+    // Шлях під звичайним файлом (`a.ts/b.ts`) — теж не файл усередині; інша помилка — далі.
+    if (error?.code === "ENOTDIR") return false
+    throw error
+  }
+  if (!stat?.isFile()) return false
   const relative = path.relative(
     realpathSync(root),
     realpathSync(path.dirname(full)),

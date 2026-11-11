@@ -143,6 +143,7 @@ test("isPlainRelativePath: лише нормальні відносні posix-ш
     assert.equal(isPlainRelativePath(file), true, file)
   for (const file of [
     "",
+    ".",
     "/a",
     "a/",
     "./a",
@@ -363,6 +364,7 @@ test("registryFingerprint: той самий уміст — той самий в
   for (const [dir, file] of [
     [tree(files), "../outside.ts"],
     [tree(files), "registry/missing.ts"],
+    [tree(files), "registry/a.ts/under-file.ts"],
     [linked, "registry/c.ts"],
   ])
     assert.throws(
