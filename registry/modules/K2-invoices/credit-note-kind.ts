@@ -16,6 +16,7 @@ export const CREDIT_NOTE_KIND: K2DocumentKind = {
   statuses: CREDIT_NOTE_STATUSES.map((id) => ({
     id,
     tone: DOCUMENT_TONES[id],
+    label: `creditNote.statuses.${id}`,
   })),
   transitions: CREDIT_NOTE_TRANSITIONS,
   actionLabels: { submit: "creditNote.actions.submit" },

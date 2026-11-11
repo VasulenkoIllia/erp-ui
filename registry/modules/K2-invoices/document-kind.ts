@@ -36,10 +36,11 @@ export interface K2KindExtension {
 export interface K2DocumentKind {
   readonly resource: string
   readonly key: K2DocumentKey
-  /** Статуси модуля з тоном; підпис — `<key>.statuses.<id>`. */
+  /** Статуси модуля з тоном і ключем підпису `<key>.statuses.<id>`. */
   readonly statuses: readonly {
     readonly id: InvoiceStatus
     readonly tone: StatusTone
+    readonly label: InvoicesKey
   }[]
   readonly transitions: readonly StatusTransition[]
   /** Дії зі своїм підписом модуля; решта — підписи кіта (`documentActions.<дія>`). */
@@ -58,6 +59,7 @@ export interface K2DocumentKind {
 export const DOCUMENT_TONES: Readonly<Record<InvoiceStatus, StatusTone>> = {
   draft: "neutral",
   issued: "info",
+  paid: "success",
   cancelled: "destructive",
   reversed: "warning",
   reversal: "neutral",

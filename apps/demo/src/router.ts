@@ -64,6 +64,7 @@ export const MODULE_ROUTES = {
   contacts: "/m/B1",
   salesModule: "/m/B3",
   invoicesModule: "/m/K2",
+  paymentsModule: "/m/K4",
   usersModule: "/m/A2",
   companyModule: "/m/A1",
   auditModule: "/m/A5",
@@ -76,7 +77,7 @@ export type KitModuleKey = keyof typeof MODULE_ROUTES
 
 /**
  * Сторінка демо, екран входу, картка рахунку (/data/inv-00001), картка організації
- * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users, /m/A1/currencies, /m/A5/audit, /m/N5/inbox, /m/A6/taxes, /m/A4/import-export, /m/N1/my-activities, /m/B3/quotes, /m/K2/invoices — маршрути модуля) або
+ * (/organizations/org-001), сторінка модуля кіта (/m/B1/contacts, /m/A2/users, /m/A1/currencies, /m/A5/audit, /m/N5/inbox, /m/A6/taxes, /m/A4/import-export, /m/N1/my-activities, /m/B3/quotes, /m/K2/invoices, /m/K4/payments — маршрути модуля) або
  * заглушка модуля ERP (/m/K3).
  */
 export type Location =

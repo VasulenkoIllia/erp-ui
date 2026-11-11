@@ -11,14 +11,15 @@ import {
  * номером серії, друк із QR-кодом оплати НБУ, закритий період і сторно, рахунок із замовлення B3, форма
  * зі сторонами; рахунок у валюті з сумою в гривнях поруч (ADR-0071, крок K2b). Годинник — 08.11.2026,
  * закрито по 20.10.2026: давні рахунки засіву лежать у закритому періоді, а номери засіву компанії
- * бухгалтера — РХ-2026-0001…0008 (найстаріший — перший, останній — рахунок у євро сьогодні).
+ * бухгалтера — РХ-2026-0001…0009 (найстаріший — перший, далі рахунок у євро сьогодні й останнім — другий
+ * рахунок клієнта простроченого, оплачений оплатою модуля K4).
  */
 const LIST = "/#/m/K2/invoices"
 const DRAFT = `${LIST}/inv-zoriana-01`
 const ISSUED = `${LIST}/inv-zoriana-03`
 /** Виставлений 24.09.2026 — у закритому періоді, номер РХ-2026-0001. */
 const CLOSED = `${LIST}/inv-zoriana-10`
-const NEXT_NUMBER = "РХ-2026-0009"
+const NEXT_NUMBER = "РХ-2026-0010"
 /** Рахунки у валюті: чернетка в доларах, виставлений сьогодні в євро, чернетка в злотих без курсу. */
 const USD_DRAFT = `${LIST}/inv-zoriana-11`
 const EUR_ISSUED = `${LIST}/inv-zoriana-12`
@@ -58,7 +59,7 @@ test.describe("модуль K2: рахунки клієнтам", () => {
     await openWith(page, {}, "/#/m/K2")
     await expect(page).toHaveURL(/#\/m\/K2\/invoices$/)
     await expect(heading(page)).toHaveText("Рахунки клієнтам")
-    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("13")
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("14")
     await page.getByRole("tab", { name: /^Виставлено/ }).click()
     // Шапка й п'ять виставлених: два з минулою «Сплатити до».
     await expect(page.getByRole("row")).toHaveCount(6)

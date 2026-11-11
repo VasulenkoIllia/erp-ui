@@ -77,6 +77,20 @@ export interface InvoiceSources {
   readonly quote?: (id: string) => string
 }
 
+/**
+ * Оплати рахунку (модуль K4, ADR-0073): ресурс для права «Зареєструвати оплату» й потоку документів,
+ * адреса нової оплати з клієнтом і рахунком, адреса картки оплати. Модуль K4 не імпортується — лише
+ * назва ресурсу й адреси (`paymentsModule.paths`).
+ */
+export interface InvoicePayments {
+  readonly resource: string
+  readonly register: (invoice: {
+    readonly clientId: string
+    readonly invoiceId: string
+  }) => string
+  readonly href?: (id: string) => string
+}
+
 export interface InvoicesModuleContextValue {
   readonly extension: InvoicesExtension
   readonly paths: InvoicesPaths
@@ -84,6 +98,8 @@ export interface InvoicesModuleContextValue {
   readonly sources: InvoiceSources
   /** Валюти рахунку; без них рахунок у базовій валюті компанії, поля «Валюта» у формі немає. */
   readonly currencies?: InvoiceCurrencies | undefined
+  /** Оплати модуля K4; без них на картці немає «Зареєструвати оплату». */
+  readonly payments?: InvoicePayments | undefined
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined
   /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */

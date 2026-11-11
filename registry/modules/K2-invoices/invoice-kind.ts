@@ -44,14 +44,18 @@ export function invoiceDocumentPaths(
 export const INVOICE_KIND: K2DocumentKind = {
   resource: INVOICES,
   key: "invoice",
-  statuses: INVOICE_STATUSES.map((id) => ({ id, tone: DOCUMENT_TONES[id] })),
+  statuses: INVOICE_STATUSES.map((id) => ({
+    id,
+    tone: DOCUMENT_TONES[id],
+    label: `invoice.statuses.${id}`,
+  })),
   transitions: INVOICE_TRANSITIONS,
   actionLabels: {
     submit: "invoice.actions.submit",
     [CREATE_CREDIT_NOTE]: "invoice.actions.creditNote",
   },
   confirms: { submit: "invoice.confirm.submit" },
-  mainPath: ["draft", "issued"],
+  mainPath: ["draft", "issued", "paid"],
   pathsOf: invoiceDocumentPaths,
   extensionOf: (extension) => extension.invoices,
 }

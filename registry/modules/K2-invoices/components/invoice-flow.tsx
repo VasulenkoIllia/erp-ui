@@ -16,8 +16,8 @@ const ORDERS = "orders"
 
 /**
  * Потік документів на картці рахунку чи кредит-ноти (UI13, ADR-0061, ADR-0070, ADR-0072): рахунки й
- * кредит-ноти модуля зі статусами K2, пропозиції й замовлення B3 — з посиланням на картку, коли проект дав
- * їхні адреси (`sources`), і зі станом документа кіта. Порядок і зв'язки («На підставі …», «Виправлена
+ * кредит-ноти модуля зі статусами K2, пропозиції й замовлення B3 та оплати K4 (ADR-0073) — з посиланням на
+ * картку, коли проект дав їхні адреси (`sources`, `payments`), і зі станом документа кіта. Порядок і зв'язки («На підставі …», «Виправлена
  * копія …», «Сторно …») дає сервер.
  */
 export function InvoiceFlow({
@@ -28,7 +28,7 @@ export function InvoiceFlow({
   id: string
 }) {
   const t = useInvoicesT()
-  const { paths, sources } = useInvoicesModule()
+  const { paths, sources, payments } = useInvoicesModule()
   const statuses = useDocumentStatuses(INVOICE_KIND)
   const noteStatuses = useDocumentStatuses(CREDIT_NOTE_KIND)
   const types: Readonly<Record<string, DocumentFlowType>> = {
@@ -40,6 +40,14 @@ export function InvoiceFlow({
       href: paths.creditNote,
       statuses: noteStatuses,
     },
+    ...(payments
+      ? {
+          [payments.resource]: {
+            label: t("invoice.sources.payment"),
+            href: payments.href,
+          },
+        }
+      : {}),
   }
   return <DocumentFlow resource={resource} id={id} types={types} />
 }

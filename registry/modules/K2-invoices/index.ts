@@ -8,6 +8,8 @@
  *     clients: { resource: "organizations", labelField: "name", href: contactsModule.paths.organization },
  *     sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
  *     currencies: { resource: "currencies" },
+ *     payments: { resource: "sales-payments", register: paymentsModule.paths.newPayment,
+ *       href: paymentsModule.paths.payment },
  *   })
  *   <Routes>{invoicesModule.routes.map(…)}</Routes>  // чи useRoutes(invoicesModule.routes)
  *
@@ -33,6 +35,7 @@ import {
   invoicesPaths,
   type InvoiceClients,
   type InvoiceCurrencies,
+  type InvoicePayments,
   type InvoicesModuleContextValue,
   type InvoiceSources,
   type InvoicesPaths,
@@ -71,6 +74,7 @@ export {
   invoicesPaths,
   type InvoiceClients,
   type InvoiceCurrencies,
+  type InvoicePayments,
   type InvoiceSources,
   type InvoicesPaths,
 } from "./module-context"
@@ -131,6 +135,12 @@ export interface InvoicesModuleOptions<TItem extends RaRecord = RaRecord> {
    * валюті компанії й поля «Валюта» у формі немає; з нею рахунок у валюті показує суму в базовій поруч.
    */
   readonly currencies?: InvoiceCurrencies
+  /**
+   * Оплати модуля K4 (ADR-0073): ресурс оплат, адреса нової оплати з рахунком і картки оплати
+   * (`paymentsModule.paths`). З опцією на картці виставленого рахунку з боргом — «Зареєструвати оплату», а
+   * в потоці документів — оплати з посиланням.
+   */
+  readonly payments?: InvoicePayments
   /** Вибір товару чи послуги в рядку з ресурсу проекту (`products`); без нього — вільний текст. */
   readonly lineItem?: DocumentLineItem<TItem>
 }
@@ -207,6 +217,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
   clients = DEFAULT_CLIENTS,
   sources = NO_SOURCES,
   currencies,
+  payments,
   lineItem,
 }: InvoicesModuleOptions<TItem> = {}): InvoicesModule {
   const paths = invoicesPaths(basePath)
@@ -217,6 +228,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
     clients,
     sources,
     currencies,
+    payments,
     // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
     lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
     preload,
