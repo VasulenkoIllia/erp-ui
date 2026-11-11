@@ -3255,6 +3255,10 @@ const KIT_TOOL_FILES = [
     path: "registry/tools/erp-ui-kit-deps.mjs",
     target: "~/scripts/erp-ui-kit-deps.mjs",
   },
+  {
+    path: "registry/tools/erp-ui-kit-manifest.mjs",
+    target: "~/scripts/erp-ui-kit-manifest.mjs",
+  },
 ]
 
 /**
@@ -3567,7 +3571,7 @@ export const BUNDLE_ITEMS = {
     layer: "tools",
     title: "Команда кіта",
     description:
-      "scripts/erp-ui-kit.mjs: update <версія> — тег архівом одним запитом (тайм-аут, повтори), реєстр, звіт add --dry-run, add --overwrite (лише файли), файли, які проект доповнює сам, лишаються його, залежності: відсутні в проекті — з діапазоном кіта, наявні — без змін, відбитки kit-files.json; check — файли кіта не правлені (ADR-0029). Входить у base.",
+      "scripts/erp-ui-kit.mjs: update <версія> — SHA коміту тегу й архів цього коміту (тайм-аут, повтори), реєстр, звіт add --dry-run, зупинка на тому самому тегу з іншим умістом і на файлі з позначкою local override, add --overwrite (лише файли), файли, які проект доповнює сам, лишаються його, залежності: відсутні в проекті — з діапазоном кіта, наявні — без змін; kit-files.json: версія з SHA й відбитком реєстру, відбитки файлів, сироти (--prune видаляє незмінені), контрольна сума; check — файли кіта не правлені, маніфест не змінено руками, сироти (ADR-0029, ADR-0078). Входить у base.",
     status: "beta",
     spec: ["§3"],
     files: KIT_TOOL_FILES,
