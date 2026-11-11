@@ -25,6 +25,7 @@ export const ROLES: MockRole[] = [
       "orders:*",
       "sales-invoices:*",
       "sales-credit-notes:*",
+      "sales-payments:*",
       "products:*",
       "organizations:*",
       "contacts:*",
@@ -98,10 +99,11 @@ export const ROLES: MockRole[] = [
       "orders:delete",
       "orders:submit",
       "orders:complete",
-      // Рахунки й кредит-ноти виставляє бухгалтер: менеджер їх бачить, «Виставити рахунок» — неактивна з
-      // причиною.
+      // Рахунки й кредит-ноти виставляє, а оплати реєструє бухгалтер: менеджер їх бачить, «Виставити
+      // рахунок» і «Зареєструвати оплату» — неактивні з причиною.
       "sales-invoices:read",
       "sales-credit-notes:read",
+      "sales-payments:read",
       "organizations:read:own",
       "organizations:create",
       "organizations:update:own",
@@ -131,6 +133,7 @@ export const ROLES: MockRole[] = [
       "invoices:read",
       "sales-invoices:read",
       "sales-credit-notes:read",
+      "sales-payments:read",
       "audit:read",
     ],
   },
@@ -147,6 +150,7 @@ export const ROLES: MockRole[] = [
       "orders:read",
       "sales-invoices:read",
       "sales-credit-notes:read",
+      "sales-payments:read",
       "organizations:read",
       "contacts:read",
       "segments:read",
@@ -263,6 +267,11 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
       "reverse",
       "amend",
     ],
+  },
+  "sales-payments": {
+    label: { uk: "Оплати", en: "Payments" },
+    group: SALES,
+    actions: ["read", "create", "cancel", "reverse"],
   },
   products: {
     label: { uk: "Товари", en: "Products" },

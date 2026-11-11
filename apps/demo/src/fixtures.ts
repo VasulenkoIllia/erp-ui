@@ -98,6 +98,7 @@ export const DEMO_USER = {
 export const ERP_EXAMPLE: { id: ModuleId; badge?: number }[] = [
   { id: "O1" },
   { id: "K2" },
+  { id: "K4" },
   { id: "K3", badge: 3 },
   { id: "B1" },
   { id: "B3" },

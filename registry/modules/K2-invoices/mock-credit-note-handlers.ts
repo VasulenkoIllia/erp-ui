@@ -207,6 +207,8 @@ export interface CreditNoteHandlersOptions {
   readonly openDay: (companyId: string | null | undefined) => CalendarDate
   /** Засів кредит-нот (`createCreditNoteFixtures`) на кожне скидання моків. */
   readonly data: () => CreditNoteCard[]
+  /** Після дії кредит-ноти: борг рахунку змінився — статус за оплатами (ADR-0073). */
+  readonly settleInvoice?: (invoiceId: string) => void
 }
 
 export function createCreditNoteHandlers({
@@ -217,6 +219,7 @@ export function createCreditNoteHandlers({
   periodLock,
   openDay,
   data,
+  settleInvoice,
 }: CreditNoteHandlersOptions) {
   const transitions = mergeTransitions(
     CREDIT_NOTE_TRANSITIONS,
@@ -320,7 +323,10 @@ export function createCreditNoteHandlers({
       )
       return built.issues ? {} : built.body
     },
-    ...(lock ? { afterTransition: lock.afterTransition } : {}),
+    afterTransition: (note, action, actor) => {
+      lock?.afterTransition(note, action, actor)
+      settleInvoice?.(note.invoiceId)
+    },
   })
   return {
     // Дії — перед ресурсом: `POST /sales-credit-notes/:id/<дія>` не має дійти до обробників запису.

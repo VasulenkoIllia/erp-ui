@@ -19,9 +19,9 @@ export function useDocumentStatuses(kind: K2DocumentKind): ResolvedStatuses {
   const { extension } = useInvoicesModule()
   const statuses = useMemo(
     () =>
-      kind.statuses.map(({ id, tone }) => ({
+      kind.statuses.map(({ id, tone, label }) => ({
         id,
-        label: t(`${kind.key}.statuses.${id}`),
+        label: t(label),
         tone,
       })),
     [t, kind],

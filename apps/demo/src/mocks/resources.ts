@@ -9,6 +9,7 @@ export const MOCK_RESOURCES = [
   "orders",
   "sales-invoices",
   "sales-credit-notes",
+  "sales-payments",
   "numbering-series",
   "period-lock",
   "period-lock-exceptions",

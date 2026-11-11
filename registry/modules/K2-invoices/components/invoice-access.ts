@@ -9,10 +9,16 @@ import { useInvoicesT } from "../use-invoices-t"
 /**
  * Позначки, які модуль пояснює словами документа, а не кіта: проведений і скасований документ, рахунок із
  * виставленою кредит-нотою (`linked`), повністю покритий рахунок і чернетка кредит-ноти, яку вже не
- * виставити (ADR-0072).
+ * виставити (ADR-0072), рахунок з оплатою (`has_payments`, ADR-0073).
  */
 const LOCKED_CODES = {
-  invoice: ["submitted", "cancelled", RECORD_DENIAL_REASONS.linked, "credited"],
+  invoice: [
+    "submitted",
+    "cancelled",
+    RECORD_DENIAL_REASONS.linked,
+    "credited",
+    "has_payments",
+  ],
   creditNote: ["submitted", "cancelled", "exceeds_invoice", "invoice_inactive"],
 } as const
 type LockedCode<K extends K2DocumentKind["key"]> =

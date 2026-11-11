@@ -17,8 +17,11 @@
  *   документа вона не підміняє.
  * - Дата `date` і «Сплатити до» `dueDate` — календарні дні `YYYY-MM-DD`; `dueDate` не раніше дати, інакше
  *   422 `before_date`. «Прострочено» — не статус, а позначка виставленого рахунку з минулою `dueDate`.
- * - Статуси (рішення власника 10.11.2026): «Чернетка», «Виставлено», «Скасовано», «Сторновано» й
- *   «Сторно» (документ-сторно). «Оплачено» з'явиться з модулем оплат K4: його ставитиме сервер.
+ * - Статуси (рішення власника 10.11.2026): «Чернетка», «Виставлено», «Оплачено», «Скасовано», «Сторновано» й
+ *   «Сторно» (документ-сторно). «Оплачено» ставить сервер, а не дія графа (ADR-0073): виставлений рахунок,
+ *   який оплати модуля K4 разом із кредит-нотами покрили, стає «Оплачено», а коли оплату скасували чи
+ *   сторнували — знову «Виставлено». Часткова оплата статусу не змінює (рішення власника 11.11.2026): картка
+ *   має `paidTotal`. Рахунок з оплатою, що діє, не скасовують і не сторнують (`has_payments`).
  * - Життєвий цикл кіта (ADR-0057): `docStatus` поруч зі статусом модуля, дія — `POST
  *   /sales-invoices/:id/<дія>` з `version` і причиною. «Виставити» (`submit`) — проведення з номером серії
  *   `sales-invoices` (ADR-0058). Виставлений не змінюють і не видаляють: «Скасувати» з причиною й
@@ -48,8 +51,10 @@
  *   повне повернення частинами дає рівно суму рахунку. Статус рахунку кредит-нота не змінює: картка рахунку
  *   має `creditedTotal` — суму виставлених кредит-нот; рахунок із виставленою кредит-нотою не скасовують і не
  *   сторнують (`linked`), повністю покритий — без нової кредит-ноти (`credited`).
+ * - Оплати (ADR-0073) — ресурс модуля K4 (`sales-payments`): картка рахунку має `paidTotal`, статус
+ *   «Оплачено» ставить сервер. Борг рахунку — `total − creditedTotal − paidTotal`.
  * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення; рахунок у
- *   кредит-ноти), `amendedFrom`, `reversalOf`.
+ *   кредит-ноти й оплати), `amendedFrom`, `reversalOf`.
  * - Права — `sales-invoices:<дія>`: `read`, `create`, `update`, `delete`, `submit`, `cancel`, `reverse`,
  *   `amend`, `creditNote` і дії розширення; кредит-ноти — `sales-credit-notes:<дія>` (створення з рахунку —
  *   ще й `sales-credit-notes:create`).
@@ -87,10 +92,11 @@ import { CREDIT_NOTES } from "./resources"
 
 export { CREDIT_NOTES, INVOICES, INVOICES_RESOURCES } from "./resources"
 
-/** Статуси рахунку модуля (рішення власника 10.11.2026); розширення додає свої (`statuses`). */
+/** Статуси рахунку модуля (рішення власника 10.11.2026, ADR-0073); розширення додає свої (`statuses`). */
 export const INVOICE_STATUSES = [
   "draft",
   "issued",
+  "paid",
   "cancelled",
   "reversed",
   "reversal",
@@ -100,6 +106,8 @@ export type InvoiceStatus = (typeof INVOICE_STATUSES)[number]
 export const DEFAULT_INVOICE_STATUS: InvoiceStatus = "draft"
 /** Статус документа-сторно: проведений, без дій. */
 export const REVERSAL_STATUS: InvoiceStatus = "reversal"
+/** Статус рахунку, який оплати разом із кредит-нотами покрили: ставить сервер (ADR-0073). */
+export const PAID_STATUS: InvoiceStatus = "paid"
 /** «Сплатити до» нового рахунку за замовчуванням: днів від дати рахунку. */
 export const INVOICE_DUE_DAYS = 5
 /** Статуси, у яких рахунок чекає оплати: тут минула «Сплатити до» — позначка «Прострочено». */
@@ -142,10 +150,23 @@ export const CREDIT_NOTE_ISSUES = {
   credited: "credited",
 } as const
 
-/** Граф переходів рахунку: життєвий цикл і «Кредит-нота» — і в закритому періоді, як сторно. */
+/**
+ * Коди відмов сервера для оплат модуля K4 (ADR-0073): `hasPayments` — на рахунок є оплата, що діє: рахунок не
+ * скасовують і не сторнують, спершу скасовують чи сторнують оплату.
+ */
+export const INVOICE_PAYMENT_ISSUES = { hasPayments: "has_payments" } as const
+
+/**
+ * Граф переходів рахунку: життєвий цикл і «Кредит-нота» — і в закритому періоді, як сторно, і з оплаченого
+ * рахунку (клієнт повернув товар після оплати).
+ */
 export const INVOICE_TRANSITIONS = [
   ...LIFECYCLE_TRANSITIONS,
-  { id: CREATE_CREDIT_NOTE, from: ["issued"], creates: CREDIT_NOTES },
+  {
+    id: CREATE_CREDIT_NOTE,
+    from: ["issued", "paid"],
+    creates: CREDIT_NOTES,
+  },
 ] as const satisfies readonly StatusTransition<InvoiceStatus>[]
 export type InvoiceTransitionId = (typeof INVOICE_TRANSITIONS)[number]["id"]
 
@@ -187,6 +208,11 @@ const invoiceShape = documentShape.extend({
    * Сума виставлених кредит-нот рахунку в його валюті (ADR-0072): веде сервер, віддає картка, а не список.
    */
   creditedTotal: moneyAmountSchema.min(0).optional(),
+  /**
+   * Сума оплат модуля K4, що діють, у валюті рахунку (ADR-0073): веде сервер, віддає картка, а не список.
+   * Борг — «виставлено мінус кредит-ноти мінус оплачено».
+   */
+  paidTotal: moneyAmountSchema.min(0).optional(),
 })
 
 /** Рядки й підсумки детального запису (`GET /sales-invoices/:id`): у рядку списку їх немає. */
@@ -240,9 +266,15 @@ export type K2Document = z.output<typeof documentShape> & {
 
 /* ------------------------------- Кредит-нота ------------------------------- */
 
-/** Статуси кредит-ноти (ADR-0072): ті самі, що в рахунку; розширення додає свої. */
-export const CREDIT_NOTE_STATUSES = INVOICE_STATUSES
-export type CreditNoteStatus = InvoiceStatus
+/** Статуси кредит-ноти (ADR-0072): як у рахунку, без «Оплачено»; розширення додає свої. */
+export const CREDIT_NOTE_STATUSES = [
+  "draft",
+  "issued",
+  "cancelled",
+  "reversed",
+  "reversal",
+] as const satisfies readonly InvoiceStatus[]
+export type CreditNoteStatus = (typeof CREDIT_NOTE_STATUSES)[number]
 /** Граф переходів кредит-ноти: життєвий цикл документа, як у рахунку. */
 export const CREDIT_NOTE_TRANSITIONS = LIFECYCLE_TRANSITIONS
 export type CreditNoteTransitionId =

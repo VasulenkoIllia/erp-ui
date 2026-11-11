@@ -206,12 +206,15 @@ interface Seed {
   readonly reversed?: boolean
   /** Валюта рахунку, якщо не гривня (ADR-0071). */
   readonly currency?: string
+  /** Клієнт за його місцем у списку клієнтів, якщо не за місцем засіву: другий рахунок того самого клієнта. */
+  readonly client?: number
 }
 
 /**
  * Засів рахунків компанії: чернетки (одна велика з розділами), виставлені (свіжий, прострочений, зі
  * знижкою, давній у закритому періоді), скасований із виправленою копією, сторнований зі сторно; у кінці —
- * рахунки у валюті, щоб номери гривневих лишились тими самими.
+ * рахунки у валюті й другий рахунок клієнта простроченого (одна оплата на два рахунки, ADR-0073), щоб номери
+ * старших лишились тими самими.
  */
 const SEEDS: readonly Seed[] = [
   { status: "draft", docStatus: "draft", age: 0, items: 3 },
@@ -252,6 +255,7 @@ const SEEDS: readonly Seed[] = [
   },
   // Курси злотих у таблиці демо — за останні 10 днів: на цю дату курсу немає.
   { status: "draft", docStatus: "draft", age: 12, items: 2, currency: "PLN" },
+  { status: "issued", docStatus: "submitted", age: 0, items: 2, client: 3 },
 ]
 
 const at = <T>(list: readonly T[], index: number): T => {
@@ -286,7 +290,7 @@ function seedInvoice(
   const sourceIndex =
     previous?.amended || previous?.reversed ? index - 1 : index
   const source = at(SEEDS, sourceIndex)
-  const client = at(context.clients, sourceIndex)
+  const client = at(context.clients, source.client ?? sourceIndex)
   const currency = source.currency ?? CURRENCY
   const priceOf = (price: string) =>
     currency === CURRENCY

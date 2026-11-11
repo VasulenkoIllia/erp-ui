@@ -1,0 +1,124 @@
+{
+  "payments": {
+    "title": "Payments",
+    "lead": "Money from clients for invoices: one payment covers one or several invoices of the same client. An invoice becomes Paid once payments and credit notes cover it.",
+    "create": "Record payment",
+    "createDenied": "You are not allowed to record payments",
+    "search": "Number, client or reference",
+    "tabsLabel": "Payment statuses",
+    "tableLabel": "Payments",
+    "count_one": "{{value}} payment",
+    "count_other": "{{value}} payments",
+    "tabs": {
+      "all": "All"
+    },
+    "columns": {
+      "number": "Number",
+      "date": "Date",
+      "client": "Client",
+      "invoices": "Invoices",
+      "method": "Method",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "filters": {
+      "clientId": "Client",
+      "date": "Date",
+      "method": "Method"
+    },
+    "empty": {
+      "title": "No payments yet",
+      "description": "Record a payment here or on an issued invoice: Record payment."
+    }
+  },
+  "payment": {
+    "title": "Payment",
+    "flow": "Payment",
+    "titleNumber": "Payment {{number}}",
+    "back": "Back to payments",
+    "statuses": {
+      "received": "Received",
+      "cancelled": "Cancelled",
+      "reversed": "Reversed",
+      "reversal": "Reversal"
+    },
+    "methods": {
+      "bank": "Bank transfer",
+      "card": "Card",
+      "cash": "Cash",
+      "other": "Other"
+    },
+    "fields": {
+      "client": "Client",
+      "date": "Date",
+      "method": "Method",
+      "amount": "Amount",
+      "baseAmount": "In base currency",
+      "reference": "Reference",
+      "status": "Status"
+    },
+    "exchange": {
+      "inBase": "in base currency:",
+      "noRateShort": "no rate",
+      "noRate": "No {{currency}} rate on {{date}} or earlier in the rates table",
+      "rate": "Rate {{rate}} on {{date}}"
+    },
+    "periodLockHint": "A mistake in a payment of a closed period is fixed by a reversal: it is dated today.",
+    "sections": {
+      "allocations": "Invoices",
+      "flow": "Document flow"
+    },
+    "allocations": {
+      "label": "Payment invoices",
+      "invoice": "Invoice",
+      "date": "Invoice date",
+      "amount": "Amount from payment",
+      "total": "Total"
+    },
+    "sources": {
+      "invoice": "Invoice"
+    },
+    "history": "History"
+  },
+  "paymentForm": {
+    "title": "New payment",
+    "back": "Back to payments",
+    "backInvoice": "Back to invoice",
+    "fields": {
+      "clientId": "Client",
+      "currency": "Currency",
+      "date": "Payment date",
+      "method": "Method",
+      "amount": "Payment amount",
+      "reference": "Reference or payment order no."
+    },
+    "amountHint": "The amount from the statement: allocate all of it to invoices.",
+    "clientSearch": "Client name or code",
+    "clientMissing": "Client unavailable",
+    "invoices": {
+      "label": "Client invoices",
+      "pickClient": "Choose a client: their unpaid invoices appear here.",
+      "empty": "The client has no unpaid invoices.",
+      "failed": "Could not load the client's invoices.",
+      "retry": "Try again",
+      "truncated": "Showing the first {{count}} invoices by payment due date: allocate the rest with the next payment.",
+      "number": "Invoice",
+      "dueDate": "Payment due",
+      "debt": "Due",
+      "overdue": "Overdue",
+      "amount": "Amount from payment",
+      "amountOf": "Amount from payment for {{number}}",
+      "auto": "Allocate oldest first",
+      "allocated": "Allocated {{allocated}} of {{amount}}",
+      "left": "{{left}} left to allocate",
+      "over": "Allocated {{over}} more than the payment",
+      "exceeds": "No more than the due {{debt}}",
+      "required": "Allocate the payment to at least one invoice",
+      "notAllocated": "Allocate the whole payment to invoices: there are no overpayments or advances",
+      "exceedsDebt": "More than the invoice is due: it was paid meanwhile",
+      "unavailable": "The invoice no longer awaits payment: reload the page"
+    },
+    "amountPositive": "The amount must be greater than zero",
+    "saved": "Payment recorded"
+  }
+}

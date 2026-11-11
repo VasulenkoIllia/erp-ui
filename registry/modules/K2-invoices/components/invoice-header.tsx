@@ -21,6 +21,7 @@ import type { ResolvedStatuses } from "@/lib/statuses"
 
 import type { Invoice, K2Document } from "../contract"
 import type { InvoiceActionId, InvoiceFieldId } from "../extension"
+import { invoiceDebt, isSettling } from "../invoice-debt"
 import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
@@ -33,6 +34,7 @@ import {
   InvoiceTotal,
   useInvoiceTitle,
 } from "./invoice-display"
+import { awaitsPayment, RegisterPayment } from "./register-payment"
 
 const PrintIcon = ACTION_ICONS.print
 
@@ -58,9 +60,10 @@ export function DocumentClient({
 /**
  * Шапка картки рахунку: номер (чернетка — без номера), статус, ключові поля (клієнт, дата, «Сплатити до»,
  * сума, у рахунку у валюті — сума в базовій валюті з курсом, ADR-0071; з виставленими кредит-нотами — їхня
- * сума, ADR-0072) з полями розширення, «Змінити»
- * (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими самими клієнтом і рядками, право
- * `sales-invoices:create`), «Видалити чернетку», «Друк» і дії розширення; без запису — немає.
+ * сума, ADR-0072; з оплатами — оплачене й «До сплати» чи «Переплата», ADR-0073) з полями розширення,
+ * «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими самими клієнтом і рядками, право
+ * `sales-invoices:create`), «Зареєструвати оплату» (рахунок із боргом, коли проект підключив оплати),
+ * «Видалити чернетку», «Друк» і дії розширення; без запису — немає.
  */
 export function useInvoiceHeader(
   invoice: Invoice | undefined,
@@ -71,7 +74,7 @@ export function useInvoiceHeader(
   const t = useInvoicesT()
   const format = useFormat()
   const titleOf = useInvoiceTitle()
-  const { extension, paths } = useInvoicesModule()
+  const { extension, paths, payments } = useInvoicesModule()
   const invoiceExtension = extension.invoices
   const extensionFields = useExtensionFields(invoiceExtension?.fields)
   if (!invoice) return undefined
@@ -114,6 +117,7 @@ export function useInvoiceHeader(
         currency: invoice.currency,
       }),
     })
+  fields.push(...settlementFields(invoice, t, format))
   const actions: (ObjectPageAction & { id: InvoiceActionId })[] = [
     {
       id: "edit",
@@ -143,6 +147,14 @@ export function useInvoiceHeader(
         />
       ),
     },
+    ...(payments && awaitsPayment(invoice)
+      ? [
+          {
+            id: "registerPayment" as const,
+            node: <RegisterPayment invoice={invoice} payments={payments} />,
+          },
+        ]
+      : []),
     {
       id: "delete",
       node: (
@@ -188,6 +200,35 @@ export function useInvoiceHeader(
     ),
     actions: applyKeyedChanges(actions, slotActions),
   }
+}
+
+/**
+ * Оплачене й борг рахунку з оплатами (ADR-0073): «Оплачено» — сума оплат, «До сплати» — борг після кредит-нот
+ * і оплат, «Переплата» — коли кредит-ноту виставили вже після оплати. Без оплат і кредит-нот — нічого: борг
+ * дорівнює сумі.
+ */
+function settlementFields(
+  invoice: Invoice,
+  t: ReturnType<typeof useInvoicesT>,
+  format: ReturnType<typeof useFormat>,
+): (RecordField & { id: InvoiceFieldId })[] {
+  const money = (amount: number) =>
+    format.money({ amount, currency: invoice.currency })
+  const fields: (RecordField & { id: InvoiceFieldId })[] = []
+  if (invoice.paidTotal)
+    fields.push({
+      id: "paid",
+      label: t("invoice.fields.paid"),
+      value: money(invoice.paidTotal),
+    })
+  const debt = invoiceDebt(invoice)
+  if (isSettling(invoice) && debt !== 0 && debt !== invoice.total)
+    fields.push({
+      id: "debt",
+      label: t(debt > 0 ? "invoice.fields.debt" : "invoice.fields.overpaid"),
+      value: money(Math.abs(debt)),
+    })
+  return fields
 }
 
 /**

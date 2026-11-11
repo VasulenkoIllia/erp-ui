@@ -40,9 +40,15 @@ import {
 import type { SalesFixtureOptions } from "@/registry/modules/B3-sales/fixtures"
 import {
   createInvoicesMocks,
+  invoicePaymentSeed,
   invoicesNumberingSeeds,
+  type InvoiceMockRates,
 } from "@/registry/modules/K2-invoices/mocks"
 import type { InvoiceFixtureOptions } from "@/registry/modules/K2-invoices/fixtures"
+import {
+  createPaymentsMocks,
+  paymentsNumberingSeeds,
+} from "@/registry/modules/K4-payments/mocks"
 
 import {
   INVOICE_APPROVAL_LIMIT,
@@ -350,6 +356,16 @@ const salesFixtures: SalesFixtureOptions = {
 const salesSeeds = salesNumberingSeeds(salesFixtures)
 
 /**
+ * Курси компанії для документів у валюті (ADR-0071): курс на дату з таблиці курсів модуля A1. Профілі демо
+ * базової валюти не задають — гривня, як у формі рахунку.
+ */
+const companyRates: InvoiceMockRates = {
+  baseCurrency: (companyId) =>
+    (companyId ? COMPANY_PROFILES[companyId]?.baseCurrency : null) ?? "UAH",
+  rateOn: company.rateOn,
+}
+
+/**
  * Рахунки модуля K2 (ADR-0070): клієнти — організації компанії з реквізитами покупця, постачальник —
  * реквізити з профілю компанії демо, рядки — ті самі знімки довідників, що й у B3.
  */
@@ -378,15 +394,15 @@ const invoiceFixtures: InvoiceFixtureOptions = {
   ...(salesFixtures.dictionaries
     ? { dictionaries: salesFixtures.dictionaries }
     : {}),
-  // Рахунок у валюті (ADR-0071): курс на дату з таблиці курсів модуля A1. Профілі демо базової валюти не
-  // задають — гривня, як у формі рахунку.
-  rates: {
-    baseCurrency: (companyId) =>
-      (companyId ? COMPANY_PROFILES[companyId]?.baseCurrency : null) ?? "UAH",
-    rateOn: company.rateOn,
-  },
+  rates: companyRates,
 }
 const invoiceSeeds = invoicesNumberingSeeds(invoiceFixtures)
+/** Оплати модуля K4 (ADR-0073): засів — від рахунків засіву K2, курси — ті самі, що в рахунках. */
+const paymentSeeds = paymentsNumberingSeeds({
+  invoices: invoicePaymentSeed(invoiceFixtures),
+  companies: invoiceFixtures.companies ?? [],
+  rates: companyRates,
+})
 
 /**
  * Нумерація (PF03b, ADR-0058): серія документів у кожній компанії демо; засів першої компанії вже видав
@@ -401,6 +417,7 @@ export const numbering = createNumberingMocks({
     })),
     ...salesSeeds.series,
     ...invoiceSeeds.series,
+    ...paymentSeeds.series,
   ],
   counters: [
     {
@@ -411,6 +428,7 @@ export const numbering = createNumberingMocks({
     },
     ...salesSeeds.counters,
     ...invoiceSeeds.counters,
+    ...paymentSeeds.counters,
   ],
   branchCode: (companyId, branchId) =>
     companyId
@@ -433,7 +451,8 @@ const documentTransitions = createTransitionHandlers({
 
 /**
  * Модуль K2 «Рахунки клієнтам» (ADR-0070): обліковий документ — закритий період демо його стосується.
- * Видалена чернетка рахунку з замовлення звільняє замовлення B3 (моки B3 — нижче, виклик — на запит).
+ * Видалена чернетка рахунку з замовлення звільняє замовлення B3, а оплачене дають оплати K4 (моки B3 і K4 —
+ * нижче, виклик — на запит).
  */
 const salesInvoices = createInvoicesMocks({
   ...invoiceFixtures,
@@ -443,6 +462,15 @@ const salesInvoices = createInvoicesMocks({
   releaseOrder: (removed) => {
     sales.releaseOrderInvoice(removed)
   },
+  payments: { paidTotal: (invoiceId) => salesPayments.paidTotal(invoiceId) },
+})
+
+/** Модуль K4 «Оплати» (ADR-0073): оплати за рахунками K2, обліковий документ, курси компанії. */
+const salesPayments = createPaymentsMocks({
+  invoices: salesInvoices.forPayments,
+  numbering,
+  periodLock,
+  rates: companyRates,
 })
 
 /**
@@ -461,7 +489,8 @@ const sales = createSalesMocks({
 
 /**
  * Потік документів (UI13, ADR-0061) — один на застосунок: «Документ» демо з виправленими копіями й
- * сторно, пропозиції й замовлення B3 зі зв'язком «на підставі» (ADR-0067), рахунки K2 із замовлень.
+ * сторно, пропозиції й замовлення B3 зі зв'язком «на підставі» (ADR-0067), рахунки K2 із замовлень і
+ * оплати K4 на підставі рахунків.
  */
 const documentFlow = createDocumentFlowHandlers({
   sources: [
@@ -478,6 +507,7 @@ const documentFlow = createDocumentFlowHandlers({
     }),
     ...sales.flowSources,
     ...salesInvoices.flowSources,
+    salesPayments.flowSource,
   ],
 })
 
@@ -539,6 +569,7 @@ export const handlers = [
       orders: { uk: "Замовлення", en: "Orders" },
       "sales-invoices": { uk: "Рахунки клієнтам", en: "Customer invoices" },
       "sales-credit-notes": { uk: "Кредит-ноти", en: "Credit notes" },
+      "sales-payments": { uk: "Оплати", en: "Payments" },
       "numbering-series": {
         uk: "Нумерація документів",
         en: "Document numbering",
@@ -568,6 +599,7 @@ export const handlers = [
   ...documents.handlers,
   ...sales.handlers,
   ...salesInvoices.handlers,
+  ...salesPayments.handlers,
   ...numbering.handlers,
   ...periodLock.handlers,
   ...contacts.handlers,

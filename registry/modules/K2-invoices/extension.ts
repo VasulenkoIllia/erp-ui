@@ -46,12 +46,22 @@ export interface InvoiceIds {
   tab: "all" | InvoiceStatus | (string & {})
   /**
    * Ключові поля шапки картки; `baseTotal` — сума в базовій валюті рахунку у валюті (ADR-0071), `credited`
-   * — сума виставлених кредит-нот (ADR-0072).
+   * — сума виставлених кредит-нот (ADR-0072), `paid` — сума оплат, `debt` — «До сплати» чи «Переплата»
+   * (ADR-0073).
    */
-  field: "client" | "date" | "dueDate" | "total" | "baseTotal" | "credited"
+  field:
+    | "client"
+    | "date"
+    | "dueDate"
+    | "total"
+    | "baseTotal"
+    | "credited"
+    | "paid"
+    | "debt"
   /** Секції картки: рядки, сторони й потік документів (ADR-0061, ADR-0068). */
   section: "lines" | "parties" | "flow"
-  action: "edit" | "copy" | "delete" | "print"
+  /** Дії шапки; `registerPayment` — «Зареєструвати оплату», коли проект підключив оплати (ADR-0073). */
+  action: "edit" | "copy" | "registerPayment" | "delete" | "print"
   /** Поля форми шапки (ключ — ім'я поля запису); рядки, знижка й сторони — свої блоки форми. */
   formField: "clientId" | "date" | "dueDate" | "currency"
 }

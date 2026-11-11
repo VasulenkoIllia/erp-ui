@@ -1163,11 +1163,12 @@ setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.
   invoices.fromOrder, hasActive: invoices.hasActive } })`. Без опції дії немає. Поля розширення з тим самим ключем переходять із
   пропозиції в замовлення й із замовлення в рахунок, якщо значення підходить полю нового документа (ADR-0070).
 
-### Модуль K2 «Рахунки клієнтам» (ADR-0070, ADR-0071, ADR-0072)
+### Модуль K2 «Рахунки клієнтам» (ADR-0070, ADR-0071, ADR-0072, ADR-0073)
 
 Обліковий документ: закритий період (ADR-0069) його стосується. Список, картка, форма, «Копіювати», друк «Рахунок на оплату» з
 QR-кодом оплати НБУ, масові дії, «Виставити рахунок» із замовлення B3 (один рахунок на замовлення), рахунок у валюті компанії з
-сумою в базовій валюті поруч, кредит-ноти на підставі виставлених рахунків (окремий пункт меню).
+сумою в базовій валюті поруч, кредит-ноти на підставі виставлених рахунків (окремий пункт меню), оплати модуля K4 і статус
+«Оплачено».
 
 ```ts
 // src/modules.ts
@@ -1183,6 +1184,8 @@ export const invoicesModule = createInvoicesModule({
   },
   sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
   currencies: { resource: "currencies" }, // валюти компанії модуля A1; без опції — лише базова валюта
+  // оплати модуля K4; без опції рахунок про оплати не знає
+  payments: { resource: "sales-payments", register: paymentsPaths("/finance").newPayment, href: paymentsPaths("/finance").payment },
 })
 // у B3: createSalesModule({ …, invoices: { href: invoicesPaths("/finance").invoice } })
 
@@ -1197,8 +1200,8 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   `creditNote` («Створити кредит-ноту», ще й `sales-credit-notes:create`); `sales-credit-notes` з `read`, `create`, `update`,
   `delete`, `submit`, `cancel`, `reverse`, `amend`; плюс дії розширення. Серії номерів — `sales-invoices` і `sales-credit-notes`
   (`invoicesNumberingSeeds` дає обидві).
-- Статуси: «Чернетка», «Виставлено», «Скасовано», «Сторновано», «Сторно»; «Прострочено» — позначка виставленого з минулою «Сплатити
-  до». «Оплачено» з'явиться з модулем оплат K4.
+- Статуси: «Чернетка», «Виставлено», «Оплачено», «Скасовано», «Сторновано», «Сторно»; «Прострочено» — позначка виставленого з
+  минулою «Сплатити до». «Оплачено» ставить сервер за оплатами модуля K4 (нижче), а не дія графа.
 - Сторно — новий проведений рахунок із датою сьогодні (перший відкритий день), тими самими рядками й `totals`, `total` з мінусом.
 - Сторони — знімки `PartyDetails` (ADR-0068): постачальник з профілю компанії, покупець — з запису клієнта функцією `clients.party`.
 - Рахунок у валюті (ADR-0071): сервер віддає блок `exchange` (`lib/currency-conversion`): курс на дату рахунку чи останній перед
@@ -1218,6 +1221,41 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   кредит-ноти — `POST /sales-invoices/:id/creditNote`, `GET /sales-credit-notes`, `GET`/`PATCH`/`DELETE /sales-credit-notes/:id`
   (у чернетці `basis` — залишки рядків рахунку), `POST /sales-credit-notes/:id/<дія>`, `GET /sales-credit-notes/:id/flow`.
   Повний контракт — `README.md` модуля.
+
+### Модуль K4 «Оплати» (ADR-0073)
+
+Оплата клієнта за рахунками K2: проведений документ одразу з номером серії «ОП-…», на один чи кілька рахунків того самого
+клієнта. Обліковий документ: закритий період його стосується. Список, картка, форма «Зареєструвати оплату»; з картки рахунку —
+та сама форма з клієнтом і рахунком, сума — борг.
+
+```ts
+// src/modules.ts — фабрики K2 і K4 одна від одної не залежать: лише адреси
+import { createPaymentsModule, paymentsPaths } from "@/modules/K4-payments"
+export const paymentsModule = createPaymentsModule({
+  basePath: "/finance",
+  extension: paymentsExtension,
+  clients: { resource: "organizations", labelField: "name", href: contactsModule.paths.organization },
+  invoices: { resource: "sales-invoices", href: invoicesPaths("/finance").invoice },
+})
+
+// src/mocks/handlers.ts — засів серії оплат від засіву рахунків, моки K4 — після моків K2
+const paymentSeeds = paymentsNumberingSeeds({ invoices: invoicePaymentSeed(options), companies, rates })
+const invoices = createInvoicesMocks({ ...options, numbering, periodLock, rates,
+  payments: { paidTotal: (invoiceId) => payments.paidTotal(invoiceId) } })
+const payments = createPaymentsMocks({ invoices: invoices.forPayments, numbering, periodLock, rates })
+const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, payments.flowSource] })
+```
+
+- Права: `sales-payments` з `read`, `create` («Зареєструвати оплату»), `cancel`, `reverse`; плюс дії розширення. Серія номерів —
+  `sales-payments` (`paymentsNumberingSeeds`).
+- Борг рахунку — «виставлено мінус кредит-ноти мінус оплачено»; рахує сервер. Переплати й авансу немає: сума кожному рахунку не
+  більша за борг, сума оплати дорівнює сумі рознесення. Часткова оплата статусу рахунку не змінює: на картці — «Оплачено» й «До
+  сплати». Рахунок з оплатою, що діє, не скасовують і не сторнують.
+- Помилкова оплата: у відкритому періоді — «Скасувати» з причиною, у закритому — «Сторнувати» (сторно сьогодні, сума з мінусом).
+- Форма шле `requestId` — один на форму: повтор того самого запиту сервер має повертати ту саму оплату, а не створювати другу.
+- Бекенду: `GET /sales-payments`, `GET /sales-payments/:id`, `POST /sales-payments` з `requestId` і `allocations`,
+  `GET /sales-payments/open-invoices?clientId=`, `POST /sales-payments/:id/<дія>`, `GET /sales-payments/:id/flow`; у картці
+  рахунку — `paidTotal`, статус `paid`, `deniedActions` `has_payments`. Повний контракт — `README.md` модуля.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 

@@ -29,6 +29,10 @@
  * - Рахунок у валюті (ADR-0071): з `rates` (базова валюта й `rateOn` моків A1) сервер рахує `exchange` —
  *   у чернетки на кожен запис, на «Виставити» закріплює; сторно бере курс першого. Курс чернетки моки
  *   оновлюють під час запису, а не читання: новий курс у таблиці чернетка побачить після збереження.
+ * - Оплати модуля K4 (ADR-0073): з `payments` (`paidTotal` моків K4) картка рахунку має `paidTotal`, сервер
+ *   ставить «Оплачено» рахунку, який оплати разом із кредит-нотами покрили, і знімає, коли оплату скасували;
+ *   рахунок з оплатою, що діє, не скасовують і не сторнують (`has_payments`). Моки K4 беруть рахунки з
+ *   `forPayments`.
  */
 import type { LocalizedText } from "@/lib/auth"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
@@ -78,10 +82,7 @@ import {
 } from "./credit-note-fixtures"
 import type { InvoicesMockExtension } from "./extension"
 import { createCreditNoteHandlers } from "./mock-credit-note-handlers"
-import {
-  creditedTotalOf,
-  invoiceCreditDeniedActions,
-} from "./mock-credit-notes"
+import { invoiceCreditDeniedActions } from "./mock-credit-notes"
 import { invoiceExchange, reversedExchange } from "./mock-exchange"
 import {
   createInvoiceFixtures,
@@ -95,9 +96,20 @@ import {
   isActiveInvoice,
   type InvoiceOrderSource,
 } from "./mock-links"
+import {
+  invoicePaymentDeniedActions,
+  invoicePaymentsLink,
+  type InvoiceMockPayments,
+} from "./mock-payments"
 
 export type { InvoiceOrderSource } from "./mock-links"
 export type { InvoiceMockRates } from "./mock-exchange"
+export {
+  invoicePaymentSeed,
+  type InvoiceMockPayments,
+  type InvoicePaymentSource,
+  type InvoicesForPayments,
+} from "./mock-payments"
 
 /** Закриті періоди застосунку: правила сервера для ресурсу й дата закриття компанії. */
 type PeriodLockMocks = Pick<
@@ -121,6 +133,11 @@ export interface InvoicesMocksOptions extends InvoiceFixtureOptions {
     readonly id: string
     readonly orderId?: string | null
   }) => void
+  /**
+   * Оплати модуля K4 (ADR-0073): сума оплат, що діють, за рахунком (`paymentsMocks.paidTotal`). Без них
+   * рахунок не знає про оплати: статусу «Оплачено» й `paidTotal` немає.
+   */
+  readonly payments?: InvoiceMockPayments
 }
 
 /**
@@ -202,6 +219,7 @@ export function createInvoicesMocks({
   deniedActions,
   periodLock,
   releaseOrder,
+  payments,
   ...fixtureOptions
 }: InvoicesMocksOptions) {
   const { rates } = fixtureOptions
@@ -229,12 +247,20 @@ export function createInvoicesMocks({
   const fixtures = () =>
     withMockValues(
       withTransitionSamples(
-        createInvoiceFixtures(fixtureOptions).invoices,
+        paymentsLink.settledSeed(),
         invoiceExtension?.statuses,
         invoiceExtension?.transitions,
       ),
       invoiceExtension?.fields,
     )
+  // Сховища — нижче: зв'язок звертається до них лише на запит.
+  const paymentsLink = invoicePaymentsLink({
+    fixtureOptions,
+    payments,
+    invoices: () => invoices.db,
+    creditNotes: () => creditNotes.db.all(),
+  })
+  const { settlement } = paymentsLink
   const stored = storedDocumentSchema<InvoiceCard>(
     invoiceSchemaFor(invoiceExtension),
     {
@@ -258,15 +284,17 @@ export function createInvoicesMocks({
     label: INVOICES_RESOURCES[0]?.label,
     fieldLabels: FIELD_LABELS,
     detailFields: ["lines", "totals"],
-    // Сума виставлених кредит-нот — лише в картці: список її не віддає.
+    // Суми кредит-нот і оплат — лише в картці: список їх не віддає.
     detail: (invoice) => ({
-      creditedTotal: creditedTotalOf(invoice.id, creditNotes.db.all()),
+      creditedTotal: settlement.credited(invoice.id),
+      ...(payments ? { paidTotal: settlement.paid(invoice.id) } : {}),
     }),
     serverFields: [
       ...LIFECYCLE_LINK_FIELDS,
       "orderId",
       "exchange",
       "creditedTotal",
+      "paidTotal",
     ],
     auditValue: {
       lines: documentLinesText,
@@ -282,6 +310,7 @@ export function createInvoicesMocks({
     deniedActions: (actor, invoice) => {
       const denied = {
         ...lock?.deniedActions(actor, invoice),
+        ...invoicePaymentDeniedActions(invoice, settlement.paid(invoice.id)),
         ...invoiceCreditDeniedActions(
           invoice,
           creditNotes.db.all(),
@@ -308,6 +337,8 @@ export function createInvoicesMocks({
         createInvoiceFixtures(fixtureOptions).invoices,
         fixtureOptions,
       ).creditNotes,
+    // Кредит-нота змінює борг: рахунок, який оплати разом із нею покрили, — «Оплачено» (ADR-0073).
+    ...(payments ? { settleInvoice: paymentsLink.settle } : {}),
   })
   const invoiceNumbering = numbering.forResource({
     resource: INVOICES,
@@ -406,5 +437,7 @@ export function createInvoicesMocks({
         ),
     /** Джерела потоку документів: для `createDocumentFlowHandlers` застосунку, після джерел B3. */
     flowSources: [invoicesFlowSource(invoices.db), creditNotes.flowSource],
+    /** Рахунки для моків оплат модуля K4 (ADR-0073): `createPaymentsMocks({ invoices: forPayments })`. */
+    forPayments: paymentsLink.forPayments,
   }
 }
