@@ -62,6 +62,8 @@ import {
 } from "./erp-ui-kit-lib.mjs"
 import {
   checksumProblem,
+  manifestShapeProblem,
+  orphansAfter,
   presentOrphans,
   previewPrune,
   printOrphans,
@@ -77,9 +79,6 @@ const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
 const RECOVERY_HINT =
   "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
-
-const isObject = (value) =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
 
 /** Файли кіта, змінені чи видалені в проекті (файли, які проект доповнює сам, — не рахуються). */
 export function kitFileProblems(manifestFiles, hashOf) {
@@ -98,15 +97,8 @@ function readManifest(root) {
   const file = path.join(root, MANIFEST)
   if (!existsSync(file)) return null
   const manifest = readJson(file, MANIFEST)
-  if (
-    typeof manifest?.files !== "object" ||
-    manifest.files === null ||
-    (manifest.items !== undefined && !Array.isArray(manifest.items)) ||
-    (manifest.orphans !== undefined && !isObject(manifest.orphans))
-  )
-    throw new KitError(
-      `${MANIFEST}: немає відбитків файлів (files), items не список чи orphans не об'єкт`,
-    )
+  const problem = manifestShapeProblem(manifest, MANIFEST)
+  if (problem) throw new KitError(problem)
   return manifest
 }
 
@@ -225,6 +217,18 @@ function checkCommand(root) {
   )
 }
 
+/** Які з файлів відстежує git: `--prune` видаляє лише їх, бо їх повертає `git restore`. */
+async function trackedByGit(root, files) {
+  if (!files.length) return () => false
+  const result = await mustRun(
+    "git",
+    ["--literal-pathspecs", "ls-files", "-z", "--", ...files],
+    { cwd: root, capture: true },
+  )
+  const tracked = new Set(result.stdout.split("\0").filter(Boolean))
+  return (file) => tracked.has(file)
+}
+
 /** Чисте git (оновлення видно окремо в diff) і файли кіта такі, як після встановлення. */
 async function readinessProblems(root, manifest) {
   const status = await mustRun("git", ["status", "--porcelain"], {
@@ -317,16 +321,21 @@ async function applyUpdate({
     }
     await verifyApplied(root, itemFiles)
     const kitFiles = await kitFileHashes(root, files)
-    const orphans = settleOrphans(root, manifest, files, prune)
+    const found = orphansAfter(root, manifest, files)
+    const orphans = settleOrphans(
+      root,
+      found,
+      prune ? await trackedByGit(root, Object.keys(found)) : undefined,
+    )
     writeManifest(
       root,
       withChecksum({ ...version, items, files: kitFiles, own, orphans }),
     )
     console.log(
-      `\nКіт ${version.kit} (коміт ${version.sha.slice(0, 12)}): ${MANIFEST} оновлено (${String(Object.keys(kitFiles).length)} файлів). Далі — typecheck, lint, тести, збірка й e2e; що змінилось — CHANGELOG.md кіта.`,
+      `\nКіт ${version.kit}, коміт ${version.sha}: ${MANIFEST} оновлено (${String(Object.keys(kitFiles).length)} файлів). Далі — typecheck, lint, тести, збірка й e2e; що змінилось — CHANGELOG.md кіта.`,
     )
     printDependencyWarnings(root, plan)
-    printOrphans(Object.keys(orphans), version.kit)
+    printOrphans(Object.keys(orphans), { kit: version.kit, pruned: prune })
   } catch (error) {
     console.error(
       `\nОновлення не завершилось, ${MANIFEST} не змінено. ${RECOVERY_HINT}`,
@@ -390,7 +399,10 @@ async function updateCommand(root, args) {
     const files = await dryRunReport(root, itemFiles)
     printReport(version.kit, files, manifest.files, PROJECT_OWNED)
     printDependencyPlan(plan)
-    if (dryRun && prune) previewPrune(root, manifest, files)
+    if (dryRun && prune) {
+      const found = orphansAfter(root, manifest, files)
+      previewPrune(root, found, await trackedByGit(root, Object.keys(found)))
+    }
     stopOrWarn(
       stopsBeforeWrite(
         root,

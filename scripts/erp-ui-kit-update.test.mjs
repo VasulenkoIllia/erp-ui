@@ -138,7 +138,10 @@ const args = process.argv.slice(2)
 fs.appendFileSync(path.join(__dirname, "gh.log"), args.join(" ") + "\\n")
 const url = args.at(-1)
 const repo = "repos/VasulenkoIllia/erp-ui/"
-if (url === repo + "commits/v1.0.0" && args.includes("Accept: application/vnd.github.sha"))
+if (args[0] !== "api" || args[1] !== "--hostname" || args[2] !== "github.com") {
+  console.error("gh: не той хост")
+  process.exit(1)
+} else if (url === repo + "commits/refs/tags/v1.0.0" && args.includes("Accept: application/vnd.github.sha"))
   process.stdout.write(process.env.FAKE_GH_SHA + "\\n")
 else if (url === repo + "tarball/" + process.env.FAKE_GH_SHA)
   process.stdout.write(fs.readFileSync(process.env.FAKE_GH_TARBALL))
@@ -153,9 +156,15 @@ const unexpected = (name) =>
   `#!/usr/bin/env node\nconsole.error("неочікуваний ${name}")\nprocess.exit(1)\n`
 
 /** git без глобальних налаштувань людини (підпис комітів, GIT_DIR): тест не залежить від машини. */
-const gitEnv = Object.fromEntries(
-  Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
-)
+const gitEnv = {
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+  ),
+  GIT_CONFIG_GLOBAL: "/dev/null",
+  GIT_CONFIG_NOSYSTEM: "1",
+}
+/** Завислий процес не тримає CI до ліміту задачі. */
+const SPAWN_TIMEOUT_MS = 60_000
 const git = (cwd, ...args) => {
   const result = spawnSync(
     "git",
@@ -297,6 +306,7 @@ function updateProject({
       {
         cwd: dir,
         encoding: "utf8",
+        timeout: SPAWN_TIMEOUT_MS,
         env: {
           ...gitEnv,
           PATH: `${fakeBin}${path.delimiter}${String(process.env.PATH)}`,
@@ -310,6 +320,8 @@ function updateProject({
     spawnSync(process.execPath, [SCRIPT, "check"], {
       cwd: dir,
       encoding: "utf8",
+      timeout: SPAWN_TIMEOUT_MS,
+      env: gitEnv,
     })
   return {
     dir,
@@ -377,7 +389,7 @@ test("update: увесь ланцюжок — файли кіта, файл пр
   })
   assert.match(
     result.stdout,
-    /Кіт v1\.0\.0 \(коміт [0-9a-f]{12}\): kit-files\.json оновлено/,
+    /Кіт v1\.0\.0, коміт [0-9a-f]{40}: kit-files\.json оновлено/,
   )
   // Без відбитка минулого встановлення файл проекту вважається зміненим проектом — лишається його.
   assert.equal(project.read("src/index.css"), "/* кіт 1 + проект */\n")
@@ -506,7 +518,7 @@ test("update з GitHub: спершу SHA коміту тегу, потім ар�
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`)
   assert.equal(
     project.ghCalls(),
-    `api -H Accept: application/vnd.github.sha repos/VasulenkoIllia/erp-ui/commits/v1.0.0\napi repos/VasulenkoIllia/erp-ui/tarball/${commit}\n`,
+    `api --hostname github.com -H Accept: application/vnd.github.sha repos/VasulenkoIllia/erp-ui/commits/refs/tags/v1.0.0\napi --hostname github.com repos/VasulenkoIllia/erp-ui/tarball/${commit}\n`,
   )
   assert.equal(project.manifest().sha, commit)
   assert.equal(project.manifest().kit, "v1.0.0")
@@ -637,4 +649,22 @@ test("check: маніфест змінено не командою — код 1;
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stderr, /Увага: kit-files\.json змінено не командою кіта/)
   assert.equal(project.check().status, 0)
+})
+
+test("update: той самий тег, а SHA минулого встановлення не записано — попередження, з чим звірити", () => {
+  const project = updateProject({
+    manifest: {
+      kit: "v1.0.0",
+      files: { "src/lib/a.ts": sha("export const a = 1\n") },
+    },
+  })
+  const kit = kitCheckout()
+  const result = project.update({ kit })
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(
+    result.stderr,
+    new RegExp(
+      `Увага: SHA минулого встановлення v1\\.0\\.0 не записано[^]*${commitOf(kit, "v1.0.0")}[^]*CHANGELOG\\.md на main`,
+    ),
+  )
 })
