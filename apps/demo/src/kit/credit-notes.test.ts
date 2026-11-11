@@ -274,11 +274,13 @@ describe("кредит-нота K2: частки без від'ємних скл
   })
 
   it("тест-властивість: на переборі цін, кількостей, знижок і послідовностей кредит-нот", () => {
-    // Детермінований генератор: перебір той самий у кожному прогоні.
+    // Детермінований генератор (mulberry32): перебір той самий у кожному прогоні.
     let seed = 20_261_111
     const random = () => {
-      seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648
-      return seed / 2_147_483_648
+      seed = (seed + 0x6d2b79f5) | 0
+      let mixed = Math.imul(seed ^ (seed >>> 15), seed | 1)
+      mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61)
+      return ((mixed ^ (mixed >>> 14)) >>> 0) / 4_294_967_296
     }
     /** `whole` тисячних — на `count` частин від 0,001, сума рівно `whole`. */
     const split = (whole: bigint, count: number): string[] => {
@@ -710,6 +712,25 @@ describe("кредит-нота K2: моки", () => {
     expect(
       (issued.exchange?.baseTotal ?? 0) + (closing.exchange?.baseTotal ?? 0),
     ).toBe(source.exchange?.baseTotal)
+  })
+
+  it("рахунок у євро: часткову кредит-ноту сторновано — закриваюча бере весь рахунок у гривнях, чернетки не рахуються", async () => {
+    const source = await invoice(EUR_ISSUED)
+    const first = await creditNoteFrom(EUR_ISSUED)
+    const [line] = first.lines
+    if (!line) throw new Error("no lines")
+    const partial = await submit(
+      await saveLines(first, [{ id: line.id, quantity: "1" }]),
+    )
+    await run(CREDIT_NOTES, partial.id, "reverse", {
+      version: partial.version,
+      reason: "Повернення не відбулось",
+    })
+    // Ще одна чернетка на той самий рахунок лишається чернеткою: залишку вона не зменшує.
+    await creditNoteFrom(EUR_ISSUED)
+    const closing = await submit(await creditNoteFrom(EUR_ISSUED))
+    expect(closing.total).toBe(source.total)
+    expect(closing.exchange?.baseTotal).toBe(source.exchange?.baseTotal)
   })
 
   it("без права створювати кредит-ноти — 403; потік рахунку показує кредит-ноту «на підставі»", async () => {

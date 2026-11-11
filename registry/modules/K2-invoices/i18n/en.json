@@ -167,8 +167,8 @@
         "currency": "the NBU QR code exists only for invoices in hryvnia",
         "iban": "the supplier details have no valid IBAN",
         "code": "the supplier details have no valid EDRPOU or RNOKPP code",
-        "name": "the supplier name is empty, longer than 140 characters or has a line break",
-        "purpose": "the payment purpose is too long or has a line break",
+        "name": "the supplier name is empty, longer than 140 characters or has a line break or invisible characters",
+        "purpose": "the payment purpose is too long or has a line break or invisible characters",
         "amount": "the amount due is outside the transfer limits"
       }
     },

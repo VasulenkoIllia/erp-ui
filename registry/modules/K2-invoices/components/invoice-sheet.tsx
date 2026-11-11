@@ -60,9 +60,10 @@ const SHEET = {
 /** Рядки «Кредит-ноти», «Оплачено», «До сплати» під «Разом» мовою документа; борг виділено, як «Разом». */
 const settlementRows = (
   invoice: Invoice,
+  totals: InvoiceDetail["totals"],
   language: Language,
 ): PrintTotalsRow[] =>
-  invoiceSettlementRows(invoice).map((row) => ({
+  invoiceSettlementRows(invoice, totals).map((row) => ({
     key: row.key,
     label: SHEET.settlement[language][row.key],
     amount: row.amount,
@@ -136,7 +137,7 @@ export function InvoiceSheet({
           lines={detail.lines}
           currency={invoice.currency}
           totals={detail.totals}
-          after={settlementRows(invoice, language)}
+          after={settlementRows(invoice, detail.totals, language)}
         />
         {qr?.ok ? (
           <div

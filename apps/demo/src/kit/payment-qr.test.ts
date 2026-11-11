@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { inheritedFieldValues } from "@/registry/lib/extension-fields"
+import { formatMoney } from "@/registry/lib/format"
 import {
   NBU_QR_LIMITS,
   NBU_QR_URL_PREFIX,
@@ -11,6 +12,7 @@ import {
   invoicePaymentQr,
   invoiceSettlementRows,
   paymentPurpose,
+  taxShareOf,
 } from "@/registry/modules/K2-invoices/components/invoice-payment"
 import type { InvoiceCard } from "@/registry/modules/K2-invoices/contract"
 import { createInvoiceFixtures } from "@/registry/modules/K2-invoices/fixtures"
@@ -118,7 +120,7 @@ describe("lib/payment-qr: формат НБУ 003", () => {
     expect(qr).toEqual({ ok: false, issue: "purpose" })
   })
 
-  it("перенос рядка чи інший керівний символ у назві й призначенні — причина, а не зсунуті поля", () => {
+  it("перенос рядка, керівний чи невидимий символ у назві й призначенні — причина, а не зсунуті поля", () => {
     const issueOf = (change: Partial<PaymentQrInput>) => {
       const qr = nbuPaymentQr({ ...VALID, ...change })
       return qr.ok ? null : qr.issue
@@ -134,6 +136,9 @@ describe("lib/payment-qr: формат НБУ 003", () => {
       "\u0085",
       "\u2028",
       "\u2029",
+      "\u202e",
+      "\u200b",
+      "\u00ad",
     ])
       expect(issueOf({ name: `ТОВ${char}«Двір»` })).toBe("name")
     expect(issueOf({ purpose: "Оплата\nза рахунком" })).toBe("purpose")
@@ -200,10 +205,36 @@ describe("модуль K2: QR і призначення рахунку", () => {
     ).toBeNull()
   })
 
+  it("ПДВ у призначенні — частка боргу, половина копійки вгору; весь рахунок — ПДВ рахунку", () => {
+    expect(taxShareOf(474_000, 10_000, 2_844_000)).toBe(1_667)
+    expect(taxShareOf(474_000, 2_844_000, 2_844_000)).toBe(474_000)
+    // 1 × 0,5 = 0,5 копійки — вгору.
+    expect(taxShareOf(1, 1, 2)).toBe(1)
+    expect(taxShareOf(0, 100, 200)).toBe(0)
+    const issued = byStatus("issued")
+    const qr = invoicePaymentQr(
+      { ...issued, creditedTotal: issued.total - 10_000 },
+      issued.totals,
+    )
+    if (!qr?.ok) throw new Error("expected QR of issued invoice")
+    const purpose = linesOf(qr.url)[11]
+    expect(purpose).toBe(paymentPurpose(issued, issued.totals, 10_000))
+    expect(purpose).toContain(
+      `у т.ч. ПДВ ${formatMoney(
+        {
+          amount: taxShareOf(issued.totals.tax, 10_000, issued.totals.total),
+          currency: "UAH",
+        },
+        "uk-UA",
+      )}`,
+    )
+    expect(purpose).not.toBe(paymentPurpose(issued, issued.totals))
+  })
+
   it("рядки під «Разом»: кредит-ноти, оплачено, до сплати чи переплата; без них — нічого", () => {
     const issued = byStatus("issued")
     const rowsOf = (change: Partial<InvoiceCard>) =>
-      invoiceSettlementRows({ ...issued, ...change })
+      invoiceSettlementRows({ ...issued, ...change }, issued.totals)
     expect(rowsOf({})).toEqual([])
     expect(rowsOf({ creditedTotal: 0, paidTotal: 0 })).toEqual([])
     expect(rowsOf({ creditedTotal: 114_000 })).toEqual([

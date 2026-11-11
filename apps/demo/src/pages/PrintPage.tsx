@@ -7,6 +7,7 @@ import {
   PrintDocumentTitle,
   PrintDocumentTotals,
   PrintWatermark,
+  type PrintTotalsRow,
 } from "@/registry/erp/print-document"
 import {
   PrintPreview,
@@ -46,6 +47,7 @@ import {
   invoicePrintLines,
   PRINT_VARIANTS,
   printVariantOf,
+  settlementPrintRows,
   withDemoImages,
   type PrintVariant,
 } from "./print-model"
@@ -195,6 +197,11 @@ function InvoiceSheet({
       client={invoice.client}
       lines={body}
       currency={invoice.currency}
+      after={
+        variant === "settlement"
+          ? settlementPrintRows(invoice.amount, language)
+          : undefined
+      }
     />
   )
 }
@@ -250,6 +257,7 @@ function DocumentSheet({
   client,
   lines,
   currency,
+  after,
 }: {
   company: CompanyProfile
   title: string
@@ -260,6 +268,8 @@ function DocumentSheet({
   client: string
   lines: readonly DocumentBodyLine[]
   currency: string
+  /** Рядки під «Разом»: частково оплачений рахунок. */
+  after?: readonly PrintTotalsRow[]
 }) {
   const { t } = usePrintSheet()
   return (
@@ -281,7 +291,7 @@ function DocumentSheet({
           ]}
         />
         <PrintDocumentLines lines={lines} currency={currency} />
-        <PrintDocumentTotals lines={lines} currency={currency} />
+        <PrintDocumentTotals lines={lines} currency={currency} after={after} />
         <PrintSignatures company={company} />
       </div>
     </>

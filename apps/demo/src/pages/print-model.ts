@@ -23,6 +23,7 @@ export const PRINT_VARIANTS = [
   "fop",
   "en",
   "plain",
+  "settlement",
   "empty",
   "loading",
   "error",
@@ -59,6 +60,24 @@ const UNIT_NAMES: Record<Language, Record<InvoiceLine["unit"], string>> = {
 }
 
 const VAT_NAMES: Record<Language, string> = { uk: "ПДВ 20%", en: "VAT 20%" }
+
+const SETTLEMENT_LABELS: Record<Language, { paid: string; debt: string }> = {
+  uk: { paid: "Оплачено", debt: "До сплати" },
+  en: { paid: "Paid", debt: "Amount due" },
+}
+
+/**
+ * Рядки під «Разом» частково оплаченого рахунку (`PrintDocumentTotals`, проп `after`): оплачено половину, решта
+ * — «До сплати», як на аркуші рахунку модуля K2 (ADR-0074).
+ */
+export function settlementPrintRows(total: number, language: Language) {
+  const paid = Math.floor(total / 2)
+  const labels = SETTLEMENT_LABELS[language]
+  return [
+    { key: "paid", label: labels.paid, amount: paid },
+    { key: "debt", label: labels.debt, amount: total - paid, isTotal: true },
+  ]
+}
 
 /** Документ рахунку демо: стан кіта зі статусу рахунку (чернетка — лише `draft`). */
 export const invoiceDocStatus = (invoice: Invoice): DocumentState =>

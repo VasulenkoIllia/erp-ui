@@ -105,7 +105,7 @@ export function ChallengeForm({
   // Один запит коду за раз: `onComplete` поля й відправка форми можуть збігтися.
   const verifyingRef = React.useRef(false)
   const verify = async (value: string) => {
-    if (method === "passkey" || verifyingRef.current) return
+    if (method === "passkey" || switching || verifyingRef.current) return
     verifyingRef.current = true
     setBusy(true)
     setError(null)
@@ -162,17 +162,23 @@ export function ChallengeForm({
 
   // Chrome на Android сам читає код з SMS, якщо лист закінчується «@домен #код». Ефект лише ставить код у
   // поле, а відправляє його `onComplete` поля один раз і зі свіжим станом («Запам'ятати пристрій» на момент
-  // коду, а не той, що був, коли метод став `sms`).
+  // коду, а не той, що був, коли метод став `sms`). Код іншої довжини людина введе сама; код попередньої SMS,
+  // що прийшов, поки сервер надсилає новий, не береться. Кожне нове надсилання (`resendAt`) читає SMS знову.
+  const onSmsCode = React.useEffectEvent((received: string) => {
+    const fits =
+      received.length === length && (!digitsOnly || /^\d+$/.test(received))
+    if (fits && !switching) setCode(received)
+  })
   React.useEffect(() => {
     if (method !== "sms") return
     const controller = new AbortController()
     void readSmsCode(controller.signal).then((received) => {
-      if (received) setCode(received)
+      if (received && !controller.signal.aborted) onSmsCode(received)
     })
     return () => {
       controller.abort()
     }
-  }, [method])
+  }, [method, resendAt])
 
   const description =
     method === "sms" || method === "email"
@@ -271,6 +277,7 @@ export function ChallengeForm({
               id={`${ids}-trust`}
               days={trustedDeviceDays}
               checked={trust}
+              disabled={busy}
               onChange={setTrust}
             />
           ) : null}
@@ -292,6 +299,7 @@ export function ChallengeForm({
           id={`${ids}-trust`}
           days={trustedDeviceDays}
           checked={trust}
+          disabled={busy}
           onChange={setTrust}
         />
       ) : null}
@@ -467,19 +475,23 @@ function TrustDevice({
   id,
   days,
   checked,
+  disabled,
   onChange,
 }: {
   id: string
   days: number
   checked: boolean
+  /** Поки код на сервері: вибір уже пішов із запитом, змінювати його пізно. */
+  disabled: boolean
   onChange: (checked: boolean) => void
 }) {
   const t = useErpUiT()
   return (
-    <Field orientation="horizontal">
+    <Field orientation="horizontal" data-disabled={disabled || undefined}>
       <Checkbox
         id={id}
         checked={checked}
+        disabled={disabled}
         onCheckedChange={(value) => {
           onChange(value)
         }}

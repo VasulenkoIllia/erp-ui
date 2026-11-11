@@ -244,6 +244,19 @@ describe("writeSpreadsheet", () => {
     expect(text).toBe(`"Ім'я";"Сума"\r\n"'=1+1";"-5"`)
   })
 
+  it(".csv: перенос рядка й нуль на початку клітинки — теж з апострофом", async () => {
+    const blob = await writeSpreadsheet({
+      format: "csv",
+      delimiter: ";",
+      rows: [
+        ["A", "B"],
+        ["\n=1+1", "\u0000x"],
+      ],
+    })
+    const text = new TextDecoder().decode(await blob.arrayBuffer())
+    expect(text.endsWith(`"'\n=1+1";"'\u0000x"`)).toBe(true)
+  })
+
   it(".csv: формула не виходить на початок клітинки, коли Excel бере інший роздільник", async () => {
     // Без лапок і коми: роздільник `,` сам лапок не вмикає.
     const name = "Зоря;=cmd|'/C calc'!A0;"
