@@ -60,7 +60,11 @@ export function useOpenInvoices(clientId: string): OpenInvoices {
         : list.data
           ? undefined
           : (list.error ?? (isPaused ? OFFLINE : undefined)),
-    isTruncated: (list.total ?? 0) > OPEN_INVOICES_LIMIT,
+    // Без `total` у відповіді повна сторінка — ознака, що рахунків може бути більше.
+    isTruncated:
+      list.total === undefined
+        ? (list.data?.length ?? 0) >= OPEN_INVOICES_LIMIT
+        : list.total > OPEN_INVOICES_LIMIT,
     retry: () => {
       void list.refetch()
     },

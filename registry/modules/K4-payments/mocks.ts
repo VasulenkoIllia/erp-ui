@@ -248,17 +248,20 @@ export function createPaymentsMocks({
     const write = { user, companyId }
     const refused = lock?.validateWrite(built.body, write)
     if (refused) return validation(refused)
+    const { request: fields } = built
+    // Номер, статус, версію, зв'язки сторно й компанію веде сервер: з тіла запиту їх не беремо.
     const body = {
-      ...built.body,
+      ...withoutServerFields(built.body, SERVER_FIELDS),
+      date: fields.date,
       number: paymentNumbering.assign(built.body, companyId),
       status: RECEIVED_STATUS,
       docStatus: "submitted",
       exchange: paymentExchange(
         {
           companyId,
-          currency: String(built.body.currency),
-          date: String(built.body.date),
-          amount: Number(built.body.amount),
+          currency: fields.currency,
+          date: fields.date,
+          amount: fields.amount,
         },
         rates,
       ),

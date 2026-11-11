@@ -122,10 +122,17 @@ export function settleInvoice(
   invoiceId: string,
   settlement: InvoiceSettlement,
 ) {
+  // Мок падає голосно: інакше оплата збережена, а рахунок лишився б у старому статусі.
   const invoice = db.all().find(({ id }) => id === invoiceId)
-  if (!invoice) return
+  if (!invoice)
+    throw new Error(`K2-invoices: no invoice ${invoiceId} to settle`)
   const status = settledStatusOf(invoice, settlement)
-  if (status !== invoice.status) db.patch(invoice.id, { status })
+  if (status === invoice.status) return
+  const patched = db.patch(invoice.id, { status })
+  if (!patched || "fieldErrors" in patched)
+    throw new Error(
+      `K2-invoices: invoice ${invoiceId} rejected status ${status}: ${JSON.stringify(patched?.fieldErrors)}`,
+    )
 }
 
 /** Рахунок з оплатою, що діє, не скасовують і не сторнують: спершу скасовують чи сторнують оплату. */

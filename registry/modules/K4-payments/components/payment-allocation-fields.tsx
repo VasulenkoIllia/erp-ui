@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { useWatch, type UseFormReturn } from "react-hook-form"
 
 import { FormField } from "@/components/erp/form"
@@ -7,7 +8,7 @@ import { StatusBadge } from "@/components/erp/status-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { compareCalendarDates, todayIn } from "@/lib/dates"
+import { compareCalendarDates, todayIn, type CalendarDate } from "@/lib/dates"
 import { errorStateKind } from "@/lib/api"
 import { useFormat } from "@/lib/format"
 
@@ -99,6 +100,7 @@ function AllocationRows({
   const amount = useWatch({ control: form.control, name: "amount" })
   const amounts = useWatch({ control: form.control, name: "allocations" })
   const allocated = allocatedTotal(amounts)
+  const today = todayIn(format.timeZone)
   const money = (value: number) => format.money({ amount: value, currency })
   const left = (amount ?? 0) - allocated
   return (
@@ -114,7 +116,12 @@ function AllocationRows({
       </div>
       <ul className="grid">
         {invoices.map((invoice) => (
-          <AllocationRow key={invoice.id} form={form} invoice={invoice} />
+          <AllocationRow
+            key={invoice.id}
+            form={form}
+            invoice={invoice}
+            today={today}
+          />
         ))}
       </ul>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -148,16 +155,18 @@ function AllocationRows({
   )
 }
 
-function AllocationRow({
+/** Рядок рахунку: поле суми підписане само на себе, тож введення в одному рядку не перемальовує інші. */
+const AllocationRow = memo(function AllocationRow({
   form,
   invoice,
+  today,
 }: {
   form: Form
   invoice: OpenInvoice
+  today: CalendarDate
 }) {
   const t = usePaymentsT()
   const format = useFormat()
-  const today = todayIn(format.timeZone)
   const isOverdue = compareCalendarDates(invoice.dueDate, today) < 0
   const money = (value: number) =>
     format.money({ amount: value, currency: invoice.currency })
@@ -214,4 +223,4 @@ function AllocationRow({
       />
     </li>
   )
-}
+})

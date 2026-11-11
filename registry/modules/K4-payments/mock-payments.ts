@@ -197,15 +197,16 @@ function allocate(
 }
 
 /**
- * Нова оплата з тіла запиту, як її будує сервер: поля запиту, назва клієнта й рознесення зі знімками
- * рахунків; помилки — 422 біля полів. Номер, статус і курс додає обробник.
+ * Нова оплата з тіла запиту, як її будує сервер: перевірений запит і тіло запису (поля запиту й розширення,
+ * назва клієнта, рознесення зі знімками рахунків); помилки — 422 біля полів. Поля, які веде сервер, номер,
+ * статус і курс — у обробнику.
  */
 export function paymentFromRequest(
   raw: unknown,
   invoices: readonly PaymentInvoiceSource[],
   companyId: string | null,
 ):
-  | { body: Record<string, unknown>; invoiceIds: string[] }
+  | { request: PaymentRequest; body: Record<string, unknown> }
   | { fieldErrors: Record<string, string> } {
   const parsed = requestSchema.safeParse(raw)
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) }
@@ -222,13 +223,13 @@ export function paymentFromRequest(
   const fields: Record<string, unknown> = { ...request }
   delete fields.requestId
   return {
+    request,
     body: {
       ...fields,
       reference: request.reference || null,
       clientName: built.clientName,
       allocations: built.allocations,
     },
-    invoiceIds: built.allocations.map(({ invoiceId }) => invoiceId),
   }
 }
 

@@ -136,7 +136,11 @@ function useFirstChoice(
       })
       return
     }
-    form.setValue("currency", invoices[0]?.currency ?? "")
+    const first = invoices[0]?.currency ?? ""
+    // Валюта клієнта з адреси — значення за замовчуванням: форма не «змінена», доки її не змінили.
+    if (clientId === from.clientId)
+      form.resetField("currency", { defaultValue: first })
+    else form.setValue("currency", first)
   }, [form, open.invoices, currency, clientId, from])
 }
 

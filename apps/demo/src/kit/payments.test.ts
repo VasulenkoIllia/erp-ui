@@ -306,6 +306,27 @@ describe("оплата K4: моки", () => {
     )
   })
 
+  it("номер, статус, стан, версію й зв'язки сторно веде сервер: з тіла запиту їх не бере", async () => {
+    const created = await register({
+      ...(await payInFull(UNPAID, "request-server-fields")),
+      id: "pay-from-client",
+      number: "ОП-1999-0001",
+      status: "cancelled",
+      docStatus: "draft",
+      version: 9,
+      reversedBy: "pay-other",
+    })
+    expect(created).toMatchObject({
+      number: expect.stringMatching(/^ОП-2026-\d{4}$/) as string,
+      status: "received",
+      docStatus: "submitted",
+    })
+    expect(created.id).not.toBe("pay-from-client")
+    expect(created.version).not.toBe(9)
+    expect(created).not.toHaveProperty("reversedBy", "pay-other")
+    expect((await invoice(UNPAID)).status).toBe("paid")
+  })
+
   it("більше за борг, нерозписана сума, чужий рахунок, закритий період — 422 біля поля, оплати немає", async () => {
     const body = await payInFull(UNPAID, "request-invalid")
     const before = payments.db.all().length
