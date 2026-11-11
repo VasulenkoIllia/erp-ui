@@ -177,6 +177,30 @@ test.describe("модуль K4: оплати", () => {
     await expect(registerLink(page)).toBeVisible()
   })
 
+  test("друк частково оплаченого: під «Разом» — «Оплачено» й «До сплати», QR-код на борг", async ({
+    page,
+  }) => {
+    await openWith(page, {}, `${OVERDUE}/print`)
+    const sheet = page.locator("[data-print-root]")
+    const totals = sheet.locator('[data-slot="print-document-totals"]')
+    await expect(totals).toContainText("Оплачено")
+    await expect(totals).toContainText("До сплати")
+    await expect(totals).not.toContainText("Кредит-ноти")
+    await expect(
+      sheet.getByRole("img", {
+        name: `QR-код оплати рахунку ${OVERDUE_NUMBER}`,
+      }),
+    ).toBeVisible()
+    // Повністю оплачений рахунок QR-коду не має.
+    await openWith(page, {}, `${PAID}/print`)
+    await expect(
+      page.locator('[data-print-root] [data-slot="print-document-totals"]'),
+    ).toContainText("До сплати")
+    await expect(
+      page.locator('[data-print-root] [data-slot="invoice-payment-qr"]'),
+    ).toHaveCount(0)
+  })
+
   test("менеджер без права реєструвати оплати: кнопка неактивна з причиною", async ({
     page,
   }) => {

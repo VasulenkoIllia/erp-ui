@@ -89,6 +89,21 @@ export function creditedLines(
   return credited
 }
 
+/** Сума в базовій валюті виставлених кредит-нот рахунку без `except`: залишок останньої (ADR-0074). */
+export const creditedBaseTotalOf = (
+  notes: readonly CreditNoteCard[],
+  invoiceId: string,
+  except?: string,
+) =>
+  notes
+    .filter(
+      (note) =>
+        note.invoiceId === invoiceId &&
+        note.id !== except &&
+        isActiveCreditNote(note),
+    )
+    .reduce((sum, note) => sum + (note.exchange?.baseTotal ?? 0), 0)
+
 /** Повернене з рядка для розрахунку частки (`credit-note-sums`). */
 const creditedPart = (credited: CreditedLine | undefined): CreditedPart =>
   credited
@@ -138,17 +153,24 @@ export type CreditNoteBody = Pick<
   | "exchange"
 >
 
-/** Тіло чернетки кредит-ноти з рахунку: рядки, суми, знижка й курс, або помилки рядків. */
+/**
+ * Тіло чернетки кредит-ноти з рахунку: рядки, суми, знижка й курс, або помилки рядків. `notes` — кредит-ноти
+ * сховища, `except` — ця сама кредит-нота: рахуються лише інші виставлені.
+ */
 export function creditNoteBody(
   invoice: InvoiceCard,
   input: unknown,
-  credited: ReadonlyMap<string, CreditedLine>,
+  notes: readonly CreditNoteCard[],
+  except?: string,
 ):
   | { readonly issues: Issue[] }
   | { readonly issues: null; readonly body: CreditNoteBody } {
+  const credited = creditedLines(notes, invoice.id, except)
   const invoiceLines = new Map(
     itemLinesOf(invoice.lines).map((line) => [line.id, line]),
   )
+  /** Повернено з рядка разом із цією кредит-нотою, тисячними. */
+  const returned = new Map<string, bigint>()
   const requested = Array.isArray(input) ? input : []
   const issues: Issue[] = requested.length
     ? []
@@ -184,9 +206,15 @@ export function creditNoteBody(
       continue
     }
     lines.push(creditedLine(line, creditedPart(before), quantity))
+    returned.set(id, (before?.units ?? 0n) + quantityUnits(quantity))
   }
   if (issues.length) return { issues }
   const totals = creditNoteTotals(lines)
+  const closes = [...invoiceLines.values()].every(
+    (line) =>
+      (returned.get(line.id) ?? credited.get(line.id)?.units ?? 0n) ===
+      quantityUnits(line.quantity),
+  )
   return {
     issues: null,
     body: {
@@ -203,10 +231,13 @@ export function creditNoteBody(
       lines,
       totals,
       total: totals.total,
-      exchange: creditedExchange(invoice.exchange, {
-        currency: invoice.currency,
-        total: totals.total,
-      }),
+      exchange: creditedExchange(
+        invoice.exchange,
+        { currency: invoice.currency, total: totals.total },
+        closes
+          ? { creditedBase: creditedBaseTotalOf(notes, invoice.id, except) }
+          : undefined,
+      ),
     },
   }
 }
@@ -317,7 +348,8 @@ export function creditNoteDeniedActions(
   const built = creditNoteBody(
     invoice,
     note.lines,
-    creditedLines(stores.creditNotes(), note.invoiceId, note.id),
+    stores.creditNotes(),
+    note.id,
   )
   // Інших помилок рядків у збереженій чернетці немає: їх відхиляє схема запису ще на збереженні.
   return built.issues ? { submit: EXCEEDS_INVOICE } : undefined

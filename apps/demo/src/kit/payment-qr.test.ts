@@ -9,6 +9,7 @@ import {
 } from "@/registry/lib/payment-qr"
 import {
   invoicePaymentQr,
+  invoiceSettlementRows,
   paymentPurpose,
 } from "@/registry/modules/K2-invoices/components/invoice-payment"
 import type { InvoiceCard } from "@/registry/modules/K2-invoices/contract"
@@ -28,10 +29,13 @@ const VALID: PaymentQrInput = {
   purpose: "Оплата за рахунком № РХ-2026-0001 від 02.11.2026, без ПДВ",
 }
 
+/** Префікс літералом, а не константою кіта: хибна константа інакше пройшла б тест. */
+const PREFIX = "https://bank.gov.ua/qr/"
+
 /** Рядки платіжної інструкції з посилання: base64url → UTF-8 → рядки через LF. */
 function linesOf(url: string): string[] {
-  expect(url.startsWith(NBU_QR_URL_PREFIX)).toBe(true)
-  const data = url.slice(NBU_QR_URL_PREFIX.length)
+  expect(url.startsWith(PREFIX)).toBe(true)
+  const data = url.slice(PREFIX.length)
   expect(data).toMatch(/^[A-Za-z0-9_-]+$/)
   const binary = atob(data.replace(/-/g, "+").replace(/_/g, "/"))
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
@@ -102,6 +106,43 @@ describe("lib/payment-qr: формат НБУ 003", () => {
     expect(issueOf({ amount: 100_000_000_000 })).toBe("amount")
     expect(issueOf({ amount: 1.5 })).toBe("amount")
   })
+
+  it("межі формату: призначення 420 знаків і сума 999 999 999,99 — код; призначення з пробілів — причина", () => {
+    expect(NBU_QR_URL_PREFIX).toBe(PREFIX)
+    const purpose = "П".repeat(420)
+    expect(linesOf(urlOf({ ...VALID, purpose }))[11]).toBe(purpose)
+    expect(linesOf(urlOf({ ...VALID, amount: 99_999_999_999 }))[7]).toBe(
+      "UAH999999999.99",
+    )
+    const qr = nbuPaymentQr({ ...VALID, purpose: "   " })
+    expect(qr).toEqual({ ok: false, issue: "purpose" })
+  })
+
+  it("перенос рядка чи інший керівний символ у назві й призначенні — причина, а не зсунуті поля", () => {
+    const issueOf = (change: Partial<PaymentQrInput>) => {
+      const qr = nbuPaymentQr({ ...VALID, ...change })
+      return qr.ok ? null : qr.issue
+    }
+    // Назва з переносами підставила б на місце IBAN чужий рахунок.
+    const forged = "ТОВ «Двір»\n\nUA213223130000026007233566001\nUAH1"
+    expect(issueOf({ name: forged })).toBe("name")
+    for (const char of [
+      "\r",
+      "\t",
+      "\u0000",
+      "\u007f",
+      "\u0085",
+      "\u2028",
+      "\u2029",
+    ])
+      expect(issueOf({ name: `ТОВ${char}«Двір»` })).toBe("name")
+    expect(issueOf({ purpose: "Оплата\nза рахунком" })).toBe("purpose")
+    // Пробіли й лапки — звичайний текст; перенос по краях обрізано, як і пробіли.
+    expect(issueOf({ name: "ТОВ «Кавовий двір»\u00a0" })).toBeNull()
+    expect(linesOf(urlOf({ ...VALID, name: "\nТОВ «Двір»\n" }))).toHaveLength(
+      17,
+    )
+  })
 })
 
 describe("модуль K2: QR і призначення рахунку", () => {
@@ -136,6 +177,58 @@ describe("модуль K2: QR і призначення рахунку", () => {
       expect(invoicePaymentQr(byStatus(status), byStatus(status).totals)).toBe(
         null,
       )
+  })
+
+  it("сума QR — борг: мінус кредит-ноти й оплати; борг нуль чи переплата — без QR", () => {
+    const issued = byStatus("issued")
+    const amountOf = (change: Partial<InvoiceCard>) => {
+      const qr = invoicePaymentQr({ ...issued, ...change }, issued.totals)
+      return qr?.ok ? linesOf(qr.url)[7] : qr
+    }
+    const due = (kopecks: number) =>
+      linesOf(urlOf({ ...VALID, amount: kopecks }))[7]
+    expect(amountOf({})).toBe(due(issued.total))
+    expect(amountOf({ creditedTotal: 114_000 })).toBe(
+      due(issued.total - 114_000),
+    )
+    expect(amountOf({ creditedTotal: 100, paidTotal: 50_000 })).toBe(
+      due(issued.total - 50_100),
+    )
+    expect(amountOf({ creditedTotal: issued.total })).toBeNull()
+    expect(
+      amountOf({ paidTotal: issued.total - 100, creditedTotal: 200 }),
+    ).toBeNull()
+  })
+
+  it("рядки під «Разом»: кредит-ноти, оплачено, до сплати чи переплата; без них — нічого", () => {
+    const issued = byStatus("issued")
+    const rowsOf = (change: Partial<InvoiceCard>) =>
+      invoiceSettlementRows({ ...issued, ...change })
+    expect(rowsOf({})).toEqual([])
+    expect(rowsOf({ creditedTotal: 0, paidTotal: 0 })).toEqual([])
+    expect(rowsOf({ creditedTotal: 114_000 })).toEqual([
+      { key: "credited", amount: 114_000 },
+      { key: "debt", amount: issued.total - 114_000 },
+    ])
+    expect(rowsOf({ creditedTotal: 100, paidTotal: 50_000 })).toEqual([
+      { key: "credited", amount: 100 },
+      { key: "paid", amount: 50_000 },
+      { key: "debt", amount: issued.total - 50_100 },
+    ])
+    expect(rowsOf({ creditedTotal: issued.total })).toEqual([
+      { key: "credited", amount: issued.total },
+      { key: "debt", amount: 0 },
+    ])
+    // Кредит-нота після повної оплати.
+    expect(
+      rowsOf({ status: "paid", paidTotal: issued.total, creditedTotal: 300 }),
+    ).toEqual([
+      { key: "credited", amount: 300 },
+      { key: "paid", amount: issued.total },
+      { key: "overpaid", amount: 300 },
+    ])
+    // Скасований рахунок за оплатами не ведеться.
+    expect(rowsOf({ status: "cancelled", creditedTotal: 300 })).toEqual([])
   })
 
   it("постачальник без IBAN — причина `iban`, а не код", () => {

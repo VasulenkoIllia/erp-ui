@@ -102,8 +102,11 @@ export function ChallengeForm({
   const digitsOnly = method !== "backup_code"
   const canTrust = current.secondFactor && trustedDeviceDays > 0
 
+  // Один запит коду за раз: `onComplete` поля й відправка форми можуть збігтися.
+  const verifyingRef = React.useRef(false)
   const verify = async (value: string) => {
-    if (method === "passkey") return
+    if (method === "passkey" || verifyingRef.current) return
+    verifyingRef.current = true
     setBusy(true)
     setError(null)
     setCodeError(null)
@@ -117,6 +120,7 @@ export function ChallengeForm({
       else setError(apiMessage(failure))
       setCode("")
     } finally {
+      verifyingRef.current = false
       setBusy(false)
     }
   }
@@ -156,21 +160,18 @@ export function ChallengeForm({
     }
   }
 
-  // Chrome на Android сам читає код з SMS, якщо лист закінчується «@домен #код».
+  // Chrome на Android сам читає код з SMS, якщо лист закінчується «@домен #код». Ефект лише ставить код у
+  // поле, а відправляє його `onComplete` поля один раз і зі свіжим станом («Запам'ятати пристрій» на момент
+  // коду, а не той, що був, коли метод став `sms`).
   React.useEffect(() => {
     if (method !== "sms") return
     const controller = new AbortController()
     void readSmsCode(controller.signal).then((received) => {
-      if (received) {
-        setCode(received)
-        void verify(received)
-      }
+      if (received) setCode(received)
     })
     return () => {
       controller.abort()
     }
-    // verify читає актуальний стан; перезапускаємо лише при зміні методу.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method])
 
   const description =

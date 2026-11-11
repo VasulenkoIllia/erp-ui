@@ -54,7 +54,6 @@ import {
 } from "./contract"
 import type { InvoicesMockExtension } from "./extension"
 import {
-  creditedLines,
   creditNoteBasis,
   creditNoteBody,
   creditNoteDeniedActions,
@@ -116,11 +115,8 @@ export function storedCreditNoteSchema(
       const built = creditNoteBody(
         invoice,
         record.lines,
-        creditedLines(
-          stores.creditNotes(),
-          invoiceId,
-          typeof record.id === "string" ? record.id : undefined,
-        ),
+        stores.creditNotes(),
+        typeof record.id === "string" ? record.id : undefined,
       )
       if (built.issues) return fail(built.issues)
       body = built.body
@@ -319,7 +315,8 @@ export function createCreditNoteHandlers({
       const built = creditNoteBody(
         invoice,
         note.lines,
-        creditedLines(stores.creditNotes(), note.invoiceId, note.id),
+        stores.creditNotes(),
+        note.id,
       )
       return built.issues ? {} : built.body
     },

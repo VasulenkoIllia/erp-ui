@@ -3,6 +3,7 @@ import {
   PrintDocumentTitle,
   PrintDocumentTotals,
   PrintWatermark,
+  type PrintTotalsRow,
 } from "@/components/erp/print-document"
 import {
   partyRequisiteLines,
@@ -22,7 +23,7 @@ import {
   type InvoiceDetail,
   type K2Document,
 } from "../contract"
-import { invoicePaymentQr } from "./invoice-payment"
+import { invoicePaymentQr, invoiceSettlementRows } from "./invoice-payment"
 
 /** Тексти аркуша мовою документа (дані модуля, а не рядки інтерфейсу, ADR-0062). */
 const SHEET = {
@@ -40,7 +41,33 @@ const SHEET = {
     uk: (number: string) => `QR-код оплати рахунку ${number}`,
     en: (number: string) => `Payment QR code of invoice ${number}`,
   },
+  settlement: {
+    uk: {
+      credited: "Кредит-ноти",
+      paid: "Оплачено",
+      debt: "До сплати",
+      overpaid: "Переплата",
+    },
+    en: {
+      credited: "Credit notes",
+      paid: "Paid",
+      debt: "Amount due",
+      overpaid: "Overpaid",
+    },
+  },
 } as const satisfies Record<string, Readonly<Record<Language, unknown>>>
+
+/** Рядки «Кредит-ноти», «Оплачено», «До сплати» під «Разом» мовою документа; борг виділено, як «Разом». */
+const settlementRows = (
+  invoice: Invoice,
+  language: Language,
+): PrintTotalsRow[] =>
+  invoiceSettlementRows(invoice).map((row) => ({
+    key: row.key,
+    label: SHEET.settlement[language][row.key],
+    amount: row.amount,
+    isTotal: row.key === "debt",
+  }))
 
 /** Назва аркуша мовою документа: «Рахунок на оплату», у сторно — «Сторно рахунку». */
 export const invoiceSheetTitle = (invoice: Invoice, language: Language) =>
@@ -70,7 +97,8 @@ export function SheetParties({ document }: { document: K2Document }) {
 /**
  * Аркуш рахунку з блоків кіта (PF08, ADR-0062, ADR-0068, ADR-0070): шапка компанії, «Рахунок на оплату» з
  * номером і датою, «Сплатити до …», постачальник і покупець з реквізитами знімків рахунку, рядки, підсумки
- * сервера з сумою прописом, QR-код оплати НБУ виставленого рахунку в гривнях, підписи. Чернетка й скасований
+ * сервера з сумою прописом, кредит-ноти, оплати й «До сплати» (ADR-0074), QR-код оплати НБУ боргу
+ * виставленого рахунку в гривнях, підписи. Чернетка й скасований
  * — з позначкою навскіс, у чернетки «(без номера)».
  */
 export function InvoiceSheet({
@@ -108,6 +136,7 @@ export function InvoiceSheet({
           lines={detail.lines}
           currency={invoice.currency}
           totals={detail.totals}
+          after={settlementRows(invoice, language)}
         />
         {qr?.ok ? (
           <div

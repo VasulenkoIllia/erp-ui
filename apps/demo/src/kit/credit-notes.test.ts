@@ -16,7 +16,14 @@ import {
   itemLinesOf,
   type SavedDocumentLine,
 } from "@/registry/lib/document-lines"
-import { computeDocumentTotals } from "@/registry/lib/document-totals"
+import {
+  convertMinorAmount,
+  documentExchangeOf,
+} from "@/registry/lib/currency-conversion"
+import {
+  computeDocumentTotals,
+  type Totals,
+} from "@/registry/lib/document-totals"
 import { createDocumentFlowHandlers } from "@/registry/lib/mock-document-flow"
 import { createJobHandlers } from "@/registry/lib/mock-jobs"
 import { createNumberingMocks } from "@/registry/lib/mock-numbering"
@@ -46,6 +53,7 @@ import {
   type CreditedLineBasis,
   type CreditedPart,
 } from "@/registry/modules/K2-invoices/credit-note-sums"
+import { creditedExchange } from "@/registry/modules/K2-invoices/mock-exchange"
 import {
   createInvoicesMocks,
   invoicesNumberingSeeds,
@@ -185,6 +193,192 @@ describe("кредит-нота K2: суми частками рядка рах�
   })
 })
 
+describe("кредит-нота K2: частки без від'ємних складових (ADR-0074)", () => {
+  const TOTALS_KEYS = [
+    "amount",
+    "discount",
+    "documentDiscount",
+    "net",
+    "tax",
+    "total",
+  ] as const
+  const vat = { id: "vat-20", rate: 20, included: false }
+  const vatIncluded = { ...vat, included: true }
+
+  /** Рядок рахунку з `lib/document-totals`: один рядок, знижка документа відсотком іде йому вся. */
+  const basisOf = (
+    quantity: string,
+    price: string,
+    tax: typeof vat | null,
+    discountPercent: number,
+    documentPercent = 0,
+  ): CreditedLineBasis | null => {
+    const totals = computeDocumentTotals(
+      [{ quantity, price, discountPercent, discountAmount: 0, tax }],
+      2,
+      { discountPercent: documentPercent, discountAmount: 0 },
+    )?.lines[0]
+    return totals ? { quantity, totals } : null
+  }
+
+  /** Кредит-ноти по черзі, як рахує сервер. */
+  const inTurn = (
+    basis: CreditedLineBasis,
+    quantities: readonly string[],
+    taxIncluded: boolean,
+  ) => {
+    let before: CreditedPart = NOTHING_CREDITED
+    return quantities.map((quantity) => {
+      const part = creditedLineTotals(basis, before, quantity, taxIncluded)
+      before = {
+        quantity: quantityText(
+          quantityUnits(before.quantity) + quantityUnits(quantity),
+        ),
+        totals: addTotals(before.totals, part),
+      }
+      return part
+    })
+  }
+
+  /** Усі складові кожної частки невід'ємні, частка сходиться сама з собою, разом — рівно рядок рахунку. */
+  const expectParts = (
+    basis: CreditedLineBasis,
+    parts: readonly Totals[],
+    taxIncluded: boolean,
+  ) => {
+    for (const part of parts) {
+      for (const key of TOTALS_KEYS) expect(part[key]).toBeGreaterThanOrEqual(0)
+      expect(part.total).toBe(part.net + part.tax)
+      expect(part.amount).toBe(
+        (taxIncluded ? part.total : part.net) + part.discount,
+      )
+    }
+    for (const key of TOTALS_KEYS)
+      expect(parts.reduce((sum, part) => sum + part[key], 0)).toBe(
+        basis.totals[key],
+      )
+  }
+
+  it("1000 × 0,004 зі знижкою 50 %: друга й третя кредит-ноти по одній штуці без мінуса в нетто", () => {
+    const basis = basisOf("1000", "0.004", vat, 50)
+    if (!basis) throw new Error("basis does not add up")
+    const parts = inTurn(basis, ["2", "1", "1", "996"], false)
+    expectParts(basis, parts, false)
+  })
+
+  it("12 × 0,005 з ПДВ у ціні: шість кредит-нот по одній, решта — сьомою, без мінуса", () => {
+    const basis = basisOf("12", "0.005", vatIncluded, 0)
+    if (!basis) throw new Error("basis does not add up")
+    const parts = inTurn(basis, ["1", "1", "1", "1", "1", "1", "6"], true)
+    expectParts(basis, parts, true)
+  })
+
+  it("тест-властивість: на переборі цін, кількостей, знижок і послідовностей кредит-нот", () => {
+    // Детермінований генератор: перебір той самий у кожному прогоні.
+    let seed = 20_261_111
+    const random = () => {
+      seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648
+      return seed / 2_147_483_648
+    }
+    /** `whole` тисячних — на `count` частин від 0,001, сума рівно `whole`. */
+    const split = (whole: bigint, count: number): string[] => {
+      const cuts = new Set<bigint>()
+      while (cuts.size < Math.min(count - 1, Number(whole) - 1))
+        cuts.add(1n + BigInt(Math.floor(random() * (Number(whole) - 1))))
+      const points = [0n, ...[...cuts].sort((a, b) => (a < b ? -1 : 1)), whole]
+      return points
+        .slice(1)
+        .map((point, index) => quantityText(point - (points[index] ?? 0n)))
+    }
+    const quantities = ["1", "2", "3", "7", "12", "0.5", "2.125", "1000"]
+    const prices = [
+      "0.001",
+      "0.004",
+      "0.005",
+      "0.01",
+      "0.33",
+      "3.3333",
+      "10.03",
+      "999.99",
+    ]
+    const discounts = [0, 10, 33.33, 50, 99.99]
+    const taxes = [null, vat, vatIncluded]
+    let checked = 0
+    for (const quantity of quantities)
+      for (const price of prices)
+        for (const discountPercent of discounts)
+          for (const documentPercent of [0, 15])
+            for (const tax of taxes) {
+              const basis = basisOf(
+                quantity,
+                price,
+                tax,
+                discountPercent,
+                documentPercent,
+              )
+              if (!basis) continue
+              const included = tax?.included ?? false
+              for (const count of [1, 2, 3, 5]) {
+                const parts = inTurn(
+                  basis,
+                  split(quantityUnits(quantity), count),
+                  included,
+                )
+                expectParts(basis, parts, included)
+                checked += 1
+              }
+            }
+    expect(checked).toBeGreaterThan(3000)
+  })
+})
+
+describe("кредит-нота K2: залишок у базовій валюті (ADR-0074)", () => {
+  const RATE = 41.2534
+  const invoiceExchange = documentExchangeOf(
+    { currency: "USD", total: 3 },
+    "UAH",
+    { rate: RATE, date: "2026-11-02" },
+  )
+
+  it("0,03 $ трьома кредит-нотами по 0,01 $: остання бере залишок, разом рівно рахунок", () => {
+    expect(invoiceExchange?.baseTotal).toBe(124)
+    const note = { currency: "USD", total: 1 }
+    const first = creditedExchange(invoiceExchange, note)
+    const second = creditedExchange(invoiceExchange, note)
+    const last = creditedExchange(invoiceExchange, note, {
+      creditedBase: (first?.baseTotal ?? 0) + (second?.baseTotal ?? 0),
+    })
+    expect([first?.baseTotal, second?.baseTotal, last?.baseTotal]).toEqual([
+      41, 41, 42,
+    ])
+    expect(last).toMatchObject({ rate: RATE, rateDate: "2026-11-02" })
+  })
+
+  it("попередні вже перевищили рахунок округленням — у останньої нуль, а не мінус", () => {
+    const last = creditedExchange(
+      invoiceExchange,
+      { currency: "USD", total: 1 },
+      { creditedBase: 125 },
+    )
+    expect(last?.baseTotal).toBe(0)
+  })
+
+  it("рахунок без курсу — без суми в базовій валюті й у останньої", () => {
+    const noRate = documentExchangeOf(
+      { currency: "USD", total: 3 },
+      "UAH",
+      null,
+    )
+    expect(
+      creditedExchange(
+        noRate,
+        { currency: "USD", total: 3 },
+        { creditedBase: 0 },
+      )?.baseTotal,
+    ).toBeNull()
+  })
+})
+
 const BASE = "http://erp-credit-notes.test/api/v1"
 const COMPANY = "c1"
 const TODAY = "2026-11-08"
@@ -218,10 +412,12 @@ const NO_CREDIT = person("no-credit", [
   "sales-credit-notes:read",
 ])
 
+/** Курс із дробом: суми рахунку й кредит-нот у базовій валюті округлюються кожна окремо. */
+const EUR_RATE = 48.1234
 const rates: InvoiceMockRates = {
   baseCurrency: () => "UAH",
   rateOn: (_companyId, currency) =>
-    currency === "EUR" ? { rate: 48, date: TODAY } : null,
+    currency === "EUR" ? { rate: EUR_RATE, date: TODAY } : null,
 }
 const options = { companies: [COMPANY], today: TODAY, rates } as const
 const seeds = invoicesNumberingSeeds(options)
@@ -493,7 +689,27 @@ describe("кредит-нота K2: моки", () => {
       rate: source.exchange?.rate,
       rateDate: source.exchange?.rateDate,
     })
-    expect(draft.exchange?.baseTotal).toBe(draft.total * 48)
+    // Чернетка засіву повертає весь рахунок: у базовій валюті — сума рахунку (залишок, ADR-0074).
+    expect(draft.total).toBe(source.total)
+    expect(draft.exchange?.baseTotal).toBe(source.exchange?.baseTotal)
+  })
+
+  it("рахунок у євро частинами: перша — від своєї суми, остання — залишок, разом рівно рахунок у гривнях", async () => {
+    const source = await invoice(EUR_ISSUED)
+    const first = await creditNoteFrom(EUR_ISSUED)
+    const [line] = first.lines
+    if (!line) throw new Error("no lines")
+    const issued = await submit(
+      await saveLines(first, [{ id: line.id, quantity: "1" }]),
+    )
+    expect(issued.exchange?.baseTotal).toBe(
+      convertMinorAmount(issued.total, "EUR", EUR_RATE, "UAH"),
+    )
+    const closing = await submit(await creditNoteFrom(EUR_ISSUED))
+    expect(issued.total + closing.total).toBe(source.total)
+    expect(
+      (issued.exchange?.baseTotal ?? 0) + (closing.exchange?.baseTotal ?? 0),
+    ).toBe(source.exchange?.baseTotal)
   })
 
   it("без права створювати кредит-ноти — 403; потік рахунку показує кредит-ноту «на підставі»", async () => {
