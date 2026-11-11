@@ -1,7 +1,7 @@
 import { memo } from "react"
 import { useWatch, type UseFormReturn } from "react-hook-form"
 
-import { FormField } from "@/components/erp/form"
+import { FormField, keepFieldFocus } from "@/components/erp/form"
 import { MoneyInput } from "@/components/erp/number-input"
 import { PageState } from "@/components/erp/page-state"
 import { StatusBadge } from "@/components/erp/status-badge"
@@ -129,6 +129,7 @@ function AllocationRows({
           type="button"
           variant="outline"
           disabled={!amount}
+          onMouseDown={keepFieldFocus}
           onClick={() => {
             form.setValue(
               "allocations",
