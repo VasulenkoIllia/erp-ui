@@ -50,15 +50,26 @@ export function reversedExchange(
 /**
  * Кредит-нота — за курсом рахунку-підстави (ADR-0072): ті самі валюта, курс і дата курсу, сума в базовій
  * валюті — від суми кредит-ноти тим самим правилом округлення; рахунок у базовій валюті — `null`.
+ *
+ * Кредит-нота, після якої весь рахунок повернено (`closing`), бере в базовій валюті залишок — суму рахунку
+ * мінус суми інших виставлених кредит-нот (ADR-0074): так рахунок і кредит-ноти гасяться й у базовій валюті.
+ * Залишок не менший за нуль: попередні могли вже перевищити рахунок округленням, коли курс менший за мінорну
+ * одиницю.
  */
 export function creditedExchange(
   basis: DocumentExchange | null | undefined,
   document: { readonly currency: string; readonly total: number },
+  closing?: { readonly creditedBase: number },
 ): DocumentExchange | null {
   if (!basis) return null
   const rate =
     basis.rate !== null && basis.rateDate !== null
       ? { rate: basis.rate, date: basis.rateDate }
       : null
-  return documentExchangeOf(document, basis.baseCurrency, rate)
+  const exchange = documentExchangeOf(document, basis.baseCurrency, rate)
+  if (!exchange || !closing || basis.baseTotal === null) return exchange
+  return {
+    ...exchange,
+    baseTotal: Math.max(0, basis.baseTotal - closing.creditedBase),
+  }
 }

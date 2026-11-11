@@ -22,6 +22,17 @@ export const NBU_QR_LIMITS = { name: 140, purpose: 420 } as const
 /** Найбільша сума, яку приймає формат: 999 999 999,99 грн у копійках. */
 const MAX_AMOUNT_KOPECKS = 99_999_999_999
 
+/**
+ * Керівні й невидимі символи та роздільники рядків Unicode: рядки інструкції йдуть через LF, тож перенос у
+ * назві чи призначенні зсунув би решту полів (на місці IBAN став би текст із назви), а символи напрямку й
+ * нульової ширини (`\p{Cf}`) показали б у банку не ту назву, що на аркуші.
+ */
+const CONTROL_CHARS = /[\p{C}\p{Zl}\p{Zp}]/u
+
+/** Текст поля без керівних символів і в межах довжини. */
+const isPlainText = (text: string, limit: number) =>
+  text !== "" && [...text].length <= limit && !CONTROL_CHARS.test(text)
+
 export interface PaymentQrInput {
   /** Назва отримувача, як у банку. */
   readonly name: string
@@ -35,7 +46,10 @@ export interface PaymentQrInput {
   readonly purpose: string
 }
 
-/** Чому QR не будується: не гривня, немає чи хибні IBAN, код, назва, призначення, сума поза межами. */
+/**
+ * Чому QR не будується: не гривня, немає чи хибні IBAN, код, назва, призначення (порожні, задовгі, з
+ * переносом рядка, керівним чи невидимим символом), сума поза межами.
+ */
 export type PaymentQrIssue =
   "currency" | "iban" | "code" | "name" | "purpose" | "amount"
 
@@ -65,10 +79,9 @@ function issueOf(input: PaymentQrInput): PaymentQrIssue | null {
   const code = input.code.trim()
   const kind = code.length === 8 ? "edrpou" : "rnokpp"
   if (!/^\d{8}(\d{2})?$/.test(code) || validateUaId(kind, code)) return "code"
-  const name = input.name.trim()
-  if (!name || [...name].length > NBU_QR_LIMITS.name) return "name"
-  const purpose = input.purpose.trim()
-  if (!purpose || [...purpose].length > NBU_QR_LIMITS.purpose) return "purpose"
+  if (!isPlainText(input.name.trim(), NBU_QR_LIMITS.name)) return "name"
+  if (!isPlainText(input.purpose.trim(), NBU_QR_LIMITS.purpose))
+    return "purpose"
   if (
     input.amount !== null &&
     (!Number.isSafeInteger(input.amount) ||

@@ -1,3 +1,4 @@
+import { parseCsv } from "hucre/csv"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
@@ -239,8 +240,42 @@ describe("writeSpreadsheet", () => {
     const bytes = new Uint8Array(await blob.arrayBuffer())
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
     const text = new TextDecoder().decode(bytes)
-    // Від'ємне число лишається числом: це не формула.
-    expect(text).toBe("Ім'я;Сума\r\n'=1+1;-5")
+    // Від'ємне число лишається числом: це не формула. Лапки — у кожній клітинці.
+    expect(text).toBe(`"Ім'я";"Сума"\r\n"'=1+1";"-5"`)
+  })
+
+  it(".csv: перенос рядка й нуль на початку клітинки — теж з апострофом", async () => {
+    const blob = await writeSpreadsheet({
+      format: "csv",
+      delimiter: ";",
+      rows: [
+        ["A", "B"],
+        ["\n=1+1", "\u0000x"],
+      ],
+    })
+    const text = new TextDecoder().decode(await blob.arrayBuffer())
+    expect(text.endsWith(`"'\n=1+1";"'\u0000x"`)).toBe(true)
+  })
+
+  it(".csv: формула не виходить на початок клітинки, коли Excel бере інший роздільник", async () => {
+    // Без лапок і коми: роздільник `,` сам лапок не вмикає.
+    const name = "Зоря;=cmd|'/C calc'!A0;"
+    const blob = await writeSpreadsheet({
+      format: "csv",
+      delimiter: ",",
+      rows: [
+        ["Назва", "Код"],
+        [name, "41726300"],
+      ],
+    })
+    // Українська Excel відкриває файл із `,` роздільником `;`: лапки тримають клітинку цілою.
+    const text = new TextDecoder().decode(await blob.arrayBuffer())
+    const rows = parseCsv(text.replace(/^\uFEFF/, ""), { delimiter: ";" })
+    // Решту рядка читачі склеюють по-різному; головне — назва не розпалась на клітинки.
+    expect(rows[1]).toHaveLength(1)
+    expect(String(rows[1]?.[0])).toMatch(/^Зоря;=cmd/u)
+    for (const row of rows)
+      for (const cell of row) expect(String(cell)).not.toMatch(/^[=+\-@]/)
   })
 })
 

@@ -102,8 +102,11 @@ export function ChallengeForm({
   const digitsOnly = method !== "backup_code"
   const canTrust = current.secondFactor && trustedDeviceDays > 0
 
+  // Один запит коду за раз: `onComplete` поля й відправка форми можуть збігтися.
+  const verifyingRef = React.useRef(false)
   const verify = async (value: string) => {
-    if (method === "passkey") return
+    if (method === "passkey" || switching || verifyingRef.current) return
+    verifyingRef.current = true
     setBusy(true)
     setError(null)
     setCodeError(null)
@@ -117,6 +120,7 @@ export function ChallengeForm({
       else setError(apiMessage(failure))
       setCode("")
     } finally {
+      verifyingRef.current = false
       setBusy(false)
     }
   }
@@ -156,22 +160,25 @@ export function ChallengeForm({
     }
   }
 
-  // Chrome на Android сам читає код з SMS, якщо лист закінчується «@домен #код».
+  // Chrome на Android сам читає код з SMS, якщо лист закінчується «@домен #код». Ефект лише ставить код у
+  // поле, а відправляє його `onComplete` поля один раз і зі свіжим станом («Запам'ятати пристрій» на момент
+  // коду, а не той, що був, коли метод став `sms`). Код іншої довжини людина введе сама; код попередньої SMS,
+  // що прийшов, поки сервер надсилає новий, не береться. Кожне нове надсилання (`resendAt`) читає SMS знову.
+  const onSmsCode = React.useEffectEvent((received: string) => {
+    const fits =
+      received.length === length && (!digitsOnly || /^\d+$/.test(received))
+    if (fits && !switching) setCode(received)
+  })
   React.useEffect(() => {
     if (method !== "sms") return
     const controller = new AbortController()
     void readSmsCode(controller.signal).then((received) => {
-      if (received) {
-        setCode(received)
-        void verify(received)
-      }
+      if (received && !controller.signal.aborted) onSmsCode(received)
     })
     return () => {
       controller.abort()
     }
-    // verify читає актуальний стан; перезапускаємо лише при зміні методу.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [method])
+  }, [method, resendAt])
 
   const description =
     method === "sms" || method === "email"
@@ -270,6 +277,7 @@ export function ChallengeForm({
               id={`${ids}-trust`}
               days={trustedDeviceDays}
               checked={trust}
+              disabled={busy}
               onChange={setTrust}
             />
           ) : null}
@@ -291,6 +299,7 @@ export function ChallengeForm({
           id={`${ids}-trust`}
           days={trustedDeviceDays}
           checked={trust}
+          disabled={busy}
           onChange={setTrust}
         />
       ) : null}
@@ -466,19 +475,23 @@ function TrustDevice({
   id,
   days,
   checked,
+  disabled,
   onChange,
 }: {
   id: string
   days: number
   checked: boolean
+  /** Поки код на сервері: вибір уже пішов із запитом, змінювати його пізно. */
+  disabled: boolean
   onChange: (checked: boolean) => void
 }) {
   const t = useErpUiT()
   return (
-    <Field orientation="horizontal">
+    <Field orientation="horizontal" data-disabled={disabled || undefined}>
       <Checkbox
         id={id}
         checked={checked}
+        disabled={disabled}
         onCheckedChange={(value) => {
           onChange(value)
         }}

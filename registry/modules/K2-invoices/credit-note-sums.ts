@@ -10,9 +10,10 @@
  *   суму рахунку: остання частина бере залишок (10,03 × 2 з ПДВ 4,01 — дві кредит-ноти з ПДВ 2,01 і 2,00).
  *   Віднімаються саме повернені суми, а не `частка(before)`: після сторно однієї з кредит-нот суми решти не
  *   збігаються з часткою їхньої кількості, і різниця часток дала б понад рахунок на копійку.
- * - Частки беруться від суми до знижки, знижки рядка, частки знижки документа й податку; решта — з них так
- *   само, як у `lib/document-totals`: податок поверх ціни — `total = net + tax`, податок у ціні —
- *   `net = total − tax`.
+ * - Частки беруться від невід'ємних складових рядка рахунку — знижки рядка, частки знижки документа, нетто й
+ *   податку (ADR-0074); сума до знижки й разом складаються з них так само, як у `lib/document-totals`:
+ *   `total = net + tax`, `amount = net + знижки`, з податком у ціні ще `+ tax`. Окремо округлена частка суми
+ *   до знижки мінус частки знижок давала від'ємне нетто, коли повернена частина дешевша за копійку-дві.
  * - Кількість — десятковий рядок контракту (до трьох знаків), рахуємо в тисячних BigInt.
  */
 import type {
@@ -100,7 +101,6 @@ export function creditedLineTotals(
   const part = (amount: number, credited: number) =>
     Math.max(0, Number(shareOf(amount, to, whole)) - credited)
   const { totals } = basis
-  const amount = part(totals.amount, before.totals.amount)
   const documentDiscount = part(
     totals.documentDiscount,
     before.totals.documentDiscount,
@@ -108,25 +108,17 @@ export function creditedLineTotals(
   const discount =
     part(lineDiscountOf(totals), lineDiscountOf(before.totals)) +
     documentDiscount
+  const net = part(totals.net, before.totals.net)
   const tax = part(totals.tax, before.totals.tax)
-  const payable = amount - discount
-  return taxIncluded
-    ? {
-        amount,
-        discount,
-        documentDiscount,
-        net: payable - tax,
-        tax,
-        total: payable,
-      }
-    : {
-        amount,
-        discount,
-        documentDiscount,
-        net: payable,
-        tax,
-        total: payable + tax,
-      }
+  const total = net + tax
+  return {
+    amount: (taxIncluded ? total : net) + discount,
+    discount,
+    documentDiscount,
+    net,
+    tax,
+    total,
+  }
 }
 
 const TOTALS_KEYS = [

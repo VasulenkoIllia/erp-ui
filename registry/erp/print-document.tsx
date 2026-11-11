@@ -259,11 +259,25 @@ export interface PrintDocumentTotalsProps {
   discount?: TotalsDiscount
   /** Слова інших валют для суми прописом (`lib/amount-in-words`); без слів сума прописом не друкується. */
   currencies?: Readonly<Record<string, CurrencyWords>>
+  /**
+   * Рядки під «Разом» мовою документа: «Кредит-ноти», «Оплачено», «До сплати» рахунку (ADR-0074). Сума
+   * прописом лишається від «Разом».
+   */
+  after?: readonly PrintTotalsRow[]
+}
+
+/** Рядок підсумків аркуша: підпис мовою документа й сума в мінорних одиницях валюти документа. */
+export interface PrintTotalsRow {
+  readonly key: string
+  readonly label: string
+  readonly amount: number
+  /** Виділити, як «Разом». */
+  readonly isTotal?: boolean
 }
 
 /**
  * Підсумки під рядками, як у редакторі: сума до знижок і знижки, якщо вони є, без податку й кожна
- * ставка, разом; далі «Всього на суму» прописом.
+ * ставка, разом, рядки `after`; далі «Всього на суму» прописом.
  */
 export function PrintDocumentTotals({
   lines,
@@ -271,6 +285,7 @@ export function PrintDocumentTotals({
   totals,
   discount = NO_DISCOUNT,
   currencies,
+  after = [],
 }: PrintDocumentTotalsProps) {
   const { t, locale, language } = usePrintSheet()
   const items = itemLinesOf(lines)
@@ -295,6 +310,14 @@ export function PrintDocumentTotals({
           value={money(resolved.total)}
           isTotal
         />
+        {after.map((row) => (
+          <TotalsRow
+            key={row.key}
+            label={row.label}
+            value={money(row.amount)}
+            isTotal={row.isTotal}
+          />
+        ))}
       </dl>
       {hasWords ? (
         <p className="font-medium">

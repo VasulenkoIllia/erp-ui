@@ -228,9 +228,11 @@ export async function writeSpreadsheet({
 }: WriteSpreadsheetOptions): Promise<Blob> {
   if (format === "csv") {
     const { writeCsv } = await loadChunk(() => import("hucre/csv"))
+    // Лапки в кожній клітинці: файл із `,` Excel з українською мовою відкриває з `;` (і навпаки), і
+    // `X;=HYPERLINK(…)` без лапок розпався б на клітинки з формулою на початку.
     const text = writeCsv(
       rows.map((row) => row.map(safeCsvCell)),
-      { delimiter, bom: true },
+      { delimiter, bom: true, quoteStyle: "all" },
     )
     return new Blob([text], { type: "text/csv;charset=utf-8" })
   }

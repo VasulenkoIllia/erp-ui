@@ -72,7 +72,7 @@ export function createCreditNoteFixtures(
         id: line.id,
         quantity: index === 0 && seed.issued ? "1" : line.quantity,
       }))
-    const built = creditNoteBody(invoice, lines, new Map())
+    const built = creditNoteBody(invoice, lines, [])
     if (built.issues)
       throw new Error(
         `K2-invoices: credit note for ${invoice.id} does not add up`,
