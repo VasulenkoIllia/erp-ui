@@ -83,6 +83,8 @@ export interface PaymentsMocksOptions {
   readonly baseUrl?: string
   /** Свої заборони проекту на записі оплати (`deniedActions`, ADR-0037). */
   readonly deniedActions?: MockDeniedRule<Payment>
+  /** Те саме для повернення (ADR-0083). */
+  readonly refundDeniedActions?: MockDeniedRule<Payment>
   /** Закриті періоди (PF13): без них оплати й повернення не знають про закриття. */
   readonly periodLock?: PeriodLockMocks
   /** Курси компанії (ADR-0071): без них документ у валюті не має суми в базовій валюті. */
@@ -113,12 +115,17 @@ function seeded(
   )
 }
 
+/** Підпис ресурсу для журналу аудиту — за назвою, а не за місцем у списку. */
+const labelOf = (name: string) =>
+  PAYMENTS_RESOURCES.find((resource) => resource.name === name)?.label
+
 export function createPaymentsMocks({
   invoices,
   numbering,
   extension,
   baseUrl = API_PREFIX,
   deniedActions,
+  refundDeniedActions,
   periodLock,
   rates,
   locale,
@@ -138,7 +145,7 @@ export function createPaymentsMocks({
   const payments = createMoneyDocumentMocks(
     {
       resource: PAYMENTS,
-      label: PAYMENTS_RESOURCES[0]?.label,
+      label: labelOf(PAYMENTS),
       schema: paymentSchemaFor(extension),
       transitions: mergeTransitions(
         PAYMENT_TRANSITIONS,
@@ -157,7 +164,7 @@ export function createPaymentsMocks({
   const refunds = createMoneyDocumentMocks(
     {
       resource: REFUNDS,
-      label: PAYMENTS_RESOURCES[1]?.label,
+      label: labelOf(REFUNDS),
       schema: refundSchemaFor(refundsExtension),
       transitions: mergeTransitions(
         REFUND_TRANSITIONS,
@@ -168,6 +175,7 @@ export function createPaymentsMocks({
       rule: REFUND_RULE,
       targetRows: overpaidInvoicesOf,
       data: () => seeded(fixtures().refunds, refundsExtension),
+      deniedActions: refundDeniedActions,
     },
     context,
   )

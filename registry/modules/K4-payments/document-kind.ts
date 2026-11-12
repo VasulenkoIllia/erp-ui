@@ -26,7 +26,9 @@ import {
   openInvoiceSchema,
   overpaidInvoiceSchema,
   type Payment,
+  type PaymentStatus,
   type PaymentTransitionId,
+  type RefundStatus,
 } from "./contract"
 import type {
   MoneyDocumentExtension,
@@ -54,6 +56,13 @@ export interface K4DocumentKind {
   readonly list: "payments" | "refunds"
   /** Рядки форми: `paymentForm.*` чи `refundForm.*`. */
   readonly form: "paymentForm" | "refundForm"
+  /**
+   * Підписи, що в оплати лишились під давніми ключами: перевизначення `strings` проекту діють і далі.
+   * `limit` — колонка межі суми рахунку, `submit` — кнопка форми.
+   */
+  readonly labels: { readonly limit: PaymentsKey; readonly submit: PaymentsKey }
+  /** Позначка «Прострочено» біля рахунку форми: для оплати так, для повернення (рахунок переплачено) — ні. */
+  readonly showsOverdue: boolean
   readonly icon: LucideIcon
   /** Статуси модуля з тоном і ключем підпису `<key>.statuses.<id>`. */
   readonly statuses: readonly {
@@ -80,15 +89,14 @@ export interface K4DocumentKind {
   extensionOf(extension: PaymentsExtension): K4KindExtension
 }
 
-/** Тони однакових статусів оплати й повернення: скасований — помилка, сторнований — попередження. */
-const SHARED_TONES = {
+/** Тон кожного статусу модуля: новий статус без тону не скомпілюється. */
+const TONES: Readonly<Record<PaymentStatus | RefundStatus, StatusTone>> = {
+  received: "success",
+  refunded: "success",
   cancelled: "destructive",
   reversed: "warning",
   reversal: "neutral",
-} as const satisfies Record<string, StatusTone>
-
-const toneOf = (id: string): StatusTone =>
-  (SHARED_TONES as Readonly<Record<string, StatusTone>>)[id] ?? "success"
+}
 
 const NO_EXTENSION: K4KindExtension = {}
 
@@ -97,10 +105,12 @@ export const PAYMENT_KIND: K4DocumentKind = {
   key: "payment",
   list: "payments",
   form: "paymentForm",
+  labels: { limit: "paymentForm.invoices.debt", submit: "payments.create" },
+  showsOverdue: true,
   icon: MODULE_ICONS.K4,
   statuses: PAYMENT_STATUSES.map((id) => ({
     id,
-    tone: toneOf(id),
+    tone: TONES[id],
     label: `payment.statuses.${id}`,
   })),
   transitions: PAYMENT_TRANSITIONS,
@@ -128,10 +138,12 @@ export const REFUND_KIND: K4DocumentKind = {
   key: "refund",
   list: "refunds",
   form: "refundForm",
+  labels: { limit: "refundForm.invoices.limit", submit: "refundForm.submit" },
+  showsOverdue: false,
   icon: ACTION_ICONS.refund,
   statuses: REFUND_STATUSES.map((id) => ({
     id,
-    tone: toneOf(id),
+    tone: TONES[id],
     label: `refund.statuses.${id}`,
   })),
   transitions: REFUND_TRANSITIONS,

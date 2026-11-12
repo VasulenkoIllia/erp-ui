@@ -375,7 +375,7 @@ function PaymentFormView({
         isDirty={isDirty}
         isSaving={state.isSaving}
         onDiscard={state.discard}
-        submitLabel={t(`${kind.form}.submit`)}
+        submitLabel={t(kind.labels.submit)}
       />
     </form>
   )

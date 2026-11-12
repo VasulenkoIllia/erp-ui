@@ -125,7 +125,7 @@ function AllocationRows({
       >
         <span>{t("paymentForm.invoices.number")}</span>
         <span>{t("paymentForm.invoices.dueDate")}</span>
-        <span className="text-end">{t(`${kind.form}.invoices.limit`)}</span>
+        <span className="text-end">{t(kind.labels.limit)}</span>
         <span>{t(`${kind.form}.invoices.amount`)}</span>
       </div>
       <ul className="grid">
@@ -189,7 +189,8 @@ const AllocationRow = memo(function AllocationRow({
 }) {
   const t = usePaymentsT()
   const format = useFormat()
-  const isOverdue = compareCalendarDates(invoice.dueDate, today) < 0
+  const isOverdue =
+    kind.showsOverdue && compareCalendarDates(invoice.dueDate, today) < 0
   const money = (value: number) =>
     format.money({ amount: value, currency: invoice.currency })
   return (
@@ -217,7 +218,7 @@ const AllocationRow = memo(function AllocationRow({
       </span>
       <span className="text-sm tabular-nums @2xl:text-end">
         <span className="text-muted-foreground @2xl:sr-only">
-          {t(`${kind.form}.invoices.limit`)}{" "}
+          {t(kind.labels.limit)}{" "}
         </span>
         {money(invoice.limit)}
       </span>

@@ -117,12 +117,10 @@
       "notAllocated": "Allocate the whole payment to invoices: there are no overpayments or advances",
       "exceedsDebt": "More than the invoice is due: it was paid meanwhile",
       "unavailable": "The invoice no longer awaits payment: reload the page",
-      "fromUnavailable": "The invoice you came from no longer awaits payment: it was paid or cancelled. Choose other invoices of the client.",
-      "limit": "Due"
+      "fromUnavailable": "The invoice you came from no longer awaits payment: it was paid or cancelled. Choose other invoices of the client."
     },
     "amountPositive": "The amount must be greater than zero",
-    "saved": "Payment recorded",
-    "submit": "Record payment"
+    "saved": "Payment recorded"
   },
   "refunds": {
     "title": "Refunds",

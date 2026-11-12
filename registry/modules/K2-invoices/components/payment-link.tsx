@@ -67,7 +67,11 @@ function PaymentLinkBody({ id }: { id: string }) {
   const t = useInvoicesT()
   const card = useCardRecord<Invoice & Partial<InvoiceDetail>>(INVOICES, id)
   const detail = useInvoiceDetail(card.record)
-  const failure = card.pageError ?? card.failure ?? detail?.error
+  // Свіжа картка без рядків — помилка даних, а не вічне завантаження (як на сторінці друку).
+  const invalid =
+    detail?.error ??
+    (card.isFresh && card.record && !detail ? new Error("no lines") : undefined)
+  const failure = card.pageError ?? card.failure ?? invalid
   if (failure !== undefined)
     return (
       <PageState
@@ -78,7 +82,11 @@ function PaymentLinkBody({ id }: { id: string }) {
     )
   if (!card.isFresh || !card.record || !detail?.success)
     return (
-      <div className="grid justify-items-center gap-3" aria-busy="true">
+      <div
+        role="status"
+        className="grid justify-items-center gap-3"
+        aria-busy="true"
+      >
         <Skeleton className="size-48" />
         <Skeleton className="h-9 w-full" />
         <span className="sr-only">{t("invoice.paymentLink.loading")}</span>

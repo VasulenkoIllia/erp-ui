@@ -1,5 +1,5 @@
 import { useGetOne, type RaRecord } from "ra-core"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { ApiError, isApiError } from "@/registry/lib/api"
@@ -17,8 +17,8 @@ export interface CardRecord<T> {
   readonly isPending: boolean
   readonly isFetching: boolean
   /**
-   * Запис прийшов із сервера після того, як картку відкрили, а не лише зі збереженого в браузері (кеш картки чи
-   * списку): за ним друкують суми до сплати й QR-код оплати.
+   * Власний запит картки завершився після того, як її відкрили: запис — із сервера, а не лише зі збереженого в
+   * браузері (кеш картки чи списку). За ним друкують суми до сплати й QR-код оплати.
    */
   readonly isFresh: boolean
   /** Помилка сторінки: запису немає (404, збій без кешу) — стан сторінки, а не секції. */
@@ -50,6 +50,12 @@ export function useCardRecord<T extends RaRecord>(
   const retry = useCallback(() => {
     void refetch()
   }, [refetch])
+  // `isFetchedAfterMount` стає true й від `setQueryData`: ra-core кладе рядки списку того самого ресурсу в кеш
+  // карток. Тож свіжість — коли власний запит картки (`refetchOnMount: "always"`) уже не йде; далі вона
+  // тримається й під час фонового перечитування.
+  const [freshId, setFreshId] = useState<string | null>(null)
+  if (isFetchedAfterMount && !isFetching && !error && freshId !== id)
+    setFreshId(id)
   const failure: unknown =
     error ?? (fetchStatus === "paused" ? OFFLINE : undefined)
   // Запису немає (видалили, інша компанія) — «не знайдено», навіть якщо шапка була в кеші списку.
@@ -58,7 +64,7 @@ export function useCardRecord<T extends RaRecord>(
     record: notFound ? undefined : data,
     isPending,
     isFetching,
-    isFresh: isFetchedAfterMount && data !== undefined && !error,
+    isFresh: freshId === id && data !== undefined && !error,
     pageError: notFound || !data ? failure : undefined,
     failure,
     retry,
