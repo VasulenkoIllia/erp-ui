@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import { expectNoA11yViolations, openWith } from "./helpers"
 
@@ -31,6 +31,61 @@ test.describe("форми: axe", () => {
     ).toBeVisible()
     await expectNoA11yViolations(page)
   })
+})
+
+/** Рамка й кільце поля; поле в групі (суфікс, кнопка) малює їх на групі. */
+const fieldLook = (field: Locator) =>
+  field.evaluate((element) => {
+    const frame = element.closest("[data-slot=input-group]") ?? element
+    const style = getComputedStyle(frame)
+    return { border: style.borderTopColor, ring: style.boxShadow }
+  })
+
+const themeColor = (page: Page, token: string) =>
+  page.evaluate(
+    (name) =>
+      getComputedStyle(document.documentElement).getPropertyValue(name).trim(),
+    token,
+  )
+
+test.describe("форми: поле з помилкою у фокусі", () => {
+  for (const theme of ["light", "dark"] as const)
+    test(`у фокусі кільце --ring, рамка помилки суцільна, ${theme}`, async ({
+      page,
+    }) => {
+      await openWith(page, { theme }, PATH)
+      await page
+        .getByTestId("invoice-form")
+        .getByRole("button", { name: "Зберегти" })
+        .click()
+      const summary = page.locator("[data-slot=form-error-summary]")
+      await expect(summary).toBeFocused()
+      const destructive = await themeColor(page, "--destructive")
+      const ring = await themeColor(page, "--ring")
+
+      // Звичайне поле й поле в групі з суфіксом валюти.
+      for (const name of ["Номер рахунку", "Сума"]) {
+        const field = textbox(page, name)
+        await expect(field).toHaveAttribute("aria-invalid", "true")
+        await expect
+          .poll(() => fieldLook(field))
+          .toMatchObject({
+            border: destructive,
+            ring: expect.not.stringContaining(ring),
+          })
+        await summary
+          .getByRole("button", { name: `${name}: Заповніть це поле` })
+          .click()
+        await expect(field).toBeFocused()
+        await expect
+          .poll(() => fieldLook(field))
+          .toMatchObject({
+            border: destructive,
+            ring: expect.stringContaining(`${ring} 0px 0px 0px 2px`),
+          })
+        await summary.focus()
+      }
+    })
 })
 
 test.describe("форми: поведінка (ADR-0015)", () => {

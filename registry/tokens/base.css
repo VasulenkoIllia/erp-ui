@@ -9,7 +9,17 @@
 @import "@fontsource/geist/600.css";
 @import "@fontsource/geist/700.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* Темна тема лише на екрані й поза світлою областю (data-theme="light", аркуш друку): на папері й в аркуші
+ * утиліти dark: не діють, як і темні токени (ADR-0062, ADR-0082). :where тримає специфічність нульовою. */
+@custom-variant dark {
+  @media not print {
+    &:where(.dark, .dark *):not(
+        :where([data-theme="light"], [data-theme="light"] *)
+      ) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;

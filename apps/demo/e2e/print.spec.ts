@@ -113,6 +113,34 @@ test.describe("PF08a: друк", () => {
     expect(paper.sheet).toBe(screen.sheet)
   })
 
+  test("класи dark: діють лише на екрані й поза аркушем", async ({ page }) => {
+    await openPrint(page, "", "dark")
+    // Пробні елементи з класом кіта (тло полів і кнопок у темній темі) на сторінці й в аркуші та
+    // проба без класу — тло, яке має бути там, де dark: не діє.
+    await page.evaluate(() => {
+      const sheetElement = document.querySelector('[data-slot="print-sheet"]')
+      for (const [name, parent, className] of [
+        ["page", document.body, "dark:bg-input/30"],
+        ["sheet", sheetElement, "dark:bg-input/30"],
+        ["plain", document.body, ""],
+      ] as const) {
+        const probe = document.createElement("span")
+        probe.className = className
+        probe.dataset.probe = name
+        parent?.append(probe)
+      }
+    })
+    const background = (name: string) =>
+      page
+        .locator(`[data-probe="${name}"]`)
+        .evaluate((element) => getComputedStyle(element).backgroundColor)
+    const plain = await background("plain")
+    expect(await background("page")).not.toBe(plain)
+    expect(await background("sheet")).toBe(plain)
+    await page.emulateMedia({ media: "print" })
+    expect(await background("page")).toBe(plain)
+  })
+
   test("«Друкувати» відкриває друк із назвою документа в заголовку сторінки", async ({
     page,
   }) => {

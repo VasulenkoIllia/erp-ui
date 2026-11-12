@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { useResolvedTheme } from "@/registry/hooks/use-resolved-theme"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
-import { Button } from "@/registry/ui/button"
+import { Button, buttonVariants } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
 
 describe("cn реєстру", () => {
@@ -27,6 +27,16 @@ describe("примітиви", () => {
     render(<Button>Зберегти</Button>)
     const button = screen.getByRole("button", { name: "Зберегти" })
     expect(button).toHaveClass("h-control", "touch-target")
+  })
+
+  it("buttonVariants поза кнопкою зливає класи: посилання outline з рамкою", () => {
+    // Без злиття в класі і border-transparent, і border-border, а в CSS перемагає прозора рамка.
+    const classes = buttonVariants({ variant: "outline" }).split(" ")
+    expect(classes).toContain("border-border")
+    expect(classes).not.toContain("border-transparent")
+    expect(buttonVariants({ variant: "ghost", className: "h-6" })).not.toMatch(
+      /(^| )h-control( |$)/,
+    )
   })
 
   it("статусні бейджі — soft-тло й *-foreground", () => {
