@@ -119,7 +119,10 @@ function Invoices() {
         onOverwrite={() => setConflict(null)}
         onReload={() => setConflict(null)}
       />
-      <DevPanel resources={["invoices"]} compact onChange={() => void queryClient.invalidateQueries()} />
+      {/* Панель сценаріїв — лише на моках: з бекендом збирач викидає її разом зі станом сценаріїв. */}
+      {import.meta.env.VITE_BACKEND === "mocks" ? (
+        <DevPanel resources={["invoices"]} compact onChange={() => void queryClient.invalidateQueries()} />
+      ) : null}
     </>
   )
 }

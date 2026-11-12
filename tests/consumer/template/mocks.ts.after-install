@@ -1,6 +1,9 @@
-// Підставляється після `shadcn add`: моки за контрактом (лише перевірка типів, у збірку не входить).
+// Підставляється після `shadcn add` як src/mocks/browser.ts: моки за контрактом. Усі обробники — лише тут,
+// файл вантажить main.tsx динамічно й лише з VITE_BACKEND=mocks (у збірці з бекендом його немає, consumer-smoke).
 import { setupWorker } from "msw/browser"
 import { z } from "zod"
+
+import { contactsExtension } from "../Contacts"
 
 import { recordBaseSchema } from "@/lib/api"
 import { setScenario } from "@/lib/mock-scenarios"
@@ -10,6 +13,7 @@ import {
   type MockAccountSeed,
   type MockUser,
 } from "@/lib/mocks"
+import { createContactsMocks } from "@/modules/B1-contacts/mocks"
 
 const invoice = recordBaseSchema.extend({
   client: z.string().min(1),
@@ -22,7 +26,8 @@ const users: MockUser[] = [
     id: "u1",
     name: "Олена Коваль",
     email: "olena@example.com",
-    password: "demo",
+    // Мітка моків проекту: consumer-smoke шукає її в збірці (MOCK_CANARY).
+    password: "erp-ui-smoke-mock-canary",
     totpCode: "123456",
     roles: ["accountant"],
     permissions: ["invoices:*"],
@@ -97,5 +102,6 @@ export async function startMocks() {
       auditSeeds: [],
     }),
     ...invoices.handlers,
+    ...createContactsMocks({ extension: contactsExtension }).handlers,
   ).start()
 }

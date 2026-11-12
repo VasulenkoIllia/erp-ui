@@ -3543,8 +3543,8 @@ export const BUNDLE_ITEMS = {
     docs: [
       "Моки erp-ui встановлено. msw — у devDependencies.",
       "1) npx msw init public — файл service worker.",
-      "2) Обробники: createPlatformHandlers({ users }) і createResourceHandlers({ resource, schema, data }) з @/lib/mocks; setupWorker(...handlers).start() до рендеру — лише в розробці.",
-      "3) <DevPanel resources={[…]} compact onChange={() => queryClient.invalidateQueries()} /> — у топбар.",
+      '2) Обробники: createPlatformHandlers({ users }) і createResourceHandlers({ resource, schema, data }) з @/lib/mocks; setupWorker(...handlers).start() до рендеру. Усі обробники — у src/mocks/, старт — import() під import.meta.env.VITE_BACKEND === "mocks"; vite.config.ts зупиняє збірку без VITE_BACKEND (посібник, розділ 5, ADR-0079).',
+      "3) <DevPanel resources={[…]} compact onChange={() => queryClient.invalidateQueries()} /> — у топбар, під тією ж умовою.",
     ].join("\n"),
   },
   tokens: {

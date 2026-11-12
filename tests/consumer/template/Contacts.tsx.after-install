@@ -6,9 +6,8 @@ import {
   createContactsModule,
   type ContactsExtension,
 } from "@/modules/B1-contacts"
-import { createContactsMocks } from "@/modules/B1-contacts/mocks"
 
-const extension: ContactsExtension = {
+export const contactsExtension: ContactsExtension = {
   organizations: {
     fields: [
       {
@@ -59,9 +58,8 @@ const extension: ContactsExtension = {
 
 export const contactsModule = createContactsModule({
   basePath: "/crm",
-  extension,
+  extension: contactsExtension,
 })
-export const contactsHandlers = createContactsMocks({ extension }).handlers
 
 export function Contacts() {
   return useRoutes(contactsModule.routes)

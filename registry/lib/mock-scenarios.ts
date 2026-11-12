@@ -47,11 +47,16 @@ function read(): ScenarioState {
   }
 }
 
-let state: ScenarioState = read()
+/**
+ * Стан зі сховища — за першим зверненням, а не під час завантаження модуля: без побічних дій модуль
+ * разом із панеллю розробника зникає зі збірки проекту, де моки вимкнено (ADR-0079).
+ */
+let stored: ScenarioState | null = null
+const current = (): ScenarioState => (stored ??= read())
 const listeners = new Set<() => void>()
 
 function commit(next: ScenarioState) {
-  state = next
+  stored = next
   try {
     globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(next))
   } catch {
@@ -63,11 +68,12 @@ function commit(next: ScenarioState) {
 }
 
 export function getScenarioState(): ScenarioState {
-  return state
+  return current()
 }
 
 /** Сценарій для всіх ресурсів або, з `resource`, лише для нього. */
 export function setScenario(scenario: Scenario, resource?: string): void {
+  const state = current()
   if (!resource) {
     commit({ ...state, global: scenario })
     return
@@ -83,6 +89,7 @@ export function resetScenarios(): void {
 }
 
 export function scenarioFor(resource: string): Scenario {
+  const state = current()
   return state.resources[resource] ?? state.global
 }
 
