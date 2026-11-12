@@ -10,6 +10,10 @@
  * modules/* → tsc → vite build. Файли модуля мають лягти в проект дослівно (ADR-0025): імпорти в них
  * уже шляхами проекту, і shadcn не має їх переписувати.
  *
+ * Моки поза продакшном (ADR-0079): збірка без VITE_BACKEND, з опискою чи з `mocks` лише з .env-файла
+ * зупиняється на запобіжнику vite.config.ts шаблону; з бекендом (`api`) у dist немає ні MSW, ні моків
+ * кіта й проекту; з `mocks` вони є, але MSW і моки проекту — не в першому екрані.
+ *
  * --local (CI): повний набір — з реєстру, зібраного з робочої копії (`shadcn build` + локальний
  *   сервер); з GitHub на --ref — лише ui/button в окремий проект, щоб перевірити саму доставку
  *   (повний набір з GitHub — ~1400 запитів до API, ліміт ~1000 на годину). Ще кілька
@@ -22,7 +26,9 @@ import { spawn } from "node:child_process"
 import {
   cpSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -63,24 +69,96 @@ const uiItems = registry.items
 const modules = registry.items.filter((it) => it.meta?.layer === "modules")
 /** Елементи з реєстру робочої копії, що ставляться поодинці (--local): найбільше залежностей. */
 const ISOLATED = ["data", "erp/phone-input", ...modules.map((it) => it.name)]
+/**
+ * Шар моків у збірці за групами (ADR-0079): кожна група має знайтися в збірці на моках (інакше
+ * сигнатури застаріли) і не знайтися в збірці з бекендом.
+ */
+const MOCK_SIGNATURES = {
+  // Ядро MSW: повідомлення бібліотеки й сховище cookie (з ним tough-cookie і tldts).
+  msw: ["[MSW]", "__msw-cookie-store__"],
+  // Ключі сховища моків кіта (`lib/mock-*`, панель сценаріїв).
+  kit: ["erp-ui:mock-"],
+  // Мітка моків проекту: пароль користувача моків шаблону (`mocks.ts.after-install`).
+  project: ["erp-ui-smoke-mock-canary"],
+}
+/** Групи, яких і на моках немає в першому екрані; панель сценаріїв із ключем кіта там бути може. */
+const LAZY_MOCK_GROUPS = ["msw", "project"]
+/** Файли застосунку шаблону, що стають у `src/` після `shadcn add`: файл → шлях у `src/`. */
+const AFTER_INSTALL = {
+  "App.tsx": "App.tsx",
+  "Data.tsx": "Data.tsx",
+  "Contacts.tsx": "Contacts.tsx",
+  "mocks.ts": "mocks/browser.ts",
+}
 /** Паузи перед повтором запиту до GitHub: 403/429 — ліміт API, а не помилка коду. */
 const GITHUB_RETRY_DELAYS_MS = [30_000, 90_000]
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const dirs = []
 
+/** Середовище процесу зі змінами `env`: `undefined` прибирає змінну. */
+function withEnv(env) {
+  const next = { ...process.env }
+  for (const [key, value] of Object.entries(env)) {
+    if (value === undefined) delete next[key]
+    else next[key] = value
+  }
+  return next
+}
+
+const envPrefix = (env) =>
+  Object.entries(env)
+    .map(([key, value]) =>
+      value === undefined ? `env -u ${key} ` : `${key}=${value} `,
+    )
+    .join("")
+
 /**
  * Команда з виводом у консоль. Асинхронно: у цьому ж процесі працює сервер реєстру, і синхронний
  * запуск заблокував би його відповіді.
  */
-function run(cwd, cmd, cmdArgs) {
-  console.log(`\n$ ${cmd} ${cmdArgs.join(" ")}`)
+function run(cwd, cmd, cmdArgs, env = {}) {
+  console.log(`\n$ ${envPrefix(env)}${cmd} ${cmdArgs.join(" ")}`)
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, cmdArgs, { cwd, stdio: "inherit" })
+    const child = spawn(cmd, cmdArgs, {
+      cwd,
+      stdio: "inherit",
+      env: withEnv(env),
+    })
     child.on("error", reject)
     child.on("exit", (code) => {
       if (code === 0) resolve()
       else reject(new Error(`${cmd} ${cmdArgs[0] ?? ""}: код ${String(code)}`))
+    })
+  })
+}
+
+/** Команда, що має впасти: повертає її вивід (і показує його), успіх — помилка перевірки. */
+function runExpectingFailure(cwd, cmd, cmdArgs, env = {}) {
+  console.log(
+    `\n$ ${envPrefix(env)}${cmd} ${cmdArgs.join(" ")}   # очікується помилка`,
+  )
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, cmdArgs, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: withEnv(env),
+    })
+    let output = ""
+    for (const stream of [child.stdout, child.stderr]) {
+      // Рядки, а не байти: межа шматка не розріже кириличну літеру в повідомленні запобіжника.
+      stream.setEncoding("utf8")
+      stream.on("data", (chunk) => {
+        output += chunk
+        process.stdout.write(chunk)
+      })
+    }
+    child.on("error", reject)
+    // `close`, а не `exit`: до нього вивід дочитано, і повідомлення запобіжника не загубиться.
+    child.on("close", (code) => {
+      if (code === 0)
+        reject(new Error(`${cmd} ${cmdArgs.join(" ")}: мало впасти, а пройшло`))
+      else resolve(output)
     })
   })
 }
@@ -173,11 +251,11 @@ async function fullInstall(source) {
   if (source) await addAll(ref)
   else await fromGithub(() => addAll(ref))
 
-  for (const file of ["App.tsx", "Data.tsx", "mocks.ts", "Contacts.tsx"])
-    renameSync(
-      path.join(dir, `${file}.after-install`),
-      path.join(dir, `src/${file}`),
-    )
+  for (const [file, target] of Object.entries(AFTER_INSTALL)) {
+    const to = path.join(dir, "src", target)
+    mkdirSync(path.dirname(to), { recursive: true })
+    renameSync(path.join(dir, `${file}.after-install`), to)
+  }
   const css = readFileSync(path.join(dir, "src/index.css"), "utf8")
   if (!css.includes("./styles/erp-ui/themes.css"))
     throw new Error("src/index.css не замінено точкою входу erp-ui")
@@ -205,7 +283,83 @@ async function fullInstall(source) {
   if (source) checkModulesVerbatim(dir)
 
   await exec("pnpm", ["typecheck"])
-  await exec("pnpm", ["build"])
+  await checkMocksOutOfProduction(dir)
+}
+
+/** JS збірки: усі файли й перший екран (вхід і його `modulepreload` з `dist/index.html`). */
+function distScripts(dir) {
+  const dist = path.join(dir, "dist")
+  const html = readFileSync(path.join(dist, "index.html"), "utf8")
+  const firstScreen = [
+    ...html.matchAll(/(?:src|href)="\/(assets\/[^"]+\.js)"/g),
+  ].map((match) => match[1])
+  if (!firstScreen.length)
+    throw new Error("dist/index.html: не знайдено вхідного скрипта")
+  const all = readdirSync(dist, { recursive: true }).filter((name) =>
+    name.endsWith(".js"),
+  )
+  const containing = (files, signatures) =>
+    files.filter((file) => {
+      const text = readFileSync(path.join(dist, file), "utf8")
+      return signatures.some((signature) => text.includes(signature))
+    })
+  return { all, firstScreen, containing }
+}
+
+/** Збірка має зупинитися саме на запобіжнику `vite.config.ts` шаблону. */
+async function expectGuardStop(dir, env, expected) {
+  const output = await runExpectingFailure(dir, "pnpm", ["build"], env)
+  if (!output.includes(expected))
+    throw new Error(
+      `Збірка (${envPrefix(env).trim()}) упала не на запобіжнику vite.config.ts: немає «${expected}»`,
+    )
+}
+
+/**
+ * Моки поза продакшном (ADR-0079): без VITE_BACKEND, з опискою чи з `mocks` лише з .env-файла збірки
+ * немає; з бекендом у dist немає жодної групи шару моків; з явним `mocks` усі групи є (перевірка їх
+ * бачить), а MSW і моки проекту — лише лінивими чанками, не в першому екрані.
+ */
+async function checkMocksOutOfProduction(dir) {
+  await expectGuardStop(dir, { VITE_BACKEND: undefined }, 'VITE_BACKEND=""')
+  await expectGuardStop(dir, { VITE_BACKEND: "typo" }, 'VITE_BACKEND="typo"')
+  const envFile = path.join(dir, ".env.local")
+  writeFileSync(envFile, "VITE_BACKEND=mocks\n")
+  try {
+    await expectGuardStop(
+      dir,
+      { VITE_BACKEND: undefined },
+      "лише змінною команди",
+    )
+  } finally {
+    rmSync(envFile)
+  }
+
+  await run(dir, "pnpm", ["build"], { VITE_BACKEND: "api" })
+  const api = distScripts(dir)
+  for (const [group, signatures] of Object.entries(MOCK_SIGNATURES)) {
+    const leaked = api.containing(api.all, signatures)
+    if (leaked.length)
+      throw new Error(
+        `Збірка з бекендом (VITE_BACKEND=api) містить моки (${group}): ${leaked.join(", ")}`,
+      )
+  }
+
+  await run(dir, "pnpm", ["build"], { VITE_BACKEND: "mocks" })
+  const mocks = distScripts(dir)
+  for (const [group, signatures] of Object.entries(MOCK_SIGNATURES)) {
+    if (!mocks.containing(mocks.all, signatures).length)
+      throw new Error(
+        `Збірка з VITE_BACKEND=mocks без групи «${group}»: сигнатури MOCK_SIGNATURES застаріли`,
+      )
+    const firstScreen = LAZY_MOCK_GROUPS.includes(group)
+      ? mocks.containing(mocks.firstScreen, signatures)
+      : []
+    if (firstScreen.length)
+      throw new Error(
+        `Моки (${group}) у першому екрані збірки на моках: ${firstScreen.join(", ")}`,
+      )
+  }
 }
 
 /** Модулі, а також фоновий файл web push: браузер не зареєструє його, якщо файл загубився. */
@@ -260,8 +414,8 @@ try {
   }
   console.log(
     local
-      ? `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із робочої копії встановлено, файли модулів — дослівно, проект компілюється; поодинці: ${ISOLATED.join(", ")} і ui/button з ${repo}#${ref}.`
-      : `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із ${repo}#${ref} встановлено, проект компілюється.`,
+      ? `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із робочої копії встановлено, файли модулів — дослівно, проект компілюється, моків у збірці з бекендом немає; поодинці: ${ISOLATED.join(", ")} і ui/button з ${repo}#${ref}.`
+      : `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із ${repo}#${ref} встановлено, проект компілюється, моків у збірці з бекендом немає.`,
   )
 } finally {
   source?.close()

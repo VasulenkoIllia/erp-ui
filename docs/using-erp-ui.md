@@ -17,7 +17,7 @@
 pnpm create vite@latest my-erp -- --template react-ts
 cd my-erp
 pnpm add -D tailwindcss @tailwindcss/vite
-# vite.config.ts: plugins: [react(), tailwindcss()], alias "@" → ./src
+# vite.config.ts: plugins: [react(), tailwindcss()], alias "@" → ./src, запобіжник VITE_BACKEND (розділ 5)
 # "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@latest init -b base -p nova
 # package.json: "shadcn": "4.22.0" без ^ — та сама CLI для встановлення й оновлення (розділ 8)
@@ -230,11 +230,19 @@ export const authProvider = createAuthProvider(api, {
 })
 export const dataProvider = createDataProvider(api)
 
-// src/main.tsx
-if (import.meta.env.DEV) {
-  const { setupWorker } = await import("msw/browser")
-  await setupWorker(...createPlatformHandlers({ users }), ...invoices.handlers).start()
+// src/mocks/handlers.ts — усі обробники, користувачі й фікстури моків живуть лише в src/mocks/
+export const handlers = [...createPlatformHandlers({ users }), ...invoices.handlers]
+
+// src/mocks/browser.ts
+export async function startMocks() {
+  await setupWorker(...handlers).start({ onUnhandledFrame: "bypass", quiet: true })
 }
+
+// src/main.tsx — моки окремим чанком і лише з VITE_BACKEND=mocks: з бекендом збирач викидає їх разом із MSW
+const mocks = import.meta.env.VITE_BACKEND === "mocks"
+  ? import("@/mocks/browser").then((m) => m.startMocks())
+  : Promise.resolve()
+await Promise.all([mocks, whenI18nReady(i18n)])
 createRoot(root).render(
   <CoreAdminContext dataProvider={dataProvider} authProvider={authProvider}
     i18nProvider={createRaI18nProvider(i18n)} queryClient={queryClient}>
@@ -242,6 +250,45 @@ createRoot(root).render(
   </CoreAdminContext>,
 )
 ```
+
+### Моки поза продакшном (ADR-0079)
+
+Звідки застосунок бере дані, каже змінна `VITE_BACKEND` (у `.env.example` — ключ без значення, значення — у `.env.local` чи в змінних сервера збірки): `mocks` — моки MSW, `api` — бекенд за контрактом кіта, своя назва — адаптер (розділ «Наявний бекенд через адаптер»). Значення один раз визначає `vite.config.ts`:
+
+```ts
+// vite.config.ts
+const BACKENDS = ["mocks", "api"]   // і назва адаптера, якщо він є
+
+export default defineConfig(({ command, mode }) => {
+  // Запобіжник: у розробці без змінної — моки, збірка без неї (чи з опискою) зупиняється.
+  const backend =
+    loadEnv(mode, process.cwd(), "VITE_").VITE_BACKEND || (command === "serve" ? "mocks" : "")
+  if (!BACKENDS.includes(backend))
+    throw new Error(`VITE_BACKEND="${backend}": очікується ${BACKENDS.join(" чи ")}; збірка без змінної зупиняється`)
+  // Збірка на моках — лише змінною команди (e2e, стенд): закомічений .env-файл не дасть продакшну на моках.
+  if (command === "build" && backend === "mocks" && process.env.VITE_BACKEND !== "mocks")
+    throw new Error("VITE_BACKEND=mocks у збірці — лише змінною команди: VITE_BACKEND=mocks vite build --outDir dist-e2e")
+  return {
+    // Значення стає в код як є: без моків перевірка `=== "mocks"` викидає їх зі збірки в будь-якому файлі.
+    define: { "import.meta.env.VITE_BACKEND": JSON.stringify(backend) },
+    plugins: [react(), tailwindcss()],
+    resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  }
+})
+
+// src/vite-env.d.ts — ті самі значення, що в BACKENDS
+/// <reference types="vite/client" />
+interface ImportMetaEnv {
+  readonly VITE_BACKEND: "mocks" | "api"
+}
+```
+
+- `pnpm dev` без змінної працює на моках, як і раніше. Збірка для сервера (`pnpm build`) без `VITE_BACKEND` зупиняється: змінну задають на сервері збірки чи в CI. Забута змінна не дає сайту, що працює на моках із тестовим входом.
+- Моки — лише в `src/mocks/` і лише через `import()` під `import.meta.env.VITE_BACKEND === "mocks"`. Обробники, створені поза цією текою (у файлі модуля, у `main.tsx` до умови), тягнуть MSW у перший екран навіть із вимкненими моками: +135 КБ стисненого коду. Розділи модулів нижче показують рядок `setupWorker(...)` у `src/mocks/handlers.ts` скорочено: це обробники, які бере `startMocks`.
+- Умова — саме порівняння `import.meta.env.VITE_BACKEND`: збирач підставляє значення й викидає гілку разом із чанком. Стала з окремого файла (`export const isMocks = …`) цього не дає: чанк моків лишається в `dist`.
+- Панель сценаріїв (`DevPanel`) — під тією ж умовою.
+- Явне `VITE_BACKEND=mocks` у збірці — для e2e і стенду-демо, лише змінною команди (з `.env`-файла збірка `mocks` не бере) і в окрему теку: `VITE_BACKEND=mocks vite build --outDir dist-e2e`. `public/mockServiceWorker.js` від `msw init` лежить і в збірці з бекендом, але реєструє його лише `startMocks`.
+- Перевірка: після збірки з бекендом `grep -rlF -e "[MSW]" -e "erp-ui:mock-" dist` нічого не знаходить (додайте рядок, що є лише у ваших моках, напр. пароль користувача моків). Так само кіт у CI перевіряє тестовий проект (`scripts/consumer-smoke.mjs`): без змінної, з опискою й з `mocks` лише з `.env`-файла збірка зупиняється, з `api` моків у `dist` немає, з `mocks` MSW і моки проекту — лише лінивими чанками.
 
 - Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`.
 - Таблиця (ADR-0016) — `DataTable` з `erp/data-table`: колонки описуються один раз для гріда й карток (на контейнері вужчому за 40 rem — картки), сортування й фільтри — на сервері.
@@ -328,7 +375,7 @@ createRoot(root).render(
 - Збереження: `useUpdate` у режимі `pessimistic` надсилає змінені поля + `version`; 409 → `ConflictDialog` з `error.current`.
 - Текст помилки — `useApiErrorMessage()(error)`; стани списку — `PageState` за `error.code` (`offline`, 403 → `forbidden`, інше → `error`).
 - Вподобання на сервері — `syncPreferences(api)` після входу (повертає функцію зупинки).
-- Моки: `createResourceHandlers({ resource, schema, data, searchFields })` дає CRUD із фільтрами, сортуванням, правами й версіями. `<DevPanel resources={["invoices"]} compact onChange={() => queryClient.invalidateQueries()} />` — у `actions` топбара, лише в розробці.
+- Моки: `createResourceHandlers({ resource, schema, data, searchFields })` дає CRUD із фільтрами, сортуванням, правами й версіями. `<DevPanel resources={["invoices"]} compact onChange={() => queryClient.invalidateQueries()} />` — у `actions` топбара, лише на моках (`import.meta.env.VITE_BACKEND === "mocks"`, «Моки поза продакшном»).
 - Повний приклад — `apps/demo` у репозиторії erp-ui: `src/data/providers.ts`, `src/mocks/`, `src/pages/DataPage.tsx`, `src/pages/LoginPage.tsx`.
 
 ### e2e проекту (ADR-0029)
@@ -342,6 +389,8 @@ await openAs(page, "/crm", { user: "u-olena", appearance: { theme: "dark", langu
 await expectNoA11yViolations(page)    // axe, WCAG 2.2 AA
 await expectNoHorizontalScroll(page)  // 360/390/768
 ```
+
+Playwright проекту збирає застосунок на моках в окрему теку: `webServer.command` — `VITE_BACKEND=mocks vite build --outDir dist-e2e && vite preview --outDir dist-e2e --port <порт>` («Моки поза продакшном»).
 
 `openAs` засіває сховище (вигляд, користувач моків) один раз на виклик: після перезавантаження тест бачить те, що змінив сам. Ще — `cellOf` (комірка таблиці за назвою колонки), `waitForMenuFocus` і `chooseInSubmenu` (меню й підменю). Користувачі, ширини й теми — у своєму `e2e/helpers.ts` проекту.
 
@@ -1263,7 +1312,7 @@ const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, pay
 Бекенд за контрактом кіта (ADR-0002, ADR-0003) адаптера не потребує: `createApiClient({ baseUrl })` і провайдери кіта. Адаптер — для наявного бекенду з іншим API, який ми не змінюємо. Приклад — адаптер тестового проекту (крок 1.6).
 
 - **Де.** `src/adapters/<бекенд>/` — файли проекту, `shadcn add` їх не чіпає. Модулі й моки про адаптер не знають.
-- **Перемикач.** Моки лишаються за замовчуванням: `VITE_BACKEND=mocks|<бекенд>` у `.env.local` (ключ — у `.env.example`), з бекендом MSW не запускайте й панель сценаріїв сховайте. Бекенд — через проксі Vite на тому ж домені (`server.proxy` і `preview.proxy`, адреса — зі змінної середовища), тоді CORS не потрібен.
+- **Перемикач.** `VITE_BACKEND=mocks|api|<бекенд>` (ключ — у `.env.example`, назва адаптера — у `BACKENDS` у `vite.config.ts`): у розробці без змінної — моки, збірка без неї зупиняється; з бекендом MSW не стартує й панелі сценаріїв немає (розділ 5, «Моки поза продакшном»). Бекенд — через проксі Vite на тому ж домені (`server.proxy` і `preview.proxy`, адреса — зі змінної середовища), тоді CORS не потрібен.
 - **Транспорт.** Свій `fetch` для `createApiClient`: `Authorization: Bearer`, одне спільне оновлення токена на всі паралельні 401 і один повтор запиту, помилки бекенду → `{ code, message, fieldErrors? }` кіта (`ApiError`, `Retry-After` зберігайте). Відповіді бекенду перевіряйте zod-схемами: розбіжність — явна помилка `server`, не тихі порожні дані.
 - **Вхід, вихід і профіль.** Поки в `createAuthProvider` немає опцій (ADR-0021), вхід перекладає міст: окремий `fetch` для клієнта кіта відповідає на `/auth/methods`, `/auth/login`, `/auth/logout` і `/me` у форматі кіта, а сам іде в бекенд. Профіль бекенду → `Me` з правами `<ресурс>:<дія>`; способи входу, яких бекенд не має, вимикає відповідь `/auth/methods`.
 - **Провайдер.** Беріть `createAuthProvider` і перевизначайте своє: `{ ...kitAuth, logout }`, під-API — `{ ...kitAuth, admin: { ...kitAuth.admin, blockUser } }`. Тоді новий метод кіта приходить сам, це мінорна версія (ADR-0021, доповнення A2c4). Написаний повністю вручну провайдер додає метод за `CHANGELOG.md`.
@@ -1413,6 +1462,7 @@ node scripts/erp-ui-kit.mjs check                     # файли кіта не
 
 - Не копіювати компоненти руками з репозиторію — лише командою кіта (`node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`): так працюють оновлення й перевірка `check`.
 - Не правити файли модуля під клієнта — лише файл розширення проекту (ADR-0020).
+- Не створювати обробники моків поза `src/mocks/` і не вмикати MSW повз умову `import.meta.env.VITE_BACKEND === "mocks"`; не збирати для сервера без `VITE_BACKEND` (розділ 5, ADR-0079).
 - Не писати кольори, розміри й шрифти повз токени. Потрібен новий токен — він додається в erp-ui.
 - Не писати тексти інтерфейсу в коді й не форматувати числа чи дати вручну — лише i18n і `lib/format`.
 - Не ставити поверх стилів erp-ui інші shadcn-стилі чи компоненти з інших реєстрів напряму. Вони спершу перебудовуються в реєстрі (ADR-0006).
