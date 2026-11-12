@@ -1,6 +1,12 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith, USERS } from "./helpers"
+import {
+  expectNoA11yViolations,
+  frameLook,
+  openWith,
+  themeColor,
+  USERS,
+} from "./helpers"
 
 const SECURITY = "/#/settings/security"
 const USERS_PAGE = "/#/settings/users"
@@ -43,6 +49,13 @@ test.describe("способи підтвердження входу (ADR-0011)",
     const code = setup.getByLabel("2. Введіть 6-значний код із застосунку")
     await code.fill("000000")
     await expect(setup.getByText("Код не підходить")).toBeVisible()
+    // Помилка видна й на клітинках: aria-invalid стоїть на справжньому полі поза групою клітинок.
+    const destructive = await themeColor(page, "--destructive")
+    await expect
+      .poll(() =>
+        frameLook(setup.locator('[data-slot="input-otp-slot"]').last()),
+      )
+      .toMatchObject({ border: destructive })
     await code.fill("123456")
 
     const backup = page.getByRole("dialog", {

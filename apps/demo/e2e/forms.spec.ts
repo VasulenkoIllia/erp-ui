@@ -1,6 +1,13 @@
-import { expect, test, type Locator, type Page } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import {
+  INVALID_HALO,
+  expectNoA11yViolations,
+  focusRingOf,
+  frameLook,
+  openWith,
+  themeColor,
+} from "./helpers"
 
 const PATH = "/#/forms"
 
@@ -33,21 +40,6 @@ test.describe("форми: axe", () => {
   })
 })
 
-/** Рамка й кільце поля; поле в групі (суфікс, кнопка) малює їх на групі. */
-const fieldLook = (field: Locator) =>
-  field.evaluate((element) => {
-    const frame = element.closest("[data-slot=input-group]") ?? element
-    const style = getComputedStyle(frame)
-    return { border: style.borderTopColor, ring: style.boxShadow }
-  })
-
-const themeColor = (page: Page, token: string) =>
-  page.evaluate(
-    (name) =>
-      getComputedStyle(document.documentElement).getPropertyValue(name).trim(),
-    token,
-  )
-
 test.describe("форми: поле з помилкою у фокусі", () => {
   for (const theme of ["light", "dark"] as const)
     test(`у фокусі кільце --ring, рамка помилки суцільна, ${theme}`, async ({
@@ -63,26 +55,31 @@ test.describe("форми: поле з помилкою у фокусі", () => 
       const destructive = await themeColor(page, "--destructive")
       const ring = await themeColor(page, "--ring")
 
-      // Звичайне поле й поле в групі з суфіксом валюти.
+      // Звичайне поле й поле в групі з суфіксом валюти: рамку й кільце групи малює група.
       for (const name of ["Номер рахунку", "Сума"]) {
         const field = textbox(page, name)
+        const frame =
+          name === "Сума"
+            ? page.locator("[data-slot=input-group]").filter({ has: field })
+            : field
         await expect(field).toHaveAttribute("aria-invalid", "true")
         await expect
-          .poll(() => fieldLook(field))
+          .poll(() => frameLook(frame))
           .toMatchObject({
             border: destructive,
-            ring: expect.not.stringContaining(ring),
+            ring: expect.stringContaining(INVALID_HALO),
           })
         await summary
           .getByRole("button", { name: `${name}: Заповніть це поле` })
           .click()
         await expect(field).toBeFocused()
         await expect
-          .poll(() => fieldLook(field))
+          .poll(() => frameLook(frame))
           .toMatchObject({
             border: destructive,
-            ring: expect.stringContaining(`${ring} 0px 0px 0px 2px`),
+            ring: expect.stringContaining(focusRingOf(ring)),
           })
+        expect((await frameLook(frame)).ring).not.toContain(INVALID_HALO)
         await summary.focus()
       }
     })
