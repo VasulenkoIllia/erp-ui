@@ -22,9 +22,13 @@ import {
  * документа щоразу, коли поле з'являється, зникає чи змінює ім'я (ADR-0060, п. 10).
  *
  * Реєстрація поля повторює `useController` крок у крок і спирається на ті самі внутрішні частини
- * `control` (`_subscribe`, `_fields`, `_names`, `_proxyFormState`): оновлюючи react-hook-form, проганяйте
- * `field-controller.test.tsx`. Це не повна заміна `useController`: правил (`rules`), `defaultValue`,
- * `disabled` і `shouldUnregister` окремого поля немає, бо `FormField` їх не передає.
+ * react-hook-form. Повний перелік (ADR-0077): `control._subscribe`, `_fields`, `_names`,
+ * `_proxyFormState`, `_formState`, `_formValues`, `_defaultValues`, `_options`, `_state`,
+ * `_setDisabledField` і запис поля `_f` (`ref`, `mount`, `_c`); ще поведінка: `_disableForm` шле лише
+ * `{ disabled }`, а фільтр підписки дивиться на будь-який ключ стану. Вони можуть змінитись у мінорному
+ * випуску без зміни типів, тож діапазон у реєстрі — `~7.90.0`; новішу версію беремо, коли на ній
+ * пройде `field-controller.test.tsx`. Це не повна заміна `useController`: правил (`rules`),
+ * `defaultValue`, `disabled` і `shouldUnregister` окремого поля немає, бо `FormField` їх не передає.
  */
 
 type FormControl<

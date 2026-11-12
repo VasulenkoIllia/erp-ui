@@ -115,6 +115,22 @@ test("classifyDownloadFailure: що повторюємо, а на чому зу�
     classifyDownloadFailure("gh: Not Found (HTTP 404)", false).message,
     /немає такого тегу/,
   )
+  // Невідомий тег у запиті SHA коміту GitHub відповідає 422, а не 404.
+  const unknown = classifyDownloadFailure(
+    "gh: No commit found for SHA: refs/tags/v9.9.9 (HTTP 422)",
+    false,
+  )
+  assert.equal(unknown.retry, false)
+  assert.match(unknown.message, /немає такого тегу/)
+})
+
+test("parseDryRun: шлях поза проектом у звіті — зупинка", () => {
+  for (const file of ["../outside.ts", "/etc/passwd", "./src/a.ts"])
+    assert.throws(
+      () => parseDryRun(`├ Files (1)\n│ ~ ${file}   overwrite\n`),
+      (error) =>
+        error instanceof KitError && /шлях поза проектом/.test(error.message),
+    )
 })
 
 test("isReleaseTag: лише vX.Y.Z", () => {

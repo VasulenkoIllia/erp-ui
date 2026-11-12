@@ -1,16 +1,27 @@
 /**
- * Версія кіта erp-ui для `scripts/erp-ui-kit.mjs` (крок 1.9, ADR-0029): архів тегу з GitHub або
- * гілка з локальної копії кіта → перевірка → реєстр (`shadcn build`) і звіт `add --dry-run`.
+ * Версія кіта erp-ui для `scripts/erp-ui-kit.mjs` (крок 1.9, ADR-0029): архів коміту тегу з GitHub
+ * або гілка з локальної копії кіта → перевірка → SHA коміту й відбиток реєстру (ADR-0078) →
+ * реєстр (`shadcn build`) і звіт `add --dry-run`.
  * Файл ставить `shadcn add` разом із командою: у проекті його не правте.
  */
 import { spawn } from "node:child_process"
-import { createWriteStream, existsSync, readFileSync } from "node:fs"
+import { createHash } from "node:crypto"
+import {
+  createWriteStream,
+  existsSync,
+  lstatSync,
+  readFileSync,
+  realpathSync,
+} from "node:fs"
 import path from "node:path"
 import { stripVTControlCharacters } from "node:util"
 
 export const REPO = "VasulenkoIllia/erp-ui"
 /** Архів тегу (з v0.3.1) — ~1,5 МБ за кілька секунд; довше — збій мережі. */
 const DOWNLOAD_TIMEOUT_MS = 120_000
+/** Запит SHA коміту — відповідь у кілька байтів. */
+const SHA_TIMEOUT_MS = 30_000
+const COMMIT_SHA = /^[0-9a-f]{40}$/
 /** Решта команд (`shadcn build`, `add` з встановленням залежностей, `tar`, `git`): повисла мережа не тримає CI вічно. */
 const COMMAND_TIMEOUT_MS = 10 * 60_000
 /** Після тайм-ауту — SIGTERM, а команда, що його ігнорує, через стільки отримує SIGKILL. */
@@ -32,8 +43,58 @@ export class KitError extends Error {}
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+export const sha256 = (buffer) =>
+  createHash("sha256").update(buffer).digest("hex")
+
+/** Відбиток файлу проекту (`file` від `root`); файлу немає — `undefined`. */
+export const hashFile = (root) => (file) => {
+  const full = path.join(root, file)
+  return existsSync(full) ? sha256(readFileSync(full)) : undefined
+}
+
 /** Тег випуску `vX.Y.Z`: тоді версія в `package.json` архіву має з ним збігатися. */
 export const isReleaseTag = (ref) => /^v\d+\.\d+\.\d+$/.test(ref)
+
+/**
+ * Відносний posix-шлях у нормальній формі: без `/` на початку чи в кінці, `./`, `..`, зворотної
+ * похилої й NUL. Шляхи з маніфесту, реєстру й звіту CLI команда бере лише такі.
+ */
+export const isPlainRelativePath = (file) =>
+  typeof file === "string" &&
+  file.length > 0 &&
+  file !== "." &&
+  !/[\\\0]/.test(file) &&
+  !path.posix.isAbsolute(file) &&
+  !file.endsWith("/") &&
+  path.posix.normalize(file) === file &&
+  file !== ".." &&
+  !file.startsWith("../")
+
+/**
+ * Звичайний файл (не посилання, не тека) у `root`, і його тека після розкриття посилань — теж у
+ * `root`: читання чи видалення не виходить за межі через символьне посилання.
+ */
+export function isRegularFileInside(root, file) {
+  const full = path.resolve(root, file)
+  let stat
+  try {
+    stat = lstatSync(full, { throwIfNoEntry: false })
+  } catch (error) {
+    // Шлях під звичайним файлом (`a.ts/b.ts`) — теж не файл усередині; інша помилка — далі.
+    if (error?.code === "ENOTDIR") return false
+    throw error
+  }
+  if (!stat?.isFile()) return false
+  const relative = path.relative(
+    realpathSync(root),
+    realpathSync(path.dirname(full)),
+  )
+  return (
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  )
+}
 
 /**
  * Звіт `shadcn add --dry-run` (CLI 4.22): рядки `│ ~ src/… overwrite`, `+ … create`, `= … skip` і
@@ -44,6 +105,10 @@ export function parseDryRun(output) {
   const files = []
   for (const line of text.split("\n")) {
     const match = /^│\s+[+~=]\s+(\S+)\s+(create|overwrite|skip)\b/.exec(line)
+    if (match && !isPlainRelativePath(match[1]))
+      throw new KitError(
+        `Звіт shadcn add --dry-run називає шлях поза проектом: ${match[1]}`,
+      )
     if (match) files.push({ path: match[1], action: match[2] })
   }
   const total = /├\s+Files \((\d+)\)/.exec(text)
@@ -70,9 +135,15 @@ export function assertNoDependencies(output) {
     )
 }
 
-/** Аргументи `update`: версія, `--dry-run`, `--add a,b`, `--items a,b`, `--from <тека>`. */
+/** Аргументи `update`: версія, `--dry-run`, `--prune`, `--add a,b`, `--items a,b`, `--from <тека>`. */
 export function parseArgs(args) {
-  const options = { dryRun: false, add: [], items: undefined, from: undefined }
+  const options = {
+    dryRun: false,
+    prune: false,
+    add: [],
+    items: undefined,
+    from: undefined,
+  }
   const rest = []
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
@@ -82,6 +153,7 @@ export function parseArgs(args) {
       return next
     }
     if (arg === "--dry-run") options.dryRun = true
+    else if (arg === "--prune") options.prune = true
     else if (arg === "--add") options.add.push(...value().split(","))
     else if (arg === "--items") options.items = value().split(",")
     else if (arg === "--from") options.from = value()
@@ -110,15 +182,15 @@ export function printReport(kit, files, oldFiles, projectOwned) {
   const kept = new Set(files.map((file) => file.path))
   for (const file of Object.keys(oldFiles).filter((file) => !kept.has(file)))
     console.log(
-      `  ? ${file} — у новій версії цього файлу немає; видаліть сам, якщо не потрібен`,
+      `  ? ${file} — у новій версії цього файлу немає; видаліть сам чи --prune, якщо не потрібен`,
     )
 }
 
 /** Невдалий `gh api`: повторити (мережа, 5xx, 429) чи зупинитись із поясненням. */
 export function classifyDownloadFailure(stderr, timedOut) {
   if (timedOut) return { retry: true, message: "тайм-аут завантаження" }
-  // 404: немає тегу, а в приватного репозиторію ще й токен без доступу.
-  if (/HTTP 404|Not Found/.test(stderr))
+  // 404: немає тегу, а в приватного репозиторію ще й токен без доступу; 422 — немає такого коміту.
+  if (/HTTP 404|Not Found|No commit found/.test(stderr))
     return {
       retry: false,
       message:
@@ -234,15 +306,24 @@ export function readJson(file, what) {
   }
 }
 
-/** Тег із GitHub одним запитом: тайм-аут, повтори на тимчасових збоях, без повтору на 4xx. */
-async function downloadTag(ref, dir) {
-  const archive = path.join(dir, "kit.tar.gz")
+/** Запит `gh api`: тайм-аут, повтори на тимчасових збоях, без повтору на 4xx. */
+async function ghApi(
+  ref,
+  args,
+  { capture = false, stdoutFile, timeoutMs = DOWNLOAD_TIMEOUT_MS } = {},
+) {
   for (let attempt = 0; ; attempt++) {
-    const result = await run("gh", ["api", `repos/${REPO}/tarball/${ref}`], {
-      stdoutFile: archive,
-      timeoutMs: DOWNLOAD_TIMEOUT_MS,
-    })
-    if (result.code === 0 && !result.timedOut) break
+    // Хост явно: GH_HOST чи вхід лише в інший GitHub не підмінять джерело кіта.
+    const result = await run(
+      "gh",
+      ["api", "--hostname", "github.com", ...args],
+      {
+        capture,
+        stdoutFile,
+        timeoutMs,
+      },
+    )
+    if (result.code === 0 && !result.timedOut) return result
     const failure = classifyDownloadFailure(result.stderr, result.timedOut)
     const delay = RETRY_DELAYS_MS[attempt]
     if (!failure.retry || delay === undefined)
@@ -252,7 +333,65 @@ async function downloadTag(ref, dir) {
     )
     await sleep(delay)
   }
+}
+
+/**
+ * Тег із GitHub: спершу SHA його коміту (тег випуску — саме тег, `refs/tags/`, а не гілка з тією самою
+ * назвою), потім архів саме цього коміту — вміст відповідає SHA, навіть якщо тег пересунуть між
+ * запитами. Повертає SHA.
+ */
+async function downloadTag(ref, dir) {
+  const commit = isReleaseTag(ref) ? `refs/tags/${ref}` : ref
+  const { stdout } = await ghApi(
+    ref,
+    [
+      "-H",
+      "Accept: application/vnd.github.sha",
+      `repos/${REPO}/commits/${commit}`,
+    ],
+    { capture: true, timeoutMs: SHA_TIMEOUT_MS },
+  )
+  const sha = stdout.trim()
+  if (!COMMIT_SHA.test(sha))
+    throw new KitError(
+      `Кіт ${ref}: GitHub повернув не SHA коміту: ${stripVTControlCharacters(sha).slice(0, 80)}`,
+    )
+  const archive = path.join(dir, "kit.tar.gz")
+  await ghApi(ref, [`repos/${REPO}/tarball/${sha}`], { stdoutFile: archive })
   await mustRun("tar", ["-xzf", archive, "-C", dir, "--strip-components=1"])
+  return sha
+}
+
+/**
+ * Відбиток реєстру версії: `registry.json` і всі файли, на які він посилається, — шляхи й їхні sha256
+ * за абеткою. Не залежить від git і версії CLI shadcn: той самий вміст — той самий відбиток, хоч би
+ * й на іншому коміті.
+ */
+export function registryFingerprint(dir, registry) {
+  const files = new Set(["registry.json"])
+  for (const item of registry.items ?? [])
+    for (const file of item.files ?? []) files.add(file.path)
+  const lines = [...files].sort().map((file) => {
+    // Посилання в архіві на файл поза ним (ключі, токени) не потрапить ні у відбиток, ні в проект.
+    if (!isPlainRelativePath(file) || !isRegularFileInside(dir, file))
+      throw new KitError(
+        `registry.json: ${String(file)} — не звичайний файл усередині кіта`,
+      )
+    return `${file}\0${sha256(readFileSync(path.join(dir, file)))}\n`
+  })
+  return sha256(lines.join(""))
+}
+
+/** Залежності елементів лише з цього реєстру: чужі CLI довантажив би поза SHA й відбитком. */
+function assertOwnRegistryDependencies(registry, ref) {
+  const names = new Set((registry.items ?? []).map((item) => item.name))
+  const foreign = (registry.items ?? [])
+    .flatMap((item) => item.registryDependencies ?? [])
+    .filter((dependency) => !names.has(dependency))
+  if (foreign.length)
+    throw new KitError(
+      `registry.json версії ${ref}: залежності поза реєстром кіта (${foreign.join(", ")}) — їхній уміст не звірити`,
+    )
 }
 
 /** Закомічений стан гілки чи коміту локальної копії кіта; повертає SHA коміту. */
@@ -303,15 +442,14 @@ export function shadcnBin(root) {
 
 /**
  * Реєстр версії кіта в `dir/r`: архів тегу (чи гілка локальної копії) → перевірка, що це той
- * репозиторій і та версія → `shadcn build`. `kit` — що записати як версію: тег, а для гілки з
- * локальної копії — гілка з SHA коміту (гілка рухається).
+ * репозиторій і та версія → `shadcn build`. `kit` — що записати як версію: тег, а для гілки —
+ * гілка з SHA коміту (гілка рухається); `sha` — коміт, `fingerprint` — відбиток реєстру.
  */
 export async function buildKit({ ref, from, root, dir }) {
-  let kit = ref
-  if (from) {
-    const sha = await copyFromCheckout(ref, path.resolve(root, from), dir)
-    if (!isReleaseTag(ref)) kit = `${ref}@${sha.slice(0, 12)}`
-  } else await downloadTag(ref, dir)
+  const sha = from
+    ? await copyFromCheckout(ref, path.resolve(root, from), dir)
+    : await downloadTag(ref, dir)
+  const kit = isReleaseTag(ref) ? ref : `${ref}@${sha.slice(0, 12)}`
   const registryFile = path.join(dir, "registry.json")
   if (!existsSync(registryFile))
     throw new KitError(`У версії ${ref} немає registry.json: це не кіт erp-ui`)
@@ -324,6 +462,8 @@ export async function buildKit({ ref, from, root, dir }) {
   )
   if (isReleaseTag(ref) && `v${String(version)}` !== ref)
     throw new KitError(`Тег ${ref} містить версію ${String(version)}`)
+  assertOwnRegistryDependencies(registry, ref)
+  const fingerprint = registryFingerprint(dir, registry)
   const out = path.join(dir, "r")
   await mustRun(
     shadcnBin(root),
@@ -332,5 +472,5 @@ export async function buildKit({ ref, from, root, dir }) {
       capture: true,
     },
   )
-  return { out, kit }
+  return { out, kit, sha, fingerprint }
 }

@@ -7,17 +7,19 @@
  *   node scripts/erp-ui-kit.mjs update v1.0.0             # усі встановлені елементи — до тегу
  *   node scripts/erp-ui-kit.mjs update v1.0.0 --dry-run   # лише показати, що зміниться
  *   node scripts/erp-ui-kit.mjs update v1.0.0 --add erp/command-palette   # ще й новий елемент
+ *   node scripts/erp-ui-kit.mjs update v1.0.0 --prune     # і видалити незмінені файли-сироти
  *   node scripts/erp-ui-kit.mjs update <гілка|SHA> --from ../erp-ui       # з локальної копії кіта
  *
- * Список встановлених елементів і відбитки файлів — у `kit-files.json` проекту; перший раз (у файлі
- * ще немає `items`) — `--items base,data,…`. Оновлення: чисте git → тег архівом одним запитом
- * (`gh api …/tarball/<тег>`, тайм-аут і повтори) → `shadcn build` → залежності забираються з
- * елементів → `add --dry-run` (звіт) → `add --overwrite --yes` (лише файли) → файли, які проект
- * доповнює сам, лишаються його → залежності, яких у проекті немає, — з діапазоном кіта (наявні — як
- * є) → повторний `--dry-run` (усе вже як у версії) → нові відбитки. Файлів, яких у новій версії
- * немає, команда не видаляє, а лише називає.
+ * Список встановлених елементів, версія з SHA коміту й відбитком реєстру, відбитки файлів, сироти й
+ * контрольна сума — у `kit-files.json` проекту (ADR-0078); перший раз (у файлі ще немає `items`) —
+ * `--items base,data,…`. Оновлення: чисте git → SHA коміту тегу й архів цього коміту (`gh api`,
+ * тайм-аут і повтори) → `shadcn build` → залежності забираються з елементів → `add --dry-run` (звіт)
+ * → зупинка на тому самому тегу з іншим умістом і на файлі з позначкою локальної правки (ADR-0076)
+ * → `add --overwrite --yes` (лише файли) → файли, які проект доповнює сам, лишаються його →
+ * залежності, яких у проекті немає, — з діапазоном кіта (наявні — як є) → повторний `--dry-run`
+ * (усе вже як у версії) → нові відбитки. Файлів, яких у новій версії немає (сироти), команда не
+ * видаляє без `--prune`, а називає наприкінці й пам'ятає в маніфесті.
  */
-import { createHash } from "node:crypto"
 import {
   existsSync,
   mkdirSync,
@@ -47,6 +49,7 @@ import {
 import {
   assertNoDependencies,
   buildKit,
+  hashFile,
   KitError,
   mustRun,
   parseArgs,
@@ -54,8 +57,20 @@ import {
   printReport,
   readJson,
   run,
+  sha256,
   shadcnBin,
 } from "./erp-ui-kit-lib.mjs"
+import {
+  checksumProblem,
+  manifestShapeProblem,
+  orphansAfter,
+  presentOrphans,
+  previewPrune,
+  printOrphans,
+  settleOrphans,
+  stopsBeforeWrite,
+  withChecksum,
+} from "./erp-ui-kit-manifest.mjs"
 
 const MANIFEST = "kit-files.json"
 /** Файли кіта, які проект після встановлення доповнює сам (стилі, блок для CLAUDE.md). */
@@ -64,13 +79,6 @@ const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
 const RECOVERY_HINT =
   "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
-
-const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex")
-
-const hashFile = (root) => (file) => {
-  const full = path.join(root, file)
-  return existsSync(full) ? sha256(readFileSync(full)) : undefined
-}
 
 /** Файли кіта, змінені чи видалені в проекті (файли, які проект доповнює сам, — не рахуються). */
 export function kitFileProblems(manifestFiles, hashOf) {
@@ -89,14 +97,8 @@ function readManifest(root) {
   const file = path.join(root, MANIFEST)
   if (!existsSync(file)) return null
   const manifest = readJson(file, MANIFEST)
-  if (
-    typeof manifest?.files !== "object" ||
-    manifest.files === null ||
-    (manifest.items !== undefined && !Array.isArray(manifest.items))
-  )
-    throw new KitError(
-      `${MANIFEST}: немає відбитків файлів (files) чи items не список`,
-    )
+  const problem = manifestShapeProblem(manifest, MANIFEST)
+  if (problem) throw new KitError(problem)
   return manifest
 }
 
@@ -198,13 +200,33 @@ function checkCommand(root) {
   const { changed, missing } = kitFileProblems(manifest.files, hashFile(root))
   for (const file of changed) console.error(`змінено файл кіта: ${file}`)
   for (const file of missing) console.error(`немає файлу кіта: ${file}`)
-  if (changed.length || missing.length)
-    throw new KitError(
-      "Файли кіта не правимо: зміни — у файлі розширення, бракує точки розширення — PR у кіт.",
-    )
+  const checksum = checksumProblem(manifest, MANIFEST)
+  if (checksum && !checksum.fatal) console.warn(checksum.message)
+  printOrphans(presentOrphans(root, manifest))
+  const failures = [
+    ...(changed.length || missing.length
+      ? [
+          "Файли кіта не правимо: зміни — у файлі розширення, бракує точки розширення — PR у кіт.",
+        ]
+      : []),
+    ...(checksum?.fatal ? [checksum.message] : []),
+  ]
+  if (failures.length) throw new KitError(failures.join("\n"))
   console.log(
     `Файли кіта ${String(manifest.kit)} не змінені: ${String(total)}.`,
   )
+}
+
+/** Які з файлів відстежує git: `--prune` видаляє лише їх, бо їх повертає `git restore`. */
+async function trackedByGit(root, files) {
+  if (!files.length) return () => false
+  const result = await mustRun(
+    "git",
+    ["--literal-pathspecs", "ls-files", "-z", "--", ...files],
+    { cwd: root, capture: true },
+  )
+  const tracked = new Set(result.stdout.split("\0").filter(Boolean))
+  return (file) => tracked.has(file)
 }
 
 /** Чисте git (оновлення видно окремо в diff) і файли кіта такі, як після встановлення. */
@@ -267,7 +289,7 @@ async function verifyApplied(root, itemFiles) {
 /** `add --overwrite` і все, що після нього: файли проекту, нові залежності, звірка, відбитки. */
 async function applyUpdate({
   root,
-  kit,
+  version,
   items,
   itemFiles,
   files,
@@ -275,6 +297,7 @@ async function applyUpdate({
   manager,
   manifest,
   dir,
+  prune,
 }) {
   const saved = new Map(
     PROJECT_OWNED.filter((file) => existsSync(path.join(root, file))).map(
@@ -298,11 +321,21 @@ async function applyUpdate({
     }
     await verifyApplied(root, itemFiles)
     const kitFiles = await kitFileHashes(root, files)
-    writeManifest(root, { kit, items, files: kitFiles, own })
+    const found = orphansAfter(root, manifest, files)
+    const orphans = settleOrphans(
+      root,
+      found,
+      prune ? await trackedByGit(root, Object.keys(found)) : undefined,
+    )
+    writeManifest(
+      root,
+      withChecksum({ ...version, items, files: kitFiles, own, orphans }),
+    )
     console.log(
-      `\nКіт ${kit}: ${MANIFEST} оновлено (${String(Object.keys(kitFiles).length)} файлів). Далі — typecheck, lint, тести, збірка й e2e; що змінилось — CHANGELOG.md кіта.`,
+      `\nКіт ${version.kit}, коміт ${version.sha}: ${MANIFEST} оновлено (${String(Object.keys(kitFiles).length)} файлів). Далі — typecheck, lint, тести, збірка й e2e; що змінилось — CHANGELOG.md кіта.`,
     )
     printDependencyWarnings(root, plan)
+    printOrphans(Object.keys(orphans), { kit: version.kit, pruned: prune })
   } catch (error) {
     console.error(
       `\nОновлення не завершилось, ${MANIFEST} не змінено. ${RECOVERY_HINT}`,
@@ -311,8 +344,20 @@ async function applyUpdate({
   }
 }
 
+/** Зупинки: у `--dry-run` — попередження «справжнє оновлення зупиниться», інакше — помилка. */
+function stopOrWarn(stops, dryRun) {
+  const fatal = stops.filter((stop) => stop.fatal).map((stop) => stop.message)
+  if (fatal.length && !dryRun) throw new KitError(fatal.join("\n"))
+  for (const stop of stops)
+    console.warn(
+      stop.fatal
+        ? `Увага (справжнє оновлення зупиниться): ${stop.message}`
+        : `Увага: ${stop.message}`,
+    )
+}
+
 async function updateCommand(root, args) {
-  const { rest, dryRun, add, items: itemsArg, from } = parseArgs(args)
+  const { rest, dryRun, prune, add, items: itemsArg, from } = parseArgs(args)
   const ref = rest[0]
   if (!ref || !SAFE_REF.test(ref) || ref.includes(".."))
     throw new KitError(
@@ -321,9 +366,13 @@ async function updateCommand(root, args) {
   const manifest = readManifest(root) ?? { files: {} }
   const items = itemsToInstall(manifest, itemsArg, add)
   const problems = await readinessProblems(root, manifest)
-  if (problems.length && !dryRun) throw new KitError(problems.join("\n"))
-  for (const problem of problems)
-    console.warn(`Увага (справжнє оновлення зупиниться): ${problem}`)
+  stopOrWarn(
+    problems.map((message) => ({ fatal: true, message })),
+    dryRun,
+  )
+  // Маніфест змінили не командою: update бере items звідти й запише нову суму, а людині — що сталось.
+  const checksum = checksumProblem(manifest, MANIFEST)
+  if (checksum?.fatal) console.warn(`Увага: ${checksum.message}`)
 
   const dir = mkdtempSync(path.join(tmpdir(), "erp-ui-kit-"))
   // Ctrl+C посеред `add`: тимчасова тека — геть, людині — як побачити й повернути зміни.
@@ -335,7 +384,7 @@ async function updateCommand(root, args) {
   process.once("SIGINT", interrupted)
   process.once("SIGTERM", interrupted)
   try {
-    const { out, kit } = await buildKit({ ref, from, root, dir })
+    const { out, ...version } = await buildKit({ ref, from, root, dir })
     const itemFiles = items.map((item) => {
       const file = path.join(out, `${item}.json`)
       if (!existsSync(file))
@@ -348,14 +397,27 @@ async function updateCommand(root, args) {
       installedVersion(root),
     )
     const files = await dryRunReport(root, itemFiles)
-    printReport(kit, files, manifest.files, PROJECT_OWNED)
+    printReport(version.kit, files, manifest.files, PROJECT_OWNED)
     printDependencyPlan(plan)
+    if (dryRun && prune) {
+      const found = orphansAfter(root, manifest, files)
+      previewPrune(root, found, await trackedByGit(root, Object.keys(found)))
+    }
+    stopOrWarn(
+      stopsBeforeWrite(
+        root,
+        manifest,
+        version,
+        files.filter((file) => !PROJECT_OWNED.includes(file.path)),
+      ),
+      dryRun,
+    )
     // До запису: менеджер пакетів відомий і є (і в --dry-run — щоб він не обіцяв зайвого).
     const manager = await packageManagerFor(root, plan)
     if (!dryRun)
       await applyUpdate({
         root,
-        kit,
+        version,
         items,
         itemFiles,
         files,
@@ -363,6 +425,7 @@ async function updateCommand(root, args) {
         manager,
         manifest,
         dir,
+        prune,
       })
   } finally {
     process.off("SIGINT", interrupted)
@@ -379,7 +442,7 @@ async function main([command, ...args]) {
   else if (command === "update") await updateCommand(root, args)
   else
     throw new KitError(
-      "Команди: check | update <версія> [--dry-run] [--add …] [--items …] [--from …]",
+      "Команди: check | update <версія> [--dry-run] [--prune] [--add …] [--items …] [--from …]",
     )
 }
 
