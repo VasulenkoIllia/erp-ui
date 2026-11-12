@@ -6,7 +6,9 @@
  * - `GET /company` → профіль; `PATCH /company` (зміни) → профіль. Помилки — 422 `fieldErrors`
  *   з кодами LC12 (`edrpou`: `length` / `checksum`, `iban`: `country` / …) і `required`.
  * - Зображення: `PUT /company/logo` і `PUT /company/stamp` (multipart, поле `file`; PNG, JPG, WebP
- *   чи SVG до 1 МБ) → { url }; `DELETE /company/logo|stamp` → 204.
+ *   чи SVG до 1 МБ) → { url }; `DELETE /company/logo|stamp` → 204. SVG сервер очищає від скриптів,
+ *   обробників подій і зовнішніх посилань або не приймає; файли віддає з окремого походження без cookie
+ *   застосунку або з `attachment`, `nosniff` і `Content-Security-Policy: sandbox` (ADR-0081).
  * - Філії: `POST /company/branches` → філія; `PATCH` і `DELETE /company/branches/:id`.
  * - Юрособа має ЄДРПОУ (8 цифр), ФОП — РНОКПП (10 цифр); платник ПДВ — ІПН (12 цифр).
  * - `palette` — палітра компанії: застосунок бере її типовою (`useBrandAppearance(palette)`).
