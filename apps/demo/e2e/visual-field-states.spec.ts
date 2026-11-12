@@ -71,7 +71,7 @@ test.describe("скриншоти стану поля, кнопок і друк�
       // Перехід кольорів після зміни теми (150 мс) — папір без нього: знімок після його кінця.
       // Лише переходи: нескінченна анімація (спінер, скелет) не закінчується ніколи.
       await page.evaluate(() =>
-        Promise.all(
+        Promise.allSettled(
           document
             .getAnimations()
             .filter((motion) => motion instanceof CSSTransition)

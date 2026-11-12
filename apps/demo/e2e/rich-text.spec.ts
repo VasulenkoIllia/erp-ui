@@ -272,6 +272,8 @@ test.describe("поле тексту", () => {
         border: destructive,
         ring: expect.stringContaining(focusRingOf(ring)),
       })
+    // Форма ставить фокус у поле вдруге наступним завданням: виходимо з поля після нього.
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve)))
     await page.getByRole("button", { name: "Зберегти нотатку" }).focus()
     await expect
       .poll(() => frameLook(frame))

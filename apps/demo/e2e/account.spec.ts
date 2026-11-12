@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import {
+  INVALID_HALO,
   expectNoA11yViolations,
+  focusRingOf,
   frameLook,
   openWith,
   themeColor,
@@ -50,12 +52,28 @@ test.describe("способи підтвердження входу (ADR-0011)",
     await code.fill("000000")
     await expect(setup.getByText("Код не підходить")).toBeVisible()
     // Помилка видна й на клітинках: aria-invalid стоїть на справжньому полі поза групою клітинок.
+    // Без фокуса — ореол групи, у фокусі — кільце --ring активної клітинки без ореолу.
     const destructive = await themeColor(page, "--destructive")
+    const ring = await themeColor(page, "--ring")
+    const group = setup.locator('[data-slot="input-otp-group"]').first()
     await expect
       .poll(() =>
         frameLook(setup.locator('[data-slot="input-otp-slot"]').last()),
       )
       .toMatchObject({ border: destructive })
+    await setup.getByRole("button", { name: "Скасувати" }).focus()
+    await expect
+      .poll(() => frameLook(group))
+      .toMatchObject({ ring: expect.stringContaining(INVALID_HALO) })
+    await code.focus()
+    await expect
+      .poll(() =>
+        frameLook(
+          setup.locator('[data-slot="input-otp-slot"][data-active="true"]'),
+        ),
+      )
+      .toMatchObject({ ring: expect.stringContaining(focusRingOf(ring)) })
+    expect((await frameLook(group)).ring).not.toContain(INVALID_HALO)
     await code.fill("123456")
 
     const backup = page.getByRole("dialog", {
