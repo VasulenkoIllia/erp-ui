@@ -12741,6 +12741,11 @@
           "target": "~/src/modules/K2-invoices/components/invoice-statuses.ts"
         },
         {
+          "path": "registry/modules/K2-invoices/components/payment-link-body.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/payment-link-body.tsx"
+        },
+        {
           "path": "registry/modules/K2-invoices/components/payment-link.tsx",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/components/payment-link.tsx"

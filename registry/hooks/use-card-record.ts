@@ -28,34 +28,50 @@ export interface CardRecord<T> {
   readonly retry: () => void
 }
 
+type Freshness = "waiting" | "fetching" | "fresh"
+
+/**
+ * Етап свіжості запису картки: «чекаємо» → власний запит «летить» (на паузі без мережі теж) → «свіжий», коли
+ * він завершився без помилки; помилка повертає до «чекаємо», і свіжим запис зробить лише наступний запит.
+ */
+function nextFreshness(
+  stage: Freshness,
+  fetchStatus: "fetching" | "paused" | "idle",
+  hasError: boolean,
+): Freshness {
+  if (stage === "fresh") return stage
+  if (fetchStatus === "fetching") return "fetching"
+  if (stage === "fetching" && fetchStatus === "idle")
+    return hasError ? "waiting" : "fresh"
+  return stage
+}
+
 /** Запис картки модуля (`GET /<ресурс>/:id`) у компанії користувача. */
 export function useCardRecord<T extends RaRecord>(
   resource: string,
   id: string,
 ): CardRecord<T> {
   const companyId = useCompanyId()
-  const {
-    data,
-    isPending,
-    isFetching,
-    isFetchedAfterMount,
-    fetchStatus,
-    error,
-    refetch,
-  } = useGetOne<T>(
-    resource,
-    { id, meta: companyScope(companyId) },
-    { refetchOnMount: "always" },
-  )
+  const { data, isPending, isFetching, fetchStatus, error, refetch } =
+    useGetOne<T>(
+      resource,
+      { id, meta: companyScope(companyId) },
+      { refetchOnMount: "always" },
+    )
   const retry = useCallback(() => {
     void refetch()
   }, [refetch])
-  // `isFetchedAfterMount` стає true й від `setQueryData`: ra-core кладе рядки списку того самого ресурсу в кеш
-  // карток. Тож свіжість — коли власний запит картки (`refetchOnMount: "always"`) уже не йде; далі вона
-  // тримається й під час фонового перечитування.
-  const [freshId, setFreshId] = useState<string | null>(null)
-  if (isFetchedAfterMount && !isFetching && !error && freshId !== id)
-    setFreshId(id)
+  // Свіжість — перехід власного запиту картки з польоту до кінця без помилки. Ні `isFetchedAfterMount`, ні
+  // `dataUpdatedAt` для цього не годяться: ra-core кладе рядки списку того самого ресурсу в кеш карток
+  // (`setQueryData`), і це ще й стирає помилку картки. Свіжість тримається й під час фонового перечитування.
+  const [freshness, setFreshness] = useState<{
+    id: string
+    stage: Freshness
+  }>({ id, stage: "waiting" })
+  const stage = freshness.id === id ? freshness.stage : "waiting"
+  const nextStage = nextFreshness(stage, fetchStatus, error !== null)
+  if (freshness.id !== id || nextStage !== stage)
+    setFreshness({ id, stage: nextStage })
   const failure: unknown =
     error ?? (fetchStatus === "paused" ? OFFLINE : undefined)
   // Запису немає (видалили, інша компанія) — «не знайдено», навіть якщо шапка була в кеші списку.
@@ -64,7 +80,7 @@ export function useCardRecord<T extends RaRecord>(
     record: notFound ? undefined : data,
     isPending,
     isFetching,
-    isFresh: freshId === id && data !== undefined && !error,
+    isFresh: stage === "fresh" && data !== undefined && !error,
     pageError: notFound || !data ? failure : undefined,
     failure,
     retry,
