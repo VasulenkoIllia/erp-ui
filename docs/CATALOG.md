@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 424. Встановлення в проект: `npx shadcn@latest add VasulenkoIllia/erp-ui/<елемент>` (версія — `#vX.Y.Z`). Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 424. Встановлення в проект: перший раз `pnpm exec shadcn add VasulenkoIllia/erp-ui/base#vX.Y.Z`, далі лише командою кіта `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`. Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 

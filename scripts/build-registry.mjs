@@ -358,20 +358,6 @@ function build() {
     }
   }
 
-  // Скіл для роботи в самому репозиторії — копія скіла, що ставиться в проекти. Лише локально:
-  // `.claude/` у відкритому репозиторії немає (ADR-0048).
-  const skill = "registry/claude/skills/erp-ui/SKILL.md"
-  const localSkill = ".claude/skills/erp-ui/SKILL.md"
-  if (
-    existsSync(path.join(root, localSkill)) &&
-    readFileSync(path.join(root, skill), "utf8") !==
-      readFileSync(path.join(root, localSkill), "utf8")
-  ) {
-    problems.push(
-      `${localSkill} розійшовся з ${skill}: правте ${skill} і скопіюйте`,
-    )
-  }
-
   const registry = {
     $schema: "https://ui.shadcn.com/schema/registry.json",
     name: "erp-ui",
@@ -630,7 +616,7 @@ function catalog(items) {
     "",
     "> Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.",
     "",
-    `Елементів: ${items.length}. Встановлення в проект: \`npx shadcn@latest add ${REPO}/<елемент>\` (версія — \`#vX.Y.Z\`). Як підключити кіт — \`docs/using-erp-ui.md\`.`,
+    `Елементів: ${items.length}. Встановлення в проект: перший раз \`pnpm exec shadcn add ${REPO}/base#vX.Y.Z\`, далі лише командою кіта \`node scripts/erp-ui-kit.mjs update <версія> --add <елемент>\`. Як підключити кіт — \`docs/using-erp-ui.md\`.`,
     "",
     "Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.",
     "",
