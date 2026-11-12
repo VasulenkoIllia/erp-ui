@@ -145,11 +145,14 @@ function runExpectingFailure(cwd, cmd, cmdArgs, env = {}) {
       env: withEnv(env),
     })
     let output = ""
-    for (const stream of [child.stdout, child.stderr])
+    for (const stream of [child.stdout, child.stderr]) {
+      // Рядки, а не байти: межа шматка не розріже кириличну літеру в повідомленні запобіжника.
+      stream.setEncoding("utf8")
       stream.on("data", (chunk) => {
         output += chunk
         process.stdout.write(chunk)
       })
+    }
     child.on("error", reject)
     // `close`, а не `exit`: до нього вивід дочитано, і повідомлення запобіжника не загубиться.
     child.on("close", (code) => {

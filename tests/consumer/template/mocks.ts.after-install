@@ -26,7 +26,7 @@ const users: MockUser[] = [
     id: "u1",
     name: "Олена Коваль",
     email: "olena@example.com",
-    // Мітка моків проекту: consumer-smoke шукає її в збірці (MOCK_CANARY).
+    // Мітка моків проекту: consumer-smoke шукає її в збірці (MOCK_SIGNATURES.project).
     password: "erp-ui-smoke-mock-canary",
     totpCode: "123456",
     roles: ["accountant"],
