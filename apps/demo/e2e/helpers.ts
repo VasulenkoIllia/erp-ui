@@ -73,3 +73,25 @@ export async function chooseScenario(page: Page, name: string): Promise<void> {
   await panel.getByRole("button", { name: "Закрити" }).click()
   await expect(panel).toBeHidden()
 }
+
+/** Ореол поля з помилкою без фокуса (кільце 3 px) і кільце фокуса `--ring` (2 px) у `box-shadow`. */
+export const INVALID_HALO = "0px 0px 0px 3px"
+export const focusRingOf = (ringColor: string) => `${ringColor} 0px 0px 0px 2px`
+
+/** Обчислені колір рамки й тінь (кільце) елемента, що малює рамку поля. */
+export const frameLook = (frame: Locator) =>
+  frame.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return { border: style.borderTopColor, ring: style.boxShadow }
+  })
+
+/** Колір токена теми в тому записі, що й у `getComputedStyle` (пробний елемент, а не текст змінної). */
+export const themeColor = (page: Page, token: string) =>
+  page.evaluate((name) => {
+    const probe = document.createElement("span")
+    probe.style.color = `var(${name})`
+    document.body.append(probe)
+    const color = getComputedStyle(probe).color
+    probe.remove()
+    return color
+  }, token)

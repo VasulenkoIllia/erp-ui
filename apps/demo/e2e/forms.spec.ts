@@ -1,6 +1,13 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { expectNoA11yViolations, openWith } from "./helpers"
+import {
+  INVALID_HALO,
+  expectNoA11yViolations,
+  focusRingOf,
+  frameLook,
+  openWith,
+  themeColor,
+} from "./helpers"
 
 const PATH = "/#/forms"
 
@@ -31,6 +38,51 @@ test.describe("форми: axe", () => {
     ).toBeVisible()
     await expectNoA11yViolations(page)
   })
+})
+
+test.describe("форми: поле з помилкою у фокусі", () => {
+  for (const theme of ["light", "dark"] as const)
+    test(`у фокусі кільце --ring, рамка помилки суцільна, ${theme}`, async ({
+      page,
+    }) => {
+      await openWith(page, { theme }, PATH)
+      await page
+        .getByTestId("invoice-form")
+        .getByRole("button", { name: "Зберегти" })
+        .click()
+      const summary = page.locator("[data-slot=form-error-summary]")
+      await expect(summary).toBeFocused()
+      const destructive = await themeColor(page, "--destructive")
+      const ring = await themeColor(page, "--ring")
+
+      // Звичайне поле й поле в групі з суфіксом валюти: рамку й кільце групи малює група.
+      for (const name of ["Номер рахунку", "Сума"]) {
+        const field = textbox(page, name)
+        const frame =
+          name === "Сума"
+            ? page.locator("[data-slot=input-group]").filter({ has: field })
+            : field
+        await expect(field).toHaveAttribute("aria-invalid", "true")
+        await expect
+          .poll(() => frameLook(frame))
+          .toMatchObject({
+            border: destructive,
+            ring: expect.stringContaining(INVALID_HALO),
+          })
+        await summary
+          .getByRole("button", { name: `${name}: Заповніть це поле` })
+          .click()
+        await expect(field).toBeFocused()
+        await expect
+          .poll(() => frameLook(frame))
+          .toMatchObject({
+            border: destructive,
+            ring: expect.stringContaining(focusRingOf(ring)),
+          })
+        expect((await frameLook(frame)).ring).not.toContain(INVALID_HALO)
+        await summary.focus()
+      }
+    })
 })
 
 test.describe("форми: поведінка (ADR-0015)", () => {

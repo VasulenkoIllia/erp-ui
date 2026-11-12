@@ -15,8 +15,9 @@ export const richTextMentionClass =
 export const richTextFrameClass =
   "@container flex w-full min-w-0 flex-col rounded-lg border border-input bg-transparent transition-colors outline-none dark:bg-input/30"
 
+/** Помилка: рамка суцільна в обох темах і у фокусі, ореол лише без фокуса (у фокусі кільце `--ring`). */
 export const richTextInvalidClass =
-  "border-destructive ring-3 ring-destructive/20 dark:border-destructive/50 dark:ring-destructive/40"
+  "border-destructive has-[.ProseMirror-focused]:border-destructive not-has-[.ProseMirror-focused]:ring-3 not-has-[.ProseMirror-focused]:ring-destructive/20 dark:not-has-[.ProseMirror-focused]:ring-destructive/40"
 
 /** Тіло поля: мінімальна висота не стрибає, коли лінивий редактор змінює заглушку. */
 export const richTextBodyClass =

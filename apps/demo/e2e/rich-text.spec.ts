@@ -1,9 +1,13 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import {
+  INVALID_HALO,
   expectNoA11yViolations,
   expectNoHorizontalScroll,
+  focusRingOf,
+  frameLook,
   openWith,
+  themeColor,
 } from "./helpers"
 
 /** Поле тексту (UI12, ADR-0052): редактор у браузері, згадки, показ чужого документа. */
@@ -256,6 +260,28 @@ test.describe("поле тексту", () => {
     await expect(error).toBeVisible()
     await expect(note(page)).toHaveAttribute("aria-invalid", "true")
     await expect(note(page)).toBeFocused()
+    // Рамка помилки суцільна; у фокусі кільце --ring, ореол помилки — лише без фокуса.
+    const frame = page
+      .locator('[data-slot="rich-text-field"]')
+      .filter({ has: note(page) })
+    const destructive = await themeColor(page, "--destructive")
+    const ring = await themeColor(page, "--ring")
+    await expect
+      .poll(() => frameLook(frame))
+      .toMatchObject({
+        border: destructive,
+        ring: expect.stringContaining(focusRingOf(ring)),
+      })
+    // Форма ставить фокус у поле вдруге наступним завданням: виходимо з поля після нього.
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve)))
+    await page.getByRole("button", { name: "Зберегти нотатку" }).focus()
+    await expect
+      .poll(() => frameLook(frame))
+      .toMatchObject({
+        border: destructive,
+        ring: expect.stringContaining(INVALID_HALO),
+      })
+    await note(page).focus()
     await type(page, "текст")
     await expect(error).toBeHidden()
   })

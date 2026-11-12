@@ -6,7 +6,8 @@ import { cn } from "@/registry/lib/utils"
 
 // erp-ui: основа — shadcn base-nova/input-otp (shadcn 4.21.4, 13.10.2026); правки erp-ui позначено «erp-ui:».
 // Одне справжнє поле під клітинками: автозаповнення кодом з SMS (autocomplete="one-time-code"),
-// вставка й скрінрідер працюють як зі звичайним полем.
+// вставка й скрінрідер працюють як зі звичайним полем. aria-invalid стоїть на ньому, а воно поза групою
+// клітинок: помилку групи й клітинок показує контейнер group/otp (рамка, ореол лише без фокуса).
 
 function InputOTP({
   className,
@@ -19,7 +20,7 @@ function InputOTP({
     <OTPInput
       data-slot="input-otp"
       containerClassName={cn(
-        "cn-input-otp flex items-center has-disabled:opacity-50",
+        "cn-input-otp group/otp flex items-center has-disabled:opacity-50",
         containerClassName,
       )}
       spellCheck={false}
@@ -36,7 +37,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="input-otp-group"
       className={cn(
-        "flex items-center rounded-lg has-aria-invalid:border-destructive has-aria-invalid:ring-3 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40",
+        "flex items-center rounded-lg group-has-[[data-input-otp][aria-invalid=true]:not(:focus)]/otp:ring-3 group-has-[[data-input-otp][aria-invalid=true]:not(:focus)]/otp:ring-destructive/20 dark:group-has-[[data-input-otp][aria-invalid=true]:not(:focus)]/otp:ring-destructive/40",
         className,
       )}
       {...props}
@@ -60,8 +61,8 @@ function InputOTPSlot({
       data-active={isActive}
       className={cn(
         // erp-ui: висота з токена щільності, ширша клітинка й більший шрифт — код читається з телефона;
-        // активна клітинка — суцільне кільце --ring 2 px (контраст ≥ 3:1).
-        "relative flex h-control w-10 items-center justify-center border-y border-r border-input text-base tabular-nums transition outline-none first:rounded-l-lg first:border-l last:rounded-r-lg aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-2 data-[active=true]:ring-ring data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
+        // активна клітинка — суцільне кільце --ring 2 px (контраст ≥ 3:1), і в клітинці з помилкою.
+        "relative flex h-control w-10 items-center justify-center border-y border-r border-input text-base tabular-nums transition outline-none group-has-[[data-input-otp][aria-invalid=true]]/otp:border-destructive first:rounded-l-lg first:border-l last:rounded-r-lg aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-2 data-[active=true]:ring-ring data-[active=true]:aria-invalid:border-destructive dark:bg-input/30",
         className,
       )}
       {...props}
