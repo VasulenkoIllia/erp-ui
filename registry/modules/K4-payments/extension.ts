@@ -5,7 +5,7 @@
  * Розширення лежить у файлі проекту `src/extensions/K4-payments.ts(x)` і передається у фабрику
  * `createPaymentsModule({ extension })`; моки беруть лише дані без компонентів (`fields`, `statuses`,
  * `transitions`) — `createPaymentsMocks({ extension })`. Ключі модуля в `hide`, `move`, `place` і `change`
- * — типи нижче.
+ * — типи нижче. Повернення (ADR-0083) — ключ `refunds` з тими самими частинами списку, картки й форми.
  */
 import type { LocalizedText } from "@/lib/auth"
 import type {
@@ -33,6 +33,8 @@ import type {
   PaymentMethod,
   PaymentStatus,
   PaymentTransitionId,
+  RefundStatus,
+  RefundTransitionId,
 } from "./contract"
 import type ukMessages from "./i18n/uk.json"
 
@@ -53,6 +55,14 @@ export interface PaymentIds {
   formField:
     "clientId" | "currency" | "date" | "method" | "amount" | "reference"
 }
+/**
+ * Ключі модуля для повернень (ADR-0083): ті самі колонки, фільтри, поля, секції й поля форми, що в оплати;
+ * вкладки — статуси повернення.
+ */
+export interface RefundIds extends Omit<PaymentIds, "tab"> {
+  tab: "all" | RefundStatus | (string & {})
+}
+
 export type PaymentColumnId = PaymentIds["column"]
 export type PaymentFilterId = PaymentIds["filter"]
 export type PaymentTabId = PaymentIds["tab"]
@@ -68,49 +78,67 @@ export interface PaymentMethodOption extends Keyed {
 /** Рядки модуля (простір імен `K4-payments`, `i18n/uk.json`). */
 export type PaymentsMessages = typeof ukMessages
 
-export interface PaymentsExtension {
-  /** Нові поля оплати: схема, підписи, значення для моків (`lib/extension-fields`). */
+/**
+ * Частини документа модуля, які змінює розширення: поля, статуси й дії, список, картка й форма. Однакові в
+ * оплати й повернення (ADR-0083), ключі — свої.
+ */
+export interface MoneyDocumentExtension<
+  Ids extends Omit<PaymentIds, "tab"> & { tab: string },
+  S extends string,
+  T extends string,
+> {
+  /** Нові поля документа: схема, підписи, значення для моків (`lib/extension-fields`). */
   readonly fields?: readonly ExtensionField[]
   /**
-   * Статуси оплати: додати, сховати з вибору; `change` — підпис, тон чи іконка статусу модуля без заміни.
+   * Статуси документа: додати, сховати з вибору; `change` — підпис, тон чи іконка статусу модуля без заміни.
    * Новий статус досяжний дією `transitions`.
    */
-  readonly statuses?: ExtensionStatusChanges<PaymentStatus>
+  readonly statuses?: ExtensionStatusChanges<S>
   /** Дозволені переходи (ADR-0057): нова дія зі своїм статусом; `change` — підпис, `from` і причина. */
-  readonly transitions?: ExtensionTransitionChanges<PaymentTransitionId>
-  /** Способи оплати: свій спосіб проекту (`add`), сховати спосіб модуля (`hide`). */
-  readonly methods?: KeyedChanges<PaymentMethodOption, PaymentMethod>
+  readonly transitions?: ExtensionTransitionChanges<T>
   /** Колонки списку; нова — з поля розширення (ключ — ключ поля); `change` — назва, ширина чи пріоритет. */
   readonly columns?: KeyedChanges<
     ExtensionColumn,
-    PaymentIds["column"],
+    Ids["column"],
     ExtensionColumnChange
   >
   /** Фільтри панелі списку; новий — з поля розширення. */
-  readonly filters?: KeyedChanges<ExtensionFilter, PaymentIds["filter"]>
+  readonly filters?: KeyedChanges<ExtensionFilter, Ids["filter"]>
   /** Вкладки-статуси списку з фільтром даними. */
-  readonly tabs?: KeyedChanges<ExtensionTab, PaymentIds["tab"]>
+  readonly tabs?: KeyedChanges<ExtensionTab, Ids["tab"]>
   /** Ключові поля шапки картки; нове — з поля розширення. */
-  readonly recordFields?: KeyedChanges<Keyed, PaymentIds["field"]>
-  /** `false` — картка без журналу «Історія»: бекенд не веде журналу змін. */
-  readonly history?: boolean
-  /** Стрічка картки замість «Історії»: `timelineModule.aside` модуля N1 чи свій компонент (ADR-0054). */
-  readonly aside?: ExtensionAside<Payment>
+  readonly recordFields?: KeyedChanges<Keyed, Ids["field"]>
   /** Секції картки — компоненти проекту в слотах. */
-  readonly sections?: KeyedChanges<
-    ExtensionSection<Payment>,
-    PaymentIds["section"]
-  >
+  readonly sections?: KeyedChanges<ExtensionSection<Payment>, Ids["section"]>
   /** Дії в шапці картки — компоненти проекту з правом `access`. */
-  readonly actions?: KeyedChanges<
-    ExtensionAction<Payment>,
-    PaymentIds["action"]
-  >
+  readonly actions?: KeyedChanges<ExtensionAction<Payment>, Ids["action"]>
   /**
    * Форма реєстрації (`lib/extension-form`): `add` — поле розширення з `fields`, `hide` і `move` — поля
    * модуля, `change` — підпис і підказка поля модуля.
    */
-  readonly form?: ExtensionFormChanges<PaymentIds["formField"]>
+  readonly form?: ExtensionFormChanges<Ids["formField"]>
+}
+
+/** Розширення повернення (ADR-0083): поля, статуси й дії, список, картка й форма. */
+export type RefundsExtension = MoneyDocumentExtension<
+  RefundIds,
+  RefundStatus,
+  RefundTransitionId
+>
+
+export interface PaymentsExtension extends MoneyDocumentExtension<
+  PaymentIds,
+  PaymentStatus,
+  PaymentTransitionId
+> {
+  /** Способи оплати й повернення: свій спосіб проекту (`add`), сховати спосіб модуля (`hide`). */
+  readonly methods?: KeyedChanges<PaymentMethodOption, PaymentMethod>
+  /** `false` — картки без журналу «Історія»: бекенд не веде журналу змін. */
+  readonly history?: boolean
+  /** Стрічка картки замість «Історії»: `timelineModule.aside` модуля N1 чи свій компонент (ADR-0054). */
+  readonly aside?: ExtensionAside<Payment>
+  /** Повернення клієнтам (ADR-0083): ті самі частини, свої ключі. */
+  readonly refunds?: RefundsExtension
   /** Перевизначення рядків модуля за ключами `i18n/*.json`. */
   readonly strings?: ModuleStrings<PaymentsMessages>
 }
@@ -119,4 +147,9 @@ export interface PaymentsExtension {
 export type PaymentsMockExtension = Pick<
   PaymentsExtension,
   "fields" | "statuses" | "transitions"
->
+> & {
+  readonly refunds?: Pick<
+    RefundsExtension,
+    "fields" | "statuses" | "transitions"
+  >
+}

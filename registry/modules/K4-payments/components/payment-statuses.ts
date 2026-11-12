@@ -12,55 +12,47 @@ import {
   useResolvedTransitions,
   type ModuleTransition,
   type ResolvedStatuses,
-  type StatusTone,
 } from "@/lib/statuses"
 
-import {
-  PAYMENT_METHODS,
-  PAYMENT_STATUSES,
-  PAYMENT_TRANSITIONS,
-  type PaymentStatus,
-} from "../contract"
+import { PAYMENT_METHODS } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 
-/** Тони статусів оплати: отримана — успіх, скасована — помилка, сторнована — попередження. */
-const PAYMENT_TONES: Readonly<Record<PaymentStatus, StatusTone>> = {
-  received: "success",
-  cancelled: "destructive",
-  reversed: "warning",
-  reversal: "neutral",
-}
-
-/** Статуси оплати мовою інтерфейсу зі статусами розширення проекту. */
-export function usePaymentStatuses(): ResolvedStatuses {
+/** Статуси оплати чи повернення мовою інтерфейсу зі статусами розширення проекту. */
+export function usePaymentStatuses(kind: K4DocumentKind): ResolvedStatuses {
   const t = usePaymentsT()
   const { extension } = usePaymentsModule()
   const statuses = useMemo(
     () =>
-      PAYMENT_STATUSES.map((id) => ({
-        id,
-        label: t(`payment.statuses.${id}`),
-        tone: PAYMENT_TONES[id],
+      kind.statuses.map((status) => ({
+        id: status.id,
+        label: t(status.label),
+        tone: status.tone,
       })),
-    [t],
+    [t, kind],
   )
-  return useResolvedStatuses(statuses, extension.statuses)
+  return useResolvedStatuses(statuses, kind.extensionOf(extension).statuses)
 }
 
-/** Граф дій оплати зі змінами розширення: «Скасувати» й «Сторнувати» — підписи кіта. */
-export function usePaymentTransitions(): readonly ModuleTransition[] {
+/** Граф дій документа зі змінами розширення: «Скасувати» й «Сторнувати» — підписи кіта. */
+export function usePaymentTransitions(
+  kind: K4DocumentKind,
+): readonly ModuleTransition[] {
   const kitT = useErpUiT()
   const { extension } = usePaymentsModule()
   const transitions = useMemo(
     () =>
-      PAYMENT_TRANSITIONS.map((transition) => ({
+      kind.transitions.map((transition) => ({
         ...transition,
         label: kitT(`documentActions.${transition.id}`),
       })),
-    [kitT],
+    [kitT, kind],
   )
-  return useResolvedTransitions(transitions, extension.transitions)
+  return useResolvedTransitions(
+    transitions,
+    kind.extensionOf(extension).transitions,
+  )
 }
 
 /** Спосіб оплати для вибору й показу: ключ і підпис мовою інтерфейсу. */

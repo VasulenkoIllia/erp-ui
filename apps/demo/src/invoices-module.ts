@@ -32,6 +32,11 @@ export const invoicesModule = createInvoicesModule({
     resource: "sales-payments",
     register: payments.newPayment,
     href: payments.payment,
+    refunds: {
+      resource: "sales-refunds",
+      register: payments.newRefund,
+      href: payments.refund,
+    },
   },
   lineItem: {
     resource: "products",

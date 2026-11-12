@@ -7,6 +7,7 @@ import { useFormat } from "@/lib/format"
 import type { ResolvedStatuses } from "@/lib/statuses"
 
 import type { Payment } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import type { PaymentColumnId } from "../extension"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
@@ -16,24 +17,27 @@ import { usePaymentMethods } from "./payment-statuses"
 type PaymentColumn = DataTableColumn<Payment> & { id: PaymentColumnId }
 
 /**
- * Колонки списку оплат: номер-посилання на картку, клієнт, рахунки (номери з посиланнями на картки рахунків),
- * спосіб, статус, дата й сума (у сторно — з мінусом; в оплаті у валюті під нею — у базовій валюті,
- * ADR-0071); на телефоні — картки (номер, клієнт під ним, статус-бейдж). Ключі — `PaymentColumnId`.
+ * Колонки списку оплат чи повернень: номер-посилання на картку, клієнт, рахунки (номери з посиланнями на
+ * картки рахунків), спосіб, статус, дата й сума (у сторно — з мінусом; у документі у валюті під нею — у
+ * базовій валюті, ADR-0071); на телефоні — картки (номер, клієнт під ним, статус-бейдж). Ключі —
+ * `PaymentColumnId`.
  */
 export function usePaymentColumns(
+  kind: K4DocumentKind,
   statuses: ResolvedStatuses,
 ): readonly PaymentColumn[] {
   const t = usePaymentsT()
   const format = useFormat()
   const methods = usePaymentMethods()
   const { paths, preload } = usePaymentsModule()
+  const record = kind.pathsOf(paths).record
   return useMemo(
     () => [
       {
         id: "number",
         header: t("payments.columns.number"),
         cell: (payment) => (
-          <RecordLink to={paths.payment(payment.id)} preload={preload} fromList>
+          <RecordLink to={record(payment.id)} preload={preload} fromList>
             <span className="tabular-nums">{payment.number}</span>
           </RecordLink>
         ),
@@ -102,12 +106,12 @@ export function usePaymentColumns(
         priority: 3,
       },
     ],
-    [t, format, methods, paths, preload, statuses],
+    [t, format, methods, record, preload, statuses],
   )
 }
 
 /**
- * Фільтри й вкладки списку оплат: «Клієнт» (ресурс клієнтів проекту), «Дата», «Спосіб» і вкладки «Усі» та
+ * Фільтри й вкладки списку оплат чи повернень: «Клієнт» (ресурс клієнтів проекту), «Дата», «Спосіб» і вкладки «Усі» та
  * статуси (зі статусами розширення).
  */
 export function usePaymentListFilters(statuses: ResolvedStatuses) {

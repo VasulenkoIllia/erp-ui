@@ -16,6 +16,11 @@ export interface CardRecord<T> {
   readonly record: T | undefined
   readonly isPending: boolean
   readonly isFetching: boolean
+  /**
+   * Запис прийшов із сервера після того, як картку відкрили, а не лише зі збереженого в браузері (кеш картки чи
+   * списку): за ним друкують суми до сплати й QR-код оплати.
+   */
+  readonly isFresh: boolean
   /** Помилка сторінки: запису немає (404, збій без кешу) — стан сторінки, а не секції. */
   readonly pageError: unknown
   /** Збій запиту картки, коли запис уже є з кешу: його показує секція з повтором. */
@@ -29,12 +34,19 @@ export function useCardRecord<T extends RaRecord>(
   id: string,
 ): CardRecord<T> {
   const companyId = useCompanyId()
-  const { data, isPending, isFetching, fetchStatus, error, refetch } =
-    useGetOne<T>(
-      resource,
-      { id, meta: companyScope(companyId) },
-      { refetchOnMount: "always" },
-    )
+  const {
+    data,
+    isPending,
+    isFetching,
+    isFetchedAfterMount,
+    fetchStatus,
+    error,
+    refetch,
+  } = useGetOne<T>(
+    resource,
+    { id, meta: companyScope(companyId) },
+    { refetchOnMount: "always" },
+  )
   const retry = useCallback(() => {
     void refetch()
   }, [refetch])
@@ -46,6 +58,7 @@ export function useCardRecord<T extends RaRecord>(
     record: notFound ? undefined : data,
     isPending,
     isFetching,
+    isFresh: isFetchedAfterMount && data !== undefined && !error,
     pageError: notFound || !data ? failure : undefined,
     failure,
     retry,

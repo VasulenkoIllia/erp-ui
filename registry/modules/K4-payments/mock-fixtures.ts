@@ -13,10 +13,11 @@ import type {
   MockNumberingSeriesSeed,
 } from "@/lib/mock-numbering"
 
-import { PAYMENTS, type Payment } from "./contract"
+import { PAYMENTS, REFUNDS, type Payment } from "./contract"
 import {
   createPaymentFixtures,
   PAYMENT_NUMBER_TEMPLATE,
+  REFUND_NUMBER_TEMPLATE,
   type FixtureLocale,
 } from "./fixtures"
 import type { PaymentInvoiceSource } from "./mock-payments"
@@ -54,7 +55,7 @@ export function paymentExchange(
   )
 }
 
-/** Засів оплат від рахунків засіву застосунку: ті самі опції, що й у `createPaymentsMocks`. */
+/** Засів оплат і повернень від рахунків засіву застосунку: ті самі опції, що й у `createPaymentsMocks`. */
 export function paymentFixtures(
   invoices: readonly PaymentInvoiceSource[],
   { locale, today, rates }: PaymentSeedOptions,
@@ -72,8 +73,9 @@ export function paymentFixtures(
 }
 
 /**
- * Засів серії `sales-payments` для `createNumberingMocks` (ADR-0058): шаблон мовою даних у кожній компанії й
- * лічильники, які засів уже видав. `invoices` — рахунки засіву застосунку (`invoicePaymentSeed` моків K2).
+ * Засів серій `sales-payments` і `sales-refunds` для `createNumberingMocks` (ADR-0058, ADR-0083): шаблон мовою
+ * даних у кожній компанії й лічильники, які засів уже видав. `invoices` — рахунки засіву застосунку
+ * (`invoicePaymentSeed` моків K2).
  */
 export function paymentsNumberingSeeds({
   invoices,
@@ -86,13 +88,15 @@ export function paymentsNumberingSeeds({
   series: MockNumberingSeriesSeed[]
   counters: MockNumberingCounterSeed[]
 } {
-  const template = PAYMENT_NUMBER_TEMPLATE[options.locale ?? "uk"]
+  const locale = options.locale ?? "uk"
+  const templates = [
+    [PAYMENTS, PAYMENT_NUMBER_TEMPLATE[locale]],
+    [REFUNDS, REFUND_NUMBER_TEMPLATE[locale]],
+  ] as const
   return {
-    series: companies.map((companyId) => ({
-      companyId,
-      resource: PAYMENTS,
-      template,
-    })),
+    series: templates.flatMap(([resource, template]) =>
+      companies.map((companyId) => ({ companyId, resource, template })),
+    ),
     counters: paymentFixtures(invoices, options).counters,
   }
 }

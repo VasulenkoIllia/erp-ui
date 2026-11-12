@@ -25,76 +25,99 @@ import {
   usePaymentHeader,
 } from "../components/payment-header"
 import { usePaymentStatuses } from "../components/payment-statuses"
-import { PAYMENTS, type Payment } from "../contract"
+import type { Payment } from "../contract"
+import {
+  PAYMENT_KIND,
+  REFUND_KIND,
+  type K4DocumentKind,
+} from "../document-kind"
 import type { PaymentIds, PaymentSectionId } from "../extension"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 
-/**
- * Картка оплати на шаблоні Object Page (SPEC §7; ADR-0057, ADR-0069, ADR-0073): шапка з номером і статусом,
- * смуга закритого періоду над панеллю дій графа («Скасувати», «Сторнувати»), рахунки оплати, потік документів
- * (ADR-0061), «Історія» з журналу аудиту чи стрічка зі слота `aside` — праворуч на широкому, вкладкою на
- * вузькому. Після «Сторнувати» — картка сторно.
- */
+/** Картка оплати (ADR-0073). */
 export function PaymentPage() {
+  return <MoneyDocumentPage kind={PAYMENT_KIND} />
+}
+
+/** Картка повернення клієнту (ADR-0083). */
+export function RefundPage() {
+  return <MoneyDocumentPage kind={REFUND_KIND} />
+}
+
+/**
+ * Картка оплати чи повернення на шаблоні Object Page (SPEC §7; ADR-0057, ADR-0069, ADR-0073, ADR-0083): шапка
+ * з номером і статусом, смуга закритого періоду над панеллю дій графа («Скасувати», «Сторнувати»), рахунки
+ * документа, потік документів (ADR-0061), «Історія» з журналу аудиту чи стрічка зі слота `aside` — праворуч на
+ * широкому, вкладкою на вузькому. Після «Сторнувати» — картка сторно.
+ */
+function MoneyDocumentPage({ kind }: { kind: K4DocumentKind }) {
   const { id = "" } = useParams()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
-  // Інша оплата — інша картка: фокус не переходить від попередньої.
+  // Інший документ — інша картка: фокус не переходить від попереднього.
   return isPending ? (
     <PageSkeleton rows={4} />
   ) : (
-    <PaymentCard key={id} id={id} />
+    <PaymentCard key={id} kind={kind} id={id} />
   )
 }
 
-function PaymentCard({ id }: { id: string }) {
+function PaymentCard({ kind, id }: { kind: K4DocumentKind; id: string }) {
   const t = usePaymentsT()
-  const titleOf = usePaymentTitle()
+  const titleOf = usePaymentTitle(kind)
   const { extension, paths } = usePaymentsModule()
-  const card = useCardRecord<Payment>(PAYMENTS, id)
+  const kindExtension = kind.extensionOf(extension)
+  const card = useCardRecord<Payment>(kind.resource, id)
   const payment = card.record
   const heading = usePageHeading(
-    payment ? titleOf(payment) : t("payment.title"),
+    payment ? titleOf(payment) : t(`${kind.key}.title`),
     !card.isPending || card.pageError !== undefined,
   )
-  const statuses = usePaymentStatuses()
+  const statuses = usePaymentStatuses(kind)
   const slots = useRecordSlots<Payment, PaymentSectionId, PaymentIds["action"]>(
     {
       record: payment,
-      resource: PAYMENTS,
-      sections: extension.sections,
-      actions: extension.actions,
+      resource: kind.resource,
+      sections: kindExtension.sections,
+      actions: kindExtension.actions,
       aside: extension.aside,
     },
   )
-  const header = usePaymentHeader(payment, statuses, slots.actions)
+  const header = usePaymentHeader(kind, payment, statuses, slots.actions)
   useHistoryRefresh(payment?.version)
   const sections: (ObjectPageSectionItem & { id: PaymentSectionId })[] = payment
     ? [
         {
           id: "allocations",
           title: t("payment.sections.allocations"),
-          content: <PaymentAllocations payment={payment} />,
+          content: <PaymentAllocations kind={kind} payment={payment} />,
         },
         {
           id: "flow",
           title: t("payment.sections.flow"),
-          content: <PaymentFlow id={id} />,
+          content: <PaymentFlow kind={kind} id={id} />,
         },
       ]
     : []
   usePaletteActions(payment ? { title: titleOf(payment), actions: [] } : null)
   return (
     <ObjectPage
-      title={t("payment.title")}
+      title={t(`${kind.key}.title`)}
       headingRef={heading}
-      back={<BackToList to={paths.payments} label={t("payment.back")} />}
+      back={
+        <BackToList
+          to={kind.pathsOf(paths).list}
+          label={t(`${kind.key}.back`)}
+        />
+      }
       isPending={card.isPending}
       error={card.pageError}
       onRetry={card.retry}
       header={header}
-      statusBar={payment ? <PaymentStatusBar payment={payment} /> : undefined}
+      statusBar={
+        payment ? <PaymentStatusBar kind={kind} payment={payment} /> : undefined
+      }
       sections={applyKeyedChanges(sections, slots.sections)}
       // Бекенд без журналу змін — картка без «Історії» (`history: false` у розширенні).
       aside={
@@ -106,7 +129,7 @@ function PaymentCard({ id }: { id: string }) {
               content: (
                 <RecordHistory
                   target={{
-                    type: PAYMENTS,
+                    type: kind.resource,
                     id,
                     name: payment ? titleOf(payment) : undefined,
                   }}

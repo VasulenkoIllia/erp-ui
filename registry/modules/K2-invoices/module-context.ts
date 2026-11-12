@@ -77,18 +77,30 @@ export interface InvoiceSources {
   readonly quote?: (id: string) => string
 }
 
+/** Рахунок, з картки якого реєструють оплату чи повернення. */
+export interface PaymentFromInvoice {
+  readonly clientId: string
+  readonly invoiceId: string
+}
+
+/**
+ * Документ модуля K4 для рахунку: ресурс для права дії й потоку документів, адреса нового документа з
+ * клієнтом і рахунком, адреса картки.
+ */
+export interface InvoiceMoneyDocuments {
+  readonly resource: string
+  readonly register: (invoice: PaymentFromInvoice) => string
+  readonly href?: (id: string) => string
+}
+
 /**
  * Оплати рахунку (модуль K4, ADR-0073): ресурс для права «Зареєструвати оплату» й потоку документів,
- * адреса нової оплати з клієнтом і рахунком, адреса картки оплати. Модуль K4 не імпортується — лише
- * назва ресурсу й адреси (`paymentsModule.paths`).
+ * адреса нової оплати з клієнтом і рахунком, адреса картки оплати. `refunds` — повернення переплати
+ * (ADR-0083): «Повернути переплату» на картці рахунку з переплатою. Модуль K4 не імпортується — лише
+ * назви ресурсів і адреси (`paymentsModule.paths`).
  */
-export interface InvoicePayments {
-  readonly resource: string
-  readonly register: (invoice: {
-    readonly clientId: string
-    readonly invoiceId: string
-  }) => string
-  readonly href?: (id: string) => string
+export interface InvoicePayments extends InvoiceMoneyDocuments {
+  readonly refunds?: InvoiceMoneyDocuments
 }
 
 export interface InvoicesModuleContextValue {

@@ -101,6 +101,7 @@
       "baseTotal": "In base currency",
       "credited": "Credit notes",
       "paid": "Paid",
+      "refunded": "Refunded",
       "debt": "Amount due",
       "overpaid": "Overpaid",
       "status": "Status"
@@ -120,13 +121,29 @@
       "register": "Record payment",
       "denied": "You are not allowed to record payments"
     },
+    "refund": {
+      "register": "Refund overpayment",
+      "denied": "You are not allowed to refund clients"
+    },
+    "paymentLink": {
+      "open": "Payment link",
+      "title": "Payment for invoice {{number}}",
+      "description": "Scan the QR code in a banking app or copy the link and send it to the client: the bank opens a transfer with the payee, amount and purpose filled in.",
+      "loading": "Loading the invoice",
+      "failed": "Could not load the invoice",
+      "settled": "The invoice no longer awaits payment: nothing to pay.",
+      "missing": "No link or QR code: {{reason}}. The invoice keeps the details from the time it was created: fix the company profile, and new invoices take the right ones.",
+      "qrLabel": "Payment QR code of invoice {{number}}",
+      "amount": "Amount due:",
+      "link": "Payment link"
+    },
     "editDenied": "You are not allowed to change invoices",
     "locked": {
       "submitted": "An issued invoice is not changed: cancel it and make a corrected copy, or reverse it",
       "cancelled": "A cancelled invoice is not changed: make a corrected copy",
       "linked": "Credit notes are issued against this invoice: cancel or reverse them first",
       "credited": "The invoice is already fully covered by credit notes",
-      "has_payments": "The invoice has a payment: cancel or reverse it first"
+      "has_payments": "The invoice has a payment or refund: cancel or reverse them first"
     },
     "delete": {
       "button": "Delete draft",
@@ -158,7 +175,8 @@
     "sources": {
       "quote": "Quote",
       "order": "Order",
-      "payment": "Payment"
+      "payment": "Payment",
+      "refund": "Refund"
     },
     "qr": {
       "missing": "The payment QR code is not printed on the sheet: {{reason}}. Invoice details are a snapshot taken at creation: fix the company profile, and new invoices will pick up the correct ones.",

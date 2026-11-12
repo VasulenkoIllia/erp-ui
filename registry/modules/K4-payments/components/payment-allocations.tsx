@@ -13,17 +13,29 @@ import {
 } from "@/components/ui/table"
 import { useFormat } from "@/lib/format"
 
-import { PAYMENTS, type Payment } from "../contract"
+import type { Payment } from "../contract"
+import {
+  PAYMENT_KIND,
+  REFUND_KIND,
+  type K4DocumentKind,
+} from "../document-kind"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 import { InvoiceLink } from "./payment-display"
 import { usePaymentStatuses } from "./payment-statuses"
 
 /**
- * Рахунки оплати на картці: номер рахунку з посиланням на його картку, дата рахунку й сума з цієї оплати,
- * разом — сума оплати. Колонок лише три, тож і на вузькому — таблиця, ширша за контейнер прокручується.
+ * Рахунки оплати чи повернення на картці: номер рахунку з посиланням на його картку, дата рахунку й сума з
+ * цього документа, разом — сума документа. Колонок лише три, тож і на вузькому — таблиця, ширша за контейнер
+ * прокручується.
  */
-export function PaymentAllocations({ payment }: { payment: Payment }) {
+export function PaymentAllocations({
+  kind,
+  payment,
+}: {
+  kind: K4DocumentKind
+  payment: Payment
+}) {
   const t = usePaymentsT()
   const format = useFormat()
   const money = (amount: number) =>
@@ -33,13 +45,13 @@ export function PaymentAllocations({ payment }: { payment: Payment }) {
     0,
   )
   return (
-    <Table label={t("payment.allocations.label")}>
+    <Table label={t(`${kind.key}.allocations.label`)}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("payment.allocations.invoice")}</TableHead>
           <TableHead>{t("payment.allocations.date")}</TableHead>
           <TableHead className="text-end">
-            {t("payment.allocations.amount")}
+            {t(`${kind.key}.allocations.amount`)}
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -74,20 +86,36 @@ export function PaymentAllocations({ payment }: { payment: Payment }) {
 }
 
 /**
- * Потік документів на картці оплати (UI13, ADR-0061): оплати модуля зі статусами K4 і рахунки — з посиланням на
- * картку, коли проект дав її адресу, і зі станом документа кіта. Зв'язки «На підставі …» й «Сторно …» дає
- * сервер.
+ * Потік документів на картці оплати чи повернення (UI13, ADR-0061): оплати й повернення модуля зі статусами K4
+ * і рахунки — з посиланням на картку, коли проект дав її адресу, і зі станом документа кіта. Зв'язки «На
+ * підставі …» й «Сторно …» дає сервер.
  */
-export function PaymentFlow({ id }: { id: string }) {
+export function PaymentFlow({
+  kind,
+  id,
+}: {
+  kind: K4DocumentKind
+  id: string
+}) {
   const t = usePaymentsT()
   const { paths, invoices } = usePaymentsModule()
-  const statuses = usePaymentStatuses()
+  const paymentStatuses = usePaymentStatuses(PAYMENT_KIND)
+  const refundStatuses = usePaymentStatuses(REFUND_KIND)
   const types: Readonly<Record<string, DocumentFlowType>> = {
     [invoices.resource]: {
       label: t("payment.sources.invoice"),
       href: invoices.href,
     },
-    [PAYMENTS]: { label: t("payment.flow"), href: paths.payment, statuses },
+    [PAYMENT_KIND.resource]: {
+      label: t("payment.flow"),
+      href: paths.payment,
+      statuses: paymentStatuses,
+    },
+    [REFUND_KIND.resource]: {
+      label: t("refund.flow"),
+      href: paths.refund,
+      statuses: refundStatuses,
+    },
   }
-  return <DocumentFlow resource={PAYMENTS} id={id} types={types} />
+  return <DocumentFlow resource={kind.resource} id={id} types={types} />
 }

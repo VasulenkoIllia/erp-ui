@@ -15,6 +15,7 @@ import { companyScope } from "@/lib/company-scope"
 import type { ExtensionValues } from "@/lib/extension-fields"
 
 import { PAYMENT_REFERENCE_MAX } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import type { PaymentFormFieldId } from "../extension"
 import {
   clientLabelOf,
@@ -24,7 +25,7 @@ import {
 import { usePaymentsT } from "../use-payments-t"
 import { usePaymentMethods, type PaymentMethodItem } from "./payment-statuses"
 
-/** Значення форми оплати: шапка, суми рахунків за `id` і поля розширення. */
+/** Значення форми оплати чи повернення: шапка, суми рахунків за `id` і поля розширення. */
 export type PaymentFormValues = {
   clientId: string
   /** Назва вибраного клієнта: підпис вибору, поки запис клієнта не прийшов. */
@@ -55,12 +56,13 @@ function ClientName({ id }: { id: string }) {
 }
 
 /**
- * Поля шапки форми оплати: клієнт (вибір із ресурсу клієнтів проекту; інший клієнт — інші рахунки, суми
+ * Поля шапки форми оплати чи повернення: клієнт (вибір із ресурсу клієнтів проекту; інший клієнт — інші рахунки, суми
  * скидаються), валюта (лише коли в клієнта рахунки в кількох валютах), дата з першим відкритим днем закритого
  * періоду (PF13), спосіб, сума й призначення. Ключі — `PaymentFormFieldId`: розширення ховає, переносить і
  * підписує їх без заміни.
  */
 export function usePaymentFormItems(
+  kind: K4DocumentKind,
   form: UseFormReturn<PaymentFormValues>,
   currencies: readonly string[],
   /** Валюта суми: рахунків клієнта, а поки їх немає — базова валюта компанії. */
@@ -74,12 +76,12 @@ export function usePaymentFormItems(
     () => [
       clientItem(form, clients, t),
       ...(currencies.length > 1 ? [currencyItem(form, currencies, t)] : []),
-      dateItem(form, { min, hint }, t),
+      dateItem(kind, form, { min, hint }, t),
       methodItem(form, methods.items, t),
-      amountItem(form, currency, t),
+      amountItem(kind, form, currency, t),
       referenceItem(form, t),
     ],
-    [form, clients, currencies, currency, min, hint, methods.items, t],
+    [kind, form, clients, currencies, currency, min, hint, methods.items, t],
   )
 }
 
@@ -169,13 +171,14 @@ function currencyItem(
 }
 
 function dateItem(
+  kind: K4DocumentKind,
   form: UseFormReturn<PaymentFormValues>,
   posting: PostingDate,
   t: T,
 ): PaymentFormItem {
   return {
     id: "date",
-    label: t("paymentForm.fields.date"),
+    label: t(`${kind.form}.fields.date`),
     // Закритий період (PF13): підказка й перший відкритий день; дату з клавіатури відхилить сервер.
     ...(posting.hint ? { description: posting.hint } : {}),
     render: (props) => (
@@ -234,14 +237,15 @@ function methodItem(
 }
 
 function amountItem(
+  kind: K4DocumentKind,
   form: UseFormReturn<PaymentFormValues>,
   currency: string,
   t: T,
 ): PaymentFormItem {
   return {
     id: "amount",
-    label: t("paymentForm.fields.amount"),
-    description: t("paymentForm.amountHint"),
+    label: t(`${kind.form}.fields.amount`),
+    description: t(`${kind.form}.amountHint`),
     render: (props) => (
       <FormField
         {...props}

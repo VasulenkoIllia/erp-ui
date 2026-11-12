@@ -52,9 +52,12 @@
  *   має `creditedTotal` — суму виставлених кредит-нот; рахунок із виставленою кредит-нотою не скасовують і не
  *   сторнують (`linked`), повністю покритий — без нової кредит-ноти (`credited`).
  * - Оплати (ADR-0073) — ресурс модуля K4 (`sales-payments`): картка рахунку має `paidTotal`, статус
- *   «Оплачено» ставить сервер. Борг рахунку — `total − creditedTotal − paidTotal`.
+ *   «Оплачено» ставить сервер. Повернення переплати (ADR-0083) — ресурс K4 `sales-refunds`: картка має
+ *   `refundedTotal`, статусу повернення не змінює. Борг рахунку — `total − creditedTotal − paidTotal +
+ *   refundedTotal`; від'ємний — переплата. Рахунок з оплатою чи поверненням, що діє, не скасовують і не
+ *   сторнують (`has_payments`).
  * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення; рахунок у
- *   кредит-ноти й оплати), `amendedFrom`, `reversalOf`.
+ *   кредит-ноти, оплати й повернення), `amendedFrom`, `reversalOf`.
  * - Права — `sales-invoices:<дія>`: `read`, `create`, `update`, `delete`, `submit`, `cancel`, `reverse`,
  *   `amend`, `creditNote` і дії розширення; кредит-ноти — `sales-credit-notes:<дія>` (створення з рахунку —
  *   ще й `sales-credit-notes:create`).
@@ -210,9 +213,14 @@ const invoiceShape = documentShape.extend({
   creditedTotal: moneyAmountSchema.min(0).optional(),
   /**
    * Сума оплат модуля K4, що діють, у валюті рахунку (ADR-0073): веде сервер, віддає картка, а не список.
-   * Борг — «виставлено мінус кредит-ноти мінус оплачено».
+   * Борг — «виставлено мінус кредит-ноти мінус оплачено плюс повернено».
    */
   paidTotal: moneyAmountSchema.min(0).optional(),
+  /**
+   * Сума повернень переплати модуля K4, що діють, у валюті рахунку (ADR-0083): веде сервер, віддає картка, а
+   * не список.
+   */
+  refundedTotal: moneyAmountSchema.min(0).optional(),
 })
 
 /** Рядки й підсумки детального запису (`GET /sales-invoices/:id`): у рядку списку їх немає. */

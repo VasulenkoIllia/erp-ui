@@ -1,12 +1,23 @@
 /**
- * Рознесення оплати у формі (ADR-0073): чисті функції без запитів. Сервер перевіряє те саме: кожному рахунку
- * не більше за борг, сума оплати дорівнює сумі рознесення.
+ * Рознесення оплати чи повернення у формі (ADR-0073, ADR-0083): чисті функції без запитів. Сервер перевіряє
+ * те саме: кожному рахунку не більше за межу (борг для оплати, переплата для повернення), сума документа
+ * дорівнює сумі рознесення.
  */
 
-/** Рахунок у рознесенні: `id` і борг, мінорні одиниці. */
+/** Рахунок у рознесенні: `id` і межа суми, мінорні одиниці. */
 export interface AllocationTarget {
   readonly id: string
-  readonly debt: number
+  /** Скільки можна рознести на рахунок: борг для оплати, переплата для повернення. */
+  readonly limit: number
+}
+
+/** Рахунок клієнта у формі: номер, дати, валюта, підсумок і межа суми з рахунків сервера. */
+export interface AllocationInvoice extends AllocationTarget {
+  readonly number: string
+  readonly date: string
+  readonly dueDate: string
+  readonly currency: string
+  readonly total: number
 }
 
 /** Суми рахунків форми за `id`; порожнє поле — `null`. */
@@ -17,8 +28,8 @@ export const allocatedTotal = (amounts: AllocationAmounts) =>
   Object.values(amounts).reduce<number>((sum, value) => sum + (value ?? 0), 0)
 
 /**
- * «Розписати від найстаршого»: сума оплати по рахунках у їхньому порядку (від найранішої «Сплатити до»),
- * кожному — не більше за борг; на решту рахунків — порожньо.
+ * «Розписати від найстаршого»: сума документа по рахунках у їхньому порядку (від найранішої «Сплатити до»),
+ * кожному — не більше за межу; на решту рахунків — порожньо.
  */
 export function allocateOldestFirst(
   amount: number,
@@ -27,7 +38,7 @@ export function allocateOldestFirst(
   let left = Math.max(0, amount)
   return Object.fromEntries(
     targets.map((target) => {
-      const share = Math.min(left, target.debt)
+      const share = Math.min(left, target.limit)
       left -= share
       return [target.id, share > 0 ? share : null]
     }),

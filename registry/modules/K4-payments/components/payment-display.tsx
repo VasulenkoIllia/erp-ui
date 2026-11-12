@@ -7,17 +7,18 @@ import {
 import { useFormat } from "@/lib/format"
 
 import type { Payment } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 
 const LINK_CLASS =
   "tabular-nums underline-offset-4 hover:underline focus-visible:underline"
 
-/** Назва оплати для заголовка й палітри: «Оплата ОП-2026-0001». */
-export function usePaymentTitle() {
+/** Назва документа для заголовка й палітри: «Оплата ОП-2026-0001», «Повернення ПВ-2026-0001». */
+export function usePaymentTitle(kind: K4DocumentKind) {
   const t = usePaymentsT()
   return (payment: Pick<Payment, "number">) =>
-    t("payment.titleNumber", { number: payment.number })
+    t(`${kind.key}.titleNumber`, { number: payment.number })
 }
 
 /** Клієнт оплати: посилання на його картку, якщо вона є в проекті, інакше — назва текстом. */
@@ -51,7 +52,7 @@ export function InvoiceLink({ id, number }: { id: string; number: string }) {
   )
 }
 
-/** Номери рахунків оплати через кому — у колонці списку. */
+/** Номери рахунків документа через кому — у колонці списку. */
 export function PaymentInvoices({ payment }: { payment: Payment }) {
   return (
     <span className="inline-flex flex-wrap gap-x-2 gap-y-1">

@@ -5,21 +5,15 @@ import { OFFLINE } from "@/hooks/use-card-record"
 import { useCompanyId } from "@/hooks/use-company"
 import { companyScope } from "@/lib/company-scope"
 
-import {
-  OPEN_INVOICES_PATH,
-  openInvoiceSchema,
-  PAYMENTS,
-  type OpenInvoice,
-} from "../contract"
+import type { AllocationInvoice } from "../allocation"
+import type { K4DocumentKind } from "../document-kind"
 
-/** Відкриті рахунки — підресурс оплат у форматі списку (ADR-0002): `GET /sales-payments/open-invoices`. */
-const OPEN_INVOICES = `${PAYMENTS}/${OPEN_INVOICES_PATH}`
-/** Скільки неоплачених рахунків клієнта форма показує: від найранішої «Сплатити до». */
+/** Скільки рахунків клієнта форма показує: від найранішої «Сплатити до». */
 export const OPEN_INVOICES_LIMIT = 200
 
 export interface OpenInvoices {
-  /** Рахунки клієнта з боргом; `undefined` — ще не прийшли чи клієнта не вибрано. */
-  readonly invoices: readonly OpenInvoice[] | undefined
+  /** Рахунки клієнта з межею суми; `undefined` — ще не прийшли чи клієнта не вибрано. */
+  readonly invoices: readonly AllocationInvoice[] | undefined
   readonly isPending: boolean
   /** Збій запиту чи відповідь не за контрактом. */
   readonly failure: unknown
@@ -29,13 +23,18 @@ export interface OpenInvoices {
 }
 
 /**
- * Неоплачені рахунки клієнта для форми оплати: усі валюти, від найранішої «Сплатити до». Рядок не за
- * контрактом — збій, а не тихо пропущений рахунок: інакше суму розписали б не на всі борги.
+ * Рахунки клієнта для форми — підресурс документа у форматі списку (ADR-0002): неоплачені для оплати
+ * (`GET /sales-payments/open-invoices`), з переплатою для повернення (`GET /sales-refunds/overpaid-invoices`);
+ * усі валюти, від найранішої «Сплатити до». Рядок не за контрактом — збій, а не тихо пропущений рахунок:
+ * інакше суму розписали б не на всі рахунки.
  */
-export function useOpenInvoices(clientId: string): OpenInvoices {
+export function useOpenInvoices(
+  kind: K4DocumentKind,
+  clientId: string,
+): OpenInvoices {
   const companyId = useCompanyId()
   const list = useGetList(
-    OPEN_INVOICES,
+    kind.targets,
     {
       filter: { clientId },
       pagination: { page: 1, perPage: OPEN_INVOICES_LIMIT },
@@ -45,11 +44,13 @@ export function useOpenInvoices(clientId: string): OpenInvoices {
   )
   const parsed = useMemo(() => {
     if (!list.data) return undefined
-    const rows = list.data.map((row) => openInvoiceSchema.safeParse(row))
+    const rows = list.data.map((row) => kind.targetSchema.safeParse(row))
     return rows.every((row) => row.success)
       ? { invoices: rows.map((row) => row.data) }
-      : { error: new Error("K4-payments: open invoice outside the contract") }
-  }, [list.data])
+      : {
+          error: new Error(`K4-payments: ${kind.targets} outside the contract`),
+        }
+  }, [list.data, kind])
   const isPaused = list.fetchStatus === "paused"
   return {
     invoices: parsed && "invoices" in parsed ? parsed.invoices : undefined,

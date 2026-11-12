@@ -7,38 +7,55 @@ import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 
 import { PaymentForm } from "../components/payment-form"
-import { PAYMENTS } from "../contract"
+import {
+  PAYMENT_KIND,
+  REFUND_KIND,
+  type K4DocumentKind,
+} from "../document-kind"
 import { NEW_PAYMENT_PARAMS, usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 
-/**
- * Сторінка нової оплати (`…/payments/new`, ADR-0073); з картки рахунку — `?client=<id>&invoice=<id>`: клієнт і
- * рахунок уже вибрано, сума — його борг, «назад» — до рахунку. Без права `sales-payments:create` — стан
- * «немає доступу» замість форми.
- */
+/** Нова оплата (`…/payments/new`, ADR-0073). */
 export function PaymentFormPage() {
+  return <MoneyDocumentFormPage kind={PAYMENT_KIND} />
+}
+
+/** Нове повернення (`…/refunds/new`, ADR-0083). */
+export function RefundFormPage() {
+  return <MoneyDocumentFormPage kind={REFUND_KIND} />
+}
+
+/**
+ * Сторінка нової оплати чи повернення; з картки рахунку — `?client=<id>&invoice=<id>`: клієнт і рахунок уже
+ * вибрано, сума — його борг чи переплата, «назад» — до рахунку. Без права `<ресурс>:create` — стан «немає
+ * доступу» замість форми.
+ */
+function MoneyDocumentFormPage({ kind }: { kind: K4DocumentKind }) {
   const t = usePaymentsT()
   const [params] = useSearchParams()
   const { paths, invoices } = usePaymentsModule()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
-  const access = useCanAccess({ resource: PAYMENTS, action: "create" })
-  const heading = usePageHeading(t("paymentForm.title"))
+  const access = useCanAccess({ resource: kind.resource, action: "create" })
+  const heading = usePageHeading(t(`${kind.form}.title`))
   const clientId = params.get(NEW_PAYMENT_PARAMS.client) ?? undefined
   const invoiceId = params.get(NEW_PAYMENT_PARAMS.invoice) ?? undefined
   const back =
     invoiceId && invoices.href ? (
       <BackToList
         to={invoices.href(invoiceId)}
-        label={t("paymentForm.backInvoice")}
+        label={t(`${kind.form}.backInvoice`)}
       />
     ) : (
-      <BackToList to={paths.payments} label={t("paymentForm.back")} />
+      <BackToList
+        to={kind.pathsOf(paths).list}
+        label={t(`${kind.form}.back`)}
+      />
     )
   return (
     <div className="space-y-6">
       {back}
-      <ListReportHeader title={t("paymentForm.title")} headingRef={heading} />
+      <ListReportHeader title={t(`${kind.form}.title`)} headingRef={heading} />
       {isPending || access.isPending ? (
         <PageSkeleton rows={6} />
       ) : !access.canAccess ? (
@@ -47,6 +64,7 @@ export function PaymentFormPage() {
         // Інший рахунок в адресі — нова форма з новим ключем запиту.
         <PaymentForm
           key={`${clientId ?? ""}/${invoiceId ?? ""}`}
+          kind={kind}
           from={{ clientId, invoiceId }}
         />
       )}

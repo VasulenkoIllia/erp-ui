@@ -16,6 +16,9 @@ import { validateUaId, normalizeIban } from "@/registry/lib/ua-ids"
 /** Початок посилання платіжного QR НБУ; дані — після нього. */
 export const NBU_QR_URL_PREFIX = "https://bank.gov.ua/qr/"
 
+/** Валюта платіжної інструкції НБУ: лише гривня. */
+export const NBU_QR_CURRENCY = "UAH"
+
 /** Межі формату 003 у символах. */
 export const NBU_QR_LIMITS = { name: 140, purpose: 420 } as const
 
@@ -74,7 +77,7 @@ function base64Url(text: string): string {
 }
 
 function issueOf(input: PaymentQrInput): PaymentQrIssue | null {
-  if (input.currency !== "UAH") return "currency"
+  if (input.currency !== NBU_QR_CURRENCY) return "currency"
   if (!input.iban.trim() || validateUaId("iban", input.iban)) return "iban"
   const code = input.code.trim()
   const kind = code.length === 8 ? "edrpou" : "rnokpp"

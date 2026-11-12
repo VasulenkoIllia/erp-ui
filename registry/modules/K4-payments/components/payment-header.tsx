@@ -19,7 +19,8 @@ import {
 import { useFormat } from "@/lib/format"
 import type { ResolvedStatuses } from "@/lib/statuses"
 
-import { PAYMENTS, type Payment } from "../contract"
+import type { Payment } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import type { PaymentFieldId, PaymentIds } from "../extension"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
@@ -33,21 +34,23 @@ import {
 import { usePaymentMethods, usePaymentTransitions } from "./payment-statuses"
 
 /**
- * Шапка картки оплати: номер, статус, ключові поля (клієнт, дата, спосіб, сума, в оплаті у валюті — сума в
- * базовій валюті з курсом, ADR-0071; призначення) з полями розширення й дії розширення. Своїх дій у шапці
- * модуль не має: оплату не змінюють, дії графа — на панелі дій.
+ * Шапка картки оплати чи повернення: номер, статус, ключові поля (клієнт, дата, спосіб, сума, у документі у
+ * валюті — сума в базовій валюті з курсом, ADR-0071; призначення) з полями розширення й дії розширення. Своїх
+ * дій у шапці модуль не має: документ не змінюють, дії графа — на панелі дій.
  */
 export function usePaymentHeader(
+  kind: K4DocumentKind,
   payment: Payment | undefined,
   statuses: ResolvedStatuses,
   slotActions: KeyedChanges<ObjectPageAction, PaymentIds["action"]> | undefined,
 ): ObjectPageHeader | undefined {
   const t = usePaymentsT()
   const format = useFormat()
-  const titleOf = usePaymentTitle()
+  const titleOf = usePaymentTitle(kind)
   const methods = usePaymentMethods()
   const { extension } = usePaymentsModule()
-  const extensionFields = useExtensionFields(extension.fields)
+  const kindExtension = kind.extensionOf(extension)
+  const extensionFields = useExtensionFields(kindExtension.fields)
   if (!payment) return undefined
   const fields: (RecordField & { id: PaymentFieldId })[] = [
     {
@@ -94,7 +97,7 @@ export function usePaymentHeader(
     ),
     fields: applyKeyedChanges(
       fields,
-      mapKeyedChanges(extension.recordFields, (field) =>
+      mapKeyedChanges(kindExtension.recordFields, (field) =>
         extensionFields.displayEntry(field, payment),
       ),
     ),
@@ -103,16 +106,22 @@ export function usePaymentHeader(
 }
 
 /**
- * Смуга закритого періоду (PF13: що робити далі — сторно) і панель дій графа під шапкою картки оплати.
- * Після «Сторнувати» — картка сторно.
+ * Смуга закритого періоду (PF13: що робити далі — сторно) і панель дій графа під шапкою картки оплати чи
+ * повернення. Після «Сторнувати» — картка сторно.
  */
-export function PaymentStatusBar({ payment }: { payment: Payment }) {
+export function PaymentStatusBar({
+  kind,
+  payment,
+}: {
+  kind: K4DocumentKind
+  payment: Payment
+}) {
   const t = usePaymentsT()
   const navigate = useNavigate()
   const { paths } = usePaymentsModule()
-  const transitions = usePaymentTransitions()
+  const transitions = usePaymentTransitions(kind)
   const refreshInvoices = useRefreshInvoices()
-  // Нова версія оплати — дія над нею («Скасувати», «Сторнувати»): борг і статус рахунків змінились.
+  // Нова версія документа — дія над ним («Скасувати», «Сторнувати»): борг і статус рахунків змінились.
   useEffect(() => {
     refreshInvoices()
   }, [payment.version, refreshInvoices])
@@ -120,15 +129,15 @@ export function PaymentStatusBar({ payment }: { payment: Payment }) {
     <div className="grid gap-3">
       <PeriodLockBanner
         date={payment.date}
-        hint={t("payment.periodLockHint")}
+        hint={t(`${kind.key}.periodLockHint`)}
       />
       <DocumentActionBar
-        resource={PAYMENTS}
+        resource={kind.resource}
         record={payment}
         transitions={transitions}
         // Новий документ — нова картка: фокус на її заголовок ставить перехід.
         onCreated={(created: RaRecord) => {
-          void navigate(paths.payment(String(created.id)))
+          void navigate(kind.pathsOf(paths).record(String(created.id)))
         }}
       />
     </div>
