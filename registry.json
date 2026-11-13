@@ -3201,6 +3201,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -4560,6 +4565,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -5771,6 +5781,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -6813,6 +6828,11 @@
           "path": "registry/lib/mock-team.ts",
           "type": "registry:lib",
           "target": "@lib/mock-team.ts"
+        },
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -7920,6 +7940,11 @@
           "path": "registry/lib/mocks.ts",
           "type": "registry:lib",
           "target": "@lib/mocks.ts"
+        },
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -9191,6 +9216,11 @@
           "path": "registry/lib/mocks.ts",
           "type": "registry:lib",
           "target": "@lib/mocks.ts"
+        },
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -10747,6 +10777,11 @@
           "path": "registry/lib/mocks.ts",
           "type": "registry:lib",
           "target": "@lib/mocks.ts"
+        },
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -12306,6 +12341,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -13847,6 +13887,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -15159,6 +15204,11 @@
           "target": "@lib/mocks.ts"
         },
         {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
@@ -16131,6 +16181,11 @@
           "path": "registry/lib/mock-server.ts",
           "type": "registry:lib",
           "target": "@lib/mock-server.ts"
+        },
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
         },
         {
           "path": "registry/lib/notification-settings.ts",
@@ -24181,7 +24236,7 @@
       "name": "lib/i18n-namespaces",
       "type": "registry:lib",
       "title": "Рядки модуля",
-      "description": "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride.",
+      "description": "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride; createModuleT — хук перекладу модуля з рядками strings розширення з хука модуля (ADR-0085).",
       "dependencies": [
         "i18next@^26.4.4",
         "react-i18next@^17.0.16"
@@ -42194,6 +42249,332 @@
         "demo": "data",
         "spec": [
           "§17"
+        ]
+      }
+    },
+    {
+      "name": "lib/module",
+      "type": "registry:lib",
+      "title": "Каркас модуля",
+      "description": "Спільне для модулів (ADR-0085): типи ErpModule, ModuleNavItem і ModuleResource (типи модулів — їхні псевдоніми); createModule — модуль з опису: маршрути сторінок у контексті модуля, адреса basePath веде на першу сторінку, preload чанка за тими самими маршрутами, що й роутер; createModuleContext — контекст сторінок і хук модуля, яким сторінки читають розширення на кожен рендер; moduleNavItems — пункти модуля в навігації мовою інтерфейсу, пункт із правом лише тому, хто його має.",
+      "dependencies": [
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/module.ts",
+          "type": "registry:lib",
+          "target": "@lib/module.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/realtime.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/sse.ts",
+          "type": "registry:lib",
+          "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/timeline.ts"
+        },
+        {
+          "path": "registry/lib/web-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/web-push.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "contacts",
+        "spec": [
+          "§14",
+          "§17",
+          "PF09"
         ]
       }
     },

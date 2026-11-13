@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { UsersExtension } from "./extension"
 
@@ -25,25 +25,14 @@ export function usersPaths(basePath: string): UsersPaths {
   }
 }
 
-export interface UsersModuleContextValue {
-  readonly extension: UsersExtension
-  readonly paths: UsersPaths
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
+export interface UsersModuleContextValue extends ModuleContextValue<
+  UsersExtension,
+  UsersPaths
+> {
   /** Куди перейти після «Увійти як…»: сторінка модуля може бути недоступна тому, за кого увійшли. */
   readonly homePath: string
 }
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const UsersModuleContext = createContext<UsersModuleContextValue | null>(
-  null,
-)
-
-export function useUsersModule(): UsersModuleContextValue {
-  const value = useContext(UsersModuleContext)
-  if (!value)
-    throw new Error(
-      "A2-users: page rendered outside routes of createUsersModule()",
-    )
-  return value
-}
+export const [UsersModuleContext, useUsersModule] =
+  createModuleContext<UsersModuleContextValue>("A2-users", "createUsersModule")

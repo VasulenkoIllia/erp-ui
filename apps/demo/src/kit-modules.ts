@@ -1,14 +1,9 @@
 import { createElement } from "react"
-import { useRoutes, type RouteObject } from "react-router"
+import { useRoutes } from "react-router"
 
-import type { NavItem } from "@/registry/erp/app-shell"
 import { PageState } from "@/registry/erp/page-state"
-import {
-  hasPermission,
-  localizedText,
-  type LocalizedText,
-} from "@/registry/lib/auth"
 import type { ModuleId } from "@/registry/lib/icons"
+import type { ErpModule } from "@/registry/lib/module"
 
 import { companyModule } from "@/company-module"
 import { contactsModule } from "@/contacts-module"
@@ -27,22 +22,9 @@ import { paymentsModule } from "@/payments-module"
 
 /**
  * Модулі кіта в демо (ADR-0025): так проект ставить модуль — фабрика з адресою й розширенням
- * проекту, маршрути — у своєму роутері, пункти — у своїй навігації. Сторінки модуля — лінивими
- * чанками, `Suspense` і межа помилок — в оболонці.
+ * проекту, маршрути — у своєму роутері, пункти — у своїй навігації (`moduleNavItems`). Сторінки
+ * модуля — лінивими чанками, `Suspense` і межа помилок — в оболонці.
  */
-interface KitModule {
-  readonly id: string
-  readonly routes: RouteObject[]
-  readonly nav: readonly {
-    readonly id: string
-    readonly label: LocalizedText
-    readonly href: string
-    readonly icon: NavItem["icon"]
-    readonly access?: { readonly resource: string; readonly action: string }
-  }[]
-  readonly preload: (pathname: string) => void
-}
-
 export const KIT_MODULES = {
   contacts: contactsModule,
   salesModule,
@@ -55,10 +37,10 @@ export const KIT_MODULES = {
   timelineModule,
   invoicesModule,
   paymentsModule,
-} as const satisfies Record<KitModuleKey, KitModule>
+} as const satisfies Record<KitModuleKey, ErpModule>
 
 /** Модуль кіта на місці заглушки розділу (`/m/B1`, `/m/B3`, `/m/K2`, `/m/K4`, `/m/A2`, `/m/A1`, `/m/A5`, `/m/N5`, `/m/A6`, `/m/A4`, `/m/N1`); інший розділ — заглушка. */
-export function kitModuleOf(id: ModuleId): KitModule | undefined {
+export function kitModuleOf(id: ModuleId): ErpModule | undefined {
   return Object.values(KIT_MODULES).find((module) => module.id === id)
 }
 
@@ -68,27 +50,6 @@ export function KitModuleRoutes({ moduleKey }: { moduleKey: KitModuleKey }) {
     useRoutes(KIT_MODULES[moduleKey].routes) ??
     createElement(PageState, { kind: "not-found", headingLevel: 1 })
   )
-}
-
-/**
- * Пункти модуля в навігації оболонки мовою інтерфейсу; пункт із правом (`access`) — лише тому, хто
- * його має (профіль ще вантажиться — без таких пунктів).
- */
-export function kitModuleNavItems(
-  module: KitModule,
-  language: string,
-  permissions: readonly string[] | undefined,
-): NavItem[] {
-  const allowed = ({ access }: KitModule["nav"][number]) =>
-    !access ||
-    (permissions !== undefined &&
-      hasPermission(permissions, access.resource, access.action))
-  return module.nav.filter(allowed).map((item) => ({
-    id: item.id,
-    label: localizedText(item.label, language) ?? item.id,
-    href: item.href,
-    icon: item.icon,
-  }))
 }
 
 /** Пункт навігації модуля за адресою: список чи картка з нього. */

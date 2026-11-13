@@ -15,15 +15,16 @@
  * у файлі розширення (`src/extensions/B3-sales.ts`). Моки — окремо, `./mocks` (`createSalesMocks`),
  * щоб MSW не потрапив у застосунок.
  */
-import type { LucideIcon } from "lucide-react"
 import type { RaRecord } from "ra-core"
-import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
 
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
-import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import {
+  createModule,
+  type ErpModule,
+  type ModuleNavItemWithAccess,
+} from "@/lib/module"
 
 import type { SalesExtension } from "./extension"
 import {
@@ -31,7 +32,6 @@ import {
   salesPaths,
   type SalesClients,
   type SalesInvoices,
-  type SalesModuleContextValue,
   type SalesPaths,
 } from "./module-context"
 import {
@@ -84,26 +84,15 @@ export type { ExtensionField } from "@/lib/extension-fields"
 
 export const SALES_MODULE_ID = "B3"
 
-export interface SalesNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-  /** Пункт видно лише з правом читання ресурсу. */
-  readonly access: { readonly resource: string; readonly action: string }
-}
+/** Пункт видно лише з правом читання ресурсу. */
+export type SalesNavItem = ModuleNavItemWithAccess
 
-export interface SalesModule {
-  readonly id: typeof SALES_MODULE_ID
-  readonly paths: SalesPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly SalesNavItem[]
-  /** Ресурси модуля: права (`<ресурс>:<дія>`), журнал аудиту, токени API, сценарії моків. */
-  readonly resources: readonly SalesResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
-}
+export type SalesModule = ErpModule<
+  typeof SALES_MODULE_ID,
+  SalesPaths,
+  SalesNavItem,
+  SalesResource
+>
 
 export interface SalesModuleOptions<TItem extends RaRecord = RaRecord> {
   /** Початок адрес модуля: `""` — `/quotes`; `"/sales"` — `/sales/quotes`. */
@@ -150,49 +139,6 @@ const PAGES = {
 
 const NO_EXTENSION: SalesExtension = {}
 
-/** Сторінки одного документа: список, картка, форма й друк. */
-interface DocumentPages {
-  readonly list: PreloadableComponent<object>
-  readonly record: PreloadableComponent<object>
-  readonly form: PreloadableComponent<object>
-  readonly print: PreloadableComponent<object>
-}
-
-/** Сторінка документа за адресою під `list` (`…/quotes`): список, нова, зміна, друк чи картка. */
-function pageAt(
-  path: string,
-  list: string,
-  create: string,
-  pages: DocumentPages,
-) {
-  if (path === list) return pages.list
-  const inside = path.startsWith(`${list}/`)
-  if (path === create || (inside && path.endsWith("/edit"))) return pages.form
-  if (inside && path.endsWith("/print")) return pages.print
-  return inside ? pages.record : null
-}
-
-/** Чанк сторінки за адресою: список, форма, друк чи картка пропозиції або замовлення. */
-function preloadFor(paths: SalesPaths) {
-  return (pathname: string) => {
-    const path = pathname.split(/[?#]/)[0] ?? ""
-    const target =
-      pageAt(path, paths.quotes, paths.newQuote, {
-        list: PAGES.quotes,
-        record: PAGES.quote,
-        form: PAGES.quoteForm,
-        print: PAGES.quotePrint,
-      }) ??
-      pageAt(path, paths.orders, paths.newOrder, {
-        list: PAGES.orders,
-        record: PAGES.order,
-        form: PAGES.orderForm,
-        print: PAGES.orderPrint,
-      })
-    void target?.preload()
-  }
-}
-
 export function createSalesModule<TItem extends RaRecord = RaRecord>({
   basePath = "",
   extension = NO_EXTENSION,
@@ -201,61 +147,48 @@ export function createSalesModule<TItem extends RaRecord = RaRecord>({
   invoices,
 }: SalesModuleOptions<TItem> = {}): SalesModule {
   const paths = salesPaths(basePath, invoices)
-  const preload = preloadFor(paths)
-  const context: SalesModuleContextValue = {
-    extension,
-    paths,
-    clients,
-    // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
-    lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
-    preload,
-  }
-  const page = (Page: ComponentType) =>
-    createElement(
-      SalesModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
-  const routes: RouteObject[] = [
-    { path: paths.quotes, element: page(PAGES.quotes) },
-    { path: paths.newQuote, element: page(PAGES.quoteForm) },
-    { path: `${paths.quotes}/:id`, element: page(PAGES.quote) },
-    { path: `${paths.quotes}/:id/edit`, element: page(PAGES.quoteForm) },
-    { path: `${paths.quotes}/:id/print`, element: page(PAGES.quotePrint) },
-    { path: paths.orders, element: page(PAGES.orders) },
-    { path: paths.newOrder, element: page(PAGES.orderForm) },
-    { path: `${paths.orders}/:id`, element: page(PAGES.order) },
-    { path: `${paths.orders}/:id/edit`, element: page(PAGES.orderForm) },
-    { path: `${paths.orders}/:id/print`, element: page(PAGES.orderPrint) },
-  ]
-  // Адреса самого модуля (`/sales`) — список пропозицій.
-  if (basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths.quotes, replace: true }),
-    })
-  const nav: SalesNavItem[] = [
-    {
-      id: "B3-quotes",
-      label: { uk: "Пропозиції", en: "Quotes" },
-      href: paths.quotes,
-      icon: MODULE_ICONS.B3,
-      access: { resource: QUOTES, action: "read" },
-    },
-    {
-      id: "B3-orders",
-      label: { uk: "Замовлення", en: "Orders" },
-      href: paths.orders,
-      icon: MODULE_ICONS.B3,
-      access: { resource: ORDERS, action: "read" },
-    },
-  ]
-  return {
+  return createModule({
     id: SALES_MODULE_ID,
+    basePath,
     paths,
-    routes,
-    nav,
+    pages: [
+      { path: paths.quotes, page: PAGES.quotes },
+      { path: paths.newQuote, page: PAGES.quoteForm },
+      { path: `${paths.quotes}/:id`, page: PAGES.quote },
+      { path: `${paths.quotes}/:id/edit`, page: PAGES.quoteForm },
+      { path: `${paths.quotes}/:id/print`, page: PAGES.quotePrint },
+      { path: paths.orders, page: PAGES.orders },
+      { path: paths.newOrder, page: PAGES.orderForm },
+      { path: `${paths.orders}/:id`, page: PAGES.order },
+      { path: `${paths.orders}/:id/edit`, page: PAGES.orderForm },
+      { path: `${paths.orders}/:id/print`, page: PAGES.orderPrint },
+    ],
+    // Адреса самого модуля (`/sales`) — список пропозицій.
+    home: paths.quotes,
+    nav: [
+      {
+        id: "B3-quotes",
+        label: { uk: "Пропозиції", en: "Quotes" },
+        href: paths.quotes,
+        icon: MODULE_ICONS.B3,
+        access: { resource: QUOTES, action: "read" },
+      },
+      {
+        id: "B3-orders",
+        label: { uk: "Замовлення", en: "Orders" },
+        href: paths.orders,
+        icon: MODULE_ICONS.B3,
+        access: { resource: ORDERS, action: "read" },
+      },
+    ],
     resources: SALES_RESOURCES,
-    preload,
-  }
+    context: SalesModuleContext,
+    value: {
+      extension,
+      paths,
+      clients,
+      // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
+      lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
+    },
+  })
 }

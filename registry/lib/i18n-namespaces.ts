@@ -87,6 +87,31 @@ export function moduleResources<M extends object>(
   }
 }
 
+const NO_STRINGS: ModuleStrings<object> = {}
+
+/**
+ * Хук перекладу рядків модуля для сторінок і секцій (ADR-0085): рядки приходять разом зі сторінками
+ * модуля (ADR-0025), перевизначення — `strings` розширення з хука модуля (`createModuleContext` з
+ * `lib/module`) на кожен рендер. `loadEn` — динамічний імпорт `en.json` модуля.
+ *
+ *   export const useContactsT = createModuleT<ContactsMessages>("B1-contacts", uk, loadEn, useContactsModule)
+ */
+export function createModuleT<M extends object>(
+  namespace: string,
+  uk: M,
+  loadEn: () => Promise<M>,
+  useModule: () => {
+    readonly extension: { readonly strings?: ModuleStrings<M> | undefined }
+  },
+): () => ReturnType<typeof useNamespaceT<M>> {
+  const resourcesFor = moduleResources<M>(uk, loadEn)
+  return function useModuleT() {
+    const { strings = NO_STRINGS } = useModule().extension
+    useNamespaceResources(namespace, resourcesFor(strings))
+    return useNamespaceT<M>(namespace)
+  }
+}
+
 /**
  * Завантаження рядків простору імен іншою мовою: одне на екземпляр, мову й простір, і проміс
  * лишається в кеші зі станом для `use()` (`track`): готові рядки сторінка бере без призупинення.

@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { ContactsExtension } from "./extension"
 
@@ -23,22 +23,14 @@ export function contactsPaths(basePath: string): ContactsPaths {
   }
 }
 
-export interface ContactsModuleContextValue {
-  readonly extension: ContactsExtension
-  readonly paths: ContactsPaths
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
-}
+export type ContactsModuleContextValue = ModuleContextValue<
+  ContactsExtension,
+  ContactsPaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const ContactsModuleContext =
-  createContext<ContactsModuleContextValue | null>(null)
-
-export function useContactsModule(): ContactsModuleContextValue {
-  const value = useContext(ContactsModuleContext)
-  if (!value)
-    throw new Error(
-      "B1-contacts: page rendered outside routes of createContactsModule()",
-    )
-  return value
-}
+export const [ContactsModuleContext, useContactsModule] =
+  createModuleContext<ContactsModuleContextValue>(
+    "B1-contacts",
+    "createContactsModule",
+  )

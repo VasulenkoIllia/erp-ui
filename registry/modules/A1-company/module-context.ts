@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { CompanyExtension } from "./extension"
 
@@ -24,24 +24,17 @@ export function companyPaths(basePath: string): CompanyPaths {
   }
 }
 
-export interface CompanyModuleContextValue {
-  readonly extension: CompanyExtension
-  readonly paths: CompanyPaths
+export interface CompanyModuleContextValue extends ModuleContextValue<
+  CompanyExtension,
+  CompanyPaths
+> {
   /** Куди веде майстер першого запуску після завершення чи пропуску. */
   readonly afterSetup: string
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
 }
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const CompanyModuleContext =
-  createContext<CompanyModuleContextValue | null>(null)
-
-export function useCompanyModule(): CompanyModuleContextValue {
-  const value = useContext(CompanyModuleContext)
-  if (!value)
-    throw new Error(
-      "A1-company: page rendered outside routes of createCompanyModule()",
-    )
-  return value
-}
+export const [CompanyModuleContext, useCompanyModule] =
+  createModuleContext<CompanyModuleContextValue>(
+    "A1-company",
+    "createCompanyModule",
+  )

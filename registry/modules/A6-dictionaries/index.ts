@@ -18,19 +18,19 @@ import {
   RulerIcon,
   SlidersHorizontalIcon,
   TagIcon,
-  type LucideIcon,
 } from "lucide-react"
-import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
 
-import type { LocalizedText } from "@/lib/auth"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import {
+  createModule,
+  type ErpModule,
+  type ModuleNavItemWithAccess,
+} from "@/lib/module"
 
 import type { DictionariesExtension } from "./extension"
 import {
   DictionariesModuleContext,
   dictionariesPaths,
-  type DictionariesModuleContextValue,
   type DictionariesPaths,
 } from "./module-context"
 import {
@@ -85,29 +85,14 @@ export type { ExtensionField } from "@/lib/extension-fields"
 
 export const DICTIONARIES_MODULE_ID = "A6"
 
-export interface DictionaryNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-  /**
-   * Право, без якого пункт ховають (`<ресурс>:<дія>`, як `useCanAccess`): сторінка однаково покаже
-   * «Немає доступу».
-   */
-  readonly access: { readonly resource: string; readonly action: string }
-}
+export type DictionaryNavItem = ModuleNavItemWithAccess
 
-export interface DictionariesModule {
-  readonly id: typeof DICTIONARIES_MODULE_ID
-  readonly paths: DictionariesPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly DictionaryNavItem[]
-  /** Ресурси модуля: права (`<ресурс>:<дія>`), журнал аудиту, токени API, сценарії моків. */
-  readonly resources: readonly DictionaryResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
-}
+export type DictionariesModule = ErpModule<
+  typeof DICTIONARIES_MODULE_ID,
+  DictionariesPaths,
+  DictionaryNavItem,
+  DictionaryResource
+>
 
 export interface DictionariesModuleOptions {
   /** Початок адрес модуля: `""` — `/taxes`; `"/settings"` — `/settings/taxes`. */
@@ -188,13 +173,6 @@ export function createDictionariesModule({
   extension = NO_EXTENSION,
 }: DictionariesModuleOptions = {}): DictionariesModule {
   const paths = dictionariesPaths(basePath)
-  const context: DictionariesModuleContextValue = { extension, paths }
-  const page = (Page: ComponentType) =>
-    createElement(
-      DictionariesModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
   // Сторінка, яка компанії не потрібна (`page: false`): без маршруту й пункту.
   const hasDefaults = DEFAULT_SOURCES.some(
     (key) => extension[key]?.page !== false,
@@ -203,38 +181,25 @@ export function createDictionariesModule({
     (key) =>
       extension[key]?.page !== false && (key !== "defaults" || hasDefaults),
   )
-  const routes: RouteObject[] = shown.map((key) => ({
-    path: paths[key],
-    element: page(PAGES[key]),
-  }))
-  // Адреса самого модуля (`/settings`) — перша сторінка.
-  const first = shown[0]
-  if (first && basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths[first], replace: true }),
-    })
-  const nav = shown.map((key): DictionaryNavItem => {
-    const { label, icon, resource } = NAV[key]
-    return {
-      id: `A6-${key}`,
-      label,
-      href: paths[key],
-      icon,
-      access: { resource, action: "read" },
-    }
-  })
-  const preload = (pathname: string) => {
-    const path = pathname.split(/[?#]/)[0] ?? ""
-    const key = shown.find((candidate) => paths[candidate] === path)
-    if (key) void PAGES[key].preload()
-  }
-  return {
+  return createModule({
     id: DICTIONARIES_MODULE_ID,
+    basePath,
     paths,
-    routes,
-    nav,
+    pages: shown.map((key) => ({ path: paths[key], page: PAGES[key] })),
+    // Адреса самого модуля (`/settings`) — перша сторінка.
+    home: shown[0] && paths[shown[0]],
+    nav: shown.map((key): DictionaryNavItem => {
+      const { label, icon, resource } = NAV[key]
+      return {
+        id: `A6-${key}`,
+        label,
+        href: paths[key],
+        icon,
+        access: { resource, action: "read" },
+      }
+    }),
     resources: DICTIONARY_RESOURCES,
-    preload,
-  }
+    context: DictionariesModuleContext,
+    value: { extension, paths },
+  })
 }

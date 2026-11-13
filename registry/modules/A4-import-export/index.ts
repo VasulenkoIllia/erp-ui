@@ -11,19 +11,16 @@
  * (`src/extensions/A4-import-export.ts`). Моки — окремо, `./mocks` (`createImportExportMocks`), щоб MSW
  * не потрапив у застосунок.
  */
-import { HistoryIcon, type LucideIcon } from "lucide-react"
-import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
+import { HistoryIcon } from "lucide-react"
 
-import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import { createModule, type ErpModule, type ModuleNavItem } from "@/lib/module"
 
 import type { ImportExportExtension } from "./extension"
 import {
   ImportExportModuleContext,
   importExportPaths,
-  type ImportExportModuleContextValue,
   type ImportExportPaths,
 } from "./module-context"
 import {
@@ -50,26 +47,15 @@ export type {
 
 export const IMPORT_EXPORT_MODULE_ID = "A4"
 
-export interface ImportExportNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-  /** Право, без якого пункт ховають (`<ресурс>:<дія>`): сторінка однаково покаже «Немає доступу». */
-  readonly access?: { readonly resource: string; readonly action: string }
-}
+export type ImportExportNavItem = ModuleNavItem
 
-export interface ImportExportModule {
-  readonly id: typeof IMPORT_EXPORT_MODULE_ID
-  readonly paths: ImportExportPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly ImportExportNavItem[]
-  /** Ресурс модуля: право `import-runs:read`, сценарії моків. */
-  readonly resources: readonly ImportExportResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
-}
+/** Ресурс модуля: право `import-runs:read`, сценарії моків. */
+export type ImportExportModule = ErpModule<
+  typeof IMPORT_EXPORT_MODULE_ID,
+  ImportExportPaths,
+  ImportExportNavItem,
+  ImportExportResource
+>
 
 export interface ImportExportModuleOptions {
   /** Початок адрес модуля: `""` — `/import-export`; `"/settings"` — `/settings/import-export`. */
@@ -95,26 +81,7 @@ export function createImportExportModule({
   extension = NO_EXTENSION,
 }: ImportExportModuleOptions = {}): ImportExportModule {
   const paths = importExportPaths(basePath)
-  const context: ImportExportModuleContextValue = { extension, paths }
-  const page = (Page: ComponentType) =>
-    createElement(
-      ImportExportModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
   const hasHistory = extension.history?.page !== false
-  const routes: RouteObject[] = [
-    { path: paths.targets, element: page(PAGES.targets) },
-    { path: paths.run, element: page(PAGES.run) },
-  ]
-  if (hasHistory)
-    routes.push({ path: paths.history, element: page(PAGES.history) })
-  // Адреса самого модуля (`/settings`) — цілі.
-  if (basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths.targets, replace: true }),
-    })
   const nav: ImportExportNavItem[] = [
     {
       id: "A4-targets",
@@ -131,18 +98,20 @@ export function createImportExportModule({
       icon: HistoryIcon,
       access: { resource: IMPORT_RUNS, action: "read" },
     })
-  const preload = (pathname: string) => {
-    const path = pathname.split(/[?#]/)[0] ?? ""
-    if (path === paths.targets) void PAGES.targets.preload()
-    else if (path === paths.history && hasHistory) void PAGES.history.preload()
-    else if (path.startsWith(`${paths.targets}/`)) void PAGES.run.preload()
-  }
-  return {
+  return createModule({
     id: IMPORT_EXPORT_MODULE_ID,
+    basePath,
     paths,
-    routes,
+    pages: [
+      { path: paths.targets, page: PAGES.targets },
+      { path: paths.run, page: PAGES.run },
+      ...(hasHistory ? [{ path: paths.history, page: PAGES.history }] : []),
+    ],
+    // Адреса самого модуля (`/settings`) — цілі.
+    home: paths.targets,
     nav,
     resources: IMPORT_EXPORT_RESOURCES,
-    preload,
-  }
+    context: ImportExportModuleContext,
+    value: { extension, paths },
+  })
 }

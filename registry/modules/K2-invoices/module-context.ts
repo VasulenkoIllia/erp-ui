@@ -1,8 +1,8 @@
 import type { RaRecord } from "ra-core"
-import { createContext, useContext } from "react"
 
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
 import type { PartyDetails } from "@/lib/document-parties"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { InvoicesExtension } from "./extension"
 
@@ -115,9 +115,10 @@ export interface InvoicePayments extends InvoiceMoneyDocuments {
   readonly refunds?: InvoiceMoneyDocuments
 }
 
-export interface InvoicesModuleContextValue {
-  readonly extension: InvoicesExtension
-  readonly paths: InvoicesPaths
+export interface InvoicesModuleContextValue extends ModuleContextValue<
+  InvoicesExtension,
+  InvoicesPaths
+> {
   readonly clients: InvoiceClients
   readonly sources: InvoiceSources
   /** Валюти рахунку; без них рахунок у базовій валюті компанії, поля «Валюта» у формі немає. */
@@ -128,19 +129,11 @@ export interface InvoicesModuleContextValue {
   readonly agingBuckets: readonly number[]
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
 }
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const InvoicesModuleContext =
-  createContext<InvoicesModuleContextValue | null>(null)
-
-export function useInvoicesModule(): InvoicesModuleContextValue {
-  const value = useContext(InvoicesModuleContext)
-  if (!value)
-    throw new Error(
-      "K2-invoices: page rendered outside routes of createInvoicesModule()",
-    )
-  return value
-}
+export const [InvoicesModuleContext, useInvoicesModule] =
+  createModuleContext<InvoicesModuleContextValue>(
+    "K2-invoices",
+    "createInvoicesModule",
+  )

@@ -447,7 +447,8 @@ export const contactsModule = createContactsModule({ basePath: "/crm", extension
 
 // маршрути — під Suspense і межею помилок застосунку
 function Contacts() { return useRoutes(contactsModule.routes) }
-// навігація — contactsModule.nav: { id, label: { uk, en }, href, icon }, підпис — localizedText(item.label, language)
+// навігація — moduleNavItems(contactsModule.nav, language, me?.permissions) з @/lib/module: підпис мовою інтерфейсу,
+// пункт з access — лише з цим правом, поки профіль вантажиться — без таких пунктів
 // права й ресурси — contactsModule.resources (contacts, organizations, segments), до каталогу прав бекенда
 
 // src/mocks/handlers.ts — моки беруть лише файл полів, без компонентів
@@ -497,6 +498,7 @@ export const contactsExtension: ContactsExtension = {
 - Довгий підпис (заголовок колонки розширення, перейменований статус) таблиця кіта поки не обрізає: текст ширший за колонку налазить на сусідню. Дайте колонці ширину — новій `minWidth`, колонці модуля `columns.change: [{ id: "status", minWidth: 14 }]` (так у тестовому проекті з «Обслуговування припинено»).
 - Що файли кіта в проекті не змінені, перевіряє `node scripts/erp-ui-kit.mjs check` (у `pnpm lint`) за відбитками `kit-files.json`, які записує команда оновлення: правка файлу кіта падає з підказкою «зміни — у файлі розширення», випадкова правка самого `kit-files.json` (контрольна сума не збігається) — з підказкою повернути його з git.
 - `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
+- Модуль кожної фабрики — одного спільного типу `ErpModule` з `@/lib/module` (ADR-0085): `id`, `paths`, `routes`, `nav`, `resources`, `preload`; типи модулів (`ContactsModule`, `ContactsNavItem`, `ContactsResource`…) — його псевдоніми. Список модулів проекту — `satisfies Record<string, ErpModule>`, один код маршрутів і навігації на всі.
 - Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 
 ### Модуль A2 «Користувачі й ролі» (ADR-0031)
@@ -520,7 +522,7 @@ setupWorker(...platformHandlers, ...createUsersMocks({ extension: usersMockExten
 ```
 
 - Список і картка людини, сторінка «Ролі й права» (`<basePath>/roles`, вибрана роль — `?role=<id>`; ADR-0033), сторінка «Запрошення» (`<basePath>/invitations`; ADR-0035). Дії над людиною — лише в компанії запиту, «стеля» ролей і «Увійти як…» не в сильнішого (ADR-0032), ролі компанії запиту й лічильник людей лише цієї компанії, ролі людини свої в кожній її компанії, права й «стеля» — у компанії запиту, `*` не керує ролями чужої компанії (ADR-0033) бекенд перевіряє сам.
-- Навігація — `usersModule.nav`: «Користувачі», «Ролі й права» і «Запрошення». Пункт з `access` показуйте лише з цим правом: `item.access ? hasPermission(me.permissions, item.access.resource, item.access.action) : true` (`@/lib/auth`).
+- Навігація — `usersModule.nav`: «Користувачі», «Ролі й права» і «Запрошення»; пункт з `access` лише з цим правом показує `moduleNavItems` (`@/lib/module`, вище).
 - Права: список і картка — `users:read`, вкладки «Доступ» і «Сесії» — `users:update`, зміна ролей — `users:update` і `roles:read`, «Увійти як…» — `users:impersonate`, сторінка ролей — `roles:read`, нова роль, копія, зміна й видалення — `roles:update`, сторінка запрошень — `users:create`. Без права — «Немає доступу» на місці сторінки.
 - Довідник для полів-записів: поле `type: "record", resource: "users"` в іншому модулі показує імена всім у компанії — бекенд віддає без `users:read` лише `{ id, version, name, email }` (контракт — `README.md` модуля).
 - Розширення — `users`: `fields`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `history: false`; форми запису немає (людину створює запрошення). `roles: { page: false }` — без сторінки ролей і пункту навігації, `invitations: { page: false }` — без сторінки запрошень і її пункту.

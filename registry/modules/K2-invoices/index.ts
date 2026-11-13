@@ -20,15 +20,16 @@
  * у файлі розширення (`src/extensions/K2-invoices.ts`). Моки — окремо, `./mocks` (`createInvoicesMocks`),
  * щоб MSW не потрапив у застосунок.
  */
-import type { LucideIcon } from "lucide-react"
 import type { RaRecord } from "ra-core"
-import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
 
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
-import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import {
+  createModule,
+  type ErpModule,
+  type ModuleNavItemWithAccess,
+} from "@/lib/module"
 
 import { DEFAULT_AGING_BUCKETS, isAgingBuckets } from "./aging-buckets"
 import type { InvoicesExtension } from "./extension"
@@ -39,7 +40,6 @@ import {
   type InvoiceClients,
   type InvoiceCurrencies,
   type InvoicePayments,
-  type InvoicesModuleContextValue,
   type InvoiceSources,
   type InvoicesPaths,
 } from "./module-context"
@@ -100,26 +100,15 @@ export type { ExtensionField } from "@/lib/extension-fields"
 
 export const INVOICES_MODULE_ID = "K2"
 
-export interface InvoicesNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-  /** Пункт видно лише з правом читання ресурсу. */
-  readonly access: { readonly resource: string; readonly action: string }
-}
+/** Пункт видно лише з правом читання ресурсу. */
+export type InvoicesNavItem = ModuleNavItemWithAccess
 
-export interface InvoicesModule {
-  readonly id: typeof INVOICES_MODULE_ID
-  readonly paths: InvoicesPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly InvoicesNavItem[]
-  /** Ресурси модуля: права (`<ресурс>:<дія>`), журнал аудиту, токени API, сценарії моків. */
-  readonly resources: readonly InvoicesResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
-}
+export type InvoicesModule = ErpModule<
+  typeof INVOICES_MODULE_ID,
+  InvoicesPaths,
+  InvoicesNavItem,
+  InvoicesResource
+>
 
 export interface InvoicesModuleOptions<TItem extends RaRecord = RaRecord> {
   /** Початок адрес модуля: `""` — `/invoices`; `"/finance"` — `/finance/invoices`. */
@@ -195,41 +184,6 @@ const PAGES = {
 const NO_EXTENSION: InvoicesExtension = {}
 const NO_SOURCES: InvoiceSources = {}
 
-/** Чанк сторінки кредит-ноти за адресою: список, зміна, друк чи картка. */
-function creditNotePage(paths: InvoicesPaths, path: string) {
-  if (path === paths.creditNotes) return PAGES.creditNotes
-  if (!path.startsWith(`${paths.creditNotes}/`)) return null
-  return path.endsWith("/edit")
-    ? PAGES.creditNoteForm
-    : path.endsWith("/print")
-      ? PAGES.creditNotePrint
-      : PAGES.creditNote
-}
-
-/**
- * Чанк сторінки за адресою: список, нова, зміна, друк чи картка рахунку чи кредит-ноти, борги клієнтів
- * (лише з оплатами: без них сторінки немає).
- */
-function preloadFor(paths: InvoicesPaths, hasDebts: boolean) {
-  return (pathname: string) => {
-    const path = pathname.split(/[?#]/)[0] ?? ""
-    const inside = path.startsWith(`${paths.invoices}/`)
-    const target =
-      path === paths.invoices
-        ? PAGES.list
-        : path === paths.newInvoice || (inside && path.endsWith("/edit"))
-          ? PAGES.form
-          : inside && path.endsWith("/print")
-            ? PAGES.print
-            : inside
-              ? PAGES.record
-              : hasDebts && path === paths.debts
-                ? PAGES.debts
-                : creditNotePage(paths, path)
-    void target?.preload()
-  }
-}
-
 export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
   basePath = "",
   extension = NO_EXTENSION,
@@ -250,49 +204,6 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
   // Без оплат рахунок не має боргу (ADR-0073), без `aging` бекенд звіту не дає.
   const hasDebts = Boolean(payments && aging)
   const paths = invoicesPaths(basePath)
-  const preload = preloadFor(paths, hasDebts)
-  const context: InvoicesModuleContextValue = {
-    extension,
-    paths,
-    clients,
-    sources,
-    currencies,
-    payments,
-    agingBuckets,
-    // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
-    lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
-    preload,
-  }
-  const page = (Page: ComponentType) =>
-    createElement(
-      InvoicesModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
-  const routes: RouteObject[] = [
-    { path: paths.invoices, element: page(PAGES.list) },
-    { path: paths.newInvoice, element: page(PAGES.form) },
-    { path: `${paths.invoices}/:id`, element: page(PAGES.record) },
-    { path: `${paths.invoices}/:id/edit`, element: page(PAGES.form) },
-    { path: `${paths.invoices}/:id/print`, element: page(PAGES.print) },
-    { path: paths.creditNotes, element: page(PAGES.creditNotes) },
-    { path: `${paths.creditNotes}/:id`, element: page(PAGES.creditNote) },
-    {
-      path: `${paths.creditNotes}/:id/edit`,
-      element: page(PAGES.creditNoteForm),
-    },
-    {
-      path: `${paths.creditNotes}/:id/print`,
-      element: page(PAGES.creditNotePrint),
-    },
-  ]
-  if (hasDebts) routes.push({ path: paths.debts, element: page(PAGES.debts) })
-  // Адреса самого модуля (`/finance`) — список рахунків.
-  if (basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths.invoices, replace: true }),
-    })
   const nav: InvoicesNavItem[] = [
     {
       id: "K2-invoices",
@@ -317,12 +228,37 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
       icon: MODULE_ICONS.K2,
       access: { resource: INVOICES, action: "read" },
     })
-  return {
+  return createModule({
     id: INVOICES_MODULE_ID,
+    basePath,
     paths,
-    routes,
+    pages: [
+      { path: paths.invoices, page: PAGES.list },
+      { path: paths.newInvoice, page: PAGES.form },
+      { path: `${paths.invoices}/:id`, page: PAGES.record },
+      { path: `${paths.invoices}/:id/edit`, page: PAGES.form },
+      { path: `${paths.invoices}/:id/print`, page: PAGES.print },
+      { path: paths.creditNotes, page: PAGES.creditNotes },
+      { path: `${paths.creditNotes}/:id`, page: PAGES.creditNote },
+      { path: `${paths.creditNotes}/:id/edit`, page: PAGES.creditNoteForm },
+      { path: `${paths.creditNotes}/:id/print`, page: PAGES.creditNotePrint },
+      ...(hasDebts ? [{ path: paths.debts, page: PAGES.debts }] : []),
+    ],
+    // Адреса самого модуля (`/finance`) — список рахунків.
+    home: paths.invoices,
     nav,
     resources: INVOICES_RESOURCES,
-    preload,
-  }
+    context: InvoicesModuleContext,
+    value: {
+      extension,
+      paths,
+      clients,
+      sources,
+      currencies,
+      payments,
+      agingBuckets,
+      // Редактор рядків лише повертає вибраний запис ресурсу `lineItem.resource` у ці самі функції.
+      lineItem: lineItem as DocumentLineItem<RaRecord> | undefined,
+    },
+  })
 }
