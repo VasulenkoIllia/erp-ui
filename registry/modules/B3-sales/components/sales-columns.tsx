@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 
+import { documentDateColumn } from "@/components/erp/document-columns"
 import { RecordLink } from "@/components/erp/record-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type { DataTableColumn } from "@/lib/data-table-core"
@@ -71,19 +72,7 @@ export function useSalesColumns<D extends SalesDocument, Due extends string>(
         minWidth: 9,
         card: "badge",
       },
-      {
-        id: "date",
-        header: t(`${list}.columns.date`),
-        cell: (document) => (
-          <span className="tabular-nums">
-            {format.date(document.date, "date")}
-          </span>
-        ),
-        sortField: "date",
-        firstSortOrder: "DESC",
-        minWidth: 8,
-        priority: 4,
-      },
+      documentDateColumn<D>(t(`${list}.columns.date`), format),
       {
         id: kind.due.field,
         header: t(kind.due.column),

@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react"
 import type { z } from "zod"
 
 import { ACTION_ICONS, MODULE_ICONS } from "@/lib/icons"
+import type { DocumentKind } from "@/lib/document-kind"
 import type { StatusTone, StatusTransition } from "@/lib/statuses"
 
 import type { AllocationInvoice } from "./allocation"
@@ -48,8 +49,8 @@ export interface K4DocumentPaths {
 /** Те, що спільні частини беруть із розширення документа проекту. */
 export type K4KindExtension = MoneyDocumentExtension<PaymentIds, string, string>
 
-export interface K4DocumentKind {
-  readonly resource: string
+/** Вид документа модуля (`lib/document-kind`): дії графа — підписи кіта, своїх підписів і підтверджень немає. */
+export interface K4DocumentKind extends DocumentKind<PaymentsKey, never> {
   /** Рядки картки: `payment.*` чи `refund.*`. */
   readonly key: "payment" | "refund"
   /** Рядки списку: `payments.*` чи `refunds.*`. */

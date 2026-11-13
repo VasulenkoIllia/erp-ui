@@ -7,6 +7,7 @@
  */
 import type { z } from "zod"
 
+import { copyPath, type DocumentKind } from "@/lib/document-kind"
 import type { Language } from "@/lib/i18n"
 import type { StatusTone, StatusTransition } from "@/lib/statuses"
 
@@ -39,9 +40,6 @@ import type {
 import type { SalesPaths } from "./module-context"
 import type { SalesKey } from "./use-sales-t"
 
-/** Параметр адреси нової форми з документом, який копіюють: `…/new?copy=<id>`. */
-export const COPY_PARAM = "copy"
-
 /** Адреси сторінок документа від `basePath` фабрики. */
 export interface SalesDocumentPaths {
   readonly list: string
@@ -52,9 +50,6 @@ export interface SalesDocumentPaths {
   readonly edit: (id: string) => string
   readonly print: (id: string) => string
 }
-
-const copyPath = (create: string) => (id: string) =>
-  `${create}?${new URLSearchParams({ [COPY_PARAM]: id }).toString()}`
 
 /** Префікс рядків підтвердження дії модуля: `title`, `description`, `action`. */
 export type SalesConfirmKey =
@@ -72,8 +67,7 @@ export type SalesDocumentKeys =
 export interface SalesDocumentKind<
   D extends SalesDocument,
   Due extends string,
-> {
-  readonly resource: string
+> extends DocumentKind<SalesKey, SalesConfirmKey> {
   readonly keys: SalesDocumentKeys
   /** Друга дата: поле, підписи, позначка минулої дати й статуси, у яких документ іще чекає. */
   readonly due: {
@@ -90,17 +84,8 @@ export interface SalesDocumentKind<
     readonly newDays: number
   }
   dueOf(document: D): string
-  readonly statuses: readonly {
-    readonly id: string
-    readonly tone: StatusTone
-    readonly label: SalesKey
-  }[]
-  readonly transitions: readonly StatusTransition[]
-  /** Дії зі своїм підписом модуля; решта — підписи кіта (`documentActions.<дія>`). */
   readonly actionLabels: Readonly<Partial<Record<string, SalesKey>>>
-  /** Дії зі своїми текстами підтвердження: «Надіслати пропозицію?» замість «Провести документ?». */
   readonly confirms: Readonly<Partial<Record<string, SalesConfirmKey>>>
-  /** Основний шлях для смуги етапів; решта статусів — бейджем. */
   readonly mainPath: readonly string[]
   extensionOf(
     extension: SalesExtension,

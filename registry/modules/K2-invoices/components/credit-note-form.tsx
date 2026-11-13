@@ -4,25 +4,16 @@ import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { ConflictDialog } from "@/components/erp/conflict-dialog"
-import { DateInput } from "@/components/erp/date-input"
+import { dateFormItem } from "@/components/erp/document-form-items"
 import {
   useExtensionForm,
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
 import {
-  FormErrorSummary,
-  FormField,
-  UnsavedChangesGuard,
-} from "@/components/erp/form"
-import {
   RecordFormFields,
-  useConflictFields,
-  useFormMessage,
   type RecordFormItem,
 } from "@/components/erp/record-form"
-import { SaveBar } from "@/components/erp/save-bar"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { RecordFormFrame } from "@/components/erp/record-form-page"
 import { usePostingDate } from "@/hooks/use-period-lock"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { isCalendarDate } from "@/lib/dates"
@@ -124,29 +115,15 @@ function useDateItem(
   const { min, hint } = usePostingDate()
   const { control } = form
   return useMemo(
-    () => ({
-      id: "date",
-      label: t("creditNoteForm.fields.date"),
-      ...(hint ? { description: hint } : {}),
-      render: (props) => (
-        <FormField
-          {...props}
-          control={control}
-          name="date"
-          render={({ field, control: aria }) => (
-            <DateInput
-              {...aria}
-              ref={field.ref}
-              value={field.value}
-              onValueChange={field.onChange}
-              onBlur={field.onBlur}
-              min={min}
-              readOnly={readOnly}
-            />
-          )}
-        />
-      ),
-    }),
+    () =>
+      dateFormItem({
+        control,
+        name: "date",
+        label: t("creditNoteForm.fields.date"),
+        description: hint,
+        min,
+        readOnly,
+      }),
     [t, control, min, hint, readOnly],
   )
 }
@@ -245,7 +222,6 @@ function CreditNoteFormView({
   readOnlyReason: string | undefined
 }) {
   const t = useInvoicesT()
-  const { isDirty, errors, submitCount } = state.form.formState
   const items = useMemo((): readonly RecordFormItem[] => {
     const linesItem: RecordFormItem = {
       id: "lines",
@@ -263,59 +239,22 @@ function CreditNoteFormView({
       Object.fromEntries(items.map((item) => [item.id, item.label])),
     [items],
   )
-  const { ref: messageRef, message } = useFormMessage(state, labels)
-  const conflictRows = useConflictFields(state, items)
   return (
-    <form
-      noValidate
-      data-slot="credit-note-form"
-      onSubmit={(event) => void state.submit(event)}
-      aria-busy={state.isSaving || undefined}
+    <RecordFormFrame
+      slot="credit-note-form"
       className="grid gap-6"
+      state={state}
+      labels={labels}
+      conflictItems={items}
+      readOnly={readOnly}
+      readOnlyReason={readOnlyReason}
     >
-      <UnsavedChangesGuard when={isDirty && !readOnly} />
-      {readOnlyReason ? (
-        <Alert>
-          <AlertDescription>{readOnlyReason}</AlertDescription>
-        </Alert>
-      ) : null}
-      {message ? (
-        <Alert
-          ref={messageRef}
-          tabIndex={-1}
-          variant="destructive"
-          role="alert"
-        >
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      ) : null}
-      <FormErrorSummary
-        errors={errors}
-        labels={labels}
-        submitCount={submitCount}
-      />
       <RecordFormFields items={header} />
       <CreditNoteLinesFields
         form={state.form}
         note={note}
         readOnly={readOnly}
       />
-      {readOnly ? null : (
-        <SaveBar
-          isDirty={isDirty}
-          isSaving={state.isSaving}
-          onDiscard={state.discard}
-        />
-      )}
-      <ConflictDialog
-        open={state.conflict !== null}
-        onOpenChange={(open) => {
-          if (!open) state.dismissConflict()
-        }}
-        fields={conflictRows}
-        onOverwrite={state.overwrite}
-        onReload={state.reload}
-      />
-    </form>
+    </RecordFormFrame>
   )
 }

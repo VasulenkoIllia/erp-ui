@@ -1,29 +1,23 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
-import { useEffect, useEffectEvent, useState, type ReactNode } from "react"
 import { useParams, useSearchParams } from "react-router"
 
-import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
-import { BackToList } from "@/components/erp/record-link"
-import { ListReportHeader } from "@/components/templates/list-report"
+import {
+  DocumentFormPage,
+  useDocumentFormSource,
+} from "@/components/templates/document-form-page"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
-import { useEditLock } from "@/hooks/use-edit-lock"
+import { useEditSession } from "@/hooks/use-edit-session"
 import { usePageHeading } from "@/hooks/use-page-heading"
-import { errorStateKind, isApiError } from "@/lib/api"
+import { errorStateKind } from "@/lib/api"
+import { COPY_PARAM } from "@/lib/document-kind"
 
 import { useDocumentAccess } from "../components/invoice-access"
 import { useInvoiceTitle } from "../components/invoice-display"
 import { InvoiceForm } from "../components/invoice-form"
-import { useInvoiceDetail } from "../components/invoice-lines"
-import {
-  INVOICES,
-  type Invoice,
-  type InvoiceCard,
-  type InvoiceDetail,
-} from "../contract"
-import { COPY_PARAM, INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
+import { INVOICES, invoiceDetailSchema, type Invoice } from "../contract"
+import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
@@ -41,45 +35,16 @@ export function InvoiceFormPage() {
   return id ? <EditInvoice key={id} id={id} /> : <NewInvoice />
 }
 
-/**
- * Рахунок із рядками для форми (зміна чи копія): `fallback` — стан запиту картки (помилка, скелетон,
- * рядки не за контрактом), інакше `ready` — рахунок із рядками.
- */
+/** Рахунок із рядками для форми (зміна чи копія). */
 function useFormSource(id: string) {
   const t = useInvoicesT()
-  const card = useCardRecord<Invoice & Partial<InvoiceDetail>>(INVOICES, id)
-  const invoice = card.record
-  const detail = useInvoiceDetail(invoice)
-  const pageError = card.pageError
-  const fallback: ReactNode =
-    pageError !== undefined ? (
-      <PageState
-        kind={
-          isApiError(pageError) && pageError.status === 404
-            ? "not-found"
-            : errorStateKind(pageError)
-        }
-        onRetry={card.retry}
-      />
-    ) : !invoice || (!detail && card.isFetching) ? (
-      <PageSkeleton rows={6} />
-    ) : !detail ? (
-      // Відповіді картки з рядками немає: помилка запиту.
-      <PageState
-        kind={card.failure ? errorStateKind(card.failure) : "error"}
-        onRetry={card.retry}
-      />
-    ) : !detail.success ? (
-      // Рядки не за контрактом: форма не відкривається, щоб не зберегти зіпсоване.
-      <PageState
-        kind="error"
-        title={t("invoice.linesInvalid")}
-        onRetry={card.retry}
-      />
-    ) : null
-  const ready: InvoiceCard | undefined =
-    invoice && detail?.success ? { ...invoice, ...detail.data } : undefined
-  return { card, invoice, ready, fallback }
+  return useDocumentFormSource<Invoice, typeof invoiceDetailSchema>({
+    resource: INVOICES,
+    id,
+    schema: invoiceDetailSchema,
+    owner: "K2-invoices",
+    invalidTitle: t("invoice.linesInvalid"),
+  })
 }
 
 function NewInvoice() {
@@ -107,17 +72,14 @@ function NewInvoice() {
       <InvoiceForm company={company.data} readOnly={false} mayEdit />
     )
   return (
-    <div className="space-y-6">
-      <BackToList
-        to={invoiceDocumentPaths(paths).list}
-        label={t("invoice.back")}
-      />
-      <ListReportHeader
-        title={t("invoiceForm.createTitle")}
-        headingRef={heading}
-      />
+    <DocumentFormPage
+      back={invoiceDocumentPaths(paths).list}
+      backLabel={t("invoice.back")}
+      title={t("invoiceForm.createTitle")}
+      headingRef={heading}
+    >
       {body}
-    </div>
+    </DocumentFormPage>
   )
 }
 
@@ -146,7 +108,7 @@ function EditInvoice({ id }: { id: string }) {
   const t = useInvoicesT()
   const titleOf = useInvoiceTitle()
   const { extension, paths } = useInvoicesModule()
-  const { card, invoice, ready, fallback } = useFormSource(id)
+  const { card, document: invoice, ready, fallback } = useFormSource(id)
   const title = invoice
     ? t("invoiceForm.editTitle", { title: titleOf(invoice) })
     : t("invoice.title")
@@ -154,57 +116,35 @@ function EditInvoice({ id }: { id: string }) {
     title,
     !card.isPending || card.pageError !== undefined,
   )
-  const access = useDocumentAccess(INVOICE_KIND, "update", invoice)
-  const lock = useEditLock({
+  const session = useEditSession({
     resource: INVOICES,
     id,
+    access: useDocumentAccess(INVOICE_KIND, "update", invoice),
+    hasRecord: Boolean(invoice),
+    deniedReason: t("invoice.editDenied"),
     enabled: extension.invoices?.editLock !== false,
   })
-  const mayEdit = Boolean(invoice) && !access.isPending && access.canAccess
-  // Поки перше взяття не відповіло, форма лише для читання: введене до відмови пропало б.
-  const [isLockSettled, setLockSettled] = useState(false)
-  // Блокування — на час сторінки: відпускає його сам хук, коли сторінку покинули. Інша людина
-  // відпустила запис — береться знову, інакше форма стала б доступною без блокування.
-  const acquire = useEffectEvent(() => lock.acquire())
-  const isFree = lock.holder === null
-  useEffect(() => {
-    if (!mayEdit || !isFree) return
-    // Збій блокування не заважає редагувати (`useEditLock`): дані береже версія запису.
-    const settle = () => {
-      setLockSettled(true)
-    }
-    void acquire().then(settle, settle)
-  }, [mayEdit, isFree])
-  const reason = access.isPending
-    ? undefined
-    : access.canAccess
-      ? lock.reason
-      : (access.recordReason ?? t("invoice.editDenied"))
   const body =
     fallback ??
-    (!ready || access.isPending ? (
+    (!ready || session.isPending ? (
       <PageSkeleton rows={6} />
     ) : (
       <InvoiceForm
         invoice={ready}
-        readOnly={
-          reason !== undefined ||
-          lock.isAcquiring ||
-          (mayEdit && !isLockSettled)
-        }
-        readOnlyReason={reason}
-        mayEdit={mayEdit}
+        readOnly={session.readOnly}
+        readOnlyReason={session.reason}
+        mayEdit={session.mayEdit}
       />
     ))
   return (
-    <div className="space-y-6">
-      <BackToList
-        to={invoiceDocumentPaths(paths).record(id)}
-        label={t("invoiceForm.back")}
-      />
-      <ListReportHeader title={title} headingRef={heading} />
-      <EditLockNotice holder={lock.holder} />
+    <DocumentFormPage
+      back={invoiceDocumentPaths(paths).record(id)}
+      backLabel={t("invoiceForm.back")}
+      title={title}
+      headingRef={heading}
+      holder={session.holder}
+    >
       {body}
-    </div>
+    </DocumentFormPage>
   )
 }

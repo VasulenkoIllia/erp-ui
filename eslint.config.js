@@ -56,6 +56,8 @@ export default defineConfig(
     extends: [reactRefresh.configs.vite],
   },
   // Файли модуля копіюються в проект як є (ADR-0025): кіт — шляхами проекту, свої — відносно.
+  // Сторож каркаса (ADR-0085, ADR-0086): контекст сторінок, прогрів чанків і переклад модуль бере з
+  // lib/module і createModuleT, а не збирає сам.
   {
     files: ["registry/modules/**/*.{ts,tsx}"],
     rules: {
@@ -69,6 +71,27 @@ export default defineConfig(
                 "У модулі — шляхи проекту: @/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…",
             },
           ],
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            ":matches(ImportDeclaration[source.value='react'] > ImportSpecifier[imported.name='createContext'], CallExpression[callee.property.name='createContext'])",
+          message:
+            "Контекст модуля — createModuleContext з @/lib/module (ADR-0085)",
+        },
+        {
+          selector:
+            ":matches(ImportDeclaration[source.value='react-router'] > ImportSpecifier[imported.name='matchRoutes'], ObjectExpression > Property[key.name='preload']:not([value.type='MemberExpression']), FunctionDeclaration[id.name='preload'], VariableDeclarator[id.name='preload'][init.type=/Function/])",
+          message:
+            "Прогрів сторінок модуля дає createModule з @/lib/module (ADR-0085): свого preload модуль не пише",
+        },
+        {
+          selector:
+            "ImportDeclaration[source.value='@/lib/i18n-namespaces'] > ImportSpecifier[imported.name=/^useNamespace/]",
+          message:
+            "Переклад модуля — createModuleT з @/lib/i18n-namespaces (ADR-0085)",
         },
       ],
     },

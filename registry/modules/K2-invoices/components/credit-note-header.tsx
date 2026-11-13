@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router"
 
 import type { RecordField } from "@/components/erp/record-header"
+import { AccessLink } from "@/components/erp/access-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type {
   ObjectPageAction,
@@ -24,10 +25,9 @@ import { CREDIT_NOTE_KIND } from "../credit-note-kind"
 import type { CreditNoteActionId, CreditNoteFieldId } from "../extension"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
-import { AccessLink } from "./access-link"
-import { useDocumentAccess } from "./invoice-access"
+import { useDocumentAccess, useDocumentLockedReason } from "./invoice-access"
 import { DocumentClient } from "./invoice-header"
-import { DocumentDeleteAction } from "./invoice-delete"
+import { InvoiceDeleteAction } from "./invoice-delete"
 import {
   InvoiceBaseTotal,
   InvoiceTotal,
@@ -69,7 +69,8 @@ export function useCreditNoteHeader(
   const t = useInvoicesT()
   const format = useFormat()
   const titleOf = useDocumentTitle(CREDIT_NOTE_KIND)
-  const { extension, paths } = useInvoicesModule()
+  const { extension, paths, preload } = useInvoicesModule()
+  const lockedReason = useDocumentLockedReason(CREDIT_NOTE_KIND)
   const noteExtension = extension.creditNotes
   const extensionFields = useExtensionFields(noteExtension?.fields)
   if (!note) return undefined
@@ -108,9 +109,11 @@ export function useCreditNoteHeader(
       id: "edit",
       node: (
         <AccessLink
-          kind={CREDIT_NOTE_KIND}
+          resource={CREDIT_NOTE_KIND.resource}
           action="update"
           to={paths.editCreditNote(note.id)}
+          preload={preload}
+          moduleText={lockedReason}
           icon="edit"
           label={t("creditNote.edit")}
           deniedReason={t("creditNote.editDenied")}
@@ -122,7 +125,7 @@ export function useCreditNoteHeader(
     {
       id: "delete",
       node: (
-        <DocumentDeleteAction
+        <InvoiceDeleteAction
           kind={CREDIT_NOTE_KIND}
           document={note}
           description={

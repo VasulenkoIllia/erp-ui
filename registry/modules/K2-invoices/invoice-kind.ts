@@ -3,6 +3,8 @@
  * підтвердженнями, етапи, адреси сторінок. Кредит-нота (ADR-0072) — поруч своїм описом
  * (`credit-note-kind.ts`), спільний тип — `document-kind.ts`.
  */
+import { copyPath } from "@/lib/document-kind"
+
 import {
   CREATE_CREDIT_NOTE,
   INVOICE_STATUSES,
@@ -11,9 +13,6 @@ import {
 } from "./contract"
 import { DOCUMENT_TONES, type K2DocumentKind } from "./document-kind"
 import type { InvoicesPaths } from "./module-context"
-
-/** Параметр адреси нової форми з документом, який копіюють: `…/new?copy=<id>`. */
-export const COPY_PARAM = "copy"
 
 /** Адреси сторінок рахунку від `basePath` фабрики. */
 export interface InvoiceDocumentPaths {
@@ -33,8 +32,7 @@ export function invoiceDocumentPaths(
     list: paths.invoices,
     record: paths.invoice,
     create: paths.newInvoice,
-    copy: (id) =>
-      `${paths.newInvoice}?${new URLSearchParams({ [COPY_PARAM]: id }).toString()}`,
+    copy: copyPath(paths.newInvoice),
     edit: paths.editInvoice,
     print: paths.printInvoice,
   }

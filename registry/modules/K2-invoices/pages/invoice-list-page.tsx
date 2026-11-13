@@ -2,6 +2,7 @@ import { useAuthenticated } from "ra-core"
 import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
+import { AccessLink } from "@/components/erp/access-link"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
@@ -14,7 +15,6 @@ import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
-import { AccessLink } from "../components/access-link"
 import { useDocumentListFilters } from "../components/document-list"
 import { useCurrencyFilter } from "../components/invoice-currency"
 import { useInvoiceBulkActions } from "../components/invoice-bulk-actions"
@@ -44,7 +44,7 @@ const DEFAULTS: ListDefaults = {
  */
 export function InvoicesListPage() {
   const t = useInvoicesT()
-  const { paths } = useInvoicesModule()
+  const { paths, preload } = useInvoicesModule()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("invoices.title"))
@@ -53,9 +53,10 @@ export function InvoicesListPage() {
       id: "create",
       node: (
         <AccessLink
-          kind={INVOICE_KIND}
+          resource={INVOICE_KIND.resource}
           action="create"
           to={invoiceDocumentPaths(paths).create}
+          preload={preload}
           icon="create"
           label={t("invoices.create")}
           deniedReason={t("invoices.createDenied")}

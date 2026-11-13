@@ -3,15 +3,14 @@ import type * as React from "react"
 
 import {
   useBulkAction,
+  useBulkActionTexts,
   type BulkAction,
-  type BulkActionTexts,
 } from "@/components/erp/bulk-action"
 import type { ListReportBulk } from "@/components/templates/list-report"
 import type { RowSelection } from "@/hooks/use-row-selection"
 import type { FilterValue } from "@/lib/api"
 import { useFormat } from "@/lib/format"
 import type { ActionIcon } from "@/lib/icons"
-import type { Job } from "@/lib/jobs"
 import type { ModuleTransition } from "@/lib/statuses"
 
 import type { SalesDocument } from "../contract"
@@ -29,27 +28,6 @@ export interface SalesBulkScope {
   readonly kind: SalesKindBase
   readonly selection: RowSelection
   readonly filter: Record<string, FilterValue>
-}
-
-/** Тексти масової дії модуля: підтвердження з кількістю, підсумок задачі, причина відмови. */
-function useBulkTexts(key: SalesBulkKey, denied: string): BulkActionTexts {
-  const t = useSalesT()
-  const format = useFormat()
-  return {
-    title: (count, value) => t(`${key}.title`, { count, value }),
-    description: t(`${key}.description`),
-    confirm: (count, value) => t(`${key}.confirm`, { count, value }),
-    denied,
-    progress: t(`${key}.progress`),
-    summary: (job: Job) =>
-      job.failed
-        ? t(`${key}.partial`, {
-            done: format.number(job.succeeded),
-            total: format.number(job.total),
-            failed: format.number(job.failed),
-          })
-        : t(`${key}.done`, { value: format.number(job.succeeded) }),
-  }
 }
 
 /**
@@ -74,7 +52,7 @@ export function useSalesBulkTransition(
 ): BulkAction {
   const t = useSalesT()
   const lockedReason = useSalesLockedReason(kind)
-  const texts = useBulkTexts(key, t(`${key}.denied`))
+  const texts = useBulkActionTexts(key, t, t(`${key}.denied`))
   const action = transition?.id ?? ""
   const isCancel = action === "cancel"
   return useBulkAction({
@@ -104,7 +82,11 @@ export function useSalesBulkDelete({
   const t = useSalesT()
   const lockedReason = useSalesLockedReason(kind)
   const key = `${kind.keys.list}.bulk.delete` as const
-  const texts = useBulkTexts(key, t(`${kind.keys.record}.delete.denied`))
+  const texts = useBulkActionTexts(
+    key,
+    t,
+    t(`${kind.keys.record}.delete.denied`),
+  )
   return useBulkAction({
     resource: kind.resource,
     selection,

@@ -8,25 +8,8 @@
  * `change` — типи нижче. Рахунки — під ключем `invoices`, кредит-ноти (ADR-0072) — під ключем
  * `creditNotes`.
  */
-import type {
-  ExtensionColumn,
-  ExtensionColumnChange,
-  ExtensionField,
-  ExtensionFilter,
-  ExtensionTab,
-} from "@/lib/extension-fields"
-import type { ExtensionFormChanges } from "@/lib/extension-form"
-import type { Keyed, KeyedChanges } from "@/lib/extensions"
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
-import type {
-  ExtensionStatusChanges,
-  ExtensionTransitionChanges,
-} from "@/lib/statuses"
-import type {
-  ExtensionAction,
-  ExtensionAside,
-  ExtensionSection,
-} from "@/components/templates/object-page"
+import type { DocumentExtension } from "@/components/templates/document-extension"
 
 import type {
   CreditNote,
@@ -85,68 +68,6 @@ export type InvoiceFieldId = InvoiceIds["field"]
 export type InvoiceSectionId = InvoiceIds["section"]
 export type InvoiceActionId = InvoiceIds["action"]
 export type InvoiceFormFieldId = InvoiceIds["formField"]
-
-/** Ключі документа модуля для спільного типу розширення: ними сторінки перевіряють свої списки. */
-interface DocumentIds {
-  column: string
-  filter: string
-  tab: string
-  field: string
-  section: string
-  action: string
-  formField: string
-}
-
-/**
- * Розширення документа модуля: поля, статуси й дії, список, картка й форма. `D` — запис, `S` і `T` —
- * статуси й дії графа модуля.
- */
-interface DocumentExtension<
-  D,
-  Ids extends DocumentIds,
-  S extends string,
-  T extends string,
-> {
-  /** Нові поля шапки: схема, підписи, значення для моків (`lib/extension-fields`). */
-  readonly fields?: readonly ExtensionField[]
-  /**
-   * Статуси документа: додати, сховати з вибору; `change` — підпис, тон чи іконка статусу модуля без
-   * заміни. Новий статус досяжний дією `transitions`.
-   */
-  readonly statuses?: ExtensionStatusChanges<S>
-  /**
-   * Дозволені переходи (ADR-0057): нова дія зі своїм статусом; `change` — підпис, `from` і причина дії
-   * модуля, але не `to`.
-   */
-  readonly transitions?: ExtensionTransitionChanges<T>
-  /** Колонки списку; нова — з поля розширення (ключ — ключ поля); `change` — назва, ширина чи пріоритет. */
-  readonly columns?: KeyedChanges<
-    ExtensionColumn,
-    Ids["column"],
-    ExtensionColumnChange
-  >
-  /** Фільтри панелі списку; новий — з поля розширення (список, так/ні, дата). */
-  readonly filters?: KeyedChanges<ExtensionFilter, Ids["filter"]>
-  /** Вкладки-статуси списку з фільтром даними. */
-  readonly tabs?: KeyedChanges<ExtensionTab, Ids["tab"]>
-  /** Ключові поля шапки картки; нове — з поля розширення. */
-  readonly recordFields?: KeyedChanges<Keyed, Ids["field"]>
-  /** `false` — картка без журналу «Історія»: бекенд не веде журналу змін. За замовчуванням — є. */
-  readonly history?: boolean
-  /** `false` — без «Редагує …» (ADR-0051): бекенд без блокувань і так нічого не зламає. */
-  readonly editLock?: boolean
-  /** Стрічка картки замість «Історії»: `timelineModule.aside` модуля N1 чи свій компонент (ADR-0054). */
-  readonly aside?: ExtensionAside<D>
-  /** Секції картки — компоненти проекту в слотах. */
-  readonly sections?: KeyedChanges<ExtensionSection<D>, Ids["section"]>
-  /** Дії в шапці картки — компоненти проекту з правом `access`. */
-  readonly actions?: KeyedChanges<ExtensionAction<D>, Ids["action"]>
-  /**
-   * Форма створення й зміни шапки (`lib/extension-form`): `add` — поле розширення з `fields`, `hide` і
-   * `move` — поля модуля, `change` — підпис і підказка поля модуля.
-   */
-  readonly form?: ExtensionFormChanges<Ids["formField"]>
-}
 
 /** Розширення рахунку: поля, статуси й дії, список, картка й форма. */
 export type InvoiceDocumentExtension = DocumentExtension<

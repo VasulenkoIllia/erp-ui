@@ -1,30 +1,24 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
-import { useEffect, useEffectEvent, useState, type ReactNode } from "react"
 import { useParams, useSearchParams } from "react-router"
 
-import { EditLockNotice } from "@/components/erp/edit-lock-notice"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
-import { BackToList } from "@/components/erp/record-link"
-import { ListReportHeader } from "@/components/templates/list-report"
+import {
+  DocumentFormPage,
+  useDocumentFormSource,
+} from "@/components/templates/document-form-page"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
-import { useEditLock } from "@/hooks/use-edit-lock"
+import { useEditSession } from "@/hooks/use-edit-session"
 import { usePageHeading } from "@/hooks/use-page-heading"
-import { errorStateKind, isApiError } from "@/lib/api"
+import { COPY_PARAM } from "@/lib/document-kind"
+import { errorStateKind } from "@/lib/api"
 
 import { useSalesAccess } from "../components/sales-access"
 import { useSalesTitle } from "../components/sales-display"
 import { SalesForm } from "../components/sales-form"
-import { useSalesDetail } from "../components/sales-lines"
-import type { SalesDocument, SalesDocumentDetail } from "../contract"
+import { salesDetailSchema, type SalesDocument } from "../contract"
 import { useSalesModule } from "../module-context"
-import {
-  COPY_PARAM,
-  ORDER_KIND,
-  QUOTE_KIND,
-  type SalesDocumentKind,
-} from "../sales-kinds"
+import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
 
 /** Компанія без базової валюти (профіль ще не налаштовано): гривня, як у модулі A1. */
@@ -62,51 +56,19 @@ function SalesFormPage<D extends SalesDocument, Due extends string>({
   )
 }
 
-/**
- * Документ із рядками для форми (зміна чи копія): `fallback` — стан запиту картки (помилка, скелетон,
- * рядки не за контрактом), інакше `ready` — документ із рядками.
- */
+/** Документ із рядками для форми (зміна чи копія) за схемою рядків модуля. */
 function useFormSource<D extends SalesDocument, Due extends string>(
   kind: SalesDocumentKind<D, Due>,
   id: string,
 ) {
   const t = useSalesT()
-  const card = useCardRecord<D & Partial<SalesDocumentDetail>>(
-    kind.resource,
+  return useDocumentFormSource<D, typeof salesDetailSchema>({
+    resource: kind.resource,
     id,
-  )
-  const document = card.record
-  const detail = useSalesDetail(document)
-  const pageError = card.pageError
-  const fallback: ReactNode =
-    pageError !== undefined ? (
-      <PageState
-        kind={
-          isApiError(pageError) && pageError.status === 404
-            ? "not-found"
-            : errorStateKind(pageError)
-        }
-        onRetry={card.retry}
-      />
-    ) : !document || (!detail && card.isFetching) ? (
-      <PageSkeleton rows={6} />
-    ) : !detail ? (
-      // Відповіді картки з рядками немає: помилка запиту.
-      <PageState
-        kind={card.failure ? errorStateKind(card.failure) : "error"}
-        onRetry={card.retry}
-      />
-    ) : !detail.success ? (
-      // Рядки не за контрактом: форма не відкривається, щоб не зберегти зіпсоване.
-      <PageState
-        kind="error"
-        title={t(`${kind.keys.record}.linesInvalid`)}
-        onRetry={card.retry}
-      />
-    ) : null
-  const ready: (D & SalesDocumentDetail) | undefined =
-    document && detail?.success ? { ...document, ...detail.data } : undefined
-  return { card, document, ready, fallback }
+    schema: salesDetailSchema,
+    owner: "B3-sales",
+    invalidTitle: t(`${kind.keys.record}.linesInvalid`),
+  })
 }
 
 function NewDocument<D extends SalesDocument, Due extends string>({
@@ -140,11 +102,14 @@ function NewDocument<D extends SalesDocument, Due extends string>({
       <SalesForm kind={kind} currency={currency} readOnly={false} mayEdit />
     )
   return (
-    <div className="space-y-6">
-      <BackToList to={kind.pathsOf(paths).list} label={t(`${record}.back`)} />
-      <ListReportHeader title={t(`${form}.createTitle`)} headingRef={heading} />
+    <DocumentFormPage
+      back={kind.pathsOf(paths).list}
+      backLabel={t(`${record}.back`)}
+      title={t(`${form}.createTitle`)}
+      headingRef={heading}
+    >
       {body}
-    </div>
+    </DocumentFormPage>
   )
 }
 
@@ -200,59 +165,37 @@ function EditDocument<D extends SalesDocument, Due extends string>({
     title,
     !card.isPending || card.pageError !== undefined,
   )
-  const access = useSalesAccess(kind, "update", document)
-  const lock = useEditLock({
+  const session = useEditSession({
     resource: kind.resource,
     id,
+    access: useSalesAccess(kind, "update", document),
+    hasRecord: Boolean(document),
+    deniedReason: t(`${keys}.editDenied`),
     enabled: kind.extensionOf(extension)?.editLock !== false,
   })
-  const mayEdit = Boolean(document) && !access.isPending && access.canAccess
-  // Поки перше взяття не відповіло, форма лише для читання: введене до відмови пропало б.
-  const [isLockSettled, setLockSettled] = useState(false)
-  // Блокування — на час сторінки: відпускає його сам хук, коли сторінку покинули. Інша людина
-  // відпустила запис — береться знову, інакше форма стала б доступною без блокування.
-  const acquire = useEffectEvent(() => lock.acquire())
-  const isFree = lock.holder === null
-  useEffect(() => {
-    if (!mayEdit || !isFree) return
-    // Збій блокування не заважає редагувати (`useEditLock`): дані береже версія запису.
-    const settle = () => {
-      setLockSettled(true)
-    }
-    void acquire().then(settle, settle)
-  }, [mayEdit, isFree])
-  const reason = access.isPending
-    ? undefined
-    : access.canAccess
-      ? lock.reason
-      : (access.recordReason ?? t(`${keys}.editDenied`))
   const body =
     fallback ??
-    (!ready || access.isPending ? (
+    (!ready || session.isPending ? (
       <PageSkeleton rows={6} />
     ) : (
       <SalesForm
         kind={kind}
         document={ready}
         currency={ready.currency}
-        readOnly={
-          reason !== undefined ||
-          lock.isAcquiring ||
-          (mayEdit && !isLockSettled)
-        }
-        readOnlyReason={reason}
-        mayEdit={mayEdit}
+        readOnly={session.readOnly}
+        readOnlyReason={session.reason}
+        mayEdit={session.mayEdit}
       />
     ))
   return (
-    <div className="space-y-6">
-      <BackToList
-        to={kind.pathsOf(paths).record(id)}
-        label={t(`${form}.back`)}
-      />
-      <ListReportHeader title={title} headingRef={heading} />
-      <EditLockNotice holder={lock.holder} />
+    <DocumentFormPage
+      back={kind.pathsOf(paths).record(id)}
+      backLabel={t(`${form}.back`)}
+      title={title}
+      headingRef={heading}
+      holder={session.holder}
+    >
       {body}
-    </div>
+    </DocumentFormPage>
   )
 }
