@@ -12,8 +12,12 @@ import { compareCalendarDates, todayIn, type CalendarDate } from "@/lib/dates"
 import { errorStateKind } from "@/lib/api"
 import { useFormat } from "@/lib/format"
 
-import { allocatedTotal, allocateOldestFirst } from "../allocation"
-import type { OpenInvoice } from "../contract"
+import {
+  allocatedTotal,
+  allocateOldestFirst,
+  type AllocationInvoice,
+} from "../allocation"
+import type { K4DocumentKind } from "../document-kind"
 import { usePaymentsT } from "../use-payments-t"
 import { InvoiceLink } from "./payment-display"
 import type { PaymentFormValues } from "./payment-form-items"
@@ -26,16 +30,19 @@ const ROW_GRID =
   "@2xl:grid-cols-[minmax(0,1fr)_9rem_10rem_13rem] @2xl:items-center"
 
 /**
- * Рахунки клієнта у формі оплати (ADR-0073): неоплачені рахунки у валюті оплати від найранішої «Сплатити до»
- * з боргом і сумою з оплати кожному; «Розписати від найстаршого» ділить суму оплати за порядком; під списком —
- * скільки розписано й скільки лишилось. На вузькому контейнері рядок — картка, на широкому — колонки.
+ * Рахунки клієнта у формі оплати чи повернення (ADR-0073, ADR-0083): рахунки у валюті документа від
+ * найранішої «Сплатити до» з межею (борг чи переплата) і сумою кожному; «Розписати від найстаршого» ділить
+ * суму документа за порядком; під списком — скільки розписано й скільки лишилось. На вузькому контейнері
+ * рядок — картка, на широкому — колонки.
  */
 export function PaymentAllocationFields({
+  kind,
   form,
   clientId,
   currency,
   open,
 }: {
+  kind: K4DocumentKind
   form: Form
   clientId: string
   currency: string
@@ -47,12 +54,12 @@ export function PaymentAllocationFields({
   )
   const body = !clientId ? (
     <p className="text-sm text-muted-foreground">
-      {t("paymentForm.invoices.pickClient")}
+      {t(`${kind.form}.invoices.pickClient`)}
     </p>
   ) : open.failure !== undefined ? (
     <PageState
       kind={errorStateKind(open.failure)}
-      title={t("paymentForm.invoices.failed")}
+      title={t(`${kind.form}.invoices.failed`)}
       onRetry={open.retry}
     />
   ) : !invoices || open.isPending ? (
@@ -62,21 +69,26 @@ export function PaymentAllocationFields({
     </div>
   ) : invoices.length === 0 ? (
     <p className="text-sm text-muted-foreground">
-      {t("paymentForm.invoices.empty")}
+      {t(`${kind.form}.invoices.empty`)}
     </p>
   ) : (
-    <AllocationRows form={form} invoices={invoices} currency={currency} />
+    <AllocationRows
+      kind={kind}
+      form={form}
+      invoices={invoices}
+      currency={currency}
+    />
   )
   return (
     <fieldset data-slot="payment-allocations" className="@container grid gap-3">
       <legend className="mb-2 text-base font-semibold">
-        {t("paymentForm.invoices.label")}
+        {t(`${kind.form}.invoices.label`)}
       </legend>
       {body}
       {open.isTruncated ? (
         <Alert>
           <AlertDescription>
-            {t("paymentForm.invoices.truncated", {
+            {t(`${kind.form}.invoices.truncated`, {
               count: OPEN_INVOICES_LIMIT,
             })}
           </AlertDescription>
@@ -87,12 +99,14 @@ export function PaymentAllocationFields({
 }
 
 function AllocationRows({
+  kind,
   form,
   invoices,
   currency,
 }: {
+  kind: K4DocumentKind
   form: Form
-  invoices: readonly OpenInvoice[]
+  invoices: readonly AllocationInvoice[]
   currency: string
 }) {
   const t = usePaymentsT()
@@ -111,13 +125,14 @@ function AllocationRows({
       >
         <span>{t("paymentForm.invoices.number")}</span>
         <span>{t("paymentForm.invoices.dueDate")}</span>
-        <span className="text-end">{t("paymentForm.invoices.debt")}</span>
-        <span>{t("paymentForm.invoices.amount")}</span>
+        <span className="text-end">{t(kind.labels.limit)}</span>
+        <span>{t(`${kind.form}.invoices.amount`)}</span>
       </div>
       <ul className="grid">
         {invoices.map((invoice) => (
           <AllocationRow
             key={invoice.id}
+            kind={kind}
             form={form}
             invoice={invoice}
             today={today}
@@ -134,8 +149,12 @@ function AllocationRows({
             form.setValue(
               "allocations",
               allocateOldestFirst(amount ?? 0, invoices),
-              { shouldDirty: true, shouldValidate: form.formState.isSubmitted },
+              { shouldDirty: true },
             )
+            // Після «Зареєструвати» помилки суми й рахунків перевіряються знову: «розпишіть усю суму» під сумою
+            // зникає, щойно розписано, а не після наступної зміни поля.
+            if (form.formState.isSubmitted)
+              void form.trigger(["allocations", "amount"])
           }}
         >
           {t("paymentForm.invoices.auto")}
@@ -148,7 +167,7 @@ function AllocationRows({
           {left > 0
             ? ` · ${t("paymentForm.invoices.left", { left: money(left) })}`
             : left < 0
-              ? ` · ${t("paymentForm.invoices.over", { over: money(-left) })}`
+              ? ` · ${t(`${kind.form}.invoices.over`, { over: money(-left) })}`
               : null}
         </p>
       </div>
@@ -158,17 +177,20 @@ function AllocationRows({
 
 /** Рядок рахунку: поле суми підписане само на себе, тож введення в одному рядку не перемальовує інші. */
 const AllocationRow = memo(function AllocationRow({
+  kind,
   form,
   invoice,
   today,
 }: {
+  kind: K4DocumentKind
   form: Form
-  invoice: OpenInvoice
+  invoice: AllocationInvoice
   today: CalendarDate
 }) {
   const t = usePaymentsT()
   const format = useFormat()
-  const isOverdue = compareCalendarDates(invoice.dueDate, today) < 0
+  const isOverdue =
+    kind.showsOverdue && compareCalendarDates(invoice.dueDate, today) < 0
   const money = (value: number) =>
     format.money({ amount: value, currency: invoice.currency })
   return (
@@ -196,14 +218,16 @@ const AllocationRow = memo(function AllocationRow({
       </span>
       <span className="text-sm tabular-nums @2xl:text-end">
         <span className="text-muted-foreground @2xl:sr-only">
-          {t("paymentForm.invoices.debt")}{" "}
+          {t(kind.labels.limit)}{" "}
         </span>
-        {money(invoice.debt)}
+        {money(invoice.limit)}
       </span>
       <FormField
         control={form.control}
         name={`allocations.${invoice.id}`}
-        label={t("paymentForm.invoices.amountOf", { number: invoice.number })}
+        label={t(`${kind.form}.invoices.amountOf`, {
+          number: invoice.number,
+        })}
         className="@2xl:[&>[data-slot=field-label]]:sr-only"
         render={({ field, control: aria }) => (
           <MoneyInput

@@ -1,4 +1,5 @@
 import { useAuthenticated, useCanAccess } from "ra-core"
+import { useMemo } from "react"
 import { Link, useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
@@ -12,7 +13,7 @@ import {
 import { buttonVariants } from "@/components/ui/button"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
-import { ACTION_ICONS, MODULE_ICONS } from "@/lib/icons"
+import { ACTION_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import {
@@ -20,7 +21,12 @@ import {
   usePaymentListFilters,
 } from "../components/payment-columns"
 import { usePaymentStatuses } from "../components/payment-statuses"
-import { PAYMENTS, type Payment } from "../contract"
+import type { Payment } from "../contract"
+import {
+  PAYMENT_KIND,
+  REFUND_KIND,
+  type K4DocumentKind,
+} from "../document-kind"
 import type { PaymentIds } from "../extension"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
@@ -37,21 +43,24 @@ const DEFAULTS: ListDefaults = {
 
 const CreateIcon = ACTION_ICONS.create
 
-/** «Зареєструвати оплату» з правом `sales-payments:create`; без права — неактивна з причиною. */
-function CreatePayment() {
+/**
+ * «Зареєструвати оплату» з правом `sales-payments:create` чи «Повернути переплату» з `sales-refunds:create`;
+ * без права — неактивна з причиною.
+ */
+function CreateDocument({ kind }: { kind: K4DocumentKind }) {
   const t = usePaymentsT()
   const { paths, preload } = usePaymentsModule()
   const { canAccess, isPending } = useCanAccess({
-    resource: PAYMENTS,
+    resource: kind.resource,
     action: "create",
   })
   if (isPending) return null
-  const to = paths.newPayment()
+  const to = kind.pathsOf(paths).create()
   if (!canAccess)
     return (
-      <DeniedAction reason={t("payments.createDenied")} variant="default">
+      <DeniedAction reason={t(`${kind.list}.createDenied`)} variant="default">
         <CreateIcon aria-hidden />
-        {t("payments.create")}
+        {t(`${kind.list}.create`)}
       </DeniedAction>
     )
   return (
@@ -66,55 +75,68 @@ function CreatePayment() {
       }}
     >
       <CreateIcon aria-hidden />
-      {t("payments.create")}
+      {t(`${kind.list}.create`)}
     </Link>
   )
 }
 
-const CREATE_ACTIONS: readonly ListReportAction[] = [
-  { id: "create", node: <CreatePayment /> },
-]
+/** Список оплат (ADR-0073). */
+export function PaymentsListPage() {
+  return <MoneyDocumentsListPage kind={PAYMENT_KIND} />
+}
+
+/** Список повернень клієнтам (ADR-0083). */
+export function RefundsListPage() {
+  return <MoneyDocumentsListPage kind={REFUND_KIND} />
+}
 
 /**
- * Список оплат на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0073): вкладки за статусом (зі
- * статусами розширення), фільтри «Клієнт», «Дата» й «Спосіб», пошук за номером, клієнтом чи призначенням;
- * номер — посилання на картку, номери рахунків — на картки рахунків. «Зареєструвати оплату» — з правом.
+ * Список оплат чи повернень на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0073, ADR-0083):
+ * вкладки за статусом (зі статусами розширення), фільтри «Клієнт», «Дата» й «Спосіб», пошук за номером,
+ * клієнтом чи призначенням; номер — посилання на картку, номери рахунків — на картки рахунків.
+ * «Зареєструвати оплату» чи «Повернути переплату» — з правом.
  */
-export function PaymentsListPage() {
+function MoneyDocumentsListPage({ kind }: { kind: K4DocumentKind }) {
   const t = usePaymentsT()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
-  const heading = usePageHeading(t("payments.title"))
+  const heading = usePageHeading(t(`${kind.list}.title`))
+  const actions = useMemo(
+    (): readonly ListReportAction[] => [
+      { id: "create", node: <CreateDocument kind={kind} /> },
+    ],
+    [kind],
+  )
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
       <ListReportHeader
-        title={t("payments.title")}
-        description={t("payments.lead")}
+        title={t(`${kind.list}.title`)}
+        description={t(`${kind.list}.lead`)}
         headingRef={heading}
-        actions={isPending ? undefined : CREATE_ACTIONS}
+        actions={isPending ? undefined : actions}
       />
-      {isPending ? <PageSkeleton rows={8} /> : <PaymentList />}
+      {isPending ? <PageSkeleton rows={8} /> : <PaymentList kind={kind} />}
     </div>
   )
 }
 
 /** Колонки, фільтри й вкладки зі змінами розширення та стан списку з адреси. */
-function usePaymentList() {
+function usePaymentList(kind: K4DocumentKind) {
   const { extension } = usePaymentsModule()
   const [searchParams, setSearchParams] = useSearchParams()
-  const statuses = usePaymentStatuses()
-  const columns = usePaymentColumns(statuses)
+  const statuses = usePaymentStatuses(kind)
+  const columns = usePaymentColumns(kind, statuses)
   const { filters, tabs } = usePaymentListFilters(statuses)
   const extended = useExtendedList<Payment, PaymentIds>(
     columns,
     filters,
     tabs,
-    extension,
+    kind.extensionOf(extension),
     LOCKED_COLUMNS,
   )
   const report = useListReport({
-    resource: PAYMENTS,
+    resource: kind.resource,
     params: searchParams,
     onParamsChange: setSearchParams,
     defaults: DEFAULTS,
@@ -124,24 +146,24 @@ function usePaymentList() {
   return { report, columns: extended.columns }
 }
 
-function PaymentList() {
+function PaymentList({ kind }: { kind: K4DocumentKind }) {
   const t = usePaymentsT()
-  const list = usePaymentList()
+  const list = usePaymentList(kind)
   return (
     <ListReport
       report={list.report}
       mode="pages"
-      tabsLabel={t("payments.tabsLabel")}
-      searchPlaceholder={t("payments.search")}
-      tableLabel={t("payments.tableLabel")}
+      tabsLabel={t(`${kind.list}.tabsLabel`)}
+      searchPlaceholder={t(`${kind.list}.search`)}
+      tableLabel={t(`${kind.list}.tableLabel`)}
       columns={list.columns}
-      countLabel={(count, value) => t("payments.count", { count, value })}
+      countLabel={(count, value) => t(`${kind.list}.count`, { count, value })}
       empty={
         <PageState
           kind="empty"
-          icon={MODULE_ICONS.K4}
-          title={t("payments.empty.title")}
-          description={t("payments.empty.description")}
+          icon={kind.icon}
+          title={t(`${kind.list}.empty.title`)}
+          description={t(`${kind.list}.empty.description`)}
         />
       }
     />

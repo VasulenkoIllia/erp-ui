@@ -45,19 +45,24 @@ const SHEET = {
     uk: {
       credited: "Кредит-ноти",
       paid: "Оплачено",
+      refunded: "Повернено",
       debt: "До сплати",
       overpaid: "Переплата",
     },
     en: {
       credited: "Credit notes",
       paid: "Paid",
+      refunded: "Refunded",
       debt: "Amount due",
       overpaid: "Overpaid",
     },
   },
 } as const satisfies Record<string, Readonly<Record<Language, unknown>>>
 
-/** Рядки «Кредит-ноти», «Оплачено», «До сплати» під «Разом» мовою документа; борг виділено, як «Разом». */
+/**
+ * Рядки «Кредит-ноти», «Оплачено», «Повернено», «До сплати» під «Разом» мовою документа; борг виділено, як
+ * «Разом».
+ */
 const settlementRows = (
   invoice: Invoice,
   totals: InvoiceDetail["totals"],

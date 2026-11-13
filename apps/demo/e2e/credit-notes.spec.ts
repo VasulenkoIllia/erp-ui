@@ -11,7 +11,8 @@ import {
  * форма чернетки (кількість не більша за рахунок, прибрати рядок), «Виставити» з номером серії «КН-…», сума
  * кредит-нот на картці рахунку, рахунок із кредит-нотою не скасувати; список, друк, телефон. Годинник —
  * 08.11.2026, закрито по 20.10.2026. Засів компанії бухгалтера: виставлена КН-2026-0001 до рахунку
- * `inv-zoriana-05` і чернетка до рахунку в євро `inv-zoriana-12`.
+ * `inv-zoriana-05`, чернетка до рахунку в євро `inv-zoriana-12` і виставлена КН-2026-0002 до оплаченого
+ * `inv-zoriana-14` (переплата для повернення).
  */
 const INVOICES = "/#/m/K2/invoices"
 const LIST = "/#/m/K2/credit-notes"
@@ -21,7 +22,7 @@ const ISSUED_INVOICE = `${INVOICES}/inv-zoriana-03`
 const CLOSED_INVOICE = `${INVOICES}/inv-zoriana-10`
 const ISSUED_NOTE = `${LIST}/cn-zoriana-05`
 const DRAFT_NOTE = `${LIST}/cn-zoriana-12`
-const NEXT_NUMBER = "КН-2026-0002"
+const NEXT_NUMBER = "КН-2026-0003"
 
 const heading = (page: Page) => page.getByRole("heading", { level: 1 })
 const actionBar = (page: Page) =>
@@ -136,9 +137,9 @@ test.describe("модуль K2: кредит-ноти", () => {
         .getByRole("navigation", { name: "Основна навігація" })
         .getByRole("link", { name: "Кредит-ноти", exact: true }),
     ).toHaveAttribute("aria-current", "page")
-    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("2")
-    // Шапка й дві кредит-ноти засіву.
-    await expect(page.getByRole("row")).toHaveCount(3)
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText("3")
+    // Шапка й три кредит-ноти засіву.
+    await expect(page.getByRole("row")).toHaveCount(4)
     const issued = page.getByRole("row").filter({
       has: page.getByRole("link", { name: "КН-2026-0001", exact: true }),
     })

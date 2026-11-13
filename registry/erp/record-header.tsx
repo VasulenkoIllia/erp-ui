@@ -9,7 +9,8 @@ import { cn } from "@/registry/lib/utils"
  *
  * - `RecordHeader` — назва запису як заголовок сторінки (h1), статус поруч, ключові поля списком
  *   `<dl>` і дії. На вузькому контейнері (`@container`, SPEC §9) дії переносяться під назву, поля —
- *   у дві колонки.
+ *   у дві колонки. На ширшому дії стоять праворуч у рядок, а назва займає решту й переноситься першою; дії
+ *   переносяться рядами, лише коли назві лишилось 16rem: багато дій не стискає її в стовпчик.
  * - `RecordStatusBar` — етапи життєвого циклу: пройдені з позначкою, поточний — `aria-current="step"`.
  *   Лише показ: перехід між етапами — дії шапки (права, підтвердження, сервер).
  */
@@ -47,7 +48,7 @@ export function RecordHeader({
       className={cn("@container space-y-4", className)}
     >
       <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-start @2xl:justify-between">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 @2xl:min-w-64 @2xl:flex-1">
           <h1
             ref={headingRef}
             tabIndex={-1}
@@ -58,7 +59,9 @@ export function RecordHeader({
           {status}
         </div>
         {actions ? (
-          <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
+          <div className="flex min-w-0 flex-wrap gap-2 @2xl:justify-end">
+            {actions}
+          </div>
         ) : null}
       </div>
       {fields.length > 0 ? (

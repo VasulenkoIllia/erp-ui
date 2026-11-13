@@ -116,9 +116,70 @@
       "required": "Allocate the payment to at least one invoice",
       "notAllocated": "Allocate the whole payment to invoices: there are no overpayments or advances",
       "exceedsDebt": "More than the invoice is due: it was paid meanwhile",
-      "unavailable": "The invoice no longer awaits payment: reload the page"
+      "unavailable": "The invoice no longer awaits payment: reload the page",
+      "fromUnavailable": "The invoice you came from no longer awaits payment: it was paid or cancelled. Choose other invoices of the client."
     },
     "amountPositive": "The amount must be greater than zero",
     "saved": "Payment recorded"
+  },
+  "refunds": {
+    "title": "Refunds",
+    "lead": "Money returned to clients for overpaid invoices: the client paid an invoice, then part of the goods came back with a credit note. A refund is no more than the overpayment.",
+    "create": "Refund overpayment",
+    "createDenied": "You are not allowed to refund clients",
+    "search": "Number, client or reference",
+    "tabsLabel": "Refund statuses",
+    "tableLabel": "Refunds",
+    "count_one": "{{value}} refund",
+    "count_other": "{{value}} refunds",
+    "empty": {
+      "title": "No refunds yet",
+      "description": "Refund an overpayment here or on an overpaid invoice: Refund overpayment."
+    }
+  },
+  "refund": {
+    "title": "Refund",
+    "flow": "Refund",
+    "titleNumber": "Refund {{number}}",
+    "back": "Back to refunds",
+    "statuses": {
+      "refunded": "Refunded",
+      "cancelled": "Cancelled",
+      "reversed": "Reversed",
+      "reversal": "Reversal"
+    },
+    "periodLockHint": "A mistake in a refund of a closed period is fixed by a reversal: it is dated today.",
+    "allocations": {
+      "label": "Refund invoices",
+      "amount": "Refunded"
+    }
+  },
+  "refundForm": {
+    "title": "New refund",
+    "back": "Back to refunds",
+    "backInvoice": "Back to invoice",
+    "submit": "Refund",
+    "fields": {
+      "date": "Refund date",
+      "amount": "Refund amount"
+    },
+    "amountHint": "How much was returned to the client: allocate all of it to overpaid invoices.",
+    "invoices": {
+      "label": "Overpaid client invoices",
+      "pickClient": "Choose a client: their overpaid invoices appear here.",
+      "empty": "The client has no overpaid invoices.",
+      "failed": "Could not load the client's invoices.",
+      "truncated": "Showing the first {{count}} invoices by payment due date: refund the rest with the next refund.",
+      "limit": "Overpaid",
+      "amount": "Refund amount",
+      "amountOf": "Refund amount for {{number}}",
+      "over": "Allocated {{over}} more than the refund",
+      "exceeds": "No more than the overpayment {{limit}}",
+      "notAllocated": "Allocate the whole refund to invoices",
+      "exceedsDebt": "More than the invoice overpayment: it was reduced meanwhile",
+      "unavailable": "The invoice is no longer overpaid: reload the page",
+      "fromUnavailable": "The invoice you came from is no longer overpaid: it was refunded or the credit note was cancelled. Choose other invoices of the client."
+    },
+    "saved": "Refund recorded"
   }
 }

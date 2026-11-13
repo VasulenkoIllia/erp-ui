@@ -37,10 +37,11 @@ export function paymentPurpose(
 }
 
 /**
- * Борг від «Разом» аркуша (підсумки деталей), щоб QR і «До сплати» сходились із надрукованим. Не більший за
- * «Разом»: від'ємні кредит-ноти чи оплати від хибного адаптера не мають роздути суму в QR.
+ * Борг від «Разом» аркуша (підсумки деталей), щоб QR, посилання на оплату й «До сплати» сходились із
+ * надрукованим. Не більший за «Разом»: від'ємні кредит-ноти чи оплати від хибного адаптера не мають роздути
+ * суму в QR.
  */
-const sheetDebt = (invoice: Invoice, totals: InvoiceDetail["totals"]) =>
+export const sheetDebt = (invoice: Invoice, totals: InvoiceDetail["totals"]) =>
   Math.min(totals.total, invoiceDebt({ ...invoice, total: totals.total }))
 
 /**
@@ -68,15 +69,16 @@ export function invoicePaymentQr(
 
 /** Рядок розрахунку під «Разом» на аркуші рахунку. */
 export interface InvoiceSettlementRow {
-  readonly key: "credited" | "paid" | "debt" | "overpaid"
+  readonly key: "credited" | "paid" | "refunded" | "debt" | "overpaid"
   /** Мінорні одиниці валюти рахунку, без знака. */
   readonly amount: number
 }
 
 /**
- * Рядки під «Разом» на аркуші (ADR-0074): «Кредит-ноти», коли є виставлені; «Оплачено», коли є оплати;
- * «До сплати» — борг, і він же сума QR; переплата — «Переплата». Рахунок без кредит-нот і оплат чи не в
- * статусі, який сервер веде за оплатами, — без рядків, аркуш як раніше.
+ * Рядки під «Разом» на аркуші (ADR-0074, ADR-0083): «Кредит-ноти», коли є виставлені; «Оплачено», коли є
+ * оплати; «Повернено», коли переплату повертали; «До сплати» — борг, і він же сума QR; переплата —
+ * «Переплата». Рахунок без кредит-нот і оплат чи не в статусі, який сервер веде за оплатами, — без рядків,
+ * аркуш як раніше.
  */
 export function invoiceSettlementRows(
   invoice: Invoice,
@@ -84,10 +86,12 @@ export function invoiceSettlementRows(
 ): InvoiceSettlementRow[] {
   const credited = invoice.creditedTotal ?? 0
   const paid = invoice.paidTotal ?? 0
-  if (!isSettling(invoice) || (!credited && !paid)) return []
+  const refunded = invoice.refundedTotal ?? 0
+  if (!isSettling(invoice) || (!credited && !paid && !refunded)) return []
   const rows: InvoiceSettlementRow[] = []
   if (credited) rows.push({ key: "credited", amount: credited })
   if (paid) rows.push({ key: "paid", amount: paid })
+  if (refunded) rows.push({ key: "refunded", amount: refunded })
   const debt = sheetDebt(invoice, totals)
   rows.push(
     debt < 0

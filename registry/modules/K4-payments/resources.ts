@@ -10,12 +10,18 @@ import type { LocalizedText } from "@/lib/auth"
  */
 export const PAYMENTS = "sales-payments"
 
+/**
+ * Повернення грошей клієнтам (ADR-0083): окремий документ зі своєю серією номерів і своїм правом, на
+ * рахунки з переплатою.
+ */
+export const REFUNDS = "sales-refunds"
+
 export interface PaymentsResource {
   readonly name: string
   readonly label: LocalizedText
   /**
-   * Дії права `<ресурс>:<дія>`: читання, реєстрація оплати й дії графа (ADR-0057). Оплату не змінюють і
-   * не видаляють: вона одразу проведена.
+   * Дії права `<ресурс>:<дія>`: читання, реєстрація оплати чи повернення й дії графа (ADR-0057). Документ
+   * не змінюють і не видаляють: він одразу проведений.
    */
   readonly actions: readonly string[]
 }
@@ -24,6 +30,11 @@ export const PAYMENTS_RESOURCES: readonly PaymentsResource[] = [
   {
     name: PAYMENTS,
     label: { uk: "Оплати", en: "Payments" },
+    actions: ["read", "create", "cancel", "reverse"],
+  },
+  {
+    name: REFUNDS,
+    label: { uk: "Повернення клієнтам", en: "Customer refunds" },
     actions: ["read", "create", "cancel", "reverse"],
   },
 ]

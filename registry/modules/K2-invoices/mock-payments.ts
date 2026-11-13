@@ -1,7 +1,8 @@
 /**
- * Оплати модуля K4 у моках модуля K2 (ADR-0073): рахунки для моків оплат (`forPayments`), статус
- * «Оплачено» від оплаченого й заборона скасувати чи сторнувати рахунок з оплатою, що діє. Частина
- * `mocks.ts`: модулі не імпортують один одного, оплачене дає застосунок (`paidTotal` моків K4).
+ * Оплати й повернення модуля K4 у моках модуля K2 (ADR-0073, ADR-0083): рахунки для моків оплат
+ * (`forPayments`), статус «Оплачено» від оплаченого й заборона скасувати чи сторнувати рахунок з оплатою чи
+ * поверненням, що діє. Частина `mocks.ts`: модулі не імпортують один одного, оплачене й повернене дає
+ * застосунок (`paidTotal` і `refundedTotal` моків K4).
  */
 import type { CalendarDate } from "@/lib/dates"
 import type { MockResourceDb } from "@/lib/mocks"
@@ -17,9 +18,13 @@ import { createInvoiceFixtures, type InvoiceFixtureOptions } from "./fixtures"
 import { invoiceDebt, settledStatus } from "./invoice-debt"
 import { creditedTotalOf, isOpenInvoice } from "./mock-credit-notes"
 
-/** Оплати застосунку для моків рахунків: сума оплат, що діють, за рахунком (моки K4, `paidTotal`). */
+/**
+ * Оплати застосунку для моків рахунків: сума оплат, що діють, за рахунком (моки K4, `paidTotal`); повернення
+ * переплати — `refundedTotal` (ADR-0083), без нього повернень немає.
+ */
 export interface InvoiceMockPayments {
   readonly paidTotal: (invoiceId: string) => number
+  readonly refundedTotal?: (invoiceId: string) => number
 }
 
 /** Рахунок для моків оплат: те саме, що `PaymentInvoiceSource` модуля K4. */
@@ -33,7 +38,7 @@ export interface InvoicePaymentSource {
   readonly dueDate: CalendarDate
   readonly currency: string
   readonly total: number
-  /** Борг: «виставлено мінус кредит-ноти мінус оплачено». */
+  /** Борг: «виставлено мінус кредит-ноти мінус оплачено плюс повернено»; від'ємний — переплата. */
   readonly debt: number
   /** Рахунок виставлений і діє: не скасований, не сторнований і не сам сторно. */
   readonly isOpen: boolean
@@ -50,10 +55,11 @@ export interface InvoicesForPayments {
   readonly settle: (invoiceId: string) => void
 }
 
-/** Сума кредит-нот і оплат рахунку за його `id`. */
+/** Сума кредит-нот, оплат і повернень рахунку за його `id`. */
 export interface InvoiceSettlement {
   readonly credited: (invoiceId: string) => number
   readonly paid: (invoiceId: string) => number
+  readonly refunded: (invoiceId: string) => number
 }
 
 export function invoicePaymentSource(
@@ -74,6 +80,7 @@ export function invoicePaymentSource(
       total: invoice.total,
       creditedTotal: settlement.credited(invoice.id),
       paidTotal: settlement.paid(invoice.id),
+      refundedTotal: settlement.refunded(invoice.id),
     }),
     isOpen: isOpenInvoice(invoice),
   }
@@ -97,7 +104,11 @@ export function invoicePaymentSeed(
 ): InvoicePaymentSource[] {
   const { invoices, credited } = invoiceSeedOf(options)
   return invoices.map((invoice) =>
-    invoicePaymentSource(invoice, { credited, paid: () => 0 }),
+    invoicePaymentSource(invoice, {
+      credited,
+      paid: () => 0,
+      refunded: () => 0,
+    }),
   )
 }
 
@@ -111,6 +122,7 @@ export const settledStatusOf = (
     total: invoice.total,
     creditedTotal: settlement.credited(invoice.id),
     paidTotal: settlement.paid(invoice.id),
+    refundedTotal: settlement.refunded(invoice.id),
   })
 
 /**
@@ -135,12 +147,15 @@ export function settleInvoice(
     )
 }
 
-/** Рахунок з оплатою, що діє, не скасовують і не сторнують: спершу скасовують чи сторнують оплату. */
+/**
+ * Рахунок з оплатою чи поверненням, що діє, не скасовують і не сторнують: спершу скасовують чи сторнують
+ * документ модуля K4. `moved` — оплачене й повернене разом.
+ */
 export function invoicePaymentDeniedActions(
   invoice: InvoiceCard,
-  paidTotal: number,
+  moved: number,
 ): Record<string, string> | undefined {
-  if (!isOpenInvoice(invoice) || paidTotal <= 0) return undefined
+  if (!isOpenInvoice(invoice) || moved <= 0) return undefined
   return {
     cancel: INVOICE_PAYMENT_ISSUES.hasPayments,
     reverse: INVOICE_PAYMENT_ISSUES.hasPayments,
@@ -166,6 +181,7 @@ export function invoicePaymentsLink({
   const settlement: InvoiceSettlement = {
     credited: (invoiceId) => creditedTotalOf(invoiceId, creditNotes()),
     paid: (invoiceId) => payments?.paidTotal(invoiceId) ?? 0,
+    refunded: (invoiceId) => payments?.refundedTotal?.(invoiceId) ?? 0,
   }
   const settle = (invoiceId: string) => {
     settleInvoice(invoices(), invoiceId, settlement)
@@ -191,9 +207,11 @@ export function invoicePaymentsLink({
       const { invoices: seeded, credited } = invoiceSeedOf(fixtureOptions)
       if (!payments) return seeded
       const paid = (invoiceId: string) => payments.paidTotal(invoiceId)
+      const refunded = (invoiceId: string) =>
+        payments.refundedTotal?.(invoiceId) ?? 0
       return seeded.map((invoice) => ({
         ...invoice,
-        status: settledStatusOf(invoice, { credited, paid }),
+        status: settledStatusOf(invoice, { credited, paid, refunded }),
       }))
     },
   }

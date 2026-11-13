@@ -16,7 +16,9 @@
  *   мінус оплачено» (ADR-0072), інакше 422 `exceeds_debt` біля `allocations.<i>.amount`. Рахунок не той
  *   (не виставлений, сплачений, іншого клієнта чи валюти) — 422 `invoice_unavailable` біля
  *   `allocations.<i>.invoiceId`, той самий рахунок двічі — `duplicate`. Переплати й авансу немає: сума оплати
- *   дорівнює сумі рознесення, інакше 422 `not_allocated` біля `amount`.
+ *   дорівнює сумі рознесення, інакше 422 `not_allocated` біля `amount`. Перевірку й запис сервер робить в
+ *   одній транзакції з блокуванням рядків рахунків, а `requestId` унікальний у компанії: два одночасні запити
+ *   з різними ключами разом не перевищать борг.
  * - Статус рахунку змінює сервер (ADR-0073): «Оплачено», коли оплати разом із кредит-нотами покривають
  *   рахунок; часткова оплата лишає «Виставлено», а картка рахунку має `paidTotal`. Скасована чи сторнована
  *   оплата повертає рахунку борг. Рахунок з оплатою не скасовують і не сторнують.
@@ -33,6 +35,23 @@
  * - Потік документів (ADR-0061): `GET /sales-payments/:id/flow`; оплата — `basedOn` кожного свого рахунку.
  * - Права — `sales-payments:<дія>`: `read`, `create`, `cancel`, `reverse` і дії розширення; відкриті рахунки
  *   — з `create`.
+ *
+ * Ресурс `sales-refunds` (ADR-0083): повернення грошей клієнту, коли після оплати виставили кредит-ноту й
+ * рахунок має переплату. Окремий документ зі своєю серією номерів (`sales-refunds`, «ПВ-{YYYY}-{####}») і
+ * своїм правом; поля, тіло запиту, `requestId`, валюта, закритий період, «Скасувати» й «Сторнувати» — як в
+ * оплати, статус нового — «Повернено».
+ * - Рознесення — рахунки того самого клієнта й валюти з переплатою: кожному не більше за переплату
+ *   («оплачено мінус повернено мінус (виставлено мінус кредит-ноти)»), інакше 422 `exceeds_overpayment`
+ *   біля `allocations.<i>.amount`; рахунок без переплати — `invoice_unavailable`; сума повернення
+ *   дорівнює сумі рознесення — `not_allocated`. Перевірка й запис — в одній транзакції, як в оплати: два
+ *   одночасні повернення разом не перевищать переплату.
+ * - Повернення зменшує переплату: картка рахунку має `refundedTotal`, борг — «виставлено мінус кредит-ноти
+ *   мінус оплачено плюс повернено». Статус рахунку повернення не змінює: «Оплачено» лишається, поки є
+ *   оплата й борг не більший за нуль. Скасоване чи сторноване повернення переплату повертає.
+ * - Рахунки з переплатою для форми: `GET /sales-refunds/overpaid-invoices?clientId=<id>` у форматі списку,
+ *   від найранішої «Сплатити до».
+ * - Потік документів: `GET /sales-refunds/:id/flow`; повернення — `basedOn` кожного свого рахунку.
+ * - Права — `sales-refunds:<дія>`: `read`, `create`, `cancel`, `reverse`; рахунки з переплатою — з `create`.
  */
 import { z } from "zod"
 
@@ -51,7 +70,7 @@ import {
   type StatusTransition,
 } from "@/lib/statuses"
 
-export { PAYMENTS, PAYMENTS_RESOURCES } from "./resources"
+export { PAYMENTS, PAYMENTS_RESOURCES, REFUNDS } from "./resources"
 
 /** Статуси оплати (ADR-0073); розширення додає свої (`statuses`). */
 export const PAYMENT_STATUSES = [
@@ -86,6 +105,34 @@ export const PAYMENT_TRANSITIONS = [
 ] as const satisfies readonly StatusTransition<PaymentStatus>[]
 export type PaymentTransitionId = (typeof PAYMENT_TRANSITIONS)[number]["id"]
 
+/** Статуси повернення (ADR-0083); розширення додає свої (`refunds.statuses`). */
+export const REFUND_STATUSES = [
+  "refunded",
+  "cancelled",
+  "reversed",
+  "reversal",
+] as const
+export type RefundStatus = (typeof REFUND_STATUSES)[number]
+/** Статус нового повернення: воно одразу проведене. */
+export const REFUNDED_STATUS: RefundStatus = "refunded"
+
+/** Граф переходів повернення: як в оплати — «Скасувати» у відкритому періоді, «Сторнувати» й у закритому. */
+export const REFUND_TRANSITIONS = [
+  {
+    id: "cancel",
+    from: ["refunded"],
+    to: "cancelled",
+    reason: "required",
+  },
+  {
+    id: "reverse",
+    from: ["refunded"],
+    to: "reversed",
+    reason: "required",
+  },
+] as const satisfies readonly StatusTransition<RefundStatus>[]
+export type RefundTransitionId = (typeof REFUND_TRANSITIONS)[number]["id"]
+
 /** Способи оплати модуля; розширення додає свої чи ховає ці (`methods`). */
 export const PAYMENT_METHODS = ["bank", "card", "cash", "other"] as const
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
@@ -99,6 +146,8 @@ export const REQUEST_ID_MAX = 64
 
 /** Відкриті рахунки клієнта для форми: `GET /sales-payments/open-invoices?clientId=<id>`. */
 export const OPEN_INVOICES_PATH = "open-invoices"
+/** Рахунки клієнта з переплатою для форми повернення: `GET /sales-refunds/overpaid-invoices?clientId=<id>`. */
+export const OVERPAID_INVOICES_PATH = "overpaid-invoices"
 
 /**
  * Коди відмов сервера (ADR-0073): 422 біля полів оплати.
@@ -110,6 +159,18 @@ export const PAYMENT_ISSUES = {
   exceedsDebt: "exceeds_debt",
   notAllocated: "not_allocated",
   invoiceUnavailable: "invoice_unavailable",
+} as const
+
+/**
+ * Коди відмов сервера для повернення (ADR-0083): 422 біля полів.
+ * - `exceedsOverpayment` — сума рахунку в рознесенні більша за його переплату.
+ * - `notAllocated` — сума повернення не дорівнює сумі рознесення.
+ * - `invoiceUnavailable` — рахунок без переплати, іншого клієнта чи іншої валюти.
+ */
+export const REFUND_ISSUES = {
+  exceedsOverpayment: "exceeds_overpayment",
+  notAllocated: PAYMENT_ISSUES.notAllocated,
+  invoiceUnavailable: PAYMENT_ISSUES.invoiceUnavailable,
 } as const
 
 const calendarDateSchema = z.string().refine(isCalendarDate)
@@ -166,10 +227,36 @@ export function paymentSchemaFor(
   return extendSchema(paymentObject(extension), extension?.fields)
 }
 
+/** Те, що схема повернення бере з розширення проекту (`refunds`): нові поля й статуси. */
+export interface RefundSchemaExtension {
+  readonly fields?: readonly ExtensionField[]
+  readonly statuses?: ExtensionStatusChanges<RefundStatus>
+}
+
+/** Повернення зі статусами й полями розширення: поля оплати, свої статуси (ADR-0083). */
+export function refundSchemaFor(
+  extension?: RefundSchemaExtension,
+): z.ZodType<Refund> {
+  return extendSchema(
+    paymentShape.extend({
+      status: statusSchema(REFUND_STATUSES, extension?.statuses).default(
+        REFUNDED_STATUS,
+      ),
+    }),
+    extension?.fields,
+  )
+}
+
 /** Оплата в списку й на картці; `status` — ключ модуля чи розширення. */
 export type Payment = z.output<typeof paymentShape> & {
   status: string
 } & ExtensionValues
+
+/**
+ * Повернення клієнту (ADR-0083): ті самі поля, що в оплати; рознесення — рахунки з переплатою, сума —
+ * скільки повернули за кожним. Спільні частини сторінок модуля працюють з обома.
+ */
+export type Refund = Payment
 
 /** Рахунок у тілі нової оплати: сума кожному рахунку. */
 export interface PaymentAllocationInput {
@@ -202,3 +289,12 @@ export const openInvoiceSchema = z.object({
   debt: moneyAmountSchema.positive(),
 })
 export type OpenInvoice = z.infer<typeof openInvoiceSchema>
+
+/** Рахунок клієнта з переплатою для форми повернення: `GET /sales-refunds/overpaid-invoices`. */
+export const overpaidInvoiceSchema = openInvoiceSchema
+  .omit({ debt: true })
+  .extend({
+    /** Переплата: «оплачено мінус повернено мінус (виставлено мінус кредит-ноти)», більше нуля. */
+    overpaid: moneyAmountSchema.positive(),
+  })
+export type OverpaidInvoice = z.infer<typeof overpaidInvoiceSchema>

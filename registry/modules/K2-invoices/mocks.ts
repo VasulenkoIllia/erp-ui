@@ -31,7 +31,8 @@
  *   оновлюють під час запису, а не читання: новий курс у таблиці чернетка побачить після збереження.
  * - Оплати модуля K4 (ADR-0073): з `payments` (`paidTotal` моків K4) картка рахунку має `paidTotal`, сервер
  *   ставить «Оплачено» рахунку, який оплати разом із кредит-нотами покрили, і знімає, коли оплату скасували;
- *   рахунок з оплатою, що діє, не скасовують і не сторнують (`has_payments`). Моки K4 беруть рахунки з
+ *   з `refundedTotal` (ADR-0083) — ще й `refundedTotal`, повернення зменшує переплату. Рахунок з оплатою чи
+ *   поверненням, що діє, не скасовують і не сторнують (`has_payments`). Моки K4 беруть рахунки з
  *   `forPayments`.
  */
 import type { LocalizedText } from "@/lib/auth"
@@ -134,8 +135,9 @@ export interface InvoicesMocksOptions extends InvoiceFixtureOptions {
     readonly orderId?: string | null
   }) => void
   /**
-   * Оплати модуля K4 (ADR-0073): сума оплат, що діють, за рахунком (`paymentsMocks.paidTotal`). Без них
-   * рахунок не знає про оплати: статусу «Оплачено» й `paidTotal` немає.
+   * Оплати модуля K4 (ADR-0073): сума оплат, що діють, за рахунком (`paymentsMocks.paidTotal`) і повернень
+   * (`paymentsMocks.refundedTotal`, ADR-0083). Без них рахунок не знає про оплати: статусу «Оплачено» й
+   * `paidTotal` немає.
    */
   readonly payments?: InvoiceMockPayments
 }
@@ -288,6 +290,9 @@ export function createInvoicesMocks({
     detail: (invoice) => ({
       creditedTotal: settlement.credited(invoice.id),
       ...(payments ? { paidTotal: settlement.paid(invoice.id) } : {}),
+      ...(payments?.refundedTotal
+        ? { refundedTotal: settlement.refunded(invoice.id) }
+        : {}),
     }),
     serverFields: [
       ...LIFECYCLE_LINK_FIELDS,
@@ -295,6 +300,7 @@ export function createInvoicesMocks({
       "exchange",
       "creditedTotal",
       "paidTotal",
+      "refundedTotal",
     ],
     auditValue: {
       lines: documentLinesText,
@@ -310,7 +316,10 @@ export function createInvoicesMocks({
     deniedActions: (actor, invoice) => {
       const denied = {
         ...lock?.deniedActions(actor, invoice),
-        ...invoicePaymentDeniedActions(invoice, settlement.paid(invoice.id)),
+        ...invoicePaymentDeniedActions(
+          invoice,
+          settlement.paid(invoice.id) + settlement.refunded(invoice.id),
+        ),
         ...invoiceCreditDeniedActions(
           invoice,
           creditNotes.db.all(),

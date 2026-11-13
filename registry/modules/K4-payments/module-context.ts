@@ -3,22 +3,39 @@ import { createContext, useContext } from "react"
 
 import type { PaymentsExtension } from "./extension"
 
-/** Параметри адреси нової оплати: клієнт і рахунок, з картки якого її реєструють. */
+/** Параметри адреси нової оплати чи повернення: клієнт і рахунок, з картки якого документ створюють. */
 export const NEW_PAYMENT_PARAMS = {
   client: "client",
   invoice: "invoice",
 } as const
+
+/** Рахунок, з картки якого створюють оплату чи повернення. */
+export interface PaymentSourceInvoice {
+  readonly clientId: string
+  readonly invoiceId: string
+}
 
 /** Адреси сторінок модуля від `basePath` фабрики. */
 export interface PaymentsPaths {
   readonly payments: string
   readonly payment: (id: string) => string
   /** Нова оплата; з рахунком — клієнт і цей рахунок уже вибрано, сума — його борг. */
-  readonly newPayment: (from?: {
-    readonly clientId: string
-    readonly invoiceId: string
-  }) => string
+  readonly newPayment: (from?: PaymentSourceInvoice) => string
+  /** Повернення клієнтам (ADR-0083): список, картка й нове. */
+  readonly refunds: string
+  readonly refund: (id: string) => string
+  /** Нове повернення; з рахунком — клієнт і цей рахунок уже вибрано, сума — його переплата. */
+  readonly newRefund: (from?: PaymentSourceInvoice) => string
 }
+
+/** Адреса нового документа в списку `list`: з рахунком — його клієнт і `id` у параметрах. */
+const newIn = (list: string) => (from?: PaymentSourceInvoice) =>
+  from
+    ? `${list}/new?${new URLSearchParams({
+        [NEW_PAYMENT_PARAMS.client]: from.clientId,
+        [NEW_PAYMENT_PARAMS.invoice]: from.invoiceId,
+      }).toString()}`
+    : `${list}/new`
 
 /**
  * Адреси модуля без фабрики: їх бере модуль K2 (`createInvoicesModule({ payments })`), щоб фабрики не
@@ -27,16 +44,14 @@ export interface PaymentsPaths {
 export function paymentsPaths(basePath: string): PaymentsPaths {
   const base = basePath.replace(/\/+$/, "")
   const payments = `${base}/payments`
+  const refunds = `${base}/refunds`
   return {
     payments,
     payment: (id) => `${payments}/${encodeURIComponent(id)}`,
-    newPayment: (from) =>
-      from
-        ? `${payments}/new?${new URLSearchParams({
-            [NEW_PAYMENT_PARAMS.client]: from.clientId,
-            [NEW_PAYMENT_PARAMS.invoice]: from.invoiceId,
-          }).toString()}`
-        : `${payments}/new`,
+    newPayment: newIn(payments),
+    refunds,
+    refund: (id) => `${refunds}/${encodeURIComponent(id)}`,
+    newRefund: newIn(refunds),
   }
 }
 

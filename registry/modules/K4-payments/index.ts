@@ -1,6 +1,7 @@
 /**
- * Модуль K4 «Оплати» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0073) — точка входу: розділ «Оплати» з
- * реєстрацією оплати клієнта за рахунками модуля K2.
+ * Модуль K4 «Оплати» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0073, ADR-0083) — точка входу: розділ «Оплати» з
+ * реєстрацією оплати клієнта за рахунками модуля K2 і розділ «Повернення» — гроші, повернуті клієнту за
+ * рахунками з переплатою.
  *
  *   const paymentsModule = createPaymentsModule({
  *     basePath: "/finance",
@@ -21,7 +22,7 @@ import { createElement, type ComponentType } from "react"
 import { Navigate, type RouteObject } from "react-router"
 
 import type { LocalizedText } from "@/lib/auth"
-import { MODULE_ICONS } from "@/lib/icons"
+import { ACTION_ICONS, MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
 
 import type { PaymentsExtension } from "./extension"
@@ -36,6 +37,7 @@ import {
 import {
   PAYMENTS,
   PAYMENTS_RESOURCES,
+  REFUNDS,
   type PaymentsResource,
 } from "./resources"
 
@@ -51,22 +53,29 @@ export type {
   PaymentsMessages,
   PaymentsMockExtension,
   PaymentTabId,
+  RefundIds,
+  RefundsExtension,
 } from "./extension"
 export {
   paymentsPaths,
   type PaymentClients,
   type PaymentInvoicesLink,
+  type PaymentSourceInvoice,
   type PaymentsPaths,
 } from "./module-context"
 export type { PaymentsResource } from "./resources"
 // Типи для файлу розширення й компонентів слотів проекту: не з внутрішніх файлів модуля.
 export type {
   OpenInvoice,
+  OverpaidInvoice,
   Payment,
   PaymentAllocation,
   PaymentMethod,
   PaymentStatus,
   PaymentTransitionId,
+  Refund,
+  RefundStatus,
+  RefundTransitionId,
 } from "./contract"
 export type { ExtensionField } from "@/lib/extension-fields"
 
@@ -127,23 +136,45 @@ const PAGES = {
   form: lazyWithPreload(() =>
     import("./pages/payment-form-page").then((m) => m.PaymentFormPage),
   ),
+  refunds: lazyWithPreload(() =>
+    import("./pages/payment-list-page").then((m) => m.RefundsListPage),
+  ),
+  refund: lazyWithPreload(() =>
+    import("./pages/payment-record-page").then((m) => m.RefundPage),
+  ),
+  refundForm: lazyWithPreload(() =>
+    import("./pages/payment-form-page").then((m) => m.RefundFormPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: PaymentsExtension = {}
 
-/** Чанк сторінки за адресою: список, нова оплата чи картка. */
+/** Сторінка за адресою в розділі `list`: список, новий документ чи картка. */
+function pageIn(
+  path: string,
+  list: string,
+  pages: {
+    readonly list: PreloadableComponent<object>
+    readonly form: PreloadableComponent<object>
+    readonly record: PreloadableComponent<object>
+  },
+) {
+  if (path === list) return pages.list
+  if (path === `${list}/new`) return pages.form
+  return path.startsWith(`${list}/`) ? pages.record : null
+}
+
+/** Чанк сторінки за адресою: список, новий документ чи картка оплат і повернень. */
 function preloadFor(paths: PaymentsPaths) {
-  const newPath = paths.newPayment()
   return (pathname: string) => {
     const path = pathname.split(/[?#]/)[0] ?? ""
     const target =
-      path === paths.payments
-        ? PAGES.list
-        : path === newPath
-          ? PAGES.form
-          : path.startsWith(`${paths.payments}/`)
-            ? PAGES.record
-            : null
+      pageIn(path, paths.payments, PAGES) ??
+      pageIn(path, paths.refunds, {
+        list: PAGES.refunds,
+        form: PAGES.refundForm,
+        record: PAGES.refund,
+      })
     void target?.preload()
   }
 }
@@ -173,6 +204,9 @@ export function createPaymentsModule({
     { path: paths.payments, element: page(PAGES.list) },
     { path: paths.newPayment(), element: page(PAGES.form) },
     { path: `${paths.payments}/:id`, element: page(PAGES.record) },
+    { path: paths.refunds, element: page(PAGES.refunds) },
+    { path: paths.newRefund(), element: page(PAGES.refundForm) },
+    { path: `${paths.refunds}/:id`, element: page(PAGES.refund) },
   ]
   // Адреса самого модуля (`/finance`) — список оплат.
   if (basePath.replace(/\/+$/, ""))
@@ -187,6 +221,13 @@ export function createPaymentsModule({
       href: paths.payments,
       icon: MODULE_ICONS.K4,
       access: { resource: PAYMENTS, action: "read" },
+    },
+    {
+      id: "K4-refunds",
+      label: { uk: "Повернення", en: "Refunds" },
+      href: paths.refunds,
+      icon: ACTION_ICONS.refund,
+      access: { resource: REFUNDS, action: "read" },
     },
   ]
   return {

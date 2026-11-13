@@ -29,6 +29,11 @@ import {
   type InvoiceCard,
 } from "@/registry/modules/K2-invoices/contract"
 import {
+  invoicePaymentQr,
+  invoiceSettlementRows,
+} from "@/registry/modules/K2-invoices/components/invoice-payment"
+import { invoiceDebt } from "@/registry/modules/K2-invoices/invoice-debt"
+import {
   createInvoicesMocks,
   invoicePaymentSeed,
   invoicesNumberingSeeds,
@@ -42,8 +47,12 @@ import {
 import {
   OPEN_INVOICES_PATH,
   openInvoiceSchema,
+  OVERPAID_INVOICES_PATH,
+  overpaidInvoiceSchema,
   paymentSchemaFor,
   PAYMENTS,
+  refundSchemaFor,
+  REFUNDS,
   type Payment,
 } from "@/registry/modules/K4-payments/contract"
 import {
@@ -59,9 +68,9 @@ import {
  */
 describe("оплата K4: рознесення у формі", () => {
   const targets = [
-    { id: "a", debt: 1000 },
-    { id: "b", debt: 500 },
-    { id: "c", debt: 300 },
+    { id: "a", limit: 1000 },
+    { id: "b", limit: 500 },
+    { id: "c", limit: 300 },
   ]
 
   it("«Розписати від найстаршого»: по черзі, кожному не більше за борг, решті — порожньо", () => {
@@ -124,8 +133,13 @@ const ACCOUNTANT = person("accountant", [
   "sales-invoices:*",
   "sales-credit-notes:*",
   "sales-payments:*",
+  "sales-refunds:*",
 ])
-const VIEWER = person("viewer", ["sales-invoices:read", "sales-payments:read"])
+const VIEWER = person("viewer", [
+  "sales-invoices:read",
+  "sales-payments:read",
+  "sales-refunds:read",
+])
 
 const rates: InvoiceMockRates = {
   baseCurrency: () => "UAH",
@@ -154,7 +168,10 @@ const invoices = createInvoicesMocks({
   baseUrl: BASE,
   numbering,
   periodLock,
-  payments: { paidTotal: (invoiceId) => payments.paidTotal(invoiceId) },
+  payments: {
+    paidTotal: (invoiceId) => payments.paidTotal(invoiceId),
+    refundedTotal: (invoiceId) => payments.refundedTotal(invoiceId),
+  },
 })
 const payments = createPaymentsMocks({
   invoices: invoices.forPayments,
@@ -210,8 +227,7 @@ const failureOf = async (promise: Promise<unknown>) => {
 /** Тіло реєстрації: увесь борг рахунку `id` за сьогодні переказом. */
 const payInFull = async (id: string, requestId: string) => {
   const target = await invoice(id)
-  const debt =
-    target.total - (target.creditedTotal ?? 0) - (target.paidTotal ?? 0)
+  const debt = invoiceDebt(target)
   return {
     requestId,
     date: TODAY,
@@ -233,6 +249,7 @@ describe("оплата K4: моки", () => {
     invoices.db.reset()
     invoices.creditNotesDb.reset()
     payments.db.reset()
+    payments.refundsDb.reset()
     setCompanyId(COMPANY)
     signInMock(ACCOUNTANT.id)
   })
@@ -430,5 +447,206 @@ describe("оплата K4: моки", () => {
     signInMock(VIEWER.id)
     expect((await failureOf(register(body))).status).toBe(403)
     expect((await failureOf(openInvoices(body.clientId))).status).toBe(403)
+  })
+})
+
+/**
+ * Повернення переплати (ADR-0083, крок K4b): засів повертає половину переплати рахунку, на який після повної
+ * оплати виставили кредит-ноту; повернення не більше за переплату, лише на рахунки з переплатою, з ключем
+ * ідемпотентності; скасоване чи сторноване повернення переплату повертає; статус рахунку лишається «Оплачено».
+ */
+const refundSchema = refundSchemaFor()
+const REFUND = "ref-c1-overpaid"
+const refund = (id: string) =>
+  provider
+    .getOne<Payment>(REFUNDS, { id })
+    .then(({ data }) => refundSchema.parse(data))
+const overpaidInvoices = (clientId: string) =>
+  provider
+    .getList(`${REFUNDS}/${OVERPAID_INVOICES_PATH}`, {
+      pagination: { page: 1, perPage: 50 },
+      sort: { field: "dueDate", order: "ASC" },
+      filter: { clientId },
+    })
+    .then(({ data }) => data.map((item) => overpaidInvoiceSchema.parse(item)))
+const refundBody = (
+  target: InvoiceCard,
+  amount: number,
+  requestId: string,
+  allocated = amount,
+) => ({
+  requestId,
+  date: TODAY,
+  clientId: target.clientId,
+  currency: target.currency,
+  method: "bank",
+  reference: "Повернення переплати",
+  amount,
+  allocations: [{ invoiceId: target.id, amount: allocated }],
+})
+const createRefund = (body: Record<string, unknown>) =>
+  provider
+    .create<Payment>(REFUNDS, { data: body })
+    .then(({ data }) => refundSchema.parse(data))
+
+describe("повернення K4: моки", () => {
+  beforeAll(() => {
+    server.listen({ onUnhandledFrame: "error" })
+  })
+  beforeEach(() => {
+    localStorage.clear()
+    invoices.db.reset()
+    invoices.creditNotesDb.reset()
+    payments.db.reset()
+    payments.refundsDb.reset()
+    setCompanyId(COMPANY)
+    signInMock(ACCOUNTANT.id)
+  })
+  afterEach(() => {
+    resetScenarios()
+    server.resetHandlers()
+  })
+  afterAll(() => {
+    server.close()
+    setCompanyId(null)
+  })
+
+  it("засів: рахунок сплачено повністю, потім кредит-нота — повернено половину переплати, рахунок «Оплачено»", async () => {
+    const paid = await invoice(PAID)
+    const seeded = await refund(REFUND)
+    expect(seeded).toMatchObject({
+      number: "ПВ-2026-0001",
+      status: "refunded",
+      docStatus: "submitted",
+      allocations: [{ invoiceId: PAID, amount: seeded.amount }],
+    })
+    expect(paid.paidTotal).toBe(paid.total)
+    expect(paid.creditedTotal).toBeGreaterThan(0)
+    expect(paid.refundedTotal).toBe(seeded.amount)
+    expect(paid.status).toBe("paid")
+    expect(invoiceDebt(paid)).toBeLessThan(0)
+    expect(await overpaidInvoices(paid.clientId)).toEqual([
+      expect.objectContaining({ id: PAID, overpaid: -invoiceDebt(paid) }),
+    ])
+  })
+
+  it("повернення решти переплати: номер серії «ПВ-…», борг нуль, рахунок лишається «Оплачено»; повтор ключа — те саме повернення", async () => {
+    const paid = await invoice(PAID)
+    const body = refundBody(paid, -invoiceDebt(paid), "refund-rest")
+    const created = await createRefund(body)
+    expect(created).toMatchObject({
+      number: "ПВ-2026-0002",
+      status: "refunded",
+      amount: body.amount,
+      clientName: paid.clientName,
+    })
+    const after = await invoice(PAID)
+    expect(invoiceDebt(after)).toBe(0)
+    expect(after.status).toBe("paid")
+    expect(after.refundedTotal).toBe((paid.refundedTotal ?? 0) + created.amount)
+    expect(await overpaidInvoices(paid.clientId)).toEqual([])
+    const repeated = await createRefund(body)
+    expect(repeated.id).toBe(created.id)
+    expect(payments.refundsDb.all()).toHaveLength(2)
+  })
+
+  it("більше за переплату, рахунок без переплати, нерозписана сума — 422 біля полів", async () => {
+    const paid = await invoice(PAID)
+    const overpaid = -invoiceDebt(paid)
+    const exceeds = await failureOf(
+      createRefund(refundBody(paid, overpaid + 1, "refund-exceeds")),
+    )
+    expect(exceeds.status).toBe(422)
+    expect(exceeds.fieldErrors).toEqual({
+      "allocations.0.amount": "exceeds_overpayment",
+    })
+    const unpaid = await invoice(UNPAID)
+    const unavailable = await failureOf(
+      createRefund(refundBody(unpaid, 100, "refund-unpaid")),
+    )
+    expect(unavailable.fieldErrors).toEqual({
+      "allocations.0.invoiceId": "invoice_unavailable",
+    })
+    const notAllocated = await failureOf(
+      createRefund(refundBody(paid, overpaid, "refund-split", overpaid - 1)),
+    )
+    expect(notAllocated.fieldErrors).toEqual({ amount: "not_allocated" })
+    expect(payments.refundsDb.all()).toHaveLength(1)
+  })
+
+  it("дата в закритому періоді — 422 `period_locked`", async () => {
+    const paid = await invoice(PAID)
+    const failure = await failureOf(
+      createRefund({
+        ...refundBody(paid, 1, "refund-locked"),
+        date: LOCKED_THROUGH,
+      }),
+    )
+    expect(failure.fieldErrors).toEqual({ date: "period_locked" })
+  })
+
+  it("скасоване й сторноване повернення переплату повертає: сторно — з мінусом і сьогоднішньою датою", async () => {
+    const seeded = await refund(REFUND)
+    const before = await invoice(PAID)
+    await run(REFUNDS, REFUND, "cancel", {
+      version: seeded.version,
+      reason: "Помилка",
+    })
+    const cancelled = await invoice(PAID)
+    expect(cancelled.refundedTotal).toBe(0)
+    expect(invoiceDebt(cancelled)).toBe(invoiceDebt(before) - seeded.amount)
+    const created = await createRefund(
+      refundBody(cancelled, 100, "refund-then-reverse"),
+    )
+    const reversal = (await run(REFUNDS, created.id, "reverse", {
+      version: created.version,
+      reason: "Повернули не тому",
+    })) as Payment
+    expect(reversal).toMatchObject({
+      status: "reversal",
+      amount: -created.amount,
+      date: TODAY,
+      reversalOf: created.id,
+    })
+    expect((await invoice(PAID)).refundedTotal).toBe(0)
+  })
+
+  it("аркуш: «Повернено» між «Оплачено» й «Переплата»; переплата без QR; повернено все — «До сплати» нуль", async () => {
+    const card = await invoice(PAID)
+    const { totals } = card
+    expect(invoiceSettlementRows(card, totals).map(({ key }) => key)).toEqual([
+      "credited",
+      "paid",
+      "refunded",
+      "overpaid",
+    ])
+    expect(invoicePaymentQr(card, totals)).toBeNull()
+    const settled = {
+      ...card,
+      refundedTotal: (card.refundedTotal ?? 0) - invoiceDebt(card),
+    }
+    expect(invoiceSettlementRows(settled, totals).at(-1)).toEqual({
+      key: "debt",
+      amount: 0,
+    })
+  })
+
+  it("без права `sales-refunds:create` — 403 на повернення й рахунки з переплатою", async () => {
+    const paid = await invoice(PAID)
+    signInMock(VIEWER.id)
+    expect(
+      (await failureOf(createRefund(refundBody(paid, 1, "refund-viewer"))))
+        .status,
+    ).toBe(403)
+    expect((await failureOf(overpaidInvoices(paid.clientId))).status).toBe(403)
+  })
+})
+
+describe("рахунок K2: борг із поверненнями", () => {
+  it("борг — «виставлено мінус кредит-ноти мінус оплачено плюс повернено»", () => {
+    const base = { total: 120_000, creditedTotal: 20_000, paidTotal: 120_000 }
+    expect(invoiceDebt(base)).toBe(-20_000)
+    expect(invoiceDebt({ ...base, refundedTotal: 5_000 })).toBe(-15_000)
+    expect(invoiceDebt({ ...base, refundedTotal: 20_000 })).toBe(0)
   })
 })

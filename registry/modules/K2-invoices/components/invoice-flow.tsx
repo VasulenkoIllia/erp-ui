@@ -16,7 +16,7 @@ const ORDERS = "orders"
 
 /**
  * Потік документів на картці рахунку чи кредит-ноти (UI13, ADR-0061, ADR-0070, ADR-0072): рахунки й
- * кредит-ноти модуля зі статусами K2, пропозиції й замовлення B3 та оплати K4 (ADR-0073) — з посиланням на
+ * кредит-ноти модуля зі статусами K2, пропозиції й замовлення B3, оплати й повернення K4 (ADR-0073, ADR-0083) — з посиланням на
  * картку, коли проект дав їхні адреси (`sources`, `payments`), і зі станом документа кіта. Порядок і зв'язки («На підставі …», «Виправлена
  * копія …», «Сторно …») дає сервер.
  */
@@ -45,6 +45,14 @@ export function InvoiceFlow({
           [payments.resource]: {
             label: t("invoice.sources.payment"),
             href: payments.href,
+          },
+        }
+      : {}),
+    ...(payments?.refunds
+      ? {
+          [payments.refunds.resource]: {
+            label: t("invoice.sources.refund"),
+            href: payments.refunds.href,
           },
         }
       : {}),

@@ -462,7 +462,10 @@ const salesInvoices = createInvoicesMocks({
   releaseOrder: (removed) => {
     sales.releaseOrderInvoice(removed)
   },
-  payments: { paidTotal: (invoiceId) => salesPayments.paidTotal(invoiceId) },
+  payments: {
+    paidTotal: (invoiceId) => salesPayments.paidTotal(invoiceId),
+    refundedTotal: (invoiceId) => salesPayments.refundedTotal(invoiceId),
+  },
 })
 
 /** Модуль K4 «Оплати» (ADR-0073): оплати за рахунками K2, обліковий документ, курси компанії. */
@@ -507,7 +510,7 @@ const documentFlow = createDocumentFlowHandlers({
     }),
     ...sales.flowSources,
     ...salesInvoices.flowSources,
-    salesPayments.flowSource,
+    ...salesPayments.flowSources,
   ],
 })
 

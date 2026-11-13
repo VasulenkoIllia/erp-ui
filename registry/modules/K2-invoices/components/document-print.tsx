@@ -51,7 +51,11 @@ export function DocumentPrint<D extends K2Document>({
   const document = card.record
   const detail = useInvoiceDetail(document)
   const language = company.data?.language ?? ui.language
-  const isReady = Boolean(document && detail?.success && company.data)
+  // Аркуш — лише з картки, свіжої з сервера: суми до сплати й QR-код оплати не беруться зі збереженої в
+  // браузері, яку картка показує на мить, доки не прийде відповідь (ADR-0083).
+  const isReady = Boolean(
+    document && detail?.success && company.data && card.isFresh,
+  )
   const invalid =
     detail?.error ??
     (document && !detail && !card.isFetching
@@ -73,7 +77,9 @@ export function DocumentPrint<D extends K2Document>({
       <h1 ref={heading} tabIndex={-1} className="sr-only">
         {pageTitle}
       </h1>
-      {document && detail?.success ? notice?.(document, detail.data) : null}
+      {isReady && document && detail?.success
+        ? notice?.(document, detail.data)
+        : null}
       <PrintPreview
         title={
           document
@@ -93,7 +99,7 @@ export function DocumentPrint<D extends K2Document>({
           />
         }
       >
-        {document && detail?.success && company.data
+        {isReady && document && detail?.success && company.data
           ? sheet(document, detail.data, company.data)
           : null}
       </PrintPreview>

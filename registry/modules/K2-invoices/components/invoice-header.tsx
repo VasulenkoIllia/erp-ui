@@ -34,7 +34,13 @@ import {
   InvoiceTotal,
   useInvoiceTitle,
 } from "./invoice-display"
-import { awaitsPayment, RegisterPayment } from "./register-payment"
+import { hasPaymentLink, PaymentLinkAction } from "./payment-link"
+import {
+  awaitsPayment,
+  isOverpaid,
+  RefundOverpayment,
+  RegisterPayment,
+} from "./register-payment"
 
 const PrintIcon = ACTION_ICONS.print
 
@@ -60,10 +66,12 @@ export function DocumentClient({
 /**
  * Шапка картки рахунку: номер (чернетка — без номера), статус, ключові поля (клієнт, дата, «Сплатити до»,
  * сума, у рахунку у валюті — сума в базовій валюті з курсом, ADR-0071; з виставленими кредит-нотами — їхня
- * сума, ADR-0072; з оплатами — оплачене й «До сплати» чи «Переплата», ADR-0073) з полями розширення,
- * «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими самими клієнтом і рядками, право
- * `sales-invoices:create`), «Зареєструвати оплату» (рахунок із боргом, коли проект підключив оплати),
- * «Видалити чернетку», «Друк» і дії розширення; без запису — немає.
+ * сума, ADR-0072; з оплатами — оплачене, повернене й «До сплати» чи «Переплата», ADR-0073, ADR-0083) з полями
+ * розширення, «Змінити» (сторінка форми, лише чернетка), «Копіювати» (нова форма з тими самими клієнтом і
+ * рядками, право `sales-invoices:create`), «Зареєструвати оплату» (рахунок із боргом, коли проект підключив
+ * оплати), «Посилання на оплату» (QR-код і посилання НБУ на борг рахунку в гривнях), «Повернути переплату»
+ * (рахунок із переплатою, коли проект підключив повернення), «Видалити чернетку», «Друк» і дії розширення;
+ * без запису — немає.
  */
 export function useInvoiceHeader(
   invoice: Invoice | undefined,
@@ -155,6 +163,24 @@ export function useInvoiceHeader(
           },
         ]
       : []),
+    ...(hasPaymentLink(invoice)
+      ? [
+          {
+            id: "paymentLink" as const,
+            node: <PaymentLinkAction invoice={invoice} />,
+          },
+        ]
+      : []),
+    ...(payments?.refunds && isOverpaid(invoice)
+      ? [
+          {
+            id: "refundOverpayment" as const,
+            node: (
+              <RefundOverpayment invoice={invoice} refunds={payments.refunds} />
+            ),
+          },
+        ]
+      : []),
     {
       id: "delete",
       node: (
@@ -203,9 +229,9 @@ export function useInvoiceHeader(
 }
 
 /**
- * Оплачене й борг рахунку з оплатами (ADR-0073): «Оплачено» — сума оплат, «До сплати» — борг після кредит-нот
- * і оплат, «Переплата» — коли кредит-ноту виставили вже після оплати. Без оплат і кредит-нот — нічого: борг
- * дорівнює сумі.
+ * Оплачене й борг рахунку з оплатами (ADR-0073, ADR-0083): «Оплачено» — сума оплат, «Повернено» — сума
+ * повернень переплати, «До сплати» — борг після кредит-нот, оплат і повернень, «Переплата» — коли кредит-ноту
+ * виставили вже після оплати. Без оплат і кредит-нот — нічого: борг дорівнює сумі.
  */
 function settlementFields(
   invoice: Invoice,
@@ -220,6 +246,12 @@ function settlementFields(
       id: "paid",
       label: t("invoice.fields.paid"),
       value: money(invoice.paidTotal),
+    })
+  if (invoice.refundedTotal)
+    fields.push({
+      id: "refunded",
+      label: t("invoice.fields.refunded"),
+      value: money(invoice.refundedTotal),
     })
   const debt = invoiceDebt(invoice)
   if (isSettling(invoice) && debt !== 0 && debt !== invoice.total)

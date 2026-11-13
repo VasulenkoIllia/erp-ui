@@ -1240,8 +1240,9 @@ export const invoicesModule = createInvoicesModule({
   },
   sources: { order: salesModule.paths.order, quote: salesModule.paths.quote },
   currencies: { resource: "currencies" }, // валюти компанії модуля A1; без опції — лише базова валюта
-  // оплати модуля K4; без опції рахунок про оплати не знає
-  payments: { resource: "sales-payments", register: paymentsPaths("/finance").newPayment, href: paymentsPaths("/finance").payment },
+  // оплати модуля K4; без опції рахунок про оплати не знає; без refunds — без «Повернути переплату»
+  payments: { resource: "sales-payments", register: paymentsPaths("/finance").newPayment, href: paymentsPaths("/finance").payment,
+    refunds: { resource: "sales-refunds", register: paymentsPaths("/finance").newRefund, href: paymentsPaths("/finance").refund } },
 })
 // у B3: createSalesModule({ …, invoices: { href: invoicesPaths("/finance").invoice } })
 
@@ -1271,7 +1272,9 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   Бекенд без кредит-нот — `invoices.transitions.hide: ["creditNote"]` у розширенні й без права `sales-credit-notes:read`.
 - QR-код оплати друкується лише у виставленого рахунку в гривнях із правильними IBAN, кодом і назвою постачальника (без переносу
   рядка); інакше над аркушем пояснення, чого бракує. Сума QR — борг: виставлено мінус кредит-ноти мінус оплачено; борг нуль — QR
-  немає, а під «Разом» аркуша — «Кредит-ноти», «Оплачено» й «До сплати» (ADR-0074). Валютні реквізити вписують у блок постачальника самого рахунку. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
+  немає, а під «Разом» аркуша — «Кредит-ноти», «Оплачено», «Повернено» й «До сплати» (ADR-0074, ADR-0083). «Посилання на
+  оплату» на картці рахунку в гривнях, що чекає оплати, — діалог із тим самим QR-кодом і посиланням `bank.gov.ua/qr/…`, яке
+  копіюють і надсилають клієнту (ADR-0083). Валютні реквізити вписують у блок постачальника самого рахунку. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
   кількох банківських застосунках.
 - Бекенду: `GET /sales-invoices`, `GET /sales-invoices/:id` з `lines` і `totals`, `POST`/`PATCH` із `supplier` і `buyer` цілими,
   `POST /sales-invoices/:id/<дія>`, `POST /sales-invoices/bulk/<дія>`, `GET /sales-invoices/:id/flow`, `POST /orders/:id/invoice`;
@@ -1279,11 +1282,13 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   (у чернетці `basis` — залишки рядків рахунку), `POST /sales-credit-notes/:id/<дія>`, `GET /sales-credit-notes/:id/flow`.
   Повний контракт — `README.md` модуля.
 
-### Модуль K4 «Оплати» (ADR-0073)
+### Модуль K4 «Оплати» (ADR-0073, ADR-0083)
 
 Оплата клієнта за рахунками K2: проведений документ одразу з номером серії «ОП-…», на один чи кілька рахунків того самого
 клієнта. Обліковий документ: закритий період його стосується. Список, картка, форма «Зареєструвати оплату»; з картки рахунку —
-та сама форма з клієнтом і рахунком, сума — борг.
+та сама форма з клієнтом і рахунком, сума — борг. Розділ «Повернення» — гроші, повернуті клієнту за рахунком із переплатою
+(кредит-ноту виставили після оплати): окремий документ серії «ПВ-…» з тими самими списком, карткою й формою; з картки рахунку —
+«Повернути переплату», сума — переплата.
 
 ```ts
 // src/modules.ts — фабрики K2 і K4 одна від одної не залежать: лише адреси
@@ -1298,21 +1303,27 @@ export const paymentsModule = createPaymentsModule({
 // src/mocks/handlers.ts — засів серії оплат від засіву рахунків, моки K4 — після моків K2
 const paymentSeeds = paymentsNumberingSeeds({ invoices: invoicePaymentSeed(options), companies, rates })
 const invoices = createInvoicesMocks({ ...options, numbering, periodLock, rates,
-  payments: { paidTotal: (invoiceId) => payments.paidTotal(invoiceId) } })
+  payments: { paidTotal: (invoiceId) => payments.paidTotal(invoiceId), refundedTotal: (invoiceId) => payments.refundedTotal(invoiceId) } })
 const payments = createPaymentsMocks({ invoices: invoices.forPayments, numbering, periodLock, rates })
-const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, payments.flowSource] })
+const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, ...payments.flowSources] })
 ```
 
-- Права: `sales-payments` з `read`, `create` («Зареєструвати оплату»), `cancel`, `reverse`; плюс дії розширення. Серія номерів —
-  `sales-payments` (`paymentsNumberingSeeds`).
+- Права: `sales-payments` з `read`, `create` («Зареєструвати оплату»), `cancel`, `reverse`; `sales-refunds` з `read`, `create`
+  («Повернути переплату»), `cancel`, `reverse`; плюс дії розширення. Серії номерів — `sales-payments` і `sales-refunds`
+  (`paymentsNumberingSeeds` дає обидві).
 - Борг рахунку — «виставлено мінус кредит-ноти мінус оплачено»; рахує сервер. Переплати й авансу немає: сума кожному рахунку не
   більша за борг, сума оплати дорівнює сумі рознесення. Часткова оплата статусу рахунку не змінює: на картці — «Оплачено» й «До
   сплати». Рахунок з оплатою, що діє, не скасовують і не сторнують.
+- Повернення не більше за переплату рахунку (`exceeds_overpayment`), сума повернення дорівнює сумі рознесення. Борг рахунку з
+  поверненнями — «виставлено мінус кредит-ноти мінус оплачено плюс повернено»; статус рахунку повернення не змінює, на картці —
+  рядок «Повернено». Рахунок із поверненням, що діє, теж не скасовують і не сторнують.
 - Помилкова оплата: у відкритому періоді — «Скасувати» з причиною, у закритому — «Сторнувати» (сторно сьогодні, сума з мінусом).
 - Форма шле `requestId` — один на форму: повтор того самого запиту сервер має повертати ту саму оплату, а не створювати другу.
 - Бекенду: `GET /sales-payments`, `GET /sales-payments/:id`, `POST /sales-payments` з `requestId` і `allocations`,
   `GET /sales-payments/open-invoices?clientId=`, `POST /sales-payments/:id/<дія>`, `GET /sales-payments/:id/flow`; у картці
-  рахунку — `paidTotal`, статус `paid`, `deniedActions` `has_payments`. Повний контракт — `README.md` модуля.
+  рахунку — `paidTotal`, статус `paid`, `deniedActions` `has_payments`. Повернення — ті самі запити `/sales-refunds`,
+  рахунки з переплатою — `GET /sales-refunds/overpaid-invoices?clientId=`, у картці рахунку — `refundedTotal`. Повний контракт —
+  `README.md` модуля.
 
 ### Наявний бекенд через адаптер (ADR-0021)
 

@@ -25,16 +25,17 @@ import { useErpUiT } from "@/lib/i18n"
 import { newImportRequestId } from "@/lib/imports"
 import { applyKeyedChanges } from "@/lib/extensions"
 
-import { allocatedTotal, allocationsOf } from "../allocation"
+import {
+  allocatedTotal,
+  allocationsOf,
+  type AllocationInvoice,
+} from "../allocation"
 import {
   DEFAULT_PAYMENT_METHOD,
-  PAYMENT_ISSUES,
   PAYMENT_REFERENCE_MAX,
-  paymentSchemaFor,
-  PAYMENTS,
-  type OpenInvoice,
   type Payment,
 } from "../contract"
+import type { K4DocumentKind } from "../document-kind"
 import type { PaymentFormFieldId } from "../extension"
 import { usePaymentsModule } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
@@ -46,18 +47,20 @@ import {
 import { useOpenInvoices, type OpenInvoices } from "./use-open-invoices"
 import { useRefreshInvoices } from "./use-refresh-invoices"
 
-/** Звідки реєструють оплату: картка рахунку дає клієнта й рахунок. */
+/** Звідки створюють оплату чи повернення: картка рахунку дає клієнта й рахунок. */
 export interface PaymentFormSource {
   readonly clientId?: string | undefined
   readonly invoiceId?: string | undefined
 }
 
 /**
- * Схема форми: обов'язкові поля, сума понад нуль, кожному рахунку не більше за борг, сума оплати дорівнює
- * сумі рознесення (переплати й авансу немає — рішення власника 11.11.2026).
+ * Схема форми: обов'язкові поля, сума понад нуль, кожному рахунку не більше за межу (борг оплати, переплата
+ * повернення), сума документа дорівнює сумі рознесення (переплати й авансу немає — рішення власника
+ * 11.11.2026).
  */
 function usePaymentFormSchema(
-  invoices: readonly OpenInvoice[],
+  kind: K4DocumentKind,
+  invoices: readonly AllocationInvoice[],
   extensionShape: z.ZodRawShape,
 ) {
   const t = usePaymentsT()
@@ -85,17 +88,16 @@ function usePaymentFormSchema(
       .superRefine((values, context) => {
         for (const invoice of invoices) {
           const value = values.allocations[invoice.id] ?? 0
-          if (value > invoice.debt)
-            context.addIssue({
-              code: "custom",
-              path: ["allocations", invoice.id],
-              message: t("paymentForm.invoices.exceeds", {
-                debt: format.money({
-                  amount: invoice.debt,
-                  currency: invoice.currency,
-                }),
-              }),
-            })
+          if (value <= invoice.limit) continue
+          const limit = format.money({
+            amount: invoice.limit,
+            currency: invoice.currency,
+          })
+          context.addIssue({
+            code: "custom",
+            path: ["allocations", invoice.id],
+            message: t(`${kind.form}.invoices.exceeds`, { debt: limit, limit }),
+          })
         }
         if (
           values.amount !== null &&
@@ -104,15 +106,15 @@ function usePaymentFormSchema(
           context.addIssue({
             code: "custom",
             path: ["amount"],
-            message: t("paymentForm.invoices.notAllocated"),
+            message: t(`${kind.form}.invoices.notAllocated`),
           })
       })
-  }, [kitT, t, format, invoices, extensionShape])
+  }, [kind, kitT, t, format, invoices, extensionShape])
 }
 
 /**
- * Перший вибір форми з рахунками клієнта: оплата з картки рахунку — його валюта, сума його боргу на ньому й
- * сума оплати (значення за замовчуванням: «Скасувати зміни» повертає до них); інакше — валюта першого рахунку.
+ * Перший вибір форми з рахунками клієнта: документ з картки рахунку — його валюта, межа суми на ньому й сума
+ * документа (значення за замовчуванням: «Скасувати зміни» повертає до них); інакше — валюта першого рахунку.
  */
 function useFirstChoice(
   form: UseFormReturn<PaymentFormValues>,
@@ -131,8 +133,8 @@ function useFirstChoice(
       form.reset({
         ...form.getValues(),
         currency: invoice.currency,
-        amount: invoice.debt,
-        allocations: { [invoice.id]: invoice.debt },
+        amount: invoice.limit,
+        allocations: { [invoice.id]: invoice.limit },
       })
       return
     }
@@ -145,21 +147,29 @@ function useFirstChoice(
 }
 
 /**
- * Форма реєстрації оплати (ADR-0073): клієнт, валюта, дата, спосіб, сума й призначення, рахунки клієнта з
- * сумою кожному, поля розширення, липка панель «Зареєструвати». `POST` з ключем ідемпотентності
- * `requestId`: один на форму, тож подвійне натискання чи повтор після втраченої відповіді не дає другої
- * оплати. 422 — помилки біля полів (сума понад борг — біля рахунку, нерозписана сума — біля суми, дата в
- * закритому періоді — біля дати). Після реєстрації з картки рахунку — назад до рахунку, інакше — картка оплати.
+ * Форма реєстрації оплати (ADR-0073) чи повернення (ADR-0083): клієнт, валюта, дата, спосіб, сума й
+ * призначення, рахунки клієнта (неоплачені чи з переплатою) з сумою кожному, поля розширення, липка панель
+ * «Зареєструвати» чи «Повернути». `POST` з ключем ідемпотентності `requestId`: один на форму, тож подвійне
+ * натискання чи повтор після втраченої відповіді не дає другого документа. 422 — помилки біля полів (сума
+ * понад межу — біля рахунку, нерозписана сума — біля суми, дата в закритому періоді — біля дати). Після
+ * запису з картки рахунку — назад до рахунку, інакше — картка документа.
  */
-export function PaymentForm({ from }: { from: PaymentFormSource }) {
+export function PaymentForm({
+  kind,
+  from,
+}: {
+  kind: K4DocumentKind
+  from: PaymentFormSource
+}) {
   const t = usePaymentsT()
   const navigate = useNavigate()
   const format = useFormat()
   const { extension, paths, invoices: invoiceLinks } = usePaymentsModule()
+  const kindExtension = kind.extensionOf(extension)
   const refreshInvoices = useRefreshInvoices()
   const ext = useExtensionForm<PaymentFormFieldId>(
-    extension.fields,
-    extension.form,
+    kindExtension.fields,
+    kindExtension.form,
   )
   const [requestId] = useState(newImportRequestId)
   const [defaultValues] = useState((): PaymentFormValues => ({
@@ -173,13 +183,16 @@ export function PaymentForm({ from }: { from: PaymentFormSource }) {
     allocations: {},
     ...ext.values(),
   }))
-  const [targets, setTargets] = useState<readonly OpenInvoice[]>([])
-  const schema = usePaymentFormSchema(targets, ext.shape)
-  const recordSchema = useMemo(() => paymentSchemaFor(extension), [extension])
+  const [targets, setTargets] = useState<readonly AllocationInvoice[]>([])
+  const schema = usePaymentFormSchema(kind, targets, ext.shape)
+  const recordSchema = useMemo(
+    () => kind.recordSchema(extension),
+    [kind, extension],
+  )
   /** Рахунки останнього запиту: помилку `allocations.<i>` сервера показуємо біля свого рахунку. */
   const sent = useRef<readonly string[]>([])
   const state = useRecordForm<PaymentFormValues, Payment>({
-    resource: PAYMENTS,
+    resource: kind.resource,
     schema,
     defaultValues,
     recordSchema,
@@ -204,26 +217,27 @@ export function PaymentForm({ from }: { from: PaymentFormSource }) {
       return id ? `allocations.${id}` : field
     },
     serverErrorText: (_field, code) =>
-      code === PAYMENT_ISSUES.notAllocated
-        ? t("paymentForm.invoices.notAllocated")
-        : code === PAYMENT_ISSUES.exceedsDebt
-          ? t("paymentForm.invoices.exceedsDebt")
-          : code === PAYMENT_ISSUES.invoiceUnavailable
-            ? t("paymentForm.invoices.unavailable")
+      code === kind.issues.notAllocated
+        ? t(`${kind.form}.invoices.notAllocated`)
+        : code === kind.issues.exceeds
+          ? t(`${kind.form}.invoices.exceedsDebt`)
+          : code === kind.issues.invoiceUnavailable
+            ? t(`${kind.form}.invoices.unavailable`)
             : undefined,
     toValues: () => defaultValues,
     onSaved: (saved) => {
       refreshInvoices()
-      toast.success(t("paymentForm.saved"))
+      toast.success(t(`${kind.form}.saved`))
       void navigate(
         from.invoiceId && invoiceLinks.href
           ? invoiceLinks.href(from.invoiceId)
-          : paths.payment(saved.id),
+          : kind.pathsOf(paths).record(saved.id),
       )
     },
   })
   return (
     <PaymentFormBody
+      kind={kind}
       state={state}
       from={from}
       ext={ext}
@@ -232,22 +246,39 @@ export function PaymentForm({ from }: { from: PaymentFormSource }) {
   )
 }
 
+/** Рахунок з адреси вже не серед рахунків клієнта: оплачений, скасований чи без переплати. */
+function isFromMissing(
+  from: PaymentFormSource,
+  clientId: string,
+  invoices: readonly AllocationInvoice[] | undefined,
+) {
+  return Boolean(
+    from.invoiceId &&
+    invoices &&
+    clientId === from.clientId &&
+    !invoices.some(({ id }) => id === from.invoiceId),
+  )
+}
+
 /** Тіло форми: рахунки клієнта, поля шапки з полями розширення й рознесення. */
 function PaymentFormBody({
+  kind,
   state,
   from,
   ext,
   onTargets,
 }: {
+  kind: K4DocumentKind
   state: RecordFormState<PaymentFormValues>
   from: PaymentFormSource
   ext: ExtensionFormApi<PaymentFormFieldId>
-  onTargets: (invoices: readonly OpenInvoice[]) => void
+  onTargets: (invoices: readonly AllocationInvoice[]) => void
 }) {
+  const t = usePaymentsT()
   const { form } = state
   const clientId = useWatch({ control: form.control, name: "clientId" })
   const currency = useWatch({ control: form.control, name: "currency" })
-  const open = useOpenInvoices(clientId)
+  const open = useOpenInvoices(kind, clientId)
   useFirstChoice(form, open, from)
   const currencies = useMemo(
     () => [...new Set(open.invoices?.map((invoice) => invoice.currency))],
@@ -264,7 +295,7 @@ function PaymentFormBody({
   const profile = useCompanyProfile()
   const moneyCurrency =
     currency || (profile.data?.baseCurrency ?? DEFAULT_BASE_CURRENCY)
-  const moduleItems = usePaymentFormItems(form, currencies, moneyCurrency)
+  const moduleItems = usePaymentFormItems(kind, form, currencies, moneyCurrency)
   const items = useMemo(
     () =>
       applyKeyedChanges(
@@ -274,8 +305,16 @@ function PaymentFormBody({
     [moduleItems, ext, form.control],
   )
   return (
-    <PaymentFormView state={state} items={items}>
+    <PaymentFormView kind={kind} state={state} items={items}>
+      {isFromMissing(from, clientId, open.invoices) ? (
+        <Alert data-slot="payment-form-source-missing">
+          <AlertDescription>
+            {t(`${kind.form}.invoices.fromUnavailable`)}
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <PaymentAllocationFields
+        kind={kind}
         form={form}
         clientId={clientId}
         currency={currency}
@@ -286,10 +325,12 @@ function PaymentFormBody({
 }
 
 function PaymentFormView({
+  kind,
   state,
   items,
   children,
 }: {
+  kind: K4DocumentKind
   state: RecordFormState<PaymentFormValues>
   items: readonly RecordFormItem[]
   children: React.ReactNode
@@ -299,9 +340,9 @@ function PaymentFormView({
   const labels = useMemo(
     (): Readonly<Record<string, string>> => ({
       ...Object.fromEntries(items.map((item) => [item.id, item.label])),
-      allocations: t("paymentForm.invoices.label"),
+      allocations: t(`${kind.form}.invoices.label`),
     }),
-    [items, t],
+    [items, t, kind],
   )
   const { ref: messageRef, message } = useFormMessage(state, labels)
   return (
@@ -334,7 +375,7 @@ function PaymentFormView({
         isDirty={isDirty}
         isSaving={state.isSaving}
         onDiscard={state.discard}
-        submitLabel={t("payments.create")}
+        submitLabel={t(kind.labels.submit)}
       />
     </form>
   )

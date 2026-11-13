@@ -12,7 +12,8 @@ import {
  * рахунку (клієнт і рахунок уже вибрано, сума — борг), «Розписати від найстаршого», сума оплати дорівнює
  * сумі рознесення, «Оплачено» ставить сервер, скасування оплати повертає «Виставлено», без права — неактивна
  * кнопка з причиною. Годинник — 08.11.2026, закрито по 20.10.2026. Засів компанії бухгалтера: ОП-2026-0001…0006,
- * оплата ОП-2026-0003 — на прострочений РХ-2026-0003 наполовину й на РХ-2026-0009 повністю («Оплачено»).
+ * оплата ОП-2026-0003 — на прострочений РХ-2026-0003 наполовину й на РХ-2026-0009 повністю («Оплачено»;
+ * далі кредит-нота й повернення ПВ-2026-0001, `refunds.spec.ts`).
  */
 const PAYMENTS = "/#/m/K4/payments"
 const MULTI = `${PAYMENTS}/pay-zoriana-multi`
@@ -191,11 +192,14 @@ test.describe("модуль K4: оплати", () => {
         name: `QR-код оплати рахунку ${OVERDUE_NUMBER}`,
       }),
     ).toBeVisible()
-    // Повністю оплачений рахунок QR-коду не має.
+    // Оплачений рахунок QR-коду не має; після кредит-ноти й часткового повернення — «Повернено» й «Переплата».
     await openWith(page, {}, `${PAID}/print`)
-    await expect(
-      page.locator('[data-print-root] [data-slot="print-document-totals"]'),
-    ).toContainText("До сплати")
+    const paidTotals = page.locator(
+      '[data-print-root] [data-slot="print-document-totals"]',
+    )
+    await expect(paidTotals).toContainText("Повернено")
+    await expect(paidTotals).toContainText("Переплата")
+    await expect(paidTotals).not.toContainText("До сплати")
     await expect(
       page.locator('[data-print-root] [data-slot="invoice-payment-qr"]'),
     ).toHaveCount(0)
