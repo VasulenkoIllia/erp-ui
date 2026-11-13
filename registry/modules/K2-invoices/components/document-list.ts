@@ -3,8 +3,23 @@ import { useMemo } from "react"
 import type { ResolvedStatuses } from "@/lib/statuses"
 
 import type { K2DocumentKind } from "../document-kind"
-import { useInvoicesModule } from "../module-context"
+import { useInvoicesModule, type InvoiceClients } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
+
+/** Фільтр «Клієнт»: запис ресурсу клієнтів проекту. Спільний для списків документів і звіту боргів. */
+export function clientFilter(clients: InvoiceClients, label: string) {
+  return {
+    kind: "record" as const,
+    id: "clientId" as const,
+    field: "clientId",
+    label,
+    resource: clients.resource,
+    labelField: clients.labelField,
+    ...(clients.descriptionField
+      ? { descriptionField: clients.descriptionField }
+      : {}),
+  }
+}
 
 /**
  * Фільтри й вкладки списку документа модуля: «Клієнт» (ресурс клієнтів проекту), «Дата» й вкладки «Усі» та
@@ -19,17 +34,7 @@ export function useDocumentListFilters(
   const list = `${kind.key}s` as const
   const filters = useMemo(
     () => [
-      {
-        kind: "record" as const,
-        id: "clientId" as const,
-        field: "clientId",
-        label: t(`${list}.filters.clientId`),
-        resource: clients.resource,
-        labelField: clients.labelField,
-        ...(clients.descriptionField
-          ? { descriptionField: clients.descriptionField }
-          : {}),
-      },
+      clientFilter(clients, t(`${list}.filters.clientId`)),
       {
         kind: "date-range" as const,
         id: "date" as const,

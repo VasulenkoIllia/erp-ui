@@ -1,4 +1,5 @@
 import { useAuthenticated } from "ra-core"
+import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
@@ -15,6 +16,7 @@ import type { ListDefaults } from "@/lib/list-state"
 
 import { AccessLink } from "../components/access-link"
 import { useDocumentListFilters } from "../components/document-list"
+import { useCurrencyFilter } from "../components/invoice-currency"
 import { useInvoiceBulkActions } from "../components/invoice-bulk-actions"
 import { useInvoiceColumns } from "../components/invoice-columns"
 import { useDocumentStatuses } from "../components/invoice-statuses"
@@ -36,8 +38,8 @@ const DEFAULTS: ListDefaults = {
 
 /**
  * Список рахунків на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0070): вкладки за статусом (зі
- * статусами розширення), фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом; номер — посилання на
- * картку. «Створити рахунок» — сторінка форми. Вибрані — «Виставити», «Скасувати» й «Видалити» фоновою
+ * статусами розширення), фільтри «Клієнт», «Дата» й, з валютами компанії, «Валюта» (ADR-0084), пошук за
+ * номером чи клієнтом; номер — посилання на картку. «Створити рахунок» — сторінка форми. Вибрані — «Виставити», «Скасувати» й «Видалити» фоновою
  * задачею зі звітом про невдалі (ADR-0066).
  */
 export function InvoicesListPage() {
@@ -78,14 +80,20 @@ export function InvoicesListPage() {
 
 /** Колонки, фільтри й вкладки зі змінами розширення та стан списку з адреси. */
 function useInvoiceList() {
+  const t = useInvoicesT()
   const { extension } = useInvoicesModule()
   const [searchParams, setSearchParams] = useSearchParams()
   const statuses = useDocumentStatuses(INVOICE_KIND)
   const columns = useInvoiceColumns(statuses)
   const { filters, tabs } = useDocumentListFilters(INVOICE_KIND, statuses)
+  const currency = useCurrencyFilter(t("invoices.filters.currency"))
+  const listFilters = useMemo(
+    () => (currency ? [...filters, currency] : filters),
+    [filters, currency],
+  )
   const extended = useExtendedList<Invoice, InvoiceIds>(
     columns,
-    filters,
+    listFilters,
     tabs,
     extension.invoices,
     LOCKED_COLUMNS,

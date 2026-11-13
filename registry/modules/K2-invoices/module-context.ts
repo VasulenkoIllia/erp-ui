@@ -19,6 +19,8 @@ export interface InvoicesPaths {
   readonly creditNote: (id: string) => string
   readonly editCreditNote: (id: string) => string
   readonly printCreditNote: (id: string) => string
+  /** Борги клієнтів за кошиками днів (ADR-0084): сторінка є лише з оплатами модуля K4. */
+  readonly debts: string
 }
 
 /**
@@ -40,6 +42,7 @@ export function invoicesPaths(basePath: string): InvoicesPaths {
     creditNote,
     editCreditNote: (id) => `${creditNote(id)}/edit`,
     printCreditNote: (id) => `${creditNote(id)}/print`,
+    debts: `${base}/client-debts`,
   }
 }
 
@@ -66,6 +69,15 @@ export interface InvoiceClients {
  */
 export interface InvoiceCurrencies {
   readonly resource: string
+}
+
+/**
+ * «Борги клієнтів» — старіння боргу (ADR-0084): `buckets` — межі кошиків, днів після «Сплатити до» (за
+ * замовчуванням `[30, 60, 90]`). Сторінка є лише з оплатами модуля K4 і цією опцією: бекенд має дати
+ * `GET /sales-invoices/aging`.
+ */
+export interface InvoiceAging {
+  readonly buckets?: readonly number[]
 }
 
 /**
@@ -112,6 +124,8 @@ export interface InvoicesModuleContextValue {
   readonly currencies?: InvoiceCurrencies | undefined
   /** Оплати модуля K4; без них на картці немає «Зареєструвати оплату». */
   readonly payments?: InvoicePayments | undefined
+  /** Межі кошиків звіту «Борги клієнтів», днів прострочки (ADR-0084): з опції `aging` чи за замовчуванням. */
+  readonly agingBuckets: readonly number[]
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined
   /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */

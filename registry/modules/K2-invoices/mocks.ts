@@ -33,7 +33,7 @@
  *   ставить «Оплачено» рахунку, який оплати разом із кредит-нотами покрили, і знімає, коли оплату скасували;
  *   з `refundedTotal` (ADR-0083) — ще й `refundedTotal`, повернення зменшує переплату. Рахунок з оплатою чи
  *   поверненням, що діє, не скасовують і не сторнують (`has_payments`). Моки K4 беруть рахунки з
- *   `forPayments`.
+ *   `forPayments`. З оплатами є й звіт старіння боргу `GET /sales-invoices/aging` (ADR-0084).
  */
 import type { LocalizedText } from "@/lib/auth"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
@@ -82,6 +82,7 @@ import {
   CREDIT_NOTE_NUMBER_TEMPLATE,
 } from "./credit-note-fixtures"
 import type { InvoicesMockExtension } from "./extension"
+import { createAgingHandler } from "./mock-aging"
 import { createCreditNoteHandlers } from "./mock-credit-note-handlers"
 import { invoiceCreditDeniedActions } from "./mock-credit-notes"
 import { invoiceExchange, reversedExchange } from "./mock-exchange"
@@ -411,6 +412,18 @@ export function createInvoicesMocks({
       delete: { apply: () => ({ remove: true }) },
     },
   })
+  // Старіння боргу — лише з оплатами: без них рахунок не має боргу (ADR-0073).
+  const aging = payments
+    ? [
+        createAgingHandler({
+          baseUrl,
+          db: invoices.db,
+          settlement,
+          rates,
+          today: () => fixtureOptions.today ?? todayIn(),
+        }),
+      ]
+    : []
   const parties = invoiceFixtureParties(fixtureOptions)
   const fromOrder: MockCreatedDocument<InvoiceOrderSource> =
     mockCreatedDocument<InvoiceOrderSource, InvoiceCard>({
@@ -425,8 +438,10 @@ export function createInvoicesMocks({
       mark: (invoiceId) => ({ invoiceId }),
     })
   return {
-    // Масові дії й дії — перед ресурсом: `POST /sales-invoices/…/<дія>` не має дійти до обробників запису.
+    // Масові дії, дії й звіт — перед ресурсом: `/sales-invoices/aging` і `POST /sales-invoices/…/<дія>` не
+    // мають дійти до обробників запису.
     handlers: [
+      ...aging,
       ...invoiceBulk,
       ...invoiceTransitions,
       ...creditNotes.handlers,

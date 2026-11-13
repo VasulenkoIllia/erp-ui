@@ -138,6 +138,11 @@ export function addDays(value: CalendarDate, days: number): CalendarDate {
   return fromUtc(new Date(toUtc(value).getTime() + days * DAY_MS))
 }
 
+/** Скільки календарних днів від `from` до `to`: 2026-11-01 → 2026-11-13 — 12; `to` раніше — від'ємне. */
+export function daysBetween(from: CalendarDate, to: CalendarDate): number {
+  return Math.round((toUtc(to).getTime() - toUtc(from).getTime()) / DAY_MS)
+}
+
 /** Перший день місяця, зсунутого на `months`. */
 function monthStart(value: CalendarDate, months = 0): CalendarDate {
   const [year, month] = parts(value)
