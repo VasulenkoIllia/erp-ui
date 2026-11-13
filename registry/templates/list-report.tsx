@@ -25,7 +25,7 @@ import {
 } from "@/registry/hooks/use-saved-views"
 import type { FilterDefinition } from "@/registry/lib/filters"
 import { LIST_PAGE_SIZES, withPageSize } from "@/registry/lib/list-settings"
-import type { ListTab } from "@/registry/lib/list-state"
+import type { ListFilter, ListTab } from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
 import {
   PagedTable,
@@ -67,6 +67,11 @@ export interface ListReportOptions extends Pick<
   tabs?: readonly ListTab[]
   /** Фільтри панелі; стабільні між рендерами. Без опису в запит іде лише пошук `q`. */
   filters?: readonly FilterDefinition[]
+  /**
+   * Параметри кожного запиту списку, яких немає ні в панелі, ні в адресі: межі кошиків звіту старіння
+   * (`buckets`). Людина їх не змінює й не скидає; стабільні між рендерами.
+   */
+  fixedFilter?: ListFilter
 }
 
 export interface ListReportState {
@@ -91,9 +96,10 @@ export function useListReport({
   defaults,
   tabs = NO_TABS,
   filters = NO_FILTERS,
+  fixedFilter,
 }: ListReportOptions): ListReportState {
   const views = useSavedViews(resource)
-  const list = useListState({
+  const state = useListState({
     params,
     onParamsChange,
     defaults,
@@ -102,9 +108,20 @@ export function useListReport({
     views: views.views,
     viewsFailed: Boolean(views.error),
   })
-  const counts = useListCounts(resource, list.state.filter, tabs, {
-    enabled: list.isReady,
-  })
+  const queryFilter = React.useMemo(
+    () =>
+      fixedFilter
+        ? { ...state.queryFilter, ...fixedFilter }
+        : state.queryFilter,
+    [state.queryFilter, fixedFilter],
+  )
+  const list = fixedFilter ? { ...state, queryFilter } : state
+  const counts = useListCounts(
+    resource,
+    fixedFilter ? { ...list.state.filter, ...fixedFilter } : list.state.filter,
+    tabs,
+    { enabled: list.isReady },
+  )
   const companyId = useCompanyId()
   const selection = useRowSelection([list.queryFilter, companyId])
   return { resource, tabs, filters, list, views, counts, selection }

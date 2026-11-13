@@ -10,7 +10,11 @@ import { useCallback, useState } from "react"
 import { beforeAll, describe, expect, it, vi } from "vitest"
 
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
-import type { ListDefaults, ListTab } from "@/registry/lib/list-state"
+import type {
+  ListDefaults,
+  ListFilter,
+  ListTab,
+} from "@/registry/lib/list-state"
 import {
   SAVED_VIEWS_RESOURCE,
   type SavedView,
@@ -93,9 +97,10 @@ function fakeServer({ views = [] as SavedView[] } = {}) {
 type PageProps = Partial<ListReportProps<Row>> & {
   initial?: string
   tabs?: ListTab[]
+  fixedFilter?: ListFilter
 }
 
-function Page({ initial = "", tabs = TABS, ...props }: PageProps) {
+function Page({ initial = "", tabs = TABS, fixedFilter, ...props }: PageProps) {
   const [params, setParams] = useState(() => new URLSearchParams(initial))
   const onParamsChange = useCallback((next: URLSearchParams) => {
     setParams(next)
@@ -106,6 +111,7 @@ function Page({ initial = "", tabs = TABS, ...props }: PageProps) {
     onParamsChange,
     defaults: DEFAULTS,
     tabs,
+    ...(fixedFilter ? { fixedFilter } : {}),
   })
   return (
     <ListReport<Row>
@@ -221,6 +227,36 @@ describe("ListReport: джерела й стан", () => {
     // A → B → A: збережена сторінка 2 не оживає.
     await user.click(screen.getByRole("tab", { name: /^Усі/ }))
     await screen.findByText("1-20 з 45")
+  })
+
+  it("постійні параметри — у запиті рядків і лічильників разом із вкладкою, без чипа фільтра", async () => {
+    const user = userEvent.setup()
+    const server = fakeServer()
+    renderPage(server, { fixedFilter: { buckets: "30,60,90" } })
+    await screen.findByText("Запис 1")
+    expect(server.rowRequests().at(-1)?.[1].filter).toEqual({
+      buckets: "30,60,90",
+    })
+    const counts = server.getList.mock.calls.filter(
+      ([resource, params]) =>
+        resource === "records" && params.pagination?.perPage === 1,
+    )
+    expect(counts.map(([, params]) => params.filter as ListFilter)).toEqual(
+      expect.arrayContaining([
+        { buckets: "30,60,90" },
+        { buckets: "30,60,90", status: "archived" },
+      ]),
+    )
+    await user.click(screen.getByRole("tab", { name: /^Архів/ }))
+    await waitFor(() => {
+      expect(server.rowRequests().at(-1)?.[1].filter).toEqual({
+        buckets: "30,60,90",
+        status: "archived",
+      })
+    })
+    expect(
+      screen.queryByRole("button", { name: /Скинути фільтри/ }),
+    ).not.toBeInTheDocument()
   })
 
   it("прокрутка: вікно по 100 рядків", async () => {

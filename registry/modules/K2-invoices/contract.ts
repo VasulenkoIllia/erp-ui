@@ -56,6 +56,12 @@
  *   `refundedTotal`, статусу повернення не змінює. Борг рахунку — `total − creditedTotal − paidTotal +
  *   refundedTotal`; від'ємний — переплата. Рахунок з оплатою чи поверненням, що діє, не скасовують і не
  *   сторнують (`has_payments`).
+ * - Старіння боргу (ADR-0084) — підресурс `GET /sales-invoices/aging` у форматі списку: рядок на клієнта й
+ *   валюту за рахунками з боргом > 0 на сьогодні, борг за кошиками днів після «Сплатити до» й у базовій
+ *   валюті за курсом кожного рахунку. Межі кошиків — параметр `buckets` («30,60,90», від 1 до 5 цілих днів за
+ *   зростанням, інакше 422 `buckets`); фільтри `clientId`, `currency`, пошук `q` за назвою клієнта;
+ *   сортування `clientName`, `total`, `baseTotal`. Право — `sales-invoices:read`; правила видимості рахунків
+ *   ті самі, що в списку.
  * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення; рахунок у
  *   кредит-ноти, оплати й повернення), `amendedFrom`, `reversalOf`.
  * - Права — `sales-invoices:<дія>`: `read`, `create`, `update`, `delete`, `submit`, `cancel`, `reverse`,
@@ -91,7 +97,7 @@ import {
   type StatusTransition,
 } from "@/lib/statuses"
 
-import { CREDIT_NOTES } from "./resources"
+import { CREDIT_NOTES, INVOICES } from "./resources"
 
 export { CREDIT_NOTES, INVOICES, INVOICES_RESOURCES } from "./resources"
 
@@ -266,6 +272,28 @@ export type Invoice = z.output<typeof invoiceShape> & {
 } & ExtensionValues
 /** Рахунок із рядками й підсумками — детальний запис картки. */
 export type InvoiceCard = Invoice & InvoiceDetail
+
+/* ------------------------------ Старіння боргу ------------------------------ */
+
+/** Звіт старіння боргу (ADR-0084): підресурс рахунків у форматі списку. */
+export const INVOICE_AGING = `${INVOICES}/aging`
+
+/**
+ * Рядок звіту старіння: борг клієнта в одній валюті. `buckets` — борг за кошиками в порядку меж запиту:
+ * «строк не настав», далі кожна межа, останній — понад останню межу; разом — `total`. `baseTotal` — борг у
+ * базовій валюті за курсом кожного рахунку (без переоцінки); `null` — хоч у одного рахунку курсу немає.
+ */
+export const agingRowSchema = z.object({
+  id: z.string().min(1),
+  clientId: z.string().min(1),
+  clientName: z.string().trim().min(1),
+  currency: z.string().length(3),
+  buckets: z.array(moneyAmountSchema.min(0)).min(2),
+  total: moneyAmountSchema.positive(),
+  baseCurrency: z.string().length(3),
+  baseTotal: moneyAmountSchema.min(0).nullable(),
+})
+export type AgingRow = z.infer<typeof agingRowSchema>
 
 /** Документ модуля для спільних частин сторінок: шапка рахунку чи кредит-ноти без своїх полів. */
 export type K2Document = z.output<typeof documentShape> & {

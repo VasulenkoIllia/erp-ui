@@ -41,7 +41,8 @@ import type ukMessages from "./i18n/uk.json"
 /** Ключі модуля для рахунків: ними сторінки модуля перевіряють свої списки. */
 export interface InvoiceIds {
   column: "number" | "client" | "date" | "dueDate" | "total" | "status"
-  filter: "clientId" | "date"
+  /** Фільтри списку; `currency` — валюта рахунку, коли проект підключив валюти компанії (ADR-0084). */
+  filter: "clientId" | "date" | "currency"
   /** Вкладки списку: «Усі» і статуси; статус розширення — теж вкладка з його ключем. */
   tab: "all" | InvoiceStatus | (string & {})
   /**

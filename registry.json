@@ -12621,9 +12621,19 @@
           "target": "@ui/tooltip.tsx"
         },
         {
+          "path": "registry/modules/K2-invoices/aging-buckets.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/aging-buckets.ts"
+        },
+        {
           "path": "registry/modules/K2-invoices/components/access-link.tsx",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/components/access-link.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/components/aging-columns.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/components/aging-columns.tsx"
         },
         {
           "path": "registry/modules/K2-invoices/components/credit-note-form.tsx",
@@ -12776,6 +12786,11 @@
           "target": "~/src/modules/K2-invoices/credit-note-sums.ts"
         },
         {
+          "path": "registry/modules/K2-invoices/debt-aging.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/debt-aging.ts"
+        },
+        {
           "path": "registry/modules/K2-invoices/document-kind.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/document-kind.ts"
@@ -12814,6 +12829,11 @@
           "path": "registry/modules/K2-invoices/invoice-kind.ts",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/invoice-kind.ts"
+        },
+        {
+          "path": "registry/modules/K2-invoices/mock-aging.ts",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/mock-aging.ts"
         },
         {
           "path": "registry/modules/K2-invoices/mock-credit-note-handlers.ts",
@@ -12869,6 +12889,11 @@
           "path": "registry/modules/K2-invoices/pages/credit-note-record-page.tsx",
           "type": "registry:file",
           "target": "~/src/modules/K2-invoices/pages/credit-note-record-page.tsx"
+        },
+        {
+          "path": "registry/modules/K2-invoices/pages/debt-aging-page.tsx",
+          "type": "registry:file",
+          "target": "~/src/modules/K2-invoices/pages/debt-aging-page.tsx"
         },
         {
           "path": "registry/modules/K2-invoices/pages/invoice-form-page.tsx",

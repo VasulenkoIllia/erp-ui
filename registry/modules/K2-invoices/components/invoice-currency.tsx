@@ -58,6 +58,35 @@ export interface InvoiceCurrencyChoice {
   readonly failed: boolean
 }
 
+/** Валюти компанії з ресурсу `currencies` фабрики: без опції чи права читати валюти запиту немає. */
+function useCompanyCurrencies() {
+  const { currencies } = useInvoicesModule()
+  const companyId = useCompanyId()
+  const resource = currencies?.resource ?? ""
+  const canRead = useHasPermission(resource, "read")
+  return useGetList<CurrencyRecord>(
+    resource,
+    {
+      pagination: { page: 1, perPage: CURRENCY_LIMIT },
+      sort: { field: "code", order: "ASC" },
+      meta: companyScope(companyId),
+    },
+    { enabled: Boolean(currencies) && canRead },
+  )
+}
+
+/** «USD · долар США»: код і назва мовою інтерфейсу. */
+const currencyItems = (
+  codes: readonly (string | undefined)[],
+  locale: string,
+) =>
+  [...new Set(codes.filter((code): code is string => Boolean(code)))].map(
+    (code) => ({
+      value: code,
+      label: `${code} · ${currencyName(code, locale)}`,
+    }),
+  )
+
 /**
  * Валюти рахунку (ADR-0071) з ресурсу валют компанії (`currencies` фабрики): базова валюта першою, далі
  * активні за кодом. Вимкнена валюта лишається лише в рахунку, де вона вже стоїть. Без права читати валюти
@@ -67,37 +96,43 @@ export function useInvoiceCurrencyChoice(
   base: string | undefined,
   current: string,
 ): InvoiceCurrencyChoice {
-  const { currencies } = useInvoicesModule()
   const { locale } = useLanguage()
-  const companyId = useCompanyId()
-  const resource = currencies?.resource ?? ""
-  const canRead = useHasPermission(resource, "read")
-  const { data, error } = useGetList<CurrencyRecord>(
-    resource,
-    {
-      pagination: { page: 1, perPage: CURRENCY_LIMIT },
-      sort: { field: "code", order: "ASC" },
-      meta: companyScope(companyId),
-    },
-    { enabled: Boolean(currencies) && canRead },
-  )
+  const { data, error } = useCompanyCurrencies()
   return useMemo(() => {
     const active = (data ?? [])
       .filter((currency) => currency.active !== false)
       .map((currency) => currency.code)
-    const codes = [
-      ...new Set(
-        [base, ...active, current].filter((code): code is string =>
-          Boolean(code),
-        ),
-      ),
-    ]
     return {
-      items: codes.map((code) => ({
-        value: code,
-        label: `${code} · ${currencyName(code, locale)}`,
-      })),
+      items: currencyItems([base, ...active, current], locale),
       failed: Boolean(error),
     }
   }, [data, error, base, current, locale])
+}
+
+/**
+ * Фільтр «Валюта» списку рахунків і звіту старіння (ADR-0084): базова валюта першою, далі всі валюти
+ * компанії за кодом, і вимкнені — рахунки в них лишились. Без опції `currencies` фабрики фільтра немає:
+ * усі рахунки в базовій валюті.
+ */
+export function useCurrencyFilter(label: string) {
+  const { currencies } = useInvoicesModule()
+  const { locale } = useLanguage()
+  const base = useBaseCurrency(undefined)
+  const { data } = useCompanyCurrencies()
+  return useMemo(
+    () =>
+      currencies
+        ? {
+            kind: "options" as const,
+            id: "currency" as const,
+            field: "currency",
+            label,
+            options: currencyItems(
+              [base, ...(data ?? []).map((currency) => currency.code)],
+              locale,
+            ),
+          }
+        : null,
+    [currencies, label, base, data, locale],
+  )
 }
