@@ -151,6 +151,11 @@ test.describe("A2: ролі й права", () => {
     await expect(
       page.getByRole("checkbox", { name: "Видалення: Організації" }),
     ).toBeFocused()
+    // Фокус прокрутив матрицю: галочки рядка під липкою верхньою панеллю axe рахує замалими цілями
+    // (target-size) поруч із її кнопками, хоча прокруткою вони доступні.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
     await expectNoA11yViolations(page)
   })
 
