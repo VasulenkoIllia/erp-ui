@@ -12,6 +12,7 @@ import type { PreloadableComponent } from "@/registry/lib/lazy"
 import {
   createModule,
   createModuleContext,
+  moduleNavId,
   moduleNavItems,
   type ModuleContextValue,
   type ModuleNavItem,
@@ -218,5 +219,39 @@ describe("moduleNavItems", () => {
     expect(moduleNavItems(nav, "uk", undefined).map((item) => item.id)).toEqual(
       ["X1-notes"],
     )
+  })
+})
+
+describe("moduleNavId", () => {
+  const nav: ModuleNavItem[] = [
+    {
+      id: "X1-settings",
+      label: "Налаштування",
+      href: "/settings",
+      icon: FileIcon,
+    },
+    { id: "X1-users", label: "Люди", href: "/settings/users", icon: FileIcon },
+    { id: "X1-notes", label: "Нотатки", href: "/notes", icon: FileIcon },
+  ]
+
+  it("пункт сторінки чи її списку; з кількох — найдовша адреса", () => {
+    expect(moduleNavId(nav, "/notes")).toBe("X1-notes")
+    expect(moduleNavId(nav, "/notes/7/edit")).toBe("X1-notes")
+    expect(moduleNavId(nav, "/settings/users/3")).toBe("X1-users")
+    expect(moduleNavId(nav, "/settings/roles")).toBe("X1-settings")
+  })
+
+  it("адреса поза пунктами модуля — без активного пункту", () => {
+    expect(moduleNavId(nav, "/notes-archive")).toBeUndefined()
+    expect(moduleNavId(nav, "/")).toBeUndefined()
+    // Пункт `/` — лише на самій головній: інакше він був би активним на кожній сторінці.
+    const home: ModuleNavItem = {
+      id: "X1-home",
+      label: "Головна",
+      href: "/",
+      icon: FileIcon,
+    }
+    expect(moduleNavId([home], "/")).toBe("X1-home")
+    expect(moduleNavId([home], "/notes")).toBeUndefined()
   })
 })

@@ -16,8 +16,8 @@
  *   `createModuleContext`, на кожен рендер. Налаштування, які зміняться під час роботи (PF09, A3),
  *   додаються в цей хук одним місцем, а не в кожен модуль.
  * - Фабрика модуля читає розширення лише для складу маршрутів і пунктів (`page: false`).
- * - Проект показує пункти модуля в навігації через `moduleNavItems`: пункт із правом — лише тому,
- *   хто його має.
+ * - Проект показує пункти модуля в навігації через `moduleNavItems` (пункт із правом — лише тому,
+ *   хто його має), активний пункт — `moduleNavId`.
  */
 import type { LucideIcon } from "lucide-react"
 import { createContext, createElement, useContext, type Context } from "react"
@@ -213,4 +213,23 @@ export function moduleNavItems(
       href,
       icon,
     }))
+}
+
+/**
+ * Активний пункт модуля для оболонки (`activeId` в `erp/app-shell`): пункт, адреса якого — сама сторінка
+ * чи її початок (`/invoices` для `/invoices/7/edit`); з кількох — найдовша адреса. Адреса поза пунктами
+ * модуля — `undefined`.
+ */
+export function moduleNavId(
+  nav: readonly ModuleNavItem[],
+  pathname: string,
+): string | undefined {
+  let found: ModuleNavItem | undefined
+  for (const item of nav)
+    if (
+      (pathname === item.href || pathname.startsWith(`${item.href}/`)) &&
+      item.href.length > (found?.href.length ?? -1)
+    )
+      found = item
+  return found?.id
 }

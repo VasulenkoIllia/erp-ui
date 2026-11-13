@@ -3,7 +3,7 @@ import { useRoutes } from "react-router"
 
 import { PageState } from "@/registry/erp/page-state"
 import type { ModuleId } from "@/registry/lib/icons"
-import type { ErpModule } from "@/registry/lib/module"
+import { moduleNavId, type ErpModule } from "@/registry/lib/module"
 
 import { companyModule } from "@/company-module"
 import { contactsModule } from "@/contacts-module"
@@ -52,15 +52,11 @@ export function KitModuleRoutes({ moduleKey }: { moduleKey: KitModuleKey }) {
   )
 }
 
-/** Пункт навігації модуля за адресою: список чи картка з нього. */
+/** Пункт навігації модуля за адресою: список чи картка з нього, інша адреса модуля — перший пункт. */
 export function kitModuleNavId(
   moduleKey: KitModuleKey,
   pathname: string,
 ): string | undefined {
-  const items = KIT_MODULES[moduleKey].nav
-  return (
-    items.find(
-      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-    ) ?? items[0]
-  )?.id
+  const { nav } = KIT_MODULES[moduleKey]
+  return moduleNavId(nav, pathname) ?? nav[0]?.id
 }

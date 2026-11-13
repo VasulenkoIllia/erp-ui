@@ -448,7 +448,9 @@ export const contactsModule = createContactsModule({ basePath: "/crm", extension
 // маршрути — під Suspense і межею помилок застосунку
 function Contacts() { return useRoutes(contactsModule.routes) }
 // навігація — moduleNavItems(contactsModule.nav, language, me?.permissions) з @/lib/module: підпис мовою інтерфейсу,
-// пункт з access — лише з цим правом, поки профіль вантажиться — без таких пунктів
+// пункт з access — лише з цим правом, поки профіль вантажиться — без таких пунктів;
+// активний пункт оболонки — activeId={moduleNavId(contactsModule.nav, pathname)}; сторінка модуля без свого пункту
+// (майстер A1 `/setup`) — undefined: поставте свій запасний пункт, як демо — перший пункт модуля
 // права й ресурси — contactsModule.resources (contacts, organizations, segments), до каталогу прав бекенда
 
 // src/mocks/handlers.ts — моки беруть лише файл полів, без компонентів
