@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { NotificationsExtension } from "./extension"
 
@@ -13,20 +13,14 @@ export function notificationsPaths(basePath: string): NotificationsPaths {
   return { inbox: `${base}/inbox`, settings: `${base}/notification-settings` }
 }
 
-export interface NotificationsModuleContextValue {
-  readonly extension: NotificationsExtension
-  readonly paths: NotificationsPaths
-}
+export type NotificationsModuleContextValue = ModuleContextValue<
+  NotificationsExtension,
+  NotificationsPaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const NotificationsModuleContext =
-  createContext<NotificationsModuleContextValue | null>(null)
-
-export function useNotificationsModule(): NotificationsModuleContextValue {
-  const value = useContext(NotificationsModuleContext)
-  if (!value)
-    throw new Error(
-      "N5-notifications: page rendered outside routes of createNotificationsModule()",
-    )
-  return value
-}
+export const [NotificationsModuleContext, useNotificationsModule] =
+  createModuleContext<NotificationsModuleContextValue>(
+    "N5-notifications",
+    "createNotificationsModule",
+  )

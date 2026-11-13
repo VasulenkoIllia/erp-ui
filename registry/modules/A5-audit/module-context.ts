@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { AuditExtension } from "./extension"
 
@@ -11,21 +11,11 @@ export function auditPaths(basePath: string): AuditPaths {
   return { journal: `${basePath.replace(/\/+$/, "")}/audit` }
 }
 
-export interface AuditModuleContextValue {
-  readonly extension: AuditExtension
-  readonly paths: AuditPaths
-}
+export type AuditModuleContextValue = ModuleContextValue<
+  AuditExtension,
+  AuditPaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const AuditModuleContext = createContext<AuditModuleContextValue | null>(
-  null,
-)
-
-export function useAuditModule(): AuditModuleContextValue {
-  const value = useContext(AuditModuleContext)
-  if (!value)
-    throw new Error(
-      "A5-audit: page rendered outside routes of createAuditModule()",
-    )
-  return value
-}
+export const [AuditModuleContext, useAuditModule] =
+  createModuleContext<AuditModuleContextValue>("A5-audit", "createAuditModule")

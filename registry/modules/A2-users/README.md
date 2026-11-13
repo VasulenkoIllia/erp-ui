@@ -26,7 +26,7 @@ export const usersModule = createUsersModule({ basePath: "/team", extension: use
 ```
 
 - Маршрути — `usersModule.routes` (React Router) під `Suspense` і межею помилок застосунку; сторінки — лінивими чанками. `basePath: "/team"` дає `/team/users`, `/team/users/:id`, `/team/roles` і `/team/invitations`, а `/team` веде на список.
-- Навігація — `usersModule.nav`: «Користувачі», «Ролі й права» і «Запрошення»; підпис мовою інтерфейсу — `localizedText(item.label, language)`. Пункт з `access` (`{ resource, action }`) показуйте лише з цим правом (`hasPermission(permissions, access.resource, access.action)` з `@/lib/auth`): «Ролі й права» — з `roles:read`, «Запрошення» — з `users:create`.
+- Навігація — `usersModule.nav`: «Користувачі», «Ролі й права» і «Запрошення». У навігацію — `moduleNavItems(usersModule.nav, language, permissions)` з `@/lib/module`: підпис мовою інтерфейсу, пункт з `access` (`{ resource, action }`) лише з цим правом: «Ролі й права» — з `roles:read`, «Запрошення» — з `users:create`.
 - `homePath` — куди перейти після «Увійти як…»: картка людини може бути недоступна тому, за кого увійшли.
 - Права й ресурси — `usersModule.resources`: `users` (`read` — список і картка; `update` — вкладки «Доступ» і «Сесії», зміна ролей; `create` — сторінка «Запрошення»; `impersonate` — «Увійти як…»), `roles` (`read` — сторінка «Ролі й права», фільтр «Роль» і вибір ролей; `update` — нова роль, копія, зміна й видалення ролі). Без `users:read` список і картка показують «Немає доступу» без запиту; без `users:update` вкладок «Доступ» і «Сесії» немає (SPEC §8.4), ролі — лише назвами; «Увійти як…» без права — неактивна з причиною.
 - Рядки модуля — свій простір імен `A2-users`: українські приходять зі сторінками модуля, англійські — окремим чанком.

@@ -29,7 +29,7 @@ export const CODE_ITEMS = {
   "lib/i18n-namespaces": {
     title: "Рядки модуля",
     description:
-      "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride.",
+      "Свій простір імен i18next для модуля (ADR-0025): useNamespaceResources (українські разом зі сторінками, інші мови — лінивим чанком із повтором), useNamespaceT, перевизначення з файлу розширення — mergeMessages і MessagesOverride; createModuleT — хук перекладу модуля з рядками strings розширення з хука модуля (ADR-0085).",
     status: "beta",
     demo: "contacts",
     spec: ["§11", "§17"],
@@ -208,6 +208,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§7", "UI03"],
+  },
+  "lib/module": {
+    title: "Каркас модуля",
+    description:
+      "Спільне для модулів (ADR-0085): типи ErpModule, ModuleNavItem і ModuleResource (типи модулів — їхні псевдоніми); createModule — модуль з опису: маршрути сторінок у контексті модуля, адреса basePath веде на першу сторінку, preload чанка за тими самими маршрутами, що й роутер; createModuleContext — контекст сторінок і хук модуля, яким сторінки читають розширення на кожен рендер; moduleNavItems — пункти модуля в навігації мовою інтерфейсу, пункт із правом лише тому, хто його має; moduleNavId — активний пункт оболонки за адресою сторінки модуля.",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§14", "§17", "PF09"],
   },
   "lib/extensions": {
     title: "Точки розширення модуля",

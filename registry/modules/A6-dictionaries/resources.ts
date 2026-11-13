@@ -2,7 +2,7 @@
  * Ресурси модуля A6 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту й панелі
  * розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { ModuleResourceWithActions } from "@/lib/module"
 
 export const TAXES = "taxes"
 export const UNITS = "units"
@@ -11,11 +11,7 @@ export const TAGS = "tags"
 export const REASONS = "reasons"
 export const DICTIONARY_DEFAULTS = "dictionary-defaults"
 
-export interface DictionaryResource {
-  readonly name: string
-  readonly label: LocalizedText
-  readonly actions: readonly string[]
-}
+export type DictionaryResource = ModuleResourceWithActions
 
 const DICTIONARY_ACTIONS = ["read", "create", "update"] as const
 

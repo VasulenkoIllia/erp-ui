@@ -12,19 +12,14 @@
  * лічильник у вкладці й реакція на push — `InboxBell` з `erp/notification-inbox` в оболонці, вони
  * працюють і без модуля. Моки — окремо, `./mocks`.
  */
-import type { LucideIcon } from "lucide-react"
-import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
-
-import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import { createModule, type ErpModule, type ModuleNavItem } from "@/lib/module"
 
 import type { NotificationsExtension } from "./extension"
 import {
   NotificationsModuleContext,
   notificationsPaths,
-  type NotificationsModuleContextValue,
   type NotificationsPaths,
 } from "./module-context"
 import {
@@ -42,24 +37,15 @@ export type { NotificationsResource } from "./resources"
 
 export const NOTIFICATIONS_MODULE_ID = "N5"
 
-export interface NotificationsNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-}
+export type NotificationsNavItem = ModuleNavItem
 
-export interface NotificationsModule {
-  readonly id: typeof NOTIFICATIONS_MODULE_ID
-  readonly paths: NotificationsPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly NotificationsNavItem[]
-  /** Ресурс модуля: сценарії моків. Прав немає: людина бачить лише своє. */
-  readonly resources: readonly NotificationsResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
-}
+/** Ресурс модуля — для сценаріїв моків. Прав немає: людина бачить лише своє. */
+export type NotificationsModule = ErpModule<
+  typeof NOTIFICATIONS_MODULE_ID,
+  NotificationsPaths,
+  NotificationsNavItem,
+  NotificationsResource
+>
 
 export interface NotificationsModuleOptions {
   /** Початок адрес модуля: `""` — `/inbox`; `"/account"` — `/account/inbox`. */
@@ -82,27 +68,16 @@ export function createNotificationsModule({
   extension = NO_EXTENSION,
 }: NotificationsModuleOptions = {}): NotificationsModule {
   const paths = notificationsPaths(basePath)
-  const context: NotificationsModuleContextValue = { extension, paths }
-  const page = (Page: ComponentType) =>
-    createElement(
-      NotificationsModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
-  const routes: RouteObject[] = [
-    { path: paths.inbox, element: page(INBOX_PAGE) },
-    { path: paths.settings, element: page(SETTINGS_PAGE) },
-  ]
-  // Адреса самого модуля (`/account`) — сповіщення.
-  if (basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths.inbox, replace: true }),
-    })
-  return {
+  return createModule({
     id: NOTIFICATIONS_MODULE_ID,
+    basePath,
     paths,
-    routes,
+    pages: [
+      { path: paths.inbox, page: INBOX_PAGE },
+      { path: paths.settings, page: SETTINGS_PAGE },
+    ],
+    // Адреса самого модуля (`/account`) — сповіщення.
+    home: paths.inbox,
     nav: [
       {
         id: "N5-inbox",
@@ -118,10 +93,7 @@ export function createNotificationsModule({
       },
     ],
     resources: NOTIFICATIONS_RESOURCES,
-    preload: (pathname) => {
-      const path = pathname.split(/[?#]/)[0]
-      if (path === paths.inbox) void INBOX_PAGE.preload()
-      if (path === paths.settings) void SETTINGS_PAGE.preload()
-    },
-  }
+    context: NotificationsModuleContext,
+    value: { extension, paths },
+  })
 }

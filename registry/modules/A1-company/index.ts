@@ -12,25 +12,18 @@
  * (`src/extensions/A1-company.ts`). Моки — окремо, `./mocks` (`createCompanyMocks`), щоб MSW не
  * потрапив у застосунок.
  */
-import { CoinsIcon, TrendingUpIcon, type LucideIcon } from "lucide-react"
-import {
-  createElement,
-  Suspense,
-  type ComponentType,
-  type ReactElement,
-} from "react"
-import { Navigate, type RouteObject } from "react-router"
+import { CoinsIcon, TrendingUpIcon } from "lucide-react"
+import { createElement, Suspense, type ReactElement } from "react"
 
 import { ErrorBoundary } from "@/components/erp/error-boundary"
-import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import { createModule, type ErpModule, type ModuleNavItem } from "@/lib/module"
 
 import type { CompanyExtension } from "./extension"
 import {
   CompanyModuleContext,
   companyPaths,
-  type CompanyModuleContextValue,
   type CompanyPaths,
 } from "./module-context"
 import {
@@ -66,28 +59,14 @@ export type { ExtensionField } from "@/lib/extension-fields"
 
 export const COMPANY_MODULE_ID = "A1"
 
-export interface CompanyNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-  /**
-   * Право, без якого пункт ховають (`<ресурс>:<дія>`, як `useCanAccess`): сторінка однаково покаже
-   * «Немає доступу». Без нього — пункт для всіх.
-   */
-  readonly access?: { readonly resource: string; readonly action: string }
-}
+export type CompanyNavItem = ModuleNavItem
 
-export interface CompanyModule {
-  readonly id: typeof COMPANY_MODULE_ID
-  readonly paths: CompanyPaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly CompanyNavItem[]
-  /** Ресурси модуля: права (`<ресурс>:<дія>`), журнал аудиту, токени API, сценарії моків. */
-  readonly resources: readonly CompanyResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
+export interface CompanyModule extends ErpModule<
+  typeof COMPANY_MODULE_ID,
+  CompanyPaths,
+  CompanyNavItem,
+  CompanyResource
+> {
   /**
    * Чек-лист «Почніть роботу» (PF12, ADR-0044): поставте на головну сторінку проекту. Бачить той, хто
    * може змінювати компанію. Лінивий чанк, власні `Suspense` і межа помилок.
@@ -127,99 +106,76 @@ const PAGES = {
 
 const NO_EXTENSION: CompanyExtension = {}
 
-/** Чанк сторінки за адресою. */
-function preloadFor(paths: CompanyPaths) {
-  return (pathname: string) => {
-    const path = pathname.split(/[?#]/)[0] ?? ""
-    const target =
-      path === paths.company
-        ? PAGES.company
-        : path === paths.currencies
-          ? PAGES.currencies
-          : path === paths.rates
-            ? PAGES.rates
-            : path === paths.setup
-              ? PAGES.setup
-              : null
-    void target?.preload()
-  }
-}
-
 export function createCompanyModule({
   basePath = "",
   afterSetup,
   extension = NO_EXTENSION,
 }: CompanyModuleOptions = {}): CompanyModule {
   const paths = companyPaths(basePath)
-  const preload = preloadFor(paths)
-  const context: CompanyModuleContextValue = {
-    extension,
-    paths,
-    afterSetup: afterSetup ?? paths.company,
-    preload,
-  }
-  const page = (Page: ComponentType) =>
-    createElement(
-      CompanyModuleContext.Provider,
-      { value: context },
-      createElement(Page),
-    )
+  const value = { extension, paths, afterSetup: afterSetup ?? paths.company }
   // Одна валюта чи курси в іншій системі — без сторінок і пунктів (`currencies.page: false`).
   const hasCurrencies = extension.currencies?.page !== false
   const hasWizard = extension.setup?.page !== false
-  const routes: RouteObject[] = [
-    { path: paths.company, element: page(PAGES.company) },
-    ...(hasWizard ? [{ path: paths.setup, element: page(PAGES.setup) }] : []),
-    ...(hasCurrencies
-      ? [
-          { path: paths.currencies, element: page(PAGES.currencies) },
-          { path: paths.rates, element: page(PAGES.rates) },
-        ]
-      : []),
-  ]
-  // Адреса самого модуля (`/settings`) — картка компанії.
-  if (basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, { to: paths.company, replace: true }),
-    })
-  const nav: CompanyNavItem[] = [
-    {
-      id: "A1-company",
-      label: { uk: "Компанія", en: "Company" },
-      href: paths.company,
-      icon: MODULE_ICONS.A1,
-    },
-    ...(hasCurrencies
-      ? [
-          {
-            id: "A1-currencies",
-            label: { uk: "Валюти", en: "Currencies" },
-            href: paths.currencies,
-            icon: CoinsIcon,
-            access: { resource: CURRENCIES, action: "read" },
-          },
-          {
-            id: "A1-rates",
-            label: { uk: "Курси валют", en: "Exchange rates" },
-            href: paths.rates,
-            icon: TrendingUpIcon,
-            access: { resource: EXCHANGE_RATES, action: "read" },
-          },
-        ]
-      : []),
-  ]
-  return {
+  const companyModule = createModule({
     id: COMPANY_MODULE_ID,
+    basePath,
     paths,
-    routes,
-    nav,
+    pages: [
+      { path: paths.company, page: PAGES.company },
+      ...(hasWizard ? [{ path: paths.setup, page: PAGES.setup }] : []),
+      ...(hasCurrencies
+        ? [
+            { path: paths.currencies, page: PAGES.currencies },
+            { path: paths.rates, page: PAGES.rates },
+          ]
+        : []),
+    ],
+    // Адреса самого модуля (`/settings`) — картка компанії.
+    home: paths.company,
+    nav: [
+      {
+        id: "A1-company",
+        label: { uk: "Компанія", en: "Company" },
+        href: paths.company,
+        icon: MODULE_ICONS.A1,
+      },
+      ...(hasCurrencies
+        ? [
+            {
+              id: "A1-currencies",
+              label: { uk: "Валюти", en: "Currencies" },
+              href: paths.currencies,
+              icon: CoinsIcon,
+              access: { resource: CURRENCIES, action: "read" },
+            },
+            {
+              id: "A1-rates",
+              label: { uk: "Курси валют", en: "Exchange rates" },
+              href: paths.rates,
+              icon: TrendingUpIcon,
+              access: { resource: EXCHANGE_RATES, action: "read" },
+            },
+          ]
+        : []),
+    ],
     resources: COMPANY_RESOURCES,
-    preload,
+    context: CompanyModuleContext,
+    value,
+  })
+  return {
+    ...companyModule,
     setupChecklist: createElement(
       ErrorBoundary,
       null,
-      createElement(Suspense, { fallback: null }, page(SETUP_CHECKLIST)),
+      createElement(
+        Suspense,
+        { fallback: null },
+        createElement(
+          CompanyModuleContext.Provider,
+          { value: { ...value, preload: companyModule.preload } },
+          createElement(SETUP_CHECKLIST),
+        ),
+      ),
     ),
   }
 }

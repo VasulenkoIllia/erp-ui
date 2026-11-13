@@ -2,18 +2,14 @@
  * Ресурси модуля A1 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту й панелі
  * розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { ModuleResourceWithActions } from "@/lib/module"
 
 /** Налаштування компанії (`lib/company`): читає кожен у компанії, змінює `company:update`. */
 export const COMPANY = "company"
 export const CURRENCIES = "currencies"
 export const EXCHANGE_RATES = "exchange-rates"
 
-export interface CompanyResource {
-  readonly name: string
-  readonly label: LocalizedText
-  readonly actions: readonly string[]
-}
+export type CompanyResource = ModuleResourceWithActions
 
 export const COMPANY_RESOURCES: readonly CompanyResource[] = [
   {

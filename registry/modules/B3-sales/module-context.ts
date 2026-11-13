@@ -1,7 +1,7 @@
 import type { RaRecord } from "ra-core"
-import { createContext, useContext } from "react"
 
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { SalesExtension } from "./extension"
 
@@ -62,26 +62,15 @@ export interface SalesClients {
   readonly href?: (id: string) => string
 }
 
-export interface SalesModuleContextValue {
-  readonly extension: SalesExtension
-  readonly paths: SalesPaths
+export interface SalesModuleContextValue extends ModuleContextValue<
+  SalesExtension,
+  SalesPaths
+> {
   readonly clients: SalesClients
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
 }
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const SalesModuleContext = createContext<SalesModuleContextValue | null>(
-  null,
-)
-
-export function useSalesModule(): SalesModuleContextValue {
-  const value = useContext(SalesModuleContext)
-  if (!value)
-    throw new Error(
-      "B3-sales: page rendered outside routes of createSalesModule()",
-    )
-  return value
-}
+export const [SalesModuleContext, useSalesModule] =
+  createModuleContext<SalesModuleContextValue>("B3-sales", "createSalesModule")

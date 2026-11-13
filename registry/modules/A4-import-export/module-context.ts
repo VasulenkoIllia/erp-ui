@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { ImportExportExtension } from "./extension"
 
@@ -25,20 +25,14 @@ export const importRunPath = (
   target: string,
 ) => paths.run.replace(":target", encodeURIComponent(target))
 
-export interface ImportExportModuleContextValue {
-  readonly extension: ImportExportExtension
-  readonly paths: ImportExportPaths
-}
+export type ImportExportModuleContextValue = ModuleContextValue<
+  ImportExportExtension,
+  ImportExportPaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const ImportExportModuleContext =
-  createContext<ImportExportModuleContextValue | null>(null)
-
-export function useImportExportModule(): ImportExportModuleContextValue {
-  const value = useContext(ImportExportModuleContext)
-  if (!value)
-    throw new Error(
-      "A4-import-export: page rendered outside routes of createImportExportModule()",
-    )
-  return value
-}
+export const [ImportExportModuleContext, useImportExportModule] =
+  createModuleContext<ImportExportModuleContextValue>(
+    "A4-import-export",
+    "createImportExportModule",
+  )

@@ -2,17 +2,13 @@
  * Ресурси модуля B1 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту, токенів API
  * й панелі розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { ModuleResourceWithActions } from "@/lib/module"
 
 export const ORGANIZATIONS = "organizations"
 export const CONTACTS = "contacts"
 export const SEGMENTS = "segments"
 
-export interface ContactsResource {
-  readonly name: string
-  readonly label: LocalizedText
-  readonly actions: readonly string[]
-}
+export type ContactsResource = ModuleResourceWithActions
 
 const CRUD = ["read", "create", "update", "delete"] as const
 

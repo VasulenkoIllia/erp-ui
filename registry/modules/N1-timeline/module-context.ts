@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { TimelineExtension } from "./extension"
 
@@ -12,20 +12,14 @@ export function timelinePaths(basePath: string): TimelinePaths {
   return { myActivities: `${base}/my-activities` }
 }
 
-export interface TimelineModuleContextValue {
-  readonly extension: TimelineExtension
-  readonly paths: TimelinePaths
-}
+export type TimelineModuleContextValue = ModuleContextValue<
+  TimelineExtension,
+  TimelinePaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const TimelineModuleContext =
-  createContext<TimelineModuleContextValue | null>(null)
-
-export function useTimelineModule(): TimelineModuleContextValue {
-  const value = useContext(TimelineModuleContext)
-  if (!value)
-    throw new Error(
-      "N1-timeline: page rendered outside routes of createTimelineModule()",
-    )
-  return value
-}
+export const [TimelineModuleContext, useTimelineModule] =
+  createModuleContext<TimelineModuleContextValue>(
+    "N1-timeline",
+    "createTimelineModule",
+  )

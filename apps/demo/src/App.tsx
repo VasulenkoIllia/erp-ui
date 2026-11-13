@@ -82,6 +82,7 @@ import { LANGUAGES, useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { isChunkLoadError, whenIdle } from "@/registry/lib/lazy"
 import type { MockMessage } from "@/registry/lib/mock-server"
+import { moduleNavItems } from "@/registry/lib/module"
 import { syncPreferences } from "@/registry/lib/preferences"
 import { SHORTCUTS, type ProjectShortcut } from "@/registry/lib/shortcuts"
 import {
@@ -100,12 +101,7 @@ import { TooltipProvider } from "@/registry/ui/tooltip"
 import { apiClient } from "@/data/providers"
 import { ERP_EXAMPLE } from "@/fixtures"
 import { OpenHelpContext } from "@/help-context"
-import {
-  kitModuleNavId,
-  kitModuleNavItems,
-  kitModuleOf,
-  KitModuleRoutes,
-} from "@/kit-modules"
+import { kitModuleNavId, kitModuleOf, KitModuleRoutes } from "@/kit-modules"
 import { MOCK_RESOURCES } from "@/mocks/resources"
 import { useLanguageFallbackNotice } from "@/i18n/fallback-notice"
 import {
@@ -424,7 +420,7 @@ function Shell({
         items: ERP_EXAMPLE.flatMap(({ id, badge }) => {
           const kitModule = kitModuleOf(id)
           return kitModule
-            ? kitModuleNavItems(kitModule, language, permissions)
+            ? moduleNavItems(kitModule.nav, language, permissions)
             : [
                 {
                   id,

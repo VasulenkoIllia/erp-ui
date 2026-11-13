@@ -13,21 +13,19 @@
  * `lib/timeline`. Модулі карток про N1 не знають: поки проект не поставив стрічку в слот, картка живе
  * без неї й не робить жодного запиту. Моки — окремо, `./mocks`.
  */
-import type { LucideIcon } from "lucide-react"
 import { createElement, type ComponentType } from "react"
-import { Navigate, type RouteObject } from "react-router"
 
 import type { ExtensionAside } from "@/components/templates/object-page"
 import type { LocalizedText } from "@/lib/auth"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
+import { createModule, type ErpModule, type ModuleNavItem } from "@/lib/module"
 
 import type { TimelineCardProps } from "./components/timeline-card"
 import type { TimelineExtension } from "./extension"
 import {
   TimelineModuleContext,
   timelinePaths,
-  type TimelineModuleContextValue,
   type TimelinePaths,
 } from "./module-context"
 import { TIMELINE_RESOURCES, type TimelineResource } from "./resources"
@@ -45,13 +43,7 @@ export type { TimelineResource } from "./resources"
 
 export const TIMELINE_MODULE_ID = "N1"
 
-export interface TimelineNavItem {
-  readonly id: string
-  /** Підпис мовою інтерфейсу — `localizedText(label, language)` з `@/lib/auth`. */
-  readonly label: LocalizedText
-  readonly href: string
-  readonly icon: LucideIcon
-}
+export type TimelineNavItem = ModuleNavItem
 
 /** Запис картки: досить `id`; `version` перечитує стрічку після зміни запису. */
 export interface TimelineRecord {
@@ -59,15 +51,13 @@ export interface TimelineRecord {
   readonly version?: number
 }
 
-export interface TimelineModule {
-  readonly id: typeof TIMELINE_MODULE_ID
-  readonly paths: TimelinePaths
-  readonly routes: RouteObject[]
-  readonly nav: readonly TimelineNavItem[]
-  /** Ресурс модуля: сценарії моків. Окремого права немає: досить `<ресурс>:read`. */
-  readonly resources: readonly TimelineResource[]
-  /** Завантажити чанк сторінки модуля за адресою заздалегідь (наведення, фокус на посиланні). */
-  readonly preload: (pathname: string) => void
+/** Ресурс модуля — для сценаріїв моків. Окремого права немає: досить `<ресурс>:read`. */
+export interface TimelineModule extends ErpModule<
+  typeof TIMELINE_MODULE_ID,
+  TimelinePaths,
+  TimelineNavItem,
+  TimelineResource
+> {
   /** Стрічка з налаштуваннями `card` розширення, лінивим чанком: для своєї картки проекту. */
   readonly Timeline: ComponentType<TimelineCardProps>
   /** Слот стрічки для розширення модуля картки: `contacts: { aside: timelineModule.aside }`. */
@@ -97,51 +87,34 @@ export function createTimelineModule({
   extension = NO_EXTENSION,
 }: TimelineModuleOptions = {}): TimelineModule {
   const paths = timelinePaths(basePath)
-  const context: TimelineModuleContextValue = { extension, paths }
   const hasMyActivities = extension.myActivities !== false
   const { label = DEFAULT_LABEL, ...card } = extension.card ?? {}
   const Timeline: ComponentType<TimelineCardProps> = (props) =>
     createElement(TIMELINE_CARD, { ...card, ...props })
-  const routes: RouteObject[] = hasMyActivities
-    ? [
-        {
-          path: paths.myActivities,
-          element: createElement(
-            TimelineModuleContext.Provider,
-            { value: context },
-            createElement(MY_ACTIVITIES_PAGE),
-          ),
-        },
-      ]
-    : []
-  // Адреса самого модуля (`/work`) — «Мої справи».
-  if (hasMyActivities && basePath.replace(/\/+$/, ""))
-    routes.push({
-      path: basePath,
-      element: createElement(Navigate, {
-        to: paths.myActivities,
-        replace: true,
-      }),
-    })
   return {
-    id: TIMELINE_MODULE_ID,
-    paths,
-    routes,
-    nav: hasMyActivities
-      ? [
-          {
-            id: "N1-my-activities",
-            label: { uk: "Мої справи", en: "My activities" },
-            href: paths.myActivities,
-            icon: MODULE_ICONS.N1,
-          },
-        ]
-      : [],
-    resources: TIMELINE_RESOURCES,
-    preload: (pathname) => {
-      if (hasMyActivities && pathname.split(/[?#]/)[0] === paths.myActivities)
-        void MY_ACTIVITIES_PAGE.preload()
-    },
+    ...createModule({
+      id: TIMELINE_MODULE_ID,
+      basePath,
+      paths,
+      pages: hasMyActivities
+        ? [{ path: paths.myActivities, page: MY_ACTIVITIES_PAGE }]
+        : [],
+      // Адреса самого модуля (`/work`) — «Мої справи».
+      home: hasMyActivities ? paths.myActivities : undefined,
+      nav: hasMyActivities
+        ? [
+            {
+              id: "N1-my-activities",
+              label: { uk: "Мої справи", en: "My activities" },
+              href: paths.myActivities,
+              icon: MODULE_ICONS.N1,
+            },
+          ]
+        : [],
+      resources: TIMELINE_RESOURCES,
+      context: TimelineModuleContext,
+      value: { extension, paths },
+    }),
     Timeline,
     aside: {
       label,

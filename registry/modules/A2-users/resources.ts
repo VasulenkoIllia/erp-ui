@@ -2,16 +2,12 @@
  * Ресурси модуля A2 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту, токенів API
  * й панелі розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { ModuleResourceWithActions } from "@/lib/module"
 
 export const USERS = "users"
 export const ROLES = "roles"
 
-export interface UsersResource {
-  readonly name: string
-  readonly label: LocalizedText
-  readonly actions: readonly string[]
-}
+export type UsersResource = ModuleResourceWithActions
 
 export const USERS_RESOURCES: readonly UsersResource[] = [
   {

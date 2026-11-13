@@ -1,5 +1,5 @@
 import type { RaRecord } from "ra-core"
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { PaymentsExtension } from "./extension"
 
@@ -76,27 +76,20 @@ export interface PaymentInvoicesLink {
   readonly href?: (id: string) => string
 }
 
-export interface PaymentsModuleContextValue {
-  readonly extension: PaymentsExtension
-  readonly paths: PaymentsPaths
+export interface PaymentsModuleContextValue extends ModuleContextValue<
+  PaymentsExtension,
+  PaymentsPaths
+> {
   readonly clients: PaymentClients
   readonly invoices: PaymentInvoicesLink
-  /** Прогріти чанк сторінки модуля за адресою (наведення чи фокус на посиланні, ADR-0009). */
-  readonly preload: (pathname: string) => void
 }
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const PaymentsModuleContext =
-  createContext<PaymentsModuleContextValue | null>(null)
-
-export function usePaymentsModule(): PaymentsModuleContextValue {
-  const value = useContext(PaymentsModuleContext)
-  if (!value)
-    throw new Error(
-      "K4-payments: page rendered outside routes of createPaymentsModule()",
-    )
-  return value
-}
+export const [PaymentsModuleContext, usePaymentsModule] =
+  createModuleContext<PaymentsModuleContextValue>(
+    "K4-payments",
+    "createPaymentsModule",
+  )
 
 /** Назва клієнта з запису ресурсу клієнтів: поле назви чи `id`. */
 export function clientLabelOf(clients: PaymentClients) {

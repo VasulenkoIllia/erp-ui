@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { DictionariesExtension } from "./extension"
 
@@ -24,20 +24,14 @@ export function dictionariesPaths(basePath: string): DictionariesPaths {
   }
 }
 
-export interface DictionariesModuleContextValue {
-  readonly extension: DictionariesExtension
-  readonly paths: DictionariesPaths
-}
+export type DictionariesModuleContextValue = ModuleContextValue<
+  DictionariesExtension,
+  DictionariesPaths
+>
 
 /** Розширення й адреси для сторінок модуля: їх дає фабрика в маршрутах. */
-export const DictionariesModuleContext =
-  createContext<DictionariesModuleContextValue | null>(null)
-
-export function useDictionariesModule(): DictionariesModuleContextValue {
-  const value = useContext(DictionariesModuleContext)
-  if (!value)
-    throw new Error(
-      "A6-dictionaries: page rendered outside routes of createDictionariesModule()",
-    )
-  return value
-}
+export const [DictionariesModuleContext, useDictionariesModule] =
+  createModuleContext<DictionariesModuleContextValue>(
+    "A6-dictionaries",
+    "createDictionariesModule",
+  )
