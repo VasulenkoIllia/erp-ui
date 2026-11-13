@@ -1,8 +1,13 @@
-import { render, renderHook, screen } from "@testing-library/react"
+import { act, render, renderHook, screen } from "@testing-library/react"
 import { FileIcon } from "lucide-react"
 import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it, vi } from "vitest"
 
+import { createI18n } from "@/registry/lib/i18n"
+import {
+  createModuleT,
+  type ModuleStrings,
+} from "@/registry/lib/i18n-namespaces"
 import type { PreloadableComponent } from "@/registry/lib/lazy"
 import {
   createModule,
@@ -13,11 +18,18 @@ import {
 } from "@/registry/lib/module"
 
 /** Каркас модуля (ADR-0085): маршрути, перехід з адреси модуля, прогрів чанка, контекст і пункти меню. */
-type NotesValue = ModuleContextValue<
-  { readonly title?: string },
-  NotesPaths
-> & {
+type NotesValue = ModuleContextValue<NotesExtension, NotesPaths> & {
   readonly owner: string
+}
+
+interface NotesExtension {
+  readonly title?: string
+  readonly strings?: ModuleStrings<NotesMessages>
+}
+
+interface NotesMessages {
+  readonly title: string
+  readonly lead: string
 }
 
 interface NotesPaths {
@@ -29,10 +41,15 @@ const [NotesContext, useNotesModule] = createModuleContext<NotesValue>(
   "createNotesModule",
 )
 
+/** Що бачать сторінки з контексту модуля, по виклику на рендер. */
+const seen = vi.fn<(value: NotesValue) => void>()
+
 /** Сторінка, яка показує, що бачить з контексту модуля. */
 function page(name: string) {
   function Page() {
-    const { extension, owner, paths, preload } = useNotesModule()
+    const value = useNotesModule()
+    seen(value)
+    const { extension, owner, paths, preload } = value
     return (
       <p>
         {name} {extension.title} {owner} {paths.notes} {typeof preload}
@@ -94,26 +111,79 @@ describe("createModule", () => {
     expect(pages.card.preload).toHaveBeenCalledTimes(1)
   })
 
-  it("сторінка маршруту бачить значення фабрики й `preload`; адреса модуля веде на `home`", () => {
+  it("сторінка маршруту бачить значення фабрики й `preload`; адреса модуля веде на `home`", async () => {
     const { module } = notesModule("/work", "/work/notes")
     const router = createMemoryRouter(module.routes, {
       initialEntries: ["/work"],
     })
     render(<RouterProvider router={router} />)
     expect(
-      screen.getByText("list Нотатки Олена /work/notes function"),
+      await screen.findByText("list Нотатки Олена /work/notes function"),
     ).toBeTruthy()
     expect(router.state.location.pathname).toBe("/work/notes")
+  })
+
+  it("одне значення контексту на всі сторінки модуля, `preload` — той самий, що в модуля", async () => {
+    seen.mockClear()
+    const { module } = notesModule()
+    const router = createMemoryRouter(module.routes, {
+      initialEntries: ["/work/notes"],
+    })
+    render(<RouterProvider router={router} />)
+    await screen.findByText(/^list/)
+    await act(() => router.navigate("/work/notes/7"))
+    await screen.findByText(/^card/)
+    const values = seen.mock.calls.map(([value]) => value)
+    expect(new Set(values).size).toBe(1)
+    expect(values[0]?.preload).toBe(module.preload)
   })
 })
 
 describe("createModuleContext", () => {
   it("хук модуля поза маршрутами фабрики кидає помилку з назвою модуля", () => {
-    vi.spyOn(console, "error").mockImplementation(() => undefined)
-    expect(() => renderHook(() => useNotesModule())).toThrow(
-      "X1-notes: page rendered outside routes of createNotesModule()",
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    try {
+      expect(() => renderHook(() => useNotesModule())).toThrow(
+        "X1-notes: page rendered outside routes of createNotesModule()",
+      )
+    } finally {
+      quiet.mockRestore()
+    }
+  })
+})
+
+describe("createModuleT", () => {
+  it("рядки модуля з перевизначеннями `strings` розширення з хука модуля", () => {
+    createI18n()
+    const useNotesT = createModuleT<NotesMessages>(
+      "X1-notes",
+      { title: "Нотатки", lead: "Усі нотатки" },
+      () => Promise.resolve({ title: "Notes", lead: "All notes" }),
+      useNotesModule,
     )
-    vi.restoreAllMocks()
+    function Heading() {
+      const t = useNotesT()
+      return (
+        <h1>
+          {t("title")}: {t("lead")}
+        </h1>
+      )
+    }
+    render(
+      <NotesContext.Provider
+        value={{
+          extension: { strings: { uk: { lead: "Мої нотатки" } } },
+          paths: { notes: "/notes" },
+          owner: "",
+          preload: () => undefined,
+        }}
+      >
+        <Heading />
+      </NotesContext.Provider>,
+    )
+    expect(
+      screen.getByRole("heading", { name: "Нотатки: Мої нотатки" }),
+    ).toBeTruthy()
   })
 })
 

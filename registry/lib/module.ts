@@ -98,6 +98,8 @@ export function createModuleContext<
   Value extends ModuleContextValue<object, unknown>,
 >(module: string, factory: string) {
   const ModuleContext = createContext<Value | null>(null)
+  // Назва модуля в React DevTools: хуки й контексти всіх модулів створює ця сама функція.
+  ModuleContext.displayName = module
   function useModule(): Value {
     const value = useContext(ModuleContext)
     if (!value)
@@ -136,7 +138,8 @@ export interface ModuleSpec<
 
 /**
  * Модуль з опису: кожна сторінка — маршрут у контексті модуля, адреса самого модуля веде на `home`,
- * прогрів чанка — за тими самими маршрутами, що й роутер (`/new` раніше за `/:id`).
+ * прогрів чанка — за тими самими маршрутами й правилами, що й роутер (`/new` перемагає `/:id` незалежно від
+ * порядку).
  */
 export function createModule<
   Id extends string,
@@ -183,7 +186,7 @@ function preloadByRoutes(pages: readonly ModulePage[]) {
   }
 }
 
-/** Пункт навігації мовою інтерфейсу (`NavItem` оболонки `erp/app-shell`). */
+/** Пункт навігації мовою інтерфейсу; підходить у `NavItem` оболонки `erp/app-shell` (без `badge` і `mobile`). */
 export type ModuleNavLink = Omit<ModuleNavItem, "label" | "access"> & {
   readonly label: string
 }

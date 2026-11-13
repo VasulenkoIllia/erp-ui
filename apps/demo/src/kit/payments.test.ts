@@ -39,6 +39,7 @@ import {
   invoicesNumberingSeeds,
   type InvoiceMockRates,
 } from "@/registry/modules/K2-invoices/mocks"
+import { createPaymentsModule } from "@/registry/modules/K4-payments"
 import {
   allocateOldestFirst,
   allocatedTotal,
@@ -648,5 +649,38 @@ describe("рахунок K2: борг із поверненнями", () => {
     expect(invoiceDebt(base)).toBe(-20_000)
     expect(invoiceDebt({ ...base, refundedTotal: 5_000 })).toBe(-15_000)
     expect(invoiceDebt({ ...base, refundedTotal: 20_000 })).toBe(0)
+  })
+})
+
+describe("фабрика createPaymentsModule", () => {
+  it("маршрути від basePath, перехід з адреси модуля, пункти з правом і ресурси", () => {
+    const module = createPaymentsModule({ basePath: "/finance/" })
+    expect(module.routes.map((route) => route.path)).toEqual([
+      "/finance/payments",
+      "/finance/payments/new",
+      "/finance/payments/:id",
+      "/finance/refunds",
+      "/finance/refunds/new",
+      "/finance/refunds/:id",
+      "/finance/",
+    ])
+    expect(
+      module.nav.map(({ id, href, access }) => ({ id, href, access })),
+    ).toEqual([
+      {
+        id: "K4-payments",
+        href: "/finance/payments",
+        access: { resource: "sales-payments", action: "read" },
+      },
+      {
+        id: "K4-refunds",
+        href: "/finance/refunds",
+        access: { resource: "sales-refunds", action: "read" },
+      },
+    ])
+    expect(module.resources.map((resource) => resource.name)).toEqual([
+      "sales-payments",
+      "sales-refunds",
+    ])
   })
 })
