@@ -34,9 +34,11 @@ const DENIED = "Немає права змінювати рахунки"
 function Session({
   access,
   hasRecord = true,
+  enabled = true,
 }: {
   access: RecordAccess
   hasRecord?: boolean
+  enabled?: boolean
 }) {
   const session = useEditSession({
     resource: "sales-invoices",
@@ -44,6 +46,7 @@ function Session({
     access,
     hasRecord,
     deniedReason: DENIED,
+    enabled,
   })
   return (
     <>
@@ -59,16 +62,18 @@ function setup(
   access: RecordAccess,
   {
     hasRecord,
+    enabled,
     lock = FREE,
     take = () => Promise.resolve(MINE),
   }: {
     hasRecord?: boolean
+    enabled?: boolean
     lock?: EditLockState
     take?: () => Promise<EditLockState>
   } = {},
 ) {
   const dataProvider = {
-    getEditLock: vi.fn(() => Promise.resolve(lock)),
+    getEditLock: vi.fn((): Promise<EditLockState> => Promise.resolve(lock)),
     takeEditLock: vi.fn(take),
     releaseEditLock: vi.fn(() => Promise.resolve()),
   } as unknown as ErpDataProvider
@@ -85,10 +90,10 @@ function setup(
       authProvider={authProvider}
       queryClient={queryClient}
     >
-      <Session access={access} hasRecord={hasRecord} />
+      <Session access={access} hasRecord={hasRecord} enabled={enabled} />
     </CoreAdminContext>,
   )
-  return { dataProvider }
+  return { dataProvider, queryClient }
 }
 
 describe("useEditSession", () => {
@@ -163,6 +168,43 @@ describe("useEditSession", () => {
     })
     expect(screen.getByRole("status")).toHaveTextContent(/Марта Шевчук/)
     expect(screen.getByTestId("mode")).toHaveTextContent("читання")
+  })
+
+  it("інша людина відпустила запис — блокування береться знову, до відповіді лише читання", async () => {
+    const { dataProvider, queryClient } = setup(ALLOWED, {
+      lock: THEIRS,
+      take: () => Promise.resolve(THEIRS),
+    })
+    await waitFor(() => {
+      expect(screen.getByTestId("reason")).toHaveTextContent(/Марта Шевчук/)
+    })
+    let resolve: (state: EditLockState) => void = () => undefined
+    vi.mocked(dataProvider.getEditLock).mockResolvedValue(FREE)
+    vi.mocked(dataProvider.takeEditLock).mockImplementation(
+      () =>
+        new Promise((done) => {
+          resolve = done
+        }),
+    )
+    await queryClient.invalidateQueries()
+    await waitFor(() => {
+      expect(dataProvider.takeEditLock).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.getByTestId("reason")).toHaveTextContent("немає")
+    expect(screen.getByTestId("mode")).toHaveTextContent("читання")
+    resolve(MINE)
+    await waitFor(() => {
+      expect(screen.getByTestId("mode")).toHaveTextContent("зміна")
+    })
+  })
+
+  it("проект вимкнув блокування — форма доступна без запитів блокування", async () => {
+    const { dataProvider } = setup(ALLOWED, { enabled: false })
+    await waitFor(() => {
+      expect(screen.getByTestId("mode")).toHaveTextContent("зміна")
+    })
+    expect(dataProvider.getEditLock).not.toHaveBeenCalled()
+    expect(dataProvider.takeEditLock).not.toHaveBeenCalled()
   })
 })
 

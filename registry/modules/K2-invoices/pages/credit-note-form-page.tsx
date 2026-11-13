@@ -61,10 +61,11 @@ function EditCreditNote({ id }: { id: string }) {
     title,
     !card.isPending || card.pageError !== undefined,
   )
+  const access = useDocumentAccess(CREDIT_NOTE_KIND, "update", note)
   const session = useEditSession({
     resource: CREDIT_NOTES,
     id,
-    access: useDocumentAccess(CREDIT_NOTE_KIND, "update", note),
+    access,
     hasRecord: Boolean(note),
     deniedReason: t("creditNote.editDenied"),
     enabled: extension.creditNotes?.editLock !== false,

@@ -116,10 +116,11 @@ function EditInvoice({ id }: { id: string }) {
     title,
     !card.isPending || card.pageError !== undefined,
   )
+  const access = useDocumentAccess(INVOICE_KIND, "update", invoice)
   const session = useEditSession({
     resource: INVOICES,
     id,
-    access: useDocumentAccess(INVOICE_KIND, "update", invoice),
+    access,
     hasRecord: Boolean(invoice),
     deniedReason: t("invoice.editDenied"),
     enabled: extension.invoices?.editLock !== false,

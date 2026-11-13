@@ -83,7 +83,7 @@ export default defineConfig(
         },
         {
           selector:
-            ":matches(ImportDeclaration[source.value='react-router'] > ImportSpecifier[imported.name='matchRoutes'], ObjectExpression > Property[key.name='preload']:not([value.type='MemberExpression']), FunctionDeclaration[id.name='preload'], VariableDeclarator[id.name='preload'][init.type=/Function/])",
+            ":matches(ImportDeclaration[source.value='react-router'] > ImportSpecifier[imported.name='matchRoutes'], ObjectExpression > Property[key.name='preload']:not([value.type='MemberExpression']), FunctionDeclaration[id.name='preload'], VariableDeclarator[id.name='preload'])",
           message:
             "Прогрів сторінок модуля дає createModule з @/lib/module (ADR-0085): свого preload модуль не пише",
         },

@@ -72,7 +72,9 @@ export interface ClientField {
  * конфлікту, обов'язкове. `onValueChange` — вибір змінився (`id` — `null`, коли поле очистили): модуль
  * ставить `clientId`, знімок назви й своє.
  */
-export function documentClientItem<TValues extends FieldValues>({
+export function documentClientItem<
+  TValues extends FieldValues & { clientId: string },
+>({
   control,
   clients,
   label,

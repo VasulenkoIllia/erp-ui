@@ -1,7 +1,4 @@
-import {
-  clientLabelOf as documentClientLabelOf,
-  type DocumentClients,
-} from "@/components/erp/document-form-items"
+import type { DocumentClients } from "@/components/erp/document-form-items"
 import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { PaymentsExtension } from "./extension"
@@ -84,7 +81,3 @@ export const [PaymentsModuleContext, usePaymentsModule] =
     "K4-payments",
     "createPaymentsModule",
   )
-
-/** Назва клієнта з запису ресурсу клієнтів: поле назви чи `id`. */
-export const clientLabelOf = (clients: PaymentClients) =>
-  documentClientLabelOf(clients)

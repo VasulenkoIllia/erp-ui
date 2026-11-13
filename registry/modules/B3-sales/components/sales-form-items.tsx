@@ -83,14 +83,11 @@ function headerItems<D extends SalesDocument, Due extends string>(
       label: t(`${keys}.fields.date`),
       readOnly,
     }),
-    {
-      ...dateFormItem({
-        control,
-        name: kind.due.field,
-        label: t(kind.due.formLabel),
-        readOnly,
-      }),
-      id: kind.due.field,
-    },
+    dateFormItem({
+      control,
+      name: kind.due.field,
+      label: t(kind.due.formLabel),
+      readOnly,
+    }),
   ]
 }

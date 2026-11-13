@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import type { UseFormReturn } from "react-hook-form"
 
 import {
+  clientLabelOf,
   dateFormItem,
   documentClientItem,
 } from "@/components/erp/document-form-items"
@@ -16,11 +17,7 @@ import type { ExtensionValues } from "@/lib/extension-fields"
 import { PAYMENT_REFERENCE_MAX } from "../contract"
 import type { K4DocumentKind } from "../document-kind"
 import type { PaymentFormFieldId } from "../extension"
-import {
-  clientLabelOf,
-  usePaymentsModule,
-  type PaymentClients,
-} from "../module-context"
+import { usePaymentsModule, type PaymentClients } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 import { usePaymentMethods, type PaymentMethodItem } from "./payment-statuses"
 

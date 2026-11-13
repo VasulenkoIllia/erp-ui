@@ -165,10 +165,11 @@ function EditDocument<D extends SalesDocument, Due extends string>({
     title,
     !card.isPending || card.pageError !== undefined,
   )
+  const access = useSalesAccess(kind, "update", document)
   const session = useEditSession({
     resource: kind.resource,
     id,
-    access: useSalesAccess(kind, "update", document),
+    access,
     hasRecord: Boolean(document),
     deniedReason: t(`${keys}.editDenied`),
     enabled: kind.extensionOf(extension)?.editLock !== false,

@@ -115,9 +115,7 @@ export function useDocumentFormSource<
     ) : !detail.success ? (
       <PageState kind="error" title={invalidTitle} onRetry={card.retry} />
     ) : null
-  const ready =
-    document && detail?.success
-      ? ({ ...document, ...detail.data } as D & z.output<S>)
-      : undefined
+  const ready: (D & z.output<S>) | undefined =
+    document && detail?.success ? { ...document, ...detail.data } : undefined
   return { card, document, ready, fallback }
 }

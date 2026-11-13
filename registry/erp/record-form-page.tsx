@@ -42,6 +42,7 @@ export function RecordFormPage<TValues extends FieldValues>({
       labels={labels}
       conflictItems={items}
       readOnly={readOnly}
+      guardReadOnly
     >
       <RecordFormFields items={items} />
     </RecordFormFrame>
@@ -58,6 +59,11 @@ export interface RecordFormFrameProps<TValues extends FieldValues> {
   readonly conflictItems?: readonly RecordFormItem[] | undefined
   /** Лише для читання: без панелі збереження й без «Закрити без збереження?». */
   readonly readOnly?: boolean
+  /**
+   * «Закрити без збереження?» лишається й тоді, коли форма стала лише для читання з незбереженими змінами
+   * (право забрали під час правки): так робить `RecordFormPage`.
+   */
+  readonly guardReadOnly?: boolean
   /** Чому форма лише для читання: смуга над полями. */
   readonly readOnlyReason?: string | undefined
   /** Підпис «Зберегти» панелі. */
@@ -80,6 +86,7 @@ export function RecordFormFrame<TValues extends FieldValues>({
   labels,
   conflictItems,
   readOnly = false,
+  guardReadOnly = false,
   readOnlyReason,
   submitLabel,
   className,
@@ -96,7 +103,7 @@ export function RecordFormFrame<TValues extends FieldValues>({
       aria-busy={state.isSaving || undefined}
       className={className}
     >
-      <UnsavedChangesGuard when={isDirty && !readOnly} />
+      <UnsavedChangesGuard when={isDirty && (guardReadOnly || !readOnly)} />
       {readOnlyReason ? (
         <Alert>
           <AlertDescription>{readOnlyReason}</AlertDescription>

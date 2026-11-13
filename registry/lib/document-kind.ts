@@ -62,15 +62,15 @@ export const copyPath = (create: string) => (id: string) =>
  * Статуси документа мовою інтерфейсу зі статусами розширення проекту: `t` — переклад рядків модуля
  * (стабільний між рендерами, як хук з `createModuleT`).
  */
-export function useDocumentStatuses<Label extends string, K extends string>(
+export function useDocumentStatuses<Label extends string>(
   statuses: readonly DocumentStatusOption<Label>[],
   t: (key: NoInfer<Label>) => string,
-  changes: ExtensionStatusChanges<K> | undefined,
+  changes: ExtensionStatusChanges | undefined,
 ): ResolvedStatuses {
   const labelled = useMemo(
     () =>
       statuses.map(({ id, tone, label }) => ({
-        id: id as K,
+        id,
         label: t(label),
         tone,
       })),
@@ -87,12 +87,11 @@ export function useDocumentStatuses<Label extends string, K extends string>(
 export function useDocumentTransitions<
   Label extends string,
   Confirm extends string,
-  A extends string,
 >(
   transitions: readonly StatusTransition[],
   texts: Pick<DocumentKind<Label, Confirm>, "actionLabels" | "confirms">,
   t: (key: NoInfer<Label | DocumentConfirmKey<Confirm>>) => string,
-  changes: ExtensionTransitionChanges<A> | undefined,
+  changes: ExtensionTransitionChanges | undefined,
 ): readonly ModuleTransition[] {
   const kitT = useErpUiT()
   const { actionLabels, confirms } = texts
@@ -103,7 +102,6 @@ export function useDocumentTransitions<
         const confirm = confirms?.[transition.id]
         return {
           ...transition,
-          id: transition.id as A,
           label: label
             ? t(label)
             : isDocumentAction(transition.id)
