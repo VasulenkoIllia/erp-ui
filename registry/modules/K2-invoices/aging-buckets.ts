@@ -31,9 +31,15 @@ export function isAgingBuckets(bounds: readonly number[]): boolean {
 /** Межі в параметрі запиту `buckets`: «30,60,90». */
 export const agingBucketsParam = (bounds: readonly number[]) => bounds.join(",")
 
+/** Межа в параметрі `buckets`: лише цифри. */
+const BOUND_PATTERN = /^\d+$/
+
 /** Параметр `buckets` → межі; не межі — `null` (сервер відповідає 422). */
 export function parseAgingBuckets(param: string): number[] | null {
-  const bounds = param.split(",").map((part) => Number(part.trim()))
+  const parts = param.split(",")
+  // Лише цифри: `Number` прийняв би «1e1», «0x1e» і порожню частину як нуль.
+  if (!parts.every((part) => BOUND_PATTERN.test(part))) return null
+  const bounds = parts.map(Number)
   return isAgingBuckets(bounds) ? bounds : null
 }
 

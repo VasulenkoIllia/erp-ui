@@ -72,7 +72,7 @@
   "debts": {
     "title": "Client debts",
     "lead": "Unpaid amounts of issued invoices as of today, by client and days past the due date. The base currency amount uses the rate of each invoice.",
-    "search": "Client",
+    "search": "Client name",
     "tableLabel": "Client debts",
     "count_one": "{{value}} debt",
     "count_other": "{{value}} debts",
@@ -85,6 +85,8 @@
       "notDue": "Not yet due",
       "range_one": "{{from}}-{{to}} day",
       "range_other": "{{from}}-{{to}} days",
+      "single_one": "{{count}} day",
+      "single_other": "{{count}} days",
       "over_one": "Over {{count}} day",
       "over_other": "Over {{count}} days"
     },
@@ -93,7 +95,7 @@
       "currency": "Currency"
     },
     "none": "none",
-    "openInvoices": "invoices to pay",
+    "openInvoices": "invoices to pay in {{currency}}",
     "empty": {
       "title": "No debts",
       "description": "All issued invoices are paid or covered by credit notes. A client appears here as soon as an invoice is issued to them."

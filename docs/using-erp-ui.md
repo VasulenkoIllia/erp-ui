@@ -1224,7 +1224,7 @@ setupWorker(...createPlatformHandlers({}), ...createJobHandlers(), ...numbering.
 Обліковий документ: закритий період (ADR-0069) його стосується. Список, картка, форма, «Копіювати», друк «Рахунок на оплату» з
 QR-кодом оплати НБУ, масові дії, «Виставити рахунок» із замовлення B3 (один рахунок на замовлення), рахунок у валюті компанії з
 сумою в базовій валюті поруч і фільтром «Валюта» у списку, кредит-ноти на підставі виставлених рахунків (окремий пункт меню),
-оплати модуля K4 і статус «Оплачено», з оплатами — «Борги клієнтів» (старіння боргу).
+оплати модуля K4 і статус «Оплачено», з оплатами й опцією `aging` — «Борги клієнтів» (старіння боргу).
 
 ```ts
 // src/modules.ts
@@ -1243,7 +1243,7 @@ export const invoicesModule = createInvoicesModule({
   // оплати модуля K4; без опції рахунок про оплати не знає; без refunds — без «Повернути переплату»
   payments: { resource: "sales-payments", register: paymentsPaths("/finance").newPayment, href: paymentsPaths("/finance").payment,
     refunds: { resource: "sales-refunds", register: paymentsPaths("/finance").newRefund, href: paymentsPaths("/finance").refund } },
-  agingBuckets: [30, 60, 90], // межі кошиків «Боргів клієнтів», днів після «Сплатити до»; це й є значення за замовчуванням
+  aging: { buckets: [30, 60, 90] }, // «Борги клієнтів»: межі кошиків, днів після «Сплатити до»; за замовчуванням досить aging: {}
 })
 // у B3: createSalesModule({ …, invoices: { href: invoicesPaths("/finance").invoice } })
 
@@ -1277,13 +1277,12 @@ const flow = createDocumentFlowHandlers({ sources: [...sales.flowSources, ...inv
   оплату» на картці рахунку в гривнях, що чекає оплати, — діалог із тим самим QR-кодом і посиланням `bank.gov.ua/qr/…`, яке
   копіюють і надсилають клієнту (ADR-0083). Валютні реквізити вписують у блок постачальника самого рахунку. Формат — НБУ 003 (`lib/payment-qr`); перед першим проектом перевірте код скануванням у
   кількох банківських застосунках.
-- «Борги клієнтів» (ADR-0084, лише з `payments`): рядок на клієнта й валюту за рахунками з боргом > 0 на сьогодні, кошики днів
-  після «Сплатити до» за межами `agingBuckets`, «Разом» і «Разом у базовій валюті» за курсом кожного рахунку (без переоцінки).
-  Групує сервер: `GET /sales-invoices/aging?buckets=30,60,90`. Бекенд без звіту — приберіть пункт меню:
-  `invoicesModule.nav.filter((item) => item.id !== "K2-debts")`.
+- «Борги клієнтів» (ADR-0084, з `payments` і `aging`): рядок на клієнта й валюту за рахунками з боргом > 0 на сьогодні, кошики
+  днів після «Сплатити до» за межами `aging.buckets`, «Разом» і «Разом у базовій валюті» за курсом кожного рахунку (без
+  переоцінки). Групує сервер: `GET /sales-invoices/aging?buckets=30,60,90`. Бекенд без звіту — без опції `aging`.
 - Бекенду: `GET /sales-invoices`, `GET /sales-invoices/:id` з `lines` і `totals`, `POST`/`PATCH` із `supplier` і `buyer` цілими,
   `POST /sales-invoices/:id/<дія>`, `POST /sales-invoices/bulk/<дія>`, `GET /sales-invoices/:id/flow`, `POST /orders/:id/invoice`,
-  з оплатами — `GET /sales-invoices/aging`; фільтр `currency` у `GET /sales-invoices`;
+  з `aging` — `GET /sales-invoices/aging`; фільтр `currency` у `GET /sales-invoices`;
   кредит-ноти — `POST /sales-invoices/:id/creditNote`, `GET /sales-credit-notes`, `GET`/`PATCH`/`DELETE /sales-credit-notes/:id`
   (у чернетці `basis` — залишки рядків рахунку), `POST /sales-credit-notes/:id/<дія>`, `GET /sales-credit-notes/:id/flow`.
   Повний контракт — `README.md` модуля.

@@ -259,6 +259,25 @@ describe("ListReport: джерела й стан", () => {
     ).not.toBeInTheDocument()
   })
 
+  it("фільтр вкладки сильніший за постійний параметр — однаково в рядках і лічильниках", async () => {
+    const user = userEvent.setup()
+    const server = fakeServer()
+    renderPage(server, { fixedFilter: { status: "fixed" } })
+    await user.click(await screen.findByRole("tab", { name: /^Архів/ }))
+    await waitFor(() => {
+      expect(server.rowRequests().at(-1)?.[1].filter).toEqual({
+        status: "archived",
+      })
+    })
+    const counts = server.getList.mock.calls.filter(
+      ([resource, params]) =>
+        resource === "records" && params.pagination?.perPage === 1,
+    )
+    expect(counts.map(([, params]) => params.filter as ListFilter)).toEqual(
+      expect.arrayContaining([{ status: "fixed" }, { status: "archived" }]),
+    )
+  })
+
   it("прокрутка: вікно по 100 рядків", async () => {
     const server = fakeServer()
     renderPage(server, { mode: "scroll" })

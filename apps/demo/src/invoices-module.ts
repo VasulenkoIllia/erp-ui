@@ -38,6 +38,7 @@ export const invoicesModule = createInvoicesModule({
       href: payments.refund,
     },
   },
+  aging: {},
   lineItem: {
     resource: "products",
     optionLabel: (product: Product) => product.name,

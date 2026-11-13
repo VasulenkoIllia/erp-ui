@@ -72,6 +72,15 @@ export interface InvoiceCurrencies {
 }
 
 /**
+ * «Борги клієнтів» — старіння боргу (ADR-0084): `buckets` — межі кошиків, днів після «Сплатити до» (за
+ * замовчуванням `[30, 60, 90]`). Сторінка є лише з оплатами модуля K4 і цією опцією: бекенд має дати
+ * `GET /sales-invoices/aging`.
+ */
+export interface InvoiceAging {
+  readonly buckets?: readonly number[]
+}
+
+/**
  * Документи модуля B3, з яких виставляють рахунки (ADR-0070): адреси карток для потоку документів. Модуль
  * B3 не імпортується — лише адреси (`salesModule.paths`).
  */
@@ -115,7 +124,7 @@ export interface InvoicesModuleContextValue {
   readonly currencies?: InvoiceCurrencies | undefined
   /** Оплати модуля K4; без них на картці немає «Зареєструвати оплату». */
   readonly payments?: InvoicePayments | undefined
-  /** Межі кошиків звіту «Борги клієнтів», днів прострочки (ADR-0084). */
+  /** Межі кошиків звіту «Борги клієнтів», днів прострочки (ADR-0084): з опції `aging` чи за замовчуванням. */
   readonly agingBuckets: readonly number[]
   /** Вибір товару чи послуги в рядку з ресурсу проекту; без нього — рядок вільним текстом. */
   readonly lineItem?: DocumentLineItem<RaRecord> | undefined

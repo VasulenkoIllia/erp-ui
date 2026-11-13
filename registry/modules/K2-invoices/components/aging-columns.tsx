@@ -5,14 +5,14 @@ import type { DataTableColumn } from "@/lib/data-table-core"
 import { useFormat } from "@/lib/format"
 
 import { agingBucketsOf, type AgingBucket } from "../aging-buckets"
-import type { AgingRow } from "../contract"
+import type { AgingRow, InvoiceStatus } from "../contract"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
 type InvoicesT = ReturnType<typeof useInvoicesT>
 
 /** Вкладка списку рахунків, що чекають оплати: туди веде назва клієнта. */
-const AWAITING_TAB = "issued"
+const AWAITING_TAB: InvoiceStatus = "issued"
 /**
  * Найменша ширина колонки кошика, rem: діапазон днів коротший за «Строк не настав» і «Понад 90 днів». Так звіт
  * із межами за замовчуванням вміщається на 1440 без обрізаних заголовків.
@@ -23,17 +23,19 @@ const BUCKET_MIN_WIDTH: Record<AgingBucket["kind"], number> = {
   over: 8,
 }
 
-/** Підпис кошика: «Строк не настав», «1–30 днів», «Понад 90 днів». */
-const bucketLabel = (t: InvoicesT, bucket: AgingBucket) =>
-  bucket.kind === "notDue"
-    ? t("debts.buckets.notDue")
-    : bucket.kind === "range"
-      ? t("debts.buckets.range", {
-          count: bucket.to,
-          from: bucket.from,
-          to: bucket.to,
-        })
-      : t("debts.buckets.over", { count: bucket.days })
+/** Підпис кошика: «Строк не настав», «1-30 днів», «31 день» (межі поруч), «Понад 90 днів». */
+function bucketLabel(t: InvoicesT, bucket: AgingBucket) {
+  if (bucket.kind === "notDue") return t("debts.buckets.notDue")
+  if (bucket.kind === "over")
+    return t("debts.buckets.over", { count: bucket.days })
+  if (bucket.from === bucket.to)
+    return t("debts.buckets.single", { count: bucket.to })
+  return t("debts.buckets.range", {
+    count: bucket.to,
+    from: bucket.from,
+    to: bucket.to,
+  })
+}
 
 /** Сума рядка; нуль — риска, а скрінрідер чує «немає». */
 function AgingAmount({
@@ -57,12 +59,15 @@ function AgingAmount({
   )
 }
 
-/** Борг кошика за індексом: рядок без нього — не за контрактом, збій сторінки, а не тихий нуль. */
-function bucketAmount(row: AgingRow, index: number): number {
+/**
+ * Борг кошика за індексом. Кошиків у рядку інше число, ніж меж у фабриці, — сервер рахував за іншими межами:
+ * збій сторінки, а не тихий нуль чи борг не в тій колонці.
+ */
+function bucketAmount(row: AgingRow, index: number, count: number): number {
   const amount = row.buckets[index]
-  if (amount === undefined)
+  if (row.buckets.length !== count || amount === undefined)
     throw new Error(
-      `K2-invoices: aging row ${row.id} has ${String(row.buckets.length)} buckets, expected more than ${String(index)}`,
+      `K2-invoices: aging row ${row.id} has ${String(row.buckets.length)} buckets, expected ${String(count)}`,
     )
   return amount
 }
@@ -80,7 +85,8 @@ function invoicesHref(list: string, withCurrency: boolean, row: AgingRow) {
 
 /**
  * Колонки звіту «Борги клієнтів» (ADR-0084): клієнт — посилання на його рахунки, що чекають оплати; кошики
- * днів за межами фабрики; «Разом» у валюті рядка й «Разом у базовій валюті» (без курсу — «без курсу»). На
+ * днів за межами фабрики; «Разом» у валюті рядка й «Разом у базовій валюті» (без курсу — «без курсу»). За
+ * «Разом» не сортують: суми різних валют між собою не порівнюють. На
  * вузькому контейнері кошики переносяться під рядок, а не ховаються: першим «Строк не настав», найдавніший
  * борг — останнім.
  */
@@ -101,7 +107,9 @@ export function useAgingColumns(): readonly DataTableColumn<AgingRow>[] {
             preload={preload}
           >
             {row.clientName}
-            <span className="sr-only">, {t("debts.openInvoices")}</span>
+            <span className="sr-only">
+              , {t("debts.openInvoices", { currency: row.currency })}
+            </span>
           </RecordLink>
         ),
         sortField: "clientName",
@@ -115,7 +123,7 @@ export function useAgingColumns(): readonly DataTableColumn<AgingRow>[] {
         header: bucketLabel(t, bucket),
         cell: (row) => (
           <AgingAmount
-            amount={bucketAmount(row, index)}
+            amount={bucketAmount(row, index, buckets.length)}
             currency={row.currency}
           />
         ),
@@ -130,8 +138,6 @@ export function useAgingColumns(): readonly DataTableColumn<AgingRow>[] {
         cell: (row) => (
           <AgingAmount amount={row.total} currency={row.currency} />
         ),
-        sortField: "total",
-        firstSortOrder: "DESC",
         align: "end",
         minWidth: 9,
         priority: 3,

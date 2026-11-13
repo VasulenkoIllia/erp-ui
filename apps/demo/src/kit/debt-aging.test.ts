@@ -1,5 +1,8 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { renderHook } from "@testing-library/react"
 import { setupServer } from "msw/node"
 import type { SortPayload } from "ra-core"
+import { createElement, type ReactNode } from "react"
 import {
   afterAll,
   afterEach,
@@ -35,6 +38,7 @@ import {
   INVOICES,
   type AgingRow,
 } from "@/registry/modules/K2-invoices/contract"
+import { useFreshAging } from "@/registry/modules/K2-invoices/components/use-fresh-aging"
 import {
   agingRowsOf,
   baseDebtOf,
@@ -84,9 +88,9 @@ describe("старіння боргу: кошики", () => {
       [1, 2, 3, 4, 5, 6],
     ])
       expect(isAgingBuckets(bad)).toBe(false)
-    expect(parseAgingBuckets("15, 30,60")).toEqual([15, 30, 60])
-    expect(parseAgingBuckets("")).toBeNull()
-    expect(parseAgingBuckets("30,abc")).toBeNull()
+    expect(parseAgingBuckets("15,30,60")).toEqual([15, 30, 60])
+    for (const bad of ["", "30,abc", "15, 30", "1e1", "0x1e", "30,,60", "-5"])
+      expect(parseAgingBuckets(bad)).toBeNull()
   })
 
   it("днів між календарними датами: через місяць, рік і перехід на літній час", () => {
@@ -394,8 +398,12 @@ describe("старіння боргу: моки", () => {
 describe("старіння боргу: фабрика модуля", () => {
   const payments = { resource: "sales-payments", register: () => "/pay" }
 
-  it("сторінка й пункт «Борги клієнтів» — лише з оплатами K4, право читати рахунки", () => {
-    const module = createInvoicesModule({ basePath: "/finance", payments })
+  it("сторінка й пункт «Борги клієнтів» — лише з оплатами K4 і опцією aging, право читати рахунки", () => {
+    const module = createInvoicesModule({
+      basePath: "/finance",
+      payments,
+      aging: {},
+    })
     expect(module.paths.debts).toBe("/finance/client-debts")
     expect(module.routes.map((route) => route.path)).toContain(
       "/finance/client-debts",
@@ -405,19 +413,47 @@ describe("старіння боргу: фабрика модуля", () => {
       label: { uk: "Борги клієнтів", en: "Client debts" },
       access: { resource: INVOICES, action: "read" },
     })
-    const without = createInvoicesModule({ basePath: "/finance" })
-    expect(without.routes.map((route) => route.path)).not.toContain(
-      "/finance/client-debts",
-    )
-    expect(without.nav.map((item) => item.id)).not.toContain("K2-debts")
+    for (const without of [
+      createInvoicesModule({ basePath: "/finance", aging: {} }),
+      createInvoicesModule({ basePath: "/finance", payments }),
+    ]) {
+      expect(without.routes.map((route) => route.path)).not.toContain(
+        "/finance/client-debts",
+      )
+      expect(without.nav.map((item) => item.id)).not.toContain("K2-debts")
+    }
   })
 
   it("хибні межі кошиків — помилка під час старту", () => {
     expect(() =>
-      createInvoicesModule({ payments, agingBuckets: [60, 30] }),
-    ).toThrow(/agingBuckets/)
+      createInvoicesModule({ payments, aging: { buckets: [60, 30] } }),
+    ).toThrow(/aging\.buckets/)
     expect(() =>
-      createInvoicesModule({ payments, agingBuckets: [15, 45] }),
+      createInvoicesModule({ payments, aging: { buckets: [15, 45] } }),
     ).not.toThrow()
+  })
+})
+
+describe("старіння боргу: свіжий звіт", () => {
+  it("відкриття сторінки робить кеш звіту застарілим, кеш списку рахунків не чіпає", () => {
+    const queryClient = new QueryClient()
+    const aging = [
+      INVOICE_AGING,
+      "getList",
+      { filter: { buckets: "30,60,90" } },
+    ]
+    const invoices = [INVOICES, "getList", {}]
+    queryClient.setQueryData(aging, { data: [], total: 0 })
+    queryClient.setQueryData(invoices, { data: [], total: 0 })
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children)
+    renderHook(
+      () => {
+        useFreshAging()
+      },
+      { wrapper },
+    )
+    expect(queryClient.getQueryState(aging)?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(invoices)?.isInvalidated).toBe(false)
   })
 })

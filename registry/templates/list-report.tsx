@@ -25,7 +25,11 @@ import {
 } from "@/registry/hooks/use-saved-views"
 import type { FilterDefinition } from "@/registry/lib/filters"
 import { LIST_PAGE_SIZES, withPageSize } from "@/registry/lib/list-settings"
-import type { ListFilter, ListTab } from "@/registry/lib/list-state"
+import {
+  listQueryFilter,
+  type ListFilter,
+  type ListTab,
+} from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
 import {
   PagedTable,
@@ -108,20 +112,20 @@ export function useListReport({
     views: views.views,
     viewsFailed: Boolean(views.error),
   })
+  const { tab, filter } = state.state
+  // Постійні параметри — під фільтром вкладки, як у лічильниках: рядки й числа вкладок рахує той самий запит.
+  const filterWithFixed = React.useMemo(
+    () => (fixedFilter ? { ...filter, ...fixedFilter } : filter),
+    [filter, fixedFilter],
+  )
   const queryFilter = React.useMemo(
-    () =>
-      fixedFilter
-        ? { ...state.queryFilter, ...fixedFilter }
-        : state.queryFilter,
-    [state.queryFilter, fixedFilter],
+    () => listQueryFilter({ tab, filter: filterWithFixed }, tabs),
+    [tab, filterWithFixed, tabs],
   )
   const list = fixedFilter ? { ...state, queryFilter } : state
-  const counts = useListCounts(
-    resource,
-    fixedFilter ? { ...list.state.filter, ...fixedFilter } : list.state.filter,
-    tabs,
-    { enabled: list.isReady },
-  )
+  const counts = useListCounts(resource, filterWithFixed, tabs, {
+    enabled: list.isReady,
+  })
   const companyId = useCompanyId()
   const selection = useRowSelection([list.queryFilter, companyId])
   return { resource, tabs, filters, list, views, counts, selection }

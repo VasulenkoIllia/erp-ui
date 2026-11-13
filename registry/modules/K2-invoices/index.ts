@@ -1,7 +1,7 @@
 /**
  * Модуль K2 «Рахунки клієнтам» (SPEC §14, §17; ADR-0020, ADR-0025, ADR-0070, ADR-0072, ADR-0084) — точка
  * входу: розділи «Рахунки клієнтам», «Кредит-ноти» (кредит-ноту створює дія виставленого рахунку) і, з
- * оплатами модуля K4, «Борги клієнтів» — старіння боргу за кошиками днів.
+ * оплатами модуля K4 й опцією `aging`, «Борги клієнтів» — старіння боргу за кошиками днів.
  *
  *   const invoicesModule = createInvoicesModule({
  *     basePath: "/finance",
@@ -35,6 +35,7 @@ import type { InvoicesExtension } from "./extension"
 import {
   InvoicesModuleContext,
   invoicesPaths,
+  type InvoiceAging,
   type InvoiceClients,
   type InvoiceCurrencies,
   type InvoicePayments,
@@ -74,6 +75,7 @@ export type {
 } from "./extension"
 export {
   invoicesPaths,
+  type InvoiceAging,
   type InvoiceClients,
   type InvoiceCurrencies,
   type InvoicePayments,
@@ -144,11 +146,12 @@ export interface InvoicesModuleOptions<TItem extends RaRecord = RaRecord> {
    */
   readonly payments?: InvoicePayments
   /**
-   * Межі кошиків сторінки «Борги клієнтів», днів після «Сплатити до» (ADR-0084): за замовчуванням
-   * `[30, 60, 90]` — «Строк не настав», 1–30, 31–60, 61–90 і понад 90. Від однієї до п'яти цілих меж за
-   * зростанням, не більше 3650; інакше фабрика кидає помилку. Сторінка є лише з `payments`.
+   * «Борги клієнтів» — старіння боргу (ADR-0084): сторінка й пункт меню лише з `payments` і цією опцією, бо
+   * бекенд має дати `GET /sales-invoices/aging`. `buckets` — межі кошиків, днів після «Сплатити до», за
+   * замовчуванням `[30, 60, 90]` («Строк не настав», 1–30, 31–60, 61–90 і понад 90): від однієї до п'яти
+   * цілих меж за зростанням, не більше 3650; інакше фабрика кидає помилку.
    */
-  readonly agingBuckets?: readonly number[]
+  readonly aging?: InvoiceAging
   /** Вибір товару чи послуги в рядку з ресурсу проекту (`products`); без нього — вільний текст. */
   readonly lineItem?: DocumentLineItem<TItem>
 }
@@ -234,16 +237,20 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
   sources = NO_SOURCES,
   currencies,
   payments,
-  agingBuckets = DEFAULT_AGING_BUCKETS,
+  aging,
   lineItem,
 }: InvoicesModuleOptions<TItem> = {}): InvoicesModule {
+  // Копія: межі масиву проекту, змінені після старту, не підмінять перевірених.
+  const agingBuckets = [...(aging?.buckets ?? DEFAULT_AGING_BUCKETS)]
   // Хибні межі — помилка розробника проекту: голосно під час старту, а не 422 на сторінці.
   if (!isAgingBuckets(agingBuckets))
     throw new Error(
-      `K2-invoices: agingBuckets must be 1 to 5 ascending whole days up to 3650, got [${agingBuckets.join(", ")}]`,
+      `K2-invoices: aging.buckets must be 1 to 5 ascending whole days up to 3650, got [${agingBuckets.join(", ")}]`,
     )
+  // Без оплат рахунок не має боргу (ADR-0073), без `aging` бекенд звіту не дає.
+  const hasDebts = Boolean(payments && aging)
   const paths = invoicesPaths(basePath)
-  const preload = preloadFor(paths, Boolean(payments))
+  const preload = preloadFor(paths, hasDebts)
   const context: InvoicesModuleContextValue = {
     extension,
     paths,
@@ -279,8 +286,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
       element: page(PAGES.creditNotePrint),
     },
   ]
-  // Без оплат рахунок не має боргу (ADR-0073): сторінки й пункту «Борги клієнтів» немає.
-  if (payments) routes.push({ path: paths.debts, element: page(PAGES.debts) })
+  if (hasDebts) routes.push({ path: paths.debts, element: page(PAGES.debts) })
   // Адреса самого модуля (`/finance`) — список рахунків.
   if (basePath.replace(/\/+$/, ""))
     routes.push({
@@ -303,7 +309,7 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
       access: { resource: CREDIT_NOTES, action: "read" },
     },
   ]
-  if (payments)
+  if (hasDebts)
     nav.push({
       id: "K2-debts",
       label: { uk: "Борги клієнтів", en: "Client debts" },

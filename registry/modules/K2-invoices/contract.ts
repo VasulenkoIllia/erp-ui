@@ -14,7 +14,7 @@
  *   підсумок у базовій валюті. Поки рахунок чернетка, курс свіжий; «Виставити» закріплює курс і суму, сторно
  *   бере їх від першого рахунку з мінусом. Курсу немає — `rate`, `rateDate` і `baseTotal` порожні, виставити
  *   рахунок можна. Рахунок у базовій валюті — `exchange: null`. Сума в базовій валюті — довідка поруч, суму
- *   документа вона не підміняє.
+ *   документа вона не підміняє. Список фільтрують за валютою параметром `currency` (ADR-0084).
  * - Дата `date` і «Сплатити до» `dueDate` — календарні дні `YYYY-MM-DD`; `dueDate` не раніше дати, інакше
  *   422 `before_date`. «Прострочено» — не статус, а позначка виставленого рахунку з минулою `dueDate`.
  * - Статуси (рішення власника 10.11.2026): «Чернетка», «Виставлено», «Оплачено», «Скасовано», «Сторновано» й
@@ -59,9 +59,9 @@
  * - Старіння боргу (ADR-0084) — підресурс `GET /sales-invoices/aging` у форматі списку: рядок на клієнта й
  *   валюту за рахунками з боргом > 0 на сьогодні, борг за кошиками днів після «Сплатити до» й у базовій
  *   валюті за курсом кожного рахунку. Межі кошиків — параметр `buckets` («30,60,90», від 1 до 5 цілих днів за
- *   зростанням, інакше 422 `buckets`); фільтри `clientId`, `currency`, пошук `q` за назвою клієнта;
- *   сортування `clientName`, `total`, `baseTotal`. Право — `sales-invoices:read`; правила видимості рахунків
- *   ті самі, що в списку.
+ *   зростанням, не більше 3650, інакше 422 `buckets`; без параметра — 30, 60, 90); фільтри `clientId`,
+ *   `currency`, пошук `q` за назвою клієнта; сортування `clientName` і `baseTotal` (суми різних валют між
+ *   собою не порівнюють). Право — `sales-invoices:read`; правила видимості рахунків ті самі, що в списку.
  * - Потік документів (ADR-0061): `GET /sales-invoices/:id/flow`, зв'язки `basedOn` (замовлення; рахунок у
  *   кредит-ноти, оплати й повернення), `amendedFrom`, `reversalOf`.
  * - Права — `sales-invoices:<дія>`: `read`, `create`, `update`, `delete`, `submit`, `cancel`, `reverse`,
@@ -288,7 +288,7 @@ export const agingRowSchema = z.object({
   clientId: z.string().min(1),
   clientName: z.string().trim().min(1),
   currency: z.string().length(3),
-  buckets: z.array(moneyAmountSchema.min(0)).min(2),
+  buckets: z.array(moneyAmountSchema.min(0)).min(3),
   total: moneyAmountSchema.positive(),
   baseCurrency: z.string().length(3),
   baseTotal: moneyAmountSchema.min(0).nullable(),

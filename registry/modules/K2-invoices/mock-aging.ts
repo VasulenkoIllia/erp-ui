@@ -29,16 +29,16 @@ import {
   type InvoiceCard,
 } from "./contract"
 import { agingRowsOf } from "./debt-aging"
-import { invoiceDebt } from "./invoice-debt"
 import { isOpenInvoice } from "./mock-credit-notes"
 import type { InvoiceMockRates } from "./mock-exchange"
-import type { InvoiceSettlement } from "./mock-payments"
+import { invoicePaymentSource, type InvoiceSettlement } from "./mock-payments"
 
 /** Без `sort` у запиті — хто винен найбільше в базовій валюті. */
 const DEFAULT_SORT: readonly SortField[] = [
   { field: "baseTotal", order: "desc" },
 ]
-const SORT_FIELDS = new Set(["clientName", "total", "baseTotal"])
+/** Сортування контракту: суми різних валют (`total`) між собою не порівнюють. */
+const SORT_FIELDS = new Set(["clientName", "baseTotal"])
 const collator = new Intl.Collator("uk", { sensitivity: "base" })
 
 /** Рядок за фільтрами контракту: `clientId` і `currency` — «одне з», `q` — підрядок назви клієнта. */
@@ -62,8 +62,8 @@ function compareBy(a: AgingRow, b: AgingRow, { field, order }: SortField) {
   const sign = order === "desc" ? -1 : 1
   if (field === "clientName")
     return sign * collator.compare(a.clientName, b.clientName)
-  const left = field === "total" ? a.total : a.baseTotal
-  const right = field === "total" ? b.total : b.baseTotal
+  const left = a.baseTotal
+  const right = b.baseTotal
   if (left === null || right === null)
     return left === right ? 0 : left === null ? 1 : -1
   return sign * (left - right)
@@ -114,13 +114,8 @@ export function createAgingHandler({
       .select({}, companyId, rules)
       .filter(isOpenInvoice)
       .map((invoice) => ({
-        ...invoice,
-        debt: invoiceDebt({
-          total: invoice.total,
-          creditedTotal: settlement.credited(invoice.id),
-          paidTotal: settlement.paid(invoice.id),
-          refundedTotal: settlement.refunded(invoice.id),
-        }),
+        ...invoicePaymentSource(invoice, settlement),
+        exchange: invoice.exchange,
       }))
     const order = (sort.length ? sort : DEFAULT_SORT).filter(({ field }) =>
       SORT_FIELDS.has(field),

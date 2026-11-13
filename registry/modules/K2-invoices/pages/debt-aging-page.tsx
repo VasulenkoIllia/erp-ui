@@ -14,7 +14,9 @@ import type { ListDefaults } from "@/lib/list-state"
 
 import { agingBucketsParam } from "../aging-buckets"
 import { useAgingColumns } from "../components/aging-columns"
+import { clientFilter } from "../components/document-list"
 import { useCurrencyFilter } from "../components/invoice-currency"
+import { useFreshAging } from "../components/use-fresh-aging"
 import { INVOICE_AGING, type AgingRow } from "../contract"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
@@ -23,7 +25,7 @@ import { useInvoicesT } from "../use-invoices-t"
 const DEFAULTS: ListDefaults = {
   tab: "all",
   sort: { field: "baseTotal", order: "DESC" },
-  sortFields: ["clientName", "total", "baseTotal"],
+  sortFields: ["clientName", "baseTotal"],
 }
 
 /**
@@ -34,6 +36,7 @@ const DEFAULTS: ListDefaults = {
  */
 export function DebtAgingPage() {
   const t = useInvoicesT()
+  useFreshAging()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("debts.title"))
@@ -57,17 +60,7 @@ function useDebtFilters() {
   const currency = useCurrencyFilter(t("debts.filters.currency"))
   return useMemo(
     () => [
-      {
-        kind: "record" as const,
-        id: "clientId",
-        field: "clientId",
-        label: t("debts.filters.clientId"),
-        resource: clients.resource,
-        labelField: clients.labelField,
-        ...(clients.descriptionField
-          ? { descriptionField: clients.descriptionField }
-          : {}),
-      },
+      clientFilter(clients, t("debts.filters.clientId")),
       ...(currency ? [currency] : []),
     ],
     [t, clients, currency],
