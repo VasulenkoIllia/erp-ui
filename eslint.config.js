@@ -7,6 +7,13 @@ import reactRefresh from "eslint-plugin-react-refresh"
 import globals from "globals"
 import tseslint from "typescript-eslint"
 
+/** Модуль бере кіт шляхами проекту (ADR-0025), а не через @/registry. */
+const MODULE_PROJECT_PATHS = {
+  group: ["@/registry/*"],
+  message:
+    "У модулі — шляхи проекту: @/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…",
+}
+
 export default defineConfig(
   globalIgnores([
     "**/dist/",
@@ -14,6 +21,7 @@ export default defineConfig(
     "**/test-results/",
     "docs/",
     "tests/consumer/template/",
+    "tests/consumer/upgrade/",
     // Згенерований файл MSW (npx msw init), оновлюється разом із пакетом.
     "apps/demo/public/mockServiceWorker.js",
   ]),
@@ -61,18 +69,7 @@ export default defineConfig(
   {
     files: ["registry/modules/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/registry/*"],
-              message:
-                "У модулі — шляхи проекту: @/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", { patterns: [MODULE_PROJECT_PATHS] }],
       "no-restricted-syntax": [
         "error",
         {
@@ -92,6 +89,31 @@ export default defineConfig(
             "ImportDeclaration[source.value='@/lib/i18n-namespaces'] > ImportSpecifier[imported.name=/^useNamespace/]",
           message:
             "Переклад модуля — createModuleT з @/lib/i18n-namespaces (ADR-0085)",
+        },
+      ],
+    },
+  },
+  // Нелінивий вхід модуля (фабрика, контекст, тип розширення, види документів) іде в перший екран
+  // проекту: компоненти звідти — лише типами, інакше вхідний чанк росте непомітно до check:bundle
+  // (ADR-0086, доповнення від 14.11.2026). Виняток — межа помилок: вона вже в першому екрані (маршрути входу).
+  {
+    files: [
+      "registry/modules/*/{index,module-context,extension}.ts",
+      "registry/modules/*/*-kinds.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            MODULE_PROJECT_PATHS,
+            {
+              group: ["@/components/*/*", "!@/components/erp/error-boundary"],
+              allowTypeImports: true,
+              message:
+                "Нелінивий файл модуля бере з @/components лише типи (import type): компонент — у ліниву сторінку",
+            },
+          ],
         },
       ],
     },

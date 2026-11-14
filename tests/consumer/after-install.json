@@ -1,0 +1,6 @@
+{
+  "App.tsx": "App.tsx",
+  "Data.tsx": "Data.tsx",
+  "Contacts.tsx": "Contacts.tsx",
+  "mocks.ts": "mocks/browser.ts"
+}

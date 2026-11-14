@@ -78,6 +78,11 @@
           "target": "~/scripts/erp-ui-kit-manifest.mjs"
         },
         {
+          "path": "registry/tools/erp-ui-kit-changelog.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/erp-ui-kit-changelog.mjs"
+        },
+        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -2271,6 +2276,11 @@
           "path": "registry/tools/erp-ui-kit-manifest.mjs",
           "type": "registry:file",
           "target": "~/scripts/erp-ui-kit-manifest.mjs"
+        },
+        {
+          "path": "registry/tools/erp-ui-kit-changelog.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/erp-ui-kit-changelog.mjs"
         }
       ],
       "docs": "Оновлення: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — --items base,…); перевірка: node scripts/erp-ui-kit.mjs check.",

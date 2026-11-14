@@ -1,7 +1,8 @@
 /**
  * Цілісність `kit-files.json` для `scripts/erp-ui-kit.mjs` (ADR-0029, ADR-0078): контрольна сума
- * маніфесту, той самий тег з іншим умістом, файли-сироти й позначка локальної правки старого
- * правила (ADR-0076). Файл ставить `shadcn add` разом із командою: у проекті його не правте.
+ * маніфесту, той самий тег з іншим умістом, файли-сироти, позначка локальної правки старого
+ * правила (ADR-0076) і файли поза маніфестом, які перезапишуться (ADR-0088). Файл ставить
+ * `shadcn add` разом із командою: у проекті його не правте.
  */
 import { existsSync, readFileSync, rmSync } from "node:fs"
 import path from "node:path"
@@ -194,6 +195,17 @@ export function stopsBeforeWrite(root, manifest, version, files) {
       message: `Сироти, змінені в проекті, нова версія кіта поверне й перезапише: ${returning.join(", ")}. Перенесіть зміни у свій файл під іншою назвою й поверніть версію кіта.`,
     })
   return stops
+}
+
+/**
+ * Файли, які `update` перезапише, а в маніфесті їх немає ні серед відбитків, ні серед сиріт: шлях
+ * файла кіта збігся з файлом проекту (ADR-0088). `files` — звіт, без файлів проекту.
+ */
+export function unlistedOverwrites(manifest, files) {
+  const known = { ...manifest.orphans, ...manifest.files }
+  return files
+    .filter((file) => file.action === "overwrite" && !(file.path in known))
+    .map((file) => file.path)
 }
 
 /**

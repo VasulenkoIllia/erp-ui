@@ -176,9 +176,10 @@ jobs:
           retention-days: 7
 
   # Підсумок під старою назвою: правило «перевірки мають пройти» дивиться на неї.
+  # Доставка й оновлення пропущені лише тоді, коли для проектів нічого не змінено.
   checks:
     name: typecheck · lint · test · e2e
-    needs: [static, e2e, e2e-repeat, perf, consumer]
+    needs: [static, e2e, e2e-repeat, perf, delivery-changes, consumer, upgrade]
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -188,14 +189,46 @@ jobs:
           test "${{ needs.e2e.result }}" = success
           test "${{ needs.e2e-repeat.result }}" = success
           test "${{ needs.perf.result }}" = success
-          test "${{ needs.consumer.result }}" = success
+          test "${{ needs.delivery-changes.result }}" = success
+          [ "${{ needs.consumer.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
+          [ "${{ needs.upgrade.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
+
+  # Що змінено з того, що потрапляє в проекти чи в звіт оновлення (CHANGELOG.md, SPEC і каталог у
+  # реєстрі): від цього залежать доставка й оновлення. Шляхи без лапок git і перейменування обома
+  # шляхами; збій git diff валить задачу, а не пропускає перевірки мовчки.
+  delivery-changes:
+    name: зміни для проектів
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      relevant: ${{ steps.changes.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Changed files
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          changed=$(git -c core.quotePath=false diff --name-only --no-renames "$BASE_SHA" HEAD)
+          if grep -qE '^(registry/|registry\.json|design/|docs/(SPEC|CATALOG)\.md|CHANGELOG\.md|scripts/(consumer|upgrade)-smoke[^/]*\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+          fi
 
   # Доставка в чистий проект (ADR-0004) на Node 26 (мінімум engines). Повний набір — з реєстру
   # цього коміту, зібраного локально; з GitHub — один елемент: повний набір з'їдав ліміт
   # API (~1000 запитів на годину) і давав 403.
   consumer:
     name: доставка в тестовий проект (Node ${{ matrix.node }})
-    if: github.event_name == 'pull_request'
+    needs: delivery-changes
+    if: needs.delivery-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -206,37 +239,45 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-          fetch-depth: 0
-
-      # Лише коли змінено те, що потрапляє в проекти.
-      # Збій git diff валить крок, а не пропускає перевірку мовчки.
-      - name: Changed files
-        id: changes
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          changed=$(git diff --name-only "$BASE_SHA" HEAD)
-          if grep -qE '^(registry/|registry\.json|design/|scripts/consumer-smoke\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
-            echo "relevant=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "relevant=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - uses: pnpm/action-setup@v6
-        if: steps.changes.outputs.relevant == 'true'
 
       - uses: actions/setup-node@v7
-        if: steps.changes.outputs.relevant == 'true'
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-        if: steps.changes.outputs.relevant == 'true'
 
       - name: Install erp-ui into a clean project
-        if: steps.changes.outputs.relevant == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: pnpm consumer-smoke --local --ref ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: pnpm consumer-smoke --local --ref "$HEAD_SHA"
+
+  # Оновлення (ADR-0088): проект на попередньому тегу з розширенням модуля й адаптером оновлюється
+  # командою кіта до цього коміту — старою командою проекту й командою цієї версії; typecheck і
+  # збірка, сироти й --prune, «Що зробити в проекті», зупинка на позначці локальної правки.
+  upgrade:
+    name: оновлення проекту з попереднього тегу
+    needs: delivery-changes
+    if: needs.delivery-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # Уся історія з тегами: проект ставиться з попереднього тегу цієї копії, без GitHub.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm upgrade-smoke

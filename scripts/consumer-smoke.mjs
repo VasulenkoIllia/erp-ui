@@ -83,13 +83,13 @@ const MOCK_SIGNATURES = {
 }
 /** Групи, яких і на моках немає в першому екрані; панель сценаріїв із ключем кіта там бути може. */
 const LAZY_MOCK_GROUPS = ["msw", "project"]
-/** Файли застосунку шаблону, що стають у `src/` після `shadcn add`: файл → шлях у `src/`. */
-const AFTER_INSTALL = {
-  "App.tsx": "App.tsx",
-  "Data.tsx": "Data.tsx",
-  "Contacts.tsx": "Contacts.tsx",
-  "mocks.ts": "mocks/browser.ts",
-}
+/**
+ * Файли застосунку шаблону, що стають у `src/` після `shadcn add`: файл → шлях у `src/`. Окремим
+ * файлом: його ж бере сценарій оновлення для шаблону попереднього тегу.
+ */
+const AFTER_INSTALL = JSON.parse(
+  readFileSync(path.join(root, "tests/consumer/after-install.json"), "utf8"),
+)
 /** Паузи перед повтором запиту до GitHub: 403/429 — ліміт API, а не помилка коду. */
 const GITHUB_RETRY_DELAYS_MS = [30_000, 90_000]
 

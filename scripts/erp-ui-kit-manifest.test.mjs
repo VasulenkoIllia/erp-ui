@@ -153,6 +153,9 @@ test("isPlainRelativePath: лише нормальні відносні posix-ш
     "../a",
     "a\\b",
     "a\0b",
+    "a\u001b[2Kb",
+    "a\nb",
+    "a\u009bb",
   ])
     assert.equal(isPlainRelativePath(file), false, JSON.stringify(file))
 })

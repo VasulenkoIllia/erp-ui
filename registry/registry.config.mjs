@@ -3442,6 +3442,10 @@ const KIT_TOOL_FILES = [
     path: "registry/tools/erp-ui-kit-manifest.mjs",
     target: "~/scripts/erp-ui-kit-manifest.mjs",
   },
+  {
+    path: "registry/tools/erp-ui-kit-changelog.mjs",
+    target: "~/scripts/erp-ui-kit-changelog.mjs",
+  },
 ]
 
 /**

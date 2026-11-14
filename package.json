@@ -25,7 +25,8 @@
     "check:registry": "node scripts/build-registry.mjs --check",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:copies": "node scripts/check-module-copies.mjs",
-    "consumer-smoke": "node scripts/consumer-smoke.mjs"
+    "consumer-smoke": "node scripts/consumer-smoke.mjs",
+    "upgrade-smoke": "node scripts/upgrade-smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

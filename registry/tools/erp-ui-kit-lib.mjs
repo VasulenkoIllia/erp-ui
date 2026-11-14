@@ -1,7 +1,7 @@
 /**
  * Версія кіта erp-ui для `scripts/erp-ui-kit.mjs` (крок 1.9, ADR-0029): архів коміту тегу з GitHub
- * або гілка з локальної копії кіта → перевірка → SHA коміту й відбиток реєстру (ADR-0078) →
- * реєстр (`shadcn build`) і звіт `add --dry-run`.
+ * або гілка з локальної копії кіта → перелік архіву до розпакування (ADR-0088) → перевірка → SHA
+ * коміту й відбиток реєстру (ADR-0078) → реєстр (`shadcn build`) і звіт `add --dry-run`.
  * Файл ставить `shadcn add` разом із командою: у проекті його не правте.
  */
 import { spawn } from "node:child_process"
@@ -28,10 +28,14 @@ const COMMAND_TIMEOUT_MS = 10 * 60_000
 const KILL_GRACE_MS = 5_000
 /** Паузи перед повторами завантаження після тимчасового збою. */
 const RETRY_DELAYS_MS = [5_000, 30_000]
-/** Що береться з локальної копії кіта (`--from`): реєстр і файли, на які він посилається. */
-const KIT_PATHS = [
+/**
+ * Що береться з локальної копії кіта (`--from`): реєстр і файли, на які він посилається, і
+ * `CHANGELOG.md` (розділи «Що зробити в проекті» наприкінці звіту).
+ */
+export const KIT_PATHS = [
   "registry.json",
   "package.json",
+  "CHANGELOG.md",
   "registry",
   "design",
   "docs/CATALOG.md",
@@ -52,18 +56,31 @@ export const hashFile = (root) => (file) => {
   return existsSync(full) ? sha256(readFileSync(full)) : undefined
 }
 
+// eslint-disable-next-line no-control-regex -- керівні символи C0 і C1 і є тим, що відсіюємо
+const CONTROL_IN_PATH = /[\u0000-\u001f\u007f-\u009f]/
+// eslint-disable-next-line no-control-regex -- те саме, крім табуляції й нового рядка
+const CONTROL_IN_TEXT = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g
+
+/**
+ * Текст із файлів кіта чи виводу програм — у термінал без керівних послідовностей і символів:
+ * чужий текст не стирає попереджень над собою й не пише в буфер обміну (лишаються `\t` і `\n`).
+ */
+export const forTerminal = (text) =>
+  stripVTControlCharacters(text).replace(CONTROL_IN_TEXT, "")
+
 /** Тег випуску `vX.Y.Z`: тоді версія в `package.json` архіву має з ним збігатися. */
 export const isReleaseTag = (ref) => /^v\d+\.\d+\.\d+$/.test(ref)
 
 /**
  * Відносний posix-шлях у нормальній формі: без `/` на початку чи в кінці, `./`, `..`, зворотної
- * похилої й NUL. Шляхи з маніфесту, реєстру й звіту CLI команда бере лише такі.
+ * похилої й керівних символів. Шляхи з маніфесту, реєстру й звіту CLI команда бере лише такі.
  */
 export const isPlainRelativePath = (file) =>
   typeof file === "string" &&
   file.length > 0 &&
   file !== "." &&
-  !/[\\\0]/.test(file) &&
+  !file.includes("\\") &&
+  !CONTROL_IN_PATH.test(file) &&
   !path.posix.isAbsolute(file) &&
   !file.endsWith("/") &&
   path.posix.normalize(file) === file &&
@@ -183,6 +200,32 @@ export function printReport(kit, files, oldFiles, projectOwned) {
   for (const file of Object.keys(oldFiles).filter((file) => !kept.has(file)))
     console.log(
       `  ? ${file} — у новій версії цього файлу немає; видаліть сам чи --prune, якщо не потрібен`,
+    )
+}
+
+/**
+ * Записи переліку `tar -tv`, що не звичайний файл і не тека: символьні й жорсткі посилання,
+ * пристрої. Рядок переліку починається з типу запису (`-`, `d`, `l`, `h`, `c`…) і в GNU tar, і в
+ * bsdtar; жорстке посилання з розміром bsdtar показує як файл, але з ` link to `.
+ */
+export function specialArchiveEntries(listing) {
+  return listing
+    .split("\n")
+    .filter(
+      (line) => line && (!/^[-d]/.test(line) || line.includes(" link to ")),
+    )
+}
+
+/**
+ * Перелік архіву до розпакування (`tarArgs` — `-tvzf <файл>` чи `-tvf <файл>`): посилання
+ * зупиняють оновлення, бо розпакування через них залежить від різновиду `tar`.
+ */
+async function assertPlainArchive(ref, tarArgs) {
+  const { stdout } = await mustRun("tar", tarArgs, { capture: true })
+  const special = specialArchiveEntries(stdout)
+  if (special.length)
+    throw new KitError(
+      `Архів кіта ${ref} містить посилання чи особливі файли, не розпаковую:\n${forTerminal(special.slice(0, 10).join("\n"))}`,
     )
 }
 
@@ -358,6 +401,7 @@ async function downloadTag(ref, dir) {
     )
   const archive = path.join(dir, "kit.tar.gz")
   await ghApi(ref, [`repos/${REPO}/tarball/${sha}`], { stdoutFile: archive })
+  await assertPlainArchive(ref, ["-tvzf", archive])
   await mustRun("tar", ["-xzf", archive, "-C", dir, "--strip-components=1"])
   return sha
 }
@@ -426,6 +470,7 @@ async function copyFromCheckout(ref, from, dir) {
     "--",
     ...KIT_PATHS,
   ])
+  await assertPlainArchive(ref, ["-tvf", tar])
   await mustRun("tar", ["-xf", tar, "-C", dir])
   return sha.stdout.trim()
 }
