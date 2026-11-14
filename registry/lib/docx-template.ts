@@ -8,7 +8,8 @@
  *   біля своєї мітки).
  * - Розмір розпакованого рахується справжній, потоком з обривом на межі: заголовок zip пише автор файла, а
  *   `pizzip` розпаковує частину повністю й лише потім звіряє з заголовком (zip-бомба повісила б вкладку).
- *   Межа тексту Word і кількості міток тримає заповнення в межах секунди: воно синхронне.
+ *   Межа розміченого тексту (усі `*.xml` і `*.rels`) і кількості міток тримає заповнення в межах секунди:
+ *   воно синхронне.
  * - `template.fill(data)` — новий файл .docx з тих самих байтів шаблону; порожнє значення — порожньо, а
  *   невідома мітка лишається текстом `{мітка}`: так її видно в перегляді.
  * - Значення вставляються текстом: XML екранує `docxtemplater`, перенос рядка — розрив рядка Word. Мітки
@@ -29,7 +30,7 @@ export const DOCX_MIME =
 export const DOCX_MAX_BYTES = 10 * 1024 * 1024
 /** Розпакований вміст: більше — не шаблон документа, а ризик заморозити вкладку. */
 export const DOCX_MAX_UNPACKED_BYTES = 50 * 1024 * 1024
-/** Розпакований текст Word (`word/*.xml`), який розбирає заповнення: договір — сотні КБ. */
+/** Розпакований розмічений текст (`*.xml`, `*.rels`), який розбирає заповнення: договір — сотні КБ. */
 export const DOCX_MAX_XML_BYTES = 10 * 1024 * 1024
 /** Мітки в шаблоні (`{` у тексті Word): договір — до сотні-двох; розбір блоків росте швидше за лінійно. */
 export const DOCX_MAX_TAGS = 500
@@ -110,7 +111,8 @@ function toTag(part: DocxPart): TemplateTag {
 
 const DEFLATE = "\x08\x00"
 const STORED = "\x00\x00"
-const WORD_XML = /^word\/[^/]+\.xml$/
+/** Розмічені частини архіву: їх розбирає заповнення (Word, `[Content_Types].xml`, зв'язки). */
+const XML_PART = /\.(?:xml|rels)$/i
 
 /** Розпакований розмір частини потоком; понад `budget` — `null`, далі не розпаковуємо. */
 async function inflatedBytes(
@@ -165,16 +167,16 @@ async function checkArchive(zip: PizZip): Promise<ArchiveCheck> {
     if (size === undefined) return "unreadable"
     if (size === null || size > budget) return "too-large"
     total += size
-    if (WORD_XML.test(name)) xml += size
+    if (XML_PART.test(name)) xml += size
     if (xml > DOCX_MAX_XML_BYTES) return "too-complex"
   }
   return "ok"
 }
 
-/** Скільки міток у тексті Word: кожна починається з `{`, навіть якщо Word розбив її на шматки. */
+/** Скільки міток у розміченому тексті: кожна починається з `{`, навіть якщо Word розбив її на шматки. */
 function tagMarks(zip: PizZip): number {
   let count = 0
-  for (const file of zip.file(WORD_XML)) {
+  for (const file of zip.file(XML_PART)) {
     const text = file.asText()
     for (let index = text.indexOf("{"); index !== -1;) {
       count += 1
@@ -238,6 +240,10 @@ export async function readDocxTemplate(
     return { ok: false, reason: "not-docx" }
   }
   if (!zip.file("word/document.xml")) return { ok: false, reason: "not-docx" }
+  if (typeof DecompressionStream === "undefined") {
+    console.error("erp-ui: DecompressionStream is not supported")
+    return { ok: false, reason: "unreadable" }
+  }
   let check: ArchiveCheck
   try {
     check = await checkArchive(zip)
@@ -246,7 +252,14 @@ export async function readDocxTemplate(
     return { ok: false, reason: "not-docx" }
   }
   if (check !== "ok") return { ok: false, reason: check }
-  if (tagMarks(zip) > DOCX_MAX_TAGS) return { ok: false, reason: "too-complex" }
+  try {
+    if (tagMarks(zip) > DOCX_MAX_TAGS)
+      return { ok: false, reason: "too-complex" }
+  } catch (error) {
+    // Заявлений розмір частини менший за справжній: `pizzip` відмовляє, коли розпаковує.
+    console.error("erp-ui: docx part was not read", error)
+    return { ok: false, reason: "unreadable" }
+  }
   const inspect = new InspectModule()
   try {
     compile(bytes, [inspect])

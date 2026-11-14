@@ -10,6 +10,7 @@ import {
   type TemplateVariables,
 } from "@/registry/lib/document-template"
 import {
+  DOCX_MAX_TAGS,
   DOCX_MAX_UNPACKED_BYTES,
   readDocxTemplate,
   type DocxReadResult,
@@ -157,6 +158,8 @@ export function templateStatus(
         size: DOCX_MAX_UNPACKED_BYTES / BYTES_PER_MB,
       }),
     )
+  if (result.reason === "too-complex")
+    return error(t("documentGenerator.tooComplex", { tags: DOCX_MAX_TAGS }))
   return error(
     t(
       result.reason === "not-docx"

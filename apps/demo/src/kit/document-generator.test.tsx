@@ -239,6 +239,30 @@ describe("генератор документа з шаблону", () => {
     expect(screen.queryByTestId("file-drop-input")).not.toBeInTheDocument()
   })
 
+  it("свій файл із забагатьма мітками — «заскладний» з межею", async () => {
+    renderPanel([])
+    const zip = new PizZip(contractTemplate())
+    const xml = zip.file("word/document.xml")?.asText() ?? ""
+    zip.file(
+      "word/document.xml",
+      xml.replace(
+        "</w:body>",
+        `<w:p><w:r><w:t>${"{number}".repeat(501)}</w:t></w:r></w:p></w:body>`,
+      ),
+    )
+    await userEvent.upload(
+      screen.getByTestId("file-drop-input"),
+      new File([zip.generate({ type: "uint8array" }).slice()], "Великий.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      }),
+    )
+    expect(
+      await screen.findByText(
+        "Шаблон заскладний для генератора: у ньому понад 500 міток чи забагато тексту.",
+      ),
+    ).toBeInTheDocument()
+  })
+
   it("свій файл: шаблон Word читається, інший файл — «Це не файл Word .docx»", async () => {
     renderPanel([])
     const input = screen.getByTestId("file-drop-input")

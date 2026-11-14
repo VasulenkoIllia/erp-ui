@@ -250,6 +250,14 @@ describe("шаблон .docx", () => {
     ).toEqual({ ok: false, reason: "too-large" })
   })
 
+  it("заявлений розмір частини менший за справжній — «не прочитався», а не збій читання", async () => {
+    const bytes = withDeclaredSize(contractTemplate(), "word/document.xml", 100)
+    expect(await readDocxTemplate(bytes)).toEqual({
+      ok: false,
+      reason: "unreadable",
+    })
+  })
+
   it("забагато міток — заскладний, ще до розбору", async () => {
     expect(
       await readDocxTemplate(
