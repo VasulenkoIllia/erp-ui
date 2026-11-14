@@ -38,7 +38,7 @@ node scripts/erp-ui-kit.mjs update v1.3.0 --items base,data,mocks,auth,erp/app-g
 - вподобання вигляду `src/lib/appearance.ts` + `src/hooks/use-appearance.ts` і словник іконок `src/lib/icons.tsx`;
 - скіл для Claude Code у `.claude/skills/erp-ui/` (ядро `SKILL.md` і довідки за темами в `references/`, ADR-0089), SPEC і каталог у `docs/erp-ui/`;
 - команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`, `erp-ui-kit-deps.mjs`, `erp-ui-kit-manifest.mjs`, `erp-ui-kit-changelog.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029, ADR-0078);
-- перевірку `scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`): сирі кольори, стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри `src/styles/erp-ui/themes.css` пропускає, виняток для рядка — коментар `erp-ui: allow-raw-value — <причина>` (ADR-0089).
+- перевірку `scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`): сирі кольори, стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами у файлах `.ts`, `.tsx`, `.js`, `.jsx`, `.css`; згенеровані палітри `…/styles/erp-ui/themes.css` пропускає, виняток для рядка — коментар `erp-ui: allow-raw-value — <причина>`; тека, якої немає, чи тека без таких файлів — помилка (ADR-0089).
 
 Після цього додайте в `CLAUDE.md` проекту рядок:
 

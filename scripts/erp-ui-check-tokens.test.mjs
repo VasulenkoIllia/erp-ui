@@ -1,13 +1,27 @@
 import assert from "node:assert/strict"
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { spawnSync } from "node:child_process"
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { test } from "node:test"
 
 import {
   findViolations,
+  missingRoots,
   scanRoots,
 } from "../registry/tools/erp-ui-check-tokens.mjs"
+
+const TOOL = new URL(
+  "../registry/tools/erp-ui-check-tokens.mjs",
+  import.meta.url,
+).pathname
 
 const rules = (text) => findViolations(text).map((v) => v.rule)
 
@@ -69,28 +83,85 @@ test("поважає явний виняток", () => {
   )
 })
 
-test("у проекті сканує src і пропускає згенеровані палітри тем", () => {
+function project(files) {
   const dir = mkdtempSync(path.join(tmpdir(), "erp-ui-check-tokens-"))
+  for (const [file, text] of Object.entries(files)) {
+    mkdirSync(path.dirname(path.join(dir, file)), { recursive: true })
+    writeFileSync(path.join(dir, file), text)
+  }
+  return dir
+}
+
+const run = (cwd, args = [], tool = TOOL) =>
+  spawnSync(process.execPath, [tool, ...args], { cwd, encoding: "utf8" })
+
+test("у проекті сканує теки один раз і пропускає згенеровані палітри тем", () => {
+  const dir = project({
+    "src/styles/erp-ui/themes.css": ":root { --primary: oklch(0.5 0.1 250); }",
+    "apps/web/src/styles/erp-ui/themes.css": ":root { --primary: #fff; }",
+    "src/App.tsx": 'export const App = () => <div className="bg-red-500" />',
+    "src/legacy.jsx": 'const x = "#123456"',
+    "src/node_modules/x.css": "a { color: #fff; }",
+    "src/types.d.ts": "// #fff",
+  })
   try {
-    const write = (file, text) => {
-      mkdirSync(path.dirname(path.join(dir, file)), { recursive: true })
-      writeFileSync(path.join(dir, file), text)
-    }
-    write(
-      "src/styles/erp-ui/themes.css",
-      ":root { --primary: oklch(0.5 0.1 250); }",
-    )
-    write(
-      "src/App.tsx",
-      'export const App = () => <div className="bg-red-500" />',
-    )
-    write("src/node_modules/x.css", "a { color: #fff; }")
-    write("src/types.d.ts", "// #fff")
+    const { found, files } = scanRoots(dir, ["src", "src", "apps"])
     assert.deepEqual(
-      scanRoots(dir, ["src"]).map((v) => `${v.file}:${v.rule}`),
-      ["src/App.tsx:tailwind-palette"],
+      found.map((v) => `${v.file}:${v.rule}`),
+      ["src/App.tsx:tailwind-palette", "src/legacy.jsx:hex-color"],
     )
+    assert.equal(files, 2)
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+test("тека, якої немає, файл замість теки чи порожній аргумент — не перевірені", () => {
+  const dir = project({ "src/a.ts": "export {}" })
+  try {
+    assert.deepEqual(missingRoots(dir, ["src", "app", "src/a.ts", " "]), [
+      "app",
+      "src/a.ts",
+      " ",
+    ])
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test("команда: без src, без файлів чи з порушенням падає; чистий код і запуск через посилання проходять", () => {
+  const empty = project({ "app/page.tsx": "export {}" })
+  const blank = project({ "src/readme.md": "текст" })
+  const bad = project({
+    "src/a.tsx": 'export const A = () => <b className="text-white" />',
+  })
+  const clean = project({
+    "src/a.tsx": 'export const A = () => <b className="text-primary" />',
+  })
+  const links = mkdtempSync(path.join(tmpdir(), "erp-ui-check-tokens-link-"))
+  try {
+    const noSrc = run(empty)
+    assert.equal(noSrc.status, 1)
+    assert.match(noSrc.stderr, /немає теки «src»/)
+    assert.equal(run(empty, ["app"]).status, 0)
+    assert.match(run(blank).stderr, /нічого не перевірено/)
+    const failed = run(bad)
+    assert.equal(failed.status, 1)
+    assert.match(failed.stderr, /src\/a\.tsx:1 {2}tailwind-palette/)
+    assert.match(run(clean).stdout, /порушень немає \(файлів — 1\)/)
+    symlinkSync(path.dirname(TOOL), path.join(links, "tools"))
+    const linked = run(bad, [], path.join(links, "tools", path.basename(TOOL)))
+    assert.equal(linked.status, 1, "через посилання main() має запуститися")
+  } finally {
+    for (const dir of [empty, blank, bad, clean, links])
+      rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test("файл ставиться в проект сам: імпортує лише вбудовані модулі node", () => {
+  const imports = [
+    ...readFileSync(TOOL, "utf8").matchAll(/^import .* from "([^"]+)"/gm),
+  ]
+  assert.ok(imports.length > 0)
+  for (const [, from] of imports) assert.match(from, /^node:/)
 })

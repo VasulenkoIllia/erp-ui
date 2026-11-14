@@ -283,9 +283,29 @@ async function fullInstall(source) {
   if (source) checkModulesVerbatim(dir)
 
   await exec("pnpm", ["typecheck"])
-  // Перевірка «лише токени», що ставиться з `base`, проходить код кіта в проекті (ADR-0089).
-  await exec("node", ["scripts/erp-ui-check-tokens.mjs"])
+  await checkTokensInProject(dir)
   await checkMocksOutOfProduction(dir)
+}
+
+/** Перевірка «лише токени» з `base` (ADR-0089): код кіта в проекті чистий, а підкладене порушення вона ловить. */
+async function checkTokensInProject(dir) {
+  await run(dir, "node", ["scripts/erp-ui-check-tokens.mjs"])
+  const probe = path.join(dir, "src/erp-ui-tokens-probe.tsx")
+  writeFileSync(
+    probe,
+    'export const Probe = () => <div className="bg-red-500" />\n',
+  )
+  try {
+    const output = await runExpectingFailure(dir, "node", [
+      "scripts/erp-ui-check-tokens.mjs",
+    ])
+    if (!output.includes("src/erp-ui-tokens-probe.tsx:1"))
+      throw new Error(
+        "erp-ui-check-tokens упала, але не назвала підкладене порушення",
+      )
+  } finally {
+    rmSync(probe)
+  }
 }
 
 /** JS збірки: усі файли й перший екран (вхід і його `modulepreload` з `dist/index.html`). */

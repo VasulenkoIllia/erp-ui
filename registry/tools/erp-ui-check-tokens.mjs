@@ -11,9 +11,8 @@
  * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`), у lint проекту (ADR-0089).
  * Файл ставить команда кіта разом із `base`: у проекті його не правте.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 
 const ALLOW_MARK = "erp-ui: allow-raw-value"
 
@@ -33,7 +32,7 @@ export const RULES = [
   },
   {
     id: "color-function",
-    message: "колірна функція поза design/ — використовуйте токен теми",
+    message: "колірна функція — використовуйте токен теми",
     pattern: /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\(/gi,
   },
   {
@@ -83,9 +82,12 @@ export function findViolations(text) {
 }
 
 const DEFAULT_ROOTS = ["src"]
-/** Палітри тем генерує кіт із власних кольорів (`design/generate-themes.mjs`): там сирі кольори — джерело токенів. */
-const GENERATED_FILES = new Set(["src/styles/erp-ui/themes.css"])
-const EXTENSIONS = new Set([".ts", ".tsx", ".css"])
+/**
+ * Палітри тем генерує кіт із власних кольорів (`design/generate-themes.mjs`): там сирі кольори — джерело токенів.
+ * Шлях — кінець відносного шляху файла, бо тека `src` у монорепо буває глибше.
+ */
+const GENERATED_SUFFIXES = ["styles/erp-ui/themes.css"]
+const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css"])
 const SKIP_DIRS = new Set([
   "node_modules",
   "dist",
@@ -93,55 +95,82 @@ const SKIP_DIRS = new Set([
   "playwright-report",
 ])
 
+/** Файли теки. Помилку читання не ковтає: тека, яку не прочитано, — не перевірена. */
 function* walk(dir) {
-  let entries
-  try {
-    entries = readdirSync(dir)
-  } catch {
-    return
-  }
-  for (const name of entries) {
-    const full = path.join(dir, name)
-    if (statSync(full).isDirectory()) {
-      if (!SKIP_DIRS.has(name)) yield* walk(full)
-    } else if (EXTENSIONS.has(path.extname(name)) && !name.endsWith(".d.ts")) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (!SKIP_DIRS.has(entry.name)) yield* walk(full)
+    } else if (
+      entry.isFile() &&
+      EXTENSIONS.has(path.extname(entry.name)) &&
+      !entry.name.endsWith(".d.ts")
+    ) {
       yield full
     }
   }
 }
 
-/** Порушення в теках `roots` відносно `cwd`; згенеровані палітри пропускає. */
+const isGenerated = (relative) =>
+  GENERATED_SUFFIXES.some(
+    (suffix) => relative === suffix || relative.endsWith(`/${suffix}`),
+  )
+
+/** Теки, яких немає чи які не є теками: перевірка без них нічого б не перевірила. */
+export function missingRoots(cwd, roots) {
+  return roots.filter((root) => {
+    if (!root.trim()) return true
+    try {
+      return !statSync(path.resolve(cwd, root)).isDirectory()
+    } catch {
+      return true
+    }
+  })
+}
+
+/** Порушення в теках `roots` відносно `cwd`; згенеровані палітри пропускає, файл перевіряє один раз. */
 export function scanRoots(cwd, roots) {
   const found = []
+  const seen = new Set()
   for (const root of roots) {
     for (const file of walk(path.resolve(cwd, root))) {
       const relative = path.relative(cwd, file).split(path.sep).join("/")
-      if (GENERATED_FILES.has(relative)) continue
+      if (seen.has(relative) || isGenerated(relative)) continue
+      seen.add(relative)
       for (const v of findViolations(readFileSync(file, "utf8")))
         found.push({ file: relative, ...v })
     }
   }
-  return found
+  return { found, files: seen.size }
 }
 
 function main() {
-  const roots = process.argv.slice(2)
+  const args = process.argv.slice(2)
+  const roots = args.length ? args : DEFAULT_ROOTS
   const cwd = process.cwd()
-  const missing = roots.filter((root) => !existsSync(path.resolve(cwd, root)))
+  const missing = missingRoots(cwd, roots)
   if (missing.length) {
-    console.error(`check-tokens: немає теки ${missing.join(", ")}`)
+    console.error(
+      `check-tokens: немає теки ${missing.map((root) => `«${root}»`).join(", ")} — назвіть теки коду аргументами`,
+    )
     process.exit(1)
   }
-  const found = scanRoots(cwd, roots.length ? roots : DEFAULT_ROOTS)
+  const { found, files } = scanRoots(cwd, roots)
+  if (files === 0) {
+    console.error(
+      `check-tokens: у ${roots.join(", ")} немає файлів .ts, .tsx, .js, .jsx, .css — нічого не перевірено`,
+    )
+    process.exit(1)
+  }
   for (const v of found)
     console.error(`${v.file}:${v.line}  ${v.rule}  «${v.match}» — ${v.message}`)
   if (found.length > 0) {
     console.error(
-      `\ncheck-tokens: ${found.length} порушень. Виняток для рядка: коментар «${ALLOW_MARK} — <причина>».`,
+      `\ncheck-tokens: знайдено порушень — ${found.length}. Виняток для рядка: коментар «${ALLOW_MARK} — <причина>».`,
     )
     process.exit(1)
   }
-  console.log("check-tokens: порушень немає")
+  console.log(`check-tokens: порушень немає (файлів — ${files})`)
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) main()
+if (import.meta.main) main()
