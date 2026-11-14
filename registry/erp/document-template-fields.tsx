@@ -41,6 +41,7 @@ const SYNTAX_CODES = [
   "unclosed_loop",
   "unopened_loop",
   "closing_tag_does_not_match_opening_tag",
+  "unbalanced_loop_tags",
 ] as const
 type SyntaxCode = (typeof SYNTAX_CODES)[number]
 const isSyntaxCode = (code: string): code is SyntaxCode =>
@@ -78,7 +79,7 @@ export function TemplateIssueList({
       <ul className="grid gap-3">
         {issues.map((issue) => (
           <li
-            key={`${issue.code}:${issue.tag}:${"loop" in issue ? (issue.loop ?? "") : ""}`}
+            key={`${issue.code}:${issue.tag}:${"loop" in issue ? (issue.loop ?? "") : ""}:${"syntax" in issue ? issue.syntax : ""}`}
             className="grid gap-1"
           >
             <code className="w-fit rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm">
@@ -94,7 +95,8 @@ export function TemplateIssueList({
   )
 }
 
-function VariableField({
+/** Поле мітки; без змін пропсів не перемальовується, поки людина набирає в іншому полі. */
+const VariableField = React.memo(function VariableField({
   variable,
   value,
   onValueChange,
@@ -134,7 +136,7 @@ function VariableField({
       </FieldDescription>
     </Field>
   )
-}
+})
 
 export function DocumentTemplateFields({
   variables,
@@ -171,7 +173,11 @@ export function DocumentTemplateFields({
               <VariableField
                 key={variable.key}
                 variable={variable}
-                value={values[variable.key] ?? variable.value}
+                value={
+                  Object.hasOwn(values, variable.key)
+                    ? values[variable.key]
+                    : variable.value
+                }
                 onValueChange={onValueChange}
               />
             ))}
@@ -191,53 +197,59 @@ export function DocumentTemplateFields({
   )
 }
 
-/** Усі мітки, які можна вставити в шаблон, з підписами: розгортається на вимогу. */
-export function DocumentTemplateReference({
-  variables,
-}: {
-  variables: TemplateVariables
-}) {
-  const t = useErpUiT()
-  const sections = [
-    ...variables.groups.map((group) => ({
-      id: group.id,
-      label: group.label,
-      rows: group.variables.map((item) => [item.key, item.label] as const),
-    })),
-    ...variables.loops.map((loop) => ({
-      id: loop.key,
-      label: loop.label,
-      rows: [
-        [`#${loop.key}`, loop.label] as const,
-        ...loop.columns.map((column) => [column.key, column.label] as const),
-        [`/${loop.key}`, loop.label] as const,
-      ],
-    })),
-  ]
-  return (
-    <details
-      className="group rounded-lg border p-3 text-sm"
-      data-slot="document-template-reference"
-    >
-      <summary className="cursor-pointer font-medium">
-        {t("documentGenerator.reference")}
-      </summary>
-      <p className="mt-2 text-muted-foreground">
-        {t("documentGenerator.referenceHint")}
-      </p>
-      {sections.map((section) => (
-        <section key={section.id} className="mt-3">
-          <h4 className="font-medium">{section.label}</h4>
-          <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-            {section.rows.map(([key, label]) => (
-              <React.Fragment key={key}>
-                <dt className="font-mono">{templateTagText(key)}</dt>
-                <dd className="text-muted-foreground">{label}</dd>
-              </React.Fragment>
-            ))}
-          </dl>
-        </section>
-      ))}
-    </details>
-  )
-}
+/**
+ * Усі мітки, які можна вставити в шаблон, з підписами: розгортається на вимогу. Не перемальовується під час
+ * набору (змінні ті самі). Підписи груп — не заголовки: перелік стоїть і там, де заголовка розділу над ним
+ * немає (шаблон ще не вибрано).
+ */
+export const DocumentTemplateReference = React.memo(
+  function DocumentTemplateReference({
+    variables,
+  }: {
+    variables: TemplateVariables
+  }) {
+    const t = useErpUiT()
+    const sections = [
+      ...variables.groups.map((group) => ({
+        id: group.id,
+        label: group.label,
+        rows: group.variables.map((item) => [item.key, item.label] as const),
+      })),
+      ...variables.loops.map((loop) => ({
+        id: loop.key,
+        label: loop.label,
+        rows: [
+          [`#${loop.key}`, loop.label] as const,
+          ...loop.columns.map((column) => [column.key, column.label] as const),
+          [`/${loop.key}`, loop.label] as const,
+        ],
+      })),
+    ]
+    return (
+      <details
+        className="group rounded-lg border p-3 text-sm"
+        data-slot="document-template-reference"
+      >
+        <summary className="cursor-pointer font-medium">
+          {t("documentGenerator.reference")}
+        </summary>
+        <p className="mt-2 text-muted-foreground">
+          {t("documentGenerator.referenceHint")}
+        </p>
+        {sections.map((section) => (
+          <div key={section.id} className="mt-3">
+            <p className="font-medium">{section.label}</p>
+            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              {section.rows.map(([key, label]) => (
+                <React.Fragment key={key}>
+                  <dt className="font-mono">{templateTagText(key)}</dt>
+                  <dd className="text-muted-foreground">{label}</dd>
+                </React.Fragment>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </details>
+    )
+  },
+)

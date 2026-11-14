@@ -143,7 +143,7 @@ export function paymentLetterTemplate(): Uint8Array {
     paragraph("{customer.address}", { align: "right" }),
     paragraph("Шановні партнери!", { bold: true, align: "center" }),
     paragraph(
-      "Просимо оплатити документ № {number} від {date} на суму {total} ({totalInWords}) до {dueDate}.",
+      "Просимо оплатити документ № {number} від {date} на суму {total} ({totalInWords}) до {fields.dueDate}.",
     ),
     paragraph(
       "Реквізити для оплати: {contractor.name}, ЄДРПОУ / РНОКПП {contractor.code}, IBAN {contractor.iban}, {contractor.bankName}.",

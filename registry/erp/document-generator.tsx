@@ -47,6 +47,11 @@ export interface DocumentGeneratorProps {
   readonly language?: string
   /** Шаблон на старті; без нього — перший шаблон проекту, а без шаблонів — свій файл. */
   readonly initialTemplateId?: string
+  /**
+   * Дані документа ще не готові (картка контрагента вантажиться) чи неповні: «Завантажити» неактивна з
+   * цією причиною, а форма й перегляд уже працюють.
+   */
+  readonly unavailableReason?: string
 }
 
 const DocumentGeneratorPanel = lazyWithPreload(() =>
@@ -61,12 +66,14 @@ export const preloadDocumentGenerator = () => {
 }
 
 function GeneratorSkeleton() {
+  const t = useErpUiT()
   return (
     <div
       className="grid gap-3"
       aria-busy="true"
       data-slot="document-generator-skeleton"
     >
+      <span className="sr-only">{t("common.loading")}</span>
       <Skeleton className="h-9 w-full max-w-sm" />
       <Skeleton className="h-64 w-full" />
     </div>

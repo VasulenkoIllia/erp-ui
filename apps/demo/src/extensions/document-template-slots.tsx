@@ -54,6 +54,10 @@ const DUE_TEMPLATES = [CONTRACT, PAYMENT_LETTER]
 const SUPPLIER: TemplateParty["label"] = { uk: "Постачальник", en: "Supplier" }
 const BUYER: TemplateParty["label"] = { uk: "Покупець", en: "Buyer" }
 const DRAFT = { uk: "Чернетка", en: "Draft" }
+const PARTIES_LOADING = {
+  uk: "Реквізити сторін ще завантажуються",
+  en: "Party details are still loading",
+}
 
 const contractField = (record: { readonly [key: string]: unknown }) => ({
   key: "contract",
@@ -83,8 +87,11 @@ function useSalesParties(
   clientName: string,
 ): {
   parties: TemplateDocument["parties"]
+  /** Поки профіль компанії чи картка клієнта вантажаться, завантаження файла неактивне з причиною. */
+  unavailableReason: string | undefined
   onOpenChange: (isOpen: boolean) => void
 } {
+  const { language } = useLanguage()
   const [isOpen, setOpen] = useState(false)
   const company = useCompanyProfile()
   const client = useGetOne<{ id: string } & Record<string, unknown>>(
@@ -98,11 +105,15 @@ function useSalesParties(
   const theirs = partyDetailsFrom(
     client.data ? organizationParty(client.data) : { name: clientName },
   )
+  const isLoading = company.isPending || (isOpen && client.isPending)
   return {
     parties: {
       ...(ours ? { contractor: { details: ours, label: SUPPLIER } } : {}),
       customer: { details: theirs, label: BUYER },
     },
+    unavailableReason: isLoading
+      ? localizedText(PARTIES_LOADING, language)
+      : undefined,
     onOpenChange: setOpen,
   }
 }
@@ -125,6 +136,7 @@ export function QuoteFromTemplate({ record }: RecordSlotProps<Quote>) {
       }}
       templates={QUOTE_TEMPLATES}
       fileName={fileName}
+      unavailableReason={sales.unavailableReason}
       onOpenChange={sales.onOpenChange}
     />
   )
@@ -148,6 +160,7 @@ export function OrderFromTemplate({ record }: RecordSlotProps<Order>) {
       }}
       templates={DUE_TEMPLATES}
       fileName={fileName}
+      unavailableReason={sales.unavailableReason}
       onOpenChange={sales.onOpenChange}
     />
   )

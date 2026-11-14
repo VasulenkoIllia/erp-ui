@@ -22,6 +22,10 @@ export const enDocumentGenerator = {
     fillFailed:
       "The template could not be filled. Check it in Word and choose it again.",
     tooLarge: "The template is too large: unpacked, it exceeds {{size}} MB.",
+    tooComplex:
+      "The template is too complex for the generator: it has more than {{tags}} tags or too much text.",
+    unreadable:
+      "The file could not be read as a template. Open it in Word, save it as .docx and choose it again.",
     choose: "Choose a template to see its tags and preview.",
     fields: "Template tags",
     fieldsHint:
@@ -50,6 +54,8 @@ export const enDocumentGenerator = {
         "A block end without a start: a tag with # and the same name is missing.",
       closing_tag_does_not_match_opening_tag:
         "The block end does not match its start: the names after # and / must be the same.",
+      unbalanced_loop_tags:
+        "Blocks overlap: close the inner block before the outer one.",
       other: "The tag is written incorrectly.",
     },
     loop_one: "{{count}} line, taken from the document",

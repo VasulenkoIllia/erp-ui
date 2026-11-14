@@ -113,6 +113,38 @@ describe("мітки шаблону", () => {
     expect([...used.values]).toEqual(["number"])
     expect([...used.loops]).toEqual(["lines"])
   })
+
+  it("колонка циклу з тією самою назвою, що й значення документа, поля документа не показує", () => {
+    const withTotal: TemplateVariables = {
+      ...VARIABLES,
+      groups: [
+        {
+          id: "document",
+          label: "Документ",
+          variables: [{ key: "total", label: "Усього", value: "12,00 ₴" }],
+        },
+      ],
+    }
+    const tags = [section("lines", [value("total")])]
+    expect([...usedTemplateKeys(tags, withTotal).values]).toEqual([])
+    expect([
+      ...usedTemplateKeys([value("total"), ...tags], withTotal).values,
+    ]).toEqual(["total"])
+  })
+
+  it("{^lines} («рядків немає») — відомий блок, колонок циклу не відкриває", () => {
+    const inverted: TemplateTag = {
+      name: "lines",
+      kind: "inverted",
+      inner: [value("name")],
+    }
+    expect(templateIssues([inverted], VARIABLES)).toEqual([
+      { code: "unknown", tag: "name" },
+    ])
+    expect([...usedTemplateKeys([inverted], VARIABLES).loops]).toEqual([
+      "lines",
+    ])
+  })
 })
 
 describe("дані заповнення", () => {
@@ -128,6 +160,29 @@ describe("дані заповнення", () => {
       ],
     })
     expect(data.lines).not.toBe(VARIABLES.loops[0]?.rows)
+  })
+
+  it("символи, яких не буває в XML Word, прибираються; м'який перенос Word стає переносом рядка", () => {
+    const data = templateData(VARIABLES, {
+      number: "РХ\u0001-1\u000B2\uFFFE",
+      "customer.name": "Зоря\tі\nСхід",
+    })
+    expect(data.number).toBe("РХ-1\n2")
+    expect(data.customer).toMatchObject({ name: "Зоря\tі\nСхід" })
+  })
+
+  it("виправлення з ключем вбудованого поля об'єкта не підмінює значення", () => {
+    const withKey: TemplateVariables = {
+      groups: [
+        {
+          id: "fields",
+          label: "Інші поля",
+          variables: [{ key: "fields.toString", label: "Поле", value: "так" }],
+        },
+      ],
+      loops: [],
+    }
+    expect(templateData(withKey)).toEqual({ fields: { toString: "так" } })
   })
 
   it("рядки й підсумки — лише з запису картки; запис списку — null", () => {
@@ -166,8 +221,7 @@ describe("змінні документа", () => {
     },
     fields: [
       ...(DEMO_DOCUMENT.fields ?? []),
-      { key: "number", label: "Перекриття", value: "ні" },
-      { key: "customer.extra", label: "З крапкою", value: "ні" },
+      { key: "number", label: "Свій номер", value: "Д-7" },
       {
         key: "contract",
         label: { uk: "Договір", en: "Contract" },
@@ -184,6 +238,7 @@ describe("змінні документа", () => {
 
   it("документ: номер, дати, суми й прописом мовою документа", () => {
     expect(values.number).toBe("ЗМ-2026-0042")
+    expect(values["fields.number"]).toBe("Д-7")
     expect(values.date).toBe("14.11.2026")
     expect(values.dateLong).toBe("14 листопада 2026")
     expect(values.currency).toBe("UAH")
@@ -230,16 +285,53 @@ describe("змінні документа", () => {
     ).toEqual([])
   })
 
-  it("інші поля: дата мовою документа, порожнє — порожньо; ключ кіта й ключ із крапкою не беруться", () => {
+  it("інші поля — мітки {fields.<ключ>}: дата мовою документа, порожнє — порожньо; ключ кіта поле не перекриває", () => {
     const fields = variables.groups.find((group) => group.id === "fields")
     expect(fields?.variables).toEqual([
       expect.objectContaining({
-        key: "dueDate",
+        key: "fields.dueDate",
         label: "Виконати до",
         value: "28.11.2026",
       }),
-      expect.objectContaining({ key: "contract", label: "Договір", value: "" }),
+      expect.objectContaining({ key: "fields.number", value: "Д-7" }),
+      expect.objectContaining({
+        key: "fields.contract",
+        label: "Договір",
+        value: "",
+      }),
     ])
+  })
+
+  it("ключ поля з крапкою чи двічі той самий — помилка розробника", () => {
+    const withFields = (keys: string[]) => () =>
+      documentTemplateVariables(
+        {
+          ...DEMO_DOCUMENT,
+          fields: keys.map((key) => ({ key, label: key, value: "" })),
+        },
+        languages,
+      )
+    expect(withFields(["customer.extra"])).toThrow(/customer\.extra/)
+    expect(withFields(["dueDate", "dueDate"])).toThrow(/dueDate/)
+  })
+
+  it("дата чи валюта, які не форматуються, — порожньо, а не збій генератора", () => {
+    const broken = documentTemplateVariables(
+      {
+        ...DEMO_DOCUMENT,
+        date: "not-a-date",
+        fields: [{ key: "due", label: "До", value: { date: "31.02" } }],
+      },
+      languages,
+    )
+    const brokenValues = Object.fromEntries(
+      broken.groups.flatMap((group) =>
+        group.variables.map((item) => [item.key, item.value]),
+      ),
+    )
+    expect(brokenValues.date).toBe("")
+    expect(brokenValues["fields.due"]).toBe("")
+    expect(brokenValues.number).toBe("ЗМ-2026-0042")
   })
 
   it("рядки: лише товари й послуги з номером, кількістю, одиницею, ціною й сумами", () => {

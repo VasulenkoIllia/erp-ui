@@ -15,6 +15,7 @@ import {
 
 import {
   DocumentGeneratorButton,
+  type DocumentGeneratorProps,
   type DocumentTemplateOption,
 } from "@/registry/erp/document-generator"
 import { DocumentGeneratorPanel } from "@/registry/erp/document-generator-panel"
@@ -76,16 +77,25 @@ const template = (
   load: () => Promise.resolve(templateFile(bytes())),
 })
 
-function renderPanel(templates: readonly DocumentTemplateOption[]) {
-  return render(
-    <Providers>
-      <DocumentGeneratorPanel
-        document={DEMO_DOCUMENT}
-        templates={templates}
-        fileName="ЗМ-2026-0042"
-      />
-    </Providers>,
+function renderPanel(
+  templates: readonly DocumentTemplateOption[],
+  props: Partial<DocumentGeneratorProps> = {},
+) {
+  const panel = (list: readonly DocumentTemplateOption[]) => (
+    <DocumentGeneratorPanel
+      document={DEMO_DOCUMENT}
+      templates={list}
+      fileName="ЗМ-2026-0042"
+      {...props}
+    />
   )
+  const view = render(<Providers>{panel(templates)}</Providers>)
+  return {
+    ...view,
+    rerenderWith: (list: readonly DocumentTemplateOption[]) => {
+      view.rerender(<Providers>{panel(list)}</Providers>)
+    },
+  }
 }
 
 const lastPreview = () => preview.files.findLast((file) => file !== null)
@@ -191,9 +201,42 @@ describe("генератор документа з шаблону", () => {
         { timeout: 4000 },
       ),
     ).toBeInTheDocument()
-    load.mockResolvedValue(templateFile(contractTemplate()))
-    await userEvent.click(screen.getByRole("button", { name: "Спробувати ще" }))
+    let finish: (file: Blob) => void = () => undefined
+    load.mockReturnValue(
+      new Promise<Blob>((resolve) => {
+        finish = resolve
+      }),
+    )
+    const retry = screen.getByRole("button", { name: "Спробувати ще" })
+    await userEvent.click(retry)
+    // Поки шаблон читається знову, кнопка лишається на місці неактивною: фокус не губиться.
+    expect(await screen.findByText("Читаємо шаблон…")).toBeInTheDocument()
+    expect(retry).toBeInTheDocument()
+    expect(retry).toHaveAttribute("aria-disabled", "true")
+    expect(retry).toHaveFocus()
+    act(() => {
+      finish(templateFile(contractTemplate()))
+    })
     expect(await screen.findByText(/^Шаблон прочитано/)).toBeInTheDocument()
+  })
+
+  it("дані документа ще не готові — «Завантажити» неактивна з причиною від проекту", async () => {
+    renderPanel([template("Договір", contractTemplate)], {
+      unavailableReason: "Реквізити сторін ще завантажуються",
+    })
+    expect(await screen.findByText(/^Шаблон прочитано/)).toBeInTheDocument()
+    expect(downloadButton()).toHaveAttribute("aria-disabled", "true")
+    expect(downloadButton()).toHaveAccessibleDescription(
+      "Реквізити сторін ще завантажуються",
+    )
+  })
+
+  it("шаблони проекту прийшли після відкриття — береться перший, поки людина нічого не вибрала", async () => {
+    const view = renderPanel([])
+    expect(screen.getByTestId("file-drop-input")).toBeInTheDocument()
+    view.rerenderWith([template("Договір", contractTemplate)])
+    expect(await screen.findByText(/^Шаблон прочитано/)).toBeInTheDocument()
+    expect(screen.queryByTestId("file-drop-input")).not.toBeInTheDocument()
   })
 
   it("свій файл: шаблон Word читається, інший файл — «Це не файл Word .docx»", async () => {

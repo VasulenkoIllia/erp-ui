@@ -13,6 +13,7 @@
  */
 import { z } from "zod"
 
+import type { CurrencyWords } from "@/registry/lib/amount-in-words"
 import type { LocalizedText } from "@/registry/lib/auth"
 import type { PartyDetails, PartyRole } from "@/registry/lib/document-parties"
 import {
@@ -39,7 +40,7 @@ export type TemplateFieldValue =
 
 /** Інше поле документа: «Сплатити до», «Дійсна до», поле розширення проекту. */
 export interface TemplateExtraField {
-  /** Мітка в шаблоні: латиниця й цифри, без крапки (`dueDate`, `contract`). */
+  /** Ключ латиницею й цифрами, без крапки (`dueDate`); мітка в шаблоні — `{fields.dueDate}`. */
   readonly key: string
   readonly label: LocalizedText
   /** `null` — порожньо. */
@@ -62,7 +63,10 @@ export interface TemplateDocument {
   readonly lines?: readonly SavedDocumentBodyLine[]
   readonly totals?: SavedDocumentTotals
   readonly parties?: Partial<Record<PartyRole, TemplateParty>>
+  /** Інші поля: мітки `{fields.<ключ>}`. */
   readonly fields?: readonly TemplateExtraField[]
+  /** Слова валют для суми прописом, як у друку (`PrintDocumentTotals`): своя валюта чи заміна наявної. */
+  readonly currencies?: Readonly<Record<string, CurrencyWords>>
 }
 
 const templateDetailSchema = z.object({
@@ -111,12 +115,12 @@ export interface TemplateVariables {
 }
 
 /**
- * Мітка шаблону: значення `{x}`, блок `{#x}…{/x}` (цикл чи умова, `{^x}` — коли порожньо) чи сира
- * `{@x}`. Блок несе мітки всередині.
+ * Мітка шаблону: значення `{x}`, блок `{#x}…{/x}` (цикл чи умова), блок `{^x}…{/x}` (коли порожньо) чи
+ * сира `{@x}`. Блок несе мітки всередині.
  */
 export interface TemplateTag {
   readonly name: string
-  readonly kind: "value" | "section" | "raw"
+  readonly kind: "value" | "section" | "inverted" | "raw"
   readonly inner: readonly TemplateTag[]
 }
 
@@ -152,18 +156,16 @@ function collectIssues(
       continue
     }
     const inLoop = loop?.columns.some((column) => column.key === tag.name)
-    const asLoop =
-      tag.kind === "section"
-        ? scope.loops.find((candidate) => candidate.key === tag.name)
-        : undefined
-    if (!inLoop && !asLoop && !scope.scalars.has(tag.name))
+    const named = scope.loops.find((candidate) => candidate.key === tag.name)
+    if (!inLoop && !named && !scope.scalars.has(tag.name))
       issues.push(
         loop
           ? { code: "unknown", tag: tag.name, loop: loop.key }
           : { code: "unknown", tag: tag.name },
       )
-    // Умова на значенні лишає область тією самою, цикл відкриває свої колонки.
-    collectIssues(tag.inner, scope, asLoop ?? loop, issues)
+    // Цикл відкриває свої колонки; умова на значенні й `{^lines}` («рядків немає») лишають область тією самою.
+    const opens = tag.kind === "section" ? named : undefined
+    collectIssues(tag.inner, scope, opens ?? loop, issues)
   }
 }
 
@@ -177,7 +179,7 @@ const issueId = (issue: TemplateIssue) =>
 export function templateIssues(
   tags: readonly TemplateTag[],
   variables: TemplateVariables,
-): TemplateIssue[] {
+): readonly TemplateIssue[] {
   const issues: TemplateIssue[] = []
   collectIssues(
     tags,
@@ -194,58 +196,97 @@ export function templateIssues(
   })
 }
 
-/** Мітки шаблону, які є серед змінних: значення й цикли, які показує форма. */
+/**
+ * Мітки шаблону, які є серед змінних: значення й цикли, які показує форма. Мітка всередині циклу, що є
+ * його колонкою (`{#lines}{total}{/lines}`), — значення рядка, а не документа: поля документа вона не
+ * показує.
+ */
 export function usedTemplateKeys(
   tags: readonly TemplateTag[],
   variables: TemplateVariables,
 ): { values: ReadonlySet<string>; loops: ReadonlySet<string> } {
   const scalars = variableKeys(variables)
-  const loopKeys = new Set(variables.loops.map((loop) => loop.key))
   const values = new Set<string>()
   const loops = new Set<string>()
-  const walk = (list: readonly TemplateTag[]) => {
+  const walk = (
+    list: readonly TemplateTag[],
+    loop: TemplateLoop | undefined,
+  ) => {
     for (const tag of list) {
-      if (tag.kind === "section" && loopKeys.has(tag.name)) loops.add(tag.name)
+      const named = variables.loops.find((item) => item.key === tag.name)
+      if (loop?.columns.some((column) => column.key === tag.name)) {
+        // Колонка рядка.
+      } else if (named && tag.kind !== "value") loops.add(tag.name)
       else if (scalars.has(tag.name)) values.add(tag.name)
-      walk(tag.inner)
+      walk(tag.inner, tag.kind === "section" ? (named ?? loop) : loop)
     }
   }
-  walk(tags)
+  walk(tags, undefined)
   return { values, loops }
 }
 
 /** Дані шаблону: значення — вкладеними об'єктами за шляхом мітки, цикли — масивами рядків. */
 export type TemplateData = {
-  [key: string]: string | TemplateData | TemplateData[]
+  readonly [key: string]: string | TemplateData | readonly TemplateData[]
 }
 
-function setPath(data: TemplateData, key: string, value: string) {
+type MutableTemplateData = {
+  [key: string]: string | MutableTemplateData | readonly TemplateData[]
+}
+
+/**
+ * Символи, яких не може бути в XML документа Word: з ними заповнення падає. Вертикальна табуляція —
+ * м'який перенос Word, вставлений із Word, — стає переносом рядка.
+ */
+const isXmlChar = (code: number) =>
+  code === 0x09 ||
+  code === 0x0a ||
+  code === 0x0d ||
+  (code >= 0x20 && code !== 0xfffe && code !== 0xffff)
+
+const xmlText = (value: string) =>
+  Array.from(value, (char) =>
+    char === "\v" ? "\n" : isXmlChar(char.charCodeAt(0)) ? char : "",
+  ).join("")
+
+function setPath(data: MutableTemplateData, key: string, value: string) {
   const path = key.split(".")
   const last = path.pop()
   if (last === undefined) return
   let node = data
   for (const part of path) {
-    const next = node[part]
-    if (typeof next === "object" && !Array.isArray(next)) node = next
+    const next = Object.hasOwn(node, part) ? node[part] : undefined
+    if (typeof next === "object" && !Array.isArray(next))
+      node = next as MutableTemplateData
     else {
-      const created: TemplateData = {}
+      const created: MutableTemplateData = {}
       node[part] = created
       node = created
     }
   }
-  node[last] = value
+  node[last] = xmlText(value)
 }
+
+const rowText = (row: Readonly<Record<string, string>>): TemplateData =>
+  Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [key, xmlText(value)]),
+  )
 
 /** Дані для заповнення: значення змінних, виправлене людиною (`overrides`) — замість значення документа. */
 export function templateData(
   variables: TemplateVariables,
   overrides: Readonly<Record<string, string>> = {},
 ): TemplateData {
-  const data: TemplateData = {}
+  const data: MutableTemplateData = {}
   for (const group of variables.groups)
     for (const variable of group.variables)
-      setPath(data, variable.key, overrides[variable.key] ?? variable.value)
-  for (const loop of variables.loops)
-    data[loop.key] = loop.rows.map((row) => ({ ...row }))
+      setPath(
+        data,
+        variable.key,
+        Object.hasOwn(overrides, variable.key)
+          ? overrides[variable.key]
+          : variable.value,
+      )
+  for (const loop of variables.loops) data[loop.key] = loop.rows.map(rowText)
   return data
 }

@@ -1191,7 +1191,14 @@ export function InvoiceFromTemplate({ record }: RecordSlotProps<Invoice>) {
     },
     fields: [{ key: "dueDate", label: { uk: "Сплатити до", en: "Due date" }, value: { date: record.dueDate } }],
   }
-  return <DocumentGeneratorButton document={document} templates={TEMPLATES} fileName={record.number ?? "Чернетка"} />
+  return (
+    <DocumentGeneratorButton
+      document={document}
+      templates={TEMPLATES}
+      fileName={record.number ?? "Чернетка"}
+      unavailableReason={isLoading ? t("contracts.partiesLoading") : undefined}
+    />
+  )
 }
 
 const TEMPLATES: DocumentTemplateOption[] = [
@@ -1200,10 +1207,14 @@ const TEMPLATES: DocumentTemplateOption[] = [
 ```
 
 - Мітки: `{number}`, `{dateLong}`, `{total}`, `{totalInWords}`, `{customer.name}`, `{customer.clause}` («…, в особі …
-  (надалі «Покупець»)»), `{contractor.signature}` («Олена КОВАЛЬ»), інші поля за ключем (`{dueDate}`); рядки — між
+  (надалі «Покупець»)»), `{contractor.signature}` («Олена КОВАЛЬ»), інші поля — `{fields.<ключ>}` (`{fields.dueDate}`:
+  нова мітка кіта поле проекту не перекриє; ключ латиницею, кожен раз один); рядки — між
   `{#lines}` і `{/lines}` (`{no}`, `{name}`, `{quantity}`, `{unit}`, `{price}`, `{total}`…), умова —
   `{#customer.vatIpn}ІПН {customer.vatIpn}{/customer.vatIpn}`. Повний перелік — «Які мітки можна вставити» в генераторі.
 - Невідома мітка, `{@…}` і помилка запису — перелік «Помилки в шаблоні» біля мітки, завантаження неактивне з причиною.
+  Поки дані документа вантажаться (картка контрагента), дайте `unavailableReason`: форма й перегляд працюють, а
+  завантаження чекає. Сума прописом у своїй валюті — `currencies`, як у друку.
+- Межі шаблону: файл до 10 МБ, розпакований до 50 МБ, текст Word до 10 МБ і до 500 міток.
 - Значення — мовою документа (мова компанії, як у друку, чи `language`), людина може виправити значення перед
   завантаженням; документ від цього не змінюється.
 - Розширення збирається на старті застосунку, тож компонент дії вантажте ліниво, у своєму `Suspense` з неактивною

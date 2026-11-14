@@ -9,7 +9,10 @@
  *   `{customer.signature}` — «Олена КОВАЛЬ» (`signatureName`).
  * - Рядки товарів і послуг — цикл `{#lines}…{/lines}`: `no`, `name`, `quantity`, `unit`, `price`,
  *   `discount`, `tax`, `net`, `total`. Розділи й нотатки в цикл не йдуть.
- * - Інші поля (`fields`) — групою «Інші поля»; ключ кіта (документ, сторона, `lines`) поле не перекриває.
+ * - Інші поля (`fields`) — групою «Інші поля» з міткою `{fields.<ключ>}`: нова мітка кіта не перекриє поле
+ *   проекту. Ключ не латиницею чи двічі той самий — помилка розробника.
+ * - Значення, яке не форматується (дата не дата, невідома валюта), — порожнє, з помилкою в консолі: генератор
+ *   не падає через одне поле.
  *
  * Частина лінивого чанка генератора (`erp/document-generator-panel`): дія на картці його не тягне.
  */
@@ -48,6 +51,8 @@ import type { PrintLanguage } from "@/registry/lib/print"
 
 /** Ключ цикла рядків документа: `{#lines}…{/lines}`. */
 export const LINES_LOOP = "lines"
+/** Група інших полів: `{fields.dueDate}`. */
+export const FIELDS_GROUP = "fields"
 
 /** Поля сторони в порядку реквізитів; `clause` і `signature` кіт складає сам. */
 const PARTY_VARIABLES = [
@@ -97,7 +102,17 @@ const MULTILINE = new Set(["address", "clause", "totalInWords"])
 /** Ключ іншого поля: латиниця й цифри, без крапки, щоб не стати шляхом у чужу групу. */
 const FIELD_KEY = /^[A-Za-z][A-Za-z0-9_]*$/
 
-interface Languages {
+/** Значення, яке не відформатувалось (`RangeError` дати чи валюти), — порожнє, а не збій генератора. */
+function formatted(format: () => string): string {
+  try {
+    return format()
+  } catch (error) {
+    console.error("erp-ui: document template value was not formatted", error)
+    return ""
+  }
+}
+
+export interface DocumentTemplateLanguages {
   /** Мова документа: значення. */
   readonly sheet: PrintLanguage
   /** Мова інтерфейсу: підписи у формі. */
@@ -117,20 +132,26 @@ const variable = (
 
 function documentGroup(
   document: TemplateDocument,
-  { sheet, ui }: Languages,
+  { sheet, ui }: DocumentTemplateLanguages,
 ): TemplateVariableGroup {
+  const { currencies } = document
   const money = (amount: number) =>
-    formatMoney({ amount, currency: document.currency }, sheet.locale)
-  const words = hasCurrencyWords(document.currency, sheet.language)
-    ? amountInWords(
-        { amount: document.total, currency: document.currency },
-        sheet.language,
+    formatted(() =>
+      formatMoney({ amount, currency: document.currency }, sheet.locale),
+    )
+  const words = hasCurrencyWords(document.currency, sheet.language, currencies)
+    ? formatted(() =>
+        amountInWords(
+          { amount: document.total, currency: document.currency },
+          sheet.language,
+          { currencies },
+        ),
       )
     : ""
   const values: Record<DocumentVariable, string> = {
     number: document.number ?? sheet.t("documentGenerator.document.draft"),
-    date: formatDate(document.date, "date", sheet.locale),
-    dateLong: formatDate(document.date, "long", sheet.locale),
+    date: formatted(() => formatDate(document.date, "date", sheet.locale)),
+    dateLong: formatted(() => formatDate(document.date, "long", sheet.locale)),
     currency: document.currency.toUpperCase(),
     net: document.totals ? money(document.totals.net) : "",
     tax: document.totals ? money(document.totals.tax) : "",
@@ -153,7 +174,7 @@ function documentGroup(
 function partyGroup(
   role: PartyRole,
   party: NonNullable<TemplateDocument["parties"]>[PartyRole],
-  { sheet, ui }: Languages,
+  { sheet, ui }: DocumentTemplateLanguages,
 ): TemplateVariableGroup {
   const details = party?.details ?? emptyPartyDetails()
   const roleIn = (language: string, t: ErpUiTranslate) =>
@@ -184,14 +205,15 @@ function lineRow(
   currency: string,
   locale: string,
 ): Record<(typeof LINE_COLUMNS)[number], string> {
-  const money = (amount: number) => formatMoney({ amount, currency }, locale)
+  const money = (amount: number) =>
+    formatted(() => formatMoney({ amount, currency }, locale))
   const discount = lineDiscountOf(line.totals)
   return {
     no: String(index + 1),
     name: line.name,
     quantity: formatDecimal(line.quantity, locale),
     unit: line.unit?.name ?? "",
-    price: formatPrice(line.price, currency, locale),
+    price: formatted(() => formatPrice(line.price, currency, locale)),
     discount: discount ? money(discount) : "",
     tax: line.tax?.name ?? "",
     net: money(line.totals.net),
@@ -201,7 +223,7 @@ function lineRow(
 
 function linesLoop(
   document: TemplateDocument,
-  { sheet, ui }: Languages,
+  { sheet, ui }: DocumentTemplateLanguages,
 ): TemplateLoop {
   return {
     key: LINES_LOOP,
@@ -219,25 +241,37 @@ function linesLoop(
 function fieldValue(value: TemplateFieldValue | null, locale: string): string {
   if (value === null) return ""
   if (typeof value === "string") return value
-  if ("date" in value) return formatDate(value.date, "date", locale)
-  return formatMoney(value.money, locale)
+  if ("date" in value)
+    return formatted(() => formatDate(value.date, "date", locale))
+  if ("money" in value) return formatted(() => formatMoney(value.money, locale))
+  const unexpected: never = value
+  return unexpected
+}
+
+/** Ключі інших полів: латиниця, кожен один раз — інакше мітка шаблону тихо пропала б. */
+function assertFieldKeys(fields: readonly TemplateExtraField[]) {
+  const seen = new Set<string>()
+  for (const { key } of fields) {
+    if (!FIELD_KEY.test(key) || seen.has(key))
+      throw new Error(
+        `erp-ui: document template field key "${key}" is not a unique Latin key`,
+      )
+    seen.add(key)
+  }
 }
 
 function fieldsGroup(
   fields: readonly TemplateExtraField[],
-  taken: ReadonlySet<string>,
-  { sheet, ui }: Languages,
+  { sheet, ui }: DocumentTemplateLanguages,
 ): TemplateVariableGroup | null {
-  const own = fields.filter(
-    (field) => FIELD_KEY.test(field.key) && !taken.has(field.key),
-  )
-  if (own.length === 0) return null
+  assertFieldKeys(fields)
+  if (fields.length === 0) return null
   return {
-    id: "fields",
+    id: FIELDS_GROUP,
     label: ui.t("documentGenerator.groups.fields"),
-    variables: own.map((field) =>
+    variables: fields.map((field) =>
       variable(
-        field.key,
+        `${FIELDS_GROUP}.${field.key}`,
         localizedText(field.label, ui.language) ?? field.key,
         fieldValue(field.value, sheet.locale),
       ),
@@ -248,18 +282,13 @@ function fieldsGroup(
 /** Змінні шаблону документа: групи значень і цикл рядків. */
 export function documentTemplateVariables(
   document: TemplateDocument,
-  languages: Languages,
+  languages: DocumentTemplateLanguages,
 ): TemplateVariables {
   const head = documentGroup(document, languages)
   const parties = PARTY_ROLES.map((role) =>
     partyGroup(role, document.parties?.[role], languages),
   )
-  const taken = new Set<string>([
-    ...head.variables.map((item) => item.key),
-    ...PARTY_ROLES,
-    LINES_LOOP,
-  ])
-  const fields = fieldsGroup(document.fields ?? [], taken, languages)
+  const fields = fieldsGroup(document.fields ?? [], languages)
   return {
     groups: [head, ...parties, ...(fields ? [fields] : [])],
     loops: [linesLoop(document, languages)],

@@ -30,7 +30,7 @@ export type DocxPreviewState = "idle" | "rendering" | "ready" | "failed"
 const SHEET_GAP_PX = 16
 
 const SHELL = `<!doctype html><html><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <style>html,body{margin:0;background:transparent}body .docx-wrapper{background:transparent;padding:${SHEET_GAP_PX}px;padding-bottom:0}body .docx-wrapper>section.docx{margin-bottom:${SHEET_GAP_PX}px}</style>
 </head><body><div data-styles></div><div data-body></div></body></html>`
 
@@ -51,13 +51,14 @@ function containersOf(frame: HTMLIFrameElement | null) {
   return document && body && styles ? { document, body, styles } : null
 }
 
-/** Аркуш на ширину iframe: стиснути, якщо не влазить. */
+/** Аркуші на ширину iframe: стиснути за найширшим (альбомний розділ ширший за книжковий). */
 function fitSheet(frame: HTMLIFrameElement) {
   const parts = containersOf(frame)
-  const sheet = parts?.body.querySelector<HTMLElement>("section.docx")
-  if (!parts || !sheet) return
+  const sheets = parts?.body.querySelectorAll<HTMLElement>("section.docx")
+  if (!parts || !sheets?.length) return
+  const widest = Math.max(...Array.from(sheets, (sheet) => sheet.offsetWidth))
   const available = frame.clientWidth - SHEET_GAP_PX * 2
-  const zoom = Math.min(1, available / Math.max(sheet.offsetWidth, 1))
+  const zoom = Math.min(1, available / Math.max(widest, 1))
   parts.document.body.style.zoom = String(zoom)
 }
 
@@ -72,6 +73,10 @@ function stripLinks(body: HTMLElement) {
     link.removeAttribute("href")
 }
 
+/**
+ * Черга малювання. Кожен запит (новий файл чи «порожньо») має номер: файл, домальований після новішого
+ * запиту, з аркуша прибирається, тож після «порожньо» старий документ не з'явиться.
+ */
 function useRenderQueue(
   frame: React.RefObject<HTMLIFrameElement | null>,
   report: React.RefObject<((state: DocxPreviewState) => void) | undefined>,
@@ -79,14 +84,16 @@ function useRenderQueue(
   const pending = React.useRef<Blob | null>(null)
   const isBusy = React.useRef(false)
   const isMounted = React.useRef(true)
+  const request = React.useRef(0)
   React.useEffect(() => {
     isMounted.current = true
     return () => {
       isMounted.current = false
     }
   }, [])
-  return React.useCallback(
+  const render = React.useCallback(
     async (file: Blob) => {
+      request.current += 1
       pending.current = file
       if (isBusy.current) return
       isBusy.current = true
@@ -94,16 +101,27 @@ function useRenderQueue(
         while (pending.current && isMounted.current) {
           const next = pending.current
           pending.current = null
+          const turn = request.current
           const parts = containersOf(frame.current)
-          if (!parts || !frame.current) break
+          if (!parts || !frame.current) {
+            // Кадр ще не готовий: файл намалюється після його завантаження.
+            pending.current = next
+            break
+          }
           report.current?.("rendering")
           try {
             await renderAsync(next, parts.body, parts.styles, RENDER_OPTIONS)
+            if (turn !== request.current) {
+              if (!pending.current) parts.body.replaceChildren()
+              continue
+            }
             stripLinks(parts.body)
             fitSheet(frame.current)
             if (!pending.current) report.current?.("ready")
-          } catch {
+          } catch (error) {
             parts.body.replaceChildren()
+            if (turn !== request.current) continue
+            console.error("erp-ui: docx preview failed", error)
             if (!pending.current) report.current?.("failed")
           }
         }
@@ -113,6 +131,15 @@ function useRenderQueue(
     },
     [frame, report],
   )
+  const clear = React.useCallback(() => {
+    request.current += 1
+    pending.current = null
+    const parts = containersOf(frame.current)
+    parts?.body.replaceChildren()
+    parts?.styles.replaceChildren()
+    report.current?.("idle")
+  }, [frame, report])
+  return { render, clear }
 }
 
 export function DocxPreview({
@@ -122,17 +149,18 @@ export function DocxPreview({
   className,
 }: DocxPreviewProps) {
   const frame = React.useRef<HTMLIFrameElement>(null)
-  const [isLoaded, setLoaded] = React.useState(false)
+  // Кадр завантажився (і щоразу, коли браузер завантажив його знову: вміст `srcDoc` тоді новий).
+  const [loads, setLoads] = React.useState(0)
   // Свіжий обробник без перемальовування файла, коли батько дає нову функцію.
   const report = React.useRef(onStateChange)
   React.useEffect(() => {
     report.current = onStateChange
   })
-  const render = useRenderQueue(frame, report)
+  const { render, clear } = useRenderQueue(frame, report)
 
   React.useEffect(() => {
     const element = frame.current
-    if (!isLoaded || !element) return
+    if (loads === 0 || !element) return
     syncColorScheme(element)
     const resize = new ResizeObserver(() => {
       fitSheet(element)
@@ -146,16 +174,13 @@ export function DocxPreview({
       resize.disconnect()
       theme.disconnect()
     }
-  }, [isLoaded])
+  }, [loads])
 
   React.useEffect(() => {
-    if (!isLoaded) return
+    if (loads === 0) return
     if (file) void render(file)
-    else {
-      containersOf(frame.current)?.body.replaceChildren()
-      report.current?.("idle")
-    }
-  }, [file, isLoaded, render])
+    else clear()
+  }, [file, loads, render, clear])
 
   return (
     <iframe
@@ -165,7 +190,7 @@ export function DocxPreview({
       sandbox="allow-same-origin"
       srcDoc={SHELL}
       onLoad={() => {
-        setLoaded(true)
+        setLoads((count) => count + 1)
       }}
       className={cn("block size-full border-0 bg-transparent", className)}
     />
