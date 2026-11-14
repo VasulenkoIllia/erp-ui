@@ -1,4 +1,4 @@
-import { useDataProvider, type RaRecord } from "ra-core"
+import { useDataProvider, type RaRecord } from "@/registry/lib/ra-core"
 import { useCallback } from "react"
 
 import { MENTION_FETCHED } from "@/registry/lib/mention-menu"

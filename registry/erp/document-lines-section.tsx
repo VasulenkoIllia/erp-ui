@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
 import { useEffect, useMemo } from "react"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import type { z } from "zod"

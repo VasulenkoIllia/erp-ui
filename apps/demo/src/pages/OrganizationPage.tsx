@@ -1,4 +1,4 @@
-import { useAuthenticated, useGetOne } from "ra-core"
+import { useAuthenticated, useGetOne } from "@/registry/lib/ra-core"
 import { useCallback, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useLocation as useRouterLocation, useSearchParams } from "react-router"

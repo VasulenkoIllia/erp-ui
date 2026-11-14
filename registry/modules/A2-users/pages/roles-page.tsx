@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { RolesEditor } from "@/components/erp/roles-editor"

@@ -1,4 +1,4 @@
-import { useGetOne, type RaRecord } from "ra-core"
+import { useGetOne, type RaRecord } from "@/lib/ra-core"
 import { useWatch, type UseFormReturn } from "react-hook-form"
 
 import { PartyDetailsFields } from "@/components/erp/party-details"

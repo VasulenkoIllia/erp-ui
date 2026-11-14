@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/registry/lib/ra-core"
 import { useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"

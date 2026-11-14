@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useDataProvider, type Identifier } from "ra-core"
+import { useDataProvider, type Identifier } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"

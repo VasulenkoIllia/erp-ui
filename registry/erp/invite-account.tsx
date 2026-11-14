@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useLocation, useLogout } from "ra-core"
+import { useLocation, useLogout } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import {

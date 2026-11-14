@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { useCanAccess } from "ra-core"
+import { useCanAccess } from "@/lib/ra-core"
 import { Link } from "react-router"
 
 import { DeniedAction } from "@/components/erp/permission-gate"

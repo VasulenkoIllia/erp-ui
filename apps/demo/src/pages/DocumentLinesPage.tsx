@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useAuthenticated, useGetList, useGetOne } from "ra-core"
+import { useAuthenticated, useGetList, useGetOne } from "@/registry/lib/ra-core"
 import { useId, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"

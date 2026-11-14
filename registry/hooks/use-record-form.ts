@@ -20,7 +20,7 @@
  */
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
-import { useCreate, useUpdate, type RaRecord } from "ra-core"
+import { useCreate, useUpdate, type RaRecord } from "@/registry/lib/ra-core"
 import * as React from "react"
 import {
   useForm,

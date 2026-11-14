@@ -4,7 +4,7 @@
  * мовою інтерфейсу: кнопку показують неактивною з нею (SPEC §8.4). Немає права ролі — причину дає
  * модуль своїм текстом («Немає права змінювати організації»), як і раніше.
  */
-import { useCanAccess } from "ra-core"
+import { useCanAccess } from "@/registry/lib/ra-core"
 import { useCallback } from "react"
 
 import { useErpUiT } from "@/registry/lib/i18n"

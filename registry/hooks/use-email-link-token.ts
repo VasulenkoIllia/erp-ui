@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useLocation, useNavigate } from "ra-core"
+import { useLocation, useNavigate } from "@/registry/lib/ra-core"
 
 /**
  * Токен із листа для екранів «новий пароль», «запрошення» й «вхід за посиланням» (ADR-0010,

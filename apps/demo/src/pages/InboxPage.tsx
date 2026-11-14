@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { NotificationInbox } from "@/registry/erp/notification-inbox"
 import { PageSkeleton } from "@/registry/erp/page-state"

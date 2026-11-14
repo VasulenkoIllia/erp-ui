@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
 import type { Control, FieldValues, UseFormReturn } from "react-hook-form"
 
 import {

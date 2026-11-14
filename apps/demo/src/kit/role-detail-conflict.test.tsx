@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext, type AuthProvider } from "ra-core"
+import { CoreAdminContext, type AuthProvider } from "@/registry/lib/ra-core"
 import { describe, expect, it, vi } from "vitest"
 
 import { RoleDetail } from "@/registry/erp/role-detail"

@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
 
 import type { DataTableProps } from "@/registry/erp/data-table"
 import type { DataTableSelectionProps } from "@/registry/erp/data-table-selection"

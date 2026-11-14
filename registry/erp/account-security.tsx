@@ -1,6 +1,6 @@
 import * as React from "react"
 import { REGEXP_ONLY_DIGITS } from "input-otp"
-import { useLogout } from "ra-core"
+import { useLogout } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import {

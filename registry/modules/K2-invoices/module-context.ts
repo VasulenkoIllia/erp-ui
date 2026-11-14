@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 
 import type { DocumentClients } from "@/components/erp/document-form-items"
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"

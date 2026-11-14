@@ -8,7 +8,7 @@ import {
   within,
 } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 

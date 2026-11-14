@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 import { useEffect } from "react"
 import { useNavigate } from "react-router"
 

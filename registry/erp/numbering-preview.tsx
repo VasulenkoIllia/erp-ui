@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/registry/lib/ra-core"
 import * as React from "react"
 import { useWatch, type Control } from "react-hook-form"
 

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useCallback } from "react"
 import { useNavigate, useParams } from "react-router"
 

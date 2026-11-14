@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
 import { renderHook } from "@testing-library/react"
-import { CoreAdminContext, type DataProvider } from "ra-core"
+import { CoreAdminContext, type DataProvider } from "@/registry/lib/ra-core"
 import { describe, expect, it, vi } from "vitest"
 
 import { useMentionSearch } from "@/registry/hooks/use-mention-search"

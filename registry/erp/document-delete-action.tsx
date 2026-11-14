@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useDelete, type RaRecord } from "ra-core"
+import { useDelete, type RaRecord } from "@/registry/lib/ra-core"
 import { useState } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"

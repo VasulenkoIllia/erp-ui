@@ -14,6 +14,22 @@ const MODULE_PROJECT_PATHS = {
     "У модулі — шляхи проекту: @/components/{ui,erp,templates}/…, @/lib/…, @/hooks/…",
 }
 
+/** Демо й спільні шари беруть реєстр через @/registry: шляхи проекту — лише для модулів. */
+const REGISTRY_PATHS = {
+  group: ["@/components/*", "@/lib/*", "@/hooks/*"],
+  message: "Реєстр — через @/registry/<шар>/<файл>",
+}
+
+/**
+ * ra-core — лише через шов (ADR-0090). Правило з тим самим ім'ям у пізнішому блоці замінює ранній,
+ * тож ця заборона стоїть у кожному блоці no-restricted-imports нижче; сам шов звільнено наприкінці.
+ */
+const RA_CORE_SEAM = {
+  name: "ra-core",
+  message:
+    "ra-core — через шов: @/registry/lib/ra-core, у модулі — @/lib/ra-core (ADR-0090). Бракує імені — додайте його в шов",
+}
+
 export default defineConfig(
   globalIgnores([
     "**/dist/",
@@ -57,6 +73,7 @@ export default defineConfig(
         "error",
         { roles: ["tabpanel", "region"] },
       ],
+      "no-restricted-imports": ["error", { paths: [RA_CORE_SEAM] }],
     },
   },
   {
@@ -69,7 +86,10 @@ export default defineConfig(
   {
     files: ["registry/modules/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: [MODULE_PROJECT_PATHS] }],
+      "no-restricted-imports": [
+        "error",
+        { paths: [RA_CORE_SEAM], patterns: [MODULE_PROJECT_PATHS] },
+      ],
       "no-restricted-syntax": [
         "error",
         {
@@ -105,6 +125,7 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         {
+          paths: [RA_CORE_SEAM],
           patterns: [
             MODULE_PROJECT_PATHS,
             {
@@ -127,15 +148,15 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": [
         "error",
-        {
-          patterns: [
-            {
-              group: ["@/components/*", "@/lib/*", "@/hooks/*"],
-              message: "Реєстр — через @/registry/<шар>/<файл>",
-            },
-          ],
-        },
+        { paths: [RA_CORE_SEAM], patterns: [REGISTRY_PATHS] },
       ],
+    },
+  },
+  // Шов сам бере ra-core (ADR-0090).
+  {
+    files: ["registry/lib/ra-core.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [REGISTRY_PATHS] }],
     },
   },
   prettier,

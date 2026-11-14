@@ -1,4 +1,4 @@
-import { useCanAccess } from "ra-core"
+import { useCanAccess } from "@/lib/ra-core"
 import {
   Suspense,
   useEffect,

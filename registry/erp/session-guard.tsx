@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useLogout } from "ra-core"
+import { useLogout } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { useAuthMethods, useErpAuthProvider } from "@/registry/erp/auth-layout"

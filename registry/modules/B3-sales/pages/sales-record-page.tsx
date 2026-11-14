@@ -1,4 +1,4 @@
-import { useAuthenticated, type RaRecord } from "ra-core"
+import { useAuthenticated, type RaRecord } from "@/lib/ra-core"
 import { useNavigate, useParams } from "react-router"
 
 import type { ConflictField } from "@/components/erp/conflict-dialog"

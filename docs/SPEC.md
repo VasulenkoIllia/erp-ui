@@ -66,11 +66,11 @@
 |---|---|---|
 | 1. Токени й теми | `themes.css`, щільність, радіуси, `--chart-*`, статусні кольори | значення генеруються з `design/palette-tokens.json`, руками не правимо |
 | 2. Примітиви | shadcn/ui на Base UI | зміни лише через реєстр |
-| 3. ERP-компоненти | UI01–UI47 і платформні PF01–PF20 | не залежать від ra-core, крім CRUD-обгорток |
+| 3. ERP-компоненти | UI01–UI47 і платформні PF01–PF20 | беруть ra-core лише через шов `lib/ra-core` (ADR-0090); дозволені групи — дані (CRUD), вхід і права, навігація й блокування переходу; перелік імен — у файлі шва |
 | 4. Шаблони сторінок | List Report, Object Page, Worklist, Overview, Wizard, Split/FCL, Board, Runner, Kiosk | екрани модулів збираються лише з шаблонів |
 | 5. Модулі | A1…T1, LC01…LC12 | кожен: контракт + моки + екрани + стани + i18n |
 
-Поруч — складники без власного UI: `lib/*` (контракти, провайдери, утиліти, моки), `hooks/*` (хуки) і `tools/*` (команда кіта й помічники e2e, що ставляться в проект, ADR-0029). `lib` і `hooks` — спільні шари так само, як `ui`, `erp` і `templates`.
+Поруч — складники без власного UI: `lib/*` (контракти, провайдери, утиліти, моки), `hooks/*` (хуки) і `tools/*` (команда кіта й помічники e2e, що ставляться в проект, ADR-0029). `lib` і `hooks` — спільні шари так само, як `ui`, `erp` і `templates`. Шов `lib/ra-core` діє для всього кіта: хуки, `lib`, шаблони, модулі й демо теж імпортують ra-core лише з нього, прямий імпорт ловить ESLint кіта.
 
 ### 3.2 Репозиторій `erp-ui`
 
@@ -124,7 +124,7 @@ erp-ui/
 | Збірка | React 19, Vite, TypeScript | MIT | |
 | Стилі | Tailwind CSS v4 | MIT | контейнерні запити для адаптиву |
 | Примітиви | shadcn/ui (CLI v4) на Base UI | MIT | Radix не використовуємо в нових компонентах |
-| CRUD | ra-core 5 + Shadcn Admin Kit | MIT | React Router; dataProvider під наш REST-контракт; з ra-core беремо хуки й провайдери, Admin Kit — джерело коду для перебудови, не залежність (ADR-0005) |
+| CRUD | ra-core 5 + Shadcn Admin Kit | MIT | React Router; dataProvider під наш REST-контракт; з ra-core беремо хуки, провайдери, типи, обгортку застосунку й посилання — лише через шов `lib/ra-core` (ADR-0005, ADR-0090), Admin Kit — джерело коду для перебудови, не залежність |
 | Дані | TanStack Query 5 | MIT | |
 | Форми | react-hook-form + zod 4, @hookform/resolvers | MIT | шар форм кіта — ADR-0015 |
 | Таблиці | TanStack Table 9 + TanStack Virtual; ReUI Data Grid | MIT | власна `erp/data-table` (ADR-0016), ReUI — довідка; на телефоні — рендерер карток |

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useBlocker, useCanBlock } from "ra-core"
+import { useBlocker, useCanBlock } from "@/registry/lib/ra-core"
 import {
   get,
   type Control,

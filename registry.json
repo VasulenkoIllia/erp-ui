@@ -394,7 +394,7 @@
       "name": "data",
       "type": "registry:item",
       "title": "Шар даних",
-      "description": "Клієнт API, dataProvider і authProvider для ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
+      "description": "Клієнт API, dataProvider і authProvider для ra-core, шов ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "i18next@^26.4.4",
@@ -459,6 +459,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/auth.ts",
@@ -781,7 +786,7 @@
           "target": "@hooks/use-api-error-message.ts"
         }
       ],
-      "docs": "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).\n1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.\n2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).\n3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client).\n4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
+      "docs": "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).\n1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.\n2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).\n3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client). CoreAdminContext, хуки й типи ra-core — з @/lib/ra-core (ADR-0090).\n4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
       "meta": {
         "layer": "data",
         "status": "beta",
@@ -1146,6 +1151,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -2131,6 +2141,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -3467,6 +3482,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -4838,6 +4858,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -6064,6 +6089,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -7106,6 +7136,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -8238,6 +8273,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -9529,6 +9569,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -11155,6 +11200,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -12799,6 +12849,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -14385,6 +14440,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -15712,6 +15772,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -16694,6 +16759,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -20640,6 +20710,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -21303,6 +21378,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -21652,6 +21732,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -22613,6 +22698,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -23000,6 +23090,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -23450,6 +23545,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -23812,6 +23912,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -24194,6 +24299,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -24327,6 +24437,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -27636,6 +27751,11 @@
           "target": "@lib/company-scope.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -28039,6 +28159,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -28462,6 +28587,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -28883,6 +29013,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -29302,6 +29437,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -29770,6 +29910,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -30201,6 +30346,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -30620,6 +30770,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -31046,6 +31201,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -31569,6 +31729,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -31962,6 +32127,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -32405,6 +32575,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -32824,6 +32999,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -33347,6 +33527,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -33701,6 +33886,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -34124,6 +34314,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -34543,6 +34738,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -35056,6 +35256,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -35415,6 +35620,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -35847,6 +36057,11 @@
           "target": "@lib/preferences.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -36269,6 +36484,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -36608,6 +36828,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -37145,6 +37370,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -37699,6 +37929,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -38065,6 +38300,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -38414,6 +38654,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -38847,6 +39092,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -39272,6 +39522,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -39635,6 +39890,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -39969,6 +40229,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -40389,6 +40654,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -40812,6 +41082,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -41231,6 +41506,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -41737,6 +42017,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -42248,6 +42533,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -42769,6 +43059,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -43308,6 +43603,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -43662,6 +43962,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -44093,6 +44398,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -44591,6 +44901,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -44933,6 +45248,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -45834,6 +46154,32 @@
       }
     },
     {
+      "name": "lib/ra-core",
+      "type": "registry:lib",
+      "title": "Шов ra-core",
+      "description": "Усе, що кіт бере з ra-core, одним файлом (ADR-0090): обгортка застосунку CoreAdminContext; дані — useGetList, useGetOne, useCreate, useUpdate, useDelete, useDataProvider…; вхід і права — useAuthenticated, useCanAccess, useLogout…; навігація — LinkBase, useNavigate, useLocation, useBlocker; типи RaRecord, DataProvider, AuthProvider… Кіт імпортує ra-core лише звідси (ESLint), проект — теж з @/lib/ra-core.",
+      "dependencies": [
+        "ra-core@^5.15.4"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "data",
+        "spec": [
+          "§3.1",
+          "§4",
+          "§17"
+        ]
+      }
+    },
+    {
       "name": "lib/ra-i18n",
       "type": "registry:lib",
       "title": "i18nProvider ra-core",
@@ -46038,6 +46384,11 @@
           "path": "registry/lib/language-names.ts",
           "type": "registry:lib",
           "target": "@lib/language-names.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         }
       ],
       "meta": {
@@ -46389,6 +46740,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -47018,6 +47374,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -48086,6 +48447,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -48430,6 +48796,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -48767,6 +49138,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -49150,6 +49526,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -49540,6 +49921,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -49942,6 +50328,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -50043,6 +50434,11 @@
           "path": "registry/hooks/use-email-link-token.ts",
           "type": "registry:hook",
           "target": "@hooks/use-email-link-token.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         }
       ],
       "meta": {
@@ -50343,6 +50739,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -50671,6 +51072,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -51457,6 +51863,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -51566,6 +51977,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -51870,6 +52286,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -52221,6 +52642,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -52352,6 +52778,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -52406,6 +52837,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -52698,6 +53134,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -52782,6 +53223,11 @@
           "path": "registry/lib/mention-menu.ts",
           "type": "registry:lib",
           "target": "@lib/mention-menu.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/rich-text.ts",
@@ -53329,6 +53775,11 @@
           "target": "@lib/period-lock.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -53660,6 +54111,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -53973,6 +54429,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -54300,6 +54761,11 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/record-access.ts",
           "type": "registry:lib",
           "target": "@lib/record-access.ts"
@@ -54601,6 +55067,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -54951,6 +55422,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -55352,6 +55828,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -55560,6 +56041,11 @@
           "target": "@lib/company-scope.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/saved-views.ts",
           "type": "registry:lib",
           "target": "@lib/saved-views.ts"
@@ -55708,6 +56194,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -56032,6 +56523,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -56458,6 +56954,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -57065,6 +57566,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -57458,6 +57964,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -57953,6 +58464,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -58465,6 +58981,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -58922,6 +59443,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -59386,6 +59912,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -59860,6 +60391,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -60819,6 +61355,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -61242,6 +61783,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -61703,6 +62249,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -62518,6 +63069,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -63185,6 +63741,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -64254,6 +64815,11 @@
           "target": "@lib/phone.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -64705,6 +65271,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -65170,6 +65741,11 @@
           "target": "@lib/phone.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -65606,6 +66182,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -66582,6 +67163,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -68415,6 +69001,11 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/shortcuts.ts",
           "type": "registry:lib",
           "target": "@lib/shortcuts.ts"
@@ -68948,6 +69539,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -69872,6 +70468,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -71165,6 +71766,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -71650,6 +72256,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -72315,6 +72926,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -72705,6 +73321,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -73099,6 +73720,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -73543,6 +74169,11 @@
           "path": "registry/lib/pins.ts",
           "type": "registry:lib",
           "target": "@lib/pins.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -74020,6 +74651,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -74569,6 +75205,11 @@
           "target": "@lib/print.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -75094,6 +75735,11 @@
           "path": "registry/lib/print.ts",
           "type": "registry:lib",
           "target": "@lib/print.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -75622,6 +76268,11 @@
           "target": "@lib/print.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -76085,6 +76736,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -76666,6 +77322,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -77337,6 +77998,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -78061,6 +78727,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -78737,6 +79408,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -80011,6 +80687,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -80493,6 +81174,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -80878,6 +81564,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -81284,6 +81975,11 @@
           "path": "registry/lib/print.ts",
           "type": "registry:lib",
           "target": "@lib/print.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -82503,6 +83199,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -83015,6 +83716,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -83500,6 +84206,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -84258,6 +84969,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -84766,6 +85482,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -85220,6 +85941,11 @@
           "target": "@lib/period-lock.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -85578,6 +86304,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -85886,6 +86617,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -86261,6 +86997,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -86724,6 +87465,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/record-access.ts",
           "type": "registry:lib",
           "target": "@lib/record-access.ts"
@@ -87171,6 +87917,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/record-access.ts",
           "type": "registry:lib",
           "target": "@lib/record-access.ts"
@@ -87612,6 +88363,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -88117,6 +88873,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -88630,6 +89391,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -89107,6 +89873,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -89794,6 +90565,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/record-access.ts",
           "type": "registry:lib",
           "target": "@lib/record-access.ts"
@@ -90128,6 +90904,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -90540,6 +91321,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -91852,6 +92638,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -92279,6 +93070,11 @@
           "path": "registry/lib/push-device.ts",
           "type": "registry:lib",
           "target": "@lib/push-device.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -93278,6 +94074,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -93779,6 +94580,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -94303,6 +95109,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -95250,6 +96061,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -95620,6 +96436,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -96008,6 +96829,11 @@
           "path": "registry/lib/period-lock.ts",
           "type": "registry:lib",
           "target": "@lib/period-lock.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -96480,6 +97306,11 @@
           "path": "registry/lib/period-lock.ts",
           "type": "registry:lib",
           "target": "@lib/period-lock.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -97051,6 +97882,11 @@
           "path": "registry/lib/period-lock.ts",
           "type": "registry:lib",
           "target": "@lib/period-lock.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -97625,6 +98461,11 @@
           "target": "@lib/period-lock.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -98053,6 +98894,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -98679,6 +99525,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -99001,6 +99852,11 @@
           "path": "registry/lib/print.ts",
           "type": "registry:lib",
           "target": "@lib/print.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -99589,6 +100445,11 @@
           "target": "@lib/print.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -100091,6 +100952,11 @@
           "path": "registry/lib/print.ts",
           "type": "registry:lib",
           "target": "@lib/print.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -100803,6 +101669,11 @@
           "target": "@lib/print.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -101259,6 +102130,11 @@
           "path": "registry/lib/phone.ts",
           "type": "registry:lib",
           "target": "@lib/phone.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -101735,6 +102611,11 @@
           "target": "@lib/push-device.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -102165,6 +103046,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -102551,6 +103437,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -103029,6 +103920,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -103486,6 +104382,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -104169,6 +105070,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -104666,6 +105572,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -105083,6 +105994,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -105729,6 +106645,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -106267,6 +107188,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -106667,6 +107593,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -107021,6 +107952,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -107365,6 +108301,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -107706,6 +108647,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -108111,6 +109057,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -108505,6 +109456,11 @@
           "target": "@lib/mention-menu.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/rich-text.ts",
           "type": "registry:lib",
           "target": "@lib/rich-text.ts"
@@ -108850,6 +109806,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/rich-text.ts",
@@ -109838,6 +110799,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -110275,6 +111241,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -110956,6 +111927,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -111443,6 +112419,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -111853,6 +112834,11 @@
           "target": "@lib/page-reload.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -112169,6 +113155,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -112551,6 +113542,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/saved-views.ts",
@@ -112973,6 +113969,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -113421,6 +114422,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -114907,6 +115913,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -115314,6 +116325,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -115665,6 +116681,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -115974,6 +116995,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -116662,6 +117688,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -117249,6 +118280,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -117859,6 +118895,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -118461,6 +119502,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -119091,6 +120137,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -119589,6 +120640,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -120061,6 +121117,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -120638,6 +121699,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -121628,6 +122694,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -122089,6 +123160,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -122569,6 +123645,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -123336,6 +124417,11 @@
           "target": "@lib/password.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -123830,6 +124916,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -124313,6 +125404,11 @@
           "path": "registry/lib/password.ts",
           "type": "registry:lib",
           "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -125094,6 +126190,11 @@
           "path": "registry/lib/print.ts",
           "type": "registry:lib",
           "target": "@lib/print.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -126052,6 +127153,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -126844,6 +127950,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -127433,6 +128544,11 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/realtime.ts",
@@ -128101,6 +129217,11 @@
           "target": "@lib/pins.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -128349,6 +129470,11 @@
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -128981,6 +130107,11 @@
           "target": "@lib/passkey.ts"
         },
         {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
           "path": "registry/lib/realtime.ts",
           "type": "registry:lib",
           "target": "@lib/realtime.ts"
@@ -129357,6 +130488,11 @@
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/session.ts",

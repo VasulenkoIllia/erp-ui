@@ -12,7 +12,7 @@
  *   його всюди.
  */
 import { useQueryClient } from "@tanstack/react-query"
-import { useGetOne } from "ra-core"
+import { useGetOne } from "@/registry/lib/ra-core"
 import * as React from "react"
 
 import { useCompanyId } from "@/registry/hooks/use-company"

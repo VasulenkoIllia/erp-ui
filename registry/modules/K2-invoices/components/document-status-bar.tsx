@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 import { useNavigate } from "react-router"
 
 import type { ConflictField } from "@/components/erp/conflict-dialog"

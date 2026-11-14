@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useUpdate } from "ra-core"
+import { useUpdate } from "@/registry/lib/ra-core"
 import * as React from "react"
 import { toast } from "sonner"
 

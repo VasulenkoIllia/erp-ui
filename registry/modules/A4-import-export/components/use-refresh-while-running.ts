@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 import { useEffect, useRef } from "react"
 
 import { IMPORT_RUNS, type ImportRun } from "../contract"

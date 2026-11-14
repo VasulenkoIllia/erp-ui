@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import {

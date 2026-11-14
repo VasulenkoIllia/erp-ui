@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useUpdate } from "ra-core"
+import { useUpdate } from "@/registry/lib/ra-core"
 import { Suspense } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"

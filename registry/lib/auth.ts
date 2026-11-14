@@ -49,7 +49,7 @@
  * Права — рядки `<ресурс>:<дія>` ("invoices:approve"), `*` — будь-що. Перевірка на клієнті лише
  * ховає й вимикає дії; сервер (і MSW-моки) перевіряють ті самі права самі.
  */
-import type { AuthProvider } from "ra-core"
+import type { AuthProvider } from "@/registry/lib/ra-core"
 import { z } from "zod"
 
 import {

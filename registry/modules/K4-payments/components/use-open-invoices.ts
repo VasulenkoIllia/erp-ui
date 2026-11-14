@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 import { useMemo } from "react"
 
 import { OFFLINE } from "@/hooks/use-card-record"

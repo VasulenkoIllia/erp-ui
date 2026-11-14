@@ -34,7 +34,7 @@ import {
   type GetListResult,
   type RaRecord,
   type SortPayload,
-} from "ra-core"
+} from "@/registry/lib/ra-core"
 import { useCallback, useMemo, useState } from "react"
 
 import { useCompanyId } from "@/registry/hooks/use-company"

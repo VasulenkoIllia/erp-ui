@@ -10,7 +10,7 @@
  * - Порівняння станів не залежить від порядку ключів і значень і від того, рядок чи число:
  *   після адреси всі значення — рядки.
  */
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { formatSort, parseSort, type FilterValue } from "@/registry/lib/api"
 

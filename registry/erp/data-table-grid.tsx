@@ -4,7 +4,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { GridHeader, GridRow } from "@/registry/erp/data-table-cells"
 import { remPx, useElementSize } from "@/registry/hooks/use-element-size"

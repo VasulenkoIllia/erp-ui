@@ -1,6 +1,10 @@
 import * as React from "react"
 import { keepPreviousData } from "@tanstack/react-query"
-import { useGetList, type RaRecord, type SortPayload } from "ra-core"
+import {
+  useGetList,
+  type RaRecord,
+  type SortPayload,
+} from "@/registry/lib/ra-core"
 
 import {
   DataTable,

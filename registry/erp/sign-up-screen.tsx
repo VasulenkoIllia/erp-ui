@@ -1,5 +1,5 @@
 import * as React from "react"
-import { LinkBase } from "ra-core"
+import { LinkBase } from "@/registry/lib/ra-core"
 
 import {
   AUTH_PATHS,

@@ -4,7 +4,7 @@
  * Ключі, яких немає в кіті, показуються англійським текстом за замовчуванням від ra-core (`_`).
  */
 import type { i18n } from "i18next"
-import type { I18nProvider } from "ra-core"
+import type { I18nProvider } from "@/registry/lib/ra-core"
 
 import { ERP_UI_NAMESPACE, LANGUAGES, toLanguage } from "@/registry/lib/i18n"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"

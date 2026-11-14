@@ -5,7 +5,7 @@ import {
   CoreAdminContext,
   type DataProvider,
   type GetListParams,
-} from "ra-core"
+} from "@/registry/lib/ra-core"
 import { useCallback, useState } from "react"
 import { beforeAll, describe, expect, it, vi } from "vitest"
 

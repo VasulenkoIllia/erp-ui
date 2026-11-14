@@ -8,7 +8,7 @@
  * - Потребує `CoreAdminContext` (authProvider із lib/auth і QueryClient).
  */
 import { useQuery } from "@tanstack/react-query"
-import { useAuthProvider } from "ra-core"
+import { useAuthProvider } from "@/registry/lib/ra-core"
 
 import { useCompanyId } from "@/registry/hooks/use-company"
 import type { ErpAuthProvider } from "@/registry/lib/auth"

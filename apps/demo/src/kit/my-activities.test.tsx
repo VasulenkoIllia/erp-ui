@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { Suspense } from "react"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { toast } from "sonner"

@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 import { useMemo, useRef, useState, type MouseEvent } from "react"
 import { Link } from "react-router"
 

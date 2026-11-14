@@ -1,5 +1,5 @@
 import { keepPreviousData, useQueries } from "@tanstack/react-query"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { companyScope } from "@/registry/lib/company-scope"

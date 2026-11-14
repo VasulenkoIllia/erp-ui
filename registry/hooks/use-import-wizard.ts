@@ -1,4 +1,4 @@
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import * as React from "react"
 
 import {

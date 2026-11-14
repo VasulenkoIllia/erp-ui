@@ -1,6 +1,6 @@
 import { onlineManager, QueryClient } from "@tanstack/react-query"
 import { act, renderHook, waitFor } from "@testing-library/react"
-import { CoreAdminContext, type DataProvider } from "ra-core"
+import { CoreAdminContext, type DataProvider } from "@/registry/lib/ra-core"
 import type { ReactNode } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 

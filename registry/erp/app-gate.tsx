@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useAuthenticated, useLogout } from "ra-core"
+import { useAuthenticated, useLogout } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { useErpAuthProvider } from "@/registry/erp/auth-layout"

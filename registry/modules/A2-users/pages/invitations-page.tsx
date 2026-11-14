@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 
 import { InvitationsSection } from "@/components/erp/invitations-section"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"

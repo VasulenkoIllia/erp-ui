@@ -20,7 +20,11 @@
  */
 import * as React from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useDataProvider, type Identifier, type RaRecord } from "ra-core"
+import {
+  useDataProvider,
+  type Identifier,
+  type RaRecord,
+} from "@/registry/lib/ra-core"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import {

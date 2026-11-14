@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useCanAccess, useDelete, useGetList } from "ra-core"
+import { useCanAccess, useDelete, useGetList } from "@/registry/lib/ra-core"
 import * as React from "react"
 import { toast } from "sonner"
 

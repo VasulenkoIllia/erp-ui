@@ -9,7 +9,7 @@
  * - Часовий пояс профілю стає поясом показу міток часу (`setUserTimeZone`, SPEC §11); гість — пояс пристрою.
  */
 import { hashKey, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useAuthProvider } from "ra-core"
+import { useAuthProvider } from "@/registry/lib/ra-core"
 import { useCallback, useEffect } from "react"
 
 import { isApiError } from "@/registry/lib/api"

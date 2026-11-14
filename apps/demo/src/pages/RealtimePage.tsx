@@ -1,4 +1,4 @@
-import { useGetOne } from "ra-core"
+import { useGetOne } from "@/registry/lib/ra-core"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"

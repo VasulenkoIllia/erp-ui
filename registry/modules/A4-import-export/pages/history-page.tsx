@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { HistoryIcon } from "lucide-react"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router"

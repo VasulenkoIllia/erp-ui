@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query"
 import { render, renderHook, screen, within } from "@testing-library/react"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { describe, expect, it } from "vitest"
 
 import { ME_QUERY_KEY, type Me } from "@/registry/lib/auth"

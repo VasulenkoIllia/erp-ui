@@ -3,7 +3,7 @@ import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { delay, http } from "msw"
 import { setupServer } from "msw/node"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import type { ReactNode } from "react"
 import { MemoryRouter } from "react-router"
 import {

@@ -6,7 +6,7 @@
  * Умови оплати A6 тут немає: частини оплати не лягають на один рядок таблиці. Контакт приходить без
  * організації, зв'язок ставить людина чи проект своїм полем.
  */
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 
 import { localizedText, type LocalizedText } from "@/lib/auth"
 import type { ExportColumn } from "@/lib/exports"

@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { toast } from "sonner"
 import { z } from "zod"

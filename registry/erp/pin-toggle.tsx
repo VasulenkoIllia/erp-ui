@@ -1,6 +1,6 @@
 import * as React from "react"
 import { PinIcon } from "lucide-react"
-import type { Identifier } from "ra-core"
+import type { Identifier } from "@/registry/lib/ra-core"
 
 import { usePin } from "@/registry/hooks/use-pin"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"

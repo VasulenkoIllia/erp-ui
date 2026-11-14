@@ -1,6 +1,6 @@
-// Підставляється після `shadcn add`: шар даних (ADR-0002, ADR-0003) компілюється разом із ra-core.
+// Підставляється після `shadcn add`: шар даних (ADR-0002, ADR-0003) компілюється разом із ra-core;
+// ra-core — через шов кіта @/lib/ra-core (ADR-0090), який ставиться з пакунком `data`.
 import i18next from "i18next"
-import { CoreAdminContext, useGetList, useUpdate } from "ra-core"
 import { useState } from "react"
 import { useRoutes } from "react-router"
 
@@ -53,6 +53,7 @@ import { ipAllowed, isValidCidr } from "@/lib/security-policy"
 import { webhookUrlIssue } from "@/lib/webhooks"
 import { countGranted, grants } from "@/lib/roles"
 import { createDataProvider } from "@/lib/data-provider"
+import { CoreAdminContext, useGetList, useUpdate } from "@/lib/ra-core"
 import { syncPreferences } from "@/lib/preferences"
 import { createRaI18nProvider } from "@/lib/ra-i18n"
 import { createQueryClient } from "@/lib/query-client"

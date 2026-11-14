@@ -18,7 +18,7 @@
  * - Хук прив'язаний до запису на весь час життя: картка має `key={id}`, інший запис — новий екземпляр.
  */
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import * as React from "react"
 import { toast } from "sonner"
 

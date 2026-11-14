@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query"
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 import { useMemo, useState } from "react"
 
 import { DataTable } from "@/components/erp/data-table"

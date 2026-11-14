@@ -1,6 +1,11 @@
 import * as React from "react"
 import { keepPreviousData } from "@tanstack/react-query"
-import { useGetList, useGetOne, type RaRecord, type SortPayload } from "ra-core"
+import {
+  useGetList,
+  useGetOne,
+  type RaRecord,
+  type SortPayload,
+} from "@/registry/lib/ra-core"
 
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"

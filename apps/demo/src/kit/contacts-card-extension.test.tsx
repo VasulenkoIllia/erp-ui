@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 import { render, renderHook, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext, type DataProvider } from "ra-core"
+import { CoreAdminContext, type DataProvider } from "@/registry/lib/ra-core"
 import { Suspense, type ReactNode } from "react"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { describe, expect, it, vi } from "vitest"

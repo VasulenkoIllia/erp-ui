@@ -1,4 +1,8 @@
-import { useAuthenticated, useCanAccess, useGetOne } from "ra-core"
+import {
+  useAuthenticated,
+  useCanAccess,
+  useGetOne,
+} from "@/registry/lib/ra-core"
 import {
   useCallback,
   useEffect,
