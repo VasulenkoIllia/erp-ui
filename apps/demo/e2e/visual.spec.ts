@@ -141,6 +141,18 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
     ).toBeVisible()
   if (pageId === "inbox")
     await expect(page.getByText(/2026-0012/).first()).toBeVisible()
+  // Генератор документа так само: «Завантажити .docx» стає активною, коли шаблон прочитано.
+  if (pageId === "documentGenerator") {
+    const generator = page.locator('[data-slot="document-generator"]').first()
+    await expect(
+      generator.getByText(/^(Шаблон прочитано|Template read):/),
+    ).toBeVisible()
+    await expect(
+      generator.getByRole("button", {
+        name: /^(Завантажити|Download) \.docx$/,
+      }),
+    ).toHaveAttribute("aria-disabled", "false")
+  }
   // Реальний час: бейдж стану вже не змінює кольору, а запис прийшов із сервера.
   if (pageId === "realtime") {
     await expect(page.getByTestId("realtime-status")).toHaveText(
