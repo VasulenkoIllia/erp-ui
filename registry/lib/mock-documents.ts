@@ -13,6 +13,7 @@
  * - `withoutServerFields` — поля документа, які копія бере: без тих, що веде сервер.
  * - `LIFECYCLE_LINK_FIELDS` — зв'язки виправленої копії й сторно: поля сервера ресурсу документа.
  * - `fixtureDocumentLines` — рядки засіву документа: товари по черзі, розділи й нотатка.
+ * - `withLineMockValues` — значення полів розширення рядка (`lineFields`, ADR-0086) у рядках засіву.
  */
 import { z } from "zod"
 
@@ -22,8 +23,13 @@ import {
   type DocumentBodyLine,
   type DocumentLineTax,
   type DocumentLineUnit,
+  type LineExtensionShape,
 } from "@/registry/lib/document-lines"
 import { documentSumsOf } from "@/registry/lib/document-sums"
+import {
+  withMockValues,
+  type ExtensionField,
+} from "@/registry/lib/extension-fields"
 import { currencyDigits } from "@/registry/lib/format"
 import type {
   ExtensionStatusChanges,
@@ -96,6 +102,8 @@ export interface StoredDocumentOptions<T> {
    * першого документа, а `total` з мінусом. За замовчуванням `1`.
    */
   readonly totalSign?: (record: Record<string, unknown>) => 1 | -1
+  /** Поля розширення рядка товару (`extensionShape(lineFields)`): без них «сервер» відкинув би їх. */
+  readonly lineShape?: LineExtensionShape
 }
 
 /**
@@ -112,7 +120,7 @@ export function storedDocumentSchema<
   header: z.ZodType<StoredHeader>,
   options: StoredDocumentOptions<T>,
 ): z.ZodType<T> {
-  const { draftStatus, dueField, totalSign } = options
+  const { draftStatus, dueField, totalSign, lineShape } = options
   return z.unknown().transform((input, ctx) => {
     if (!isRecord(input)) {
       ctx.addIssue({ code: "custom", path: [], message: "invalid" })
@@ -120,9 +128,10 @@ export function storedDocumentSchema<
     }
     const record = asServerDraft(input, draftStatus)
     const currency = typeof record.currency === "string" ? record.currency : ""
-    const body = documentBodySchemaFor(currencyDigits(currency)).safeParse(
-      record,
-    )
+    const body = documentBodySchemaFor(
+      currencyDigits(currency),
+      lineShape,
+    ).safeParse(record)
     const sums = body.success
       ? documentSumsOf({ currency, ...body.data })
       : null
@@ -166,6 +175,31 @@ export function storedDocumentSchema<
       totals: sums.totals,
     } as unknown as T
   })
+}
+
+/**
+ * Значення полів розширення рядка в документах засіву: рядок товару № i (наскрізно через документи)
+ * отримує `mockValues[i % length]` кожного поля; розділи й нотатки — без полів. Без полів — ті самі.
+ */
+export function withLineMockValues<
+  T extends { readonly lines: readonly DocumentBodyLine[] },
+>(documents: T[], lineFields: readonly ExtensionField[] | undefined): T[] {
+  if (!lineFields?.length) return documents
+  const items = documents.flatMap((document) =>
+    document.lines.filter((line) => line.kind === "item"),
+  )
+  // За порядком, а не за `id`: у засіві різних документів `id` рядків бувають однакові.
+  const valued = withMockValues(items, lineFields)
+  let next = 0
+  return documents.map((document) => ({
+    ...document,
+    lines: document.lines.map((line) => {
+      if (line.kind !== "item") return line
+      const withValues = valued[next] ?? line
+      next += 1
+      return withValues
+    }),
+  }))
 }
 
 /**

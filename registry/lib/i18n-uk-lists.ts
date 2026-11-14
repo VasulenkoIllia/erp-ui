@@ -59,6 +59,9 @@ export const ukLists = {
       tooLong: "Не довше {{max}} символів",
     },
   },
+  rowActions: {
+    column: "Дії",
+  },
   selection: {
     column: "Вибір",
     selectPage: "Вибрати рядки на сторінці",

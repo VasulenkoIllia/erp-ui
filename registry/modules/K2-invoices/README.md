@@ -90,10 +90,14 @@ export const salesModule = createSalesModule({
 - `fields` — нові поля шапки; далі `columns`, `filters`, `tabs`, `recordFields`, `form` (`add` поля розширення з місцем, `hide`, `move`, `change` підпису поля модуля);
 - `statuses` і `transitions` — свій статус і дія до нього (ADR-0057); `change` дії модуля — підпис, `from` і причина, але не `to`;
 - `sections` (`lines`, `parties`, `flow`), `actions` (`edit`, `copy`, `registerPayment`, `paymentLink`, `refundOverpayment`, `delete`, `print`), `aside`, `history: false`, `editLock: false`;
-- `creditNotes` — те саме для кредит-нот (тип `CreditNoteDocumentExtension`): колонки (`number`, `client`, `invoice`, `date`, `total`, `status`), поля шапки (`client`, `invoice`, `date`, `total`, `baseTotal`), секції (`lines`, `parties`, `flow`), дії (`edit`, `delete`, `print`), форма (`date`); «Копіювати» немає;
+- `rowActions` і `bulkActions` — дія в рядку списку (колонка «Дії» в кінці таблиці) і масова дія в панелі вибраного (компоненти проекту, ADR-0086); масові дії рахунків — `submit`, `cancel`, `delete`;
+- `formGroups` — групи полів форми шапки із заголовком (поля модуля чи розширення з `form.add`);
+- `print` — аркуш: `fields` — поля розширення рядками «Підпис: значення» мовою документа, `blocks` — свій блок (компонент проекту) чи сховати й переставити блок модуля (`company`, `title`, `parties`, `fields`, `lines`, `totals`, `qr`, `signatures`); назва й тексти аркуша — рядки модуля `invoice.sheet.*` (змінює `strings`);
+- `lineFields` — поля рядка товару рахунку (УКТЗЕД, код за класифікатором): у рядку редактора під назвою, на картці й на аркуші; значення — у рядку (`lines[].<ключ>`);
+- `creditNotes` — те саме для кредит-нот (тип `CreditNoteDocumentExtension`): колонки (`number`, `client`, `invoice`, `date`, `total`, `status`), поля шапки (`client`, `invoice`, `date`, `total`, `baseTotal`), секції (`lines`, `parties`, `flow`), дії (`edit`, `delete`, `print`), форма (`date`), аркуш (блоки без `qr`, рядки `creditNote.sheet.*`); «Копіювати», масових дій модуля й полів рядка немає (рядки — з рахунку);
 - `strings` — перевизначення рядків модуля за ключами `i18n/uk.json` і `i18n/en.json`.
 
-Ключі модуля — типи `InvoiceColumnId`, `InvoiceFilterId`, `InvoiceFieldId`, `InvoiceFormFieldId`, `InvoiceSectionId`, `InvoiceActionId`, `InvoiceTransitionId` і такі самі `CreditNote…Id` (`extension.ts`). Типи — з індексу модуля (`import type { Invoice, InvoicesExtension } from "@/modules/K2-invoices"`). Повний приклад — `apps/demo/src/extensions/K2-sales-invoices.ts` у репозиторії erp-ui.
+Ключі модуля — типи `InvoiceColumnId`, `InvoiceFilterId`, `InvoiceFieldId`, `InvoiceFormFieldId`, `InvoiceSectionId`, `InvoiceActionId`, `InvoiceTransitionId`, `InvoiceBulkActionId`, `InvoiceSheetBlockId` і такі самі `CreditNote…Id` (`extension.ts`). Типи — з індексу модуля (`import type { Invoice, InvoicesExtension } from "@/modules/K2-invoices"`). Повний приклад — `apps/demo/src/extensions/K2-sales-invoices.ts` у репозиторії erp-ui.
 
 ## Контракт API
 

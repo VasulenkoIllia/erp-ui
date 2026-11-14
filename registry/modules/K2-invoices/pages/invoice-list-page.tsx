@@ -10,6 +10,7 @@ import {
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
+import { useListSlots } from "@/components/templates/list-report-slots"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
@@ -112,21 +113,29 @@ function useInvoiceList() {
 
 function InvoiceList() {
   const t = useInvoicesT()
+  const { extension } = useInvoicesModule()
   const list = useInvoiceList()
   const { bulk, dialogs } = useInvoiceBulkActions(
     list.report.selection,
     list.report.list.queryFilter,
   )
+  // Дії рядка й масові дії розширення (ADR-0086).
+  const slots = useListSlots(
+    list.report,
+    list.columns,
+    bulk,
+    extension.invoices,
+  )
   return (
     <>
       <ListReport
         report={list.report}
-        bulk={bulk}
+        bulk={slots.bulk}
         mode="pages"
         tabsLabel={t("invoices.tabsLabel")}
         searchPlaceholder={t("invoices.search")}
         tableLabel={t("invoices.tableLabel")}
-        columns={list.columns}
+        columns={slots.columns}
         countLabel={(count, value) => t("invoices.count", { count, value })}
         empty={
           <PageState

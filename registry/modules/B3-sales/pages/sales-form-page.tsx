@@ -16,7 +16,11 @@ import { errorStateKind } from "@/lib/api"
 import { useSalesAccess } from "../components/sales-access"
 import { useSalesTitle } from "../components/sales-display"
 import { SalesForm } from "../components/sales-form"
-import { salesDetailSchema, type SalesDocument } from "../contract"
+import {
+  useSalesDetailSchema,
+  useSalesLineFields,
+} from "../components/sales-lines"
+import type { SalesDocument } from "../contract"
 import { useSalesModule } from "../module-context"
 import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
@@ -62,10 +66,11 @@ function useFormSource<D extends SalesDocument, Due extends string>(
   id: string,
 ) {
   const t = useSalesT()
-  return useDocumentFormSource<D, typeof salesDetailSchema>({
+  const schema = useSalesDetailSchema(useSalesLineFields(kind))
+  return useDocumentFormSource<D, typeof schema>({
     resource: kind.resource,
     id,
-    schema: salesDetailSchema,
+    schema,
     owner: "B3-sales",
     invalidTitle: t(`${kind.keys.record}.linesInvalid`),
   })

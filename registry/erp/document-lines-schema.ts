@@ -2,6 +2,7 @@ import * as React from "react"
 import { z } from "zod"
 
 import {
+  assertLineShape,
   bodyTotalsCheck,
   discountShape,
   documentLineSchema,
@@ -17,6 +18,7 @@ import {
   whenBodyValid,
   whenValid,
   type DocumentBodyLine,
+  type LineExtensionShape,
 } from "@/registry/lib/document-lines"
 import type { TotalsDiscount } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
@@ -30,7 +32,9 @@ import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
  * ціна — `""`. Знижка понад суму рядка видна в кожному рядку одразу, знижка документа — коли рядки правильні.
  * Розділи й нотатки (ADR-0060) — серед рядків: назва розділу й текст нотатки обов'язкові.
  *
- * Модуль додає поля шапки: `useDocumentLinesSchema(currency).safeExtend({ client: … })`.
+ * Модуль додає поля шапки: `useDocumentLinesSchema(currency).safeExtend({ client: … })`. Поля розширення
+ * рядка (`lineFields`, ADR-0086) — `useDocumentLineFields(lineFields)` з `erp/document-line-extension`:
+ * схеми для другого аргументу, значення рядків для форми й для запиту, поля для редактора.
  */
 
 /** Значення форми, на яких стоїть редактор: рядки (з розділами й нотатками) і знижка документа. */
@@ -44,9 +48,16 @@ type IssueCode = Exclude<
   "tooLong"
 >
 
-export function useDocumentLinesSchema(currency: string) {
+const NO_LINE_SHAPE: LineExtensionShape = {}
+
+export function useDocumentLinesSchema(
+  currency: string,
+  lineShape: LineExtensionShape = NO_LINE_SHAPE,
+) {
   const t = useErpUiT()
   return React.useMemo(() => {
+    // Поле рядка з ключем кіта перекрило б його перевірку: помилка одразу, як у схемах контракту.
+    assertLineShape(lineShape)
     const digits = currencyDigits(currency)
     const required = t("validation.required")
     const issueText = (code: IssueCode) => t(`documentLines.errors.${code}`)
@@ -98,6 +109,7 @@ export function useDocumentLinesSchema(currency: string) {
         price: decimal(priceSchema),
         ...discount,
         tax: documentLineSchema.shape.tax,
+        ...lineShape,
       })
       .refine(isSingleDiscount, singleDiscountText)
       .superRefine(lineTotalsCheck(digits, issueText), { when: whenValid })
@@ -125,5 +137,5 @@ export function useDocumentLinesSchema(currency: string) {
       .superRefine(bodyTotalsCheck(digits, issueText), {
         when: whenBodyValid,
       }) satisfies z.ZodType<DocumentLinesValues>
-  }, [currency, t])
+  }, [currency, t, lineShape])
 }

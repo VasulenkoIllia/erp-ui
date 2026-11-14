@@ -67,10 +67,11 @@ import { documentLifecycleSchema } from "@/lib/document-lifecycle"
 import {
   discountShape,
   documentTotalsSchema,
-  savedDocumentBodyLineSchema,
+  savedDocumentBodyLineSchemaWith,
 } from "@/lib/document-lines"
 import {
   extendSchema,
+  extensionShape,
   type ExtensionField,
   type ExtensionValues,
 } from "@/lib/extension-fields"
@@ -200,20 +201,27 @@ const orderShape = salesDocumentShape.extend({
   invoiceId: serverLinkSchema,
 })
 
-/** Рядки й підсумки детального запису (`GET /<ресурс>/:id`): у рядку списку їх немає. */
-export const salesDetailSchema = z.object({
-  lines: z.array(savedDocumentBodyLineSchema),
-  totals: documentTotalsSchema,
-})
+/**
+ * Рядки й підсумки детального запису (`GET /<ресурс>/:id`): у рядку списку їх немає. `lineFields` —
+ * поля розширення рядка товару (ADR-0086), їхні значення лежать у рядку.
+ */
+export function salesDetailSchemaFor(lineFields?: readonly ExtensionField[]) {
+  return z.object({
+    lines: z.array(savedDocumentBodyLineSchemaWith(extensionShape(lineFields))),
+    totals: documentTotalsSchema,
+  })
+}
+export const salesDetailSchema = salesDetailSchemaFor()
 export type SalesDocumentDetail = z.infer<typeof salesDetailSchema>
 /** Рядки й підсумки пропозиції. */
 export const quoteDetailSchema = salesDetailSchema
 export type QuoteDetail = SalesDocumentDetail
 export type OrderDetail = SalesDocumentDetail
 
-/** Те, що схема запису бере з розширення проекту: нові поля й статуси. */
+/** Те, що схема запису бере з розширення проекту: нові поля, поля рядка й статуси. */
 export interface SalesSchemaExtension<K extends string = string> {
   readonly fields?: readonly ExtensionField[]
+  readonly lineFields?: readonly ExtensionField[]
   readonly statuses?: ExtensionStatusChanges<K>
 }
 export type QuoteSchemaExtension = SalesSchemaExtension<QuoteStatus>
@@ -245,7 +253,9 @@ export function quoteCardSchemaFor(
   extension?: QuoteSchemaExtension,
 ): z.ZodType<QuoteCard> {
   return extendSchema(
-    quoteObject(extension).extend(salesDetailSchema.shape),
+    quoteObject(extension).extend(
+      salesDetailSchemaFor(extension?.lineFields).shape,
+    ),
     extension?.fields,
   )
 }
@@ -262,7 +272,9 @@ export function orderCardSchemaFor(
   extension?: OrderSchemaExtension,
 ): z.ZodType<OrderCard> {
   return extendSchema(
-    orderObject(extension).extend(salesDetailSchema.shape),
+    orderObject(extension).extend(
+      salesDetailSchemaFor(extension?.lineFields).shape,
+    ),
     extension?.fields,
   )
 }

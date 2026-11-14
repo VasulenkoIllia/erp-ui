@@ -11,6 +11,7 @@ import {
 } from "@/components/erp/extension-field-input"
 import {
   RecordFormFields,
+  type RecordFormGroup,
   type RecordFormItem,
 } from "@/components/erp/record-form"
 import { RecordFormFrame } from "@/components/erp/record-form-page"
@@ -153,6 +154,7 @@ export function CreditNoteForm({
   const ext = useExtensionForm<CreditNoteFormFieldId>(
     noteExtension?.fields,
     noteExtension?.form,
+    noteExtension?.formGroups,
   )
   const schema = useCreditNoteFormSchema(note.basis, ext.shape)
   const recordSchema = useMemo(
@@ -201,6 +203,7 @@ export function CreditNoteForm({
     <CreditNoteFormView
       state={state}
       header={header}
+      groups={ext.groups}
       note={note}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
@@ -211,12 +214,14 @@ export function CreditNoteForm({
 function CreditNoteFormView({
   state,
   header,
+  groups,
   note,
   readOnly,
   readOnlyReason,
 }: {
   state: RecordFormState<CreditNoteFormValues>
   header: readonly RecordFormItem[]
+  groups: readonly RecordFormGroup[]
   note: CreditNoteCard
   readOnly: boolean
   readOnlyReason: string | undefined
@@ -249,7 +254,7 @@ function CreditNoteFormView({
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
     >
-      <RecordFormFields items={header} />
+      <RecordFormFields items={header} groups={groups} />
       <CreditNoteLinesFields
         form={state.form}
         note={note}

@@ -31,6 +31,8 @@ import {
   type DocumentLineUnit,
   type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
+import type { ExtensionField } from "@/registry/lib/extension-fields"
+import { extensionFormValues } from "@/registry/lib/extension-form"
 import { useErpUiT } from "@/registry/lib/i18n"
 import {
   ariaKeyShortcuts,
@@ -68,6 +70,8 @@ import { Button } from "@/registry/ui/button"
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
  * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
  *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
+ * - Поля розширення рядка (`lineFields`, ADR-0086): у рядку товару під назвою з видимим підписом і на
+ *   широкому екрані; новий рядок отримує їхні порожні значення.
  * - Великий документ з клавіатури (UI05d, ADR-0064): Ctrl+End з будь-якого місця рядків — на знижку
  *   документа повз рядки. Від `virtualizeFrom` рядків над рядками — пошук у рядках
  *   (`erp/document-lines-search`) і кнопка «До підсумків»; ⌘F/Ctrl+F у рядках ставить курсор у пошук,
@@ -97,6 +101,8 @@ export interface DocumentLinesEditorProps<
   virtualizeFrom?: number
   readOnly?: boolean
   savedTotals?: SavedDocumentTotals
+  /** Поля розширення рядка товару (`useDocumentLineFields(...).fields`); стабільні між рендерами. */
+  lineFields?: readonly ExtensionField[]
   className?: string
 }
 
@@ -207,6 +213,7 @@ export function DocumentLinesEditor<
   virtualizeFrom = VIRTUALIZE_FROM,
   readOnly = false,
   savedTotals,
+  lineFields,
   className,
 }: DocumentLinesEditorProps<TValues, TItem, TTransformed>) {
   const t = useErpUiT()
@@ -229,9 +236,14 @@ export function DocumentLinesEditor<
         units={units}
         taxes={taxes}
         item={item}
+        lineFields={lineFields}
       />
     ),
-    [linesForm, currency, units, taxes, item],
+    [linesForm, currency, units, taxes, item, lineFields],
+  )
+  const lineDefaults = React.useMemo(
+    () => (lineFields?.length ? extensionFormValues(lineFields) : undefined),
+    [lineFields],
   )
   const extraKinds = React.useMemo<RepeatingRowsKind<DocumentBodyLine>[]>(
     () => [
@@ -349,7 +361,10 @@ export function DocumentLinesEditor<
           rowLabel={(index) => t("documentLines.row", { index: index + 1 })}
           addLabel={t("documentLines.add")}
           insertLabel={t("documentLines.insert")}
-          newRow={() => newLineOf(defaults.current?.())}
+          newRow={() => ({
+            ...lineDefaults,
+            ...newLineOf(defaults.current?.()),
+          })}
           extraKinds={extraKinds}
           empty={t("documentLines.empty")}
           maxRows={maxLines}

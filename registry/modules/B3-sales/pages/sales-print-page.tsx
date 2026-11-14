@@ -8,14 +8,15 @@ import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { toLanguage, useLanguage } from "@/lib/i18n"
+import { usePrintLanguage } from "@/lib/print"
 
 import { useSalesTitle } from "../components/sales-display"
-import { useSalesDetail } from "../components/sales-lines"
+import { useSalesDetail, useSalesLineFields } from "../components/sales-lines"
 import { SalesSheet } from "../components/sales-sheet"
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
 import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
-import { useSalesT } from "../use-sales-t"
+import { useSalesSheetT, useSalesT } from "../use-sales-t"
 
 /** Друк пропозиції (ADR-0065). */
 export function QuotePrintPage() {
@@ -64,9 +65,14 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
   )
   const company = useCompanyProfile()
   const document = card.record
-  const detail = useSalesDetail(document)
+  const detail = useSalesDetail(document, useSalesLineFields(kind))
   const language = company.data?.language ?? ui.language
-  const isReady = Boolean(document && detail?.success && company.data)
+  // Назва й тексти аркуша — рядки модуля мовою аркуша (не довантажились рядки кіта цієї мови — запасна
+  // українська, і рядки модуля теж): поки їх немає, аркуш чекає, а не блимає іншою мовою.
+  const sheetT = useSalesSheetT(usePrintLanguage(toLanguage(language)).language)
+  const isReady = Boolean(
+    document && detail?.success && company.data && !sheetT.isLoading,
+  )
   // Рядки не за контрактом чи картка без рядків — помилка даних, а не вічне завантаження.
   const invalid =
     detail?.error ??
@@ -74,7 +80,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
       ? new Error("no lines")
       : undefined)
   const state = printPreviewState(
-    card.pageError ?? card.failure ?? invalid ?? company.error,
+    card.pageError ?? card.failure ?? invalid ?? company.error ?? sheetT.error,
     !isReady,
   )
   // Вкладка й фокус після переходу — як на картці: «Друк: Пропозиція КП-2026-0001».
@@ -91,12 +97,13 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
         {pageTitle}
       </h1>
       <PrintPreview
-        title={`${kind.sheet.title[toLanguage(language)]} ${document?.number ?? ""}`.trim()}
+        title={`${sheetT.t(`${record}.sheet.title`)} ${document?.number ?? ""}`.trim()}
         language={language}
         state={state}
         onRetry={() => {
           card.retry()
           void company.refetch()
+          sheetT.retry()
         }}
         actions={
           <BackToList
@@ -105,12 +112,13 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
           />
         }
       >
-        {document && detail?.success && company.data ? (
+        {isReady && document && detail?.success && company.data ? (
           <SalesSheet
             kind={kind}
             document={document}
             detail={detail.data}
             company={company.data}
+            sheetT={sheetT.t}
           />
         ) : null}
       </PrintPreview>

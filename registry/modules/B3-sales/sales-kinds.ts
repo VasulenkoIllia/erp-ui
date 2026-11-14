@@ -1,14 +1,14 @@
 /**
  * Документи продажу модуля B3 (ADR-0065, ADR-0067): чим пропозиція відрізняється від замовлення для
  * спільних сторінок і компонентів модуля — ресурс, ключі рядків, друга дата, статуси, граф дій,
- * адреси, аркуш друку й документ, який створює дія графа (замовлення з пропозиції). Решта (список,
- * картка, форма, друк, видалення чернетки, потік документів, «Копіювати») — однакова; масові дії списку
- * — свої в кожного (`quote-bulk-actions`, `order-bulk-actions`).
+ * адреси й документ, який створює дія графа (замовлення з пропозиції); тексти аркуша друку — рядки
+ * модуля `<запис>.sheet.*` (ADR-0086). Решта (список, картка, форма, друк, видалення чернетки, потік
+ * документів, «Копіювати») — однакова; масові дії списку — свої в кожного (`quote-bulk-actions`,
+ * `order-bulk-actions`).
  */
 import type { z } from "zod"
 
 import { copyPath, type DocumentKind } from "@/lib/document-kind"
-import type { Language } from "@/lib/i18n"
 import type { StatusTone, StatusTransition } from "@/lib/statuses"
 
 import {
@@ -94,11 +94,6 @@ export interface SalesDocumentKind<
   cardSchemaFor(
     extension?: SalesSchemaExtension,
   ): z.ZodType<D & SalesDocumentDetail>
-  /** Аркуш друку мовою документа (дані модуля, а не рядки інтерфейсу, ADR-0062). */
-  readonly sheet: {
-    readonly title: Readonly<Record<Language, string>>
-    readonly due: Readonly<Record<Language, (date: string) => string>>
-  }
   /**
    * Документ, який дія графа створює на підставі цього (замовлення з пропозиції, ADR-0067; рахунок із
    * замовлення, ADR-0070): поле зв'язку з `id` створеного, посилання на нього під панеллю дій і його
@@ -178,13 +173,6 @@ export const QUOTE_KIND: QuoteKind = {
     print: paths.printQuote,
   }),
   cardSchemaFor: quoteCardSchemaFor,
-  sheet: {
-    title: { uk: "Комерційна пропозиція", en: "Quotation" },
-    due: {
-      uk: (date) => `Пропозиція дійсна до ${date}`,
-      en: (date) => `Valid until ${date}`,
-    },
-  },
   creates: {
     action: CREATE_ORDER,
     field: "orderId",
@@ -231,13 +219,6 @@ export const ORDER_KIND: OrderKind = {
     print: paths.printOrder,
   }),
   cardSchemaFor: orderCardSchemaFor,
-  sheet: {
-    title: { uk: "Замовлення покупця", en: "Sales order" },
-    due: {
-      uk: (date) => `Виконати до ${date}`,
-      en: (date) => `Due by ${date}`,
-    },
-  },
   creates: {
     action: CREATE_INVOICE,
     field: "invoiceId",

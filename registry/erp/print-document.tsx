@@ -1,3 +1,5 @@
+import type * as React from "react"
+
 import { lineSumOf } from "@/registry/erp/document-line-fields"
 import {
   lineTotalsOf,
@@ -115,6 +117,8 @@ export function PrintWatermark({
 export interface PrintDocumentLinesProps {
   lines: readonly DocumentBodyLine[]
   currency: string
+  /** Під назвою рядка товару: поля розширення рядка (`useSheetLineDetails` з `erp/print-sheet-blocks`). */
+  lineDetails?: (line: DocumentLine) => React.ReactNode
 }
 
 const hasLineDiscount = (line: DocumentLine) =>
@@ -133,6 +137,7 @@ const taxKey = (line: DocumentLine) =>
 export function PrintDocumentLines({
   lines,
   currency,
+  lineDetails,
 }: PrintDocumentLinesProps) {
   const { t, locale } = usePrintSheet()
   const digits = currencyDigits(currency)
@@ -217,7 +222,10 @@ export function PrintDocumentLines({
           return (
             <tr key={line.id} data-kind="item">
               <td className="text-end">{positions.get(line.id)}</td>
-              <td className="break-words">{line.name}</td>
+              <td className="break-words">
+                {line.name}
+                {lineDetails?.(line)}
+              </td>
               <td className="text-end">
                 {formatDecimal(line.quantity, locale)}
               </td>

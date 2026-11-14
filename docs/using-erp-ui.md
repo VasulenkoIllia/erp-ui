@@ -502,6 +502,26 @@ export const contactsExtension: ContactsExtension = {
 - `strings` — перевизначення рядків модуля за ключами його `i18n/uk.json` і `en.json`; ключа, якого немає, TypeScript не пропустить. Рядки модуля — у своєму просторі імен, застосунку реєструвати їх не треба; простір один на застосунок, тож модуль підключають одним екземпляром.
 - Модуль кожної фабрики — одного спільного типу `ErpModule` з `@/lib/module` (ADR-0085): `id`, `paths`, `routes`, `nav`, `resources`, `preload`; типи модулів (`ContactsModule`, `ContactsNavItem`, `ContactsResource`…) — його псевдоніми. Список модулів проекту — `satisfies Record<string, ErpModule>`, один код маршрутів і навігації на всі.
 - Документні модулі (B3, K2, K4) зібрано зі спільного шару документа (ADR-0086), тож розширення документа однакове в усіх: тип `DocumentExtension` з `@/components/templates/document-extension` (типи модулів `SalesDocumentExtension`, `InvoiceDocumentExtension` — його псевдоніми з ключами модуля). Свій документ проекту (договір, акт) збирайте з тих самих частин, а не копіюйте модуль: вид документа `DocumentKind` і статуси й граф мовою інтерфейсу (`useDocumentStatuses`, `useDocumentTransitions`) з `@/lib/document-kind`; сторінка форми — шаблон `DocumentFormPage` і `useDocumentFormSource` з `@/components/templates/document-form-page` разом із `useEditSession` з `@/hooks/use-edit-session` («Редагує …»), рамка форми `RecordFormFrame` з `@/components/erp/record-form-page`; рядки — `DocumentSavedLines` і `DocumentFormLines` з `@/components/erp/document-lines-section`; поля «Клієнт» і «Дата» — `documentClientItem`, `dateFormItem` з `@/components/erp/document-form-items`; «Змінити» й «Копіювати» — `AccessLink` з `@/components/erp/access-link`, «Видалити чернетку» — `DocumentDeleteAction` з `@/components/erp/document-delete-action`; тексти масових дій — `useBulkActionTexts` з `@/components/erp/bulk-action`.
+- Точки розширення документа (ADR-0086, доповнення) — однакові в B3, K2 і K4: дія в рядку списку й масова дія, групи полів форми, друк (B3, K2) і поля в рядках документа (пропозиції, замовлення, рахунки). Дії й блоки аркуша — компоненти проекту в слотах, решта — дані:
+
+  ```ts
+  // src/extensions/K2-invoices.ts — фрагмент; повний приклад — apps/demo/src/extensions/K2-sales-invoices.ts в erp-ui
+  invoices: {
+    fields: [contractField],
+    lineFields: [{ id: "hsCode", type: "text", label: { uk: "Код УКТЗЕД", en: "HS code" } }],
+    rowActions: { add: [{ id: "print", component: PrintInvoiceRow }] },
+    bulkActions: { add: [{ id: "export", component: ExportInvoices, place: "end" }], hide: ["delete"] },
+    form: { add: [{ id: "contract" }] },
+    formGroups: { add: [{ id: "contract", title: { uk: "Договір", en: "Contract" }, fields: ["contract"] }] },
+    print: { fields: [{ id: "contract" }],
+      blocks: { add: [{ id: "paymentTerms", component: PaymentTermsBlock, place: { after: "totals" } }] } },
+  }
+  ```
+
+  - Дія рядка отримує `{ record, resource }` і стоїть у колонці «Дії» в кінці таблиці (на телефоні — серед дій картки); масова дія — `{ resource, selection, count, filter }` (тип `BulkSlotProps` з `@/components/templates/list-report-slots`), діалог підтвердження — у самому компоненті, кнопка — `size="sm"`, як у масових дій модуля. `access` — дія ресурсу з прав (`"approve"`, не `"sales-invoices:approve"`; `export` кіт зводить до права читання); дію рядка ще ховає позначка сервера на записі, а дії без права немає ще до таблиці (ні колонки «Дії», ні вибору рядків); заміна дії модуля з правом, якого немає, ховає й дію модуля. Масова дія розширення вмикає вибір рядків і там, де модуль своїх масових дій не має.
+  - Група полів — заголовок над полями модуля чи полями розширення з `form.add` під полями без групи; поле стає в першу групу, що його називає.
+  - Блок аркуша отримує `{ record, resource }`, мову й локаль документа — `usePrintSheet()` з `@/lib/print`; блоки модуля (`company`, `title`, `parties`, `fields`, `lines`, `totals`, у рахунку `qr`, `signatures`) можна сховати чи переставити. Назву аркуша й інші тексти модуля змінює `strings` (`invoice.sheet.title`); не довантажились рядки мови аркуша — сторінка друку показує помилку з повтором.
+  - Поле рядка — у рядку редактора під назвою з видимим підписом, на картці й на аркуші; значення — у рядку товару (`lines[].hsCode`), порожнє — `null`. Бекенд приймає й повертає ці ключі в рядках товарів; моки дають значення з `mockValues`. Обов'язкове поле рядка (`required`) — лише коли значення є й у старих документах: рядок без нього робить рядки документа «не за контрактом».
 - Опис модуля, контракт і моки — `README.md` модуля; повний приклад — `apps/demo/src/extensions/B1-contacts.ts` у репозиторії erp-ui.
 
 ### Модуль A2 «Користувачі й ролі» (ADR-0031)

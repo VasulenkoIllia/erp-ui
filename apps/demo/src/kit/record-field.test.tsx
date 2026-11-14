@@ -38,6 +38,7 @@ import {
 } from "@/registry/lib/filters"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { createResourceHandlers, mockRecordTitle } from "@/registry/lib/mocks"
+import type { ErpUiTranslate } from "@/registry/lib/i18n"
 import { RecordLabel, recordOptionTexts } from "@/registry/lib/record-label"
 
 /** Крок A2a (ADR-0030): поле розширення «запис із довідника сервера». */
@@ -287,6 +288,19 @@ describe("RecordLabel — підпис запису з сервера", () => {
       <RecordLabel resource="people" id={id} labelField="name" />,
     )
     expect(await screen.findByText(message)).toBeInTheDocument()
+  })
+
+  it("свої рядки кіта (аркуш мовою документа): стан запису — ними, а не мовою інтерфейсу", async () => {
+    const english = ((key: string) =>
+      key === "recordPicker.loadingValue"
+        ? "Loading…"
+        : "Not found") as unknown as ErpUiTranslate
+    renderWithServer(
+      fakeServer(),
+      <RecordLabel resource="people" id="p9" labelField="name" t={english} />,
+    )
+    expect(screen.getByText("Loading…")).toBeInTheDocument()
+    expect(await screen.findByText("Not found")).toBeInTheDocument()
   })
 })
 

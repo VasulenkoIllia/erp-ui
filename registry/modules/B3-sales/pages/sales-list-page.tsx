@@ -11,6 +11,7 @@ import {
   type ListReportAction,
   type ListReportBulk,
 } from "@/components/templates/list-report"
+import { useListSlots } from "@/components/templates/list-report-slots"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
@@ -88,7 +89,7 @@ function OrderList() {
  * Список документів продажу на шаблоні List Report сторінками (SPEC §7; ADR-0022): вкладки за
  * статусом (зі статусами розширення), фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом; номер —
  * посилання на картку. «Створити …» — сторінка форми. Вибрані — масові дії графа й «Видалити» фоновою
- * задачею зі звітом про невдалі (ADR-0066).
+ * задачею зі звітом про невдалі (ADR-0066); дії рядка й масові дії розширення — `useListSlots` (ADR-0086).
  */
 function SalesListPage({
   kind,
@@ -217,17 +218,25 @@ function SalesListView<D extends SalesDocument, Due extends string>({
   dialogs: ReactNode
 }) {
   const t = useSalesT()
+  const { extension } = useSalesModule()
   const { list: keys } = kind.keys
+  // Дії рядка й масові дії розширення (ADR-0086).
+  const slots = useListSlots(
+    list.report,
+    list.columns,
+    bulk,
+    kind.extensionOf(extension),
+  )
   return (
     <>
       <ListReport
         report={list.report}
-        bulk={bulk}
+        bulk={slots.bulk}
         mode="pages"
         tabsLabel={t(`${keys}.tabsLabel`)}
         searchPlaceholder={t(`${keys}.search`)}
         tableLabel={t(`${keys}.tableLabel`)}
-        columns={list.columns}
+        columns={slots.columns}
         countLabel={(count, value) => t(`${keys}.count`, { count, value })}
         empty={
           <PageState

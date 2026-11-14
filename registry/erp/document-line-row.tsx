@@ -18,6 +18,7 @@ import type {
   DocumentLineTax,
   DocumentLineUnit,
 } from "@/registry/lib/document-lines"
+import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { Input } from "@/registry/ui/input"
@@ -44,6 +45,7 @@ export interface DocumentLineRowProps<T extends RaRecord> {
   units: readonly (DocumentLineUnit & { id: string })[]
   taxes: readonly DocumentLineTax[]
   item?: DocumentLineItem<T>
+  lineFields?: readonly ExtensionField[] | undefined
 }
 
 /**
@@ -61,6 +63,7 @@ export function DocumentLineRow<T extends RaRecord>({
   units,
   taxes,
   item,
+  lineFields,
 }: DocumentLineRowProps<T>) {
   const line = useWatch({
     control: form.control,
@@ -96,6 +99,7 @@ export function DocumentLineRow<T extends RaRecord>({
       units={units}
       taxes={taxes}
       item={item}
+      lineFields={lineFields}
       readOnly={readOnly}
     />
   )

@@ -56,6 +56,9 @@ export const enLists = {
       tooLong: "{{max}} characters at most",
     },
   },
+  rowActions: {
+    column: "Actions",
+  },
   selection: {
     column: "Selection",
     selectPage: "Select rows on this page",

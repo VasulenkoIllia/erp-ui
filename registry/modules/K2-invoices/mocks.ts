@@ -38,11 +38,12 @@
 import type { LocalizedText } from "@/lib/auth"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { PartyDetails } from "@/lib/document-parties"
-import { withMockValues } from "@/lib/extension-fields"
+import { extensionShape, withMockValues } from "@/lib/extension-fields"
 import {
   documentLinesText,
   LIFECYCLE_LINK_FIELDS,
   storedDocumentSchema,
+  withLineMockValues,
   withoutServerFields,
   withTransitionSamples,
 } from "@/lib/mock-documents"
@@ -248,13 +249,16 @@ export function createInvoicesMocks({
   }
   // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, дії).
   const fixtures = () =>
-    withMockValues(
-      withTransitionSamples(
-        paymentsLink.settledSeed(),
-        invoiceExtension?.statuses,
-        invoiceExtension?.transitions,
+    withLineMockValues(
+      withMockValues(
+        withTransitionSamples(
+          paymentsLink.settledSeed(),
+          invoiceExtension?.statuses,
+          invoiceExtension?.transitions,
+        ),
+        invoiceExtension?.fields,
       ),
-      invoiceExtension?.fields,
+      invoiceExtension?.lineFields,
     )
   // Сховища — нижче: зв'язок звертається до них лише на запит.
   const paymentsLink = invoicePaymentsLink({
@@ -270,6 +274,7 @@ export function createInvoicesMocks({
       dueField: "dueDate",
       draftStatus: DEFAULT_INVOICE_STATUS,
       totalSign: (record) => (record.status === REVERSAL_STATUS ? -1 : 1),
+      lineShape: extensionShape(invoiceExtension?.lineFields),
     },
   )
   const invoices = createResourceHandlers<InvoiceCard>({

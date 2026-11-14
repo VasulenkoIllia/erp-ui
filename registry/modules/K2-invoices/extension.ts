@@ -4,12 +4,15 @@
  *
  * Розширення лежить у файлі проекту `src/extensions/K2-invoices.ts(x)` і передається у фабрику
  * `createInvoicesModule({ extension })`; моки беруть лише дані без компонентів (`fields`, `statuses`,
- * `transitions`) — `createInvoicesMocks({ extension })`. Ключі модуля в `hide`, `move`, `place` і
- * `change` — типи нижче. Рахунки — під ключем `invoices`, кредит-ноти (ADR-0072) — під ключем
- * `creditNotes`.
+ * `transitions`, `lineFields`) — `createInvoicesMocks({ extension })`. Ключі модуля в `hide`, `move`,
+ * `place` і `change` — типи нижче. Рахунки — під ключем `invoices`, кредит-ноти (ADR-0072) — під
+ * ключем `creditNotes`.
  */
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
-import type { DocumentExtension } from "@/components/templates/document-extension"
+import type {
+  DocumentExtension,
+  DocumentLinesExtension,
+} from "@/components/templates/document-extension"
 
 import type {
   CreditNote,
@@ -60,6 +63,21 @@ export interface InvoiceIds {
     | "print"
   /** Поля форми шапки (ключ — ім'я поля запису); рядки, знижка й сторони — свої блоки форми. */
   formField: "clientId" | "date" | "dueDate" | "currency"
+  /** Масові дії панелі вибраного. */
+  bulkAction: "submit" | "cancel" | "delete"
+  /**
+   * Блоки аркуша друку; `fields` — поля розширення з `print.fields`, `qr` — QR-код оплати виставленого
+   * рахунку в гривнях.
+   */
+  sheetBlock:
+    | "company"
+    | "title"
+    | "parties"
+    | "fields"
+    | "lines"
+    | "totals"
+    | "qr"
+    | "signatures"
 }
 export type InvoiceColumnId = InvoiceIds["column"]
 export type InvoiceFilterId = InvoiceIds["filter"]
@@ -68,14 +86,17 @@ export type InvoiceFieldId = InvoiceIds["field"]
 export type InvoiceSectionId = InvoiceIds["section"]
 export type InvoiceActionId = InvoiceIds["action"]
 export type InvoiceFormFieldId = InvoiceIds["formField"]
+export type InvoiceBulkActionId = InvoiceIds["bulkAction"]
+export type InvoiceSheetBlockId = InvoiceIds["sheetBlock"]
 
-/** Розширення рахунку: поля, статуси й дії, список, картка й форма. */
+/** Розширення рахунку: поля, статуси й дії, список, картка, форма, аркуш друку й поля рядка. */
 export type InvoiceDocumentExtension = DocumentExtension<
   Invoice,
   InvoiceIds,
   InvoiceStatus,
   InvoiceTransitionId
->
+> &
+  DocumentLinesExtension
 
 /**
  * Ключі модуля для кредит-нот (ADR-0072): ними сторінки модуля перевіряють свої списки. Кредит-ноту
@@ -89,6 +110,17 @@ export interface CreditNoteIds {
   section: "lines" | "parties" | "flow"
   action: "edit" | "delete" | "print"
   formField: "date"
+  /** Своїх масових дій немає: масова дія розширення вмикає вибір рядків. */
+  bulkAction: never
+  /** Блоки аркуша друку; `fields` — поля розширення з `print.fields`. */
+  sheetBlock:
+    | "company"
+    | "title"
+    | "parties"
+    | "fields"
+    | "lines"
+    | "totals"
+    | "signatures"
 }
 export type CreditNoteColumnId = CreditNoteIds["column"]
 export type CreditNoteFilterId = CreditNoteIds["filter"]
@@ -97,8 +129,9 @@ export type CreditNoteFieldId = CreditNoteIds["field"]
 export type CreditNoteSectionId = CreditNoteIds["section"]
 export type CreditNoteActionId = CreditNoteIds["action"]
 export type CreditNoteFormFieldId = CreditNoteIds["formField"]
+export type CreditNoteSheetBlockId = CreditNoteIds["sheetBlock"]
 
-/** Розширення кредит-ноти: поля, статуси й дії, список, картка й форма. */
+/** Розширення кредит-ноти: поля, статуси й дії, список, картка, форма й аркуш друку. */
 export type CreditNoteDocumentExtension = DocumentExtension<
   CreditNote,
   CreditNoteIds,
@@ -120,7 +153,7 @@ export interface InvoicesExtension {
 export interface InvoicesMockExtension {
   readonly invoices?: Pick<
     InvoiceDocumentExtension,
-    "fields" | "statuses" | "transitions"
+    "fields" | "statuses" | "transitions" | "lineFields"
   >
   readonly creditNotes?: Pick<
     CreditNoteDocumentExtension,

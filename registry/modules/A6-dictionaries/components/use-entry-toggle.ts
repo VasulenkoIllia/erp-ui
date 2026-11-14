@@ -16,17 +16,21 @@ import { useDictionariesT } from "../use-dictionaries-t"
 /** Перечитаний список React малює трохи пізніше за відповідь сервера, запас на повільний пристрій. */
 const ROW_REMOVAL_FRAMES = 30
 
+const tableOf = (button: HTMLElement) =>
+  button.closest('[data-slot="data-table"]')
+
 /**
  * Найближчий кадр після перечитування може випередити відмальовку, а зниклий рядок потім забере фокус у
  * таблицю. Тож дивимось кілька кадрів. Рядок лишився — нічого не робимо; людину, що за цей час пішла з
- * таблиці, не чіпаємо.
+ * таблиці, не чіпаємо. Таблицю шукаємо до запиту: рядок може зникнути раніше, ніж перечитування поверне
+ * керування, і тоді від відірваної кнопки таблиці вже не знайти.
  */
 export function focusHeadingOnceRemoved(
   button: HTMLElement,
   heading: RefObject<HTMLHeadingElement | null>,
+  table: Element | null = tableOf(button),
   frames = ROW_REMOVAL_FRAMES,
 ): void {
-  const table = button.closest('[data-slot="data-table"]')
   const watch = (framesLeft: number) =>
     requestAnimationFrame(() => {
       if (button.isConnected) {
@@ -66,6 +70,7 @@ export function useEntryToggle<T extends DictionaryEntry>(
       if (savingRef.current.has(entry.id)) return
       savingRef.current.add(entry.id)
       setSaving(true)
+      const table = button ? tableOf(button) : null
       const refresh = () =>
         Promise.all([
           queryClient.invalidateQueries({ queryKey: [resource] }),
@@ -96,7 +101,7 @@ export function useEntryToggle<T extends DictionaryEntry>(
           })
         else toast.success(done)
         await refresh()
-        if (button) focusHeadingOnceRemoved(button, heading)
+        if (button) focusHeadingOnceRemoved(button, heading, table)
       } catch (failure: unknown) {
         const reason =
           isApiError(failure) && failure.code === "conflict"

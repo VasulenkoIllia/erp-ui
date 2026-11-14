@@ -16,7 +16,11 @@ import { COPY_PARAM } from "@/lib/document-kind"
 import { useDocumentAccess } from "../components/invoice-access"
 import { useInvoiceTitle } from "../components/invoice-display"
 import { InvoiceForm } from "../components/invoice-form"
-import { INVOICES, invoiceDetailSchema, type Invoice } from "../contract"
+import {
+  useInvoiceDetailSchema,
+  useInvoiceLineFields,
+} from "../components/invoice-lines"
+import { INVOICES, type Invoice } from "../contract"
 import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
@@ -38,10 +42,11 @@ export function InvoiceFormPage() {
 /** Рахунок із рядками для форми (зміна чи копія). */
 function useFormSource(id: string) {
   const t = useInvoicesT()
-  return useDocumentFormSource<Invoice, typeof invoiceDetailSchema>({
+  const schema = useInvoiceDetailSchema(useInvoiceLineFields(INVOICE_KIND))
+  return useDocumentFormSource<Invoice, typeof schema>({
     resource: INVOICES,
     id,
-    schema: invoiceDetailSchema,
+    schema,
     owner: "K2-invoices",
     invalidTitle: t("invoice.linesInvalid"),
   })
