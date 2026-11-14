@@ -16,6 +16,7 @@
       "documentFlow": "Document flow",
       "print": "Print",
       "partyDetails": "Document parties",
+      "documentGenerator": "Document from template",
       "richText": "Rich text field",
       "timeline": "Record timeline",
       "setup": "Get started",
@@ -1006,6 +1007,15 @@
       "forbidden": "No access",
       "notFound": "Not found"
     }
+  },
+  "documentGeneratorPage": {
+    "lead": "Document generator from a Word template (UI44, ADR-0087): a project template or your own .docx file; tags such as {customer.name} are already filled with the document's data (parties, totals in words, lines), and you can correct values for this file only. The preview shows the file itself, and “Download .docx” gives exactly what you see. An unknown tag or a tag written incorrectly is marked next to the tag. Everything runs in the browser, no backend needed.",
+    "inline": "Generator on a page",
+    "inlineHint": "Demo templates: a contract, a payment request letter, a template with unknown tags, one with tag errors and one that fails to load. You can also choose your own .docx file.",
+    "card": "On a document card",
+    "cardHint": "On quote, order and invoice cards this button sits in the header: the project's extension adds it; module files did not change.",
+    "invoices": "Customer invoices",
+    "sales": "Quotes and orders"
   },
   "partyDetailsPage": {
     "lead": "Document parties as Customer or Contractor (UI45, ADR-0068): legal entity or sole proprietor, requisites with code checks, a signatory with a signature line like “Olena KOVAL”, the “represented by” phrase in the genitive case typed by hand, and “acting under”. “Fill from …” fills only empty fields: what you typed stays. An empty requisite is not printed.",

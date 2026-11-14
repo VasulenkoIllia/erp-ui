@@ -4,6 +4,7 @@
  * Множина — ключі `_one/_few/_many/_other` (i18next + Intl.PluralRules).
  */
 import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
+import { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
 import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import { ukParty } from "@/registry/lib/i18n-uk-party"
@@ -1472,6 +1473,7 @@ export const uk = {
   ...ukPrint,
   ...ukParty,
   ...ukPeriodLock,
+  ...ukDocumentGenerator,
 }
 
 export type ErpUiMessages = typeof uk

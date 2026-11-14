@@ -22,6 +22,7 @@ export const ROUTES = {
   documentFlow: "/document-flow",
   print: "/print",
   partyDetails: "/party-details",
+  documentGenerator: "/document-generator",
   richText: "/rich-text",
   timeline: "/timeline",
   setup: "/setup",

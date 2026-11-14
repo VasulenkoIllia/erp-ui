@@ -1245,6 +1245,21 @@ export const CODE_ITEMS = {
     demo: "partyDetails",
     spec: ["UI45", "§11"],
   },
+  "lib/i18n-uk-document-generator": {
+    title: "Рядки генератора документів українською",
+    description:
+      "Документ із шаблону .docx (ADR-0087): вибір шаблону й свого файла, читання, помилки міток біля мітки, групи й підписи міток, перегляд, завантаження: окремий файл, простір імен erp-ui той самий.",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "§11"],
+  },
+  "lib/i18n-en-document-generator": {
+    title: "Рядки генератора документів англійською",
+    description: "Ті самі рядки генератора документів англійською.",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "§11"],
+  },
   "lib/i18n-uk-period-lock": {
     title: "Рядки закритих періодів українською",
     description:
@@ -1441,6 +1456,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "partyDetails",
     spec: ["UI45", "§11", "LC12"],
+  },
+  "lib/document-template": {
+    title: "Документ із шаблону: дані й мітки",
+    description:
+      "TemplateDocument — що генератор .docx бере з документа: номер, дата, валюта, підсумок, рядки й підсумки картки (templateDetailOf), сторони за ролями (PartyDetails і роль мовою документа), інші поля (текст, дата, сума); змінні шаблону групами й цикл рядків (TemplateVariables); templateIssues — невідома мітка (і в циклі рядків), мітка з @ — помилка біля мітки; usedTemplateKeys — мітки шаблону для форми; templateData — дані для заповнення з виправленими значеннями. Легкий файл без бібліотек .docx (UI44, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "UI45", "§11"],
+  },
+  "lib/docx-template": {
+    title: "Читання й заповнення шаблону .docx",
+    description:
+      "readDocxTemplate: шаблон Word у браузері (docxtemplater, pizzip під MIT) — мітки шаблону зі вкладеними блоками, відмова: не .docx, розпакований більший за 50 МБ, помилки запису міток з кодом і міткою; fill(data) — новий .docx з тих самих байтів, значення текстом, перенос рядка — розрив рядка, невідома мітка лишається {мітка}. Лише лінивим чанком генератора (UI44, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44"],
   },
   "lib/period-lock": {
     title: "Закриті періоди",
@@ -2927,6 +2958,46 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "periodLock",
     spec: ["PF13", "§8.3", "§10", "§11"],
+  },
+  "erp/document-generator": {
+    title: "Документ із шаблону",
+    description:
+      "DocumentGeneratorButton — «Документ із шаблону» з діалогом, DocumentGenerator — те саме без діалогу: шаблон проекту (load) чи свій файл .docx до 10 МБ, мітки шаблону зі значеннями документа групами (документ, сторони, інші поля) і рядками, виправлення лише для цього файла, перегляд самого файла, «Завантажити .docx» — той самий файл, що в перегляді; невідома мітка й помилка запису мітки — біля мітки, завантаження неактивне з причиною; перелік міток для автора шаблону; шаблон не завантажився — «Спробувати ще». Бібліотеки .docx і перегляд — лінивим чанком (наведення на кнопку вантажить заздалегідь); на картку модуля ставиться дією розширення проекту (UI44, ADR-0087, ADR-0086).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "UI45", "§8", "§8.4", "§9", "§10", "§11"],
+  },
+  "erp/document-generator-panel": {
+    title: "Панель генератора документа",
+    description:
+      "DocumentGeneratorPanel: вибір шаблону, читання (шаблон проекту раз за сторінку, свій файл щоразу), стан і помилки, форма міток, перегляд за паузою в наборі, завантаження того самого Blob, що в перегляді. Лінивий чанк erp/document-generator, напряму не підключають (UI44, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "§8", "§9"],
+  },
+  "erp/document-template-fields": {
+    title: "Мітки шаблону у формі",
+    description:
+      "DocumentTemplateFields: помилки шаблону біля мітки першими, значення міток шаблону групами зі значенням документа в полі (довгі — на кілька рядків) і міткою під підписом, цикл рядків — числом рядків; з контейнера 32rem поля в дві колонки; DocumentTemplateReference — усі мітки, які можна вставити, з підписами. Частина erp/document-generator (UI44, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "§8.3", "§9", "§10"],
+  },
+  "erp/document-template-variables": {
+    title: "Змінні шаблону з документа",
+    description:
+      "documentTemplateVariables: значення мовою документа, підписи мовою інтерфейсу — номер (чернетка «без номера»), дата цифрами й словами, валюта, суми без податку, податок, усього й прописом (є слова валюти); сторони customer і contractor — поля PartyDetails, clause (partyClause з роллю) і signature («Олена КОВАЛЬ»); цикл lines — №, назва, кількість, одиниця, ціна, знижка, податок, суми; інші поля проекту без перекриття ключів кіта (UI44, UI45, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "UI45", "§11"],
+  },
+  "erp/docx-preview": {
+    title: "Перегляд .docx",
+    description:
+      "DocxPreview: сам файл .docx (docx-preview, Apache-2.0) в iframe з sandbox без скриптів і CSP без мережі — вбудований HTML не малюється, посилання без адреси; аркуш стискається під ширину; новий файл під час малювання — у черзі, на аркуші лише останній; тло — тло застосунку в обох темах; стани idle, rendering, ready, failed. Лише лінивим чанком (UI44, ADR-0087).",
+    status: "beta",
+    demo: "documentGenerator",
+    spec: ["UI44", "§9", "§10"],
   },
   "erp/print-requisites": {
     title: "Реквізити, логотип і печатка на аркуші",

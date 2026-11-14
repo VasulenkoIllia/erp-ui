@@ -75,6 +75,8 @@ const SHOT_PAGES = {
   print: "/#/print",
   // Реквізити сторін (крок UI45, ADR-0068): форма сторін, аркуш договору й стани.
   partyDetails: "/#/party-details",
+  // Документ із шаблону (крок UI44, ADR-0087): генератор із шаблоном договору, мітки й перегляд файла.
+  documentGenerator: "/#/document-generator",
   setup: "/#/setup",
   wizard: "/#/wizard",
   states: "/#/states",
