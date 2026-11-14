@@ -21,14 +21,6 @@ import {
   type LineExtensionShape,
 } from "@/registry/lib/document-lines"
 import type { TotalsDiscount } from "@/registry/lib/document-totals"
-import { useDateIssueText } from "@/registry/erp/date-input"
-import type { ExtensionField } from "@/registry/lib/extension-fields"
-import {
-  extensionFormFields,
-  extensionFormLines,
-  extensionFormSchema,
-  extensionPayloadLines,
-} from "@/registry/lib/extension-form"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
@@ -41,8 +33,8 @@ import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
  * Розділи й нотатки (ADR-0060) — серед рядків: назва розділу й текст нотатки обов'язкові.
  *
  * Модуль додає поля шапки: `useDocumentLinesSchema(currency).safeExtend({ client: … })`. Поля розширення
- * рядка (`lineFields`, ADR-0086) — `useDocumentLineFields(lineFields)`: схеми для другого аргументу,
- * значення рядків для форми й для запиту, поля для редактора.
+ * рядка (`lineFields`, ADR-0086) — `useDocumentLineFields(lineFields)` з `erp/document-line-extension`:
+ * схеми для другого аргументу, значення рядків для форми й для запиту, поля для редактора.
  */
 
 /** Значення форми, на яких стоїть редактор: рядки (з розділами й нотатками) і знижка документа. */
@@ -57,50 +49,6 @@ type IssueCode = Exclude<
 >
 
 const NO_LINE_SHAPE: LineExtensionShape = {}
-
-export interface DocumentLineFieldsApi {
-  /** Поля розширення рядка в порядку `lineFields`: для редактора (`DocumentFormLines.lineFields`). */
-  readonly fields: readonly ExtensionField[]
-  /** Схеми полів у рядку форми — другий аргумент `useDocumentLinesSchema`. */
-  readonly shape: LineExtensionShape
-  /** Рядки документа для значень форми: у рядку товару — значення полів розширення для форми. */
-  readonly formLines: <L extends DocumentBodyLine>(lines: readonly L[]) => L[]
-  /** Рядки форми для запиту: порожнє поле розширення — `null`. */
-  readonly payloadLines: <L extends DocumentBodyLine>(
-    lines: readonly L[],
-  ) => L[]
-}
-
-const NO_LINE_FIELDS: readonly ExtensionField[] = []
-
-/**
- * Поля розширення рядка документа у формі (ADR-0086). `lineFields` — стабільні між рендерами
- * (константа файлу розширення): від них залежить схема форми. Обов'язкове поле — «Заповніть це поле»
- * біля поля рядка.
- */
-export function useDocumentLineFields(
-  lineFields: readonly ExtensionField[] = NO_LINE_FIELDS,
-): DocumentLineFieldsApi {
-  const t = useErpUiT()
-  const dateIssue = useDateIssueText()
-  return React.useMemo(() => {
-    // Усі поля рядка — у рядку: `extensionFormFields` лише перевіряє ключі.
-    const fields = extensionFormFields(lineFields, {
-      add: lineFields.map(({ id }) => ({ id })),
-    })
-    return {
-      fields,
-      shape: fields.length
-        ? extensionFormSchema(fields, {
-            required: t("validation.required"),
-            dateIssue: (value) => dateIssue(value),
-          })
-        : NO_LINE_SHAPE,
-      formLines: (lines) => extensionFormLines(fields, lines),
-      payloadLines: (lines) => extensionPayloadLines(fields, lines),
-    }
-  }, [lineFields, t, dateIssue])
-}
 
 export function useDocumentLinesSchema(
   currency: string,

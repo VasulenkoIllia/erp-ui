@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { RaRecord } from "ra-core"
 import type { Control, FieldValues, UseFormReturn } from "react-hook-form"
 
@@ -6,7 +7,7 @@ import {
   setLinesValue,
 } from "@/registry/erp/document-discount-field"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
-import { ExtensionFormInput } from "@/registry/erp/extension-field-input"
+import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { FormField } from "@/registry/erp/form"
 import { FormSelect, type FormSelectItem } from "@/registry/erp/form-select"
 import { DecimalInput } from "@/registry/erp/number-input"
@@ -25,6 +26,7 @@ import {
 } from "@/registry/lib/document-totals"
 import { localizedText } from "@/registry/lib/auth"
 import type { ExtensionField } from "@/registry/lib/extension-fields"
+import { lazyWithPreload } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
 import { currencyLabel, useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
@@ -42,6 +44,7 @@ import { Input } from "@/registry/ui/input"
  * - Знижка — `erp/document-discount-field`.
  * - Поля розширення рядка (`lineFields`, ADR-0086) — під назвою в тій самій клітинці: колонки таблиці
  *   ті самі, а підпис поля видимий і на широкому екрані, де решта підписів — назви колонок у шапці.
+ *   Поле вводу — окремим чанком (ADR-0009): картка й аркуш без полів рядка його не вантажать.
  * - Частина редактора: форма — `DocumentLinesValues`.
  */
 
@@ -123,6 +126,11 @@ function applyItem(
 
 /** Підпис поля розширення рядка не ховається в таблиці (`laterLabels` у `erp/repeating-row-actions`). */
 const LINE_FIELD_LABEL = "**:data-[slot=field-label]:not-sr-only!"
+
+// Поле розширення тягне дату, прапорець і вибір запису (~30 КБ): лише в документі з полями рядка.
+const LineExtensionInput = lazyWithPreload(() =>
+  import("./extension-field-input").then((m) => m.ExtensionFormInput),
+)
 
 export interface DocumentLineFieldsProps<T extends RaRecord> {
   form: LinesForm
@@ -215,23 +223,27 @@ export function DocumentLineFields<T extends RaRecord>({
             />
           )}
         />
-        {lineFields?.map((extra) => {
-          const label = localizedText(extra.label, language) ?? extra.id
-          return (
-            <ExtensionFormInput
-              key={extra.id}
-              field={extra}
-              // Поля розширення — ключі поза типом рядка: контроль форми без її типу.
-              control={form.control as unknown as Control<FieldValues>}
-              name={`lines.${String(index)}.${extra.id}`}
-              label={label}
-              readOnly={readOnly}
-              // Підпис видимий і в таблиці (там підписи полів рядка лише для скрінрідера, а назви колонок —
-              // у шапці): полів у клітинці «Назва» може бути кілька, і без підпису значення не впізнати.
-              className={LINE_FIELD_LABEL}
-            />
-          )
-        })}
+        {lineFields?.length ? (
+          <ErrorBoundary className="min-h-0 border-0">
+            <Suspense fallback={null}>
+              {lineFields.map((extra) => (
+                <LineExtensionInput
+                  key={extra.id}
+                  field={extra}
+                  // Поля розширення — ключі поза типом рядка: контроль форми без її типу.
+                  control={form.control as unknown as Control<FieldValues>}
+                  name={`lines.${String(index)}.${extra.id}`}
+                  label={localizedText(extra.label, language) ?? extra.id}
+                  readOnly={readOnly}
+                  // Підпис видимий і в таблиці (там підписи полів рядка лише для скрінрідера, а назви
+                  // колонок — у шапці): полів у клітинці «Назва» може бути кілька, і без підпису значення
+                  // не впізнати.
+                  className={LINE_FIELD_LABEL}
+                />
+              ))}
+            </Suspense>
+          </ErrorBoundary>
+        ) : null}
       </div>
       <FormField
         control={form.control}

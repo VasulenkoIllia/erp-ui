@@ -4,12 +4,12 @@ import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { DocumentFormLines } from "@/components/erp/document-lines-section"
 import {
   useDocumentLineFields,
-  useDocumentLinesSchema,
   type DocumentLineFieldsApi,
-} from "@/components/erp/document-lines-schema"
+} from "@/components/erp/document-line-extension"
+import { DocumentFormLines } from "@/components/erp/document-lines-section"
+import { useDocumentLinesSchema } from "@/components/erp/document-lines-schema"
 import {
   useExtensionForm,
   type ExtensionFormApi,

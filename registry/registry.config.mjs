@@ -2832,6 +2832,14 @@ export const CODE_ITEMS = {
     demo: "documentLines",
     spec: ["UI05", "§8.3", "§11"],
   },
+  "erp/document-line-extension": {
+    title: "Поля розширення рядка документа",
+    description:
+      "useDocumentLineFields(lineFields): поля розширення рядка товару у формі документа — схеми для другого аргументу useDocumentLinesSchema, значення рядків для форми й для запиту (порожнє — null), поля для редактора; обов'язкове — «Заповніть це поле» біля поля рядка. Поле вводу в рядку вантажиться окремим чанком, лише в документі з полями рядка (UI05, ADR-0009, ADR-0086).",
+    status: "beta",
+    demo: "invoicesModule",
+    spec: ["UI05", "§11", "§14"],
+  },
   "erp/numbering-settings": {
     title: "Налаштування нумерації",
     description:

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
+  act,
   render,
   renderHook,
   screen,
@@ -10,9 +11,9 @@ import userEvent from "@testing-library/user-event"
 import { useForm } from "react-hook-form"
 import { describe, expect, it, vi } from "vitest"
 
+import { useDocumentLineFields } from "@/registry/erp/document-line-extension"
 import { DocumentLinesEditor } from "@/registry/erp/document-lines-editor"
 import {
-  useDocumentLineFields,
   useDocumentLinesSchema,
   type DocumentLinesValues,
 } from "@/registry/erp/document-lines-schema"
@@ -218,16 +219,21 @@ describe("редактор рядків із полями розширення",
   it("поле під назвою з підписом; новий рядок — з порожнім полем; значення йдуть у запит", async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn<(values: DocumentLinesValues) => void>()
-    render(
-      <Editor
-        initial={body([
-          item("1", { name: "Ноутбук", hsCode: "8471 30 00 00" }),
-        ])}
-        onSubmit={onSubmit}
-      />,
-    )
+    // Поле рядка — лінивий чанк: без асинхронного `act` React не повторює призупинений рендер.
+    await act(async () => {
+      render(
+        <Editor
+          initial={body([
+            item("1", { name: "Ноутбук", hsCode: "8471 30 00 00" }),
+          ])}
+          onSubmit={onSubmit}
+        />,
+      )
+      await Promise.resolve()
+    })
     const first = screen.getByRole("group", { name: "Рядок 1" })
-    expect(within(first).getByLabelText("Код УКТЗЕД")).toHaveValue(
+    // Поле розширення — окремим чанком: перше чекаємо.
+    expect(await within(first).findByLabelText("Код УКТЗЕД")).toHaveValue(
       "8471 30 00 00",
     )
     expect(
@@ -253,16 +259,21 @@ describe("редактор рядків із полями розширення",
     ])
   })
 
-  it("лише для читання: значення без підказки, порожнє поле не схоже на незаповнене для введення", () => {
-    render(
-      <Editor
-        initial={body([item("1", { hsCode: "8471 30 00 00" }), item("2")])}
-        onSubmit={() => undefined}
-        readOnly
-      />,
-    )
+  it("лише для читання: значення без підказки, порожнє поле не схоже на незаповнене для введення", async () => {
+    await act(async () => {
+      render(
+        <Editor
+          initial={body([item("1", { hsCode: "8471 30 00 00" }), item("2")])}
+          onSubmit={() => undefined}
+          readOnly
+        />,
+      )
+      await Promise.resolve()
+    })
     const filled = within(screen.getByRole("group", { name: "Рядок 1" }))
-    expect(filled.getByLabelText("Код УКТЗЕД")).toHaveValue("8471 30 00 00")
+    expect(await filled.findByLabelText("Код УКТЗЕД")).toHaveValue(
+      "8471 30 00 00",
+    )
     const empty = within(
       screen.getByRole("group", { name: "Рядок 2" }),
     ).getByLabelText("Код УКТЗЕД")

@@ -114,8 +114,8 @@
   контрактом». Рядки кредит-ноти — з рахунку, своїх полів рядка в неї немає. Кіт: `extensionShape` (схеми
   полів), `documentBodySchemaFor`, `documentLinesSchemaFor` і `savedDocumentBodyLineSchemaWith` з необов'язковою
   формою полів рядка (ключ поля рядка кіта — помилка розробника, `assertLineShape`, і в схемі форми),
-  `extensionFormLines` і `extensionPayloadLines`, `useDocumentLineFields`, `lineFields` у `DocumentLinesEditor`,
-  `DocumentSavedLines` і `DocumentFormLines`; моки — `withLineMockValues` і `lineShape` у `storedDocumentSchema`.
+  `extensionFormLines` і `extensionPayloadLines`, `useDocumentLineFields` (`erp/document-line-extension`), `lineFields`
+  у `DocumentLinesEditor` (поле вводу — окремим чанком), `DocumentSavedLines` і `DocumentFormLines`; моки — `withLineMockValues` і `lineShape` у `storedDocumentSchema`.
   Контракт бекенда: сервер приймає й повертає ці ключі в рядках товарів.
 - Версії: мінорна. Для проекту, що сам викликає частини модуля, змінились внутрішні підписи: `sheetTitle` і `sheet` у
   `DocumentPrint` модуля K2 отримують рядки аркуша, вид документа B3 більше не несе `sheet`; публічні експорти модулів ті
