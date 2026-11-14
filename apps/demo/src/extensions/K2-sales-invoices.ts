@@ -3,6 +3,7 @@ import type {
   InvoicesExtension,
 } from "@/registry/modules/K2-invoices"
 
+import { InvoiceFromTemplate } from "./document-template-actions"
 import { invoicesMockExtension } from "./K2-sales-invoices-fields"
 import {
   ExportInvoices,
@@ -19,7 +20,8 @@ import {
  *   замовленні (ADR-0070);
  * - поле рядка «Код УКТЗЕД» — у рядку редактора під назвою, на картці й на аркуші (ADR-0086);
  * - дія рядка «Друк» у списку, масова дія «Вивантажити» в панелі вибраного, блок «Умови оплати» на
- *   аркуші після підсумків (`K2-sales-invoices-slots.tsx`).
+ *   аркуші після підсумків (`K2-sales-invoices-slots.tsx`);
+ * - дія «Документ із шаблону» на картці рахунку (`document-template-actions.tsx`, ADR-0087).
  */
 const invoices: InvoiceDocumentExtension = {
   ...invoicesMockExtension.invoices,
@@ -49,6 +51,7 @@ const invoices: InvoiceDocumentExtension = {
       },
     ],
   },
+  actions: { add: [{ id: "fromTemplate", component: InvoiceFromTemplate }] },
   rowActions: { add: [{ id: "print", component: PrintInvoiceRow }] },
   bulkActions: {
     add: [{ id: "export", component: ExportInvoices, place: "end" }],

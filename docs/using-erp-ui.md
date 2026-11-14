@@ -1170,6 +1170,58 @@ const { data: company } = useCompanyProfile()
   реквізити й підписи сторін, `partyRequisiteLines` — рядки для `PrintParties`. `t` і підписи ролей — мовою аркуша
   (`usePrintSheet`, `print.sheet.party.customer`). Порожній реквізит не друкується, ФОП — без посади й «в особі».
 
+### Документ із шаблону .docx (ADR-0087)
+
+Генератор заповнює шаблон Word значеннями документа в браузері: людина вибирає шаблон проекту чи свій файл .docx,
+бачить форму міток за сторонами, перегляд самого файла й завантажує той самий файл. Дія на картці документа модуля —
+компонент проекту в слоті `actions` розширення (ADR-0086):
+
+```tsx
+// extensions/invoice-from-template.tsx — вантажиться ліниво, див. нижче
+export function InvoiceFromTemplate({ record }: RecordSlotProps<Invoice>) {
+  const document: TemplateDocument = {
+    number: record.number,
+    date: record.date,
+    currency: record.currency,
+    total: record.total,
+    ...templateDetailOf(record),
+    parties: {
+      contractor: { details: record.supplier, label: { uk: "Постачальник", en: "Supplier" } },
+      customer: { details: record.buyer, label: { uk: "Покупець", en: "Buyer" } },
+    },
+    fields: [{ key: "dueDate", label: { uk: "Сплатити до", en: "Due date" }, value: { date: record.dueDate } }],
+  }
+  return (
+    <DocumentGeneratorButton
+      document={document}
+      templates={TEMPLATES}
+      fileName={record.number ?? "Чернетка"}
+      unavailableReason={isLoading ? t("contracts.partiesLoading") : undefined}
+    />
+  )
+}
+
+const TEMPLATES: DocumentTemplateOption[] = [
+  { id: "contract", label: { uk: "Договір поставки", en: "Supply contract" }, load: () => fetch("/templates/contract.docx").then((r) => r.blob()) },
+]
+```
+
+- Мітки: `{number}`, `{dateLong}`, `{total}`, `{totalInWords}`, `{customer.name}`, `{customer.clause}` («…, в особі …
+  (надалі «Покупець»)»), `{contractor.signature}` («Олена КОВАЛЬ»), інші поля — `{fields.<ключ>}` (`{fields.dueDate}`:
+  нова мітка кіта поле проекту не перекриє; ключ латиницею, кожен раз один); рядки — між
+  `{#lines}` і `{/lines}` (`{no}`, `{name}`, `{quantity}`, `{unit}`, `{price}`, `{total}`…), умова —
+  `{#customer.vatIpn}ІПН {customer.vatIpn}{/customer.vatIpn}`. Повний перелік — «Які мітки можна вставити» в генераторі.
+- Невідома мітка, `{@…}` і помилка запису — перелік «Помилки в шаблоні» біля мітки, завантаження неактивне з причиною.
+  Поки дані документа вантажаться (картка контрагента), дайте `unavailableReason`: форма й перегляд працюють, а
+  завантаження чекає. Сума прописом у своїй валюті — `currencies`, як у друку.
+- Межі шаблону: файл до 10 МБ, розпакований до 50 МБ, текст Word до 10 МБ і до 500 міток.
+- Значення — мовою документа (мова компанії, як у друку, чи `language`), людина може виправити значення перед
+  завантаженням; документ від цього не змінюється.
+- Розширення збирається на старті застосунку, тож компонент дії вантажте ліниво, у своєму `Suspense` з неактивною
+  кнопкою тієї самої назви (демо: `apps/demo/src/extensions/document-template-actions.tsx`). Бібліотеки генератора
+  вантажаться лише після відкриття.
+- `DocumentGenerator` — той самий генератор просто на сторінці (без діалогу).
+
 ### Закриті періоди (ADR-0069)
 
 Компанія має одну дату закриття (`GET`/`PATCH /period-lock/current`, `lockedThrough` — останній закритий день). Документ із

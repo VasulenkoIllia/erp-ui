@@ -55,6 +55,10 @@ export const PAGES = {
   partyDetails: lazyWithPreload(() =>
     import("./PartyDetailsPage").then((m) => m.PartyDetailsPage),
   ),
+  // Документ із шаблону .docx: бібліотеки .docx і перегляд вантажаться окремо з генератором (ADR-0087).
+  documentGenerator: lazyWithPreload(() =>
+    import("./DocumentGeneratorPage").then((m) => m.DocumentGeneratorPage),
+  ),
   // Редактор Tiptap вантажиться окремо, коли з'являється поле, яке можна змінювати.
   richText: lazyWithPreload(() =>
     import("./RichTextPage").then((m) => m.RichTextPage),

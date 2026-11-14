@@ -7,6 +7,7 @@ import { enRecords } from "@/registry/lib/i18n-en-records"
 import { enShortcuts } from "@/registry/lib/i18n-en-shortcuts"
 import { enImport } from "@/registry/lib/i18n-en-import"
 import { enDocuments } from "@/registry/lib/i18n-en-documents"
+import { enDocumentGenerator } from "@/registry/lib/i18n-en-document-generator"
 import { enDocumentLines } from "@/registry/lib/i18n-en-document-lines"
 import { enNumbering } from "@/registry/lib/i18n-en-numbering"
 import { enParty } from "@/registry/lib/i18n-en-party"
@@ -1456,4 +1457,5 @@ export const en = {
   ...enPrint,
   ...enParty,
   ...enPeriodLock,
+  ...enDocumentGenerator,
 } satisfies ErpUiTranslation

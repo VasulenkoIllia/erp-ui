@@ -87,9 +87,12 @@ export async function expectNoA11yViolations(page: Page): Promise<void> {
     ANIMATIONS_WAIT_MS,
   )
   // Службові зупинки Base UI навколо спливного вікна: `aria-hidden` і `tabindex=0` за задумом, фокус одразу йде далі.
+  // Перегляд .docx (`erp/docx-preview`) — кадр без скриптів із чужим документом: скрипт axe там не завершується
+  // й тримає тест до тайм-ауту, а сам документ не наш. Назву кадру перевіряє тест генератора.
   const results = await new AxeBuilder({ page })
     .withTags(AXE_TAGS)
     .exclude("[data-base-ui-focus-guard]")
+    .exclude('[data-slot="docx-preview"]')
     .analyze()
   expect(
     results.violations,
