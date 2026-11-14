@@ -35,7 +35,7 @@ import type { z } from "zod"
 
 import type { LocalizedText } from "@/lib/auth"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
-import { withMockValues } from "@/lib/extension-fields"
+import { extensionShape, withMockValues } from "@/lib/extension-fields"
 import type {
   MockNumberingCounterSeed,
   MockNumberingSeriesSeed,
@@ -45,6 +45,7 @@ import {
   documentLinesText,
   LIFECYCLE_LINK_FIELDS,
   storedDocumentSchema,
+  withLineMockValues,
   withoutServerFields,
   withTransitionSamples,
   type CalendarFieldOf,
@@ -240,13 +241,16 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
   )
   // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, дії).
   const fixtures = () =>
-    withMockValues(
-      withTransitionSamples(
-        spec.fixtures(),
-        extension?.statuses,
-        extension?.transitions,
+    withLineMockValues(
+      withMockValues(
+        withTransitionSamples(
+          spec.fixtures(),
+          extension?.statuses,
+          extension?.transitions,
+        ),
+        extension?.fields,
       ),
-      extension?.fields,
+      extension?.lineFields,
     )
   const documents = createResourceHandlers<T>({
     resource,
@@ -254,6 +258,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
     schema: storedDocumentSchema<T>(spec.schema(extension), {
       dueField,
       draftStatus: spec.draftStatus,
+      lineShape: extensionShape(extension?.lineFields),
     }),
     data: fixtures,
     searchFields: ["number", "clientName"],

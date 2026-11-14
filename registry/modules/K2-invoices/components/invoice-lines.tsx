@@ -1,20 +1,45 @@
+import { useMemo } from "react"
+
 import {
   DocumentSavedLines,
   useDocumentDetail,
   type DocumentLinesState,
 } from "@/components/erp/document-lines-section"
+import type { ExtensionField } from "@/lib/extension-fields"
 
 import {
-  invoiceDetailSchema,
+  invoiceDetailSchemaFor,
   type InvoiceDetail,
   type K2Document,
 } from "../contract"
 import type { K2DocumentKind } from "../document-kind"
+import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
 
+/** Поля розширення рядка документа (`lineFields`, ADR-0086): лише в рахунку. */
+export function useInvoiceLineFields(kind: K2DocumentKind) {
+  const { extension } = useInvoicesModule()
+  return kind.extensionOf(extension)?.lineFields
+}
+
+/** Схема рядків і підсумків із полями розширення рядка; стабільна, поки поля ті самі. */
+export function useInvoiceDetailSchema(
+  lineFields: readonly ExtensionField[] | undefined,
+) {
+  return useMemo(() => invoiceDetailSchemaFor(lineFields), [lineFields])
+}
+
 /** Рядки й підсумки рахунку (і кредит-ноти на картці й аркуші: та сама схема рядків). */
-export const useInvoiceDetail = (record: unknown) =>
-  useDocumentDetail(record, invoiceDetailSchema, "K2-invoices")
+export function useInvoiceDetail(
+  record: unknown,
+  lineFields?: readonly ExtensionField[],
+) {
+  return useDocumentDetail(
+    record,
+    useInvoiceDetailSchema(lineFields),
+    "K2-invoices",
+  )
+}
 
 export type InvoiceLinesState = DocumentLinesState
 
@@ -32,13 +57,15 @@ export function InvoiceLines({
   state: InvoiceLinesState
 }) {
   const t = useInvoicesT()
-  const detail = useInvoiceDetail(invoice)
+  const lineFields = useInvoiceLineFields(kind)
+  const detail = useInvoiceDetail(invoice, lineFields)
   return (
     <DocumentSavedLines
       detail={detail}
       document={invoice}
       state={state}
       invalidTitle={t(`${kind.key}.linesInvalid`)}
+      lineFields={lineFields}
     />
   )
 }

@@ -5,7 +5,11 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { DocumentFormLines } from "@/components/erp/document-lines-section"
-import { useDocumentLinesSchema } from "@/components/erp/document-lines-schema"
+import {
+  useDocumentLineFields,
+  useDocumentLinesSchema,
+  type DocumentLineFieldsApi,
+} from "@/components/erp/document-lines-schema"
 import {
   useExtensionForm,
   type ExtensionFormApi,
@@ -13,6 +17,7 @@ import {
 import { usePartyDetailsSchema } from "@/components/erp/party-details-schema"
 import {
   RecordFormFields,
+  type RecordFormGroup,
   type RecordFormItem,
 } from "@/components/erp/record-form"
 import { RecordFormFrame } from "@/components/erp/record-form-page"
@@ -25,6 +30,7 @@ import {
   partyDetailsFrom,
   partyFromCompany,
 } from "@/lib/document-parties"
+import type { ExtensionField } from "@/lib/extension-fields"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
@@ -63,9 +69,10 @@ function useInvoiceFormSchema(
   currency: string,
   dueBefore: string,
   extensionShape: z.ZodRawShape,
+  lineShape: DocumentLineFieldsApi["shape"],
 ) {
   const kitT = useErpUiT()
-  const lines = useDocumentLinesSchema(currency)
+  const lines = useDocumentLinesSchema(currency, lineShape)
   const party = usePartyDetailsSchema()
   return useMemo(() => {
     const required = kitT("validation.required")
@@ -101,6 +108,7 @@ function payloadOf(
   values: InvoiceFormValues,
   keys: readonly Path<InvoiceFormValues>[],
   ext: ExtensionFormApi<InvoiceFormFieldId>,
+  lineExt: DocumentLineFieldsApi,
 ) {
   const changed = new Set<string>(keys)
   // Знімок назви — лише разом із клієнтом (ADR-0056): той самий клієнт, вибраний знову після перейменування.
@@ -111,7 +119,9 @@ function payloadOf(
         (key): [string, unknown] => [key, values[key]],
       ),
     ),
-    ...(changed.has("lines") ? { lines: values.lines } : {}),
+    ...(changed.has("lines")
+      ? { lines: lineExt.payloadLines(values.lines) }
+      : {}),
     ...ext.payload(values, keys),
   }
 }
@@ -160,7 +170,9 @@ export function InvoiceForm({
   const ext = useExtensionForm<InvoiceFormFieldId>(
     invoiceExtension?.fields,
     invoiceExtension?.form,
+    invoiceExtension?.formGroups,
   )
+  const lineExt = useDocumentLineFields(invoiceExtension?.lineFields)
   const before = t("invoiceForm.dueDateBefore")
   const baseCurrency = useBaseCurrency(company)
   const initialCurrency =
@@ -170,7 +182,12 @@ export function InvoiceForm({
     DEFAULT_BASE_CURRENCY
   // Знаки суми — валюти, вибраної у формі: схему рядків будуємо за нею (оновлюється разом із полем).
   const [schemaCurrency, setSchemaCurrency] = useState(initialCurrency)
-  const schema = useInvoiceFormSchema(schemaCurrency, before, ext.shape)
+  const schema = useInvoiceFormSchema(
+    schemaCurrency,
+    before,
+    ext.shape,
+    lineExt.shape,
+  )
   const recordSchema = useMemo(
     () => invoiceCardSchemaFor(invoiceExtension),
     [invoiceExtension],
@@ -184,12 +201,12 @@ export function InvoiceForm({
       currency: record.currency,
       supplier: record.supplier,
       buyer: record.buyer,
-      lines: record.lines,
+      lines: lineExt.formLines(record.lines),
       discountPercent: record.discountPercent,
       discountAmount: record.discountAmount,
       ...ext.values(record),
     }),
-    [ext],
+    [ext, lineExt],
   )
   // Початкові значення беруться раз: далі форма живе своїм станом (`followRecord`). Копія — значення
   // поверх порожньої форми: вони незбережені, тож «Зберегти» створює рахунок, а вихід питає.
@@ -215,7 +232,7 @@ export function InvoiceForm({
           ? {
               ...toValues(source),
               ...dates,
-              lines: copiedDocumentLines(source.lines),
+              lines: lineExt.formLines(copiedDocumentLines(source.lines)),
             }
           : null,
     }
@@ -228,7 +245,7 @@ export function InvoiceForm({
     schema,
     defaultValues,
     recordSchema,
-    toPayload: (values, changed) => payloadOf(values, changed, ext),
+    toPayload: (values, changed) => payloadOf(values, changed, ext, lineExt),
     serverErrorText: (field, code) =>
       field === "dueDate" && code === "before_date" ? before : undefined,
     toValues,
@@ -267,6 +284,8 @@ export function InvoiceForm({
     <InvoiceFormView
       state={view}
       header={header}
+      groups={ext.groups}
+      lineFields={lineExt.fields}
       currency={schemaCurrency}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
@@ -279,6 +298,8 @@ export function InvoiceForm({
 function InvoiceFormView({
   state,
   header,
+  groups,
+  lineFields,
   currency,
   readOnly,
   readOnlyReason,
@@ -287,6 +308,8 @@ function InvoiceFormView({
 }: {
   state: RecordFormState<InvoiceFormValues>
   header: readonly RecordFormItem[]
+  groups: readonly RecordFormGroup[]
+  lineFields: readonly ExtensionField[]
   currency: string
   readOnly: boolean
   readOnlyReason: string | undefined
@@ -329,7 +352,7 @@ function InvoiceFormView({
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
     >
-      <RecordFormFields items={header} />
+      <RecordFormFields items={header} groups={groups} />
       <InvoicePartiesFields form={state.form} readOnly={readOnly} />
       <DocumentFormLines
         form={state.form}
@@ -338,6 +361,7 @@ function InvoiceFormView({
         readOnly={readOnly}
         mayEdit={mayEdit}
         savedTotals={readOnly ? invoice?.totals : undefined}
+        lineFields={lineFields}
       />
     </RecordFormFrame>
   )

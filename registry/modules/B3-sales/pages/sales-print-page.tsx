@@ -10,12 +10,12 @@ import { usePageHeading } from "@/hooks/use-page-heading"
 import { toLanguage, useLanguage } from "@/lib/i18n"
 
 import { useSalesTitle } from "../components/sales-display"
-import { useSalesDetail } from "../components/sales-lines"
+import { useSalesDetail, useSalesLineFields } from "../components/sales-lines"
 import { SalesSheet } from "../components/sales-sheet"
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
 import { ORDER_KIND, QUOTE_KIND, type SalesDocumentKind } from "../sales-kinds"
-import { useSalesT } from "../use-sales-t"
+import { useSalesSheetT, useSalesT } from "../use-sales-t"
 
 /** Друк пропозиції (ADR-0065). */
 export function QuotePrintPage() {
@@ -64,9 +64,13 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
   )
   const company = useCompanyProfile()
   const document = card.record
-  const detail = useSalesDetail(document)
+  const detail = useSalesDetail(document, useSalesLineFields(kind))
   const language = company.data?.language ?? ui.language
-  const isReady = Boolean(document && detail?.success && company.data)
+  // Назва аркуша — рядки модуля мовою документа: поки їх немає, аркуш чекає, а не блимає іншою мовою.
+  const sheetT = useSalesSheetT(toLanguage(language))
+  const isReady = Boolean(
+    document && detail?.success && company.data && !sheetT.isLoading,
+  )
   // Рядки не за контрактом чи картка без рядків — помилка даних, а не вічне завантаження.
   const invalid =
     detail?.error ??
@@ -91,7 +95,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
         {pageTitle}
       </h1>
       <PrintPreview
-        title={`${kind.sheet.title[toLanguage(language)]} ${document?.number ?? ""}`.trim()}
+        title={`${sheetT.t(`${record}.sheet.title`)} ${document?.number ?? ""}`.trim()}
         language={language}
         state={state}
         onRetry={() => {
@@ -105,7 +109,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
           />
         }
       >
-        {document && detail?.success && company.data ? (
+        {isReady && document && detail?.success && company.data ? (
           <SalesSheet
             kind={kind}
             document={document}

@@ -1,11 +1,12 @@
 import type { RaRecord } from "ra-core"
-import type { UseFormReturn } from "react-hook-form"
+import type { Control, FieldValues, UseFormReturn } from "react-hook-form"
 
 import {
   DiscountField,
   setLinesValue,
 } from "@/registry/erp/document-discount-field"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
+import { ExtensionFormInput } from "@/registry/erp/extension-field-input"
 import { FormField } from "@/registry/erp/form"
 import { FormSelect, type FormSelectItem } from "@/registry/erp/form-select"
 import { DecimalInput } from "@/registry/erp/number-input"
@@ -22,6 +23,8 @@ import {
   NO_DISCOUNT,
   type Totals,
 } from "@/registry/lib/document-totals"
+import { localizedText } from "@/registry/lib/auth"
+import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { cn } from "@/registry/lib/utils"
 import { currencyLabel, useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
@@ -37,6 +40,8 @@ import { Input } from "@/registry/ui/input"
  * - Одиниця й податок — знімок значення довідника. Значення, якого вже немає серед варіантів
  *   (вимкнене чи зі старою ставкою), лишається вибраним під своєю назвою.
  * - Знижка — `erp/document-discount-field`.
+ * - Поля розширення рядка (`lineFields`, ADR-0086) — під назвою в тій самій клітинці: колонки таблиці
+ *   ті самі; на широкому екрані, де підписи лише для скрінрідера, підпис стоїть і підказкою в полі.
  * - Частина редактора: форма — `DocumentLinesValues`.
  */
 
@@ -127,6 +132,7 @@ export interface DocumentLineFieldsProps<T extends RaRecord> {
   units: readonly (DocumentLineUnit & { id: string })[]
   taxes: readonly DocumentLineTax[]
   item?: DocumentLineItem<T>
+  lineFields?: readonly ExtensionField[] | undefined
   readOnly: boolean
 }
 
@@ -143,10 +149,11 @@ export function DocumentLineFields<T extends RaRecord>({
   units,
   taxes,
   item,
+  lineFields,
   readOnly,
 }: DocumentLineFieldsProps<T>) {
   const t = useErpUiT()
-  const { locale } = useLanguage()
+  const { locale, language } = useLanguage()
   const path = <K extends keyof DocumentLine>(key: K) =>
     `lines.${index}.${key}` as const
   const unit = snapshotItems(
@@ -205,6 +212,21 @@ export function DocumentLineFields<T extends RaRecord>({
             />
           )}
         />
+        {lineFields?.map((extra) => {
+          const label = localizedText(extra.label, language) ?? extra.id
+          return (
+            <ExtensionFormInput
+              key={extra.id}
+              field={extra}
+              // Поля розширення — ключі поза типом рядка: контроль форми без її типу.
+              control={form.control as unknown as Control<FieldValues>}
+              name={`lines.${String(index)}.${extra.id}`}
+              label={label}
+              placeholder={label}
+              readOnly={readOnly}
+            />
+          )
+        })}
       </div>
       <FormField
         control={form.control}

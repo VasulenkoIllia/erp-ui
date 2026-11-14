@@ -10,6 +10,7 @@ import {
 } from "@/components/erp/extension-field-input"
 import {
   RecordFormFields,
+  type RecordFormGroup,
   type RecordFormItem,
 } from "@/components/erp/record-form"
 import { RecordFormFrame } from "@/components/erp/record-form-page"
@@ -168,6 +169,7 @@ export function PaymentForm({
   const ext = useExtensionForm<PaymentFormFieldId>(
     kindExtension.fields,
     kindExtension.form,
+    kindExtension.formGroups,
   )
   const [requestId] = useState(newImportRequestId)
   const [defaultValues] = useState((): PaymentFormValues => ({
@@ -303,7 +305,12 @@ function PaymentFormBody({
     [moduleItems, ext, form.control],
   )
   return (
-    <PaymentFormView kind={kind} state={state} items={items}>
+    <PaymentFormView
+      kind={kind}
+      state={state}
+      items={items}
+      groups={ext.groups}
+    >
       {isFromMissing(from, clientId, open.invoices) ? (
         <Alert data-slot="payment-form-source-missing">
           <AlertDescription>
@@ -326,11 +333,13 @@ function PaymentFormView({
   kind,
   state,
   items,
+  groups,
   children,
 }: {
   kind: K4DocumentKind
   state: RecordFormState<PaymentFormValues>
   items: readonly RecordFormItem[]
+  groups: readonly RecordFormGroup[]
   children: React.ReactNode
 }) {
   const t = usePaymentsT()
@@ -349,7 +358,7 @@ function PaymentFormView({
       labels={labels}
       submitLabel={t(kind.labels.submit)}
     >
-      <RecordFormFields items={items} />
+      <RecordFormFields items={items} groups={groups} />
       {children}
     </RecordFormFrame>
   )

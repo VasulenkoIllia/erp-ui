@@ -134,6 +134,10 @@
     },
     "print": "Print",
     "printTitle": "Print: {{title}}",
+    "sheet": {
+      "title": "Quotation",
+      "due": "Valid until {{date}}"
+    },
     "steps": "Quote stages",
     "sections": {
       "lines": "Lines",
@@ -301,6 +305,10 @@
     },
     "print": "Print",
     "printTitle": "Print: {{title}}",
+    "sheet": {
+      "title": "Sales order",
+      "due": "Due by {{date}}"
+    },
     "steps": "Order stages",
     "sections": {
       "lines": "Lines",

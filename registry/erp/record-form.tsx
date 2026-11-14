@@ -27,7 +27,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/registry/ui/dialog"
-import { FieldGroup } from "@/registry/ui/field"
+import {
+  FieldDescription,
+  FieldGroup,
+  FieldLegend,
+  FieldSet,
+} from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
 
 /**
@@ -72,25 +77,81 @@ export interface RecordFormItem extends Keyed {
 /** Що розширення змінює в полі форми модуля без заміни (`KeyedChanges<…, …, RecordFormItemChange>`). */
 export type RecordFormItemChange = Pick<RecordFormItem, "label" | "description">
 
-/** Поля форми сіткою: одна колонка на вузькому контейнері, дві — від 36rem. */
+/** Група полів форми з заголовком (`fieldset`): ключі полів у порядку групи. */
+export interface RecordFormGroup extends Keyed {
+  readonly title: string
+  readonly description?: string
+  readonly fields: readonly string[]
+}
+
+/**
+ * Поля без групи й групи з їхніми полями в порядку групи. Поле стає в першу групу, що його називає;
+ * ключ, якого серед полів немає (сховане), група пропускає, а група без полів зникає.
+ */
+export function groupFormItems(
+  items: readonly RecordFormItem[],
+  groups: readonly RecordFormGroup[] = [],
+): {
+  rest: readonly RecordFormItem[]
+  groups: readonly { group: RecordFormGroup; items: RecordFormItem[] }[]
+} {
+  const taken = new Set<string>()
+  const grouped = groups.map((group) => ({
+    group,
+    items: group.fields.flatMap((id) => {
+      const item = items.find((candidate) => candidate.id === id)
+      if (!item || taken.has(id)) return []
+      taken.add(id)
+      return [item]
+    }),
+  }))
+  return {
+    rest: items.filter((item) => !taken.has(item.id)),
+    groups: grouped.filter(({ items: inGroup }) => inGroup.length > 0),
+  }
+}
+
+/** Поля сіткою: одна колонка на вузькому контейнері, дві — від 36rem. */
+function FormGrid({ items }: { items: readonly RecordFormItem[] }) {
+  return (
+    <div className="grid gap-4 @xl:grid-cols-2">
+      {items.map(({ id, label, description, wide, render }) => (
+        <React.Fragment key={id}>
+          {render({
+            label,
+            description,
+            className: wide ? "@xl:col-span-2" : undefined,
+          })}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Поля форми сіткою: одна колонка на вузькому контейнері, дві — від 36rem. Групи (`groups`, з
+ * розширення) — під полями без групи, кожна з заголовком (`fieldset` і `legend`).
+ */
 export function RecordFormFields({
   items,
+  groups,
 }: {
   items: readonly RecordFormItem[]
+  groups?: readonly RecordFormGroup[]
 }) {
+  const split = groupFormItems(items, groups)
   return (
     <FieldGroup className="@container">
-      <div className="grid gap-4 @xl:grid-cols-2">
-        {items.map(({ id, label, description, wide, render }) => (
-          <React.Fragment key={id}>
-            {render({
-              label,
-              description,
-              className: wide ? "@xl:col-span-2" : undefined,
-            })}
-          </React.Fragment>
-        ))}
-      </div>
+      {split.rest.length ? <FormGrid items={split.rest} /> : null}
+      {split.groups.map(({ group, items: inGroup }) => (
+        <FieldSet key={group.id} data-slot="record-form-group">
+          <FieldLegend>{group.title}</FieldLegend>
+          {group.description ? (
+            <FieldDescription>{group.description}</FieldDescription>
+          ) : null}
+          <FormGrid items={inGroup} />
+        </FieldSet>
+      ))}
     </FieldGroup>
   )
 }

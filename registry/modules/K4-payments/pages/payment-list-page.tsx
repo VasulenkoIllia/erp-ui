@@ -10,6 +10,7 @@ import {
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
+import { useListSlots } from "@/components/templates/list-report-slots"
 import { buttonVariants } from "@/components/ui/button"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
@@ -20,6 +21,7 @@ import {
   usePaymentColumns,
   usePaymentListFilters,
 } from "../components/payment-columns"
+import { usePaymentTitle } from "../components/payment-display"
 import { usePaymentStatuses } from "../components/payment-statuses"
 import type { Payment } from "../contract"
 import {
@@ -148,15 +150,25 @@ function usePaymentList(kind: K4DocumentKind) {
 
 function PaymentList({ kind }: { kind: K4DocumentKind }) {
   const t = usePaymentsT()
+  const { extension } = usePaymentsModule()
   const list = usePaymentList(kind)
+  const rowLabel = usePaymentTitle(kind)
+  // Своїх масових дій немає: вибір рядків з'являється з масовою дією розширення (ADR-0086).
+  const slots = useListSlots(
+    list.report,
+    list.columns,
+    { actions: [], rowLabel },
+    kind.extensionOf(extension),
+  )
   return (
     <ListReport
       report={list.report}
+      bulk={slots.bulk}
       mode="pages"
       tabsLabel={t(`${kind.list}.tabsLabel`)}
       searchPlaceholder={t(`${kind.list}.search`)}
       tableLabel={t(`${kind.list}.tableLabel`)}
-      columns={list.columns}
+      columns={slots.columns}
       countLabel={(count, value) => t(`${kind.list}.count`, { count, value })}
       empty={
         <PageState

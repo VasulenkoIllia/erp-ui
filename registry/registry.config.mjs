@@ -1748,7 +1748,7 @@ export const CODE_ITEMS = {
   "templates/document-extension": {
     title: "Розширення документа",
     description:
-      "Спільний тип розширення документного модуля (ADR-0020, ADR-0086): DocumentPartsExtension — поля, статуси й дії графа, колонки, фільтри й вкладки списку, ключові поля, секції й дії картки, форма; DocumentExtension — ще «Історія», «Редагує …» і стрічка картки. Типи розширення документів модулів — його псевдоніми з ключами модуля (DocumentIds).",
+      "Спільний тип розширення документного модуля (ADR-0020, ADR-0086): DocumentPartsExtension — поля, статуси й дії графа, колонки, фільтри й вкладки списку, дії рядка й масові дії, ключові поля, секції й дії картки, форма з групами полів; DocumentExtension — ще «Історія», «Редагує …», стрічка картки й аркуш друку (блоки й поля розширення); DocumentLinesExtension — поля розширення в рядку документа. Типи розширення документів модулів — його псевдоніми з ключами модуля (DocumentIds, DocumentSheetIds).",
     status: "beta",
     demo: "invoicesModule",
     spec: ["§14", "PF09"],
@@ -1776,6 +1776,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§9", "§10", "§18.1"],
+  },
+  "templates/list-report-slots": {
+    title: "Дії розширення в списку",
+    description:
+      "Частина templates/list-report: дія рядка й масова дія — компоненти проекту в слотах (useListSlots). Дія рядка — у колонці «Дії» в кінці таблиці (на телефоні — дії картки), масова — у панелі вибраного поруч із діями модуля: додати, сховати чи переставити за ключем; з access — лише з правом, збій компонента прибирає лише його дію; масова дія розширення вмикає вибір рядків (ADR-0020, ADR-0086).",
+    status: "beta",
+    demo: "invoicesModule",
+    spec: ["§7", "§8.1", "§14"],
   },
   "templates/list-report-tables": {
     title: "Таблиці списку",
@@ -2927,6 +2935,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "print",
     spec: ["PF08", "UI05", "§11"],
+  },
+  "erp/print-sheet-blocks": {
+    title: "Блоки аркуша",
+    description:
+      "Аркуш документа списком блоків із ключами (useSheetBlocks, PrintSheetBlocks): розширення додає свій блок — компонент проекту в слоті, ховає чи переставляє блок модуля; поля розширення на аркуші рядками «Підпис: значення» (PrintExtensionFields) і під назвою рядка (useSheetLineDetails) мовою документа, порожні не друкуються (PF08, ADR-0062, ADR-0086).",
+    status: "beta",
+    demo: "invoicesModule",
+    spec: ["PF08", "§11", "§14"],
   },
   "erp/numbering-preview": {
     title: "Перегляд наступного номера",

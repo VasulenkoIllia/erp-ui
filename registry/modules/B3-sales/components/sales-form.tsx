@@ -5,19 +5,25 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { DocumentFormLines } from "@/components/erp/document-lines-section"
-import { useDocumentLinesSchema } from "@/components/erp/document-lines-schema"
+import {
+  useDocumentLineFields,
+  useDocumentLinesSchema,
+  type DocumentLineFieldsApi,
+} from "@/components/erp/document-lines-schema"
 import {
   useExtensionForm,
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
 import {
   RecordFormFields,
+  type RecordFormGroup,
   type RecordFormItem,
 } from "@/components/erp/record-form"
 import { RecordFormFrame } from "@/components/erp/record-form-page"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
 import { copiedDocumentLines } from "@/lib/document-lines"
+import type { ExtensionField } from "@/lib/extension-fields"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
@@ -42,9 +48,10 @@ function useSalesFormSchema(
   due: { readonly field: string; readonly before: string },
   currency: string,
   extensionShape: z.ZodRawShape,
+  lineShape: DocumentLineFieldsApi["shape"],
 ) {
   const kitT = useErpUiT()
-  const lines = useDocumentLinesSchema(currency)
+  const lines = useDocumentLinesSchema(currency, lineShape)
   return useMemo(() => {
     const required = kitT("validation.required")
     const day = z.string().refine(isCalendarDate, required)
@@ -81,6 +88,7 @@ function payloadOf<Due extends string>(
   values: SalesFormValues,
   keys: readonly Path<SalesFormValues>[],
   ext: ExtensionFormApi<SalesDocumentIds<Due>["formField"]>,
+  lineExt: DocumentLineFieldsApi,
   currency: string | null,
 ) {
   const changed = new Set<string>(keys)
@@ -93,7 +101,9 @@ function payloadOf<Due extends string>(
         .filter((key) => changed.has(key))
         .map((key): [string, unknown] => [key, values[key]]),
     ),
-    ...(changed.has("lines") ? { lines: values.lines } : {}),
+    ...(changed.has("lines")
+      ? { lines: lineExt.payloadLines(values.lines) }
+      : {}),
     ...ext.payload(values, keys),
     ...(currency ? { currency } : {}),
   }
@@ -144,11 +154,13 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
   const ext = useExtensionForm<SalesDocumentIds<Due>["formField"]>(
     documentExtension?.fields,
     documentExtension?.form,
+    documentExtension?.formGroups,
   )
+  const lineExt = useDocumentLineFields(documentExtension?.lineFields)
   const dueField = kind.due.field
   const before = t(kind.due.before)
   const due = useMemo(() => ({ field: dueField, before }), [dueField, before])
-  const schema = useSalesFormSchema(due, currency, ext.shape)
+  const schema = useSalesFormSchema(due, currency, ext.shape, lineExt.shape)
   const recordSchema = useMemo(
     () => kind.cardSchemaFor(documentExtension),
     [kind, documentExtension],
@@ -159,12 +171,12 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
       clientName: record.clientName,
       date: record.date,
       [dueField]: kind.dueOf(record),
-      lines: record.lines,
+      lines: lineExt.formLines(record.lines),
       discountPercent: record.discountPercent,
       discountAmount: record.discountAmount,
       ...ext.values(record),
     }),
-    [ext, kind, dueField],
+    [ext, lineExt, kind, dueField],
   )
   // Початкові значення беруться раз: далі форма живе своїм станом (`followRecord`). Копія — значення
   // поверх порожньої форми: вони незбережені, тож «Зберегти» створює документ, а вихід питає.
@@ -187,7 +199,7 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
           ? {
               ...toValues(source),
               ...dates,
-              lines: copiedDocumentLines(source.lines),
+              lines: lineExt.formLines(copiedDocumentLines(source.lines)),
             }
           : null,
     }
@@ -202,7 +214,14 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
     defaultValues,
     recordSchema,
     toPayload: (values, changed) =>
-      payloadOf(dueField, values, changed, ext, document ? null : currency),
+      payloadOf(
+        dueField,
+        values,
+        changed,
+        ext,
+        lineExt,
+        document ? null : currency,
+      ),
     serverErrorText: (field, code) =>
       field === dueField && code === "before_date" ? before : undefined,
     toValues,
@@ -241,6 +260,8 @@ export function SalesForm<D extends SalesDocument, Due extends string>({
       formKey={keys}
       state={view}
       header={header}
+      groups={ext.groups}
+      lineFields={lineExt.fields}
       currency={currency}
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
@@ -254,6 +275,8 @@ function SalesFormView({
   formKey,
   state,
   header,
+  groups,
+  lineFields,
   currency,
   readOnly,
   readOnlyReason,
@@ -263,6 +286,8 @@ function SalesFormView({
   formKey: SalesDocumentKind<SalesDocument, string>["keys"]["form"]
   state: RecordFormState<SalesFormValues>
   header: readonly RecordFormItem[]
+  groups: readonly RecordFormGroup[]
+  lineFields: readonly ExtensionField[]
   currency: string
   readOnly: boolean
   readOnlyReason: string | undefined
@@ -303,7 +328,7 @@ function SalesFormView({
       readOnly={readOnly}
       readOnlyReason={readOnlyReason}
     >
-      <RecordFormFields items={header} />
+      <RecordFormFields items={header} groups={groups} />
       <DocumentFormLines
         form={state.form}
         currency={currency}
@@ -311,6 +336,7 @@ function SalesFormView({
         readOnly={readOnly}
         mayEdit={mayEdit}
         savedTotals={readOnly ? document?.totals : undefined}
+        lineFields={lineFields}
       />
     </RecordFormFrame>
   )

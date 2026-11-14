@@ -82,12 +82,13 @@ import {
   discountShape,
   documentTotalsSchema,
   quantitySchema,
-  savedDocumentBodyLineSchema,
+  savedDocumentBodyLineSchemaWith,
   savedDocumentLineSchema,
 } from "@/lib/document-lines"
 import { partyDetailsSchema } from "@/lib/document-parties"
 import {
   extendSchema,
+  extensionShape,
   type ExtensionField,
   type ExtensionValues,
 } from "@/lib/extension-fields"
@@ -229,16 +230,23 @@ const invoiceShape = documentShape.extend({
   refundedTotal: moneyAmountSchema.min(0).optional(),
 })
 
-/** Рядки й підсумки детального запису (`GET /sales-invoices/:id`): у рядку списку їх немає. */
-export const invoiceDetailSchema = z.object({
-  lines: z.array(savedDocumentBodyLineSchema),
-  totals: documentTotalsSchema,
-})
+/**
+ * Рядки й підсумки детального запису (`GET /sales-invoices/:id`): у рядку списку їх немає. `lineFields` —
+ * поля розширення рядка товару (ADR-0086), їхні значення лежать у рядку.
+ */
+export function invoiceDetailSchemaFor(lineFields?: readonly ExtensionField[]) {
+  return z.object({
+    lines: z.array(savedDocumentBodyLineSchemaWith(extensionShape(lineFields))),
+    totals: documentTotalsSchema,
+  })
+}
+export const invoiceDetailSchema = invoiceDetailSchemaFor()
 export type InvoiceDetail = z.infer<typeof invoiceDetailSchema>
 
-/** Те, що схема запису бере з розширення проекту: нові поля й статуси. */
+/** Те, що схема запису бере з розширення проекту: нові поля, поля рядка й статуси. */
 export interface InvoiceSchemaExtension<K extends string = string> {
   readonly fields?: readonly ExtensionField[]
+  readonly lineFields?: readonly ExtensionField[]
   readonly statuses?: ExtensionStatusChanges<K>
 }
 
@@ -261,7 +269,9 @@ export function invoiceCardSchemaFor(
   extension?: InvoiceSchemaExtension<InvoiceStatus>,
 ): z.ZodType<InvoiceCard> {
   return extendSchema(
-    invoiceObject(extension).extend(invoiceDetailSchema.shape),
+    invoiceObject(extension).extend(
+      invoiceDetailSchemaFor(extension?.lineFields).shape,
+    ),
     extension?.fields,
   )
 }

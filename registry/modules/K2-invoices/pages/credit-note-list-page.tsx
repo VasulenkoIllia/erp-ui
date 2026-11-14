@@ -7,12 +7,14 @@ import {
   ListReportHeader,
   useListReport,
 } from "@/components/templates/list-report"
+import { useListSlots } from "@/components/templates/list-report-slots"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
 import { useDocumentListFilters } from "../components/document-list"
+import { useDocumentTitle } from "../components/invoice-display"
 import { useCreditNoteColumns } from "../components/invoice-columns"
 import { useDocumentStatuses } from "../components/invoice-statuses"
 import { CREDIT_NOTES, type CreditNote } from "../contract"
@@ -81,15 +83,25 @@ function useCreditNoteList() {
 
 function CreditNoteList() {
   const t = useInvoicesT()
+  const { extension } = useInvoicesModule()
   const list = useCreditNoteList()
+  const rowLabel = useDocumentTitle(CREDIT_NOTE_KIND)
+  // Своїх масових дій немає: вибір рядків з'являється з масовою дією розширення (ADR-0086).
+  const slots = useListSlots(
+    list.report,
+    list.columns,
+    { actions: [], rowLabel },
+    extension.creditNotes,
+  )
   return (
     <ListReport
       report={list.report}
+      bulk={slots.bulk}
       mode="pages"
       tabsLabel={t("creditNotes.tabsLabel")}
       searchPlaceholder={t("creditNotes.search")}
       tableLabel={t("creditNotes.tableLabel")}
-      columns={list.columns}
+      columns={slots.columns}
       countLabel={(count, value) => t("creditNotes.count", { count, value })}
       empty={
         <PageState

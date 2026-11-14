@@ -67,7 +67,9 @@ export const invoicesModule = createInvoicesModule({
 - `methods` — способи оплати: `add` свого (напр. «Взаємозалік»), `hide` чи `change` підпису способу модуля;
 - `statuses` і `transitions` — свій статус і дія до нього (ADR-0057); `change` дії модуля — підпис, `from` і причина, але не `to`;
 - `sections` (`allocations`, `flow`), `actions`, `aside`, `history: false`;
-- `refunds` — те саме для повернень: `fields`, `statuses`, `transitions`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `form` (тип `RefundsExtension`, ключі `RefundIds`); способи оплати, стрічка й `aside` — спільні з оплатами;
+- `rowActions` і `bulkActions` — дія в рядку списку (колонка «Дії» в кінці таблиці) і масова дія (компоненти проекту, ADR-0086); своїх масових дій модуль не має, тож дія розширення вмикає вибір рядків;
+- `formGroups` — групи полів форми із заголовком (поля модуля чи розширення з `form.add`);
+- `refunds` — те саме для повернень: `fields`, `statuses`, `transitions`, `columns`, `filters`, `tabs`, `recordFields`, `sections`, `actions`, `rowActions`, `bulkActions`, `form`, `formGroups` (тип `RefundsExtension`, ключі `RefundIds`); способи оплати, стрічка й `aside` — спільні з оплатами;
 - `strings` — перевизначення рядків модуля за ключами `i18n/uk.json` і `i18n/en.json`.
 
 Ключі модуля — типи `PaymentColumnId`, `PaymentFilterId`, `PaymentFieldId`, `PaymentFormFieldId`, `PaymentSectionId`, `PaymentTransitionId` (`extension.ts`). Типи — з індексу модуля (`import type { Payment, PaymentsExtension } from "@/modules/K4-payments"`).

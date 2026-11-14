@@ -90,14 +90,17 @@ function valueSchema(field: ExtensionField): z.ZodType<ExtensionFieldValue> {
   }
 }
 
-/** Схема контракту з полями розширення. */
-export function extendSchema<S extends z.ZodObject>(
-  schema: S,
+/**
+ * Схеми полів розширення для `extend` об'єкта контракту: необов'язкове — `null` чи немає. Ключ поля
+ * модуля (`moduleKeys`) і два поля з одним ключем — помилка розробника.
+ */
+export function extensionShape(
   fields: readonly ExtensionField[] = [],
-): z.ZodType<z.output<S> & ExtensionValues> {
+  moduleKeys: readonly string[] = [],
+): Record<string, z.ZodType> {
   const shape: Record<string, z.ZodType> = {}
   for (const field of fields) {
-    if (Object.hasOwn(schema.shape, field.id))
+    if (moduleKeys.includes(field.id))
       throw new Error(
         `erp-ui: extension field "${field.id}" clashes with a module field`,
       )
@@ -106,6 +109,15 @@ export function extendSchema<S extends z.ZodObject>(
     const value = valueSchema(field)
     shape[field.id] = field.required ? value : value.nullable().optional()
   }
+  return shape
+}
+
+/** Схема контракту з полями розширення. */
+export function extendSchema<S extends z.ZodObject>(
+  schema: S,
+  fields: readonly ExtensionField[] = [],
+): z.ZodType<z.output<S> & ExtensionValues> {
+  const shape = extensionShape(fields, Object.keys(schema.shape))
   // `extend` з рядковими ключами TypeScript виводить загально: поля розширення — `ExtensionValues`.
   return schema.extend(shape) as unknown as z.ZodType<
     z.output<S> & ExtensionValues
@@ -230,25 +242,36 @@ export function listFilterOf(
 }
 const NO_FIELDS: readonly ExtensionField[] = []
 
-interface TextContext {
-  format: ReturnType<typeof useFormat>
-  t: ErpUiTranslate
-  label: (text: LocalizedText) => string
+/**
+ * Мова показу значення поля: інтерфейсу (`useExtensionFields`) чи документа (аркуш друку,
+ * `erp/print-sheet-blocks`).
+ */
+export interface FieldTextContext {
+  readonly number: (value: number) => string
+  /** Календарна дата `YYYY-MM-DD`. */
+  readonly date: (value: string) => string
+  /** «Так» і «Ні» — рядки кіта цієї мови. */
+  readonly t: ErpUiTranslate
+  readonly label: (text: LocalizedText) => string
 }
 
-function fieldText(
+/**
+ * Значення поля розширення текстом; порожнє чи не того типу — `null`. Запис із довідника — його `id`:
+ * підпис приходить із сервера (`RecordLabel`).
+ */
+export function extensionFieldText(
   field: ExtensionField,
   value: unknown,
-  { format, t, label }: TextContext,
+  { number, date, t, label }: FieldTextContext,
 ): string | null {
   if (value === null || value === undefined || value === "") return null
   switch (field.type) {
     case "text":
       return typeof value === "string" ? value : null
     case "number":
-      return typeof value === "number" ? format.number(value) : null
+      return typeof value === "number" ? number(value) : null
     case "date":
-      return isCalendarDate(value) ? format.date(value, "date") : null
+      return isCalendarDate(value) ? date(value) : null
     case "boolean":
       return typeof value === "boolean"
         ? t(value ? "common.yes" : "common.no")
@@ -335,9 +358,14 @@ export function useExtensionFields(
       return field
     }
     const label = (text: LocalizedText) => localizedText(text, language) ?? ""
-    const context: TextContext = { format, t, label }
+    const context: FieldTextContext = {
+      number: (value) => format.number(value),
+      date: (value) => format.date(value, "date"),
+      t,
+      label,
+    }
     const text = (field: ExtensionField, value: unknown) =>
-      fieldText(field, value, context)
+      extensionFieldText(field, value, context)
     const display = (field: ExtensionField, value: unknown): ReactNode =>
       field.type === "record" && typeof value === "string" && value
         ? createElement(RecordLabel, {

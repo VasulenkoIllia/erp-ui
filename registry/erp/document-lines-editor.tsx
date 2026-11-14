@@ -31,7 +31,10 @@ import {
   type DocumentLineUnit,
   type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
-import { useErpUiT } from "@/registry/lib/i18n"
+import type { ExtensionField } from "@/registry/lib/extension-fields"
+import { extensionFormValues } from "@/registry/lib/extension-form"
+import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { localizedText } from "@/registry/lib/auth"
 import {
   ariaKeyShortcuts,
   isMacPlatform,
@@ -68,6 +71,8 @@ import { Button } from "@/registry/ui/button"
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
  * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
  *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
+ * - Поля розширення рядка (`lineFields`, ADR-0086): у рядку товару під назвою, підписи — під «Назва» над
+ *   таблицею; новий рядок отримує їхні порожні значення.
  * - Великий документ з клавіатури (UI05d, ADR-0064): Ctrl+End з будь-якого місця рядків — на знижку
  *   документа повз рядки. Від `virtualizeFrom` рядків над рядками — пошук у рядках
  *   (`erp/document-lines-search`) і кнопка «До підсумків»; ⌘F/Ctrl+F у рядках ставить курсор у пошук,
@@ -97,6 +102,8 @@ export interface DocumentLinesEditorProps<
   virtualizeFrom?: number
   readOnly?: boolean
   savedTotals?: SavedDocumentTotals
+  /** Поля розширення рядка товару (`useDocumentLineFields(...).fields`); стабільні між рендерами. */
+  lineFields?: readonly ExtensionField[]
   className?: string
 }
 
@@ -166,10 +173,14 @@ const ROW_GRID =
   "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,2.8fr)_minmax(5rem,1fr)_minmax(5.5rem,1.3fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
 
 /** Підписи колонок таблиці в порядку полів рядка; сума — праворуч, як у рядках. */
-function LinesHeader() {
+function LinesHeader({
+  lineFields,
+}: {
+  lineFields: readonly ExtensionField[] | undefined
+}) {
   const t = useErpUiT()
+  const { language } = useLanguage()
   const columns = [
-    t("documentLines.name"),
     t("documentLines.quantity"),
     t("documentLines.unit"),
     t("documentLines.price"),
@@ -178,6 +189,17 @@ function LinesHeader() {
   ]
   return (
     <>
+      <span className="text-sm leading-snug font-medium">
+        {t("documentLines.name")}
+        {lineFields?.map((field) => (
+          <span
+            key={field.id}
+            className="block font-normal text-muted-foreground"
+          >
+            {localizedText(field.label, language) ?? field.id}
+          </span>
+        ))}
+      </span>
       {columns.map((column) => (
         <span key={column} className="text-sm leading-snug font-medium">
           {column}
@@ -207,6 +229,7 @@ export function DocumentLinesEditor<
   virtualizeFrom = VIRTUALIZE_FROM,
   readOnly = false,
   savedTotals,
+  lineFields,
   className,
 }: DocumentLinesEditorProps<TValues, TItem, TTransformed>) {
   const t = useErpUiT()
@@ -229,9 +252,14 @@ export function DocumentLinesEditor<
         units={units}
         taxes={taxes}
         item={item}
+        lineFields={lineFields}
       />
     ),
-    [linesForm, currency, units, taxes, item],
+    [linesForm, currency, units, taxes, item, lineFields],
+  )
+  const lineDefaults = React.useMemo(
+    () => (lineFields?.length ? extensionFormValues(lineFields) : undefined),
+    [lineFields],
   )
   const extraKinds = React.useMemo<RepeatingRowsKind<DocumentBodyLine>[]>(
     () => [
@@ -349,13 +377,16 @@ export function DocumentLinesEditor<
           rowLabel={(index) => t("documentLines.row", { index: index + 1 })}
           addLabel={t("documentLines.add")}
           insertLabel={t("documentLines.insert")}
-          newRow={() => newLineOf(defaults.current?.())}
+          newRow={() => ({
+            ...lineDefaults,
+            ...newLineOf(defaults.current?.()),
+          })}
           extraKinds={extraKinds}
           empty={t("documentLines.empty")}
           maxRows={maxLines}
           canReorder
           rowActions="menu"
-          columnHeader={<LinesHeader />}
+          columnHeader={<LinesHeader lineFields={lineFields} />}
           virtualRows={virtualRows}
           groups={groups}
           toolbar={toolbar}

@@ -20,6 +20,9 @@
  *   розділу, `note` — нотатка. Розділ групує рядки після себе до наступного розділу; рядки до першого
  *   розділу — без розділу. Розділ і нотатка сум не мають і в підсумки не йдуть. Порядок рядків — порядок
  *   масиву.
+ * - Поля розширення рядка товару (`lineFields`, ADR-0086) — ключі поруч із полями рядка: схеми тіла й
+ *   збережених рядків беруть їх необов'язковим `lineShape` (`documentBodySchemaFor`,
+ *   `savedDocumentBodyLineSchemaWith`); ключ поля рядка кіта — помилка розробника.
  */
 import { z } from "zod"
 
@@ -204,6 +207,37 @@ export const savedDocumentBodyLineSchema = z.discriminatedUnion("kind", [
 ])
 export type SavedDocumentBodyLine = z.infer<typeof savedDocumentBodyLineSchema>
 
+/** Схеми полів розширення рядка товару (`extensionShape` з lib/extension-fields, ADR-0086). */
+export type LineExtensionShape = Readonly<Record<string, z.ZodType>>
+
+/** Рядок товару з полями розширення: без полів — той самий; ключ поля рядка — помилка розробника. */
+function withLineShape<S extends z.ZodObject>(
+  schema: S,
+  shape: LineExtensionShape | undefined,
+): S {
+  const keys = Object.keys(shape ?? {})
+  if (!shape || !keys.length) return schema
+  const clash = keys.find((key) => Object.hasOwn(schema.shape, key))
+  if (clash)
+    throw new Error(
+      `erp-ui: extension line field "${clash}" clashes with a document line field`,
+    )
+  // Значення полів розширення — поруч із полями рядка; тип рядка їх не знає (`extensionValue`).
+  return schema.safeExtend(shape) as unknown as S
+}
+
+/** Збережені рядки тіла з полями розширення рядка товару: без них — `savedDocumentBodyLineSchema`. */
+export function savedDocumentBodyLineSchemaWith(
+  shape: LineExtensionShape | undefined,
+): typeof savedDocumentBodyLineSchema {
+  if (!shape || !Object.keys(shape).length) return savedDocumentBodyLineSchema
+  return z.discriminatedUnion("kind", [
+    withLineShape(savedDocumentLineSchema, shape),
+    documentSectionSchema,
+    documentNoteSchema,
+  ])
+}
+
 const documentTaxTotalSchema: z.ZodType<TaxTotal> = z.object({
   taxId: z.string(),
   rate: percentSchema,
@@ -289,15 +323,20 @@ export const whenBodyValid = ({ issues }: z.core.ParsePayload) =>
 /**
  * Рядки документа разом: схема рядка не бачить, що кількість і ціна разом вийшли за межу суми, а знижка
  * сумою — за суму рядка. `digits` — знаків після коми у валюти документа (`currencyDigits` з lib/format).
- * Розділи й нотатки — серед рядків, на своїх місцях.
+ * Розділи й нотатки — серед рядків, на своїх місцях. `lineShape` — поля розширення рядка товару
+ * (`extensionShape(lineFields)`, ADR-0086): без нього ключі поза рядком кіта відкидаються.
  */
-export const documentLinesSchemaFor = (digits: number) =>
+export const documentLinesSchemaFor = (
+  digits: number,
+  lineShape?: LineExtensionShape,
+) =>
   z
     .array(
       z.discriminatedUnion("kind", [
-        documentLineSchema.superRefine(lineTotalsCheck(digits), {
-          when: whenValid,
-        }),
+        withLineShape(documentLineSchema, lineShape).superRefine(
+          lineTotalsCheck(digits),
+          { when: whenValid },
+        ),
         documentSectionSchema,
         documentNoteSchema,
       ]),
@@ -307,10 +346,17 @@ export const documentLinesSchemaFor = (digits: number) =>
 /**
  * Рядки й знижка документа: тіло, з якого сервер рахує підсумки. Модуль додає поля шапки через
  * `safeExtend`. Знижка документа більша за суму рядків після їхніх знижок — `discount_exceeds`.
+ * `lineShape` — як у `documentLinesSchemaFor`.
  */
-export const documentBodySchemaFor = (digits: number) =>
+export const documentBodySchemaFor = (
+  digits: number,
+  lineShape?: LineExtensionShape,
+) =>
   z
-    .object({ lines: documentLinesSchemaFor(digits), ...discountShape })
+    .object({
+      lines: documentLinesSchemaFor(digits, lineShape),
+      ...discountShape,
+    })
     .refine(isSingleDiscount, singleDiscount)
     .superRefine(bodyTotalsCheck(digits), { when: whenBodyValid })
 export type DocumentBody = z.infer<ReturnType<typeof documentBodySchemaFor>>

@@ -10,6 +10,8 @@ import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useLineDictionaries } from "@/registry/hooks/use-line-dictionaries"
 import { errorStateKind } from "@/registry/lib/api"
+import type { ExtensionField } from "@/registry/lib/extension-fields"
+import { extensionFormLines } from "@/registry/lib/extension-form"
 import type {
   SavedDocumentBodyLine,
   SavedDocumentTotals,
@@ -28,6 +30,9 @@ import type {
  *   <DocumentSavedLines detail={detail} document={invoice} state={…} invalidTitle={t("invoice.linesInvalid")} />
  *   <DocumentFormLines form={state.form} currency={currency} item={lineItem} readOnly={readOnly}
  *     mayEdit={mayEdit} savedTotals={readOnly ? invoice?.totals : undefined} />
+ *
+ * Поля розширення рядка (`lineFields`, ADR-0086) — в обох: схему відповіді картки модуль будує з ними
+ * (`savedDocumentBodyLineSchemaWith`), форму — `useDocumentLineFields`.
  */
 
 const NO_OPTIONS: readonly never[] = []
@@ -86,6 +91,7 @@ export function DocumentSavedLines({
   document,
   state,
   invalidTitle,
+  lineFields,
 }: {
   /** Результат `useDocumentDetail`. */
   detail: z.ZodSafeParseResult<SavedDocumentDetail> | undefined
@@ -93,6 +99,8 @@ export function DocumentSavedLines({
   state: DocumentLinesState
   /** «Рядки рахунку не за контрактом»: заголовок помилки даних словами модуля. */
   invalidTitle: string
+  /** Поля розширення рядка; стабільні між рендерами. */
+  lineFields?: readonly ExtensionField[] | undefined
 }) {
   if (!detail?.success) {
     if (!detail && state.isPending) return <SectionSkeleton rows={4} />
@@ -112,20 +120,28 @@ export function DocumentSavedLines({
       />
     )
   }
-  return <SavedLines document={document} detail={detail.data} />
+  return (
+    <SavedLines
+      document={document}
+      detail={detail.data}
+      lineFields={lineFields}
+    />
+  )
 }
 
 function SavedLines({
   document,
   detail,
+  lineFields = NO_OPTIONS,
 }: {
   document: SavedLinesDocument
   detail: SavedDocumentDetail
+  lineFields: readonly ExtensionField[] | undefined
 }) {
   // Форма лише тримає значення для редактора рядків: збережений документ не редагується тут.
   const form = useForm<DocumentLinesValues>({
     values: {
-      lines: detail.lines,
+      lines: extensionFormLines(lineFields, detail.lines),
       discountPercent: document.discountPercent,
       discountAmount: document.discountAmount,
     },
@@ -138,6 +154,7 @@ function SavedLines({
       taxes={NO_OPTIONS}
       readOnly
       savedTotals={detail.totals}
+      lineFields={lineFields}
     />
   )
 }
@@ -154,6 +171,7 @@ export function DocumentFormLines<TValues extends DocumentLinesValues>({
   readOnly,
   mayEdit,
   savedTotals,
+  lineFields,
 }: {
   form: UseFormReturn<TValues>
   currency: string
@@ -162,6 +180,8 @@ export function DocumentFormLines<TValues extends DocumentLinesValues>({
   /** Довідники вантажаться, лише коли документ можна змінити. */
   mayEdit: boolean
   savedTotals: SavedDocumentTotals | undefined
+  /** Поля розширення рядка (`useDocumentLineFields(...).fields`). */
+  lineFields?: readonly ExtensionField[] | undefined
 }) {
   const dictionaries = useLineDictionaries(mayEdit)
   // Рядок, доданий до довідників, лишився б без типових одиниці й податку.
@@ -176,6 +196,7 @@ export function DocumentFormLines<TValues extends DocumentLinesValues>({
       newLine={dictionaries.newLine}
       readOnly={readOnly}
       savedTotals={savedTotals}
+      lineFields={lineFields}
     />
   )
 }

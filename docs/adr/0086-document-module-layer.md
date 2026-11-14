@@ -72,3 +72,45 @@
 - **Перевірка копій готовим інструментом (jscpd):** нова залежність з бар'єрами SPEC §18.2 заради того, що робить короткий
   скрипт; межа «за фактом» (як розмір збірки) лишала б наявні копії.
 - **Точки розширення документа в тому самому PR:** великий PR, важче знайти причину, якщо поведінка зміниться.
+
+## Доповнення: форма точок розширення документа (14.11.2026)
+
+Пункт 4 — другим PR кроку. Усе нове в типах — необов'язкове; без розширення списки, форми, картки й аркуші ті самі.
+
+- **Ключі.** `DocumentIds` має `bulkAction` — масові дії модуля (у документа без своїх — `never`), `DocumentSheetIds`
+  (його розширює `DocumentExtension`) — ще й `sheetBlock`, блоки аркуша. Модулі експортують ключі типами:
+  `QuoteBulkActionId`, `OrderBulkActionId`, `QuoteSheetBlockId`, `OrderSheetBlockId`, `InvoiceBulkActionId`,
+  `InvoiceSheetBlockId`, `CreditNoteSheetBlockId`. `DocumentIds` ще не вийшов у випуску, тож новий обов'язковий ключ
+  нічого не ламає.
+- **Список** (`DocumentPartsExtension`, усі три модулі). `rowActions: KeyedChanges<ExtensionRowAction<D>, never>` — дія
+  рядка: компонент проекту отримує `{ record, resource }` і стоїть у колонці «Дії» в кінці таблиці (на телефоні — дії
+  картки рядка); своїх дій рядка в модулів немає. `bulkActions: KeyedChanges<ExtensionBulkAction, Ids["bulkAction"]>` —
+  своя масова дія з `{ resource, selection, count, filter }`, дію модуля можна сховати чи переставити; масова дія
+  розширення вмикає вибір рядків і там, де модуль своїх не має (кредит-ноти, оплати). Шаблон —
+  `templates/list-report-slots` (`useListSlots`). `access` — дія ресурсу з прав; у дії рядка ще й позначка сервера на
+  записі (`deniedActions`, ADR-0037). Компонент, що впав, прибирає лише свою дію.
+- **Форма** (`DocumentPartsExtension`, усі три модулі). `formGroups: KeyedChanges<ExtensionFormGroup<Ids["formField"]>,
+  never>` — група `{ id, title, description?, fields }`: набір полів із заголовком (`fieldset`) під полями без групи.
+  Поле модуля чи поле розширення з `form.add` стає в першу групу, що його називає; сховане чи невідоме група пропускає,
+  порожня не показується. `erp/record-form`: `RecordFormFields` приймає `groups`, `groupFormItems` ділить поля;
+  `useExtensionForm` бере групи третім аргументом і повертає їх мовою інтерфейсу.
+- **Друк** (`DocumentExtension`, B3 і K2). `print.blocks: KeyedChanges<ExtensionSheetBlock<D>, Ids["sheetBlock"]>` —
+  свій блок аркуша (компонент з `{ record, resource }`, мова й локаль документа — `usePrintSheet()`) чи сховати й
+  переставити блок модуля; `print.fields: readonly Keyed[]` — поля розширення з `fields` на аркуші рядками «Підпис:
+  значення» мовою документа (блок `fields`, типово після сторін). Блоки й поля — `erp/print-sheet-blocks`
+  (`useSheetBlocks`, `PrintSheetBlocks`, `PrintExtensionFields`, `useSheetLineDetails`). Назва аркуша й інші його
+  тексти модуля — рядки модуля (`quote.sheet.*`, `order.sheet.*`, `invoice.sheet.*`, `creditNote.sheet.*`), тож їх
+  змінює `strings` розширення. Беруться мовою документа через `createModuleSheetT` (`lib/i18n-namespaces`): мова, якої
+  ще немає, вантажиться без призупинення сторінки, аркуш чекає; не довантажилась — запасна українська.
+- **Поля рядка** (`DocumentLinesExtension`, пропозиції, замовлення й рахунки). `lineFields: readonly ExtensionField[]` —
+  поле рядка товару чи послуги, як поле документа: у редакторі — під назвою, на картці — так само лише для читання, на
+  аркуші — під назвою дрібніше. Значення — у рядку документа (`lines[].<ключ>`), порожнє в запиті — `null`; розділ і
+  нотатка полів не мають. Рядки кредит-ноти — з рахунку, своїх полів рядка в неї немає. Кіт: `extensionShape` (схеми
+  полів), `documentBodySchemaFor`, `documentLinesSchemaFor` і `savedDocumentBodyLineSchemaWith` з необов'язковою
+  формою полів рядка (ключ поля рядка кіта — помилка розробника), `extensionFormLines` і `extensionPayloadLines`,
+  `useDocumentLineFields`, `lineFields` у `DocumentLinesEditor`, `DocumentSavedLines` і `DocumentFormLines`; моки —
+  `withLineMockValues` і `lineShape` у `storedDocumentSchema`. Контракт бекенда: сервер приймає й повертає ці ключі в
+  рядках товарів.
+- Версії: мінорна. Для проекту, що сам викликає частини модуля, змінились внутрішні підписи: `sheetTitle` у
+  `DocumentPrint` модуля K2 отримує рядки аркуша, вид документа B3 більше не несе `sheet`; публічні експорти модулів ті
+  самі (`CHANGELOG.md`).

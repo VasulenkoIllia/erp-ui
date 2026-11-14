@@ -61,10 +61,14 @@ export const salesModule = createSalesModule({
 - `quotes.fields` — нові поля шапки; далі `columns` (нова колонка чи `change` колонки модуля), `filters`, `tabs`, `recordFields` (поле шапки картки), `form` (`add` поля розширення з місцем, `hide`, `move`, `change` підпису поля модуля);
 - `quotes.statuses` і `quotes.transitions` — свій статус і дія до нього (ADR-0057): `add` дії з `from` і `to`; `change` дії модуля змінює підпис, `from` і причину, але не `to`. Статус з `mockEvery` моки ставлять кожній N-й пропозиції засіву в статусі, з якого веде дія розширення до нього;
 - `quotes.sections`, `quotes.actions` — секції й дії шапки картки (компоненти проекту); секції модуля — `lines` і `flow` (потік документів: бекенд без `GET /<ресурс>/:id/flow` ховає її `hide: ["flow"]`), дії — `edit`, `copy`, `delete`, `print`; проект без замовлень ховає дію пропозиції `transitions.hide: ["order"]`; `quotes.aside` — стрічка замість «Історії» (`timelineModule.aside`, ADR-0054); `history: false` — без журналу; `editLock: false` — без «Редагує …»;
-- `orders` — те саме для замовлень (тип `OrdersExtension`);
+- `quotes.rowActions` і `quotes.bulkActions` — дія в рядку списку (колонка «Дії» в кінці таблиці) і масова дія в панелі вибраного (компоненти проекту, ADR-0086); масові дії модуля — `submit` («Надіслати» в пропозиції, «Підтвердити» в замовленні), `complete` (лише замовлення), `cancel`, `delete`;
+- `quotes.formGroups` — групи полів форми шапки із заголовком (поля модуля чи розширення з `form.add`);
+- `quotes.print` — аркуш: `fields` — поля розширення рядками «Підпис: значення» мовою документа, `blocks` — свій блок (компонент проекту) чи сховати й переставити блок модуля (`company`, `title`, `parties`, `fields`, `lines`, `totals`, `signatures`); назва аркуша й «Пропозиція дійсна до …» — рядки модуля `quote.sheet.*` (змінює `strings`);
+- `quotes.lineFields` — поля рядка товару (УКТЗЕД, код за класифікатором): у рядку редактора під назвою, на картці й на аркуші; значення — у рядку (`lines[].<ключ>`);
+- `orders` — те саме для замовлень (тип `OrdersExtension`, рядки аркуша `order.sheet.*`);
 - `strings` — перевизначення рядків модуля за ключами `i18n/uk.json` і `i18n/en.json`.
 
-Ключі модуля для `hide`, `move`, `change` і `place` — типи `QuoteColumnId`, `QuoteFilterId`, `QuoteFieldId`, `QuoteFormFieldId`, `QuoteSectionId`, `QuoteActionId`, `QuoteTransitionId` і так само `Order…Id` (`extension.ts`). Номер у списку (посилання на картку) розширення не ховає. Типи — з індексу модуля (`import type { Quote, QuotesExtension } from "@/modules/B3-sales"`). Повний приклад — `apps/demo/src/extensions/B3-sales.ts` і `B3-sales-fields.ts` у репозиторії erp-ui.
+Ключі модуля для `hide`, `move`, `change` і `place` — типи `QuoteColumnId`, `QuoteFilterId`, `QuoteFieldId`, `QuoteFormFieldId`, `QuoteSectionId`, `QuoteActionId`, `QuoteTransitionId`, `QuoteBulkActionId`, `QuoteSheetBlockId` і так само `Order…Id` (`extension.ts`). Номер у списку (посилання на картку) розширення не ховає. Типи — з індексу модуля (`import type { Quote, QuotesExtension } from "@/modules/B3-sales"`). Повний приклад — `apps/demo/src/extensions/B3-sales.ts` і `B3-sales-fields.ts` у репозиторії erp-ui.
 
 ## Контракт API
 

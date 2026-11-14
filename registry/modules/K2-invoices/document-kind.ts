@@ -4,6 +4,7 @@
  * адреси, рядки картки й розширення проекту — звідси; поля шапки, колонки, форма й аркуш — свої в кожного.
  */
 import type { DocumentKind } from "@/lib/document-kind"
+import type { ExtensionField } from "@/lib/extension-fields"
 import type {
   ExtensionStatusChanges,
   ExtensionTransitionChanges,
@@ -31,6 +32,8 @@ export interface K2KindExtension {
   readonly statuses?: ExtensionStatusChanges<InvoiceStatus>
   readonly transitions?: ExtensionTransitionChanges
   readonly editLock?: boolean
+  /** Поля розширення рядка: лише в рахунку, рядки кредит-ноти — з рахунку. */
+  readonly lineFields?: readonly ExtensionField[]
 }
 
 /** Вид документа модуля (`lib/document-kind`): статуси з ключем підпису `<key>.statuses.<id>`. */

@@ -473,6 +473,14 @@
     "remind": "Remind the client",
     "reminded": "Reminder for “{{client}}” sent (demo)"
   },
+  "salesInvoiceExtension": {
+    "print": "Print",
+    "printFor": "Print invoice {{number}}",
+    "draft": "without number",
+    "export": "Export",
+    "exported_one": "Export of {{value}} invoice queued (demo)",
+    "exported_other": "Export of {{value}} invoices queued (demo)"
+  },
   "organizationsPage": {
     "title": "Organizations",
     "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs.",

@@ -194,6 +194,20 @@
     },
     "print": "Print",
     "printTitle": "Print: {{title}}",
+    "sheet": {
+      "title": "Invoice",
+      "reversal": "Invoice reversal",
+      "due": "Payment due by {{date}}",
+      "qr": "Scan the QR code in your banking app: the payee, amount and purpose are filled in automatically.",
+      "qrLabel": "Payment QR code of invoice {{number}}",
+      "settlement": {
+        "credited": "Credit notes",
+        "paid": "Paid",
+        "refunded": "Refunded",
+        "debt": "Amount due",
+        "overpaid": "Overpaid"
+      }
+    },
     "steps": "Invoice stages",
     "sections": {
       "lines": "Lines",
@@ -338,6 +352,11 @@
     },
     "print": "Print",
     "printTitle": "Print: {{title}}",
+    "sheet": {
+      "title": "Credit note",
+      "reversal": "Credit note reversal",
+      "basis": "Against invoice No. {{number}} of {{date}}"
+    },
     "steps": "Credit note stages",
     "sections": {
       "lines": "Lines",

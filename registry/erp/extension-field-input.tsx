@@ -13,6 +13,7 @@ import { FormSelect, type FormSelectItem } from "@/registry/erp/form-select"
 import { NumberInput } from "@/registry/erp/number-input"
 import { RecordPicker } from "@/registry/erp/record-picker"
 import type {
+  RecordFormGroup,
   RecordFormItem,
   RecordFormItemChange,
 } from "@/registry/erp/record-form"
@@ -29,9 +30,14 @@ import {
   extensionFormValues,
   extensionPayload,
   type ExtensionFormChanges,
+  type ExtensionFormGroup,
   type ExtensionFormValue,
 } from "@/registry/lib/extension-form"
-import { mapKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
+import {
+  applyKeyedChanges,
+  mapKeyedChanges,
+  type KeyedChanges,
+} from "@/registry/lib/extensions"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { recordOptionTexts } from "@/registry/lib/record-label"
 import { Checkbox } from "@/registry/ui/checkbox"
@@ -63,6 +69,8 @@ interface ExtensionFieldInputProps extends FormControlProps {
   onValueChange: (value: ExtensionFormValue) => void
   onBlur: () => void
   ref?: RefCallBack
+  /** Лише текст і число. */
+  placeholder?: string | undefined
 }
 
 /** Поле вводу для поля розширення (крім так/ні): `ref` — для фокуса на полі з помилкою. */
@@ -237,6 +245,69 @@ export function BooleanFormField({
   )
 }
 
+/**
+ * Поле розширення у формі з підписом, підказкою й помилкою: так/ні — прапорець, решта — поле вводу за
+ * типом. `name` — шлях у формі: ключ поля в шапці, `lines.3.hsCode` у рядку документа. `placeholder` —
+ * у тексті й числі (рядок документа на широкому екрані, де підписи лише для скрінрідера).
+ */
+export function ExtensionFormInput({
+  field,
+  control,
+  name,
+  label,
+  description,
+  readOnly,
+  className,
+  placeholder,
+}: {
+  field: ExtensionField
+  control: Control<FieldValues>
+  name: string
+  label: string
+  description?: string
+  readOnly?: boolean
+  className?: string
+  placeholder?: string
+}) {
+  if (field.type === "boolean")
+    return (
+      <BooleanFormField
+        control={control}
+        name={name}
+        label={label}
+        description={description}
+        readOnly={readOnly}
+        className={className}
+      />
+    )
+  return (
+    <FormField
+      control={control}
+      name={name}
+      label={label}
+      description={description}
+      readOnly={readOnly}
+      className={className}
+      render={({ field: input, control: aria }) => (
+        <ExtensionFieldInput
+          {...aria}
+          field={field}
+          name={input.name}
+          value={input.value as unknown}
+          onValueChange={input.onChange}
+          onBlur={input.onBlur}
+          ref={input.ref}
+          placeholder={
+            field.type === "text" || field.type === "number"
+              ? placeholder
+              : undefined
+          }
+        />
+      )}
+    />
+  )
+}
+
 export interface ExtensionFormApi<K extends string> {
   /** Поля розширення у формі, у порядку `form.add`. */
   readonly fields: readonly ExtensionField[]
@@ -249,6 +320,8 @@ export interface ExtensionFormApi<K extends string> {
     values: Readonly<Record<string, unknown>>,
     keys: readonly string[],
   ) => Record<string, ExtensionFieldValue>
+  /** Групи полів форми мовою інтерфейсу для `RecordFormFields`; без груп — порожньо. */
+  readonly groups: readonly RecordFormGroup[]
   /** Зміни списку полів форми модуля для `applyKeyedChanges`: нові поля, підписи без заміни. */
   readonly items: <TValues extends FieldValues>(
     control: Control<TValues>,
@@ -257,12 +330,13 @@ export interface ExtensionFormApi<K extends string> {
 }
 
 /**
- * Поля розширення для форми модуля. `fields` і `changes` — стабільні між рендерами (константи файлу
- * розширення): від них залежить схема форми.
+ * Поля розширення для форми модуля. `fields`, `changes` і `groupChanges` — стабільні між рендерами
+ * (константи файлу розширення): від них залежить схема форми.
  */
 export function useExtensionForm<K extends string>(
   allFields: readonly ExtensionField[] | undefined,
   changes: ExtensionFormChanges<K> | undefined,
+  groupChanges?: KeyedChanges<ExtensionFormGroup<K>, never>,
 ): ExtensionFormApi<K> {
   const t = useErpUiT()
   const { language } = useLanguage()
@@ -294,38 +368,30 @@ export function useExtensionForm<K extends string>(
         // Як у списку й картці: «Так», «Ні», підпис варіанта, дата мовою інтерфейсу, запис — підпис
         // із сервера.
         text: (value) => display(field, value === "" ? null : value),
-        render: (props) =>
-          field.type === "boolean" ? (
-            <BooleanFormField
-              {...props}
-              control={control}
-              name={id}
-              readOnly={readOnly}
-            />
-          ) : (
-            <FormField
-              {...props}
-              control={control}
-              name={id}
-              readOnly={readOnly}
-              render={({ field: input, control: aria }) => (
-                <ExtensionFieldInput
-                  {...aria}
-                  field={field}
-                  name={input.name}
-                  value={input.value as unknown}
-                  onValueChange={input.onChange}
-                  onBlur={input.onBlur}
-                  ref={input.ref}
-                />
-              )}
-            />
-          ),
+        render: (props) => (
+          <ExtensionFormInput
+            {...props}
+            field={field}
+            control={control}
+            name={id}
+            readOnly={readOnly}
+          />
+        ),
       }
     }
+    const groups = applyKeyedChanges<RecordFormGroup>(
+      [],
+      mapKeyedChanges(groupChanges, (group) => ({
+        id: group.id,
+        title: label(group.title) ?? group.id,
+        description: label(group.description),
+        fields: group.fields,
+      })),
+    )
     return {
       fields,
       shape,
+      groups,
       values: (record) => extensionFormValues(fields, record),
       payload: (values, keys) => extensionPayload(fields, values, keys),
       items: (control, options) =>
@@ -345,5 +411,5 @@ export function useExtensionForm<K extends string>(
           }),
         ),
     }
-  }, [allFields, changes, language, t, dateIssue, display])
+  }, [allFields, changes, groupChanges, language, t, dateIssue, display])
 }

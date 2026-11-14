@@ -45,6 +45,16 @@ export type ExtensionFormChanges<K extends string = string> = KeyedChanges<
   ExtensionFormFieldChange
 >
 
+/**
+ * Група полів форми (`formGroups` розширення): заголовок і ключі полів модуля (`K`) чи полів розширення з
+ * `form.add` у порядку групи. Сховане чи невідоме поле група пропускає; група без полів не показується.
+ */
+export interface ExtensionFormGroup<K extends string = string> extends Keyed {
+  readonly title: LocalizedText
+  readonly description?: LocalizedText
+  readonly fields: readonly (K | (string & {}))[]
+}
+
 /** Значення поля розширення у формі. */
 export type ExtensionFormValue = string | number | boolean | null
 
@@ -165,5 +175,48 @@ export function extensionPayload(
         const value = values[field.id] as ExtensionFormValue | undefined
         return [field.id, value === "" || value === undefined ? null : value]
       }),
+  )
+}
+
+/** Рядок тіла документа: поля розширення є лише в рядку товару (`kind: "item"`). */
+interface BodyLine {
+  readonly kind: string
+}
+
+/**
+ * Рядки документа для форми (`lineFields`, ADR-0086): у рядку товару — значення полів розширення рядка
+ * для форми (порожні — як у шапці); розділи й нотатки без змін. Без полів — ті самі рядки.
+ */
+export function extensionFormLines<L extends BodyLine>(
+  fields: readonly ExtensionField[],
+  lines: readonly L[],
+): L[] {
+  if (!fields.length) return [...lines]
+  return lines.map((line) =>
+    line.kind === "item"
+      ? { ...line, ...extensionFormValues(fields, line) }
+      : line,
+  )
+}
+
+/** Рядки форми для запиту: у рядку товару порожнє поле розширення — `null`. */
+export function extensionPayloadLines<L extends BodyLine>(
+  fields: readonly ExtensionField[],
+  lines: readonly L[],
+): L[] {
+  if (!fields.length) return [...lines]
+  const keys = fields.map((field) => field.id)
+  return lines.map((line) =>
+    line.kind === "item"
+      ? {
+          ...line,
+          // Значення полів розширення — поруч із полями рядка: тип рядка їх не знає.
+          ...extensionPayload(
+            fields,
+            line as unknown as Readonly<Record<string, unknown>>,
+            keys,
+          ),
+        }
+      : line,
   )
 }

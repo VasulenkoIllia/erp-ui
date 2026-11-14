@@ -99,6 +99,14 @@ const channel: ExtensionField = {
 }
 
 /** Таблиця курсів тестів (ADR-0071): `<валюта>:<дата>` → гривень за одиницю; злотих немає. */
+/** Поле рядка рахунку (ADR-0086): засів із `mockValues`, значення зберігається в рядку. */
+const hsCode: ExtensionField = {
+  id: "hsCode",
+  type: "text",
+  label: { uk: "Код УКТЗЕД", en: "HS code" },
+  mockValues: ["8471 30 00 00"],
+}
+
 const RATE_SEEDS: readonly (readonly [string, number])[] = [
   ["USD:2026-11-07", 41.25],
   ["USD:2026-11-08", 41.5],
@@ -138,7 +146,7 @@ const invoices = createInvoicesMocks({
   baseUrl: BASE,
   numbering,
   periodLock,
-  extension: { invoices: { fields: [channel] } },
+  extension: { invoices: { fields: [channel], lineFields: [hsCode] } },
   releaseOrder: (removed) => {
     sales.releaseOrderInvoice(removed)
   },
@@ -166,7 +174,10 @@ const provider = createDataProvider(
   createApiClient({ baseUrl: BASE, getLanguage: () => "uk" }),
 )
 
-const cardSchema = invoiceCardSchemaFor({ fields: [channel] })
+const cardSchema = invoiceCardSchemaFor({
+  fields: [channel],
+  lineFields: [hsCode],
+})
 const orderSchema = orderCardSchemaFor({ fields: [channel] })
 type Denied = { deniedActions?: Readonly<Record<string, string>> }
 const invoice = (id: string) =>
@@ -519,6 +530,28 @@ describe("модуль K2: моки рахунків", () => {
       }),
     )
     expect(reversal.date).toBe(addDays(TODAY, 1))
+  })
+
+  it("поле рядка розширення: засів із `mockValues`, створений рахунок зберігає значення, не той тип — 422", async () => {
+    const codesOf = (lines: readonly DocumentBodyLine[]) =>
+      lines.flatMap((one) =>
+        one.kind === "item" ? [Reflect.get(one, "hsCode") as unknown] : [],
+      )
+    expect(codesOf((await invoice(ISSUED)).lines)).toContain("8471 30 00 00")
+    const { data } = await provider.create<InvoiceCard>(INVOICES, {
+      data: draft({ lines: [{ ...line, hsCode: "8443 32 10 00" }] }),
+    })
+    const created = cardSchema.parse(data)
+    expect(codesOf(created.lines)).toEqual(["8443 32 10 00"])
+    expect(codesOf((await invoice(created.id)).lines)).toEqual([
+      "8443 32 10 00",
+    ])
+    const failure = await failureOf(
+      provider.create(INVOICES, {
+        data: draft({ lines: [{ ...line, hsCode: 8443 }] }),
+      }),
+    )
+    expect(failure.status).toBe(422)
   })
 
   it("рахунок із замовлення: чернетка з клієнтом, рядками, сумою й полем розширення, датою сьогодні й сторонами", async () => {
