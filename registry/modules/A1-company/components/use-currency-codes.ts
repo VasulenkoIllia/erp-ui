@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 import { useMemo } from "react"
 
 import { useCompanyId } from "@/hooks/use-company"

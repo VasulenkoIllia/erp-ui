@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext, type RaRecord } from "ra-core"
+import { CoreAdminContext, type RaRecord } from "@/registry/lib/ra-core"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { ExportDialog } from "@/registry/erp/export-dialog"

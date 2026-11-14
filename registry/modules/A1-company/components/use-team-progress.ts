@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 
 import { useErpAuthProvider } from "@/components/erp/auth-layout"
 import { OFFLINE } from "@/hooks/use-card-record"

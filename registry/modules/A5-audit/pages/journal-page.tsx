@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 
 import { AuditLog } from "@/components/erp/audit-log"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"

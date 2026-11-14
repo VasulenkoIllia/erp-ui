@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 

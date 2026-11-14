@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query"
 import { act, renderHook } from "@testing-library/react"
 import { delay, http, HttpResponse } from "msw"
 import { setupServer } from "msw/node"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import type { ReactNode } from "react"
 import {
   afterAll,

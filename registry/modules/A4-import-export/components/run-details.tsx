@@ -1,4 +1,4 @@
-import { useGetOne } from "ra-core"
+import { useGetOne } from "@/lib/ra-core"
 import type { RefObject } from "react"
 
 import { StatusBadge } from "@/components/erp/status-badge"

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useDelete } from "ra-core"
+import { useDelete } from "@/lib/ra-core"
 import { toast } from "sonner"
 
 import { ConfirmDialog } from "@/components/erp/confirm-dialog"

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 
 import {
   CompanyBranchesSection,

@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { useState } from "react"
 import { toast } from "sonner"
 import { afterEach, describe, expect, it, vi } from "vitest"

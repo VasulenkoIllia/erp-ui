@@ -1,4 +1,4 @@
-import { useCanAccess, useDataProvider } from "ra-core"
+import { useCanAccess, useDataProvider } from "@/registry/lib/ra-core"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"

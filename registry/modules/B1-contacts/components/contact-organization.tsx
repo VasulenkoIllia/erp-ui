@@ -1,4 +1,4 @@
-import { useGetManyAggregate } from "ra-core"
+import { useGetManyAggregate } from "@/lib/ra-core"
 
 import { RecordLink } from "@/components/erp/record-link"
 import { useCompanyId } from "@/hooks/use-company"

@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useSearchParams } from "react-router"
 
 import { PageSkeleton, PageState } from "@/components/erp/page-state"

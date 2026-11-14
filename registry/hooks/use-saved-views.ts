@@ -1,5 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useDataProvider, useGetList, type GetListResult } from "ra-core"
+import {
+  useDataProvider,
+  useGetList,
+  type GetListResult,
+} from "@/registry/lib/ra-core"
 
 import {
   SAVED_VIEWS_PER_PAGE,

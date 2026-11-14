@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/registry/lib/ra-core"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation, useSearchParams } from "react-router"

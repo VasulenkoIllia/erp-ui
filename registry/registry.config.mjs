@@ -417,6 +417,14 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["PF01", "A2"],
   },
+  "lib/ra-core": {
+    title: "Шов ra-core",
+    description:
+      "Усе, що кіт бере з ra-core, одним файлом (ADR-0090): обгортка застосунку CoreAdminContext; дані — useGetList, useGetOne, useCreate, useUpdate, useDelete, useDataProvider…; вхід і права — useAuthenticated, useCanAccess, useLogout…; навігація — LinkBase, useNavigate, useLocation, useBlocker; типи RaRecord, DataProvider, AuthProvider… Кіт імпортує ra-core лише звідси (ESLint), проект — теж з @/lib/ra-core.",
+    status: "beta",
+    demo: "data",
+    spec: ["§3.1", "§4", "§17"],
+  },
   "lib/company-scope": {
     title: "Поточна компанія",
     description:
@@ -3682,7 +3690,7 @@ export const BUNDLE_ITEMS = {
   data: {
     title: "Шар даних",
     description:
-      "Клієнт API, dataProvider і authProvider для ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
+      "Клієнт API, dataProvider і authProvider для ra-core, шов ra-core, поточна компанія, вподобання на сервері, повідомлення ra-core, useMe, useCompany, тексти помилок API.",
     status: "beta",
     demo: "data",
     spec: ["§17", "PF01", "PF02", "PF11"],
@@ -3691,6 +3699,7 @@ export const BUNDLE_ITEMS = {
       "lib/api",
       "lib/data-provider",
       "lib/auth",
+      "lib/ra-core",
       "lib/company-scope",
       "lib/preferences",
       "lib/ra-i18n",
@@ -3704,7 +3713,7 @@ export const BUNDLE_ITEMS = {
       "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).",
       "1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.",
       "2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).",
-      "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client).",
+      "3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client). CoreAdminContext, хуки й типи ra-core — з @/lib/ra-core (ADR-0090).",
       "4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
     ].join("\n"),
   },

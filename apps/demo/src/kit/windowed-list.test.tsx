@@ -6,7 +6,7 @@ import {
   type DataProvider,
   type GetListParams,
   type SortPayload,
-} from "ra-core"
+} from "@/registry/lib/ra-core"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { useWindowedList } from "@/registry/hooks/use-windowed-list"

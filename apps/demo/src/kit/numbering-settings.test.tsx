@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { http } from "msw/http"
 import { setupServer } from "msw/node"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { createMemoryRouter, RouterProvider } from "react-router"
 import {
   afterAll,

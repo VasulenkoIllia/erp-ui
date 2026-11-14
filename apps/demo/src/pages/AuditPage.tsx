@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { AuditLog } from "@/registry/erp/audit-log"
 import { PageSkeleton } from "@/registry/erp/page-state"

@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/lib/ra-core"
 import { useEffect, useMemo } from "react"
 import { useWatch, type UseFormReturn } from "react-hook-form"
 

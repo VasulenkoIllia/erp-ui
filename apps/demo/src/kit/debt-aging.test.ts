@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook } from "@testing-library/react"
 import { setupServer } from "msw/node"
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 import { createElement, type ReactNode } from "react"
 import {
   afterAll,

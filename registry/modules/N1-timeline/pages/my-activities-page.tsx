@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 
 import { PageSkeleton } from "@/components/erp/page-state"
 import { ListReportHeader } from "@/components/templates/list-report"

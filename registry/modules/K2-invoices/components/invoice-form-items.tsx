@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { useWatch, type UseFormReturn } from "react-hook-form"
 

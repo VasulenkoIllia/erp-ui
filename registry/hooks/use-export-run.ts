@@ -1,6 +1,6 @@
 import * as React from "react"
-import type { RaRecord } from "ra-core"
-import { useDataProvider } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"

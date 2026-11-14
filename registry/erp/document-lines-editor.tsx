@@ -1,6 +1,6 @@
 import * as React from "react"
 import { ArrowDownToLineIcon } from "lucide-react"
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
 import { useWatch, type FieldValues, type UseFormReturn } from "react-hook-form"
 
 import type { DocumentLineItem } from "@/registry/erp/document-line-fields"

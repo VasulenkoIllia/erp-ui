@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { NotificationSettingsForm } from "@/registry/erp/notification-settings-form"
 import { PageSkeleton } from "@/registry/erp/page-state"

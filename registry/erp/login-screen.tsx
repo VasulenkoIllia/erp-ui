@@ -1,6 +1,6 @@
 import * as React from "react"
 import { FingerprintIcon } from "lucide-react"
-import { LinkBase } from "ra-core"
+import { LinkBase } from "@/registry/lib/ra-core"
 
 import {
   AUTH_PATHS,

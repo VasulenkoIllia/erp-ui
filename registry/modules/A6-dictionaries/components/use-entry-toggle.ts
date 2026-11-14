@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useUpdate } from "ra-core"
+import { useUpdate } from "@/lib/ra-core"
 import { useCallback, useRef, useState, type RefObject } from "react"
 import { toast } from "sonner"
 

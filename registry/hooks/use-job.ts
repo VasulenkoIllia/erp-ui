@@ -3,7 +3,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from "@tanstack/react-query"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import { useEffect, useRef } from "react"
 
 import { isApiError } from "@/registry/lib/api"

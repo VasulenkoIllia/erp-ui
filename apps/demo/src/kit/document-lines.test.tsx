@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { QueryClient } from "@tanstack/react-query"
 import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext, type DataProvider } from "ra-core"
+import { CoreAdminContext, type DataProvider } from "@/registry/lib/ra-core"
 import { useForm } from "react-hook-form"
 import { describe, expect, it, vi } from "vitest"
 

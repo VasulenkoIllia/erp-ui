@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 import { useParams } from "react-router"
 
 import { PageSkeleton } from "@/components/erp/page-state"

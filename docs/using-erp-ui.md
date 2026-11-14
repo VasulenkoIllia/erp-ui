@@ -217,6 +217,8 @@ node scripts/erp-ui-kit.mjs update v1.4.0 --add data,mocks,lib/mock-views,lib/qu
 npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
 
+`CoreAdminContext`, хуки й типи ra-core (`useGetList`, `useUpdate`, `useCanAccess`, `RaRecord`…) беріть з `@/lib/ra-core`: це шов кіта, він ставиться разом із пакунком `data` і кожним модулем (ADR-0090). Кіт імпортує ra-core лише через нього, тож мажорне оновлення бібліотеки зачепить один файл. Прямий імпорт `ra-core` у коді проекту теж працює; ім'я, якого в шві немає, беріть напряму.
+
 Списки на шаблоні List Report читають особисті види (`/me/views`) і розмір сторінки (`/me/list-settings/<ресурс>`): у моках це `createSavedViewHandlers()` з `@/lib/mock-views` (окремий елемент `lib/mock-views`) і `createListSettingsHandlers()` з `@/lib/mock-lists` поруч з обробниками ресурсів.
 
 ```tsx

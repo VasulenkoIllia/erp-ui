@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query"
-import { useGetList } from "ra-core"
+import { useGetList } from "@/registry/lib/ra-core"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"

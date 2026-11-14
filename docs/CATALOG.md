@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 448. Встановлення в проект: перший раз `pnpm exec shadcn add VasulenkoIllia/erp-ui/base#vX.Y.Z`, далі лише командою кіта `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`. Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 449. Встановлення в проект: перший раз `pnpm exec shadcn add VasulenkoIllia/erp-ui/base#vX.Y.Z`, далі лише командою кіта `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`. Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 
@@ -165,6 +165,7 @@
 | `lib/print` | Друк сторінки й мова аркуша | PF08a: printPage — дочекатися шрифтів і зображень аркуша (логотипа, печатки) не довше PRINT_READY_TIMEOUT_MS і відкрити діалог друку, на час друку заголовок сторінки — назва документа (назва файла PDF); usePrintTitle — те саме для Ctrl+P; usePrintLanguage — рядки кіта мовою документа, окремо від інтерфейсу (SPEC §11), інша мова довантажується; usePrintSheet — мова аркуша для блоків; A4 і поля, як у @page tokens/base.css (ADR-0062). | beta | `print` | PF08, §11 |
 | `lib/push-device` | Web push у браузері | Дозвіл браузера лише з натискання, фоновий файл у власній області, підписка, звірка під час запуску, скасування під час явного виходу (ADR-0046). | beta | `notificationsModule` | PF19 |
 | `lib/query-client` | QueryClient застосунку | createQueryClient: один тихий повтор читання через 1 с після збою мережі чи 5xx, без повтору 4xx (401 одразу до SessionGuard) і мутацій, свіжість даних 30 с (ADR-0029). | beta | `data` | §17, §8.1 |
+| `lib/ra-core` | Шов ra-core | Усе, що кіт бере з ra-core, одним файлом (ADR-0090): обгортка застосунку CoreAdminContext; дані — useGetList, useGetOne, useCreate, useUpdate, useDelete, useDataProvider…; вхід і права — useAuthenticated, useCanAccess, useLogout…; навігація — LinkBase, useNavigate, useLocation, useBlocker; типи RaRecord, DataProvider, AuthProvider… Кіт імпортує ra-core лише звідси (ESLint), проект — теж з @/lib/ra-core. | beta | `data` | §3.1, §4, §17 |
 | `lib/ra-i18n` | i18nProvider ra-core | Повідомлення ra-core з рядків кіта мовою інтерфейсу; i18next лишається єдиним джерелом мови. | beta | `data` | §11 |
 | `lib/realtime-cache` | Кеш за подіями каналу | syncRealtimeCache: зміна запису на сервері перечитує відкриті списки й картки ресурсу, не частіше ніж раз на секунду; після обриву — усе видиме (ADR-0051). | beta | `realtime` | PF19 |
 | `lib/realtime` | Канал реального часу | Контракт GET /events, createRealtimeChannel (перепідключення з паузою до 30 с, серцебиття, Last-Event-ID), connectRealtime: одна вкладка на людину й компанію (Web Locks, BroadcastChannel), стан і підписка для застосунку (ADR-0051). | beta | `realtime` | PF19, §17 |

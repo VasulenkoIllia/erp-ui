@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query"
 import { render, renderHook, screen } from "@testing-library/react"
 import { setupServer } from "msw/node"
-import { CoreAdminContext, type AuthProvider } from "ra-core"
+import { CoreAdminContext, type AuthProvider } from "@/registry/lib/ra-core"
 import type { ReactNode } from "react"
 import {
   afterAll,

@@ -1,4 +1,4 @@
-import { useUpdate } from "ra-core"
+import { useUpdate } from "@/registry/lib/ra-core"
 import { useId, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"

@@ -15,7 +15,7 @@
  * у файлі розширення (`src/extensions/B3-sales.ts`). Моки — окремо, `./mocks` (`createSalesMocks`),
  * щоб MSW не потрапив у застосунок.
  */
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/lib/ra-core"
 
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
 import { MODULE_ICONS } from "@/lib/icons"

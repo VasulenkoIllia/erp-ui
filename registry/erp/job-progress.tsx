@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CircleCheckIcon, TriangleAlertIcon } from "lucide-react"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import { JobFailuresDialog, mergeFailures } from "@/registry/erp/job-failures"

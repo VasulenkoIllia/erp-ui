@@ -6,7 +6,7 @@
  *   const flow = useDocumentFlow("orders", String(record.id))
  */
 import { useQuery } from "@tanstack/react-query"
-import { useDataProvider } from "ra-core"
+import { useDataProvider } from "@/registry/lib/ra-core"
 
 import { useCompanyId } from "@/registry/hooks/use-company"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"

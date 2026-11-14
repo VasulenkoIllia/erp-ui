@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { normalizeFilter, type FilterDefinition } from "@/registry/lib/filters"
 import {

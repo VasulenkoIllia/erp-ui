@@ -1,4 +1,4 @@
-import { useCanAccess, useGetList } from "ra-core"
+import { useCanAccess, useGetList } from "@/registry/lib/ra-core"
 import * as React from "react"
 
 import { NumberingSeriesForm } from "@/registry/erp/numbering-series-form"

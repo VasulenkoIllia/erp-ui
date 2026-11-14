@@ -1,4 +1,4 @@
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 

@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { RaRecord } from "@/registry/lib/ra-core"
 import { setupServer } from "msw/node"
 import {
   afterAll,

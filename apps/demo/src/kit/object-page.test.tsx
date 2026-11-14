@@ -25,8 +25,8 @@ import {
 import { invoiceHref, listSearchOf, parsePath } from "@/router"
 
 // `useCanBlock` з ra-core не бачить роутера тесту: захист беремо прямо з React Router.
-vi.mock("ra-core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("ra-core")>()),
+vi.mock("@/registry/lib/ra-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/registry/lib/ra-core")>()),
   useBlocker: (await import("react-router")).useBlocker,
   useCanBlock: () => true,
 }))

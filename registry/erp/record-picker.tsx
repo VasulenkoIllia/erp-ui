@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox"
 import { ChevronDownIcon, XIcon } from "lucide-react"
-import type { RaRecord, SortPayload } from "ra-core"
+import type { RaRecord, SortPayload } from "@/registry/lib/ra-core"
 
 import { PICKER_FIELD_CLASS } from "@/registry/erp/picker-field"
 import {

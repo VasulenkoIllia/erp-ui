@@ -1,4 +1,4 @@
-import { useGetOne, type RaRecord } from "ra-core"
+import { useGetOne, type RaRecord } from "@/registry/lib/ra-core"
 import type { Control, FieldPath, FieldValues } from "react-hook-form"
 
 import { DateInput } from "@/registry/erp/date-input"

@@ -1,5 +1,5 @@
 import { Fragment, memo, useMemo, useSyncExternalStore } from "react"
-import { useGetManyAggregate, type RaRecord } from "ra-core"
+import { useGetManyAggregate, type RaRecord } from "@/registry/lib/ra-core"
 
 import { isApiError } from "@/registry/lib/api"
 import {

@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/registry/lib/ra-core"
 import { useTranslation } from "react-i18next"
 
 import { NumberingSettings } from "@/registry/erp/numbering-settings"

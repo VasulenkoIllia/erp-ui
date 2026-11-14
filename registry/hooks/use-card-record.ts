@@ -1,4 +1,4 @@
-import { useGetOne, type RaRecord } from "ra-core"
+import { useGetOne, type RaRecord } from "@/registry/lib/ra-core"
 import { useCallback, useState } from "react"
 
 import { useCompanyId } from "@/registry/hooks/use-company"

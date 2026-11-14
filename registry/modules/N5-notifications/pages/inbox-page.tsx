@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 import { useNavigate } from "react-router"
 
 import { NotificationInbox } from "@/components/erp/notification-inbox"

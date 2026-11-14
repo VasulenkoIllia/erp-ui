@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { MailCheckIcon } from "lucide-react"
-import { LinkBase, useHandleAuthCallback } from "ra-core"
+import { LinkBase, useHandleAuthCallback } from "@/registry/lib/ra-core"
 import { toast } from "sonner"
 
 import {

@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core"
+import { useGetList } from "@/registry/lib/ra-core"
 import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useGetOne } from "ra-core"
+import { useGetOne } from "@/registry/lib/ra-core"
 
 import {
   DocumentGeneratorButton,

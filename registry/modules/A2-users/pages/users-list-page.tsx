@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 

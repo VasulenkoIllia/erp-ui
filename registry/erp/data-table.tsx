@@ -1,6 +1,6 @@
 import * as React from "react"
 import { RefreshCwIcon } from "lucide-react"
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { CardSortSelect, DataTableCards } from "@/registry/erp/data-table-cards"
 import { DataTableGrid } from "@/registry/erp/data-table-grid"

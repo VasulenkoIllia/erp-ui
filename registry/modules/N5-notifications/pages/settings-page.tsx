@@ -1,4 +1,4 @@
-import { useAuthenticated } from "ra-core"
+import { useAuthenticated } from "@/lib/ra-core"
 
 import { NotificationSettingsForm } from "@/components/erp/notification-settings-form"
 import { PageSkeleton } from "@/components/erp/page-state"

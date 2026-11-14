@@ -1,4 +1,4 @@
-import { useGetOne } from "ra-core"
+import { useGetOne } from "@/lib/ra-core"
 
 import { useCompanyId } from "@/hooks/use-company"
 import { useHasPermission } from "@/hooks/use-me"

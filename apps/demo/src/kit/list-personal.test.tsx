@@ -6,7 +6,7 @@ import {
   type DataProvider,
   type GetListParams,
   type Identifier,
-} from "ra-core"
+} from "@/registry/lib/ra-core"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"

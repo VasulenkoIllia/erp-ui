@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { http } from "msw"
 import { setupServer } from "msw/node"
-import { CoreAdminContext, useGetOne } from "ra-core"
+import { CoreAdminContext, useGetOne } from "@/registry/lib/ra-core"
 import type * as React from "react"
 import {
   afterAll,

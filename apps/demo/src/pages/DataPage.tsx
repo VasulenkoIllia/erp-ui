@@ -1,4 +1,4 @@
-import { useAuthenticated, useCanAccess } from "ra-core"
+import { useAuthenticated, useCanAccess } from "@/registry/lib/ra-core"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"

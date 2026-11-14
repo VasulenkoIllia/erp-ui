@@ -25,7 +25,12 @@
  * - Потік документів (lib/document-links, ADR-0061): `getDocumentFlow` → `GET /<ресурс>/<id>/flow`,
  *   відповідь перевіряється схемою, чекає до `DOCUMENT_FLOW_TIMEOUT_MS`. Те саме про власний провайдер.
  */
-import type { DataProvider, GetListParams, Identifier, RaRecord } from "ra-core"
+import type {
+  DataProvider,
+  GetListParams,
+  Identifier,
+  RaRecord,
+} from "@/registry/lib/ra-core"
 
 import {
   toSearchParams,

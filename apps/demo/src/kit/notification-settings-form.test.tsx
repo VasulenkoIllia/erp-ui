@@ -1,7 +1,7 @@
 import { onlineManager, QueryClient } from "@tanstack/react-query"
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { CoreAdminContext } from "ra-core"
+import { CoreAdminContext } from "@/registry/lib/ra-core"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { NotificationSettingsForm } from "@/registry/erp/notification-settings-form"

@@ -1,6 +1,10 @@
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useAuthProvider, useLocation, useNavigate } from "ra-core"
+import {
+  useAuthProvider,
+  useLocation,
+  useNavigate,
+} from "@/registry/lib/ra-core"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { clearEmailLinkTokens } from "@/registry/hooks/use-email-link-token"

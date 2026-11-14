@@ -11,7 +11,7 @@ import {
   CoreAdminContext,
   type DataProvider,
   type GetListParams,
-} from "ra-core"
+} from "@/registry/lib/ra-core"
 import { useState } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 

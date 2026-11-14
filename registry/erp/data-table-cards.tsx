@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { SortPayload } from "ra-core"
+import type { SortPayload } from "@/registry/lib/ra-core"
 import { flushSync } from "react-dom"
 
 import { WindowFailed } from "@/registry/erp/data-table-cells"
