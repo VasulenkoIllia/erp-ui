@@ -55,18 +55,24 @@ export function useRecordDenialReason(
   )
 }
 
-/** Дія ресурсу над записом: право ролі й позначка сервера; `record` — `undefined`, поки запису немає. */
+/**
+ * Дія ресурсу над записом: право ролі й позначка сервера; `record` — `undefined`, поки запису немає.
+ * `moduleText` — слова модуля для кодів, які він пояснює сам («Виставлений рахунок не змінюють…»),
+ * стабільна між рендерами функція; решта причин — текст кіта.
+ */
 export function useRecordAccess({
   resource,
   action,
   record,
+  moduleText,
 }: {
   resource: string
   action: string
   record: unknown
+  moduleText?: RecordDenialText | undefined
 }): RecordAccess {
   const { canAccess = false, isPending } = useCanAccess({ resource, action })
-  const recordReason = useRecordDenialReason()(record, action)
+  const recordReason = useRecordDenialReason(moduleText)(record, action)
   // Без права ролі причину пояснює модуль: заборона запису тут нічого не додає.
   return canAccess
     ? { isPending, canAccess: !recordReason, recordReason }

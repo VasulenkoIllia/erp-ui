@@ -4,24 +4,17 @@ import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { ConflictDialog } from "@/components/erp/conflict-dialog"
-import { DocumentLinesEditor } from "@/components/erp/document-lines-editor"
+import { DocumentFormLines } from "@/components/erp/document-lines-section"
 import { useDocumentLinesSchema } from "@/components/erp/document-lines-schema"
 import {
   useExtensionForm,
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
-import { FormErrorSummary, UnsavedChangesGuard } from "@/components/erp/form"
-import { SectionSkeleton } from "@/components/erp/page-state"
 import {
   RecordFormFields,
-  useConflictFields,
-  useFormMessage,
   type RecordFormItem,
 } from "@/components/erp/record-form"
-import { SaveBar } from "@/components/erp/save-bar"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useLineDictionaries } from "@/hooks/use-line-dictionaries"
+import { RecordFormFrame } from "@/components/erp/record-form-page"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
 import { copiedDocumentLines } from "@/lib/document-lines"
@@ -279,8 +272,6 @@ function SalesFormView({
   const t = useSalesT()
   const kitT = useErpUiT()
   const { lineItem } = useSalesModule()
-  const dictionaries = useLineDictionaries(mayEdit)
-  const { isDirty, errors, submitCount } = state.form.formState
   // Сталі посилання: форма перемальовується зі станом збереження, а документ буває на сотні рядків.
   const items = useMemo((): readonly RecordFormItem[] => {
     const linesItem: RecordFormItem = {
@@ -302,69 +293,25 @@ function SalesFormView({
     }),
     [items, kitT],
   )
-  const { ref: messageRef, message } = useFormMessage(state, labels)
-  const conflictRows = useConflictFields(state, items)
   return (
-    <form
-      noValidate
-      data-slot="sales-form"
-      onSubmit={(event) => void state.submit(event)}
-      aria-busy={state.isSaving || undefined}
+    <RecordFormFrame
+      slot="sales-form"
       className="grid gap-6"
+      state={state}
+      labels={labels}
+      conflictItems={items}
+      readOnly={readOnly}
+      readOnlyReason={readOnlyReason}
     >
-      <UnsavedChangesGuard when={isDirty && !readOnly} />
-      {readOnlyReason ? (
-        <Alert>
-          <AlertDescription>{readOnlyReason}</AlertDescription>
-        </Alert>
-      ) : null}
-      {message ? (
-        <Alert
-          ref={messageRef}
-          tabIndex={-1}
-          variant="destructive"
-          role="alert"
-        >
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      ) : null}
-      <FormErrorSummary
-        errors={errors}
-        labels={labels}
-        submitCount={submitCount}
-      />
       <RecordFormFields items={header} />
-      {dictionaries.isLoading ? (
-        // Рядок, доданий до довідників, лишився б без типових одиниці й податку.
-        <SectionSkeleton rows={4} />
-      ) : (
-        <DocumentLinesEditor
-          form={state.form}
-          currency={currency}
-          units={dictionaries.units}
-          taxes={dictionaries.taxes}
-          item={lineItem}
-          newLine={dictionaries.newLine}
-          readOnly={readOnly}
-          savedTotals={readOnly ? document?.totals : undefined}
-        />
-      )}
-      {readOnly ? null : (
-        <SaveBar
-          isDirty={isDirty}
-          isSaving={state.isSaving}
-          onDiscard={state.discard}
-        />
-      )}
-      <ConflictDialog
-        open={state.conflict !== null}
-        onOpenChange={(open) => {
-          if (!open) state.dismissConflict()
-        }}
-        fields={conflictRows}
-        onOverwrite={state.overwrite}
-        onReload={state.reload}
+      <DocumentFormLines
+        form={state.form}
+        currency={currency}
+        item={lineItem}
+        readOnly={readOnly}
+        mayEdit={mayEdit}
+        savedTotals={readOnly ? document?.totals : undefined}
       />
-    </form>
+    </RecordFormFrame>
   )
 }

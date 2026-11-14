@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router"
 
 import type { RecordField } from "@/components/erp/record-header"
+import { AccessLink } from "@/components/erp/access-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type {
   ObjectPageAction,
@@ -24,8 +25,7 @@ import type { SalesDocumentIds } from "../extension"
 import { useSalesModule } from "../module-context"
 import type { SalesDocumentKind, SalesKindBase } from "../sales-kinds"
 import { useSalesT } from "../use-sales-t"
-import { AccessLink } from "./access-link"
-import { useSalesAccess } from "./sales-access"
+import { useSalesAccess, useSalesLockedReason } from "./sales-access"
 import { SalesDeleteAction } from "./sales-delete"
 import { SalesDueDate, useSalesTitle } from "./sales-display"
 
@@ -63,7 +63,8 @@ export function useSalesHeader<D extends SalesDocument, Due extends string>(
   const t = useSalesT()
   const format = useFormat()
   const titleOf = useSalesTitle(kind)
-  const { extension, paths } = useSalesModule()
+  const { extension, paths, preload } = useSalesModule()
+  const lockedReason = useSalesLockedReason(kind)
   const documentExtension = kind.extensionOf(extension)
   const extensionFields = useExtensionFields(documentExtension?.fields)
   if (!document) return undefined
@@ -105,9 +106,11 @@ export function useSalesHeader<D extends SalesDocument, Due extends string>(
       id: "edit",
       node: (
         <AccessLink
-          kind={kind}
+          resource={kind.resource}
           action="update"
           to={documentPaths.edit(document.id)}
+          preload={preload}
+          moduleText={lockedReason}
           icon="edit"
           label={t(`${record}.edit`)}
           deniedReason={t(`${record}.editDenied`)}
@@ -120,9 +123,10 @@ export function useSalesHeader<D extends SalesDocument, Due extends string>(
       id: "copy",
       node: (
         <AccessLink
-          kind={kind}
+          resource={kind.resource}
           action="create"
           to={documentPaths.copy(document.id)}
+          preload={preload}
           icon="duplicate"
           label={t(`${record}.copy`)}
           deniedReason={t(`${kind.keys.list}.createDenied`)}

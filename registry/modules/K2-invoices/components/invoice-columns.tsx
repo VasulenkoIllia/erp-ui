@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { Link } from "react-router"
 
+import { documentDateColumn } from "@/components/erp/document-columns"
 import { RecordLink } from "@/components/erp/record-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type { DataTableColumn } from "@/lib/data-table-core"
@@ -74,19 +75,7 @@ function useCommonColumns(
         minWidth: 9,
         card: "badge",
       },
-      date: {
-        id: "date",
-        header: t(`${list}.columns.date`),
-        cell: (document) => (
-          <span className="tabular-nums">
-            {format.date(document.date, "date")}
-          </span>
-        ),
-        sortField: "date",
-        firstSortOrder: "DESC",
-        minWidth: 8,
-        priority: 4,
-      },
+      date: documentDateColumn(t(`${list}.columns.date`), format),
       total: {
         id: "total",
         header: t(`${list}.columns.total`),

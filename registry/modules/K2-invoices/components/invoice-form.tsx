@@ -4,25 +4,18 @@ import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { ConflictDialog } from "@/components/erp/conflict-dialog"
-import { DocumentLinesEditor } from "@/components/erp/document-lines-editor"
+import { DocumentFormLines } from "@/components/erp/document-lines-section"
 import { useDocumentLinesSchema } from "@/components/erp/document-lines-schema"
 import {
   useExtensionForm,
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
-import { FormErrorSummary, UnsavedChangesGuard } from "@/components/erp/form"
-import { SectionSkeleton } from "@/components/erp/page-state"
 import { usePartyDetailsSchema } from "@/components/erp/party-details-schema"
 import {
   RecordFormFields,
-  useConflictFields,
-  useFormMessage,
   type RecordFormItem,
 } from "@/components/erp/record-form"
-import { SaveBar } from "@/components/erp/save-bar"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useLineDictionaries } from "@/hooks/use-line-dictionaries"
+import { RecordFormFrame } from "@/components/erp/record-form-page"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
 import { DEFAULT_BASE_CURRENCY, type CompanyProfile } from "@/lib/company"
 import { addDays, isCalendarDate, todayIn } from "@/lib/dates"
@@ -303,8 +296,6 @@ function InvoiceFormView({
   const t = useInvoicesT()
   const kitT = useErpUiT()
   const { lineItem } = useInvoicesModule()
-  const dictionaries = useLineDictionaries(mayEdit)
-  const { isDirty, errors, submitCount } = state.form.formState
   // Сталі посилання: форма перемальовується зі станом збереження, а рахунок буває на сотні рядків.
   const items = useMemo((): readonly RecordFormItem[] => {
     const linesItem: RecordFormItem = {
@@ -328,70 +319,26 @@ function InvoiceFormView({
     }),
     [items, t, kitT],
   )
-  const { ref: messageRef, message } = useFormMessage(state, labels)
-  const conflictRows = useConflictFields(state, items)
   return (
-    <form
-      noValidate
-      data-slot="invoice-form"
-      onSubmit={(event) => void state.submit(event)}
-      aria-busy={state.isSaving || undefined}
+    <RecordFormFrame
+      slot="invoice-form"
       className="grid gap-6"
+      state={state}
+      labels={labels}
+      conflictItems={items}
+      readOnly={readOnly}
+      readOnlyReason={readOnlyReason}
     >
-      <UnsavedChangesGuard when={isDirty && !readOnly} />
-      {readOnlyReason ? (
-        <Alert>
-          <AlertDescription>{readOnlyReason}</AlertDescription>
-        </Alert>
-      ) : null}
-      {message ? (
-        <Alert
-          ref={messageRef}
-          tabIndex={-1}
-          variant="destructive"
-          role="alert"
-        >
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      ) : null}
-      <FormErrorSummary
-        errors={errors}
-        labels={labels}
-        submitCount={submitCount}
-      />
       <RecordFormFields items={header} />
       <InvoicePartiesFields form={state.form} readOnly={readOnly} />
-      {dictionaries.isLoading ? (
-        // Рядок, доданий до довідників, лишився б без типових одиниці й податку.
-        <SectionSkeleton rows={4} />
-      ) : (
-        <DocumentLinesEditor
-          form={state.form}
-          currency={currency}
-          units={dictionaries.units}
-          taxes={dictionaries.taxes}
-          item={lineItem}
-          newLine={dictionaries.newLine}
-          readOnly={readOnly}
-          savedTotals={readOnly ? invoice?.totals : undefined}
-        />
-      )}
-      {readOnly ? null : (
-        <SaveBar
-          isDirty={isDirty}
-          isSaving={state.isSaving}
-          onDiscard={state.discard}
-        />
-      )}
-      <ConflictDialog
-        open={state.conflict !== null}
-        onOpenChange={(open) => {
-          if (!open) state.dismissConflict()
-        }}
-        fields={conflictRows}
-        onOverwrite={state.overwrite}
-        onReload={state.reload}
+      <DocumentFormLines
+        form={state.form}
+        currency={currency}
+        item={lineItem}
+        readOnly={readOnly}
+        mayEdit={mayEdit}
+        savedTotals={readOnly ? invoice?.totals : undefined}
       />
-    </form>
+    </RecordFormFrame>
   )
 }

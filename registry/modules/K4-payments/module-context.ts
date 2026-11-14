@@ -1,4 +1,4 @@
-import type { RaRecord } from "ra-core"
+import type { DocumentClients } from "@/components/erp/document-form-items"
 import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
 import type { PaymentsExtension } from "./extension"
@@ -56,16 +56,7 @@ export function paymentsPaths(basePath: string): PaymentsPaths {
 }
 
 /** Клієнт оплати: ресурс, з якого його вибирають, і картка клієнта. */
-export interface PaymentClients {
-  /** Ресурс API клієнтів: `organizations` модуля B1 чи свій ресурс проекту. */
-  readonly resource: string
-  /** Поле назви клієнта в записі ресурсу. */
-  readonly labelField: string
-  /** Другий рядок варіанта вибору: код ЄДРПОУ, місто. */
-  readonly descriptionField?: string
-  /** Адреса картки клієнта; без неї назва в оплаті — текст, а не посилання. */
-  readonly href?: (id: string) => string
-}
+export type PaymentClients = DocumentClients
 
 /**
  * Рахунки, за якими платять (модуль K2): ресурс для потоку документів і адреса картки рахунку. Модуль K2
@@ -90,11 +81,3 @@ export const [PaymentsModuleContext, usePaymentsModule] =
     "K4-payments",
     "createPaymentsModule",
   )
-
-/** Назва клієнта з запису ресурсу клієнтів: поле назви чи `id`. */
-export function clientLabelOf(clients: PaymentClients) {
-  return (record: RaRecord): string => {
-    const value: unknown = record[clients.labelField]
-    return typeof value === "string" && value ? value : String(record.id)
-  }
-}

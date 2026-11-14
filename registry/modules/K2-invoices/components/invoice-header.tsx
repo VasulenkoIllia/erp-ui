@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router"
 
 import type { RecordField } from "@/components/erp/record-header"
+import { AccessLink } from "@/components/erp/access-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type {
   ObjectPageAction,
@@ -25,9 +26,8 @@ import { invoiceDebt, isSettling } from "../invoice-debt"
 import { INVOICE_KIND, invoiceDocumentPaths } from "../invoice-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
-import { AccessLink } from "./access-link"
-import { useDocumentAccess } from "./invoice-access"
-import { DocumentDeleteAction } from "./invoice-delete"
+import { useDocumentAccess, useDocumentLockedReason } from "./invoice-access"
+import { InvoiceDeleteAction } from "./invoice-delete"
 import {
   InvoiceBaseTotal,
   InvoiceDueDate,
@@ -82,7 +82,8 @@ export function useInvoiceHeader(
   const t = useInvoicesT()
   const format = useFormat()
   const titleOf = useInvoiceTitle()
-  const { extension, paths, payments } = useInvoicesModule()
+  const { extension, paths, payments, preload } = useInvoicesModule()
+  const lockedReason = useDocumentLockedReason(INVOICE_KIND)
   const invoiceExtension = extension.invoices
   const extensionFields = useExtensionFields(invoiceExtension?.fields)
   if (!invoice) return undefined
@@ -131,9 +132,11 @@ export function useInvoiceHeader(
       id: "edit",
       node: (
         <AccessLink
-          kind={INVOICE_KIND}
+          resource={INVOICE_KIND.resource}
           action="update"
           to={documentPaths.edit(invoice.id)}
+          preload={preload}
+          moduleText={lockedReason}
           icon="edit"
           label={t("invoice.edit")}
           deniedReason={t("invoice.editDenied")}
@@ -146,9 +149,10 @@ export function useInvoiceHeader(
       id: "copy",
       node: (
         <AccessLink
-          kind={INVOICE_KIND}
+          resource={INVOICE_KIND.resource}
           action="create"
           to={documentPaths.copy(invoice.id)}
+          preload={preload}
           icon="duplicate"
           label={t("invoice.copy")}
           deniedReason={t("invoices.createDenied")}
@@ -184,7 +188,7 @@ export function useInvoiceHeader(
     {
       id: "delete",
       node: (
-        <DocumentDeleteAction
+        <InvoiceDeleteAction
           kind={INVOICE_KIND}
           document={invoice}
           description={

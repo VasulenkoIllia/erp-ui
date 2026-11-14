@@ -2,6 +2,7 @@ import { useAuthenticated } from "ra-core"
 import { useMemo, type ReactNode } from "react"
 import { useSearchParams } from "react-router"
 
+import { AccessLink } from "@/components/erp/access-link"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
@@ -15,7 +16,6 @@ import { usePageHeading } from "@/hooks/use-page-heading"
 import { MODULE_ICONS } from "@/lib/icons"
 import type { ListDefaults } from "@/lib/list-state"
 
-import { AccessLink } from "../components/access-link"
 import { useOrderBulkActions } from "../components/order-bulk-actions"
 import { useQuoteBulkActions } from "../components/quote-bulk-actions"
 import { useSalesColumns } from "../components/sales-columns"
@@ -98,7 +98,7 @@ function SalesListPage({
   children: ReactNode
 }) {
   const t = useSalesT()
-  const { paths } = useSalesModule()
+  const { paths, preload } = useSalesModule()
   const { list } = kind.keys
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
@@ -108,9 +108,10 @@ function SalesListPage({
       id: "create",
       node: (
         <AccessLink
-          kind={kind}
+          resource={kind.resource}
           action="create"
           to={kind.pathsOf(paths).create}
+          preload={preload}
           icon="create"
           label={t(`${list}.create`)}
           deniedReason={t(`${list}.createDenied`)}

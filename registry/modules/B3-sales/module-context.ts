@@ -1,5 +1,6 @@
 import type { RaRecord } from "ra-core"
 
+import type { DocumentClients } from "@/components/erp/document-form-items"
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
 import { createModuleContext, type ModuleContextValue } from "@/lib/module"
 
@@ -51,16 +52,7 @@ export function salesPaths(
 }
 
 /** Клієнт документа: ресурс, з якого його вибирають, і картка клієнта, якщо вона є в проекті. */
-export interface SalesClients {
-  /** Ресурс API клієнтів: `organizations` модуля B1 чи свій ресурс проекту. */
-  readonly resource: string
-  /** Поле назви клієнта в записі ресурсу. */
-  readonly labelField: string
-  /** Другий рядок варіанта вибору: код ЄДРПОУ, місто. */
-  readonly descriptionField?: string
-  /** Адреса картки клієнта; без неї назва в пропозиції — текст, а не посилання. */
-  readonly href?: (id: string) => string
-}
+export type SalesClients = DocumentClients
 
 export interface SalesModuleContextValue extends ModuleContextValue<
   SalesExtension,

@@ -3,15 +3,14 @@ import type * as React from "react"
 
 import {
   useBulkAction,
+  useBulkActionTexts,
   type BulkAction,
-  type BulkActionTexts,
 } from "@/components/erp/bulk-action"
 import type { ListReportBulk } from "@/components/templates/list-report"
 import type { RowSelection } from "@/hooks/use-row-selection"
 import type { FilterValue } from "@/lib/api"
 import { useFormat } from "@/lib/format"
 import type { ActionIcon } from "@/lib/icons"
-import type { Job } from "@/lib/jobs"
 import type { ModuleTransition } from "@/lib/statuses"
 
 import { INVOICES, type Invoice } from "../contract"
@@ -27,27 +26,6 @@ type InvoiceBulkKey = `invoices.bulk.${"submit" | "cancel" | "delete"}`
 interface InvoiceBulkScope {
   readonly selection: RowSelection
   readonly filter: Record<string, FilterValue>
-}
-
-/** Тексти масової дії модуля: підтвердження з кількістю, підсумок задачі, причина відмови. */
-function useBulkTexts(key: InvoiceBulkKey, denied: string): BulkActionTexts {
-  const t = useInvoicesT()
-  const format = useFormat()
-  return {
-    title: (count, value) => t(`${key}.title`, { count, value }),
-    description: t(`${key}.description`),
-    confirm: (count, value) => t(`${key}.confirm`, { count, value }),
-    denied,
-    progress: t(`${key}.progress`),
-    summary: (job: Job) =>
-      job.failed
-        ? t(`${key}.partial`, {
-            done: format.number(job.succeeded),
-            total: format.number(job.total),
-            failed: format.number(job.failed),
-          })
-        : t(`${key}.done`, { value: format.number(job.succeeded) }),
-  }
 }
 
 /**
@@ -72,7 +50,7 @@ function useInvoiceBulkTransition(
 ): BulkAction {
   const t = useInvoicesT()
   const lockedReason = useDocumentLockedReason(INVOICE_KIND)
-  const texts = useBulkTexts(key, t(`${key}.denied`))
+  const texts = useBulkActionTexts(key, t, t(`${key}.denied`))
   const action = transition?.id ?? ""
   return useBulkAction({
     resource: INVOICES,
@@ -99,7 +77,11 @@ function useInvoiceBulkDelete({
 }: InvoiceBulkScope): BulkAction {
   const t = useInvoicesT()
   const lockedReason = useDocumentLockedReason(INVOICE_KIND)
-  const texts = useBulkTexts("invoices.bulk.delete", t("invoice.delete.denied"))
+  const texts = useBulkActionTexts(
+    "invoices.bulk.delete",
+    t,
+    t("invoice.delete.denied"),
+  )
   return useBulkAction({
     resource: INVOICES,
     selection,

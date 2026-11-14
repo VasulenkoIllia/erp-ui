@@ -1,5 +1,6 @@
 import type { RaRecord } from "ra-core"
 
+import type { DocumentClients } from "@/components/erp/document-form-items"
 import type { DocumentLineItem } from "@/components/erp/document-line-fields"
 import type { PartyDetails } from "@/lib/document-parties"
 import { createModuleContext, type ModuleContextValue } from "@/lib/module"
@@ -47,15 +48,7 @@ export function invoicesPaths(basePath: string): InvoicesPaths {
 }
 
 /** Клієнт рахунку: ресурс, з якого його вибирають, картка й реквізити покупця. */
-export interface InvoiceClients {
-  /** Ресурс API клієнтів: `organizations` модуля B1 чи свій ресурс проекту. */
-  readonly resource: string
-  /** Поле назви клієнта в записі ресурсу. */
-  readonly labelField: string
-  /** Другий рядок варіанта вибору: код ЄДРПОУ, місто. */
-  readonly descriptionField?: string
-  /** Адреса картки клієнта; без неї назва в рахунку — текст, а не посилання. */
-  readonly href?: (id: string) => string
+export interface InvoiceClients extends DocumentClients {
   /**
    * Реквізити покупця з запису клієнта (ADR-0068): ними заповнюються порожні поля сторони. Без функції —
    * лише назва клієнта.

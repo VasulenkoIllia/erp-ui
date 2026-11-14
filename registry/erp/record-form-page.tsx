@@ -1,3 +1,4 @@
+import type * as React from "react"
 import type { FieldValues, Path } from "react-hook-form"
 
 import { ConflictDialog } from "@/registry/erp/conflict-dialog"
@@ -30,21 +31,84 @@ export function RecordFormPage<TValues extends FieldValues>({
   items,
   readOnly = false,
 }: RecordFormPageProps<TValues>) {
-  const { isDirty, errors, submitCount } = state.form.formState
   const labels: Readonly<Record<string, string>> = Object.fromEntries(
     items.map((item) => [item.id, item.label]),
   )
+  return (
+    <RecordFormFrame
+      slot="record-form-page"
+      className="grid gap-4"
+      state={state}
+      labels={labels}
+      conflictItems={items}
+      readOnly={readOnly}
+      guardReadOnly
+    >
+      <RecordFormFields items={items} />
+    </RecordFormFrame>
+  )
+}
+
+export interface RecordFormFrameProps<TValues extends FieldValues> {
+  /** `data-slot` форми: `invoice-form`, `payment-form`. */
+  readonly slot: string
+  readonly state: RecordFormState<TValues>
+  /** Підписи полів для зведення помилок і помилок сервера: поля шапки й свої блоки форми (рядки, суми). */
+  readonly labels: Readonly<Record<string, string>>
+  /** Поля для порівняння при конфлікті 409; без них діалогу конфлікту немає (форма лише створює). */
+  readonly conflictItems?: readonly RecordFormItem[] | undefined
+  /** Лише для читання: без панелі збереження й без «Закрити без збереження?». */
+  readonly readOnly?: boolean
+  /**
+   * «Закрити без збереження?» лишається й тоді, коли форма стала лише для читання з незбереженими змінами
+   * (право забрали під час правки): так робить `RecordFormPage`.
+   */
+  readonly guardReadOnly?: boolean
+  /** Чому форма лише для читання: смуга над полями. */
+  readonly readOnlyReason?: string | undefined
+  /** Підпис «Зберегти» панелі. */
+  readonly submitLabel?: string | undefined
+  readonly className?: string
+  /** Поля й свої блоки форми (рядки документа, рахунки оплати) у порядку показу. */
+  readonly children: React.ReactNode
+}
+
+const NO_ITEMS: readonly RecordFormItem[] = []
+
+/**
+ * Рамка форми запису на сторінці (ADR-0047, ADR-0086): `<form>` із захистом незбережених змін, смугою
+ * «лише для читання», помилкою запиту над формою з фокусом, зведенням помилок, липкою панеллю збереження й
+ * порівнянням при конфлікті. Поля — дітьми: так форма документа ставить рядки між полями й панеллю.
+ */
+export function RecordFormFrame<TValues extends FieldValues>({
+  slot,
+  state,
+  labels,
+  conflictItems,
+  readOnly = false,
+  guardReadOnly = false,
+  readOnlyReason,
+  submitLabel,
+  className,
+  children,
+}: RecordFormFrameProps<TValues>) {
+  const { isDirty, errors, submitCount } = state.form.formState
   const { ref: messageRef, message } = useFormMessage(state, labels)
-  const conflictRows = useConflictFields(state, items)
+  const conflictRows = useConflictFields(state, conflictItems ?? NO_ITEMS)
   return (
     <form
       noValidate
-      data-slot="record-form-page"
+      data-slot={slot}
       onSubmit={(event) => void state.submit(event)}
       aria-busy={state.isSaving || undefined}
-      className="grid gap-4"
+      className={className}
     >
-      <UnsavedChangesGuard when={isDirty} />
+      <UnsavedChangesGuard when={isDirty && (guardReadOnly || !readOnly)} />
+      {readOnlyReason ? (
+        <Alert>
+          <AlertDescription>{readOnlyReason}</AlertDescription>
+        </Alert>
+      ) : null}
       {message ? (
         <Alert
           ref={messageRef}
@@ -60,23 +124,26 @@ export function RecordFormPage<TValues extends FieldValues>({
         labels={labels as Partial<Record<Path<TValues>, string>>}
         submitCount={submitCount}
       />
-      <RecordFormFields items={items} />
+      {children}
       {readOnly ? null : (
         <SaveBar
           isDirty={isDirty}
           isSaving={state.isSaving}
           onDiscard={state.discard}
+          {...(submitLabel === undefined ? {} : { submitLabel })}
         />
       )}
-      <ConflictDialog
-        open={state.conflict !== null}
-        onOpenChange={(open) => {
-          if (!open) state.dismissConflict()
-        }}
-        fields={conflictRows}
-        onOverwrite={state.overwrite}
-        onReload={state.reload}
-      />
+      {conflictItems ? (
+        <ConflictDialog
+          open={state.conflict !== null}
+          onOpenChange={(open) => {
+            if (!open) state.dismissConflict()
+          }}
+          fields={conflictRows}
+          onOverwrite={state.overwrite}
+          onReload={state.reload}
+        />
+      ) : null}
     </form>
   )
 }

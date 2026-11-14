@@ -53,6 +53,42 @@ export interface BulkActionTexts {
   summary?: (job: Job) => string
 }
 
+/** Суфікси рядків масової дії модуля під її префіксом: `quotes.bulk.cancel.title`, `.done`. */
+export type BulkActionTextKey =
+  "title" | "description" | "confirm" | "progress" | "partial" | "done"
+
+/**
+ * Тексти масової дії з рядків модуля під префіксом `key` (ADR-0066, ADR-0086): заголовок і кнопка
+ * підтвердження з кількістю (`count`, `value`), наслідок, назва задачі й підсумок — «Скасовано 8»
+ * (`value`) чи «Скасовано 8 з 10, не скасовано: 2» (`done`, `total`, `failed`). `denied` — причина без
+ * права ролі.
+ */
+export function useBulkActionTexts<Key extends string>(
+  key: Key,
+  t: (
+    key: NoInfer<`${Key}.${BulkActionTextKey}`>,
+    options?: Record<string, unknown>,
+  ) => string,
+  denied: string,
+): BulkActionTexts {
+  const format = useFormat()
+  return {
+    title: (count, value) => t(`${key}.title`, { count, value }),
+    description: t(`${key}.description`),
+    confirm: (count, value) => t(`${key}.confirm`, { count, value }),
+    denied,
+    progress: t(`${key}.progress`),
+    summary: (job: Job) =>
+      job.failed
+        ? t(`${key}.partial`, {
+            done: format.number(job.succeeded),
+            total: format.number(job.total),
+            failed: format.number(job.failed),
+          })
+        : t(`${key}.done`, { value: format.number(job.succeeded) }),
+  }
+}
+
 export interface BulkActionOptions {
   resource: string
   /** Дія API й права: `POST /<ресурс>/bulk/<дія>`, `<ресурс>:<дія>`. */

@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 
+import { documentDateColumn } from "@/components/erp/document-columns"
 import { RecordLink } from "@/components/erp/record-link"
 import { StatusBadge } from "@/components/erp/status-badge"
 import type { DataTableColumn } from "@/lib/data-table-core"
@@ -82,19 +83,7 @@ export function usePaymentColumns(
         minWidth: 9,
         card: "badge",
       },
-      {
-        id: "date",
-        header: t("payments.columns.date"),
-        cell: (payment) => (
-          <span className="tabular-nums">
-            {format.date(payment.date, "date")}
-          </span>
-        ),
-        sortField: "date",
-        firstSortOrder: "DESC",
-        minWidth: 8,
-        priority: 4,
-      },
+      documentDateColumn<Payment>(t("payments.columns.date"), format),
       {
         id: "amount",
         header: t("payments.columns.amount"),

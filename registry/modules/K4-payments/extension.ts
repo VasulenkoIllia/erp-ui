@@ -8,25 +8,10 @@
  * — типи нижче. Повернення (ADR-0083) — ключ `refunds` з тими самими частинами списку, картки й форми.
  */
 import type { LocalizedText } from "@/lib/auth"
-import type {
-  ExtensionColumn,
-  ExtensionColumnChange,
-  ExtensionField,
-  ExtensionFilter,
-  ExtensionTab,
-} from "@/lib/extension-fields"
-import type { ExtensionFormChanges } from "@/lib/extension-form"
 import type { Keyed, KeyedChanges } from "@/lib/extensions"
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
-import type {
-  ExtensionStatusChanges,
-  ExtensionTransitionChanges,
-} from "@/lib/statuses"
-import type {
-  ExtensionAction,
-  ExtensionAside,
-  ExtensionSection,
-} from "@/components/templates/object-page"
+import type { ExtensionAside } from "@/components/templates/object-page"
+import type { DocumentPartsExtension } from "@/components/templates/document-extension"
 
 import type {
   Payment,
@@ -79,45 +64,15 @@ export interface PaymentMethodOption extends Keyed {
 export type PaymentsMessages = typeof ukMessages
 
 /**
- * Частини документа модуля, які змінює розширення: поля, статуси й дії, список, картка й форма. Однакові в
- * оплати й повернення (ADR-0083), ключі — свої.
+ * Частини документа модуля, які змінює розширення: поля, статуси й дії, список, картка й форма — спільний
+ * тип документа кіта (`DocumentPartsExtension`, ADR-0086). Однакові в оплати й повернення (ADR-0083),
+ * ключі — свої.
  */
-export interface MoneyDocumentExtension<
+export type MoneyDocumentExtension<
   Ids extends Omit<PaymentIds, "tab"> & { tab: string },
   S extends string,
   T extends string,
-> {
-  /** Нові поля документа: схема, підписи, значення для моків (`lib/extension-fields`). */
-  readonly fields?: readonly ExtensionField[]
-  /**
-   * Статуси документа: додати, сховати з вибору; `change` — підпис, тон чи іконка статусу модуля без заміни.
-   * Новий статус досяжний дією `transitions`.
-   */
-  readonly statuses?: ExtensionStatusChanges<S>
-  /** Дозволені переходи (ADR-0057): нова дія зі своїм статусом; `change` — підпис, `from` і причина. */
-  readonly transitions?: ExtensionTransitionChanges<T>
-  /** Колонки списку; нова — з поля розширення (ключ — ключ поля); `change` — назва, ширина чи пріоритет. */
-  readonly columns?: KeyedChanges<
-    ExtensionColumn,
-    Ids["column"],
-    ExtensionColumnChange
-  >
-  /** Фільтри панелі списку; новий — з поля розширення. */
-  readonly filters?: KeyedChanges<ExtensionFilter, Ids["filter"]>
-  /** Вкладки-статуси списку з фільтром даними. */
-  readonly tabs?: KeyedChanges<ExtensionTab, Ids["tab"]>
-  /** Ключові поля шапки картки; нове — з поля розширення. */
-  readonly recordFields?: KeyedChanges<Keyed, Ids["field"]>
-  /** Секції картки — компоненти проекту в слотах. */
-  readonly sections?: KeyedChanges<ExtensionSection<Payment>, Ids["section"]>
-  /** Дії в шапці картки — компоненти проекту з правом `access`. */
-  readonly actions?: KeyedChanges<ExtensionAction<Payment>, Ids["action"]>
-  /**
-   * Форма реєстрації (`lib/extension-form`): `add` — поле розширення з `fields`, `hide` і `move` — поля
-   * модуля, `change` — підпис і підказка поля модуля.
-   */
-  readonly form?: ExtensionFormChanges<Ids["formField"]>
-}
+> = DocumentPartsExtension<Payment, Ids, S, T>
 
 /** Розширення повернення (ADR-0083): поля, статуси й дії, список, картка й форма. */
 export type RefundsExtension = MoneyDocumentExtension<

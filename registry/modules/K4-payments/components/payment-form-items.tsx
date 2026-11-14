@@ -1,27 +1,23 @@
-import { useGetOne, type RaRecord } from "ra-core"
 import { useMemo } from "react"
 import type { UseFormReturn } from "react-hook-form"
 
-import { DateInput } from "@/components/erp/date-input"
+import {
+  clientLabelOf,
+  dateFormItem,
+  documentClientItem,
+} from "@/components/erp/document-form-items"
 import { FormField } from "@/components/erp/form"
 import { FormSelect } from "@/components/erp/form-select"
 import { MoneyInput } from "@/components/erp/number-input"
 import type { RecordFormItem } from "@/components/erp/record-form"
-import { RecordPicker } from "@/components/erp/record-picker"
 import { Input } from "@/components/ui/input"
-import { useCompanyId } from "@/hooks/use-company"
 import { usePostingDate, type PostingDate } from "@/hooks/use-period-lock"
-import { companyScope } from "@/lib/company-scope"
 import type { ExtensionValues } from "@/lib/extension-fields"
 
 import { PAYMENT_REFERENCE_MAX } from "../contract"
 import type { K4DocumentKind } from "../document-kind"
 import type { PaymentFormFieldId } from "../extension"
-import {
-  clientLabelOf,
-  usePaymentsModule,
-  type PaymentClients,
-} from "../module-context"
+import { usePaymentsModule, type PaymentClients } from "../module-context"
 import { usePaymentsT } from "../use-payments-t"
 import { usePaymentMethods, type PaymentMethodItem } from "./payment-statuses"
 
@@ -43,17 +39,6 @@ export type PaymentFormValues = {
 
 type PaymentFormItem = RecordFormItem & { id: PaymentFormFieldId }
 type T = ReturnType<typeof usePaymentsT>
-
-/** Назва клієнта за `id` у порівнянні: значення — інший клієнт. */
-function ClientName({ id }: { id: string }) {
-  const { clients } = usePaymentsModule()
-  const companyId = useCompanyId()
-  const { data } = useGetOne<RaRecord>(clients.resource, {
-    id,
-    meta: companyScope(companyId),
-  })
-  return data ? clientLabelOf(clients)(data) : id
-}
 
 /**
  * Поля шапки форми оплати чи повернення: клієнт (вибір із ресурсу клієнтів проекту; інший клієнт — інші рахунки, суми
@@ -92,49 +77,22 @@ function clientItem(
 ): PaymentFormItem {
   const { control, setValue, getValues } = form
   const label = clientLabelOf(clients)
-  return {
-    id: "clientId",
+  return documentClientItem({
+    control,
+    clients,
     label: t("paymentForm.fields.clientId"),
-    text: (id) =>
-      typeof id === "string" && id ? <ClientName id={id} /> : null,
-    render: (props) => (
-      <FormField
-        {...props}
-        control={control}
-        name="clientId"
-        render={({ field, control: aria }) => (
-          <RecordPicker<RaRecord>
-            {...aria}
-            ref={field.ref}
-            resource={clients.resource}
-            label={props.label}
-            value={field.value || null}
-            onValueChange={(id, record) => {
-              if ((id ?? "") === field.value) return
-              field.onChange(id ?? "")
-              setValue("clientName", record ? label(record) : "")
-              // Інший клієнт — інші рахунки: валюту й суми форма бере з його рахунків заново.
-              setValue("currency", "")
-              setValue("allocations", {})
-            }}
-            onBlur={field.onBlur}
-            optionLabel={label}
-            optionDescription={(record) => {
-              const value: unknown = clients.descriptionField
-                ? record[clients.descriptionField]
-                : undefined
-              return typeof value === "string" && value ? value : undefined
-            }}
-            searchPlaceholder={t("paymentForm.clientSearch")}
-            missingLabel={
-              getValues("clientName") || t("paymentForm.clientMissing")
-            }
-            required
-          />
-        )}
-      />
-    ),
-  }
+    searchPlaceholder: t("paymentForm.clientSearch"),
+    missingLabel: () =>
+      getValues("clientName") || t("paymentForm.clientMissing"),
+    onValueChange: (field, id, record) => {
+      if ((id ?? "") === field.value) return
+      field.onChange(id ?? "")
+      setValue("clientName", record ? label(record) : "")
+      // Інший клієнт — інші рахунки: валюту й суми форма бере з його рахунків заново.
+      setValue("currency", "")
+      setValue("allocations", {})
+    },
+  })
 }
 
 function currencyItem(
@@ -176,29 +134,14 @@ function dateItem(
   posting: PostingDate,
   t: T,
 ): PaymentFormItem {
-  return {
-    id: "date",
+  // Закритий період (PF13): підказка й перший відкритий день; дату з клавіатури відхилить сервер.
+  return dateFormItem({
+    control: form.control,
+    name: "date",
     label: t(`${kind.form}.fields.date`),
-    // Закритий період (PF13): підказка й перший відкритий день; дату з клавіатури відхилить сервер.
-    ...(posting.hint ? { description: posting.hint } : {}),
-    render: (props) => (
-      <FormField
-        {...props}
-        control={form.control}
-        name="date"
-        render={({ field, control: aria }) => (
-          <DateInput
-            {...aria}
-            ref={field.ref}
-            value={field.value}
-            onValueChange={field.onChange}
-            onBlur={field.onBlur}
-            min={posting.min}
-          />
-        )}
-      />
-    ),
-  }
+    description: posting.hint,
+    min: posting.min,
+  })
 }
 
 function methodItem(

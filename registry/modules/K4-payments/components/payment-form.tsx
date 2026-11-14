@@ -8,13 +8,11 @@ import {
   useExtensionForm,
   type ExtensionFormApi,
 } from "@/components/erp/extension-field-input"
-import { FormErrorSummary, UnsavedChangesGuard } from "@/components/erp/form"
 import {
   RecordFormFields,
-  useFormMessage,
   type RecordFormItem,
 } from "@/components/erp/record-form"
-import { SaveBar } from "@/components/erp/save-bar"
+import { RecordFormFrame } from "@/components/erp/record-form-page"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { useRecordForm, type RecordFormState } from "@/hooks/use-record-form"
@@ -336,7 +334,6 @@ function PaymentFormView({
   children: React.ReactNode
 }) {
   const t = usePaymentsT()
-  const { isDirty, errors, submitCount } = state.form.formState
   const labels = useMemo(
     (): Readonly<Record<string, string>> => ({
       ...Object.fromEntries(items.map((item) => [item.id, item.label])),
@@ -344,39 +341,16 @@ function PaymentFormView({
     }),
     [items, t, kind],
   )
-  const { ref: messageRef, message } = useFormMessage(state, labels)
   return (
-    <form
-      noValidate
-      data-slot="payment-form"
-      onSubmit={(event) => void state.submit(event)}
-      aria-busy={state.isSaving || undefined}
+    <RecordFormFrame
+      slot="payment-form"
       className="grid gap-6"
+      state={state}
+      labels={labels}
+      submitLabel={t(kind.labels.submit)}
     >
-      <UnsavedChangesGuard when={isDirty} />
-      {message ? (
-        <Alert
-          ref={messageRef}
-          tabIndex={-1}
-          variant="destructive"
-          role="alert"
-        >
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      ) : null}
-      <FormErrorSummary
-        errors={errors}
-        labels={labels}
-        submitCount={submitCount}
-      />
       <RecordFormFields items={items} />
       {children}
-      <SaveBar
-        isDirty={isDirty}
-        isSaving={state.isSaving}
-        onDiscard={state.discard}
-        submitLabel={t(kind.labels.submit)}
-      />
-    </form>
+    </RecordFormFrame>
   )
 }

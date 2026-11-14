@@ -6,13 +6,12 @@ import {
   type Keyed,
 } from "@/lib/extensions"
 import { localizedText } from "@/lib/auth"
-import { useErpUiT, useLanguage } from "@/lib/i18n"
 import {
-  useResolvedStatuses,
-  useResolvedTransitions,
-  type ModuleTransition,
-  type ResolvedStatuses,
-} from "@/lib/statuses"
+  useDocumentStatuses,
+  useDocumentTransitions,
+} from "@/lib/document-kind"
+import { useLanguage } from "@/lib/i18n"
+import type { ModuleTransition, ResolvedStatuses } from "@/lib/statuses"
 
 import { PAYMENT_METHODS } from "../contract"
 import type { K4DocumentKind } from "../document-kind"
@@ -23,34 +22,23 @@ import { usePaymentsT } from "../use-payments-t"
 export function usePaymentStatuses(kind: K4DocumentKind): ResolvedStatuses {
   const t = usePaymentsT()
   const { extension } = usePaymentsModule()
-  const statuses = useMemo(
-    () =>
-      kind.statuses.map((status) => ({
-        id: status.id,
-        label: t(status.label),
-        tone: status.tone,
-      })),
-    [t, kind],
+  return useDocumentStatuses(
+    kind.statuses,
+    t,
+    kind.extensionOf(extension).statuses,
   )
-  return useResolvedStatuses(statuses, kind.extensionOf(extension).statuses)
 }
 
 /** Граф дій документа зі змінами розширення: «Скасувати» й «Сторнувати» — підписи кіта. */
 export function usePaymentTransitions(
   kind: K4DocumentKind,
 ): readonly ModuleTransition[] {
-  const kitT = useErpUiT()
+  const t = usePaymentsT()
   const { extension } = usePaymentsModule()
-  const transitions = useMemo(
-    () =>
-      kind.transitions.map((transition) => ({
-        ...transition,
-        label: kitT(`documentActions.${transition.id}`),
-      })),
-    [kitT, kind],
-  )
-  return useResolvedTransitions(
-    transitions,
+  return useDocumentTransitions(
+    kind.transitions,
+    kind,
+    t,
     kind.extensionOf(extension).transitions,
   )
 }

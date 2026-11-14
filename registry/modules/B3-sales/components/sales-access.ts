@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 
 import { useRecordAccess, type RecordAccess } from "@/hooks/use-record-access"
-import { RECORD_DENIAL_REASONS, recordDenial } from "@/lib/record-access"
+import { RECORD_DENIAL_REASONS } from "@/lib/record-access"
 
 import { CREATE_INVOICE, CREATE_ORDER } from "../contract"
 import type { SalesKindBase } from "../sales-kinds"
@@ -23,13 +23,12 @@ export function useSalesAccess(
   action: string,
   record: unknown,
 ): RecordAccess {
-  const lifecycleReason = useSalesLockedReason(kind)
-  const access = useRecordAccess({ resource: kind.resource, action, record })
-  const code = recordDenial(record, action)
-  const reason = code === undefined ? undefined : lifecycleReason(action, code)
-  return access.recordReason !== undefined && reason !== undefined
-    ? { ...access, recordReason: reason }
-    : access
+  return useRecordAccess({
+    resource: kind.resource,
+    action,
+    record,
+    moduleText: useSalesLockedReason(kind),
+  })
 }
 
 /**
