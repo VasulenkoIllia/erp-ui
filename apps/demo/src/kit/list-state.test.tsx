@@ -232,6 +232,13 @@ describe("hooks/use-list-state", () => {
     )
     expect(result.current.list.isModified).toBe(true)
     expect(result.current.list.viewParams).toBe("tab=overdue&layout=board")
+    // Те саме чи невідоме подання — без нового запису в історії.
+    const calls = changes.mock.calls.length
+    act(() => {
+      result.current.list.setLayout("board")
+      result.current.list.setLayout("map")
+    })
+    expect(changes.mock.calls).toHaveLength(calls)
     act(() => {
       result.current.list.applyView(saved)
     })

@@ -378,6 +378,7 @@ function Board({
   isFiltered,
   onResetFilters,
   selection,
+  bulkActions,
 }: ListReportContentProps) {
   return (
     <section aria-label={label}>
@@ -395,13 +396,14 @@ function Board({
       <button type="button" onClick={onResetFilters}>
         Скинути на дошці
       </button>
+      {bulkActions?.(selection.isSelected("r-1") ? 1 : 0)}
     </section>
   )
 }
 
 const LAYOUTS: ListReportLayout[] = [
   { id: "table", label: "Таблиця" },
-  { id: "board", label: "Дошка", render: (props) => <Board {...props} /> },
+  { id: "board", label: "Дошка", component: Board },
 ]
 
 const paramsOf = (container: HTMLElement) =>
@@ -502,6 +504,37 @@ describe("ListReport: подання (ADR-0091)", () => {
     expect(
       screen.queryByRole("group", { name: "Подання списку" }),
     ).not.toBeInTheDocument()
+  })
+
+  it("масові дії списку — і у вмісті подання; інше подання скидає вибір", async () => {
+    const user = userEvent.setup()
+    renderPage(fakeServer(), {
+      layouts: LAYOUTS,
+      initial: "layout=board",
+      bulk: {
+        rowLabel: (row) => row.name,
+        actions: [
+          {
+            id: "archive",
+            render: (count) => (
+              <button type="button">{`В архів (${String(count)})`}</button>
+            ),
+          },
+        ],
+      },
+    })
+    await user.click(await screen.findByRole("button", { name: "Вибрати r-1" }))
+    expect(
+      screen.getByRole("button", { name: "В архів (1)" }),
+    ).toBeInTheDocument()
+    const group = screen.getByRole("group", { name: "Подання списку" })
+    await user.click(within(group).getByRole("button", { name: "Таблиця" }))
+    await screen.findByText("Запис 1")
+    await user.click(within(group).getByRole("button", { name: "Дошка" }))
+    expect(screen.getByRole("button", { name: "Вибрати r-1" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
   })
 
   it("шапка — PageHeader (erp/page-header); старе ім'я — те саме", () => {

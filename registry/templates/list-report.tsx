@@ -32,12 +32,12 @@ import type { FilterDefinition } from "@/registry/lib/filters"
 import { LIST_PAGE_SIZES, withPageSize } from "@/registry/lib/list-settings"
 import {
   listQueryFilter,
+  type ListDefaults,
   type ListFilter,
   type ListTab,
 } from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
 import {
-  ListLayoutContent,
   ListLayoutSwitch,
   type ListReportContentProps,
   type ListReportLayout,
@@ -58,7 +58,8 @@ export type { ListReportContentProps, ListReportLayout }
  *   масових дій (erp/data-table-selection), DataTable з картками на телефоні й пагінацією
  *   (erp/data-table).
  * - Подання (`layouts`, ADR-0091): ті самі записи таблицею чи вмістом модуля — дошкою, календарем — з
- *   тими самими вкладками, фільтрами, видами й вибором (templates/list-report-layouts).
+ *   тими самими вкладками, фільтрами й видами; вміст отримує запит, вибір і масові дії `bulk`
+ *   (templates/list-report-layouts). Інше подання, як і інша вкладка, вибір скидає.
  * - Стан — `useListReport`: адреса сторінки (hooks/use-list-state), види, лічильники вкладок і вибір
  *   рядків. Хук окремо від розкладки: сторінці потрібні вибір і фільтр для своїх масових дій і
  *   діалогів.
@@ -79,8 +80,11 @@ export interface ListReportOptions extends Pick<
   ListStateOptions,
   "params" | "onParamsChange"
 > {
-  /** Вкладка й сортування за замовчуванням; стабільні між рендерами (константа чи `useMemo`). */
-  defaults: ListStateOptions["defaults"]
+  /**
+   * Вкладка й сортування за замовчуванням; стабільні між рендерами (константа чи `useMemo`). Ключі
+   * подань шаблон бере з `layouts`.
+   */
+  defaults: Omit<ListDefaults, "layouts">
   /** Ресурс API (ADR-0002): `invoices`. */
   resource: string
   /** Вкладки-статуси; стабільні між рендерами (`useMemo`). */
@@ -88,8 +92,9 @@ export interface ListReportOptions extends Pick<
   /** Фільтри панелі; стабільні між рендерами. Без опису в запит іде лише пошук `q`. */
   filters?: readonly FilterDefinition[]
   /**
-   * Подання списку: перше — за замовчуванням, без `render` — таблиця шаблону; стабільні між
-   * рендерами (`useMemo`). Без них — лише таблиця.
+   * Подання списку: перше — за замовчуванням, без `component` — таблиця шаблону; у `useMemo` (ключі
+   * порівнюються за значенням, тож нові підписи після зміни мови стан не перебудовують). Без них —
+   * лише таблиця.
    */
   layouts?: readonly ListReportLayout[]
   /**
@@ -108,7 +113,7 @@ export interface ListReportState {
   list: ListStateApi
   views: SavedViewsApi
   counts: Readonly<Record<string, number | undefined>>
-  /** Вибір рядків; інший фільтр чи компанія — скидається (ADR-0018). */
+  /** Вибір рядків; інший фільтр, подання чи компанія — скидається (ADR-0018). */
   selection: RowSelection
 }
 
@@ -127,12 +132,14 @@ export function useListReport({
   fixedFilter,
 }: ListReportOptions): ListReportState {
   const views = useSavedViews(resource)
+  // Ключі подань — рядком: новий масив із тими самими ключами (інша мова підписів) стан не перебудовує.
+  const layoutIds = JSON.stringify(layouts.map((layout) => layout.id))
   const listDefaults = React.useMemo(
-    () =>
-      layouts.length
-        ? { ...defaults, layouts: layouts.map((layout) => layout.id) }
-        : defaults,
-    [defaults, layouts],
+    (): ListDefaults => ({
+      ...defaults,
+      layouts: JSON.parse(layoutIds) as string[],
+    }),
+    [defaults, layoutIds],
   )
   const state = useListState({
     params,
@@ -158,7 +165,11 @@ export function useListReport({
     enabled: list.isReady,
   })
   const companyId = useCompanyId()
-  const selection = useRowSelection([list.queryFilter, companyId])
+  const selection = useRowSelection([
+    list.queryFilter,
+    companyId,
+    list.state.layout,
+  ])
   return { resource, tabs, filters, layouts, list, views, counts, selection }
 }
 
@@ -241,83 +252,46 @@ export function ListReport<T extends RaRecord>({
   tabsLabel = title ?? tableLabel,
   searchPlaceholder,
   bulk,
-  mode = "scroll",
-  perPage = LIST_REPORT_PER_PAGE,
-  perPageOptions = LIST_PAGE_SIZES,
-  getRowId = recordId,
   className,
-  ...options
+  ...table
 }: ListReportProps<T>) {
   const { resource, tabs, filters, layouts, list, views, counts, selection } =
     report
-  const layout = layouts.find((item) => item.id === list.state.layout)
-  const sizes = withPageSize(perPageOptions, perPage)
-  const pageSize = useRememberedPerPage(resource, {
-    fallback: perPage,
-    options: sizes,
-    enabled: mode === "pages" && perPageOptions.length > 0,
-  })
-  const resetFilters = () => {
-    list.applyView(null)
-  }
-  const selectionProps: DataTableSelectionProps<T> = bulk
-    ? {
-        selection,
-        rowLabel: bulk.rowLabel,
-        selectionLabel: bulk.selectionLabel,
-        bulkActions: (count) =>
-          bulk.actions.map((action) => (
-            <BulkActionSlot
-              key={action.id}
-              render={action.render}
-              count={count}
-            />
-          )),
-      }
-    : {}
-  const table: ListTableProps<T> = {
-    ...options,
-    ...selectionProps,
-    getRowId,
+  const Content = layouts.find(
+    (layout) => layout.id === list.state.layout,
+  )?.component
+  const content: ListReportContentProps = {
     resource,
     label: tableLabel,
     filter: list.queryFilter,
     sort: list.state.sort,
     onSortChange: list.setSort,
     isFiltered: list.isFiltered,
-    onResetFilters: resetFilters,
+    onResetFilters: () => {
+      list.applyView(null)
+    },
+    selection,
+    ...(bulk
+      ? {
+          bulkActions: (count: number) =>
+            bulk.actions.map((action) => (
+              <BulkActionSlot
+                key={action.id}
+                render={action.render}
+                count={count}
+              />
+            )),
+        }
+      : {}),
   }
 
-  let content: React.ReactNode = <PageSkeleton rows={8} />
-  if (layout?.render) {
-    if (list.isReady)
-      content = (
-        <ListLayoutContent
-          key={layout.id}
-          render={layout.render}
-          resource={resource}
-          label={tableLabel}
-          filter={list.queryFilter}
-          sort={list.state.sort}
-          onSortChange={list.setSort}
-          isFiltered={list.isFiltered}
-          onResetFilters={resetFilters}
-          selection={selection}
-        />
-      )
-  } else if (list.isReady && pageSize.isReady)
-    content =
-      mode === "scroll" ? (
-        <WindowedTable {...table} />
-      ) : (
-        <PagedTable
-          {...table}
-          perPage={pageSize.perPage}
-          {...(perPageOptions.length
-            ? { perPageOptions: sizes, onPerPageChange: pageSize.setPerPage }
-            : {})}
-        />
-      )
+  let body: React.ReactNode = <PageSkeleton rows={8} />
+  if (list.isReady)
+    body = Content ? (
+      <Content key={list.state.layout} {...content} />
+    ) : (
+      <ListReportTable<T> {...table} {...content} bulk={bulk} />
+    )
 
   return (
     <div data-slot="list-report" className={cn("min-w-0 space-y-6", className)}>
@@ -358,9 +332,73 @@ export function ListReport<T extends RaRecord>({
             </>
           }
         />
-        {content}
+        {body}
       </div>
     </div>
+  )
+}
+
+type ListReportTableProps<T extends RaRecord> = ListReportContentProps &
+  Omit<
+    ListReportProps<T>,
+    | "report"
+    | "title"
+    | "description"
+    | "headingRef"
+    | "actions"
+    | "toolbar"
+    | "tabsLabel"
+    | "searchPlaceholder"
+    | "tableLabel"
+    | "className"
+  >
+
+/**
+ * Таблиця шаблону — подання за замовчуванням. Розмір сторінки з особистих налаштувань питаємо лише для
+ * неї: поки його не відомо, таблиця — скелетон (дані не вантажаться двічі).
+ */
+function ListReportTable<T extends RaRecord>({
+  label,
+  selection,
+  bulk,
+  bulkActions,
+  mode = "scroll",
+  perPage = LIST_REPORT_PER_PAGE,
+  perPageOptions = LIST_PAGE_SIZES,
+  getRowId = recordId,
+  ...props
+}: ListReportTableProps<T>) {
+  const sizes = withPageSize(perPageOptions, perPage)
+  const pageSize = useRememberedPerPage(props.resource, {
+    fallback: perPage,
+    options: sizes,
+    enabled: mode === "pages" && perPageOptions.length > 0,
+  })
+  const selectionProps: DataTableSelectionProps<T> = bulk
+    ? {
+        selection,
+        rowLabel: bulk.rowLabel,
+        selectionLabel: bulk.selectionLabel,
+        ...(bulkActions ? { bulkActions } : {}),
+      }
+    : {}
+  const table: ListTableProps<T> = {
+    ...props,
+    ...selectionProps,
+    getRowId,
+    label,
+  }
+  if (!pageSize.isReady) return <PageSkeleton rows={8} />
+  return mode === "scroll" ? (
+    <WindowedTable {...table} />
+  ) : (
+    <PagedTable
+      {...table}
+      perPage={pageSize.perPage}
+      {...(perPageOptions.length
+        ? { perPageOptions: sizes, onPerPageChange: pageSize.setPerPage }
+        : {})}
+    />
   )
 }
 

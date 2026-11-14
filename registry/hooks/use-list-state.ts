@@ -70,7 +70,10 @@ export interface ListStateApi {
   /** Поточний стан рядком для збереження у вид. */
   viewParams: string
   setTab: (tab: string) => void
-  /** Інше подання списку (ключ із `defaults.layouts`): новий запис в історії, як вкладка. */
+  /**
+   * Інше подання списку (ключ із `defaults.layouts`): новий запис в історії, як вкладка. Те саме чи
+   * невідоме подання — нічого.
+   */
   setLayout: (layout: string) => void
   setFilter: (filter: ListFilter, options?: { replace?: boolean }) => void
   setSort: (sort: SortPayload) => void
@@ -172,6 +175,8 @@ export function useListState({
       navigate({ ...state, tab }, viewId)
     },
     setLayout: (layout) => {
+      // Невідоме подання адреса однаково не прийме: без нового запису в історії.
+      if (layout === state.layout || !defaults.layouts?.includes(layout)) return
       navigate({ ...state, layout }, viewId)
     },
     setFilter: (filter, { replace = false } = {}) => {

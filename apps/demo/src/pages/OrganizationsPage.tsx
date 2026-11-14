@@ -1,5 +1,6 @@
+import { keepPreviousData } from "@tanstack/react-query"
 import { useAuthenticated, useGetList } from "@/registry/lib/ra-core"
-import { useMemo } from "react"
+import { useMemo, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation, useSearchParams } from "react-router"
 
@@ -82,7 +83,7 @@ function OrganizationList() {
         id: "cards",
         label: t("layouts.cards"),
         icon: LAYOUT_ICONS.cards,
-        render: (props) => <OrganizationCards {...props} />,
+        component: OrganizationCards,
       },
     ],
     [t],
@@ -110,13 +111,17 @@ function OrganizationList() {
   )
 }
 
-/** Скільки карток показує подання «Картки»: решту видно з підпису під сіткою. */
+/**
+ * Скільки карток показує подання «Картки»; решту видно з підпису над сіткою. Демо обмежене: справжнє
+ * подання модуля вантажить усе вікнами чи сторінками, як таблиця.
+ */
 const CARDS_LIMIT = 48
 
 /**
  * Подання «Картки»: той самий запит, що й таблиця (вкладка, пошук, сортування), сіткою на ширину
  * контейнера. Стани колекції (SPEC §8.1) — як у таблиці: скелетон, помилка з повтором, немає доступу,
- * офлайн, «нічого не знайдено» зі скиданням фільтрів і «порожньо вперше».
+ * офлайн, «нічого не знайдено» зі скиданням фільтрів і «порожньо вперше». Поки летить новий запит,
+ * видно попередні картки, а рядок стану з кількістю стоїть постійно: скрінрідер чує нове число.
  */
 function OrganizationCards({
   resource,
@@ -129,16 +134,23 @@ function OrganizationCards({
   const t = usePageT()
   const { search } = useLocation()
   const companyId = useCompanyId()
-  const { data, total, isPending, error, refetch } =
-    useGetList<OrganizationRow>(resource, {
-      pagination: { page: 1, perPage: CARDS_LIMIT },
-      sort,
-      filter,
-      meta: companyScope(companyId),
-    })
+  const { data, total, isPending, isFetching, error, refetch } =
+    useGetList<OrganizationRow>(
+      resource,
+      {
+        pagination: { page: 1, perPage: CARDS_LIMIT },
+        sort,
+        filter,
+        meta: companyScope(companyId),
+      },
+      { placeholderData: keepPreviousData },
+    )
+  const shown = data?.length ?? 0
+  const count = total ?? shown
+  let body: ReactNode
   if (error) {
     const kind = errorStateKind(error)
-    return (
+    body = (
       <PageState
         kind={kind}
         onRetry={
@@ -150,22 +162,20 @@ function OrganizationCards({
         }
       />
     )
-  }
-  if (isPending) return <SectionSkeleton rows={6} />
-  if (!data.length)
-    return isFiltered ? (
+  } else if (isPending) body = <SectionSkeleton rows={6} />
+  else if (!data.length)
+    body = isFiltered ? (
       <PageState kind="no-results" onReset={onResetFilters} />
     ) : (
       <PageState kind="empty" />
     )
-  const count = total ?? data.length
-  return (
-    <section aria-label={label} className="@container space-y-3">
+  else
+    body = (
       <ul className="grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3">
         {data.map((organization) => (
           <li
             key={organization.id}
-            className="space-y-2 rounded-lg border bg-card p-4 text-card-foreground"
+            className="min-w-0 space-y-2 rounded-lg border bg-card p-4 break-words text-card-foreground"
           >
             <OrganizationLink organization={organization} listSearch={search} />
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -178,15 +188,23 @@ function OrganizationCards({
           </li>
         ))}
       </ul>
-      <p role="status" className="text-sm text-muted-foreground">
-        {count > data.length
-          ? t("cards.shown", {
-              shown: data.length,
-              count,
-              value: count,
-            })
-          : t("count", { count, value: count })}
+    )
+  let status = ""
+  if (!error && shown > 0)
+    status =
+      count > shown
+        ? t("cards.shown", { shown, count, value: count })
+        : t("count", { count, value: count })
+  return (
+    <section
+      aria-label={label}
+      aria-busy={isFetching}
+      className="@container space-y-3"
+    >
+      <p role="status" className="min-h-5 text-sm text-muted-foreground">
+        {status}
       </p>
+      {body}
     </section>
   )
 }
