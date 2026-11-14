@@ -41,7 +41,7 @@ jobs:
             versions.sort((a, b) => { const [x, y] = [key(a), key(b)]; return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] })
             console.log(versions.at(-1))')
           # Лише версія випуску 7.x: значення йде у вихід кроку й у pnpm-workspace.yaml.
-          [[ "$latest" =~ ^7\.[0-9]+\.[0-9]+$ ]]
+          [[ "$latest" =~ ^7\.[0-9]+\.[0-9]+$ ]] || { echo "::error::npm віддав не версію випуску 7.x: $latest"; exit 1; }
           echo "version=$latest" >> "$GITHUB_OUTPUT"
           echo "Найновіша react-hook-form 7.x: $latest"
 

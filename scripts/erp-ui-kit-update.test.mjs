@@ -39,7 +39,8 @@ const tempDir = (prefix) => {
 
 // Підроблений CLI shadcn 4.22: build — реєстр з одним елементом із залежностями; add --dry-run —
 // звіт, і як справжній CLI — секції «Dependencies» і «Dev Dependencies», якщо в елементі є
-// залежності (FAKE_DRY_RUN_DEPS — і без них, лише для розробки); add — файли версії кіта й, як
+// залежності (FAKE_DRY_RUN_DEPS — і без них, лише для розробки); FAKE_KIT_DOCS — ще й довідка
+// кіта в docs/erp-ui; add — файли версії кіта й, як
 // CLI, кожна залежність елемента в package.json заново (FAKE_ADD_TOUCHES_DEPS — і без них: інша
 // версія CLI).
 const FAKE_SHADCN = `#!/usr/bin/env node
@@ -50,6 +51,7 @@ const FILES = {
   "src/index.css": "/* кіт 2 */\\n",
   ".claude/skills/erp-ui/SKILL.md": "скіл\\n",
 }
+if (process.env.FAKE_KIT_DOCS) FILES["docs/erp-ui/SPEC.md"] = "SPEC 2\\n"
 const [cmd, ...args] = process.argv.slice(2)
 const itemDeps = () => {
   const deps = { dependencies: [], devDependencies: [] }
@@ -713,24 +715,39 @@ test("update: наприкінці «Що зробити в проекті» м�
 
 test("update: файл проекту поза маніфестом, який перезапишеться, — попередження зі списком, оновлення йде", () => {
   // Маніфест без src/lib/a.ts: у проекті цей шлях — свій файл, а в новій версії кіта — файл кіта.
-  const project = updateProject({ manifest: { kit: "v0.3.1", files: {} } })
-  const dryRun = project.update({ args: ["--dry-run"] })
+  // Скіл і довідка кіта є й git їх ігнорує: update їх перезапише, але без відбитків вони завжди.
+  const kitIgnored = {
+    ".gitignore": "node_modules/\n.claude/\ndocs/\n",
+    ".claude/skills/erp-ui/SKILL.md": "старий скіл\n",
+    "docs/erp-ui/SPEC.md": "SPEC 1\n",
+  }
+  const project = updateProject({
+    manifest: { kit: "v0.3.1", files: {} },
+    files: kitIgnored,
+  })
+  const env = { FAKE_KIT_DOCS: "1" }
+  const dryRun = project.update({ env, args: ["--dry-run"] })
   assert.match(
     dryRun.stderr,
     /Увага: update перезапише файли, яких немає в kit-files\.json[^]*: src\/lib\/a\.ts\./,
   )
-  const result = project.update()
+  const result = project.update({ env })
   assert.equal(result.status, 0, result.stderr)
-  // Скіл git ігнорує: його перезаписує кожне оновлення, попередження про нього немає.
-  assert.doesNotMatch(result.stderr, /SKILL\.md/)
+  // Скіл і довідку кіта git ігнорує: їх перезаписує кожне оновлення, попередження про них немає.
+  assert.match(dryRun.stdout, /~ \.claude\/skills\/erp-ui\/SKILL\.md/)
+  assert.match(dryRun.stdout, /~ docs\/erp-ui\/SPEC\.md/)
+  assert.doesNotMatch(result.stderr, /SKILL\.md|SPEC\.md/)
   assert.match(result.stderr, /немає в kit-files\.json[^]*src\/lib\/a\.ts/)
   assert.equal(project.read("src/lib/a.ts"), "export const a = 2\n")
 
   // Інший файл, який git ігнорує, — з приміткою: git restore його не поверне.
   const ignored = updateProject({
     manifest: { kit: "v0.3.1", files: {} },
-    files: { ".gitignore": "node_modules/\n.claude/\nsrc/lib/a.ts\n" },
-  }).update({ args: ["--dry-run"] })
+    files: {
+      ...kitIgnored,
+      ".gitignore": "node_modules/\n.claude/\ndocs/\nsrc/lib/a.ts\n",
+    },
+  }).update({ env, args: ["--dry-run"] })
   assert.match(
     ignored.stderr,
     /src\/lib\/a\.ts \(git ігнорує, git restore не поверне\)/,

@@ -81,8 +81,11 @@ const MANIFEST = "kit-files.json"
 export const PROJECT_OWNED = ["src/index.css", "docs/erp-ui/CLAUDE.project.md"]
 const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
-/** Скіл кіта в проекті: git його зазвичай ігнорує (`.claude/` у `.git/info/exclude`). */
-const SKILL_DIR = ".claude/skills/"
+/**
+ * Теки файлів кіта, які git проекту часто ігнорує: скіл (`.claude/` у `.git/info/exclude`) і довідка
+ * кіта (`docs/` у `.gitignore`). Таких файлів немає у відбитках, а перезаписує їх кожне оновлення.
+ */
+const IGNORABLE_KIT_DIRS = [".claude/skills/", "docs/erp-ui/"]
 /** Конфіг Vite проекту: у ньому запобіжник `VITE_BACKEND` (ADR-0079). */
 const VITE_CONFIGS = [
   "vite.config.ts",
@@ -386,7 +389,11 @@ async function unlistedOverwriteWarnings(root, manifest, files) {
   const unlisted = unlistedOverwrites(manifest, files)
   const ignored = await ignoredByGit(root, unlisted)
   const listed = unlisted.filter(
-    (file) => !(ignored.has(file) && file.startsWith(SKILL_DIR)),
+    (file) =>
+      !(
+        ignored.has(file) &&
+        IGNORABLE_KIT_DIRS.some((dir) => file.startsWith(dir))
+      ),
   )
   if (!listed.length) return []
   const named = listed.map((file) =>

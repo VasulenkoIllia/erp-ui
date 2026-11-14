@@ -44,9 +44,7 @@ import {
 
 const args = process.argv.slice(2)
 const keep = args.includes("--keep")
-const fromTag = args.includes("--from-tag")
-  ? args[args.indexOf("--from-tag") + 1]
-  : undefined
+const fromTagAt = args.indexOf("--from-tag")
 
 const RELEASE_TAG = /^v\d+\.\d+\.\d+$/
 const ORPHAN_LINE = /^\s+\? (\S+) — у новій версії/gm
@@ -59,8 +57,12 @@ const toHead = (...extra) => ["update", "HEAD", "--from", root, ...extra]
 
 /** Найновіший тег випуску (за версією), якщо не задано `--from-tag`. */
 async function previousTag() {
-  if (fromTag) {
-    expect(RELEASE_TAG.test(fromTag), `--from-tag ${fromTag}: потрібен vX.Y.Z`)
+  if (fromTagAt >= 0) {
+    const fromTag = args[fromTagAt + 1] ?? ""
+    expect(
+      RELEASE_TAG.test(fromTag),
+      `--from-tag «${fromTag}»: потрібен vX.Y.Z`,
+    )
     return fromTag
   }
   const tags = await git(root, "tag", "--list", "v*", "--sort=-v:refname")
