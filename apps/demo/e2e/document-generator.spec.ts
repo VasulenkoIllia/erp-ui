@@ -42,6 +42,8 @@ function fileParagraphs(path: string): string[] {
         .join("")
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
         .replace(/&amp;/g, "&")
         .trim(),
     )
@@ -69,6 +71,10 @@ test.describe("UI44: документ із шаблону", () => {
     await expect(
       previewOf(page).getByText("ДОГОВІР ПОСТАВКИ № ЗМ-2026-0042"),
     ).toBeVisible()
+    // axe у кадр перегляду не заходить (чужий документ без скриптів): назву кадру перевіряємо тут.
+    await expect(
+      page.locator('[data-slot="docx-preview"]').first(),
+    ).toHaveAttribute("title", "Перегляд документа «Договір поставки»")
 
     await panel.getByLabel("Номер").fill("Д-7")
     await expect(
