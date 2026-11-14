@@ -8,10 +8,12 @@ import { spawnSync } from "node:child_process"
 import { createHash } from "node:crypto"
 import {
   existsSync,
+  linkSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs"
 import { tmpdir } from "node:os"
@@ -191,6 +193,30 @@ const writeFiles = (dir, files) => {
   }
 }
 
+/**
+ * CHANGELOG кіта: «Що зробити в проекті» у вступі випуску й пунктом підрозділу; розділ версії
+ * проекту (0.3.1) у звіт не йде.
+ */
+const CHANGELOG = `# Changelog
+
+## [1.0.0] — 2026-10-21
+
+Мінорна версія.
+
+Оновлення з v0.3.1: \`update v1.0.0\`. Що зробити в проекті:
+
+- крок вступу
+
+### Додано
+
+- Новий компонент.
+- **Що зробити в проекті** (компонент). крок підрозділу
+
+## [0.3.1] — 2026-10-20
+
+Що зробити в проекті: крок старої версії
+`
+
 /** Копія кіта з тегом v1.0.0: лише те, що бере --from; реєстр посилається на свій файл. */
 function kitCheckout() {
   const dir = tempDir("erp-ui-kit-src-")
@@ -204,6 +230,7 @@ function kitCheckout() {
     "design/palette-tokens.json": "{}",
     "docs/CATALOG.md": "#",
     "docs/SPEC.md": "#",
+    "CHANGELOG.md": CHANGELOG,
   })
   git(dir, "init", "-q")
   git(dir, "add", ".")
@@ -667,4 +694,85 @@ test("update: той самий тег, а SHA минулого встановл
       `Увага: SHA минулого встановлення v1\\.0\\.0 не записано[^]*${commitOf(kit, "v1.0.0")}[^]*CHANGELOG\\.md на main`,
     ),
   )
+})
+
+test("update: наприкінці «Що зробити в проекті» між версією проекту й новою, і в --dry-run", () => {
+  const project = updateProject()
+  const dryRun = project.update({ args: ["--dry-run"] })
+  assert.equal(dryRun.status, 0, dryRun.stderr)
+  const result = project.update()
+  assert.equal(result.status, 0, result.stderr)
+  for (const { stdout } of [dryRun, result]) {
+    assert.match(
+      stdout,
+      /Що зробити в проекті \(v0\.3\.1 → v1\.0\.0, CHANGELOG\.md кіта\):\n\n== v1\.0\.0 ==\nОновлення з v0\.3\.1[^]*- крок вступу\n- \*\*Що зробити в проекті\*\* \(компонент\)\. крок підрозділу\n$/,
+    )
+    assert.doesNotMatch(stdout, /крок старої версії/)
+  }
+})
+
+test("update: файл проекту поза маніфестом, який перезапишеться, — попередження зі списком, оновлення йде", () => {
+  // Маніфест без src/lib/a.ts: у проекті цей шлях — свій файл, а в новій версії кіта — файл кіта.
+  const project = updateProject({ manifest: { kit: "v0.3.1", files: {} } })
+  const dryRun = project.update({ args: ["--dry-run"] })
+  assert.match(
+    dryRun.stderr,
+    /Увага: update перезапише файли, яких немає в kit-files\.json[^]*: src\/lib\/a\.ts\./,
+  )
+  const result = project.update()
+  assert.equal(result.status, 0, result.stderr)
+  // Скіл git ігнорує: його перезаписує кожне оновлення, попередження про нього немає.
+  assert.doesNotMatch(result.stderr, /SKILL\.md/)
+  assert.match(result.stderr, /немає в kit-files\.json[^]*src\/lib\/a\.ts/)
+  assert.equal(project.read("src/lib/a.ts"), "export const a = 2\n")
+})
+
+test("update: посилання в архіві кіта — зупинка до розпакування (--from і GitHub)", () => {
+  const kit = kitCheckout()
+  symlinkSync("a.ts", path.join(kit, "registry/lib/link.ts"))
+  git(kit, "add", ".")
+  git(kit, "commit", "-qm", "link")
+  git(kit, "tag", "-f", "v1.0.0")
+  const fromCheckout = updateProject().update({ kit })
+  assert.equal(fromCheckout.status, 1)
+  assert.match(
+    fromCheckout.stderr,
+    /Архів кіта v1\.0\.0 містить посилання[^]*registry\/lib\/link\.ts/,
+  )
+
+  // Жорстке посилання git не зберігає: архів GitHub — підроблений, з tar.
+  const source = tempDir("erp-ui-kit-hard-")
+  writeFiles(source, { "kit/registry.json": "{}" })
+  linkSync(
+    path.join(source, "kit/registry.json"),
+    path.join(source, "kit/copy.json"),
+  )
+  const tarball = path.join(source, "kit.tar.gz")
+  const tar = spawnSync("tar", ["-czf", tarball, "-C", source, "kit"])
+  assert.equal(tar.status, 0, String(tar.stderr))
+  const project = updateProject()
+  const fromGithub = project.update({
+    kit: null,
+    env: { FAKE_GH_SHA: "c".repeat(40), FAKE_GH_TARBALL: tarball },
+  })
+  assert.equal(fromGithub.status, 1)
+  assert.match(fromGithub.stderr, /Архів кіта v1\.0\.0 містить посилання/)
+  assert.equal(project.read("src/lib/a.ts"), "export const a = 1\n")
+})
+
+test("check: конфіг Vite без запобіжника VITE_BACKEND — попередження, код 0", () => {
+  const project = updateProject()
+  assert.equal(project.update().status, 0)
+  writeFileSync(path.join(project.dir, "vite.config.ts"), "export default {}\n")
+  const unguarded = project.check()
+  assert.equal(unguarded.status, 0, unguarded.stderr)
+  assert.match(
+    unguarded.stderr,
+    /у vite\.config\.ts немає запобіжника VITE_BACKEND \(ADR-0079\)/,
+  )
+  writeFileSync(
+    path.join(project.dir, "vite.config.ts"),
+    "const backend = process.env.VITE_BACKEND\n",
+  )
+  assert.doesNotMatch(project.check().stderr, /запобіжника/)
 })

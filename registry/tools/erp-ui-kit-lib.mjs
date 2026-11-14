@@ -1,7 +1,7 @@
 /**
  * Версія кіта erp-ui для `scripts/erp-ui-kit.mjs` (крок 1.9, ADR-0029): архів коміту тегу з GitHub
- * або гілка з локальної копії кіта → перевірка → SHA коміту й відбиток реєстру (ADR-0078) →
- * реєстр (`shadcn build`) і звіт `add --dry-run`.
+ * або гілка з локальної копії кіта → перелік архіву до розпакування (ADR-0088) → перевірка → SHA
+ * коміту й відбиток реєстру (ADR-0078) → реєстр (`shadcn build`) і звіт `add --dry-run`.
  * Файл ставить `shadcn add` разом із командою: у проекті його не правте.
  */
 import { spawn } from "node:child_process"
@@ -28,10 +28,14 @@ const COMMAND_TIMEOUT_MS = 10 * 60_000
 const KILL_GRACE_MS = 5_000
 /** Паузи перед повторами завантаження після тимчасового збою. */
 const RETRY_DELAYS_MS = [5_000, 30_000]
-/** Що береться з локальної копії кіта (`--from`): реєстр і файли, на які він посилається. */
-const KIT_PATHS = [
+/**
+ * Що береться з локальної копії кіта (`--from`): реєстр і файли, на які він посилається, і
+ * `CHANGELOG.md` (розділи «Що зробити в проекті» наприкінці звіту).
+ */
+export const KIT_PATHS = [
   "registry.json",
   "package.json",
+  "CHANGELOG.md",
   "registry",
   "design",
   "docs/CATALOG.md",
@@ -183,6 +187,28 @@ export function printReport(kit, files, oldFiles, projectOwned) {
   for (const file of Object.keys(oldFiles).filter((file) => !kept.has(file)))
     console.log(
       `  ? ${file} — у новій версії цього файлу немає; видаліть сам чи --prune, якщо не потрібен`,
+    )
+}
+
+/**
+ * Записи переліку `tar -tv`, що не звичайний файл і не тека: символьні й жорсткі посилання,
+ * пристрої. Рядок переліку починається з типу запису (`-`, `d`, `l`, `h`, `c`…) і в GNU tar, і в
+ * bsdtar.
+ */
+export function specialArchiveEntries(listing) {
+  return listing.split("\n").filter((line) => line && !/^[-d]/.test(line))
+}
+
+/**
+ * Перелік архіву до розпакування (`tarArgs` — `-tvzf <файл>` чи `-tvf <файл>`): посилання
+ * зупиняють оновлення, бо розпакування через них залежить від різновиду `tar`.
+ */
+async function assertPlainArchive(ref, tarArgs) {
+  const { stdout } = await mustRun("tar", tarArgs, { capture: true })
+  const special = specialArchiveEntries(stdout)
+  if (special.length)
+    throw new KitError(
+      `Архів кіта ${ref} містить посилання чи особливі файли, не розпаковую:\n${special.slice(0, 10).join("\n")}`,
     )
 }
 
@@ -358,6 +384,7 @@ async function downloadTag(ref, dir) {
     )
   const archive = path.join(dir, "kit.tar.gz")
   await ghApi(ref, [`repos/${REPO}/tarball/${sha}`], { stdoutFile: archive })
+  await assertPlainArchive(ref, ["-tvzf", archive])
   await mustRun("tar", ["-xzf", archive, "-C", dir, "--strip-components=1"])
   return sha
 }
@@ -426,6 +453,7 @@ async function copyFromCheckout(ref, from, dir) {
     "--",
     ...KIT_PATHS,
   ])
+  await assertPlainArchive(ref, ["-tvf", tar])
   await mustRun("tar", ["-xf", tar, "-C", dir])
   return sha.stdout.trim()
 }

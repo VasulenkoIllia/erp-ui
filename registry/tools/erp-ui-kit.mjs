@@ -14,11 +14,13 @@
  * контрольна сума — у `kit-files.json` проекту (ADR-0078); перший раз (у файлі ще немає `items`) —
  * `--items base,data,…`. Оновлення: чисте git → SHA коміту тегу й архів цього коміту (`gh api`,
  * тайм-аут і повтори) → `shadcn build` → залежності забираються з елементів → `add --dry-run` (звіт)
- * → зупинка на тому самому тегу з іншим умістом і на файлі з позначкою локальної правки (ADR-0076)
+ * → зупинка на тому самому тегу з іншим умістом і на файлі з позначкою локальної правки (ADR-0076),
+ * попередження про файл проекту поза маніфестом, який перезапишеться (ADR-0088)
  * → `add --overwrite --yes` (лише файли) → файли, які проект доповнює сам, лишаються його →
  * залежності, яких у проекті немає, — з діапазоном кіта (наявні — як є) → повторний `--dry-run`
  * (усе вже як у версії) → нові відбитки. Файлів, яких у новій версії немає (сироти), команда не
- * видаляє без `--prune`, а називає наприкінці й пам'ятає в маніфесті.
+ * видаляє без `--prune`, а називає наприкінці й пам'ятає в маніфесті. Наприкінці — розділи «Що
+ * зробити в проекті» з `CHANGELOG.md` версії між версією проекту й новою (ADR-0088).
  */
 import {
   existsSync,
@@ -34,6 +36,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { printProjectSteps } from "./erp-ui-kit-changelog.mjs"
 import {
   assertDependenciesUntouched,
   dependencyPlan,
@@ -69,6 +72,7 @@ import {
   printOrphans,
   settleOrphans,
   stopsBeforeWrite,
+  unlistedOverwrites,
   withChecksum,
 } from "./erp-ui-kit-manifest.mjs"
 
@@ -77,6 +81,13 @@ const MANIFEST = "kit-files.json"
 export const PROJECT_OWNED = ["src/index.css", "docs/erp-ui/CLAUDE.project.md"]
 const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
+/** Конфіг Vite проекту: у ньому запобіжник `VITE_BACKEND` (ADR-0079). */
+const VITE_CONFIGS = [
+  "vite.config.ts",
+  "vite.config.mts",
+  "vite.config.js",
+  "vite.config.mjs",
+]
 const RECOVERY_HINT =
   "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
 
@@ -188,6 +199,24 @@ async function kitFileHashes(root, files) {
   return hashes
 }
 
+/**
+ * Проект без запобіжника `VITE_BACKEND` у конфігу Vite (ADR-0079): збірка без змінної піде на
+ * моках. Лише попередження: конфіг — файл проекту, кіт дає зразок (ADR-0088).
+ */
+export function viteGuardWarning(root) {
+  const configs = VITE_CONFIGS.filter((file) =>
+    existsSync(path.join(root, file)),
+  )
+  if (
+    !configs.length ||
+    configs.some((file) =>
+      readFileSync(path.join(root, file), "utf8").includes("VITE_BACKEND"),
+    )
+  )
+    return undefined
+  return `Увага: у ${configs.join(", ")} немає запобіжника VITE_BACKEND (ADR-0079): збірка без змінної піде на моках. Зразок — посібник кіта, розділ 5, «Моки поза продакшном».`
+}
+
 function checkCommand(root) {
   const manifest = readManifest(root)
   if (!manifest)
@@ -203,6 +232,8 @@ function checkCommand(root) {
   const checksum = checksumProblem(manifest, MANIFEST)
   if (checksum && !checksum.fatal) console.warn(checksum.message)
   printOrphans(presentOrphans(root, manifest))
+  const guard = viteGuardWarning(root)
+  if (guard) console.warn(guard)
   const failures = [
     ...(changed.length || missing.length
       ? [
@@ -344,6 +375,23 @@ async function applyUpdate({
   }
 }
 
+/**
+ * Файли проекту поза маніфестом, які `update` перезапише (новий шлях кіта збігся з файлом проекту):
+ * попередження зі списком. Ігноровані git (скіл) — ні: їх перезаписує кожне оновлення.
+ */
+async function unlistedOverwriteWarnings(root, manifest, files) {
+  const unlisted = unlistedOverwrites(manifest, files)
+  const ignored = await ignoredByGit(root, unlisted)
+  const listed = unlisted.filter((file) => !ignored.has(file))
+  if (!listed.length) return []
+  return [
+    {
+      fatal: false,
+      message: `update перезапише файли, яких немає в ${MANIFEST} (файл проекту на шляху файла кіта?): ${listed.join(", ")}. Ваш файл — перенесіть під іншу назву до оновлення; після оновлення повернути — git restore.`,
+    },
+  ]
+}
+
 /** Зупинки: у `--dry-run` — попередження «справжнє оновлення зупиниться», інакше — помилка. */
 function stopOrWarn(stops, dryRun) {
   const fatal = stops.filter((stop) => stop.fatal).map((stop) => stop.message)
@@ -385,6 +433,10 @@ async function updateCommand(root, args) {
   process.once("SIGTERM", interrupted)
   try {
     const { out, ...version } = await buildKit({ ref, from, root, dir })
+    const changelogFile = path.join(dir, "CHANGELOG.md")
+    const changelog = existsSync(changelogFile)
+      ? readFileSync(changelogFile, "utf8")
+      : undefined
     const itemFiles = items.map((item) => {
       const file = path.join(out, `${item}.json`)
       if (!existsSync(file))
@@ -403,13 +455,12 @@ async function updateCommand(root, args) {
       const found = orphansAfter(root, manifest, files)
       previewPrune(root, found, await trackedByGit(root, Object.keys(found)))
     }
+    const kitFiles = files.filter((file) => !PROJECT_OWNED.includes(file.path))
     stopOrWarn(
-      stopsBeforeWrite(
-        root,
-        manifest,
-        version,
-        files.filter((file) => !PROJECT_OWNED.includes(file.path)),
-      ),
+      [
+        ...stopsBeforeWrite(root, manifest, version, kitFiles),
+        ...(await unlistedOverwriteWarnings(root, manifest, kitFiles)),
+      ],
       dryRun,
     )
     // До запису: менеджер пакетів відомий і є (і в --dry-run — щоб він не обіцяв зайвого).
@@ -427,6 +478,7 @@ async function updateCommand(root, args) {
         dir,
         prune,
       })
+    printProjectSteps(changelog, manifest.kit, version.kit)
   } finally {
     process.off("SIGINT", interrupted)
     process.off("SIGTERM", interrupted)

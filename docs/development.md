@@ -23,6 +23,7 @@ pnpm registry     # згенерувати registry.json і docs/CATALOG.md з r
 pnpm check:registry  # вони актуальні, схема shadcn, сторінки демо (входить у lint)
 pnpm consumer-smoke --ref <коміт|тег>  # поставити кіт із GitHub у чистий проект і зібрати
 pnpm consumer-smoke --local --ref main  # те саме з реєстру робочої копії; з GitHub лише ui/button (як у CI)
+pnpm upgrade-smoke  # проект на попередньому тегу оновити командою кіта до HEAD (закомічений стан), зібрати (як у CI)
 ```
 
 Браузер для e2e ставиться один раз: `pnpm --filter @erp-ui/demo exec playwright install chromium`.
