@@ -2,12 +2,9 @@ import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
-import {
-  ListReport,
-  ListReportHeader,
-  useListReport,
-} from "@/components/templates/list-report"
+import { ListReport, useListReport } from "@/components/templates/list-report"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import type { FilterDefinition } from "@/lib/filters"
@@ -47,7 +44,7 @@ export function UsersListPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("users.title")}
         description={t("users.lead")}
         headingRef={heading}

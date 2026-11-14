@@ -19,9 +19,13 @@ import {
   SAVED_VIEWS_RESOURCE,
   type SavedView,
 } from "@/registry/lib/saved-views"
+import { PageHeader } from "@/registry/erp/page-header"
 import {
   ListReport,
+  ListReportHeader,
   useListReport,
+  type ListReportContentProps,
+  type ListReportLayout,
   type ListReportProps,
 } from "@/registry/templates/list-report"
 
@@ -98,9 +102,16 @@ type PageProps = Partial<ListReportProps<Row>> & {
   initial?: string
   tabs?: ListTab[]
   fixedFilter?: ListFilter
+  layouts?: ListReportLayout[]
 }
 
-function Page({ initial = "", tabs = TABS, fixedFilter, ...props }: PageProps) {
+function Page({
+  initial = "",
+  tabs = TABS,
+  fixedFilter,
+  layouts,
+  ...props
+}: PageProps) {
   const [params, setParams] = useState(() => new URLSearchParams(initial))
   const onParamsChange = useCallback((next: URLSearchParams) => {
     setParams(next)
@@ -112,18 +123,21 @@ function Page({ initial = "", tabs = TABS, fixedFilter, ...props }: PageProps) {
     defaults: DEFAULTS,
     tabs,
     ...(fixedFilter ? { fixedFilter } : {}),
+    ...(layouts ? { layouts } : {}),
   })
   return (
-    <ListReport<Row>
-      report={report}
-      title="Записи"
-      tabsLabel="Стан запису"
-      tableLabel="Записи компанії"
-      columns={COLUMNS}
-      getRowId={(row) => row.id}
-      mode="pages"
-      {...props}
-    />
+    <div data-params={params.toString()}>
+      <ListReport<Row>
+        report={report}
+        title="Записи"
+        tabsLabel="Стан запису"
+        tableLabel="Записи компанії"
+        columns={COLUMNS}
+        getRowId={(row) => row.id}
+        mode="pages"
+        {...props}
+      />
+    </div>
   )
 }
 
@@ -190,7 +204,7 @@ describe("ListReport: склад і порядок за ключами", () => {
 
   it("без шапки, вкладок, фільтрів і масових дій — нічого зайвого", async () => {
     const server = fakeServer()
-    // Шапку ставить сторінка (ListReportHeader), список — без h1.
+    // Шапку ставить сторінка (PageHeader), список — без h1.
     renderPage(server, { tabs: [], title: undefined })
     await screen.findByText("Запис 1")
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument()
@@ -353,5 +367,148 @@ describe("ListReport: джерела й стан", () => {
       archive.compareDocumentPosition(exportButton) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
+  })
+})
+
+/** Дошка для тесту: фільтр, сортування й вибір, які отримала, і кнопки дій над ними. */
+function Board({
+  label,
+  filter,
+  sort,
+  isFiltered,
+  onResetFilters,
+  selection,
+}: ListReportContentProps) {
+  return (
+    <section aria-label={label}>
+      <p>{`Дошка: ${JSON.stringify(filter)} ${sort.field}`}</p>
+      <p>{isFiltered ? "з фільтром" : "без фільтра"}</p>
+      <button
+        type="button"
+        aria-pressed={selection.isSelected("r-1")}
+        onClick={() => {
+          selection.toggle("r-1")
+        }}
+      >
+        Вибрати r-1
+      </button>
+      <button type="button" onClick={onResetFilters}>
+        Скинути на дошці
+      </button>
+    </section>
+  )
+}
+
+const LAYOUTS: ListReportLayout[] = [
+  { id: "table", label: "Таблиця" },
+  { id: "board", label: "Дошка", render: (props) => <Board {...props} /> },
+]
+
+const paramsOf = (container: HTMLElement) =>
+  (container.querySelector("[data-params]") as HTMLElement).dataset.params
+
+describe("ListReport: подання (ADR-0091)", () => {
+  it("перемикач після меню видів; дошка бачить той самий запит, подання — в адресі", async () => {
+    const user = userEvent.setup()
+    const server = fakeServer()
+    const { container } = renderPage(server, {
+      layouts: LAYOUTS,
+      toolbar: [
+        { id: "density", node: <button type="button">Щільність</button> },
+      ],
+    })
+    await screen.findByText("Запис 1")
+    const group = screen.getByRole("group", { name: "Подання списку" })
+    const table = within(group).getByRole("button", { name: "Таблиця" })
+    expect(table).toHaveAttribute("aria-pressed", "true")
+    const bar = document.querySelector(
+      '[data-slot="filter-bar"]',
+    ) as HTMLElement
+    const labels = within(bar)
+      .getAllByRole("button")
+      .map((button) => button.textContent)
+    expect(labels.findIndex((label) => label?.includes("Вид"))).toBeLessThan(
+      labels.indexOf("Таблиця"),
+    )
+    expect(labels.indexOf("Дошка")).toBeLessThan(labels.indexOf("Щільність"))
+
+    await user.click(within(group).getByRole("button", { name: "Дошка" }))
+    expect(paramsOf(container)).toBe("layout=board")
+    expect(
+      within(group).getByRole("button", { name: "Дошка" }),
+    ).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByText("Дошка: {} name")).toBeInTheDocument()
+    expect(screen.queryByText("Запис 1")).not.toBeInTheDocument()
+    expect(
+      screen.getByRole("region", { name: "Записи компанії" }),
+    ).toBeInTheDocument()
+
+    const pick = screen.getByRole("button", { name: "Вибрати r-1" })
+    await user.click(pick)
+    expect(pick).toHaveAttribute("aria-pressed", "true")
+
+    // Інша вкладка — інший фільтр: вибір скидається, як у таблиці (ADR-0018).
+    await user.click(screen.getByRole("tab", { name: /^Архів/ }))
+    expect(
+      screen.getByText('Дошка: {"status":"archived"} name'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Вибрати r-1" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+    expect(screen.getByText("з фільтром")).toBeInTheDocument()
+    expect(paramsOf(container)).toBe("tab=archived&layout=board")
+
+    // «Скинути фільтри» з дошки — «Стандартний» вид, подання те саме.
+    await user.click(screen.getByRole("button", { name: "Скинути на дошці" }))
+    expect(paramsOf(container)).toBe("view=standard&layout=board")
+    expect(screen.getByText("без фільтра")).toBeInTheDocument()
+
+    await user.click(within(group).getByRole("button", { name: "Таблиця" }))
+    await screen.findByText("Запис 1")
+  })
+
+  it("подання з адреси й зі збереженого виду; невідоме — перше; з одним поданням перемикача немає", async () => {
+    const server = fakeServer({
+      views: [
+        {
+          id: "v-board",
+          version: 1,
+          resource: "records",
+          name: "Архів дошкою",
+          params: "tab=archived&layout=board",
+          isDefault: true,
+        },
+      ],
+    })
+    const fresh = renderPage(server, { layouts: LAYOUTS })
+    expect(
+      await screen.findByText('Дошка: {"status":"archived"} name'),
+    ).toBeInTheDocument()
+    expect(paramsOf(fresh.container)).toBe(
+      "view=v-board&tab=archived&layout=board",
+    )
+    fresh.unmount()
+
+    const unknown = renderPage(fakeServer(), {
+      layouts: LAYOUTS,
+      initial: "layout=map",
+    })
+    await screen.findByText("Запис 1")
+    unknown.unmount()
+
+    renderPage(fakeServer(), { layouts: LAYOUTS.slice(1) })
+    await screen.findByText("Дошка: {} name")
+    expect(
+      screen.queryByRole("group", { name: "Подання списку" }),
+    ).not.toBeInTheDocument()
+  })
+
+  it("шапка — PageHeader (erp/page-header); старе ім'я — те саме", () => {
+    expect(ListReportHeader).toBe(PageHeader)
+    render(<PageHeader title="Налаштування" />)
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Налаштування" }),
+    ).toHaveAttribute("tabindex", "-1")
   })
 })

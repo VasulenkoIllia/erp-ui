@@ -33,6 +33,7 @@ import {
   Calendar,
   CalendarCheck,
   CalendarClock,
+  CalendarDays,
   CalendarPlus,
   CalendarRange,
   Car,
@@ -82,6 +83,7 @@ import {
   Languages,
   Layers,
   LayoutDashboard,
+  LayoutGrid,
   Leaf,
   LifeBuoy,
   Link,
@@ -136,8 +138,10 @@ import {
   ShoppingBag,
   Signature,
   Sparkles,
+  SquareKanban,
   Store,
   Sun,
+  Table2,
   Tags,
   Ticket,
   Timer,
@@ -489,4 +493,12 @@ export const SHELL_ICONS = {
   language: Languages,
   help: CircleHelp,
   shortcuts: Keyboard,
+} satisfies Record<string, LucideIcon>
+
+/** Подання списку (ADR-0091): та сама вибірка таблицею, картками, дошкою чи календарем. */
+export const LAYOUT_ICONS = {
+  table: Table2,
+  cards: LayoutGrid,
+  board: SquareKanban,
+  calendar: CalendarDays,
 } satisfies Record<string, LucideIcon>

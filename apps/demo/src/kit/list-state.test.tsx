@@ -44,6 +44,8 @@ const FILTERS: FilterDefinition[] = [
   },
 ]
 
+const WITH_LAYOUTS: ListDefaults = { ...DEFAULTS, layouts: ["table", "board"] }
+
 /** Адреса в стані: як `useSearchParams` роутера. */
 function renderList(
   initial: string,
@@ -51,7 +53,12 @@ function renderList(
   {
     viewsFailed = false,
     filters,
-  }: { viewsFailed?: boolean; filters?: FilterDefinition[] } = {},
+    defaults = DEFAULTS,
+  }: {
+    viewsFailed?: boolean
+    filters?: FilterDefinition[]
+    defaults?: ListDefaults
+  } = {},
 ) {
   const changes = vi.fn<(params: string, replace: boolean) => void>()
   const hook = renderHook(
@@ -69,7 +76,7 @@ function renderList(
         list: useListState({
           params,
           onParamsChange,
-          defaults: DEFAULTS,
+          defaults,
           tabs: TABS,
           filters,
           views: current,
@@ -208,5 +215,35 @@ describe("hooks/use-list-state", () => {
     expect(result.current.list.state.filter).toEqual(expected)
     expect(result.current.list.queryFilter).toEqual(expected)
     expect(result.current.list.state.sort).toEqual(DEFAULTS.sort)
+  })
+
+  it("подання (ADR-0091): новий запис в історії, у виді — «змінено»; «Стандартний» подання лишає, на «нічого не знайдено» не впливає", () => {
+    const saved = view({ params: "tab=overdue" })
+    const { result, changes } = renderList("view=v1&tab=overdue", [saved], {
+      defaults: WITH_LAYOUTS,
+    })
+    expect(result.current.list.state.layout).toBe("table")
+    act(() => {
+      result.current.list.setLayout("board")
+    })
+    expect(changes).toHaveBeenLastCalledWith(
+      "view=v1&tab=overdue&layout=board",
+      false,
+    )
+    expect(result.current.list.isModified).toBe(true)
+    expect(result.current.list.viewParams).toBe("tab=overdue&layout=board")
+    act(() => {
+      result.current.list.applyView(saved)
+    })
+    expect(result.current.list.state.layout).toBe("table")
+    act(() => {
+      result.current.list.setLayout("board")
+    })
+    act(() => {
+      result.current.list.applyView(null)
+    })
+    expect(result.current.params).toBe(`view=${STANDARD_VIEW}&layout=board`)
+    expect(result.current.list.isModified).toBe(false)
+    expect(result.current.list.isFiltered).toBe(false)
   })
 })

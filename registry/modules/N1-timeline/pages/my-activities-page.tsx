@@ -1,7 +1,7 @@
 import { useAuthenticated } from "@/lib/ra-core"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton } from "@/components/erp/page-state"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 
 import { MyActivities } from "../components/my-activities"
@@ -19,7 +19,7 @@ export function MyActivitiesPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("myActivities.title")}
         description={t("myActivities.lead")}
         headingRef={heading}

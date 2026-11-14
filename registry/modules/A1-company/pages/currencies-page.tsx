@@ -2,11 +2,11 @@ import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useCallback, useRef, useState } from "react"
 import { useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { DeniedAction, PermissionGate } from "@/components/erp/permission-gate"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -89,7 +89,7 @@ export function CurrenciesPage() {
   ]
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("currencies.title")}
         description={base && t("currencies.lead", { base })}
         headingRef={heading}

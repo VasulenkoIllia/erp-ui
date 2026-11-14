@@ -4,15 +4,12 @@ import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
+import { PageHeader } from "@/registry/erp/page-header"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { useMe } from "@/registry/hooks/use-me"
 import { ACTION_ICONS, MODULE_ICONS } from "@/registry/lib/icons"
 import { whenIdle } from "@/registry/lib/lazy"
-import {
-  ListReport,
-  ListReportHeader,
-  useListReport,
-} from "@/registry/templates/list-report"
+import { ListReport, useListReport } from "@/registry/templates/list-report"
 import { Button } from "@/registry/ui/button"
 
 import type { Invoice } from "@/data/invoices"
@@ -57,7 +54,7 @@ export function DataPage({
   // чекають на сесію), тож список нижче — без власної шапки.
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("title")}
         description={t("lead")}
         headingRef={heading}

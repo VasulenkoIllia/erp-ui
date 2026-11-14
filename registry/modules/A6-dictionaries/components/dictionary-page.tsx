@@ -11,11 +11,11 @@ import { useSearchParams } from "react-router"
 import type { LucideIcon } from "lucide-react"
 
 import { ConfirmDialog } from "@/components/erp/confirm-dialog"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { DeniedAction, PermissionGate } from "@/components/erp/permission-gate"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -154,7 +154,7 @@ export function DictionaryPage<
   ]
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t(`${strings}.title`)}
         description={t(`${strings}.lead`)}
         headingRef={heading}

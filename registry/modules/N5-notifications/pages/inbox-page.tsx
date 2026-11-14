@@ -2,8 +2,8 @@ import { useAuthenticated } from "@/lib/ra-core"
 import { useNavigate } from "react-router"
 
 import { NotificationInbox } from "@/components/erp/notification-inbox"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton } from "@/components/erp/page-state"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 
 import { useNotificationsModule } from "../module-context"
@@ -24,7 +24,7 @@ export function InboxPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("inbox.title")}
         description={t("inbox.lead")}
         headingRef={heading}

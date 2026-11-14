@@ -1,8 +1,8 @@
 import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { RolesEditor } from "@/components/erp/roles-editor"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { useSearchParamState } from "@/hooks/use-tab-param"
 
@@ -26,7 +26,7 @@ export function RolesPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("roles.title")}
         description={t("roles.lead")}
         headingRef={heading}

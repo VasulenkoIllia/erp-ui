@@ -9,6 +9,9 @@
  * - Збережений вид зберігає той самий рядок параметрів без `view` (`listParamsOf`).
  * - Порівняння станів не залежить від порядку ключів і значень і від того, рядок чи число:
  *   після адреси всі значення — рядки.
+ * - Подання (`layout`: таблиця, дошка, календар) — лише в списку з `defaults.layouts` (ADR-0091): перше
+ *   подання за замовчуванням, в адресу не пишеться, невідоме — перше. Без `layouts` ключ `layout` —
+ *   звичайне поле фільтра, як раніше.
  */
 import type { SortPayload } from "@/registry/lib/ra-core"
 
@@ -22,12 +25,16 @@ export interface ListState {
   /** Фільтри панелі й пошук `q`, без фільтра вкладки. */
   filter: ListFilter
   sort: SortPayload
+  /** Подання списку (ключ із `ListDefaults.layouts`); немає — список без подань. */
+  layout?: string
 }
 
 /** Те, що відновлюється, коли параметрів в адресі немає. */
 export interface ListDefaults extends Pick<ListState, "tab" | "sort"> {
   /** Поля, за якими сервер сортує; `sort` з адреси за іншим полем — сортування за замовчуванням. */
   sortFields?: readonly string[]
+  /** Ключі подань списку; перше — за замовчуванням. */
+  layouts?: readonly string[]
 }
 
 /** Вкладка-статус: підпис і фільтр, який вона додає до запиту («Прострочені» → status=overdue). */
@@ -39,11 +46,20 @@ export interface ListTab {
 
 export const VIEW_PARAM = "view"
 export const TAB_PARAM = "tab"
+export const LAYOUT_PARAM = "layout"
 const SORT_PARAM = "sort"
 /** Ці ключі — не фільтри: їх не можна назвати полем фільтра. */
 const RESERVED = new Set([VIEW_PARAM, TAB_PARAM, SORT_PARAM, "page", "perPage"])
 /** Ключі з адреси, які не стають полями об'єкта фільтра. */
 const UNSAFE_KEYS = new Set(["", "__proto__", "constructor", "prototype"])
+
+/** Ключ адреси — не поле фільтра: службовий, а `layout` — у списку з поданнями. */
+const isListKey = (key: string, defaults: ListDefaults) =>
+  RESERVED.has(key) ||
+  (key === LAYOUT_PARAM && Boolean(defaults.layouts?.length))
+
+/** Подання за замовчуванням — перше; без подань — немає. */
+const defaultLayout = (defaults: ListDefaults) => defaults.layouts?.[0]
 
 const sameSort = (a: SortPayload, b: SortPayload) =>
   a.field === b.field && a.order === b.order
@@ -85,12 +101,13 @@ function canonicalFilter(filter: ListFilter): string {
 export function sameListState(a: ListState, b: ListState): boolean {
   return (
     a.tab === b.tab &&
+    a.layout === b.layout &&
     sameSort(a.sort, b.sort) &&
     canonicalFilter(a.filter) === canonicalFilter(b.filter)
   )
 }
 
-/** Стан → параметри адреси: фільтри, вкладка й сортування, якщо не за замовчуванням, і вид. */
+/** Стан → параметри адреси: фільтри, вкладка, подання й сортування, якщо не за замовчуванням, і вид. */
 export function listStateToParams(
   state: ListState,
   defaults: ListDefaults,
@@ -99,8 +116,14 @@ export function listStateToParams(
   const params = new URLSearchParams()
   if (view) params.set(VIEW_PARAM, view)
   if (state.tab !== defaults.tab) params.set(TAB_PARAM, state.tab)
+  if (
+    state.layout !== undefined &&
+    state.layout !== defaultLayout(defaults) &&
+    defaults.layouts?.includes(state.layout)
+  )
+    params.set(LAYOUT_PARAM, state.layout)
   for (const key of Object.keys(state.filter).sort()) {
-    if (RESERVED.has(key)) continue
+    if (isListKey(key, defaults)) continue
     for (const value of filterStrings(state.filter[key]))
       params.append(key, value)
   }
@@ -109,7 +132,10 @@ export function listStateToParams(
   return params
 }
 
-/** Параметри адреси → стан; чого немає — за замовчуванням. Вкладку, якої немає в `tabs`, теж. */
+/**
+ * Параметри адреси → стан; чого немає — за замовчуванням. Вкладку, якої немає в `tabs`, і подання,
+ * якого немає в `defaults.layouts`, теж.
+ */
 export function listStateFromParams(
   params: URLSearchParams,
   defaults: ListDefaults,
@@ -117,19 +143,26 @@ export function listStateFromParams(
 ): ListState {
   const filter: ListFilter = {}
   for (const key of new Set(params.keys())) {
-    if (RESERVED.has(key) || UNSAFE_KEYS.has(key)) continue
+    if (isListKey(key, defaults) || UNSAFE_KEYS.has(key)) continue
     const values = params.getAll(key).filter(Boolean)
     if (values.length) filter[key] = values.length > 1 ? values : values[0]
   }
   const tab = params.get(TAB_PARAM)
   const known = tab !== null && (!tabs || tabs.some((t) => t.id === tab))
-  return {
+  const state: ListState = {
     tab: known ? tab : defaults.tab,
     filter,
     sort:
       sortFromParam(params.get(SORT_PARAM), defaults.sortFields) ??
       defaults.sort,
   }
+  const layouts = defaults.layouts
+  if (layouts?.length) {
+    const layout = params.get(LAYOUT_PARAM)
+    state.layout =
+      layout !== null && layouts.includes(layout) ? layout : layouts[0]
+  }
+  return state
 }
 
 /** Чи є в адресі параметри списку: ні — сторінку відкрили «начисто», діє вид за замовчуванням. */

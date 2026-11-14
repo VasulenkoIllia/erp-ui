@@ -81,6 +81,28 @@ test.describe("скриншоти кроку 1.3b @screenshots", () => {
         await shot(page, `organizations-pinned-sapphire-${theme}-${width}`)
       })
 
+  // Подання «Картки» (ADR-0091).
+  for (const theme of THEMES)
+    for (const width of WIDTHS)
+      test(`organizations cards sapphire ${theme} ${width}`, async ({
+        page,
+      }) => {
+        test.skip(skip())
+        await open(
+          page,
+          { palette: "sapphire", theme },
+          width,
+          `${LIST}?layout=cards`,
+        )
+        await expect(
+          page
+            .getByRole("region", { name: "Організації" })
+            .getByRole("listitem")
+            .first(),
+        ).toBeVisible()
+        await shot(page, `organizations-cards-sapphire-${theme}-${width}`)
+      })
+
   test("organizations page size sapphire light 1440", async ({ page }) => {
     test.skip(skip())
     await open(page, { palette: "sapphire", theme: "light" }, 1440, LIST)

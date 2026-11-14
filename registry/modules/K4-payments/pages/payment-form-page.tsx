@@ -1,9 +1,9 @@
 import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { BackToList } from "@/components/erp/record-link"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 
 import { PaymentForm } from "../components/payment-form"
@@ -55,7 +55,7 @@ function MoneyDocumentFormPage({ kind }: { kind: K4DocumentKind }) {
   return (
     <div className="space-y-6">
       {back}
-      <ListReportHeader title={t(`${kind.form}.title`)} headingRef={heading} />
+      <PageHeader title={t(`${kind.form}.title`)} headingRef={heading} />
       {isPending || access.isPending ? (
         <PageSkeleton rows={6} />
       ) : !access.canAccess ? (

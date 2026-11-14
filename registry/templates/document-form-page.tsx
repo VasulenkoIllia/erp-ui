@@ -4,6 +4,7 @@ import type { z } from "zod"
 
 import { useDocumentDetail } from "@/registry/erp/document-lines-section"
 import { EditLockNotice } from "@/registry/erp/edit-lock-notice"
+import { PageHeader, type PageHeaderProps } from "@/registry/erp/page-header"
 import { PageSkeleton, PageState } from "@/registry/erp/page-state"
 import { BackToList } from "@/registry/erp/record-link"
 import {
@@ -12,10 +13,6 @@ import {
 } from "@/registry/hooks/use-card-record"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
 import type { EditLockHolder } from "@/registry/lib/edit-lock"
-import {
-  ListReportHeader,
-  type ListReportHeaderProps,
-} from "@/registry/templates/list-report"
 
 /**
  * Сторінка форми документа (SPEC §7 «Document Form», ADR-0047, ADR-0086): «Назад», заголовок, смуга
@@ -42,7 +39,7 @@ export function DocumentFormPage({
   back: string
   backLabel: string
   title: string
-  headingRef: ListReportHeaderProps["headingRef"]
+  headingRef: PageHeaderProps["headingRef"]
   /** Хто редагує документ (`useEditSession`); нового документа ще ніхто не редагує — без смуги. */
   holder?: EditLockHolder | null | undefined
   children: React.ReactNode
@@ -50,7 +47,7 @@ export function DocumentFormPage({
   return (
     <div className="space-y-6">
       <BackToList to={back} label={backLabel} />
-      <ListReportHeader title={title} headingRef={headingRef} />
+      <PageHeader title={title} headingRef={headingRef} />
       {holder === undefined ? null : <EditLockNotice holder={holder} />}
       {children}
     </div>

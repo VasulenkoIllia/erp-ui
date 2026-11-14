@@ -29,6 +29,9 @@ import type { SavedView } from "@/registry/lib/saved-views"
  * - «Стандартний» вид — вкладка й сортування за замовчуванням без фільтрів; явно вибраний, як і
  *   будь-яка дія, після якої адреса лишилась би порожньою, — `view=standard`, щоб вид за
  *   замовчуванням не застосувався замість нього.
+ * - Подання (`layout`, ADR-0091) — частина стану, як вкладка: зберігається у виді, інше подання
+ *   збереженого виду — «змінено». «Стандартний» вид і «Скинути фільтри» подання не міняють, і на
+ *   «нічого не знайдено» подання не впливає.
  * - З `filters` у стан і запит потрапляють лише описані фільтри й пошук `q` (`normalizeFilter`).
  * - `tabs`, `filters` і `defaults` — стабільні між рендерами (`useMemo`); `onParamsChange` — будь-який.
  */
@@ -67,6 +70,8 @@ export interface ListStateApi {
   /** Поточний стан рядком для збереження у вид. */
   viewParams: string
   setTab: (tab: string) => void
+  /** Інше подання списку (ключ із `defaults.layouts`): новий запис в історії, як вкладка. */
+  setLayout: (layout: string) => void
   setFilter: (filter: ListFilter, options?: { replace?: boolean }) => void
   setSort: (sort: SortPayload) => void
   /** Перейти до виду (null — «Стандартний»): його збережений стан. */
@@ -111,9 +116,15 @@ export function useListState({
   const preferred = views?.find((view) => view.isDefault)
   const activeView = views?.find((view) => view.id === viewId) ?? null
 
+  // Подання «Стандартний» вид лишає поточним: він про фільтри, а не про те, як показано записи.
   const standard: ListState = React.useMemo(
-    () => ({ ...defaults, filter: {} }),
-    [defaults],
+    () => ({
+      tab: defaults.tab,
+      sort: defaults.sort,
+      filter: {},
+      ...(state.layout === undefined ? {} : { layout: state.layout }),
+    }),
+    [defaults, state.layout],
   )
   const baseline = activeView ? parse(activeView.params) : standard
 
@@ -159,6 +170,9 @@ export function useListState({
     viewParams: listParamsOf(state, defaults),
     setTab: (tab) => {
       navigate({ ...state, tab }, viewId)
+    },
+    setLayout: (layout) => {
+      navigate({ ...state, layout }, viewId)
     },
     setFilter: (filter, { replace = false } = {}) => {
       navigate({ ...state, filter }, viewId, replace)

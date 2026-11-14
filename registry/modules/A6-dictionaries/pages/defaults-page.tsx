@@ -4,11 +4,11 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { FormField } from "@/components/erp/form"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import type { RecordFormItem } from "@/components/erp/record-form"
 import { RecordFormPage } from "@/components/erp/record-form-page"
 import { RecordPicker } from "@/components/erp/record-picker"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyId } from "@/hooks/use-company"
@@ -72,7 +72,7 @@ export function DefaultsPage() {
   const heading = usePageHeading(t("defaults.title"))
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("defaults.title")}
         description={t("defaults.lead")}
         headingRef={heading}

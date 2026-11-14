@@ -4,6 +4,11 @@ import type { RaRecord } from "@/registry/lib/ra-core"
 import type { DataTableProps } from "@/registry/erp/data-table"
 import type { DataTableSelectionProps } from "@/registry/erp/data-table-selection"
 import { FilterBar } from "@/registry/erp/filter-bar"
+import {
+  PageHeader,
+  type PageHeaderAction,
+  type PageHeaderProps,
+} from "@/registry/erp/page-header"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { SavedViewsMenu } from "@/registry/erp/saved-views-menu"
 import { StatusTabs } from "@/registry/erp/status-tabs"
@@ -32,17 +37,28 @@ import {
 } from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
 import {
+  ListLayoutContent,
+  ListLayoutSwitch,
+  type ListReportContentProps,
+  type ListReportLayout,
+} from "@/registry/templates/list-report-layouts"
+import {
   PagedTable,
   WindowedTable,
   type ListTableProps,
 } from "@/registry/templates/list-report-tables"
 
+export type { ListReportContentProps, ListReportLayout }
+
 /**
  * Шаблон List Report — список сутностей (SPEC §7, §8.1, §9; ADR-0022).
  *
- * - Склад: заголовок і дії, вкладки-статуси з лічильниками (erp/status-tabs), FilterBar із
- *   чипами (erp/filter-bar), особисті збережені види (erp/saved-views-menu), панель масових дій
- *   (erp/data-table-selection), DataTable з картками на телефоні й пагінацією (erp/data-table).
+ * - Склад: заголовок і дії (erp/page-header), вкладки-статуси з лічильниками (erp/status-tabs),
+ *   FilterBar із чипами (erp/filter-bar), особисті збережені види (erp/saved-views-menu), панель
+ *   масових дій (erp/data-table-selection), DataTable з картками на телефоні й пагінацією
+ *   (erp/data-table).
+ * - Подання (`layouts`, ADR-0091): ті самі записи таблицею чи вмістом модуля — дошкою, календарем — з
+ *   тими самими вкладками, фільтрами, видами й вибором (templates/list-report-layouts).
  * - Стан — `useListReport`: адреса сторінки (hooks/use-list-state), види, лічильники вкладок і вибір
  *   рядків. Хук окремо від розкладки: сторінці потрібні вибір і фільтр для своїх масових дій і
  *   діалогів.
@@ -72,6 +88,11 @@ export interface ListReportOptions extends Pick<
   /** Фільтри панелі; стабільні між рендерами. Без опису в запит іде лише пошук `q`. */
   filters?: readonly FilterDefinition[]
   /**
+   * Подання списку: перше — за замовчуванням, без `render` — таблиця шаблону; стабільні між
+   * рендерами (`useMemo`). Без них — лише таблиця.
+   */
+  layouts?: readonly ListReportLayout[]
+  /**
    * Параметри кожного запиту списку, яких немає ні в панелі, ні в адресі: межі кошиків звіту старіння
    * (`buckets`). Людина їх не змінює й не скидає; стабільні між рендерами.
    */
@@ -82,7 +103,8 @@ export interface ListReportState {
   resource: string
   tabs: readonly ListTab[]
   filters: readonly FilterDefinition[]
-  /** Вкладка, фільтри, сортування й вид в адресі сторінки. */
+  layouts: readonly ListReportLayout[]
+  /** Вкладка, фільтри, сортування, подання й вид в адресі сторінки. */
   list: ListStateApi
   views: SavedViewsApi
   counts: Readonly<Record<string, number | undefined>>
@@ -92,6 +114,7 @@ export interface ListReportState {
 
 const NO_TABS: readonly ListTab[] = []
 const NO_FILTERS: readonly FilterDefinition[] = []
+const NO_LAYOUTS: readonly ListReportLayout[] = []
 
 export function useListReport({
   resource,
@@ -100,13 +123,21 @@ export function useListReport({
   defaults,
   tabs = NO_TABS,
   filters = NO_FILTERS,
+  layouts = NO_LAYOUTS,
   fixedFilter,
 }: ListReportOptions): ListReportState {
   const views = useSavedViews(resource)
+  const listDefaults = React.useMemo(
+    () =>
+      layouts.length
+        ? { ...defaults, layouts: layouts.map((layout) => layout.id) }
+        : defaults,
+    [defaults, layouts],
+  )
   const state = useListState({
     params,
     onParamsChange,
-    defaults,
+    defaults: listDefaults,
     tabs,
     filters,
     views: views.views,
@@ -128,14 +159,11 @@ export function useListReport({
   })
   const companyId = useCompanyId()
   const selection = useRowSelection([list.queryFilter, companyId])
-  return { resource, tabs, filters, list, views, counts, selection }
+  return { resource, tabs, filters, layouts, list, views, counts, selection }
 }
 
 /** Дія в шапці чи біля фільтрів. */
-export interface ListReportAction {
-  id: string
-  node: React.ReactNode
-}
+export type ListReportAction = PageHeaderAction
 
 /**
  * Масова дія панелі вибраного: `render(count)` — кнопка для `count` вибраних записів. Панель є лише
@@ -170,9 +198,9 @@ export interface ListReportProps<T extends RaRecord> extends TableOptions<T> {
   getRowId?: (row: T) => string
   report: ListReportState
   /**
-   * Заголовок сторінки (h1). Без нього шапки немає: сторінка ставить `ListReportHeader` сама — щоб
-   * шапка була одразу, поки список ще не можна зібрати (перевірка сесії), чи список у колонці FCL
-   * без власного h1.
+   * Заголовок сторінки (h1). Без нього шапки немає: сторінка ставить `PageHeader` (erp/page-header)
+   * сама — щоб шапка була одразу, поки список ще не можна зібрати (перевірка сесії), чи список у
+   * колонці FCL без власного h1.
    */
   title?: string
   /** Під заголовком: пояснення списку, хто дивиться. */
@@ -181,15 +209,16 @@ export interface ListReportProps<T extends RaRecord> extends TableOptions<T> {
   headingRef?: React.Ref<HTMLHeadingElement>
   /** Дії списку в шапці: «Створити», «Імпорт». */
   actions?: readonly ListReportAction[]
-  /** Біля «Фільтри», після меню видів: перемикачі подання. */
+  /** Біля «Фільтри», після меню видів і перемикача подань: свої перемикачі сторінки. */
   toolbar?: readonly ListReportAction[]
   /** Назва групи вкладок для скрінрідера: «Статус рахунку». */
   tabsLabel?: string
   /** Підказка в полі пошуку; без неї поля пошуку немає. */
   searchPlaceholder?: string
-  /** Назва таблиці для скрінрідера: «Рахунки клієнтам». */
+  /** Назва таблиці (і вмісту інших подань) для скрінрідера: «Рахунки клієнтам». */
   tableLabel: string
   bulk?: ListReportBulk<T>
+  /** Як таблиця вантажить рядки; на інші подання не впливає. */
   mode?: "scroll" | "pages"
   /** Рядків на сторінці в `pages`, поки людина не вибрала свій розмір. */
   perPage?: number
@@ -219,13 +248,18 @@ export function ListReport<T extends RaRecord>({
   className,
   ...options
 }: ListReportProps<T>) {
-  const { resource, tabs, filters, list, views, counts, selection } = report
+  const { resource, tabs, filters, layouts, list, views, counts, selection } =
+    report
+  const layout = layouts.find((item) => item.id === list.state.layout)
   const sizes = withPageSize(perPageOptions, perPage)
   const pageSize = useRememberedPerPage(resource, {
     fallback: perPage,
     options: sizes,
     enabled: mode === "pages" && perPageOptions.length > 0,
   })
+  const resetFilters = () => {
+    list.applyView(null)
+  }
   const selectionProps: DataTableSelectionProps<T> = bulk
     ? {
         selection,
@@ -251,13 +285,27 @@ export function ListReport<T extends RaRecord>({
     sort: list.state.sort,
     onSortChange: list.setSort,
     isFiltered: list.isFiltered,
-    onResetFilters: () => {
-      list.applyView(null)
-    },
+    onResetFilters: resetFilters,
   }
 
   let content: React.ReactNode = <PageSkeleton rows={8} />
-  if (list.isReady && pageSize.isReady)
+  if (layout?.render) {
+    if (list.isReady)
+      content = (
+        <ListLayoutContent
+          key={layout.id}
+          render={layout.render}
+          resource={resource}
+          label={tableLabel}
+          filter={list.queryFilter}
+          sort={list.state.sort}
+          onSortChange={list.setSort}
+          isFiltered={list.isFiltered}
+          onResetFilters={resetFilters}
+          selection={selection}
+        />
+      )
+  } else if (list.isReady && pageSize.isReady)
     content =
       mode === "scroll" ? (
         <WindowedTable {...table} />
@@ -274,7 +322,7 @@ export function ListReport<T extends RaRecord>({
   return (
     <div data-slot="list-report" className={cn("min-w-0 space-y-6", className)}>
       {title === undefined ? null : (
-        <ListReportHeader
+        <PageHeader
           title={title}
           description={description}
           headingRef={headingRef}
@@ -299,7 +347,14 @@ export function ListReport<T extends RaRecord>({
           actions={
             <>
               <SavedViewsMenu resource={resource} views={views} list={list} />
-              {renderActions(toolbar)}
+              <ListLayoutSwitch
+                layouts={layouts}
+                value={list.state.layout}
+                onValueChange={list.setLayout}
+              />
+              {toolbar?.map((action) => (
+                <React.Fragment key={action.id}>{action.node}</React.Fragment>
+              ))}
             </>
           }
         />
@@ -309,46 +364,10 @@ export function ListReport<T extends RaRecord>({
   )
 }
 
-export type ListReportHeaderProps = Pick<
-  ListReportProps<RaRecord>,
-  "description" | "headingRef" | "actions"
-> & { title: string }
+export type ListReportHeaderProps = PageHeaderProps
 
-/**
- * Шапка списку: h1, пояснення й дії; на вузькому контейнері дії під заголовком. Окремо — коли сторінка
- * ставить шапку сама (`ListReport` без `title`): тоді шапка — той самий вузол від першого кадру, а не
- * новий після перевірки сесії (перший екран не зсувається на пізніше, фокус не губиться).
- */
-export function ListReportHeader({
-  title,
-  description,
-  headingRef,
-  actions,
-}: ListReportHeaderProps) {
-  return (
-    <header data-slot="list-report-header" className="@container">
-      <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-start @2xl:justify-between">
-        <div className="min-w-0 space-y-1">
-          <h1
-            ref={headingRef}
-            tabIndex={-1}
-            className="text-2xl font-semibold break-words focus-visible:outline-none"
-          >
-            {title}
-          </h1>
-          {description ? (
-            <div className="space-y-1 text-muted-foreground">{description}</div>
-          ) : null}
-        </div>
-        {actions?.length ? (
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {renderActions(actions)}
-          </div>
-        ) : null}
-      </div>
-    </header>
-  )
-}
+/** Шапка списку — `PageHeader` (erp/page-header) під старим ім'ям; нові сторінки беруть `PageHeader`. */
+export const ListReportHeader = PageHeader
 
 const recordId = (row: RaRecord) => String(row.id)
 
@@ -361,10 +380,4 @@ function BulkActionSlot({
   count: number
 }) {
   return render(count)
-}
-
-function renderActions(actions: readonly ListReportAction[] | undefined) {
-  return actions?.map((action) => (
-    <React.Fragment key={action.id}>{action.node}</React.Fragment>
-  ))
 }

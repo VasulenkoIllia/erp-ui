@@ -3,10 +3,10 @@ import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
 import { AccessLink } from "@/components/erp/access-link"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -69,7 +69,7 @@ export function InvoicesListPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("invoices.title")}
         description={t("invoices.lead")}
         headingRef={heading}

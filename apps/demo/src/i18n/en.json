@@ -317,11 +317,12 @@
   },
   "iconsPage": {
     "title": "Icons",
-    "lead": "Concept → icon dictionary (lib/icons): modules, statuses, document actions, shell; a custom hryvnia icon.",
+    "lead": "Concept → icon dictionary (lib/icons): modules, statuses, document actions, shell, list layouts; a custom hryvnia icon.",
     "modules": "Modules",
     "statuses": "Statuses",
     "actions": "Record and document actions",
     "shell": "Shell",
+    "layouts": "List layouts",
     "hryvnia": "Hryvnia in lucide style",
     "hryvniaHint": "Other lucide currency icons next to it for a style check.",
     "stroke": "Stroke width",
@@ -484,10 +485,18 @@
   },
   "organizationsPage": {
     "title": "Organizations",
-    "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs.",
+    "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs. The “Table · Cards” switch shows the same records as a card grid: tabs, search and views are shared, and the address and saved views remember the layout.",
     "search": "Search by name or code",
     "tabsLabel": "Organization type",
     "tableLabel": "Organizations",
+    "layouts": {
+      "table": "Table",
+      "cards": "Cards"
+    },
+    "cards": {
+      "shown_one": "Showing {{shown}} of {{value}} organization",
+      "shown_other": "Showing {{shown}} of {{value}} organizations"
+    },
     "tabs": {
       "all": "All",
       "legal": "Companies",

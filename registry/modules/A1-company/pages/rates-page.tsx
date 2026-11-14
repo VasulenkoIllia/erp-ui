@@ -3,11 +3,11 @@ import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useCallback, useMemo, useRef, useState, type RefObject } from "react"
 import { useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { DeniedAction, PermissionGate } from "@/components/erp/permission-gate"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -113,7 +113,7 @@ export function RatesPage() {
   ]
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("rates.title")}
         description={base && t("rates.lead", { base })}
         headingRef={heading}

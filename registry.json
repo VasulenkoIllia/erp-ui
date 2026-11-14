@@ -2689,6 +2689,11 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -3594,6 +3599,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-tables.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-tables.tsx"
@@ -4086,6 +4096,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -4963,6 +4978,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-tables.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-tables.tsx"
@@ -5372,6 +5392,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -6199,6 +6224,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-tables.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-tables.tsx"
@@ -6446,19 +6476,13 @@
       "description": "Модуль: журнал аудиту компанії (пошук, розділ, період, подробиці з різницею значень, експорт CSV) і перехід із рядка події до шухляди історії запису; контракт журналу lib/audit, моки платформи зі сценаріями ресурсу audit, фікстури, рядки uk/en; фабрика createAuditModule з маршрутом, навігацією й правом, тип розширення AuditExtension (ADR-0013, ADR-0020, ADR-0025, ADR-0045).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
-        "@tanstack/react-table@^9.3.1",
-        "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
-        "react-day-picker@^10.0.2",
-        "react-hook-form@~7.90.0",
         "react-i18next@^17.0.16",
-        "react-number-format@^5.4.5",
         "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
@@ -6493,74 +6517,9 @@
           "target": "@components/erp/confirm-dialog.tsx"
         },
         {
-          "path": "registry/erp/data-table.tsx",
+          "path": "registry/erp/page-header.tsx",
           "type": "registry:component",
-          "target": "@components/erp/data-table.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cards.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cards.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cells.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cells.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-grid.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-grid.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-pager.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-pager.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-selection.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-selection.tsx"
-        },
-        {
-          "path": "registry/erp/date-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-input.tsx"
-        },
-        {
-          "path": "registry/erp/date-range-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-range-input.tsx"
-        },
-        {
-          "path": "registry/erp/error-boundary.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/error-boundary.tsx"
-        },
-        {
-          "path": "registry/erp/filter-bar.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-bar.tsx"
-        },
-        {
-          "path": "registry/erp/filter-panel.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-panel.tsx"
-        },
-        {
-          "path": "registry/erp/form.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form.tsx"
-        },
-        {
-          "path": "registry/erp/number-group.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/number-group.tsx"
-        },
-        {
-          "path": "registry/erp/number-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/number-input.tsx"
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -6568,39 +6527,9 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
-          "path": "registry/erp/picker-field.ts",
-          "type": "registry:component",
-          "target": "@components/erp/picker-field.ts"
-        },
-        {
           "path": "registry/erp/record-history.tsx",
           "type": "registry:component",
           "target": "@components/erp/record-history.tsx"
-        },
-        {
-          "path": "registry/erp/record-picker.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker.tsx"
-        },
-        {
-          "path": "registry/erp/record-picker-parts.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker-parts.tsx"
-        },
-        {
-          "path": "registry/erp/saved-view-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-view-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/saved-views-menu.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-views-menu.tsx"
-        },
-        {
-          "path": "registry/erp/status-tabs.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/status-tabs.tsx"
         },
         {
           "path": "registry/hooks/use-api-error-message.ts",
@@ -6608,19 +6537,9 @@
           "target": "@hooks/use-api-error-message.ts"
         },
         {
-          "path": "registry/hooks/use-breakpoint.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-breakpoint.ts"
-        },
-        {
           "path": "registry/hooks/use-company.ts",
           "type": "registry:hook",
           "target": "@hooks/use-company.ts"
-        },
-        {
-          "path": "registry/hooks/use-element-size.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-element-size.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -6628,34 +6547,9 @@
           "target": "@hooks/use-email-link-token.ts"
         },
         {
-          "path": "registry/hooks/use-field-controller.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-field-controller.ts"
-        },
-        {
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
-        },
-        {
-          "path": "registry/hooks/use-grid-keyboard.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-grid-keyboard.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-counts.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-counts.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-settings.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-settings.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-state.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-state.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -6666,41 +6560,6 @@
           "path": "registry/hooks/use-page-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-page-heading.ts"
-        },
-        {
-          "path": "registry/hooks/use-record-search.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-record-search.ts"
-        },
-        {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
-          "path": "registry/hooks/use-saved-views.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-saved-views.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-in-view.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-in-view.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-param.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/hooks/use-virtual-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-virtual-rows.ts"
-        },
-        {
-          "path": "registry/hooks/use-windowed-list.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-windowed-list.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -6743,39 +6602,9 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/data-provider.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-provider.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
-        },
-        {
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
-        },
-        {
-          "path": "registry/lib/document-lifecycle.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-lifecycle.ts"
-        },
-        {
-          "path": "registry/lib/document-links.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-links.ts"
-        },
-        {
-          "path": "registry/lib/edit-lock.ts",
-          "type": "registry:lib",
-          "target": "@lib/edit-lock.ts"
-        },
-        {
-          "path": "registry/lib/filters.ts",
-          "type": "registry:lib",
-          "target": "@lib/filters.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -6978,11 +6807,6 @@
           "target": "@lib/icons.tsx"
         },
         {
-          "path": "registry/lib/imports.ts",
-          "type": "registry:lib",
-          "target": "@lib/imports.ts"
-        },
-        {
           "path": "registry/lib/invitations.ts",
           "type": "registry:lib",
           "target": "@lib/invitations.ts"
@@ -6993,24 +6817,9 @@
           "target": "@lib/invite-check.ts"
         },
         {
-          "path": "registry/lib/jobs.ts",
-          "type": "registry:lib",
-          "target": "@lib/jobs.ts"
-        },
-        {
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
-        },
-        {
-          "path": "registry/lib/list-settings.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-settings.ts"
-        },
-        {
-          "path": "registry/lib/list-state.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mock-account.ts",
@@ -7123,19 +6932,9 @@
           "target": "@lib/notifications.ts"
         },
         {
-          "path": "registry/lib/page-reload.ts",
-          "type": "registry:lib",
-          "target": "@lib/page-reload.ts"
-        },
-        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
-        },
-        {
-          "path": "registry/lib/pins.ts",
-          "type": "registry:lib",
-          "target": "@lib/pins.ts"
         },
         {
           "path": "registry/lib/ra-core.ts",
@@ -7153,11 +6952,6 @@
           "target": "@lib/record-access.ts"
         },
         {
-          "path": "registry/lib/record-label.tsx",
-          "type": "registry:lib",
-          "target": "@lib/record-label.tsx"
-        },
-        {
           "path": "registry/lib/rich-text.ts",
           "type": "registry:lib",
           "target": "@lib/rich-text.ts"
@@ -7168,16 +6962,6 @@
           "target": "@lib/roles.ts"
         },
         {
-          "path": "registry/lib/row-selection.ts",
-          "type": "registry:lib",
-          "target": "@lib/row-selection.ts"
-        },
-        {
-          "path": "registry/lib/saved-views.ts",
-          "type": "registry:lib",
-          "target": "@lib/saved-views.ts"
-        },
-        {
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
@@ -7186,11 +6970,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/sse.ts",
@@ -7228,21 +7007,6 @@
           "target": "@lib/webhooks.ts"
         },
         {
-          "path": "registry/templates/list-report.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report.tsx"
-        },
-        {
-          "path": "registry/templates/list-report-tables.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report-tables.tsx"
-        },
-        {
-          "path": "registry/ui/alert.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert.tsx"
-        },
-        {
           "path": "registry/ui/alert-dialog.tsx",
           "type": "registry:ui",
           "target": "@ui/alert-dialog.tsx"
@@ -7258,34 +7022,9 @@
           "target": "@ui/button.tsx"
         },
         {
-          "path": "registry/ui/calendar.tsx",
-          "type": "registry:ui",
-          "target": "@ui/calendar.tsx"
-        },
-        {
           "path": "registry/ui/card.tsx",
           "type": "registry:ui",
           "target": "@ui/card.tsx"
-        },
-        {
-          "path": "registry/ui/checkbox.tsx",
-          "type": "registry:ui",
-          "target": "@ui/checkbox.tsx"
-        },
-        {
-          "path": "registry/ui/combobox.tsx",
-          "type": "registry:ui",
-          "target": "@ui/combobox.tsx"
-        },
-        {
-          "path": "registry/ui/dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dialog.tsx"
-        },
-        {
-          "path": "registry/ui/dropdown-menu.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dropdown-menu.tsx"
         },
         {
           "path": "registry/ui/empty.tsx",
@@ -7303,19 +7042,9 @@
           "target": "@ui/input.tsx"
         },
         {
-          "path": "registry/ui/input-group.tsx",
-          "type": "registry:ui",
-          "target": "@ui/input-group.tsx"
-        },
-        {
           "path": "registry/ui/label.tsx",
           "type": "registry:ui",
           "target": "@ui/label.tsx"
-        },
-        {
-          "path": "registry/ui/popover.tsx",
-          "type": "registry:ui",
-          "target": "@ui/popover.tsx"
         },
         {
           "path": "registry/ui/select.tsx",
@@ -7346,21 +7075,6 @@
           "path": "registry/ui/switch.tsx",
           "type": "registry:ui",
           "target": "@ui/switch.tsx"
-        },
-        {
-          "path": "registry/ui/tabs.tsx",
-          "type": "registry:ui",
-          "target": "@ui/tabs.tsx"
-        },
-        {
-          "path": "registry/ui/textarea.tsx",
-          "type": "registry:ui",
-          "target": "@ui/textarea.tsx"
-        },
-        {
-          "path": "registry/ui/tooltip.tsx",
-          "type": "registry:ui",
-          "target": "@ui/tooltip.tsx"
         },
         {
           "path": "registry/modules/A5-audit/contract.ts",
@@ -7558,6 +7272,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -8375,6 +8094,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-tables.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-tables.tsx"
@@ -8824,6 +8548,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -9676,6 +9405,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-tables.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-tables.tsx"
@@ -10315,6 +10049,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -11317,6 +11056,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-slots.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-slots.tsx"
@@ -11907,6 +11651,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -12964,6 +12713,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-slots.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-slots.tsx"
@@ -13618,6 +13372,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -14550,6 +14309,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-slots.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-slots.tsx"
@@ -14872,8 +14636,6 @@
         "@floating-ui/dom@^1.8.0",
         "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
-        "@tanstack/react-table@^9.3.1",
-        "@tanstack/react-virtual@^3.14.17",
         "@tiptap/core@^3.32.2",
         "@tiptap/extension-blockquote@^3.32.2",
         "@tiptap/extension-bold@^3.32.2",
@@ -14927,44 +14689,9 @@
           "target": "@components/erp/conflict-dialog.tsx"
         },
         {
-          "path": "registry/erp/data-table.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cards.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cards.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cells.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cells.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-grid.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-grid.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-pager.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-pager.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-selection.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-selection.tsx"
-        },
-        {
           "path": "registry/erp/date-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/date-input.tsx"
-        },
-        {
-          "path": "registry/erp/date-range-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-range-input.tsx"
         },
         {
           "path": "registry/erp/error-boundary.tsx",
@@ -14977,16 +14704,6 @@
           "target": "@components/erp/file-drop.tsx"
         },
         {
-          "path": "registry/erp/filter-bar.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-bar.tsx"
-        },
-        {
-          "path": "registry/erp/filter-panel.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-panel.tsx"
-        },
-        {
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
@@ -14997,14 +14714,9 @@
           "target": "@components/erp/form-select.tsx"
         },
         {
-          "path": "registry/erp/number-group.tsx",
+          "path": "registry/erp/page-header.tsx",
           "type": "registry:component",
-          "target": "@components/erp/number-group.tsx"
-        },
-        {
-          "path": "registry/erp/number-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/number-input.tsx"
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -15075,16 +14787,6 @@
           "path": "registry/erp/rich-text-view.tsx",
           "type": "registry:component",
           "target": "@components/erp/rich-text-view.tsx"
-        },
-        {
-          "path": "registry/erp/saved-view-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-view-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/saved-views-menu.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-views-menu.tsx"
         },
         {
           "path": "registry/erp/status-tabs.tsx",
@@ -15167,26 +14869,6 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
-          "path": "registry/hooks/use-grid-keyboard.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-grid-keyboard.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-counts.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-counts.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-settings.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-settings.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-state.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-state.ts"
-        },
-        {
           "path": "registry/hooks/use-me.ts",
           "type": "registry:hook",
           "target": "@hooks/use-me.ts"
@@ -15217,16 +14899,6 @@
           "target": "@hooks/use-record-search.ts"
         },
         {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
-          "path": "registry/hooks/use-saved-views.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-saved-views.ts"
-        },
-        {
           "path": "registry/hooks/use-tab-in-view.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-in-view.ts"
@@ -15240,16 +14912,6 @@
           "path": "registry/hooks/use-timeline.ts",
           "type": "registry:hook",
           "target": "@hooks/use-timeline.ts"
-        },
-        {
-          "path": "registry/hooks/use-virtual-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-virtual-rows.ts"
-        },
-        {
-          "path": "registry/hooks/use-windowed-list.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-windowed-list.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -15292,29 +14954,9 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/data-provider.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-provider.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
-        },
-        {
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
-        },
-        {
-          "path": "registry/lib/document-lifecycle.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-lifecycle.ts"
-        },
-        {
-          "path": "registry/lib/document-links.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-links.ts"
         },
         {
           "path": "registry/lib/edit-lock.ts",
@@ -15325,11 +14967,6 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
-        },
-        {
-          "path": "registry/lib/filters.ts",
-          "type": "registry:lib",
-          "target": "@lib/filters.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -15545,11 +15182,6 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
-        },
-        {
-          "path": "registry/lib/jobs.ts",
-          "type": "registry:lib",
-          "target": "@lib/jobs.ts"
         },
         {
           "path": "registry/lib/lazy.ts",
@@ -15792,11 +15424,6 @@
           "target": "@lib/record-access.ts"
         },
         {
-          "path": "registry/lib/record-label.tsx",
-          "type": "registry:lib",
-          "target": "@lib/record-label.tsx"
-        },
-        {
           "path": "registry/lib/rich-text.ts",
           "type": "registry:lib",
           "target": "@lib/rich-text.ts"
@@ -15807,16 +15434,6 @@
           "target": "@lib/roles.ts"
         },
         {
-          "path": "registry/lib/row-selection.ts",
-          "type": "registry:lib",
-          "target": "@lib/row-selection.ts"
-        },
-        {
-          "path": "registry/lib/saved-views.ts",
-          "type": "registry:lib",
-          "target": "@lib/saved-views.ts"
-        },
-        {
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
@@ -15825,11 +15442,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/sse.ts",
@@ -15870,16 +15482,6 @@
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
-        },
-        {
-          "path": "registry/templates/list-report.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report.tsx"
-        },
-        {
-          "path": "registry/templates/list-report-tables.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report-tables.tsx"
         },
         {
           "path": "registry/templates/object-page.tsx",
@@ -15925,11 +15527,6 @@
           "path": "registry/ui/card.tsx",
           "type": "registry:ui",
           "target": "@ui/card.tsx"
-        },
-        {
-          "path": "registry/ui/checkbox.tsx",
-          "type": "registry:ui",
-          "target": "@ui/checkbox.tsx"
         },
         {
           "path": "registry/ui/combobox.tsx",
@@ -16119,19 +15716,13 @@
       "description": "Модуль: сторінка «Сповіщення» (усі й непрочитані, позначки, «Прочитати все», «Показати ще») і «Налаштування сповіщень» (події й канали, тихі години, push на цьому пристрої); контракт lib/notifications, lib/notification-settings і підписки lib/web-push, фоновий файл public/erp-ui-push-sw.js, моки платформи зі сценаріями ресурсу notifications, фікстури, рядки uk/en; фабрика createNotificationsModule з маршрутами й навігацією, тип розширення NotificationsExtension (ADR-0013, ADR-0014, ADR-0020, ADR-0025, ADR-0046).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@hookform/resolvers@^5.9.1",
         "@tanstack/react-query@^5.104.2",
-        "@tanstack/react-table@^9.3.1",
-        "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
-        "react-day-picker@^10.0.2",
-        "react-hook-form@~7.90.0",
         "react-i18next@^17.0.16",
-        "react-number-format@^5.4.5",
         "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
@@ -16144,71 +15735,6 @@
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
-        },
-        {
-          "path": "registry/erp/confirm-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/confirm-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/data-table.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cards.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cards.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cells.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cells.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-grid.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-grid.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-pager.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-pager.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-selection.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-selection.tsx"
-        },
-        {
-          "path": "registry/erp/date-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-input.tsx"
-        },
-        {
-          "path": "registry/erp/date-range-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-range-input.tsx"
-        },
-        {
-          "path": "registry/erp/error-boundary.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/error-boundary.tsx"
-        },
-        {
-          "path": "registry/erp/filter-bar.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-bar.tsx"
-        },
-        {
-          "path": "registry/erp/filter-panel.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-panel.tsx"
-        },
-        {
-          "path": "registry/erp/form.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form.tsx"
         },
         {
           "path": "registry/erp/notification-bell.tsx",
@@ -16226,24 +15752,14 @@
           "target": "@components/erp/notification-settings-form.tsx"
         },
         {
-          "path": "registry/erp/number-group.tsx",
+          "path": "registry/erp/page-header.tsx",
           "type": "registry:component",
-          "target": "@components/erp/number-group.tsx"
-        },
-        {
-          "path": "registry/erp/number-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/number-input.tsx"
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
-        },
-        {
-          "path": "registry/erp/picker-field.ts",
-          "type": "registry:component",
-          "target": "@components/erp/picker-field.ts"
         },
         {
           "path": "registry/erp/push-device-section.tsx",
@@ -16256,39 +15772,9 @@
           "target": "~/public/erp-ui-push-sw.js"
         },
         {
-          "path": "registry/erp/record-picker.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker.tsx"
-        },
-        {
-          "path": "registry/erp/record-picker-parts.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/record-picker-parts.tsx"
-        },
-        {
-          "path": "registry/erp/saved-view-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-view-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/saved-views-menu.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-views-menu.tsx"
-        },
-        {
-          "path": "registry/erp/status-tabs.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/status-tabs.tsx"
-        },
-        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
-        },
-        {
-          "path": "registry/hooks/use-breakpoint.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-breakpoint.ts"
         },
         {
           "path": "registry/hooks/use-company.ts",
@@ -16296,44 +15782,14 @@
           "target": "@hooks/use-company.ts"
         },
         {
-          "path": "registry/hooks/use-element-size.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-element-size.ts"
-        },
-        {
           "path": "registry/hooks/use-email-link-token.ts",
           "type": "registry:hook",
           "target": "@hooks/use-email-link-token.ts"
         },
         {
-          "path": "registry/hooks/use-field-controller.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-field-controller.ts"
-        },
-        {
           "path": "registry/hooks/use-focus-heading.ts",
           "type": "registry:hook",
           "target": "@hooks/use-focus-heading.ts"
-        },
-        {
-          "path": "registry/hooks/use-grid-keyboard.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-grid-keyboard.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-counts.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-counts.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-settings.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-settings.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-state.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-state.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -16356,44 +15812,9 @@
           "target": "@hooks/use-realtime.ts"
         },
         {
-          "path": "registry/hooks/use-record-search.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-record-search.ts"
-        },
-        {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
-          "path": "registry/hooks/use-saved-views.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-saved-views.ts"
-        },
-        {
           "path": "registry/hooks/use-tab-counter.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-counter.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-in-view.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-in-view.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-param.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/hooks/use-virtual-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-virtual-rows.ts"
-        },
-        {
-          "path": "registry/hooks/use-windowed-list.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-windowed-list.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -16436,39 +15857,9 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/data-provider.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-provider.ts"
-        },
-        {
-          "path": "registry/lib/data-table-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-table-core.ts"
-        },
-        {
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
-        },
-        {
-          "path": "registry/lib/document-lifecycle.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-lifecycle.ts"
-        },
-        {
-          "path": "registry/lib/document-links.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-links.ts"
-        },
-        {
-          "path": "registry/lib/edit-lock.ts",
-          "type": "registry:lib",
-          "target": "@lib/edit-lock.ts"
-        },
-        {
-          "path": "registry/lib/filters.ts",
-          "type": "registry:lib",
-          "target": "@lib/filters.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -16671,11 +16062,6 @@
           "target": "@lib/icons.tsx"
         },
         {
-          "path": "registry/lib/imports.ts",
-          "type": "registry:lib",
-          "target": "@lib/imports.ts"
-        },
-        {
           "path": "registry/lib/invitations.ts",
           "type": "registry:lib",
           "target": "@lib/invitations.ts"
@@ -16686,24 +16072,9 @@
           "target": "@lib/invite-check.ts"
         },
         {
-          "path": "registry/lib/jobs.ts",
-          "type": "registry:lib",
-          "target": "@lib/jobs.ts"
-        },
-        {
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
-        },
-        {
-          "path": "registry/lib/list-settings.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-settings.ts"
-        },
-        {
-          "path": "registry/lib/list-state.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-state.ts"
         },
         {
           "path": "registry/lib/mock-inbox.ts",
@@ -16741,19 +16112,9 @@
           "target": "@lib/notifications.ts"
         },
         {
-          "path": "registry/lib/page-reload.ts",
-          "type": "registry:lib",
-          "target": "@lib/page-reload.ts"
-        },
-        {
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
-        },
-        {
-          "path": "registry/lib/pins.ts",
-          "type": "registry:lib",
-          "target": "@lib/pins.ts"
         },
         {
           "path": "registry/lib/push-device.ts",
@@ -16776,11 +16137,6 @@
           "target": "@lib/record-access.ts"
         },
         {
-          "path": "registry/lib/record-label.tsx",
-          "type": "registry:lib",
-          "target": "@lib/record-label.tsx"
-        },
-        {
           "path": "registry/lib/rich-text.ts",
           "type": "registry:lib",
           "target": "@lib/rich-text.ts"
@@ -16791,16 +16147,6 @@
           "target": "@lib/roles.ts"
         },
         {
-          "path": "registry/lib/row-selection.ts",
-          "type": "registry:lib",
-          "target": "@lib/row-selection.ts"
-        },
-        {
-          "path": "registry/lib/saved-views.ts",
-          "type": "registry:lib",
-          "target": "@lib/saved-views.ts"
-        },
-        {
           "path": "registry/lib/security-policy.ts",
           "type": "registry:lib",
           "target": "@lib/security-policy.ts"
@@ -16809,11 +16155,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/shortcuts.ts",
-          "type": "registry:lib",
-          "target": "@lib/shortcuts.ts"
         },
         {
           "path": "registry/lib/sse.ts",
@@ -16846,39 +16187,14 @@
           "target": "@lib/webhooks.ts"
         },
         {
-          "path": "registry/templates/list-report.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report.tsx"
-        },
-        {
-          "path": "registry/templates/list-report-tables.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report-tables.tsx"
-        },
-        {
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
         },
         {
-          "path": "registry/ui/alert-dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert-dialog.tsx"
-        },
-        {
-          "path": "registry/ui/badge.tsx",
-          "type": "registry:ui",
-          "target": "@ui/badge.tsx"
-        },
-        {
           "path": "registry/ui/button.tsx",
           "type": "registry:ui",
           "target": "@ui/button.tsx"
-        },
-        {
-          "path": "registry/ui/calendar.tsx",
-          "type": "registry:ui",
-          "target": "@ui/calendar.tsx"
         },
         {
           "path": "registry/ui/card.tsx",
@@ -16889,21 +16205,6 @@
           "path": "registry/ui/checkbox.tsx",
           "type": "registry:ui",
           "target": "@ui/checkbox.tsx"
-        },
-        {
-          "path": "registry/ui/combobox.tsx",
-          "type": "registry:ui",
-          "target": "@ui/combobox.tsx"
-        },
-        {
-          "path": "registry/ui/dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dialog.tsx"
-        },
-        {
-          "path": "registry/ui/dropdown-menu.tsx",
-          "type": "registry:ui",
-          "target": "@ui/dropdown-menu.tsx"
         },
         {
           "path": "registry/ui/empty.tsx",
@@ -16921,11 +16222,6 @@
           "target": "@ui/input.tsx"
         },
         {
-          "path": "registry/ui/input-group.tsx",
-          "type": "registry:ui",
-          "target": "@ui/input-group.tsx"
-        },
-        {
           "path": "registry/ui/label.tsx",
           "type": "registry:ui",
           "target": "@ui/label.tsx"
@@ -16936,19 +16232,9 @@
           "target": "@ui/popover.tsx"
         },
         {
-          "path": "registry/ui/select.tsx",
-          "type": "registry:ui",
-          "target": "@ui/select.tsx"
-        },
-        {
           "path": "registry/ui/separator.tsx",
           "type": "registry:ui",
           "target": "@ui/separator.tsx"
-        },
-        {
-          "path": "registry/ui/sheet.tsx",
-          "type": "registry:ui",
-          "target": "@ui/sheet.tsx"
         },
         {
           "path": "registry/ui/skeleton.tsx",
@@ -16969,16 +16255,6 @@
           "path": "registry/ui/tabs.tsx",
           "type": "registry:ui",
           "target": "@ui/tabs.tsx"
-        },
-        {
-          "path": "registry/ui/textarea.tsx",
-          "type": "registry:ui",
-          "target": "@ui/textarea.tsx"
-        },
-        {
-          "path": "registry/ui/tooltip.tsx",
-          "type": "registry:ui",
-          "target": "@ui/tooltip.tsx"
         },
         {
           "path": "registry/modules/N5-notifications/contract.ts",
@@ -95259,6 +94535,30 @@
       }
     },
     {
+      "name": "erp/page-header",
+      "type": "registry:component",
+      "title": "Шапка сторінки",
+      "description": "PageHeader: h1 сторінки, пояснення під ним і дії списком з ключами; на вузькому контейнері дії під заголовком; ціль фокуса після переходу (headingRef). Одна на всі екрани — список, форма документа, налаштування, ролі; сторінка ставить її над перевіркою сесії, щоб шапка не з'являлась заново (SPEC §7, ADR-0022, ADR-0091).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "organizations",
+        "spec": [
+          "§7",
+          "§9",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/page-state",
       "type": "registry:component",
       "title": "Стани сторінки",
@@ -125687,6 +124987,11 @@
           "target": "@components/erp/number-input.tsx"
         },
         {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -126287,6 +125592,11 @@
           "target": "@components/templates/list-report.tsx"
         },
         {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
           "path": "registry/templates/list-report-slots.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report-slots.tsx"
@@ -126478,44 +125788,9 @@
           "target": "@components/erp/conflict-dialog.tsx"
         },
         {
-          "path": "registry/erp/data-table.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cards.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cards.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-cells.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-cells.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-grid.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-grid.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-pager.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-pager.tsx"
-        },
-        {
-          "path": "registry/erp/data-table-selection.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/data-table-selection.tsx"
-        },
-        {
           "path": "registry/erp/date-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/date-input.tsx"
-        },
-        {
-          "path": "registry/erp/date-range-input.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/date-range-input.tsx"
         },
         {
           "path": "registry/erp/document-discount-field.tsx",
@@ -126578,16 +125853,6 @@
           "target": "@components/erp/extension-field-input.tsx"
         },
         {
-          "path": "registry/erp/filter-bar.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-bar.tsx"
-        },
-        {
-          "path": "registry/erp/filter-panel.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/filter-panel.tsx"
-        },
-        {
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
@@ -126606,6 +125871,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -126663,24 +125933,9 @@
           "target": "@components/erp/repeating-rows-virtual.tsx"
         },
         {
-          "path": "registry/erp/saved-view-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-view-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/saved-views-menu.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/saved-views-menu.tsx"
-        },
-        {
           "path": "registry/erp/shortcut-keys.tsx",
           "type": "registry:component",
           "target": "@components/erp/shortcut-keys.tsx"
-        },
-        {
-          "path": "registry/erp/status-tabs.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/status-tabs.tsx"
         },
         {
           "path": "registry/hooks/use-api-error-message.ts",
@@ -126703,11 +125958,6 @@
           "target": "@hooks/use-company.ts"
         },
         {
-          "path": "registry/hooks/use-element-size.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-element-size.ts"
-        },
-        {
           "path": "registry/hooks/use-field-controller.ts",
           "type": "registry:hook",
           "target": "@hooks/use-field-controller.ts"
@@ -126718,29 +125968,9 @@
           "target": "@hooks/use-focus-heading.ts"
         },
         {
-          "path": "registry/hooks/use-grid-keyboard.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-grid-keyboard.ts"
-        },
-        {
           "path": "registry/hooks/use-line-dictionaries.ts",
           "type": "registry:hook",
           "target": "@hooks/use-line-dictionaries.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-counts.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-counts.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-settings.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-settings.ts"
-        },
-        {
-          "path": "registry/hooks/use-list-state.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-list-state.ts"
         },
         {
           "path": "registry/hooks/use-me.ts",
@@ -126758,39 +125988,14 @@
           "target": "@hooks/use-record-search.ts"
         },
         {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
-          "path": "registry/hooks/use-saved-views.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-saved-views.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-in-view.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-in-view.ts"
-        },
-        {
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
         },
         {
-          "path": "registry/hooks/use-virtual-rows.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-virtual-rows.ts"
-        },
-        {
           "path": "registry/hooks/use-window-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-window-rows.ts"
-        },
-        {
-          "path": "registry/hooks/use-windowed-list.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-windowed-list.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -126833,11 +126038,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/data-provider.ts",
-          "type": "registry:lib",
-          "target": "@lib/data-provider.ts"
-        },
-        {
           "path": "registry/lib/data-table-core.ts",
           "type": "registry:lib",
           "target": "@lib/data-table-core.ts"
@@ -126848,19 +126048,9 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/document-lifecycle.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-lifecycle.ts"
-        },
-        {
           "path": "registry/lib/document-lines.ts",
           "type": "registry:lib",
           "target": "@lib/document-lines.ts"
-        },
-        {
-          "path": "registry/lib/document-links.ts",
-          "type": "registry:lib",
-          "target": "@lib/document-links.ts"
         },
         {
           "path": "registry/lib/document-totals.ts",
@@ -127093,11 +126283,6 @@
           "target": "@lib/icons.tsx"
         },
         {
-          "path": "registry/lib/imports.ts",
-          "type": "registry:lib",
-          "target": "@lib/imports.ts"
-        },
-        {
           "path": "registry/lib/invitations.ts",
           "type": "registry:lib",
           "target": "@lib/invitations.ts"
@@ -127108,19 +126293,9 @@
           "target": "@lib/invite-check.ts"
         },
         {
-          "path": "registry/lib/jobs.ts",
-          "type": "registry:lib",
-          "target": "@lib/jobs.ts"
-        },
-        {
           "path": "registry/lib/lazy.ts",
           "type": "registry:lib",
           "target": "@lib/lazy.ts"
-        },
-        {
-          "path": "registry/lib/list-settings.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-settings.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -127146,11 +126321,6 @@
           "path": "registry/lib/passkey.ts",
           "type": "registry:lib",
           "target": "@lib/passkey.ts"
-        },
-        {
-          "path": "registry/lib/pins.ts",
-          "type": "registry:lib",
-          "target": "@lib/pins.ts"
         },
         {
           "path": "registry/lib/ra-core.ts",
@@ -127181,16 +126351,6 @@
           "path": "registry/lib/roles.ts",
           "type": "registry:lib",
           "target": "@lib/roles.ts"
-        },
-        {
-          "path": "registry/lib/row-selection.ts",
-          "type": "registry:lib",
-          "target": "@lib/row-selection.ts"
-        },
-        {
-          "path": "registry/lib/saved-views.ts",
-          "type": "registry:lib",
-          "target": "@lib/saved-views.ts"
         },
         {
           "path": "registry/lib/security-policy.ts",
@@ -127238,16 +126398,6 @@
           "target": "@lib/webhooks.ts"
         },
         {
-          "path": "registry/templates/list-report.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report.tsx"
-        },
-        {
-          "path": "registry/templates/list-report-tables.tsx",
-          "type": "registry:component",
-          "target": "@components/templates/list-report-tables.tsx"
-        },
-        {
           "path": "registry/ui/alert.tsx",
           "type": "registry:ui",
           "target": "@ui/alert.tsx"
@@ -127256,11 +126406,6 @@
           "path": "registry/ui/alert-dialog.tsx",
           "type": "registry:ui",
           "target": "@ui/alert-dialog.tsx"
-        },
-        {
-          "path": "registry/ui/badge.tsx",
-          "type": "registry:ui",
-          "target": "@ui/badge.tsx"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -127358,11 +126503,6 @@
           "target": "@ui/table.tsx"
         },
         {
-          "path": "registry/ui/tabs.tsx",
-          "type": "registry:ui",
-          "target": "@ui/tabs.tsx"
-        },
-        {
           "path": "registry/ui/textarea.tsx",
           "type": "registry:ui",
           "target": "@ui/textarea.tsx"
@@ -127381,6 +126521,276 @@
           "§7",
           "§8.1",
           "§8.2"
+        ]
+      }
+    },
+    {
+      "name": "templates/list-report-layouts",
+      "type": "registry:component",
+      "title": "Подання списку",
+      "description": "Частина templates/list-report: перемикач подань біля «Фільтри» (кнопки з aria-pressed, з одним поданням його немає) і вміст подання — компонент модуля замість таблиці (дошка, календар), що отримує той самий фільтр запиту, сортування й вибір. Вибране подання — в адресі (?layout=) і у збереженому виді; «Стандартний» вид і «Скинути фільтри» подання не міняють. Ставиться разом із templates/list-report (ADR-0091).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
+        },
+        {
+          "path": "registry/hooks/use-row-selection.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-row-selection.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/jobs.ts",
+          "type": "registry:lib",
+          "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/list-state.ts",
+          "type": "registry:lib",
+          "target": "@lib/list-state.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
+          "path": "registry/lib/row-selection.ts",
+          "type": "registry:lib",
+          "target": "@lib/row-selection.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "templates",
+        "status": "beta",
+        "demo": "organizations",
+        "spec": [
+          "§7",
+          "§8.1",
+          "§9",
+          "§10"
         ]
       }
     },
@@ -127488,6 +126898,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -128038,6 +127453,11 @@
           "path": "registry/templates/list-report.tsx",
           "type": "registry:component",
           "target": "@components/templates/list-report.tsx"
+        },
+        {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
         },
         {
           "path": "registry/templates/list-report-tables.tsx",
@@ -128665,7 +128085,7 @@
       "name": "templates/list-report",
       "type": "registry:component",
       "title": "Список (List Report)",
-      "description": "Шаблон списку: заголовок і дії, вкладки-статуси з лічильниками, FilterBar із чипами, збережені види, панель масових дій, таблиця з картками на телефоні — прокрутка вікнами по 100 чи сторінки; стан в адресі (useListReport); закріплені записи першим блоком (isPinned), запам'ятаний розмір сторінки. Колонки, фільтри, вкладки й дії — списки з ключами для розширень модуля (SPEC §7, ADR-0020, ADR-0022, ADR-0024).",
+      "description": "Шаблон списку: заголовок і дії (erp/page-header), вкладки-статуси з лічильниками, FilterBar із чипами, збережені види, панель масових дій, таблиця з картками на телефоні — прокрутка вікнами по 100 чи сторінки; подання (layouts) — ті самі записи дошкою чи календарем модуля з тими самими вкладками, фільтрами, видами й вибором; стан в адресі (useListReport); закріплені записи першим блоком (isPinned), запам'ятаний розмір сторінки. Колонки, фільтри, вкладки, подання й дії — списки з ключами для розширень модуля (SPEC §7, ADR-0020, ADR-0022, ADR-0024, ADR-0091).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@hookform/resolvers@^5.9.1",
@@ -128765,6 +128185,11 @@
           "path": "registry/erp/number-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-input.tsx"
+        },
+        {
+          "path": "registry/erp/page-header.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/page-header.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -129300,6 +128725,11 @@
           "path": "registry/lib/webhooks.ts",
           "type": "registry:lib",
           "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/templates/list-report-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/templates/list-report-layouts.tsx"
         },
         {
           "path": "registry/templates/list-report-tables.tsx",
