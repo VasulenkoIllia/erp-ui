@@ -7,7 +7,7 @@
       "name": "base",
       "type": "registry:item",
       "title": "Основа erp-ui",
-      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code, команда оновлення кіта scripts/erp-ui-kit.mjs.",
+      "description": "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code, команда оновлення кіта scripts/erp-ui-kit.mjs, перевірка «лише токени» scripts/erp-ui-check-tokens.mjs.",
       "dependencies": [
         "@fontsource/geist@^5.3.0",
         "cn@^0.4.0",
@@ -41,6 +41,71 @@
           "path": "registry/claude/skills/erp-ui/SKILL.md",
           "type": "registry:file",
           "target": "~/.claude/skills/erp-ui/SKILL.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/app.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/app.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/basics.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/basics.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/data.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/data.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents-money.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents-money.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents-print.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents-print.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/forms.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/forms.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/kit.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/kit.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/lists.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/lists.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/module-notes.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/module-notes.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/modules.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/modules.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/record.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/record.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/rights.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/rights.md"
         },
         {
           "path": "registry/claude/CLAUDE.project.md",
@@ -81,6 +146,11 @@
           "path": "registry/tools/erp-ui-kit-changelog.mjs",
           "type": "registry:file",
           "target": "~/scripts/erp-ui-kit-changelog.mjs"
+        },
+        {
+          "path": "registry/tools/erp-ui-check-tokens.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/erp-ui-check-tokens.mjs"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -308,7 +378,7 @@
           "target": "@lib/icons.tsx"
         }
       ],
-      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.\n5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.",
+      "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.\n5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.\n6) Лише токени тем у коді проекту — node scripts/erp-ui-check-tokens.mjs у lint проекту (за замовчуванням тека src).",
       "meta": {
         "layer": "base",
         "status": "beta",
@@ -2217,13 +2287,78 @@
       "name": "claude",
       "type": "registry:item",
       "title": "Правила для Claude Code",
-      "description": "Скіл erp-ui, блок для CLAUDE.md, SPEC і каталог реєстру в docs/erp-ui/.",
+      "description": "Скіл erp-ui (ядро SKILL.md і довідки за темами в references/), блок для CLAUDE.md, SPEC і каталог реєстру в docs/erp-ui/.",
       "dependencies": [],
       "files": [
         {
           "path": "registry/claude/skills/erp-ui/SKILL.md",
           "type": "registry:file",
           "target": "~/.claude/skills/erp-ui/SKILL.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/app.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/app.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/basics.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/basics.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/data.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/data.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents-money.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents-money.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/documents-print.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/documents-print.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/forms.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/forms.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/kit.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/kit.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/lists.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/lists.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/module-notes.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/module-notes.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/modules.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/modules.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/record.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/record.md"
+        },
+        {
+          "path": "registry/claude/skills/erp-ui/references/rights.md",
+          "type": "registry:file",
+          "target": "~/.claude/skills/erp-ui/references/rights.md"
         },
         {
           "path": "registry/claude/CLAUDE.project.md",
@@ -2289,6 +2424,29 @@
         "status": "beta",
         "spec": [
           "§3"
+        ]
+      }
+    },
+    {
+      "name": "tools/check-tokens",
+      "type": "registry:item",
+      "title": "Перевірка «лише токени»",
+      "description": "scripts/erp-ui-check-tokens.mjs [теки…]: у файлах .ts, .tsx, .js, .jsx, .css проекту (за замовчуванням тека src) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри …/styles/erp-ui/themes.css пропускає; тека, якої немає, чи жодного файла — помилка; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/tools/erp-ui-check-tokens.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/erp-ui-check-tokens.mjs"
+        }
+      ],
+      "docs": "Додайте в lint проекту: node scripts/erp-ui-check-tokens.mjs",
+      "meta": {
+        "layer": "tools",
+        "status": "beta",
+        "spec": [
+          "§6",
+          "§19"
         ]
       }
     },

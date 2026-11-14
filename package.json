@@ -12,7 +12,7 @@
     "dev": "pnpm --filter @erp-ui/demo dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "eslint . && prettier --check . && node scripts/check-tokens.mjs && pnpm check:contrast && pnpm check:registry && pnpm check:copies",
+    "lint": "eslint . && prettier --check . && node registry/tools/erp-ui-check-tokens.mjs apps registry && pnpm check:contrast && pnpm check:registry && pnpm check:copies && pnpm check:docs",
     "format": "prettier --write .",
     "test": "node --test \"scripts/*.test.mjs\" \"design/*.test.mjs\" && pnpm -r test",
     "e2e": "pnpm --filter @erp-ui/demo e2e",
@@ -25,6 +25,8 @@
     "check:registry": "node scripts/build-registry.mjs --check",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:copies": "node scripts/check-module-copies.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "adr-index": "node scripts/adr-index.mjs",
     "consumer-smoke": "node scripts/consumer-smoke.mjs",
     "upgrade-smoke": "node scripts/upgrade-smoke.mjs"
   },

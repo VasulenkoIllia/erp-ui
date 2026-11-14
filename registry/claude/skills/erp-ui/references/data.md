@@ -1,0 +1,8 @@
+# erp-ui: Дані й моки
+
+Довідка скіла `erp-ui` (імпорт і експорт, контракт, API й вхід, моки). Відкривай, коли задача зачіпає тему; правила ядра (`../SKILL.md`) діють і тут.
+
+- **Імпорт і експорт** (ADR-0049) — `ImportWizard` з `erp/import-wizard`, `ExportDialog` з `erp/export-dialog`, вибір файла — `FileDrop` з `erp/file-drop`. Бібліотеку `hucre` напряму не імпортуй: лише через `lib/spreadsheet`, вона має лишатись окремим чанком.
+- **Дані** лише через контракт модуля (`contract.ts`). Змінюєш контракт — оновлюєш моки (`mocks.ts`), fixtures і переклади в тому ж коміті.
+- **API й вхід** — за ADR-0002/0003 кіта: `createApiClient` + `createDataProvider` + `createAuthProvider` (пакунок `data`), хуки ra-core (`useGetList`, `useUpdate`, `useCanAccess`, `useAuthenticated`), профіль — `useMe()`. Фільтри — плоскі (`status`, `amount_gte`, `q`), збереження — з `version`, 409 → `ConflictDialog`, текст помилки — `useApiErrorMessage`. Свого fetch-шару не пиши.
+- **Моки** — `createResourceHandlers` / `createPlatformHandlers` з `lib/mocks` (пакунок `mocks`), сценарії перемикає `DevPanel`; кожен екран перевір у всіх семи сценаріях. Обробники — лише в `src/mocks/`, старт і `DevPanel` — під `import.meta.env.VITE_BACKEND === "mocks"` з `import()` (ADR-0079): `vite.config.ts` дає моки в розробці без змінної й зупиняє збірку без `VITE_BACKEND`; стала з окремого файла чи обробники поза текою тягнуть MSW у продакшн (посібник, розділ 5, «Моки поза продакшном»).
