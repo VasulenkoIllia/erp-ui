@@ -11,7 +11,7 @@
 pnpm install
 pnpm dev          # демо на http://localhost:5173
 pnpm typecheck    # tsc -b
-pnpm lint         # eslint + prettier --check + check-tokens
+pnpm lint         # eslint + prettier --check + check-tokens + check:contrast + check:registry + check:copies + check:docs
 pnpm test         # тести скриптів (node:test) + Vitest
 pnpm e2e          # Playwright + axe (збирає демо й піднімає vite preview на :4173)
 pnpm perf         # бюджети швидкості: LCP і INP
@@ -21,6 +21,8 @@ pnpm themes       # згенерувати design/themes.css і звіт кон�
 pnpm check:contrast  # themes.css актуальний, контраст проходить (входить у lint)
 pnpm registry     # згенерувати registry.json і docs/CATALOG.md з registry/registry.config.mjs
 pnpm check:registry  # вони актуальні, схема shadcn, сторінки демо (входить у lint)
+pnpm adr-index    # стовпець «Статус» покажчика docs/adr/README.md з файлів ADR
+pnpm check:docs   # покажчик ADR і рядки «Змінено», межі розміру скіла, назви в скілі є в коді (входить у lint)
 pnpm consumer-smoke --ref <коміт|тег>  # поставити кіт із GitHub у чистий проект і зібрати
 pnpm consumer-smoke --local --ref main  # те саме з реєстру робочої копії; з GitHub лише ui/button (як у CI)
 pnpm upgrade-smoke  # проект на попередньому тегу оновити командою кіта до HEAD (закомічений стан), зібрати (як у CI)

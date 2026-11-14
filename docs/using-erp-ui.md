@@ -27,17 +27,18 @@ git add -A && git commit -m "erp-ui: base v1.3.0"   # команда кіта п
 node scripts/erp-ui-kit.mjs update v1.3.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
 ```
 
-Останній рядок ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.3.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check`: перевірка, що файли кіта в проекті не правлені.
+Останній рядок ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.3.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check` (файли кіта в проекті не правлені) і `node scripts/erp-ui-check-tokens.mjs` (лише токени тем у коді проекту, ADR-0089).
 
-Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
+Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `scripts/erp-ui-check-tokens.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
 `base` ставить:
 - теми й токени в `src/styles/erp-ui/` і замінює `src/index.css` точкою входу erp-ui (CLI спитає дозволу);
 - `cn` у `src/lib/utils.ts` і `useResolvedTheme` у `src/hooks/`;
 - мови й форматери: `src/lib/i18n.ts` (+ рядки кіта `i18n-uk.ts`, `i18n-en.ts`) і `src/lib/format.ts`;
 - вподобання вигляду `src/lib/appearance.ts` + `src/hooks/use-appearance.ts` і словник іконок `src/lib/icons.tsx`;
-- скіл для Claude Code у `.claude/skills/erp-ui/`, SPEC і каталог у `docs/erp-ui/`;
-- команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`, `erp-ui-kit-deps.mjs`, `erp-ui-kit-manifest.mjs`, `erp-ui-kit-changelog.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029, ADR-0078).
+- скіл для Claude Code у `.claude/skills/erp-ui/` (ядро `SKILL.md` і довідки за темами в `references/`, ADR-0089), SPEC і каталог у `docs/erp-ui/`;
+- команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`, `erp-ui-kit-deps.mjs`, `erp-ui-kit-manifest.mjs`, `erp-ui-kit-changelog.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029, ADR-0078);
+- перевірку `scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`): сирі кольори, стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри `src/styles/erp-ui/themes.css` пропускає, виняток для рядка — коментар `erp-ui: allow-raw-value — <причина>` (ADR-0089).
 
 Після цього додайте в `CLAUDE.md` проекту рядок:
 
@@ -1524,6 +1525,7 @@ node scripts/erp-ui-kit.mjs update vX.Y.Z             # оновити всі в
 node scripts/erp-ui-kit.mjs update vX.Y.Z --add erp/command-palette   # і поставити новий
 node scripts/erp-ui-kit.mjs update vX.Y.Z --prune     # і видалити незмінені файли-сироти
 node scripts/erp-ui-kit.mjs check                     # файли кіта не правлені (у pnpm lint і CI)
+node scripts/erp-ui-check-tokens.mjs                  # лише токени тем у src (у pnpm lint і CI)
 ```
 
 - Що робить `update`: вимагає чисте git (оновлення видно окремо в `git diff`, повернути — `git restore .`) і незмінені файли кіта → бере SHA коміту тегу (`gh api repos/VasulenkoIllia/erp-ui/commits/refs/tags/vX.Y.Z`) і архів саме цього коміту (`…/tarball/<SHA>`, ~1,5 МБ; тайм-аут 120 с, повтори через 5 і 30 с після збою мережі, 5xx чи 429; на 401, 404 і вичерпаному ліміті — зупинка з поясненням) → перелік архіву до розпакування: символьне чи жорстке посилання — зупинка → перевіряє, що це кіт і та версія, рахує відбиток реєстру → `shadcn build` закріпленою CLI проекту → звіт `add --dry-run` (зміниться, нові, без змін; які залежності додасться) → зупинка, якщо тег той самий, а вміст інший, чи файл, що перезапишеться, має позначку локальної правки; попередження, якщо перезапишеться файл, якого немає в `kit-files.json` (ваш файл на шляху нового файла кіта: перенесіть його під іншу назву; файл, що його git ігнорує, — з приміткою, бо `git restore` його не поверне; скіл і `docs/erp-ui/` — без попередження) → `add --overwrite --yes` (лише файли) → залежності, яких у проекті немає → нові відбитки в `kit-files.json` → наприкінці — розділи «Що зробити в проекті» з `CHANGELOG.md` кіта між версією проекту й новою (і в `--dry-run`): їх проект робить руками; розділи без цього пункту названо окремим рядком — зміни поведінки шукайте в них. Напряму з GitHub CLI робить на модуль тисячі запитів з тайм-аутом 15 с і без повтору, тож команда так не робить (крок 1.7b).

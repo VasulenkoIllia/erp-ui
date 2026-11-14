@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 /**
- * «Лише токени» (SPEC §19, правило 2).
- * Шукає в коді кіта сирі кольори й довільні розміри, що оминають теми й шкалу Tailwind:
+ * «Лише токени» (SPEC §19, правило 2): сирі кольори й довільні розміри, що оминають теми й шкалу Tailwind.
  *   - hex-кольори (#fff, #1a2b3c);
- *   - колірні функції (rgb(), hsl(), oklch() …) поза design/;
- *   - стандартну палітру Tailwind (bg-red-500, text-white …) — у демо її вимкнено, клас нічого не дасть;
+ *   - колірні функції (rgb(), hsl(), oklch() …);
+ *   - стандартну палітру Tailwind (bg-red-500, text-white …) — у темах кіта її вимкнено, клас нічого не дасть;
  *   - довільні значення розмірів у класах (p-[13px], rounded-[10px], text-[15px]);
  *   - рух поза токенами (ADR-0009): transition-all, duration-200, ease-linear тощо.
  * Виняток для окремого рядка: коментар `erp-ui: allow-raw-value — <причина>`.
+ *
+ * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`), у lint проекту (ADR-0089).
+ * Файл ставить команда кіта разом із `base`: у проекті його не правте.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -80,7 +82,9 @@ export function findViolations(text) {
   return violations
 }
 
-const ROOTS = ["apps", "registry"]
+const DEFAULT_ROOTS = ["src"]
+/** Палітри тем генерує кіт із власних кольорів (`design/generate-themes.mjs`): там сирі кольори — джерело токенів. */
+const GENERATED_FILES = new Set(["src/styles/erp-ui/themes.css"])
 const EXTENSIONS = new Set([".ts", ".tsx", ".css"])
 const SKIP_DIRS = new Set([
   "node_modules",
@@ -106,25 +110,34 @@ function* walk(dir) {
   }
 }
 
-function main() {
-  const repoRoot = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "..",
-  )
-  let total = 0
-  for (const root of ROOTS) {
-    for (const file of walk(path.join(repoRoot, root))) {
-      for (const v of findViolations(readFileSync(file, "utf8"))) {
-        total++
-        console.error(
-          `${path.relative(repoRoot, file)}:${v.line}  ${v.rule}  «${v.match}» — ${v.message}`,
-        )
-      }
+/** Порушення в теках `roots` відносно `cwd`; згенеровані палітри пропускає. */
+export function scanRoots(cwd, roots) {
+  const found = []
+  for (const root of roots) {
+    for (const file of walk(path.resolve(cwd, root))) {
+      const relative = path.relative(cwd, file).split(path.sep).join("/")
+      if (GENERATED_FILES.has(relative)) continue
+      for (const v of findViolations(readFileSync(file, "utf8")))
+        found.push({ file: relative, ...v })
     }
   }
-  if (total > 0) {
+  return found
+}
+
+function main() {
+  const roots = process.argv.slice(2)
+  const cwd = process.cwd()
+  const missing = roots.filter((root) => !existsSync(path.resolve(cwd, root)))
+  if (missing.length) {
+    console.error(`check-tokens: немає теки ${missing.join(", ")}`)
+    process.exit(1)
+  }
+  const found = scanRoots(cwd, roots.length ? roots : DEFAULT_ROOTS)
+  for (const v of found)
+    console.error(`${v.file}:${v.line}  ${v.rule}  «${v.match}» — ${v.message}`)
+  if (found.length > 0) {
     console.error(
-      `\ncheck-tokens: ${total} порушень. Виняток для рядка: коментар «${ALLOW_MARK} — <причина>».`,
+      `\ncheck-tokens: ${found.length} порушень. Виняток для рядка: коментар «${ALLOW_MARK} — <причина>».`,
     )
     process.exit(1)
   }

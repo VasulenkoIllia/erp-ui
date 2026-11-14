@@ -3411,11 +3411,32 @@ const TOKEN_FILES = [
   },
 ]
 
+/** Довідки скіла за темами (ADR-0089): ядро `SKILL.md` називає кожну, `pnpm check:docs` звіряє з текою. */
+const SKILL_REFERENCES = [
+  "app",
+  "basics",
+  "data",
+  "documents",
+  "documents-money",
+  "documents-print",
+  "forms",
+  "kit",
+  "lists",
+  "module-notes",
+  "modules",
+  "record",
+  "rights",
+]
+
 const CLAUDE_FILES = [
   {
     path: "registry/claude/skills/erp-ui/SKILL.md",
     target: "~/.claude/skills/erp-ui/SKILL.md",
   },
+  ...SKILL_REFERENCES.map((name) => ({
+    path: `registry/claude/skills/erp-ui/references/${name}.md`,
+    target: `~/.claude/skills/erp-ui/references/${name}.md`,
+  })),
   {
     path: "registry/claude/CLAUDE.project.md",
     target: "~/docs/erp-ui/CLAUDE.project.md",
@@ -3445,6 +3466,14 @@ const KIT_TOOL_FILES = [
   {
     path: "registry/tools/erp-ui-kit-changelog.mjs",
     target: "~/scripts/erp-ui-kit-changelog.mjs",
+  },
+]
+
+/** «Лише токени» в коді проекту (ADR-0089): той самий файл перевіряє й кіт у `pnpm lint`. */
+const CHECK_TOKENS_FILES = [
+  {
+    path: "registry/tools/erp-ui-check-tokens.mjs",
+    target: "~/scripts/erp-ui-check-tokens.mjs",
   },
 ]
 
@@ -3616,11 +3645,16 @@ export const BUNDLE_ITEMS = {
   base: {
     title: "Основа erp-ui",
     description:
-      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code, команда оновлення кіта scripts/erp-ui-kit.mjs.",
+      "Усе для старту проекту однією командою: теми й токени, базові стилі, cn, вподобання вигляду, мови й форматери, словник іконок, скіл і правила для Claude Code, команда оновлення кіта scripts/erp-ui-kit.mjs, перевірка «лише токени» scripts/erp-ui-check-tokens.mjs.",
     status: "beta",
     demo: "appearance",
     spec: ["§3", "§6", "§19"],
-    files: [...TOKEN_FILES, ...CLAUDE_FILES, ...KIT_TOOL_FILES],
+    files: [
+      ...TOKEN_FILES,
+      ...CLAUDE_FILES,
+      ...KIT_TOOL_FILES,
+      ...CHECK_TOKENS_FILES,
+    ],
     include: [
       "lib/utils",
       "hooks/use-resolved-theme",
@@ -3642,6 +3676,7 @@ export const BUNDLE_ITEMS = {
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
       "5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.",
+      "6) Лише токени тем у коді проекту — node scripts/erp-ui-check-tokens.mjs у lint проекту (за замовчуванням тека src).",
     ].join("\n"),
   },
   data: {
@@ -3748,7 +3783,7 @@ export const BUNDLE_ITEMS = {
   claude: {
     title: "Правила для Claude Code",
     description:
-      "Скіл erp-ui, блок для CLAUDE.md, SPEC і каталог реєстру в docs/erp-ui/.",
+      "Скіл erp-ui (ядро SKILL.md і довідки за темами в references/), блок для CLAUDE.md, SPEC і каталог реєстру в docs/erp-ui/.",
     status: "beta",
     spec: ["§19"],
     files: CLAUDE_FILES,
@@ -3763,6 +3798,16 @@ export const BUNDLE_ITEMS = {
     spec: ["§3"],
     files: KIT_TOOL_FILES,
     docs: "Оновлення: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — --items base,…); перевірка: node scripts/erp-ui-kit.mjs check.",
+  },
+  "tools/check-tokens": {
+    layer: "tools",
+    title: "Перевірка «лише токени»",
+    description:
+      "scripts/erp-ui-check-tokens.mjs [теки…]: у коді проекту (за замовчуванням src) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри src/styles/erp-ui/themes.css пропускає; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
+    status: "beta",
+    spec: ["§6", "§19"],
+    files: CHECK_TOKENS_FILES,
+    docs: "Додайте в lint проекту: node scripts/erp-ui-check-tokens.mjs",
   },
   "tools/e2e": {
     layer: "tools",

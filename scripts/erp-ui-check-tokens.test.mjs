@@ -1,7 +1,13 @@
 import assert from "node:assert/strict"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import path from "node:path"
 import { test } from "node:test"
 
-import { findViolations } from "./check-tokens.mjs"
+import {
+  findViolations,
+  scanRoots,
+} from "../registry/tools/erp-ui-check-tokens.mjs"
 
 const rules = (text) => findViolations(text).map((v) => v.rule)
 
@@ -61,4 +67,30 @@ test("поважає явний виняток", () => {
     rules('color: "#000" // erp-ui: allow-raw-value — колір бренду клієнта'),
     [],
   )
+})
+
+test("у проекті сканує src і пропускає згенеровані палітри тем", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "erp-ui-check-tokens-"))
+  try {
+    const write = (file, text) => {
+      mkdirSync(path.dirname(path.join(dir, file)), { recursive: true })
+      writeFileSync(path.join(dir, file), text)
+    }
+    write(
+      "src/styles/erp-ui/themes.css",
+      ":root { --primary: oklch(0.5 0.1 250); }",
+    )
+    write(
+      "src/App.tsx",
+      'export const App = () => <div className="bg-red-500" />',
+    )
+    write("src/node_modules/x.css", "a { color: #fff; }")
+    write("src/types.d.ts", "// #fff")
+    assert.deepEqual(
+      scanRoots(dir, ["src"]).map((v) => `${v.file}:${v.rule}`),
+      ["src/App.tsx:tailwind-palette"],
+    )
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

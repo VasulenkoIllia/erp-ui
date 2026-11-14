@@ -283,6 +283,8 @@ async function fullInstall(source) {
   if (source) checkModulesVerbatim(dir)
 
   await exec("pnpm", ["typecheck"])
+  // Перевірка «лише токени», що ставиться з `base`, проходить код кіта в проекті (ADR-0089).
+  await exec("node", ["scripts/erp-ui-check-tokens.mjs"])
   await checkMocksOutOfProduction(dir)
 }
 
