@@ -485,6 +485,16 @@ describe("вимкнений рядок зникає разом із кнопк�
     expect(document.activeElement).toBe(heading)
   })
 
+  it("рядок зник ще до виклику: таблиця, знайдена до запиту, віддає фокус заголовку", () => {
+    const { button, neighbour, heading, ref } = setup()
+    const table = button.closest('[data-slot="data-table"]')
+    button.remove()
+    neighbour.focus()
+    focusHeadingOnceRemoved(button, ref, table)
+    nextFrame()
+    expect(document.activeElement).toBe(heading)
+  })
+
   it("людина вже пішла з таблиці: фокус лишається в неї", () => {
     const { button, ref } = setup()
     const pager = document.body.appendChild(document.createElement("button"))
@@ -497,7 +507,7 @@ describe("вимкнений рядок зникає разом із кнопк�
 
   it("рядок лишився: фокус не чіпаємо й перестаємо чекати", () => {
     const { button, ref } = setup()
-    focusHeadingOnceRemoved(button, ref, 3)
+    focusHeadingOnceRemoved(button, ref, undefined, 3)
     nextFrame()
     nextFrame()
     nextFrame()
