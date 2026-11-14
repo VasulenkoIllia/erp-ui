@@ -491,7 +491,7 @@
   },
   "salesInvoiceExtension": {
     "print": "Друк",
-    "printFor": "Друкувати рахунок {{number}}",
+    "printFor": "Друк рахунку {{number}}",
     "draft": "без номера",
     "export": "Вивантажити",
     "exported_one": "Вивантаження {{value}} рахунку поставлено в чергу (демо)",

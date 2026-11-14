@@ -33,8 +33,7 @@ import {
 } from "@/registry/lib/document-lines"
 import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { extensionFormValues } from "@/registry/lib/extension-form"
-import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
-import { localizedText } from "@/registry/lib/auth"
+import { useErpUiT } from "@/registry/lib/i18n"
 import {
   ariaKeyShortcuts,
   isMacPlatform,
@@ -71,8 +70,8 @@ import { Button } from "@/registry/ui/button"
  *   Рядок поза екраном забуває вибраний вид нульової знижки; знижка зі значенням не губиться.
  * - Поля рядка поза екраном немає в DOM: форма — з `shouldFocusError: false` і `FormErrorSummary`, яке
  *   переводить на рядок із помилкою. У діалозі чи шторці з власною прокруткою малюються всі рядки.
- * - Поля розширення рядка (`lineFields`, ADR-0086): у рядку товару під назвою, підписи — під «Назва» над
- *   таблицею; новий рядок отримує їхні порожні значення.
+ * - Поля розширення рядка (`lineFields`, ADR-0086): у рядку товару під назвою з видимим підписом і на
+ *   широкому екрані; новий рядок отримує їхні порожні значення.
  * - Великий документ з клавіатури (UI05d, ADR-0064): Ctrl+End з будь-якого місця рядків — на знижку
  *   документа повз рядки. Від `virtualizeFrom` рядків над рядками — пошук у рядках
  *   (`erp/document-lines-search`) і кнопка «До підсумків»; ⌘F/Ctrl+F у рядках ставить курсор у пошук,
@@ -173,14 +172,10 @@ const ROW_GRID =
   "grid-cols-2 @md:grid-cols-3 @4xl:grid-cols-[minmax(8rem,2.8fr)_minmax(5rem,1fr)_minmax(5.5rem,1.3fr)_minmax(7rem,1.4fr)_minmax(9rem,1.5fr)_minmax(6.5rem,1.3fr)_minmax(6rem,1fr)]"
 
 /** Підписи колонок таблиці в порядку полів рядка; сума — праворуч, як у рядках. */
-function LinesHeader({
-  lineFields,
-}: {
-  lineFields: readonly ExtensionField[] | undefined
-}) {
+function LinesHeader() {
   const t = useErpUiT()
-  const { language } = useLanguage()
   const columns = [
+    t("documentLines.name"),
     t("documentLines.quantity"),
     t("documentLines.unit"),
     t("documentLines.price"),
@@ -189,17 +184,6 @@ function LinesHeader({
   ]
   return (
     <>
-      <span className="text-sm leading-snug font-medium">
-        {t("documentLines.name")}
-        {lineFields?.map((field) => (
-          <span
-            key={field.id}
-            className="block font-normal text-muted-foreground"
-          >
-            {localizedText(field.label, language) ?? field.id}
-          </span>
-        ))}
-      </span>
       {columns.map((column) => (
         <span key={column} className="text-sm leading-snug font-medium">
           {column}
@@ -386,7 +370,7 @@ export function DocumentLinesEditor<
           maxRows={maxLines}
           canReorder
           rowActions="menu"
-          columnHeader={<LinesHeader lineFields={lineFields} />}
+          columnHeader={<LinesHeader />}
           virtualRows={virtualRows}
           groups={groups}
           toolbar={toolbar}

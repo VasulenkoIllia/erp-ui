@@ -138,10 +138,15 @@ function SavedLines({
   detail: SavedDocumentDetail
   lineFields: readonly ExtensionField[] | undefined
 }) {
+  // Ті самі рядки між рендерами: `values` форма порівнює глибоко, а рядків буває сотні.
+  const lines = useMemo(
+    () => extensionFormLines(lineFields, detail.lines),
+    [lineFields, detail.lines],
+  )
   // Форма лише тримає значення для редактора рядків: збережений документ не редагується тут.
   const form = useForm<DocumentLinesValues>({
     values: {
-      lines: extensionFormLines(lineFields, detail.lines),
+      lines,
       discountPercent: document.discountPercent,
       discountAmount: document.discountAmount,
     },

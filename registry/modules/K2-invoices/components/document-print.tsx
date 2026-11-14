@@ -7,6 +7,7 @@ import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import type { CompanyProfile } from "@/lib/company"
 import { toLanguage, useLanguage } from "@/lib/i18n"
+import { usePrintLanguage } from "@/lib/print"
 
 import type { InvoiceDetail, K2Document } from "../contract"
 import type { K2DocumentKind } from "../document-kind"
@@ -26,10 +27,12 @@ interface DocumentPrintProps<D extends K2Document> {
   readonly sheetTitle: (document: D, t: InvoicesSheetT) => string
   /** Пояснення над аркушем (на папір не йде), коли воно потрібне. */
   readonly notice?: (document: D, detail: InvoiceDetail) => ReactNode
+  /** Аркуш; `sheetT` — рядки модуля мовою аркуша (другий виклик хука в аркуші почав би своє завантаження). */
   readonly sheet: (
     document: D,
     detail: InvoiceDetail,
     company: CompanyProfile,
+    sheetT: InvoicesSheetT,
   ) => ReactNode
 }
 
@@ -55,8 +58,11 @@ export function DocumentPrint<D extends K2Document>({
   const document = card.record
   const detail = useInvoiceDetail(document, useInvoiceLineFields(kind))
   const language = company.data?.language ?? ui.language
-  // Тексти аркуша — рядки модуля мовою документа: поки їх немає, аркуш чекає, а не блимає іншою мовою.
-  const sheetT = useInvoicesSheetT(toLanguage(language))
+  // Тексти аркуша — рядки модуля мовою аркуша (не довантажились рядки кіта цієї мови — запасна українська,
+  // і рядки модуля теж): поки їх немає, аркуш чекає, а не блимає іншою мовою.
+  const sheetT = useInvoicesSheetT(
+    usePrintLanguage(toLanguage(language)).language,
+  )
   // Аркуш — лише з картки, свіжої з сервера: суми до сплати й QR-код оплати не беруться зі збереженої в
   // браузері, яку картка показує на мить, доки не прийде відповідь (ADR-0083).
   const isReady = Boolean(
@@ -72,7 +78,7 @@ export function DocumentPrint<D extends K2Document>({
       ? new Error("no lines")
       : undefined)
   const state = printPreviewState(
-    card.pageError ?? card.failure ?? invalid ?? company.error,
+    card.pageError ?? card.failure ?? invalid ?? company.error ?? sheetT.error,
     !isReady,
   )
   const pageTitle = t(`${kind.key}.printTitle`, {
@@ -101,6 +107,7 @@ export function DocumentPrint<D extends K2Document>({
         onRetry={() => {
           card.retry()
           void company.refetch()
+          sheetT.retry()
         }}
         actions={
           <BackToList
@@ -110,7 +117,7 @@ export function DocumentPrint<D extends K2Document>({
         }
       >
         {isReady && document && detail?.success && company.data
-          ? sheet(document, detail.data, company.data)
+          ? sheet(document, detail.data, company.data, sheetT.t)
           : null}
       </PrintPreview>
     </div>

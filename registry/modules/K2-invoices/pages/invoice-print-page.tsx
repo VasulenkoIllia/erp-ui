@@ -31,8 +31,13 @@ export function InvoicePrintPage() {
       notice={(invoice, detail) => (
         <QrNotice invoice={invoice} detail={detail} />
       )}
-      sheet={(invoice, detail, company) => (
-        <InvoiceSheet invoice={invoice} detail={detail} company={company} />
+      sheet={(invoice, detail, company, sheetT) => (
+        <InvoiceSheet
+          invoice={invoice}
+          detail={detail}
+          company={company}
+          sheetT={sheetT}
+        />
       )}
     />
   )

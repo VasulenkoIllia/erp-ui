@@ -2,8 +2,10 @@ import * as React from "react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { PermissionGate } from "@/registry/erp/permission-gate"
+import { useMe } from "@/registry/hooks/use-me"
 import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import type { FilterValue } from "@/registry/lib/api"
+import { hasPermission } from "@/registry/lib/auth"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import {
   applyKeyedChanges,
@@ -29,7 +31,8 @@ import type {
  *   за фільтром» — запит із ним); діалог дії — у самому компоненті, панель зникає разом із вибором.
  * - Дія з `access` видна лише з правом на дію ресурсу (у дії рядка — і коли запис її не забороняє,
  *   `deniedActions`, ADR-0037); показати неактивною з причиною (SPEC §8.4) компонент може сам
- *   (`useRecordAccess`, `DeniedAction`). Збій компонента прибирає лише його дію, а не список.
+ *   (`useRecordAccess`, `DeniedAction`). Дії без права немає ще до таблиці: ні колонки «Дії», ні
+ *   вибору рядків заради неї; поки права не відомі — теж. Збій компонента прибирає лише його дію.
  */
 
 /** Що отримує дія рядка: запис і ресурс API, як секція чи дія картки (`RecordSlotProps`). */
@@ -87,7 +90,8 @@ export function useListSlots<T, B extends string>(
   bulk: ListReportBulk<T> & {
     readonly actions: readonly (ListReportBulkAction & { id: B })[]
   },
-  extension: ListSlotsExtension<T, B> | undefined,
+  // Ключі — з дій модуля: ключ розширення, якого модуль не має, — помилка типу, а не тихий пропуск.
+  extension: ListSlotsExtension<T, NoInfer<B>> | undefined,
 ): {
   columns: readonly DataTableColumn<T>[]
   bulk: ListReportBulk<T> | undefined
@@ -95,9 +99,13 @@ export function useListSlots<T, B extends string>(
   const t = useErpUiT()
   const { resource, selection, list } = report
   const filter = list.queryFilter
+  const permissions = useMe().data?.permissions
   const rowActions = extension?.rowActions
   const withRowActions = React.useMemo(() => {
-    const actions = applyKeyedChanges<ExtensionRowAction<T>>([], rowActions)
+    const actions = applyKeyedChanges<ExtensionRowAction<T>>(
+      [],
+      permittedChanges(rowActions, resource, permissions),
+    )
     if (!actions.length) return columns
     const column: DataTableColumn<T> = {
       id: ROW_ACTIONS_COLUMN,
@@ -135,25 +143,27 @@ export function useListSlots<T, B extends string>(
       card: "actions",
     }
     return [...columns, column]
-  }, [columns, rowActions, resource, t])
+  }, [columns, rowActions, resource, permissions, t])
   const actions = applyKeyedChanges<
     ListReportBulkAction & { id: B },
     ListReportBulkAction
   >(
     bulk.actions,
-    mapKeyedChanges(extension?.bulkActions, ({ id, access, component }) => ({
-      id,
-      render: (count: number) => (
-        <BulkSlot
-          component={component}
-          access={access}
-          resource={resource}
-          selection={selection}
-          count={count}
-          filter={filter}
-        />
-      ),
-    })),
+    mapKeyedChanges(
+      permittedChanges(extension?.bulkActions, resource, permissions),
+      ({ id, component }) => ({
+        id,
+        render: (count: number) => (
+          <BulkSlot
+            component={component}
+            resource={resource}
+            selection={selection}
+            count={count}
+            filter={filter}
+          />
+        ),
+      }),
+    ),
   )
   return {
     columns: withRowActions,
@@ -161,21 +171,34 @@ export function useListSlots<T, B extends string>(
   }
 }
 
+/** Зміни без нових дій, на які немає права (`access`); поки права не відомі — без усіх таких. */
+function permittedChanges<
+  A extends Keyed & { readonly access?: string },
+  K extends string,
+>(
+  changes: KeyedChanges<A, K> | undefined,
+  resource: string,
+  permissions: readonly string[] | undefined,
+): KeyedChanges<A, K> | undefined {
+  if (!changes?.add) return changes
+  return {
+    ...changes,
+    add: changes.add.filter(
+      ({ access }) =>
+        !access ||
+        (permissions !== undefined &&
+          hasPermission(permissions, resource, access)),
+    ),
+  }
+}
+
 function BulkSlot({
   component: Slot,
-  access,
   ...props
-}: BulkSlotProps & Pick<ExtensionBulkAction, "component" | "access">) {
-  const node = (
+}: BulkSlotProps & Pick<ExtensionBulkAction, "component">) {
+  return (
     <ErrorBoundary fallback={hideFailed}>
       <Slot {...props} />
     </ErrorBoundary>
-  )
-  return access ? (
-    <PermissionGate resource={props.resource} action={access}>
-      {node}
-    </PermissionGate>
-  ) : (
-    node
   )
 }

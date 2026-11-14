@@ -2,6 +2,7 @@ import * as React from "react"
 import { z } from "zod"
 
 import {
+  assertLineShape,
   bodyTotalsCheck,
   discountShape,
   documentLineSchema,
@@ -17,6 +18,7 @@ import {
   whenBodyValid,
   whenValid,
   type DocumentBodyLine,
+  type LineExtensionShape,
 } from "@/registry/lib/document-lines"
 import type { TotalsDiscount } from "@/registry/lib/document-totals"
 import { useDateIssueText } from "@/registry/erp/date-input"
@@ -54,16 +56,13 @@ type IssueCode = Exclude<
   "tooLong"
 >
 
-/** Схеми полів розширення рядка товару у формі. */
-type LineFormShape = Readonly<Record<string, z.ZodType>>
-
-const NO_LINE_SHAPE: LineFormShape = {}
+const NO_LINE_SHAPE: LineExtensionShape = {}
 
 export interface DocumentLineFieldsApi {
   /** Поля розширення рядка в порядку `lineFields`: для редактора (`DocumentFormLines.lineFields`). */
   readonly fields: readonly ExtensionField[]
   /** Схеми полів у рядку форми — другий аргумент `useDocumentLinesSchema`. */
-  readonly shape: LineFormShape
+  readonly shape: LineExtensionShape
   /** Рядки документа для значень форми: у рядку товару — значення полів розширення для форми. */
   readonly formLines: <L extends DocumentBodyLine>(lines: readonly L[]) => L[]
   /** Рядки форми для запиту: порожнє поле розширення — `null`. */
@@ -105,10 +104,12 @@ export function useDocumentLineFields(
 
 export function useDocumentLinesSchema(
   currency: string,
-  lineShape: LineFormShape = NO_LINE_SHAPE,
+  lineShape: LineExtensionShape = NO_LINE_SHAPE,
 ) {
   const t = useErpUiT()
   return React.useMemo(() => {
+    // Поле рядка з ключем кіта перекрило б його перевірку: помилка одразу, як у схемах контракту.
+    assertLineShape(lineShape)
     const digits = currencyDigits(currency)
     const required = t("validation.required")
     const issueText = (code: IssueCode) => t(`documentLines.errors.${code}`)

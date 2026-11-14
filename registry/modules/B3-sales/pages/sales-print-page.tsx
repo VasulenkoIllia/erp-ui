@@ -8,6 +8,7 @@ import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { toLanguage, useLanguage } from "@/lib/i18n"
+import { usePrintLanguage } from "@/lib/print"
 
 import { useSalesTitle } from "../components/sales-display"
 import { useSalesDetail, useSalesLineFields } from "../components/sales-lines"
@@ -66,8 +67,9 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
   const document = card.record
   const detail = useSalesDetail(document, useSalesLineFields(kind))
   const language = company.data?.language ?? ui.language
-  // Назва аркуша — рядки модуля мовою документа: поки їх немає, аркуш чекає, а не блимає іншою мовою.
-  const sheetT = useSalesSheetT(toLanguage(language))
+  // Назва й тексти аркуша — рядки модуля мовою аркуша (не довантажились рядки кіта цієї мови — запасна
+  // українська, і рядки модуля теж): поки їх немає, аркуш чекає, а не блимає іншою мовою.
+  const sheetT = useSalesSheetT(usePrintLanguage(toLanguage(language)).language)
   const isReady = Boolean(
     document && detail?.success && company.data && !sheetT.isLoading,
   )
@@ -78,7 +80,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
       ? new Error("no lines")
       : undefined)
   const state = printPreviewState(
-    card.pageError ?? card.failure ?? invalid ?? company.error,
+    card.pageError ?? card.failure ?? invalid ?? company.error ?? sheetT.error,
     !isReady,
   )
   // Вкладка й фокус після переходу — як на картці: «Друк: Пропозиція КП-2026-0001».
@@ -101,6 +103,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
         onRetry={() => {
           card.retry()
           void company.refetch()
+          sheetT.retry()
         }}
         actions={
           <BackToList
@@ -115,6 +118,7 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
             document={document}
             detail={detail.data}
             company={company.data}
+            sheetT={sheetT.t}
           />
         ) : null}
       </PrintPreview>

@@ -43,13 +43,17 @@ export function PrintInvoiceRow({ record }: ListRowSlotProps<Invoice>) {
   )
 }
 
-/** Масова дія: вивантаження вибраних рахунків (у демо — повідомлення, бекенду вивантаження немає). */
+/**
+ * Масова дія: вивантаження вибраних рахунків (у демо — повідомлення, бекенду вивантаження немає). Розмір
+ * `sm` — як у кнопок масових дій модуля (`useBulkAction`).
+ */
 export function ExportInvoices({ count }: BulkSlotProps) {
   const t = useExtensionT()
   const format = useFormat()
   return (
     <Button
       variant="outline"
+      size="sm"
       onClick={() => {
         toast.success(t("exported", { count, value: format.number(count) }))
       }}

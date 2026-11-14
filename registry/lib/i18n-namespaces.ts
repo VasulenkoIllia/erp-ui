@@ -117,13 +117,21 @@ export interface ModuleSheetT<M> {
   readonly t: (key: MessageKey<M>, options?: Record<string, unknown>) => string
   /** Рядки мови ще вантажаться: аркуш чекає, щоб не блимнути запасною мовою. */
   readonly isLoading: boolean
+  /**
+   * Рядки мови не довантажились і після повторів: сторінка друку показує помилку з повтором, а не аркуш,
+   * де тексти кіта однією мовою, а тексти модуля — запасною українською.
+   */
+  readonly error: unknown
+  /** Завантажити рядки мови ще раз («Спробувати ще» сторінки друку). */
+  readonly retry: () => void
 }
 
 /**
  * Рядки модуля мовою документа, а не інтерфейсу (ADR-0062 п. 6, ADR-0086): назва й тексти аркуша друку
  * в `i18n/*.json` модуля, тож `strings` розширення змінює й їх. Мова, якої ще немає, вантажиться без
- * призупинення сторінки (`isLoading`); не довантажилась — запасна українська, як у рядках кіта аркуша
- * (`usePrintLanguage`), і новий запит лише з іншою мовою. Аргументи — ті самі, що в `createModuleT`.
+ * призупинення сторінки (`isLoading`); не довантажилась — `error` і `retry`. Хук викликає сторінка друку
+ * з мовою аркуша (`usePrintLanguage`) і передає `t` в аркуш: другий виклик в аркуші почав би своє
+ * завантаження. Аргументи — ті самі, що в `createModuleT`.
  *
  *   export const useSalesSheetT = createModuleSheetT<SalesMessages>("B3-sales", uk, loadEn, useSalesModule)
  */
@@ -141,37 +149,47 @@ export function createModuleSheetT<M extends object>(
     const resources = resourcesFor(strings)
     const { i18n: instance } = useTranslation()
     addDefaultBundle(instance, namespace, resources)
-    const [failed, setFailed] = useState<Language | null>(null)
+    const [failure, setFailure] = useState<{
+      language: Language
+      error: unknown
+    } | null>(null)
     const [, settled] = useReducer((count: number) => count + 1, 0)
+    const failed = failure?.language === language ? failure : null
     const load =
-      language === DEFAULT_LANGUAGE || failed === language
-        ? undefined
-        : resources[language]
+      language === DEFAULT_LANGUAGE || failed ? undefined : resources[language]
     const pending = load && loadNamespace(instance, namespace, language, load)
-    const isLoading = pending?.status === "pending"
+    // Відмова, яку ще не записано у стан, — теж очікування: аркуш не малюється запасною мовою на мить.
+    const isLoading = pending !== undefined && pending.status !== "fulfilled"
     useEffect(() => {
-      if (!pending || pending.status !== "pending") return
+      // Підписка — за станом із рендера: проміс міг завершитись між рендером і ефектом.
+      if (!pending || !isLoading) return
       let active = true
       pending.then(
         () => {
           if (active) settled()
         },
-        () => {
-          if (active) setFailed(language)
+        (error: unknown) => {
+          if (active) setFailure({ language, error })
         },
       )
       return () => {
         active = false
       }
-    }, [pending, language])
+    }, [pending, isLoading, language])
+    const error: unknown = failed?.error
     return useMemo(() => {
       const fixed = instance.getFixedT(language, namespace as never)
       return {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- як у useErpUiT
         t: fixed as unknown as ModuleSheetT<M>["t"],
         isLoading,
+        error,
+        // Невдале завантаження кеш не тримає (`loadNamespace`): новий рендер почне його знову.
+        retry: () => {
+          setFailure(null)
+        },
       }
-    }, [instance, language, isLoading])
+    }, [instance, language, isLoading, error])
   }
 }
 

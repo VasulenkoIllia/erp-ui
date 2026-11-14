@@ -22,7 +22,7 @@ import { usePrintSheet } from "@/lib/print"
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
 import type { SalesDocumentKind } from "../sales-kinds"
-import { useSalesSheetT } from "../use-sales-t"
+import type { SalesSheetT } from "../use-sales-t"
 
 /**
  * Аркуш документа продажу з блоків кіта (PF08, ADR-0062, ADR-0086): шапка компанії, назва з номером і
@@ -37,14 +37,16 @@ export function SalesSheet<D extends SalesDocument, Due extends string>({
   document,
   detail,
   company,
+  sheetT,
 }: {
   kind: SalesDocumentKind<D, Due>
   document: D
   detail: SalesDocumentDetail
   company: CompanyProfile
+  /** Рядки модуля мовою аркуша від сторінки друку (`useSalesSheetT`). */
+  sheetT: SalesSheetT
 }) {
-  const { t, language, locale } = usePrintSheet()
-  const sheetT = useSalesSheetT(language).t
+  const { t, locale } = usePrintSheet()
   const { extension } = useSalesModule()
   const documentExtension = kind.extensionOf(extension)
   const { record } = kind.keys

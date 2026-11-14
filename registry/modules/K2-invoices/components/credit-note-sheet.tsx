@@ -24,7 +24,7 @@ import {
   type InvoiceDetail,
 } from "../contract"
 import { useInvoicesModule } from "../module-context"
-import { useInvoicesSheetT, type InvoicesSheetT } from "../use-invoices-t"
+import type { InvoicesSheetT } from "../use-invoices-t"
 import { SheetParties } from "./invoice-sheet"
 
 /** Назва аркуша мовою документа: «Кредит-нота», у сторно — «Сторно кредит-ноти». */
@@ -47,13 +47,15 @@ export function CreditNoteSheet({
   note,
   detail,
   company,
+  sheetT: t,
 }: {
   note: CreditNote
   detail: InvoiceDetail
   company: CompanyProfile
+  /** Рядки модуля мовою аркуша від сторінки друку (`DocumentPrint`). */
+  sheetT: InvoicesSheetT
 }) {
-  const { language, locale } = usePrintSheet()
-  const t = useInvoicesSheetT(language).t
+  const { locale } = usePrintSheet()
   const noteExtension = useInvoicesModule().extension.creditNotes
   const blocks = useSheetBlocks(
     [

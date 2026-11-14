@@ -1,5 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import {
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useForm } from "react-hook-form"
 import { describe, expect, it, vi } from "vitest"
@@ -106,10 +112,19 @@ describe("контракт: поля розширення в рядку това
     )
   })
 
-  it("ключ поля рядка, що збігається з полем рядка кіта, — помилка розробника", () => {
-    expect(() =>
-      documentBodySchemaFor(2, extensionShape([{ ...HS_CODE, id: "price" }])),
-    ).toThrow('extension line field "price" clashes')
+  it("ключ поля рядка, що збігається з полем рядка кіта, — помилка розробника й у схемі форми", () => {
+    const clash = extensionShape([{ ...HS_CODE, id: "price" }])
+    expect(() => documentBodySchemaFor(2, clash)).toThrow(
+      'extension line field "price" clashes',
+    )
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    try {
+      expect(() =>
+        renderHook(() => useDocumentLinesSchema("UAH", clash)),
+      ).toThrow('extension line field "price" clashes')
+    } finally {
+      quiet.mockRestore()
+    }
   })
 })
 
@@ -164,9 +179,11 @@ describe("засів моків: `mockValues` полів рядка", () => {
 function Editor({
   initial,
   onSubmit,
+  readOnly,
 }: {
   initial: DocumentLinesValues
   onSubmit: (values: DocumentLinesValues) => void
+  readOnly?: boolean
 }) {
   const lineExt = useDocumentLineFields(LINE_FIELDS)
   const schema = useDocumentLinesSchema("UAH", lineExt.shape)
@@ -190,6 +207,7 @@ function Editor({
         units={[]}
         taxes={[]}
         lineFields={lineExt.fields}
+        readOnly={readOnly}
       />
       <button type="submit">Зберегти</button>
     </form>
@@ -233,5 +251,22 @@ describe("редактор рядків із полями розширення",
       { name: "Ноутбук", hsCode: "8471 30 00 00", origin: null },
       { name: "Принтер", hsCode: "8443", origin: null },
     ])
+  })
+
+  it("лише для читання: значення без підказки, порожнє поле не схоже на незаповнене для введення", () => {
+    render(
+      <Editor
+        initial={body([item("1", { hsCode: "8471 30 00 00" }), item("2")])}
+        onSubmit={() => undefined}
+        readOnly
+      />,
+    )
+    const filled = within(screen.getByRole("group", { name: "Рядок 1" }))
+    expect(filled.getByLabelText("Код УКТЗЕД")).toHaveValue("8471 30 00 00")
+    const empty = within(
+      screen.getByRole("group", { name: "Рядок 2" }),
+    ).getByLabelText("Код УКТЗЕД")
+    expect(empty).toHaveAttribute("readonly")
+    expect(empty).not.toHaveAttribute("placeholder")
   })
 })

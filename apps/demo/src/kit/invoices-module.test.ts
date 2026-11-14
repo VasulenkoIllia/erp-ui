@@ -98,7 +98,6 @@ const channel: ExtensionField = {
   mockValues: ["website"],
 }
 
-/** Таблиця курсів тестів (ADR-0071): `<валюта>:<дата>` → гривень за одиницю; злотих немає. */
 /** Поле рядка рахунку (ADR-0086): засів із `mockValues`, значення зберігається в рядку. */
 const hsCode: ExtensionField = {
   id: "hsCode",
@@ -107,6 +106,7 @@ const hsCode: ExtensionField = {
   mockValues: ["8471 30 00 00"],
 }
 
+/** Таблиця курсів тестів (ADR-0071): `<валюта>:<дата>` → гривень за одиницю; злотих немає. */
 const RATE_SEEDS: readonly (readonly [string, number])[] = [
   ["USD:2026-11-07", 41.25],
   ["USD:2026-11-08", 41.5],

@@ -30,7 +30,7 @@ import {
   type K2Document,
 } from "../contract"
 import { useInvoicesModule } from "../module-context"
-import { useInvoicesSheetT, type InvoicesSheetT } from "../use-invoices-t"
+import type { InvoicesSheetT } from "../use-invoices-t"
 import { invoicePaymentQr, invoiceSettlementRows } from "./invoice-payment"
 
 /**
@@ -90,13 +90,15 @@ export function InvoiceSheet({
   invoice,
   detail,
   company,
+  sheetT: t,
 }: {
   invoice: Invoice
   detail: InvoiceDetail
   company: CompanyProfile
+  /** Рядки модуля мовою аркуша від сторінки друку (`DocumentPrint`). */
+  sheetT: InvoicesSheetT
 }) {
-  const { language, locale } = usePrintSheet()
-  const t = useInvoicesSheetT(language).t
+  const { locale } = usePrintSheet()
   const { extension } = useInvoicesModule()
   const invoiceExtension = extension.invoices
   const lineDetails = useSheetLineDetails(invoiceExtension?.lineFields)

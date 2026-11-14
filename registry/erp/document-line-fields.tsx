@@ -41,7 +41,7 @@ import { Input } from "@/registry/ui/input"
  *   (вимкнене чи зі старою ставкою), лишається вибраним під своєю назвою.
  * - Знижка — `erp/document-discount-field`.
  * - Поля розширення рядка (`lineFields`, ADR-0086) — під назвою в тій самій клітинці: колонки таблиці
- *   ті самі; на широкому екрані, де підписи лише для скрінрідера, підпис стоїть і підказкою в полі.
+ *   ті самі, а підпис поля видимий і на широкому екрані, де решта підписів — назви колонок у шапці.
  * - Частина редактора: форма — `DocumentLinesValues`.
  */
 
@@ -120,6 +120,9 @@ function applyItem(
   if (tax !== undefined)
     setLinesValue(form, `lines.${index}.tax`, taxSnapshot(tax))
 }
+
+/** Підпис поля розширення рядка не ховається в таблиці (`laterLabels` у `erp/repeating-row-actions`). */
+const LINE_FIELD_LABEL = "**:data-[slot=field-label]:not-sr-only!"
 
 export interface DocumentLineFieldsProps<T extends RaRecord> {
   form: LinesForm
@@ -222,8 +225,10 @@ export function DocumentLineFields<T extends RaRecord>({
               control={form.control as unknown as Control<FieldValues>}
               name={`lines.${String(index)}.${extra.id}`}
               label={label}
-              placeholder={label}
               readOnly={readOnly}
+              // Підпис видимий і в таблиці (там підписи полів рядка лише для скрінрідера, а назви колонок —
+              // у шапці): полів у клітинці «Назва» може бути кілька, і без підпису значення не впізнати.
+              className={LINE_FIELD_LABEL}
             />
           )
         })}

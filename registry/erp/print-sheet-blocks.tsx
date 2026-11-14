@@ -59,7 +59,8 @@ export function useSheetBlocks<T, K extends string>(
   }: {
     record: T
     resource: string
-    changes: KeyedChanges<ExtensionSheetBlock<T>, K> | undefined
+    // Ключі — з блоків модуля: ключ розширення, якого модуль не має, — помилка типу, а не тихий пропуск.
+    changes: KeyedChanges<ExtensionSheetBlock<T>, NoInfer<K>> | undefined
   },
 ): readonly SheetBlock[] {
   return applyKeyedChanges<SheetBlock & { id: K }, SheetBlock>(
@@ -126,6 +127,7 @@ function useSheetEntries(
               resource={field.resource}
               id={text}
               labelField={field.labelField}
+              t={context.t}
             />
           ) : (
             text

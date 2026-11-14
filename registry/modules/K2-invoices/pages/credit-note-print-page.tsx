@@ -27,8 +27,13 @@ export function CreditNotePrintPage() {
       kind={CREDIT_NOTE_KIND}
       id={id}
       sheetTitle={creditNoteSheetTitle}
-      sheet={(note, detail, company) => (
-        <CreditNoteSheet note={note} detail={detail} company={company} />
+      sheet={(note, detail, company, sheetT) => (
+        <CreditNoteSheet
+          note={note}
+          detail={detail}
+          company={company}
+          sheetT={sheetT}
+        />
       )}
     />
   )

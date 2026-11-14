@@ -144,15 +144,38 @@ export function RecordFormFields({
     <FieldGroup className="@container">
       {split.rest.length ? <FormGrid items={split.rest} /> : null}
       {split.groups.map(({ group, items: inGroup }) => (
-        <FieldSet key={group.id} data-slot="record-form-group">
-          <FieldLegend>{group.title}</FieldLegend>
-          {group.description ? (
-            <FieldDescription>{group.description}</FieldDescription>
-          ) : null}
-          <FormGrid items={inGroup} />
-        </FieldSet>
+        <FormGroupSet key={group.id} group={group} items={inGroup} />
       ))}
     </FieldGroup>
+  )
+}
+
+/**
+ * Група полів: `fieldset` з легендою; опис — у `aria-describedby`, щоб скрінрідер прочитав його разом із
+ * назвою групи. `min-w-0`: `fieldset` за замовчуванням не вужчий за свій вміст і виліз би за вузький екран.
+ */
+function FormGroupSet({
+  group,
+  items,
+}: {
+  group: RecordFormGroup
+  items: readonly RecordFormItem[]
+}) {
+  const descriptionId = React.useId()
+  return (
+    <FieldSet
+      data-slot="record-form-group"
+      className="min-w-0"
+      aria-describedby={group.description ? descriptionId : undefined}
+    >
+      <FieldLegend>{group.title}</FieldLegend>
+      {group.description ? (
+        <FieldDescription id={descriptionId}>
+          {group.description}
+        </FieldDescription>
+      ) : null}
+      <FormGrid items={items} />
+    </FieldSet>
   )
 }
 

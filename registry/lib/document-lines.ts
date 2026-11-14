@@ -210,18 +210,24 @@ export type SavedDocumentBodyLine = z.infer<typeof savedDocumentBodyLineSchema>
 /** Схеми полів розширення рядка товару (`extensionShape` з lib/extension-fields, ADR-0086). */
 export type LineExtensionShape = Readonly<Record<string, z.ZodType>>
 
+/** Ключ поля розширення рядка, що збігається з полем рядка кіта (`price`, `totals`), — помилка розробника. */
+export function assertLineShape(shape: LineExtensionShape | undefined): void {
+  const clash = Object.keys(shape ?? {}).find((key) =>
+    Object.hasOwn(savedDocumentLineSchema.shape, key),
+  )
+  if (clash)
+    throw new Error(
+      `erp-ui: extension line field "${clash}" clashes with a document line field`,
+    )
+}
+
 /** Рядок товару з полями розширення: без полів — той самий; ключ поля рядка — помилка розробника. */
 function withLineShape<S extends z.ZodObject>(
   schema: S,
   shape: LineExtensionShape | undefined,
 ): S {
-  const keys = Object.keys(shape ?? {})
-  if (!shape || !keys.length) return schema
-  const clash = keys.find((key) => Object.hasOwn(schema.shape, key))
-  if (clash)
-    throw new Error(
-      `erp-ui: extension line field "${clash}" clashes with a document line field`,
-    )
+  if (!shape || !Object.keys(shape).length) return schema
+  assertLineShape(shape)
   // Значення полів розширення — поруч із полями рядка; тип рядка їх не знає (`extensionValue`).
   return schema.safeExtend(shape) as unknown as S
 }

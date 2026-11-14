@@ -69,8 +69,6 @@ interface ExtensionFieldInputProps extends FormControlProps {
   onValueChange: (value: ExtensionFormValue) => void
   onBlur: () => void
   ref?: RefCallBack
-  /** Лише текст і число. */
-  placeholder?: string | undefined
 }
 
 /** Поле вводу для поля розширення (крім так/ні): `ref` — для фокуса на полі з помилкою. */
@@ -247,8 +245,7 @@ export function BooleanFormField({
 
 /**
  * Поле розширення у формі з підписом, підказкою й помилкою: так/ні — прапорець, решта — поле вводу за
- * типом. `name` — шлях у формі: ключ поля в шапці, `lines.3.hsCode` у рядку документа. `placeholder` —
- * у тексті й числі (рядок документа на широкому екрані, де підписи лише для скрінрідера).
+ * типом. `name` — шлях у формі: ключ поля в шапці, `lines.3.hsCode` у рядку документа.
  */
 export function ExtensionFormInput({
   field,
@@ -258,7 +255,6 @@ export function ExtensionFormInput({
   description,
   readOnly,
   className,
-  placeholder,
 }: {
   field: ExtensionField
   control: Control<FieldValues>
@@ -267,7 +263,6 @@ export function ExtensionFormInput({
   description?: string
   readOnly?: boolean
   className?: string
-  placeholder?: string
 }) {
   if (field.type === "boolean")
     return (
@@ -297,11 +292,6 @@ export function ExtensionFormInput({
           onValueChange={input.onChange}
           onBlur={input.onBlur}
           ref={input.ref}
-          placeholder={
-            field.type === "text" || field.type === "number"
-              ? placeholder
-              : undefined
-          }
         />
       )}
     />

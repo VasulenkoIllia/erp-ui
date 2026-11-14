@@ -7,7 +7,11 @@ import {
   getCompanyId,
   subscribeCompany,
 } from "@/registry/lib/company-scope"
-import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import {
+  useErpUiT,
+  type ErpUiKey,
+  type ErpUiTranslate,
+} from "@/registry/lib/i18n"
 
 /**
  * Підпис запису довідника сервера за `id` (крок A2a, ADR-0030): поле розширення «запис із
@@ -29,6 +33,8 @@ export interface RecordLabelProps {
   id: string
   /** Поле запису з назвою: `name`. */
   labelField: string
+  /** Рядки кіта для «Завантаження…» і помилок; без нього — мова інтерфейсу (на аркуші — мова документа). */
+  t?: ErpUiTranslate
 }
 
 const noCompany = () => null
@@ -64,8 +70,10 @@ export const RecordLabel = memo(function RecordLabel({
   resource,
   id,
   labelField,
+  t: sheetT,
 }: RecordLabelProps) {
-  const t = useErpUiT()
+  const uiT = useErpUiT()
+  const t = sheetT ?? uiT
   // Як `useCompanyId` з hooks/use-company: шар lib не імпортує hooks.
   const companyId = useSyncExternalStore(
     subscribeCompany,

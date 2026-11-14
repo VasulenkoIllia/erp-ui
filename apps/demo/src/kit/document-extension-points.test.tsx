@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
-import { render, renderHook, screen, within } from "@testing-library/react"
+import { act, render, renderHook, screen, within } from "@testing-library/react"
 import { CoreAdminContext } from "ra-core"
 import * as React from "react"
 import { describe, expect, it, vi } from "vitest"
@@ -169,8 +169,12 @@ describe("useListSlots: дії рядка й масові дії розшире�
   }
 
   it("без розширення — ті самі колонки й масові дії модуля", () => {
-    const { result } = renderHook(() =>
-      useListSlots<Doc, BulkId>(report, COLUMNS, BULK, undefined),
+    const { result } = renderHook(
+      () => useListSlots<Doc, BulkId>(report, COLUMNS, BULK, undefined),
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) =>
+          withMe([`${RESOURCE}:*`], children),
+      },
     )
     expect(result.current.columns).toBe(COLUMNS)
     expect(result.current.bulk?.actions.map((action) => action.id)).toEqual([
@@ -322,6 +326,30 @@ describe("useListSlots: дії рядка й масові дії розшире�
     )
     expect(screen.getByTestId("bulk")).toHaveTextContent("без вибору")
   })
+
+  it("дії лише з правом, якого немає: ні колонки «Дії», ні вибору рядків заради масової дії", () => {
+    render(
+      withMe(
+        [`${RESOURCE}:read`],
+        <List
+          bulk={NO_BULK}
+          extension={{
+            rowActions: {
+              add: [
+                { id: "archive", component: ArchiveRow, access: "archive" },
+              ],
+            },
+            bulkActions: {
+              add: [{ id: "export", component: ExportBulk, access: "approve" }],
+            },
+          }}
+          rows={[{ id: "d1", number: "1" }]}
+        />,
+      ),
+    )
+    expect(screen.getByTestId("columns")).toHaveTextContent(/^number$/)
+    expect(screen.getByTestId("bulk")).toHaveTextContent("без вибору")
+  })
 })
 
 describe("групи полів форми", () => {
@@ -383,6 +411,7 @@ describe("групи полів форми", () => {
     )
     const group = screen.getByRole("group", { name: "Договір" })
     expect(group).toHaveAttribute("data-slot", "record-form-group")
+    expect(group).toHaveAccessibleDescription("Умови з клієнтом")
     expect(within(group).getByText("Умови з клієнтом")).toBeVisible()
     expect(
       within(group)
@@ -656,8 +685,11 @@ describe("createModuleSheetT: рядки модуля мовою докумен�
     expect(loadEn).toHaveBeenCalledTimes(1)
   })
 
-  it("англійська не довантажилась — запасна українська, без нових запитів на кожен рендер", async () => {
-    const loadEn = vi.fn(() => Promise.reject(new Error("offline")))
+  it("англійська не довантажилась — помилка без нових запитів на кожен рендер; повтор вантажить ще раз", async () => {
+    let online = false
+    const loadEn = vi.fn(() =>
+      online ? Promise.resolve(EN) : Promise.reject(new Error("offline")),
+    )
     const useSheetT = createModuleSheetT<SheetMessages>(
       "X2-sheet-offline",
       UK,
@@ -665,20 +697,31 @@ describe("createModuleSheetT: рядки модуля мовою докумен�
       useSheetModule,
     )
     function Title() {
-      const { t, isLoading } = useSheetT("en")
-      return <h2>{isLoading ? "чекаємо" : t("sheet.title")}</h2>
+      const { t, isLoading, error, retry } = useSheetT("en")
+      if (isLoading) return <h2>чекаємо</h2>
+      return error ? (
+        <button type="button" onClick={retry}>
+          Спробувати ще
+        </button>
+      ) : (
+        <h2>{t("sheet.title")}</h2>
+      )
     }
     const { rerender } = render(<Title />, { wrapper: provide(undefined) })
-    expect(
-      await screen.findByRole(
-        "heading",
-        { name: "Рахунок на оплату" },
-        { timeout: 3000 },
-      ),
-    ).toBeVisible()
+    const retry = await screen.findByRole(
+      "button",
+      { name: "Спробувати ще" },
+      { timeout: 3000 },
+    )
     const calls = loadEn.mock.calls.length
     rerender(<Title />)
-    expect(screen.getByRole("heading")).toHaveTextContent("Рахунок на оплату")
     expect(loadEn).toHaveBeenCalledTimes(calls)
+    online = true
+    act(() => {
+      retry.click()
+    })
+    expect(
+      await screen.findByRole("heading", { name: "Invoice" }),
+    ).toBeVisible()
   })
 })
