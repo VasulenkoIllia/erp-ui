@@ -154,6 +154,8 @@ export function createModuleSheetT<M extends object>(
       error: unknown
     } | null>(null)
     const [, settled] = useReducer((count: number) => count + 1, 0)
+    // Збій іншої мови скидаємо: повернення до неї вантажить рядки знову, а не показує стару помилку.
+    if (failure && failure.language !== language) setFailure(null)
     const failed = failure?.language === language ? failure : null
     const load =
       language === DEFAULT_LANGUAGE || failed ? undefined : resources[language]
@@ -169,7 +171,12 @@ export function createModuleSheetT<M extends object>(
           if (active) settled()
         },
         (error: unknown) => {
-          if (active) setFailure({ language, error })
+          // Відмова без причини (`Promise.reject()`) — теж помилка: інакше аркуш піде запасною мовою.
+          if (active)
+            setFailure({
+              language,
+              error: error ?? new Error(`erp-ui: ${namespace} strings failed`),
+            })
         },
       )
       return () => {

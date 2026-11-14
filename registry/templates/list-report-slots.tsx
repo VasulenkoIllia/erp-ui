@@ -171,7 +171,11 @@ export function useListSlots<T, B extends string>(
   }
 }
 
-/** Зміни без нових дій, на які немає права (`access`); поки права не відомі — без усіх таких. */
+/**
+ * Зміни без нових дій, на які немає права (`access`); поки права не відомі — без усіх таких.
+ * Заборонена заміна дії модуля (той самий ключ) ховає й саму дію модуля, як і було з перевіркою
+ * права під час показу.
+ */
 function permittedChanges<
   A extends Keyed & { readonly access?: string },
   K extends string,
@@ -181,14 +185,16 @@ function permittedChanges<
   permissions: readonly string[] | undefined,
 ): KeyedChanges<A, K> | undefined {
   if (!changes?.add) return changes
+  const permitted = ({ access }: A) =>
+    !access ||
+    (permissions !== undefined && hasPermission(permissions, resource, access))
+  const denied = changes.add.filter((action) => !permitted(action))
+  if (!denied.length) return changes
   return {
     ...changes,
-    add: changes.add.filter(
-      ({ access }) =>
-        !access ||
-        (permissions !== undefined &&
-          hasPermission(permissions, resource, access)),
-    ),
+    add: changes.add.filter(permitted),
+    // Ключ нової дії, якої немає в модулі, у `hide` нічого не ховає.
+    hide: [...(changes.hide ?? []), ...denied.map(({ id }) => id as K)],
   }
 }
 

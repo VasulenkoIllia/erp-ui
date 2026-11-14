@@ -301,6 +301,27 @@ describe("useListSlots: дії рядка й масові дії розшире�
     ).toEqual(["Провести", "Видалити"])
   })
 
+  it("заміна дії модуля з правом, якого немає: не видно ні заміни, ні дії модуля", () => {
+    render(
+      withMe(
+        [`${RESOURCE}:read`],
+        <List
+          extension={{
+            bulkActions: {
+              add: [{ id: "delete", component: ExportBulk, access: "approve" }],
+            },
+          }}
+          rows={[]}
+        />,
+      ),
+    )
+    expect(
+      within(screen.getByTestId("bulk"))
+        .getAllByRole("button")
+        .map((button) => button.textContent),
+    ).toEqual(["Провести"])
+  })
+
   it("модуль без масових дій: дія розширення вмикає вибір; без дій зовсім — вибору немає", () => {
     const { unmount } = render(
       withMe(
@@ -720,6 +741,44 @@ describe("createModuleSheetT: рядки модуля мовою докумен�
     act(() => {
       retry.click()
     })
+    expect(
+      await screen.findByRole("heading", { name: "Invoice" }),
+    ).toBeVisible()
+  })
+
+  it("відмова без причини — теж помилка; повернення до мови після іншої вантажить знову", async () => {
+    let online = false
+    const loadEn = vi.fn(() =>
+      online
+        ? Promise.resolve(EN)
+        : // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- відмова без причини і є випадком тесту
+          Promise.reject(),
+    )
+    const useSheetT = createModuleSheetT<SheetMessages>(
+      "X2-sheet-round-trip",
+      UK,
+      loadEn,
+      useSheetModule,
+    )
+    function Title({ language }: { language: "uk" | "en" }) {
+      const { t, isLoading, error } = useSheetT(language)
+      if (isLoading) return <h2>чекаємо</h2>
+      return <h2>{error ? "помилка" : t("sheet.title")}</h2>
+    }
+    const { rerender } = render(<Title language="en" />, {
+      wrapper: provide(undefined),
+    })
+    expect(
+      await screen.findByRole(
+        "heading",
+        { name: "помилка" },
+        { timeout: 3000 },
+      ),
+    ).toBeVisible()
+    rerender(<Title language="uk" />)
+    expect(screen.getByRole("heading")).toHaveTextContent("Рахунок на оплату")
+    online = true
+    rerender(<Title language="en" />)
     expect(
       await screen.findByRole("heading", { name: "Invoice" }),
     ).toBeVisible()
