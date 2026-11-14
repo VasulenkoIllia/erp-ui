@@ -725,6 +725,16 @@ test("update: файл проекту поза маніфестом, який п
   assert.doesNotMatch(result.stderr, /SKILL\.md/)
   assert.match(result.stderr, /немає в kit-files\.json[^]*src\/lib\/a\.ts/)
   assert.equal(project.read("src/lib/a.ts"), "export const a = 2\n")
+
+  // Інший файл, який git ігнорує, — з приміткою: git restore його не поверне.
+  const ignored = updateProject({
+    manifest: { kit: "v0.3.1", files: {} },
+    files: { ".gitignore": "node_modules/\n.claude/\nsrc/lib/a.ts\n" },
+  }).update({ args: ["--dry-run"] })
+  assert.match(
+    ignored.stderr,
+    /src\/lib\/a\.ts \(git ігнорує, git restore не поверне\)/,
+  )
 })
 
 test("update: посилання в архіві кіта — зупинка до розпакування (--from і GitHub)", () => {

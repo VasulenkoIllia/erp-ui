@@ -40,6 +40,8 @@ jobs:
             const key = (v) => v.split(".").map(Number)
             versions.sort((a, b) => { const [x, y] = [key(a), key(b)]; return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] })
             console.log(versions.at(-1))')
+          # Лише версія випуску 7.x: значення йде у вихід кроку й у pnpm-workspace.yaml.
+          [[ "$latest" =~ ^7\.[0-9]+\.[0-9]+$ ]]
           echo "version=$latest" >> "$GITHUB_OUTPUT"
           echo "Найновіша react-hook-form 7.x: $latest"
 
@@ -51,8 +53,10 @@ jobs:
           set -euo pipefail
           printf 'overrides:\n  react-hook-form: %s\n' "$LATEST" >> pnpm-workspace.yaml
           pnpm install --no-frozen-lockfile
-          installed=$(ls node_modules/.pnpm | grep '^react-hook-form@' || true)
-          test "$installed" = "react-hook-form@$LATEST"
+          # Тека пакета в .pnpm — з суфіксом peer-залежностей: react-hook-form@7.92.0_react@….
+          installed=$(ls node_modules/.pnpm | sed -n 's/^react-hook-form@\([0-9.]*\).*/\1/p' | sort -u)
+          echo "Встановлено: ${installed:-нічого}"
+          test "$installed" = "$LATEST"
 
       - run: pnpm typecheck
       - run: pnpm test

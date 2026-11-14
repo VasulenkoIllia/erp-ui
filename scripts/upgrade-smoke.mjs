@@ -5,268 +5,91 @@
  *
  *   node scripts/upgrade-smoke.mjs [--from-tag vX.Y.Z] [--keep]
  *
- * Проект тегу (за замовчуванням — найновіший `vX.Y.Z`): шаблон тестового проекту тегу, адаптер
- * (`tests/consumer/upgrade`), `base` тегу як у посібнику, решта кіта командою тегу (`--from` цієї
- * копії, без GitHub). З нього два шляхи до `HEAD`: (1) стара команда проекту, сироти — зі звіту;
- * (2) команда цієї версії з тимчасової теки: «Що зробити в проекті» у звіті, ті самі сироти в
- * маніфесті, попередження `check`, `--prune`, зупинка на позначці локальної правки. Після кожного —
- * typecheck і збірка з файлами проекту тегу, потім із файлами за шаблоном цієї версії, і `check`.
+ * Проект тегу (за замовчуванням — найновіший `vX.Y.Z`; `scripts/upgrade-smoke-project.mjs`): шаблон
+ * тестового проекту тегу, адаптер (`tests/consumer/upgrade`), `base` тегу як у посібнику, решта кіта
+ * командою тегу (`--from` цієї копії, без GitHub), сирота сценарію в маніфесті. З нього два шляхи до
+ * `HEAD`: (1) стара команда проекту, сироти — зі звіту; (2) команда цієї версії з тимчасової теки:
+ * «Що зробити в проекті» у звіті, ті самі сироти в маніфесті, попередження `check`, `--prune`,
+ * зупинка на позначці локальної правки. Після кожного — typecheck і збірка з файлами проекту тегу,
+ * потім із файлами за шаблоном цієї версії, і `check`.
  */
 import {
-  cpSync,
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readFileSync,
-  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 
-import { KIT_PATHS, mustRun, run } from "../registry/tools/erp-ui-kit-lib.mjs"
+import { isPlainRelativePath } from "../registry/tools/erp-ui-kit-lib.mjs"
+import {
+  buildProject,
+  COMMAND,
+  commandAt,
+  commitAll,
+  expect,
+  fileAt,
+  followProjectSteps,
+  git,
+  kit,
+  markLocalOverride,
+  MANIFEST,
+  projectAt,
+  readManifest,
+  root,
+  SMOKE_ORPHAN,
+} from "./upgrade-smoke-project.mjs"
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const args = process.argv.slice(2)
 const keep = args.includes("--keep")
 const fromTag = args.includes("--from-tag")
   ? args[args.indexOf("--from-tag") + 1]
   : undefined
 
-/** Пакунки, які ставить проект (як у `consumer-smoke`); решта — елементи шарів і модулі. */
-const BUNDLES = ["base", "data", "mocks", "auth", "lib/query-client"]
-const TEMPLATE = "tests/consumer/template"
-const AFTER_INSTALL = "tests/consumer/after-install.json"
-/** Файли проекту з шаблону, які проект змінює сам за «Що зробити в проекті». */
-const PROJECT_CONFIG = [
-  "vite.config.ts",
-  "index.html",
-  "src/main.tsx",
-  "src/vite-env.d.ts",
-]
-const MANIFEST = "kit-files.json"
-const COMMAND = "scripts/erp-ui-kit.mjs"
-const MARKED_FILE = "src/components/ui/button.tsx"
-const MARKER = ["erp-ui", "local override"].join(": ")
 const RELEASE_TAG = /^v\d+\.\d+\.\d+$/
 const ORPHAN_LINE = /^\s+\? (\S+) — у новій версії/gm
-/** git без налаштувань машини: CI без імені автора, у людини — підпис комітів. */
-const GIT_IDENTITY = [
-  "-c",
-  "user.name=erp-ui-upgrade-smoke",
-  "-c",
-  "user.email=upgrade-smoke@example.com",
-  "-c",
-  "commit.gpgsign=false",
-]
+const PROJECT_STEPS = "Що зробити в проекті"
+const GUARD_WARNING = "немає запобіжника VITE_BACKEND"
+const MARKED_FILE = "src/components/ui/button.tsx"
 
-const temp = mkdtempSync(path.join(tmpdir(), "erp-ui-upgrade-"))
-
-function expect(condition, message) {
-  if (!condition) throw new Error(`Сценарій оновлення: ${message}`)
-}
-
-const git = async (cwd, ...gitArgs) =>
-  (await mustRun("git", [...GIT_IDENTITY, ...gitArgs], { cwd, capture: true }))
-    .stdout
-
-const commitAll = async (dir, message) => {
-  await git(dir, "add", "-A")
-  await git(dir, "commit", "-qm", message)
-}
-
-/** Файл кіта на тегу; немає — `undefined`. */
-async function fileAt(tag, file) {
-  const result = await run("git", ["show", `${tag}:${file}`], {
-    cwd: root,
-    capture: true,
-  })
-  return result.code === 0 ? result.stdout : undefined
-}
+/** `update` до цього коміту з цієї копії кіта. */
+const toHead = (...extra) => ["update", "HEAD", "--from", root, ...extra]
 
 /** Найновіший тег випуску (за версією), якщо не задано `--from-tag`. */
 async function previousTag() {
-  if (fromTag) return fromTag
+  if (fromTag) {
+    expect(RELEASE_TAG.test(fromTag), `--from-tag ${fromTag}: потрібен vX.Y.Z`)
+    return fromTag
+  }
   const tags = await git(root, "tag", "--list", "v*", "--sort=-v:refname")
   const tag = tags.split("\n").find((name) => RELEASE_TAG.test(name))
   expect(tag, "у копії немає тегів vX.Y.Z (CI: fetch-depth: 0)")
   return tag
 }
 
-/** Шляхи `paths` тегу в `dest`; `strip` — скільки тек шляху відкинути. */
-async function extractAt(tag, paths, dest, strip = 0) {
-  mkdirSync(dest, { recursive: true })
-  const tar = path.join(temp, "archive.tar")
-  await git(
-    root,
-    "archive",
-    "--format=tar",
-    `--output=${tar}`,
-    tag,
-    "--",
-    ...paths,
-  )
-  await mustRun("tar", [
-    "-xf",
-    tar,
-    "-C",
-    dest,
-    `--strip-components=${String(strip)}`,
-  ])
-  rmSync(tar)
+/**
+ * Незалежно від команди кіта: чи є «Що зробити в проекті» в розділах `CHANGELOG.md` цього коміту,
+ * новіших за тег. Якщо є, звіт мусить їх надрукувати, а не «нових розділів немає».
+ */
+async function projectStepsExpected(tag) {
+  const changelog = await fileAt("HEAD", "CHANGELOG.md")
+  const first = changelog.indexOf("\n## [")
+  const tagSection = changelog.indexOf(`\n## [${tag.slice(1)}]`)
+  expect(first >= 0 && tagSection >= 0, `у CHANGELOG.md немає розділу ${tag}`)
+  return changelog.slice(first, tagSection).includes(PROJECT_STEPS)
 }
 
-/** Файли застосунку шаблону: файл → шлях у `src/`; до файла-мапи — кожен у `src/` під своєю назвою. */
-async function afterInstallMap(tag) {
-  const map = await fileAt(tag, AFTER_INSTALL)
-  if (map) return JSON.parse(map)
-  const files = await git(root, "ls-tree", "--name-only", `${tag}:${TEMPLATE}`)
-  return Object.fromEntries(
-    files
-      .split("\n")
-      .filter((name) => name.endsWith(".after-install"))
-      .map((name) => name.replace(/\.after-install$/, ""))
-      .map((name) => [name, name]),
-  )
-}
-
-/** Файли застосунку з `from` у `src/` проекту; з самого проекту — переносяться. */
-function placeAfterInstall(dir, map, from) {
-  for (const [file, target] of Object.entries(map)) {
-    const source = path.join(from, `${file}.after-install`)
-    const to = path.join(dir, "src", target)
-    mkdirSync(path.dirname(to), { recursive: true })
-    if (from === dir) renameSync(source, to)
-    else cpSync(source, to)
-  }
-}
-
-/** Файли команди кіта версії `ref` (закомічені) у теку `dest`; повертає шлях до `erp-ui-kit.mjs`. */
-async function commandAt(ref, dest) {
-  mkdirSync(dest)
-  const tools = await git(
-    root,
-    "ls-tree",
-    "--name-only",
-    `${ref}:registry/tools`,
-  )
-  for (const file of tools
-    .split("\n")
-    .filter((name) => /^erp-ui-kit.*\.mjs$/.test(name)))
-    writeFileSync(
-      path.join(dest, file),
-      await fileAt(ref, `registry/tools/${file}`),
-    )
-  return path.join(dest, "erp-ui-kit.mjs")
-}
-
-/** Команда кіта: вивід у журнал, код виходу — як очікується (`fail` — має впасти). */
-async function kit(dir, script, kitArgs, { fail = false } = {}) {
-  console.log(`\n$ node ${script} ${kitArgs.join(" ")}`)
-  const result = await run(process.execPath, [script, ...kitArgs], {
-    cwd: dir,
-    capture: true,
-  })
-  const output = `${result.stdout}${result.stderr}`
-  console.log(output)
+/** У звіті — «Що зробити в проекті» з тегу до `HEAD`, і розділи з кроками, якщо вони є. */
+function assertProjectSteps(output, tag, expected, what) {
   expect(
-    fail ? result.code !== 0 : result.code === 0 && !result.timedOut,
-    `node ${script} ${kitArgs[0]}: ${fail ? "мало впасти, а пройшло" : `код ${String(result.code)}`}`,
+    output.includes(`${PROJECT_STEPS} (${tag} → HEAD@`),
+    `${what}: немає «${PROJECT_STEPS}»`,
   )
-  return output
-}
-
-/** typecheck і збірка з бекендом (запобіжник `VITE_BACKEND` шаблону цієї версії її вимагає). */
-async function buildProject(dir, what) {
-  console.log(`\n=== typecheck і збірка: ${what} ===`)
-  await mustRun("pnpm", ["typecheck"], { cwd: dir })
-  await mustRun("env", ["VITE_BACKEND=api", "pnpm", "build"], { cwd: dir })
-  rmSync(path.join(dir, "dist"), { recursive: true, force: true })
-}
-
-/** `update` до цього коміту з цієї копії кіта. */
-const toHead = (...extra) => ["update", "HEAD", "--from", root, ...extra]
-const stepsHeading = (tag) => `Що зробити в проекті (${tag} → HEAD@`
-
-const readManifest = (dir) =>
-  JSON.parse(readFileSync(path.join(dir, MANIFEST), "utf8"))
-
-/** Проект на тегу: шаблон тегу, адаптер, `base` тегу, решта кіта командою тегу. */
-async function projectAt(tag, dir) {
-  await extractAt(tag, [TEMPLATE], dir, 3)
-  cpSync(path.join(root, "tests/consumer/upgrade"), dir, { recursive: true })
-  writeFileSync(path.join(dir, ".gitignore"), "node_modules/\ndist/\n")
-  // CLI shadcn закріплена в проекті: та сама для встановлення й оновлення (посібник, розділ 8).
-  const pkgFile = path.join(dir, "package.json")
-  const pkg = JSON.parse(readFileSync(pkgFile, "utf8"))
-  pkg.devDependencies.shadcn = JSON.parse(
-    readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
-  ).version
-  writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`)
-  await mustRun("pnpm", ["install", "--ignore-workspace"], { cwd: dir })
-  const shadcn = path.join(dir, "node_modules/.bin/shadcn")
-  await mustRun(
-    shadcn,
-    ["init", "-b", "base", "-p", "nova", "-y", "--no-rtl"],
-    {
-      cwd: dir,
-    },
-  )
-
-  const kitDir = path.join(temp, `kit-${tag}`)
-  await extractAt(tag, KIT_PATHS, kitDir)
-  const registry = path.join(kitDir, "registry.json")
-  const built = path.join(kitDir, "r")
-  await mustRun(shadcn, ["build", registry, "-c", kitDir, "-o", built], {
-    cwd: dir,
-    capture: true,
-  })
-  await mustRun(
-    shadcn,
-    ["add", path.join(built, "base.json"), "-y", "--overwrite"],
-    {
-      cwd: dir,
-    },
-  )
-  await git(dir, "init", "-q")
-  await commitAll(dir, `erp-ui: base ${tag}`)
-
-  const items = JSON.parse(readFileSync(registry, "utf8"))
-    .items.filter(
-      (item) =>
-        BUNDLES.includes(item.name) ||
-        /^(ui|erp|templates|tools)\//.test(item.name) ||
-        item.meta?.layer === "modules",
-    )
-    .map((item) => item.name)
-  const command = await commandAt(tag, path.join(temp, `command-${tag}`))
-  await kit(dir, command, [
-    "update",
-    tag,
-    "--from",
-    root,
-    "--items",
-    items.join(","),
-  ])
-  placeAfterInstall(dir, await afterInstallMap(tag), dir)
-  console.log(`\n=== typecheck проекту на ${tag} ===`)
-  await mustRun("pnpm", ["typecheck"], { cwd: dir })
-  await commitAll(dir, `erp-ui ${tag}`)
-}
-
-/** «Що зробити в проекті» для файлів проекту: файли шаблону тегу → файли шаблону цієї версії. */
-async function followProjectSteps(dir, tag) {
-  for (const target of Object.values(await afterInstallMap(tag)))
-    rmSync(path.join(dir, "src", target), { force: true })
-  for (const file of PROJECT_CONFIG)
-    if (existsSync(path.join(root, TEMPLATE, file)))
-      cpSync(path.join(root, TEMPLATE, file), path.join(dir, file))
-  placeAfterInstall(
-    dir,
-    JSON.parse(readFileSync(path.join(root, AFTER_INSTALL), "utf8")),
-    path.join(root, TEMPLATE),
+  expect(
+    !expected || output.includes(", CHANGELOG.md кіта):\n\n== "),
+    `${what}: у CHANGELOG.md є «${PROJECT_STEPS}», а звіт їх не надрукував`,
   )
 }
 
@@ -279,6 +102,10 @@ async function updateWithOldCommand(dir, tag) {
   const orphans = [
     ...new Set([...output.matchAll(ORPHAN_LINE)].map((match) => match[1])),
   ].sort()
+  expect(
+    orphans.includes(SMOKE_ORPHAN) && orphans.every(isPlainRelativePath),
+    `сироти зі звіту старої команди: ${orphans.join(", ") || "жодної"}`,
+  )
   for (const file of orphans) rmSync(path.join(dir, file))
   await buildProject(dir, "стара команда, файли проекту тегу")
   await followProjectSteps(dir, tag)
@@ -287,14 +114,31 @@ async function updateWithOldCommand(dir, tag) {
   return orphans
 }
 
+/** `check` попереджає про конфіг Vite без запобіжника: на час перевірки конфіг без нього. */
+async function assertGuardWarning(dir) {
+  const config = path.join(dir, "vite.config.ts")
+  const original = readFileSync(config, "utf8")
+  writeFileSync(config, "export default {}\n")
+  try {
+    const check = await kit(dir, COMMAND, ["check"])
+    expect(
+      check.includes(GUARD_WARNING),
+      "check не попередив про конфіг без запобіжника",
+    )
+  } finally {
+    writeFileSync(config, original)
+  }
+}
+
 /** Шлях 2: команда цієї версії з тимчасової теки, `--prune`, позначка локальної правки. */
 async function updateWithNewCommand(dir, tag, orphans) {
   console.log(`\n=== Шлях 2: оновлення ${tag} → HEAD командою цієї версії ===`)
-  const script = await commandAt("HEAD", path.join(temp, "command-head"))
+  const script = await commandAt("HEAD", path.join(path.dirname(dir), "head"))
+  const expected = await projectStepsExpected(tag)
   const dryRun = await kit(dir, script, toHead("--dry-run"))
-  expect(dryRun.includes(stepsHeading(tag)), "--dry-run без «Що зробити»")
+  assertProjectSteps(dryRun, tag, expected, "--dry-run")
   const report = await kit(dir, script, toHead())
-  expect(report.includes(stepsHeading(tag)), "звіт без «Що зробити»")
+  assertProjectSteps(report, tag, expected, "звіт update")
   const manifest = readManifest(dir)
   expect(
     /^[0-9a-f]{40}$/.test(manifest.sha) &&
@@ -302,25 +146,14 @@ async function updateWithNewCommand(dir, tag, orphans) {
       manifest.checksum,
     "маніфест без sha, fingerprint чи checksum",
   )
+  const remembered = Object.keys(manifest.orphans).sort()
   expect(
-    JSON.stringify(Object.keys(manifest.orphans).sort()) ===
-      JSON.stringify(orphans),
-    `сироти маніфесту ${Object.keys(manifest.orphans).join(", ")} — не ті, що назвала стара команда (${orphans.join(", ")})`,
+    JSON.stringify(remembered) === JSON.stringify(orphans),
+    `сироти маніфесту (${remembered.join(", ")}) — не ті, що назвала стара команда (${orphans.join(", ")})`,
   )
   const check = await kit(dir, COMMAND, ["check"])
-  const guarded = (await fileAt(tag, `${TEMPLATE}/vite.config.ts`))?.includes(
-    "VITE_BACKEND",
-  )
-  expect(
-    check.includes("немає запобіжника VITE_BACKEND") === !guarded,
-    guarded
-      ? "check попереджає про запобіжник, хоч він є"
-      : "check не попередив про конфіг Vite без запобіжника",
-  )
-  expect(
-    !orphans.length || check.includes("Файли-сироти"),
-    "check не назвав сироти",
-  )
+  expect(check.includes("Файли-сироти"), "check не назвав сироти")
+  await assertGuardWarning(dir)
 
   await commitAll(dir, "erp-ui HEAD")
   await kit(dir, COMMAND, toHead("--prune"))
@@ -335,7 +168,7 @@ async function updateWithNewCommand(dir, tag, orphans) {
   await buildProject(dir, "нова команда, файли проекту цієї версії")
   const after = await kit(dir, COMMAND, ["check"])
   expect(
-    !after.includes("немає запобіжника VITE_BACKEND"),
+    !after.includes(GUARD_WARNING),
     "check попереджає про запобіжник після «Що зробити в проекті»",
   )
   await commitAll(dir, "проект за «Що зробити в проекті»")
@@ -345,15 +178,7 @@ async function updateWithNewCommand(dir, tag, orphans) {
 /** Файл кіта з позначкою локальної правки без відбитка: попередження в `--dry-run`, зупинка до запису. */
 async function assertLocalOverrideStops(dir) {
   console.log("\n=== Позначка локальної правки зупиняє оновлення ===")
-  const file = path.join(dir, MARKED_FILE)
-  const marked = `// ${MARKER} — перевірка сценарію оновлення\n${readFileSync(file, "utf8")}`
-  writeFileSync(file, marked)
-  const manifest = readManifest(dir)
-  delete manifest.files[MARKED_FILE]
-  writeFileSync(
-    path.join(dir, MANIFEST),
-    `${JSON.stringify(manifest, null, 2)}\n`,
-  )
+  const marked = markLocalOverride(dir, MARKED_FILE)
   await commitAll(dir, "локальна правка старого правила")
   const dryRun = await kit(dir, COMMAND, toHead("--dry-run"))
   expect(
@@ -364,24 +189,27 @@ async function assertLocalOverrideStops(dir) {
   )
   const stopped = await kit(dir, COMMAND, toHead(), { fail: true })
   expect(
-    stopped.includes(`local override update не перезаписує`) &&
+    stopped.includes("local override update не перезаписує") &&
       stopped.includes(MARKED_FILE),
     "update зупинився не на позначці",
   )
-  expect(readFileSync(file, "utf8") === marked, `update змінив ${MARKED_FILE}`)
+  expect(
+    readFileSync(path.join(dir, MARKED_FILE), "utf8") === marked,
+    `update змінив ${MARKED_FILE}`,
+  )
   expect(
     !(await git(dir, "status", "--porcelain")).trim(),
     "update записав файли до зупинки",
   )
 }
 
+const temp = mkdtempSync(path.join(tmpdir(), "erp-ui-upgrade-"))
 try {
   const tag = await previousTag()
   const dir = path.join(temp, "project")
-  console.log(
-    `Сценарій оновлення: проект на ${tag} → цей коміт (${(await git(root, "rev-parse", "HEAD")).trim()})`,
-  )
-  await projectAt(tag, dir)
+  const head = (await git(root, "rev-parse", "HEAD")).trim()
+  console.log(`Сценарій оновлення: проект на ${tag} → цей коміт (${head})`)
+  await projectAt(tag, dir, temp)
   const baseline = (await git(dir, "rev-parse", "HEAD")).trim()
   const orphans = await updateWithOldCommand(dir, tag)
   await git(dir, "reset", "-q", "--hard", baseline)

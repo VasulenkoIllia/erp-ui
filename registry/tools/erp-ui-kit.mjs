@@ -81,6 +81,8 @@ const MANIFEST = "kit-files.json"
 export const PROJECT_OWNED = ["src/index.css", "docs/erp-ui/CLAUDE.project.md"]
 const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/
 const SAFE_ITEM = /^[a-z0-9][a-z0-9-]*(\/[A-Za-z0-9][A-Za-z0-9-]*)?$/
+/** Скіл кіта в проекті: git його зазвичай ігнорує (`.claude/` у `.git/info/exclude`). */
+const SKILL_DIR = ".claude/skills/"
 /** Конфіг Vite проекту: у ньому запобіжник `VITE_BACKEND` (ADR-0079). */
 const VITE_CONFIGS = [
   "vite.config.ts",
@@ -377,17 +379,23 @@ async function applyUpdate({
 
 /**
  * Файли проекту поза маніфестом, які `update` перезапише (новий шлях кіта збігся з файлом проекту):
- * попередження зі списком. Ігноровані git (скіл) — ні: їх перезаписує кожне оновлення.
+ * попередження зі списком. Скіл, який git ігнорує, — ні: його перезаписує кожне оновлення. Інший
+ * ігнорований файл — з приміткою: `git restore` його не поверне.
  */
 async function unlistedOverwriteWarnings(root, manifest, files) {
   const unlisted = unlistedOverwrites(manifest, files)
   const ignored = await ignoredByGit(root, unlisted)
-  const listed = unlisted.filter((file) => !ignored.has(file))
+  const listed = unlisted.filter(
+    (file) => !(ignored.has(file) && file.startsWith(SKILL_DIR)),
+  )
   if (!listed.length) return []
+  const named = listed.map((file) =>
+    ignored.has(file) ? `${file} (git ігнорує, git restore не поверне)` : file,
+  )
   return [
     {
       fatal: false,
-      message: `update перезапише файли, яких немає в ${MANIFEST} (файл проекту на шляху файла кіта?): ${listed.join(", ")}. Ваш файл — перенесіть під іншу назву до оновлення; після оновлення повернути — git restore.`,
+      message: `update перезапише файли, яких немає в ${MANIFEST} (файл проекту на шляху файла кіта?): ${named.join(", ")}. Ваш файл — перенесіть під іншу назву до оновлення; після оновлення повернути — git restore.`,
     },
   ]
 }

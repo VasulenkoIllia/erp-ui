@@ -56,18 +56,31 @@ export const hashFile = (root) => (file) => {
   return existsSync(full) ? sha256(readFileSync(full)) : undefined
 }
 
+// eslint-disable-next-line no-control-regex -- керівні символи C0 і C1 і є тим, що відсіюємо
+const CONTROL_IN_PATH = /[\u0000-\u001f\u007f-\u009f]/
+// eslint-disable-next-line no-control-regex -- те саме, крім табуляції й нового рядка
+const CONTROL_IN_TEXT = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g
+
+/**
+ * Текст із файлів кіта чи виводу програм — у термінал без керівних послідовностей і символів:
+ * чужий текст не стирає попереджень над собою й не пише в буфер обміну (лишаються `\t` і `\n`).
+ */
+export const forTerminal = (text) =>
+  stripVTControlCharacters(text).replace(CONTROL_IN_TEXT, "")
+
 /** Тег випуску `vX.Y.Z`: тоді версія в `package.json` архіву має з ним збігатися. */
 export const isReleaseTag = (ref) => /^v\d+\.\d+\.\d+$/.test(ref)
 
 /**
  * Відносний posix-шлях у нормальній формі: без `/` на початку чи в кінці, `./`, `..`, зворотної
- * похилої й NUL. Шляхи з маніфесту, реєстру й звіту CLI команда бере лише такі.
+ * похилої й керівних символів. Шляхи з маніфесту, реєстру й звіту CLI команда бере лише такі.
  */
 export const isPlainRelativePath = (file) =>
   typeof file === "string" &&
   file.length > 0 &&
   file !== "." &&
-  !/[\\\0]/.test(file) &&
+  !file.includes("\\") &&
+  !CONTROL_IN_PATH.test(file) &&
   !path.posix.isAbsolute(file) &&
   !file.endsWith("/") &&
   path.posix.normalize(file) === file &&
@@ -193,10 +206,14 @@ export function printReport(kit, files, oldFiles, projectOwned) {
 /**
  * Записи переліку `tar -tv`, що не звичайний файл і не тека: символьні й жорсткі посилання,
  * пристрої. Рядок переліку починається з типу запису (`-`, `d`, `l`, `h`, `c`…) і в GNU tar, і в
- * bsdtar.
+ * bsdtar; жорстке посилання з розміром bsdtar показує як файл, але з ` link to `.
  */
 export function specialArchiveEntries(listing) {
-  return listing.split("\n").filter((line) => line && !/^[-d]/.test(line))
+  return listing
+    .split("\n")
+    .filter(
+      (line) => line && (!/^[-d]/.test(line) || line.includes(" link to ")),
+    )
 }
 
 /**
@@ -208,7 +225,7 @@ async function assertPlainArchive(ref, tarArgs) {
   const special = specialArchiveEntries(stdout)
   if (special.length)
     throw new KitError(
-      `Архів кіта ${ref} містить посилання чи особливі файли, не розпаковую:\n${special.slice(0, 10).join("\n")}`,
+      `Архів кіта ${ref} містить посилання чи особливі файли, не розпаковую:\n${forTerminal(special.slice(0, 10).join("\n"))}`,
     )
 }
 

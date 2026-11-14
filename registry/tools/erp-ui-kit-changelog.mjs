@@ -3,10 +3,12 @@
  * версії кіта, наприкінці звіту `update` (і `--dry-run`), щоб агент у проекті не шукав їх на GitHub.
  * Файл ставить `shadcn add` разом із командою: у проекті його не правте.
  */
-import { isReleaseTag } from "./erp-ui-kit-lib.mjs"
+import { forTerminal, isReleaseTag } from "./erp-ui-kit-lib.mjs"
 
 const PROJECT_STEPS = "Що зробити в проекті"
-const VERSION_HEADING = /^## \[(Unreleased|\d+\.\d+\.\d+)\]/
+/** Будь-який розділ `## [...]`: інший заголовок (напр. `1.4.0-rc.1`) теж закриває попередній розділ. */
+const VERSION_HEADING = /^## \[([^\]]+)\]/
+const RELEASE_VERSION = /^\d+\.\d+\.\d+$/
 const STEP_BULLET = `- **${PROJECT_STEPS}`
 
 /** `1.10.0` > `1.9.2`: числами, а не рядком. */
@@ -16,7 +18,7 @@ function compareVersions(a, b) {
   return 0
 }
 
-/** Розділи версій `## [X.Y.Z]` і `## [Unreleased]`: назва й рядки до наступного розділу. */
+/** Розділи `## [...]`: назва й рядки до наступного розділу. */
 function versionSections(changelog) {
   const sections = []
   for (const line of changelog.split("\n")) {
@@ -46,9 +48,10 @@ function stepsOf(lines) {
 }
 
 /**
- * Кроки проекту між версією проекту (`fromKit`, тег) і новою (`toKit`): тег — розділи після
- * `fromKit` до нього включно; гілка чи коміт — усі новіші за `fromKit` і `Unreleased`. Від
- * старшої до новішої. Версія проекту не тег — `undefined`: звірити нема з чим.
+ * Розділи між версією проекту (`fromKit`, тег) і новою (`toKit`) з їхніми кроками проекту (без
+ * кроків — порожній рядок): тег — розділи `X.Y.Z` після `fromKit` до нього включно; гілка чи
+ * коміт — усі новіші за `fromKit` і `Unreleased`. Від старшої до новішої. Версія проекту не тег —
+ * `undefined`: звірити нема з чим.
  */
 export function projectSteps(changelog, fromKit, toKit) {
   if (!isReleaseTag(fromKit)) return undefined
@@ -58,16 +61,24 @@ export function projectSteps(changelog, fromKit, toKit) {
     .filter(({ version }) =>
       version === "Unreleased"
         ? to === undefined
-        : compareVersions(version, from) > 0 &&
+        : RELEASE_VERSION.test(version) &&
+          compareVersions(version, from) > 0 &&
           (to === undefined || compareVersions(version, to) <= 0),
     )
     .map(({ version, lines }) => ({ version, steps: stepsOf(lines) }))
-    .filter(({ steps }) => steps)
     .reverse()
 }
 
-/** Наприкінці звіту: що проект робить руками (CHANGELOG версії). Немає файлу — сказати, де шукати. */
+const versionName = (version) =>
+  version === "Unreleased" ? "ще не випущене" : `v${version}`
+
+/**
+ * Наприкінці звіту: що проект робить руками (CHANGELOG версії). Перше встановлення (версії проекту
+ * немає) — нічого. Розділ версії без кроків — назвати: формат міг змінитись, а мовчання читалось
+ * би як «нічого робити не треба». Текст — без керівних символів (`forTerminal`).
+ */
 export function printProjectSteps(changelog, fromKit, toKit) {
+  if (fromKit === undefined) return
   if (changelog === undefined) {
     console.log(
       `\n${PROJECT_STEPS}: у версії ${toKit} немає CHANGELOG.md, дивіться його на GitHub.`,
@@ -77,19 +88,23 @@ export function printProjectSteps(changelog, fromKit, toKit) {
   const sections = projectSteps(changelog, fromKit, toKit)
   if (sections === undefined) {
     console.log(
-      `\n${PROJECT_STEPS}: версія проекту ${String(fromKit)} — не тег, розділи між версіями — у CHANGELOG.md кіта.`,
+      `\n${PROJECT_STEPS}: версія проекту ${fromKit} — не тег, розділи між версіями — у CHANGELOG.md кіта.`,
     )
     return
   }
-  if (!sections.length) {
+  const withSteps = sections.filter(({ steps }) => steps)
+  const without = sections.filter(({ steps }) => !steps)
+  if (!withSteps.length && !without.length) {
     console.log(
-      `\n${PROJECT_STEPS} (${fromKit} → ${toKit}): у CHANGELOG.md нічого.`,
+      `\n${PROJECT_STEPS} (${fromKit} → ${toKit}): нових розділів у CHANGELOG.md немає.`,
     )
     return
   }
   console.log(`\n${PROJECT_STEPS} (${fromKit} → ${toKit}, CHANGELOG.md кіта):`)
-  for (const { version, steps } of sections)
+  for (const { version, steps } of withSteps)
+    console.log(`\n== ${versionName(version)} ==\n${forTerminal(steps)}`)
+  if (without.length)
     console.log(
-      `\n== ${version === "Unreleased" ? "ще не випущене" : `v${version}`} ==\n${steps}`,
+      `\nБез пункту «${PROJECT_STEPS}»: ${without.map(({ version }) => versionName(version)).join(", ")} — перегляньте ці розділи CHANGELOG.md кіта.`,
     )
 }

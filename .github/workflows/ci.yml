@@ -193,8 +193,9 @@ jobs:
           [ "${{ needs.consumer.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
           [ "${{ needs.upgrade.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
 
-  # Що змінено з того, що потрапляє в проекти: від цього залежать доставка й оновлення.
-  # Збій git diff валить задачу, а не пропускає перевірки мовчки.
+  # Що змінено з того, що потрапляє в проекти чи в звіт оновлення (CHANGELOG.md, SPEC і каталог у
+  # реєстрі): від цього залежать доставка й оновлення. Шляхи без лапок git і перейменування обома
+  # шляхами; збій git diff валить задачу, а не пропускає перевірки мовчки.
   delivery-changes:
     name: зміни для проектів
     if: github.event_name == 'pull_request'
@@ -214,8 +215,8 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          changed=$(git diff --name-only "$BASE_SHA" HEAD)
-          if grep -qE '^(registry/|registry\.json|design/|scripts/(consumer|upgrade)-smoke\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
+          changed=$(git -c core.quotePath=false diff --name-only --no-renames "$BASE_SHA" HEAD)
+          if grep -qE '^(registry/|registry\.json|design/|docs/(SPEC|CATALOG)\.md|CHANGELOG\.md|scripts/(consumer|upgrade)-smoke[^/]*\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
           else
             echo "relevant=false" >> "$GITHUB_OUTPUT"
@@ -251,7 +252,8 @@ jobs:
       - name: Install erp-ui into a clean project
         env:
           GH_TOKEN: ${{ github.token }}
-        run: pnpm consumer-smoke --local --ref ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: pnpm consumer-smoke --local --ref "$HEAD_SHA"
 
   # Оновлення (ADR-0088): проект на попередньому тегу з розширенням модуля й адаптером оновлюється
   # командою кіта до цього коміту — старою командою проекту й командою цієї версії; typecheck і
