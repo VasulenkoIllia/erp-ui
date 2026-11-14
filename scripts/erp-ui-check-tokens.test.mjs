@@ -116,6 +116,29 @@ test("у проекті сканує теки один раз і пропуск�
   }
 })
 
+test("символьне посилання на теку чи файл перевіряється, цикл посилань — один раз", () => {
+  const dir = project({
+    "shared/inner/bad.tsx":
+      'export const B = () => <b className="bg-red-500" />',
+    "shared/one.css": "a { color: #fff; }",
+    "src/a.ts": "export {}",
+  })
+  try {
+    symlinkSync(path.join(dir, "shared"), path.join(dir, "src/linked"))
+    symlinkSync(path.join(dir, "shared/one.css"), path.join(dir, "src/one.css"))
+    symlinkSync(path.join(dir, "src"), path.join(dir, "src/loop"))
+    const { found, files } = scanRoots(dir, ["src"])
+    assert.equal(files, 3)
+    assert.deepEqual(found.map((v) => v.rule).sort(), [
+      "hex-color",
+      "tailwind-palette",
+    ])
+    assert.ok(found.some((v) => v.file === "src/linked/inner/bad.tsx"))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
 test("тека, якої немає, файл замість теки чи порожній аргумент — не перевірені", () => {
   const dir = project({ "src/a.ts": "export {}" })
   try {

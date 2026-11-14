@@ -25,7 +25,7 @@ const REFERENCE_FILE = /^[a-z0-9-]+\.md$/
 const REFERENCE_LINK = /(?<![\w/.-])references\/[\w.-]+\.md/g
 const CODE_SPAN = /`([^`\n]+)`/g
 const ITEM_SPAN = /^(ui|erp|templates|lib|hooks|tools|modules)\/[a-z0-9][\w-]*$/
-const LEADING_NAME = /^<?([A-Za-z_$][\w$]*)(?=$|[\s(.<>/])/
+const LEADING_NAME = /^<?([A-Za-z_$][\w$]*)(?![\w$])/
 /**
  * Назва, яку варто звіряти з кодом: з великої літери (не все великими: `PATCH`, `README` — не назви коду),
  * `use…`, `create…` чи інша з великою літерою всередині.
@@ -131,11 +131,34 @@ export function shippedProblems(root) {
   return problems
 }
 
-/** Код без коментарів: назва, що лишилась лише в коментарі, вже не є назвою кіта. */
+/**
+ * Код без коментарів: назва, що лишилась лише в коментарі, вже не є назвою кіта. Рядки в лапках лишаються як є,
+ * тож скісна із зірочкою чи дві скісні в рядку (тип MIME, адреса) не стають коментарем.
+ */
 export function withoutComments(text) {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/(^|[^:\\])\/\/.*$/gm, "$1")
+  const parts = []
+  let start = 0
+  let i = 0
+  while (i < text.length) {
+    const ch = text[i]
+    const next = text[i + 1]
+    if (ch === "/" && (next === "/" || next === "*")) {
+      parts.push(text.slice(start, i), " ")
+      const close = next === "/" ? "\n" : "*/"
+      const end = text.indexOf(close, i + 2)
+      i = end === -1 ? text.length : next === "/" ? end : end + 2
+      start = i
+    } else if (ch === '"' || ch === "'" || ch === "`") {
+      i++
+      while (i < text.length && text[i] !== ch) {
+        if (ch !== "`" && text[i] === "\n") break
+        i += text[i] === "\\" ? 2 : 1
+      }
+      i++
+    } else i++
+  }
+  parts.push(text.slice(start))
+  return parts.join("")
 }
 
 /** Слова коду кіта (без коментарів і опису реєстру) й назви елементів реєстру. */

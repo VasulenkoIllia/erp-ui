@@ -99,13 +99,15 @@ test("назви в лапках: перша назва відрізка має 
     const text =
       "`DataTable`, `<RealtimeSync />`, `<DataTable columns={x} />`, `useFormat()`, `useDocumentLinesSchema(currency)`, `createApiClient`, `lazyWithPreload`, " +
       "`erp/data-table`, `lib/format`, `hooks/use-wizard`, `modules/B1-contacts`, `README.md`, `PATCH /x`, `npx shadcn`, `--dry-run`, `p-[13px]`, `own`, " +
-      "`LoginPage`, `<GhostPanel open />`, `useMissing()`, `createNothing`, `documentSumOf`, `erp/login-page`, `lib/nope`, `lib/..`"
+      "`LoginPage`, `<GhostPanel open />`, `useMissing()`, `createNothing`, `documentSumOf`, `headingLevl={1}`, `DataTabel[]`, `erp/login-page`, `lib/nope`, `lib/..`"
     assert.deepEqual(unknownNames(text, root, names), [
       "LoginPage",
       "GhostPanel",
       "useMissing",
       "createNothing",
       "documentSumOf",
+      "headingLevl",
+      "DataTabel",
       "erp/login-page",
       "lib/nope",
     ])
@@ -116,10 +118,13 @@ test("назви в лапках: перша назва відрізка має 
 
 test("назва лише в коментарі не рахується назвою коду; посилання з // лишаються", () => {
   const code =
-    'export const a = 1 // LegacyPanel\n/* OldName */ const url = "https://x.example/Path"\nexport function RealOne() {}'
+    'export const a = 1 // LegacyPanel\n/* OldName */ const url = "https://x.example/Path"\n' +
+    'const accept = "*/*"\nexport function RealOne() {} // AfterMime'
   const words = withoutComments(code).match(/[A-Za-z_$][\w$]*/g)
   assert.ok(!words.includes("LegacyPanel"))
   assert.ok(!words.includes("OldName"))
+  assert.ok(!words.includes("AfterMime"))
   assert.ok(words.includes("RealOne"))
   assert.ok(words.includes("Path"))
+  assert.ok(words.includes("accept"))
 })

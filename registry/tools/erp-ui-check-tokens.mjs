@@ -11,8 +11,9 @@
  * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`), у lint проекту (ADR-0089).
  * Файл ставить команда кіта разом із `base`: у проекті його не правте.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs"
+import { readdirSync, readFileSync, realpathSync, statSync } from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 const ALLOW_MARK = "erp-ui: allow-raw-value"
 
@@ -95,14 +96,21 @@ const SKIP_DIRS = new Set([
   "playwright-report",
 ])
 
-/** Файли теки. Помилку читання не ковтає: тека, яку не прочитано, — не перевірена. */
-function* walk(dir) {
+/**
+ * Файли теки. Помилку читання не ковтає: тека, яку не прочитано, — не перевірена. Символьне посилання
+ * проходить як те, на що вказує; тека, у якій уже були (цикл посилань), — один раз.
+ */
+function* walk(dir, visited = new Set()) {
+  const real = realpathSync(dir)
+  if (visited.has(real)) return
+  visited.add(real)
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name)
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) yield* walk(full)
+    const kind = entry.isSymbolicLink() ? statSync(full) : entry
+    if (kind.isDirectory()) {
+      if (!SKIP_DIRS.has(entry.name)) yield* walk(full, visited)
     } else if (
-      entry.isFile() &&
+      kind.isFile() &&
       EXTENSIONS.has(path.extname(entry.name)) &&
       !entry.name.endsWith(".d.ts")
     ) {
@@ -128,15 +136,16 @@ export function missingRoots(cwd, roots) {
   })
 }
 
-/** Порушення в теках `roots` відносно `cwd`; згенеровані палітри пропускає, файл перевіряє один раз. */
+/** Порушення в теках `roots` відносно `cwd`; згенеровані палітри пропускає, файл (і через посилання) — один раз. */
 export function scanRoots(cwd, roots) {
   const found = []
   const seen = new Set()
   for (const root of roots) {
     for (const file of walk(path.resolve(cwd, root))) {
       const relative = path.relative(cwd, file).split(path.sep).join("/")
-      if (seen.has(relative) || isGenerated(relative)) continue
-      seen.add(relative)
+      const real = realpathSync(file)
+      if (seen.has(real) || isGenerated(relative)) continue
+      seen.add(real)
       for (const v of findViolations(readFileSync(file, "utf8")))
         found.push({ file: relative, ...v })
     }
@@ -173,4 +182,7 @@ function main() {
   console.log(`check-tokens: порушень немає (файлів — ${files})`)
 }
 
-if (import.meta.main) main()
+// `import.meta.main` — Node ≥ 24.2; на старішій порівняння шляхів, щоб перевірка не вийшла мовчки з кодом 0.
+const isMain =
+  import.meta.main ?? process.argv[1] === fileURLToPath(import.meta.url)
+if (isMain) main()

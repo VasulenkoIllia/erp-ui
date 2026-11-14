@@ -3803,7 +3803,7 @@ export const BUNDLE_ITEMS = {
     layer: "tools",
     title: "Перевірка «лише токени»",
     description:
-      "scripts/erp-ui-check-tokens.mjs [теки…]: у коді проекту (за замовчуванням src) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри src/styles/erp-ui/themes.css пропускає; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
+      "scripts/erp-ui-check-tokens.mjs [теки…]: у файлах .ts, .tsx, .js, .jsx, .css проекту (за замовчуванням тека src) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри …/styles/erp-ui/themes.css пропускає; тека, якої немає, чи жодного файла — помилка; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
     status: "beta",
     spec: ["§6", "§19"],
     files: CHECK_TOKENS_FILES,
