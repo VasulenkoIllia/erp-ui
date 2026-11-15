@@ -305,6 +305,26 @@ describe("клієнт API і мок кошика", () => {
     expect(parents.db.all()[0]?.childId).toBe("c1")
   })
 
+  it("перше читання кошика: прострочений засів уже прибрано", async () => {
+    expect((await api.list("notes", 1, 20)).data.map((e) => e.id)).toEqual([
+      "n3",
+    ])
+  })
+
+  it("reset ресурсу забуває його записи в кошику; запис із зайнятим id не відновлюється", async () => {
+    await remove("notes", "n1")
+    notes.db.reset()
+    expect((await api.list("notes", 1, 20)).data.map((e) => e.id)).toEqual([
+      "n3",
+    ])
+    expect((await failure(api.restore("notes", "n1"))).status).toBe(404)
+    trash.bin.keep("notes", { id: "n2", version: 1, name: "Копія", sku: "B-9" })
+    expect((await failure(api.restore("notes", "n2"))).code).toBe(
+      RESTORE_CONFLICT,
+    )
+    expect(notes.db.all().filter((note) => note.id === "n2")).toHaveLength(1)
+  })
+
   it("сценарії ресурсу trash: порожньо й конфлікт", async () => {
     await remove("notes", "n1")
     setScenario("empty", "trash")

@@ -1,9 +1,9 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { http, HttpResponse } from "msw"
 import { setupServer } from "msw/node"
 import { CoreAdminContext, useGetOne } from "@/registry/lib/ra-core"
-import type * as React from "react"
+import * as React from "react"
 import { MemoryRouter, Route, Routes } from "react-router"
 import {
   afterAll,
@@ -13,7 +13,9 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vitest"
+import { toast } from "sonner"
 import { z } from "zod"
 
 import { DocumentDeleteAction } from "@/registry/erp/document-delete-action"
@@ -21,6 +23,7 @@ import { TrashLink } from "@/registry/erp/trash-link"
 import { TrashView } from "@/registry/erp/trash-view"
 import { createApiClient, recordBaseSchema } from "@/registry/lib/api"
 import { createAuthProvider } from "@/registry/lib/auth"
+import { setCompanyId } from "@/registry/lib/company-scope"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import { createTrashMocks } from "@/registry/lib/mock-trash"
@@ -169,10 +172,39 @@ const notesTrash = (
   />
 )
 
+/** Сторінка кошика із заголовком: фокус, коли відновили останній рядок. */
+function TrashScreen() {
+  const heading = React.useRef<HTMLHeadingElement>(null)
+  return (
+    <>
+      <h1 ref={heading} tabIndex={-1}>
+        Кошик нотаток
+      </h1>
+      <TrashView
+        resource="notes"
+        schema={rowSchema}
+        rowLabel={(note) => note.name}
+        headingRef={heading}
+      />
+    </>
+  )
+}
+
+const restoreButton = (name: string) =>
+  screen.findByRole("button", { name: `Відновити: ${name}` })
+const gone = (name: string) =>
+  waitFor(() => {
+    expect(
+      screen.queryByRole("button", { name: `Відновити: ${name}` }),
+    ).toBeNull()
+  })
+
 beforeAll(() => {
   server.listen()
 })
 beforeEach(() => {
+  // sonner показує новому Toaster незакриті сповіщення попередніх тестів (зі «Скасувати» — без строку).
+  toast.dismiss()
   localStorage.clear()
   trash.reset()
   notes.db.reset()
@@ -181,6 +213,8 @@ beforeEach(() => {
 })
 afterEach(() => {
   server.resetHandlers()
+  setCompanyId(null)
+  vi.restoreAllMocks()
 })
 afterAll(() => {
   server.close()
@@ -224,6 +258,48 @@ describe("TrashView", () => {
     expect(notes.db.all().map((note) => note.id)).toContain("n2")
     await pressToastButton(user, "Відкрити")
     expect(await screen.findByText("Картка нотатки")).toBeTruthy()
+  })
+
+  it("відновили останній рядок — фокус на попередній; єдиний — на заголовок сторінки", async () => {
+    const user = userEvent.setup()
+    renderAt(<TrashScreen />)
+    await user.click(await restoreButton("Третя"))
+    await gone("Третя")
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Відновити: Друга" }),
+      )
+    })
+    await user.click(await restoreButton("Друга"))
+    expect(await screen.findByText("Кошик порожній")).toBeTruthy()
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("heading", { name: "Кошик нотаток" }),
+      )
+    })
+  })
+
+  it("перечитування після відновлення впало — рядок зник, під списком збій із повтором", async () => {
+    const user = userEvent.setup()
+    renderAt(notesTrash)
+    const restore = await restoreButton("Друга")
+    server.use(
+      http.get(`${BASE}/trash`, () =>
+        HttpResponse.json({ code: "boom", message: "x" }, { status: 500 }),
+      ),
+    )
+    await user.click(restore)
+    expect(await screen.findByText("Відновлено: Друга")).toBeTruthy()
+    await gone("Друга")
+    const alert = await screen.findByRole("alert", {}, { timeout: 5_000 })
+    server.resetHandlers()
+    await user.click(
+      within(alert).getByRole("button", { name: "Спробувати ще" }),
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).toBeNull()
+    })
+    expect(await restoreButton("Третя")).toBeTruthy()
   })
 
   it("місце зайняв інший запис — причина словами кошика, рядок лишається", async () => {
@@ -285,6 +361,25 @@ describe("«Видалити» з кошиком і без нього", () => {
     expect(notes.db.all().map((note) => note.id)).toContain("n1")
   })
 
+  it("«Скасувати» після зміни компанії — пояснення, запит не йде", async () => {
+    const user = userEvent.setup()
+    renderAt(<NoteCard resource="notes" id="n1" />)
+    await user.click(
+      await screen.findByRole("button", { name: "Видалити нотатку" }),
+    )
+    expect(await screen.findByText("Список нотаток")).toBeTruthy()
+    act(() => {
+      setCompanyId("other")
+    })
+    await pressToastButton(user, "Скасувати")
+    expect(
+      await screen.findByText(
+        "Запис видалено в іншій компанії: перейдіть у неї й відновіть його з кошика",
+      ),
+    ).toBeTruthy()
+    expect(notes.db.all().map((note) => note.id)).not.toContain("n1")
+  })
+
   it("без кошика — підтвердження з наслідком і видалення назавжди", async () => {
     const user = userEvent.setup()
     renderAt(<NoteCard resource="tags" id="t1" />)
@@ -305,16 +400,19 @@ describe("«Видалити» з кошиком і без нього", () => {
         HttpResponse.json({ code: "boom", message: "x" }, { status: 500 }),
       ),
     )
+    const logged = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined)
     renderAt(<NoteCard resource="notes" id="n1" />)
-    // Налаштування читаються з одним повтором: кнопка з'являється після нього.
+    // Без повтору: збій налаштувань безпечний, кнопка з підтвердженням з'являється одразу.
     await user.click(
-      await screen.findByRole(
-        "button",
-        { name: "Видалити нотатку" },
-        { timeout: 5_000 },
-      ),
+      await screen.findByRole("button", { name: "Видалити нотатку" }),
     )
     expect(await screen.findByRole("alertdialog")).toBeTruthy()
+    expect(logged).toHaveBeenCalledWith(
+      "erp-ui: trash settings",
+      expect.anything(),
+    )
   })
 })
 

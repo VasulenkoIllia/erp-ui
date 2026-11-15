@@ -1,19 +1,14 @@
 import * as React from "react"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useAuthProvider } from "@/registry/lib/ra-core"
-import { useNavigate } from "react-router"
-import { toast } from "sonner"
 import type { z } from "zod"
 
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { isFocusLost } from "@/registry/hooks/use-focus-heading"
-import {
-  useRestoreErrorMessage,
-  useTrashRefresh,
-  useTrashSettings,
-} from "@/registry/hooks/use-trash"
+import { useTrashSettings } from "@/registry/hooks/use-trash"
+import { useTrashRestore } from "@/registry/hooks/use-trash-restore"
 import { errorStateKind } from "@/registry/lib/api"
 import type { ErpAuthProvider } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
@@ -26,6 +21,7 @@ import {
   TRASH_PURGE_SOON_DAYS,
   TRASH_QUERY_KEYS,
   type TrashEntry,
+  type TrashPage,
 } from "@/registry/lib/trash"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -49,6 +45,8 @@ export interface TrashViewProps<T> {
   recordHref?: (id: string) => string
   /** Заголовок сторінки: фокус, коли відновили останній рядок. */
   headingRef?: React.RefObject<HTMLHeadingElement | null>
+  /** Рівень заголовків станів (порожньо, помилка): 3 — кошик усередині розділу з h2. */
+  headingLevel?: 2 | 3
   perPage?: number
 }
 
@@ -62,10 +60,12 @@ interface ShownEntry {
  * Кошик ресурсу (PF16, ADR-0095): видалені записи, новіші першими, хто й коли видалив, коли сервер
  * видалить назавжди (за `TRASH_PURGE_SOON_DAYS` до того — попередження словами, не лише кольором),
  * «Відновити» в кожному рядку. Стани: завантаження, офлайн, помилка з повтором, немає права, бекенд без
- * кошика, порожньо, «Показати ще» зі збоєм наступної сторінки під списком.
+ * кошика, порожньо, «Показати ще»; збій наступної сторінки чи перечитування — під списком із повтором,
+ * показане лишається.
  *
  * Відновлення — сповіщення з «Відкрити» картку; запису вже немає чи його місце зайняв інший — причина
- * словами кошика. Рядок зникає, фокус — на «Відновити» сусіднього рядка, без рядків — на заголовок.
+ * словами кошика. Рядок зникає одразу, фокус — на «Відновити» сусіднього рядка, без рядків — на
+ * заголовок; після «Показати ще» — на перший новий рядок, коли кнопка зникла разом із фокусом.
  */
 export function TrashView<T>({
   resource,
@@ -74,6 +74,7 @@ export function TrashView<T>({
   rowDescription,
   recordHref,
   headingRef,
+  headingLevel = 2,
   perPage = TRASH_PER_PAGE,
 }: TrashViewProps<T>) {
   const t = useErpUiT(ukTrash)
@@ -100,11 +101,16 @@ export function TrashView<T>({
       pages.length * perPage < last.total ? pages.length + 1 : undefined,
     enabled: Boolean(provider),
   })
+  // Куди поставити фокус після відновлення чи «Показати ще»: ефект бачить уже оновлений список.
+  const [focusAt, setFocusAt] = React.useState<{ index: number } | null>(null)
+  React.useEffect(() => {
+    if (focusAt) focusAfterChange(list.current, focusAt.index, headingRef)
+  }, [focusAt, headingRef])
   const { restore, restoring } = useTrashRestore({
     resource,
     recordHref,
     afterRestore: (index) => {
-      focusAfterRemoval(list.current, index, headingRef)
+      setFocusAt({ index })
     },
   })
 
@@ -125,6 +131,7 @@ export function TrashView<T>({
         kind="empty"
         icon={TrashIcon}
         className="min-h-40"
+        headingLevel={headingLevel}
         title={t("trash.open")}
         description={t("trash.unsupported")}
       />
@@ -132,23 +139,28 @@ export function TrashView<T>({
       <PageState
         kind={errorStateKind(query.error)}
         className="min-h-40"
+        headingLevel={headingLevel}
         onRetry={retry}
       />
     )
 
   const unnamed = (id: string) => t("trash.unnamed", { id })
-  const shown: ShownEntry[] = query.data.pages
-    .flatMap((page) => page.data)
-    .map((entry) => {
-      const parsed = schema.safeParse(entry.record)
-      return parsed.success
-        ? {
-            entry,
-            name: rowLabel(parsed.data) || unnamed(entry.id),
-            description: rowDescription?.(parsed.data),
-          }
-        : { entry, name: unnamed(entry.id), description: undefined }
+  const shown: ShownEntry[] = uniqueEntries(query.data.pages).map((entry) => {
+    const parsed = schema.safeParse(entry.record)
+    return parsed.success
+      ? {
+          entry,
+          name: rowLabel(parsed.data) || unnamed(entry.id),
+          description: rowDescription?.(parsed.data),
+        }
+      : { entry, name: unnamed(entry.id), description: undefined }
+  })
+  const showMore = () => {
+    const from = shown.length
+    void query.fetchNextPage().then((result) => {
+      if (!result.isFetchNextPageError) setFocusAt({ index: from })
     })
+  }
   const total = query.data.pages[0]?.total ?? 0
   const lead = settings
     ? t("trash.lead", { count: settings.retentionDays })
@@ -171,18 +183,25 @@ export function TrashView<T>({
                 now={now}
                 isRestoring={restoring.has(item.entry.id)}
                 onRestore={() => {
-                  restore(item, index)
+                  restore(item.entry, item.name, index)
                 }}
               />
             ))}
           </ul>
-          <TrashMore query={query} shown={shown.length} total={total} />
+          <TrashMore
+            query={query}
+            shown={shown.length}
+            total={total}
+            onMore={showMore}
+            onRetry={retry}
+          />
         </>
       ) : (
         <PageState
           kind="empty"
           icon={TrashIcon}
           className="min-h-40"
+          headingLevel={headingLevel}
           title={t("trash.empty")}
           description={t("trash.emptyHint")}
         />
@@ -251,21 +270,28 @@ function TrashEntryItem({
   )
 }
 
-/** Лічильник, «Показати ще» і збій наступної сторінки під списком: показане лишається. */
+/**
+ * Лічильник, «Показати ще» і збій під списком із повтором: наступна сторінка чи перечитування після
+ * відновлення (рядок, який уже відновили, інакше лишився б із кнопкою). Показане лишається.
+ */
 function TrashMore({
   query,
   shown,
   total,
+  onMore,
+  onRetry,
 }: {
   query: {
     hasNextPage: boolean
     isFetchingNextPage: boolean
-    isFetchNextPageError: boolean
+    isFetching: boolean
+    isError: boolean
     error: unknown
-    fetchNextPage: () => Promise<unknown>
   }
   shown: number
   total: number
+  onMore: () => void
+  onRetry: () => void
 }) {
   const t = useErpUiT(ukTrash)
   const errorMessage = useApiErrorMessage()
@@ -279,98 +305,60 @@ function TrashMore({
           <Button
             variant="outline"
             disabled={query.isFetchingNextPage}
-            onClick={() => {
-              void query.fetchNextPage()
-            }}
+            onClick={onMore}
           >
             {query.isFetchingNextPage ? <Spinner aria-hidden /> : null}
             {t("trash.more")}
           </Button>
         ) : null}
       </div>
-      {query.isFetchNextPageError ? (
-        <p className="text-sm text-destructive-foreground" role="alert">
-          {errorMessage(query.error)}
-        </p>
+      {query.isError ? (
+        <div className="flex flex-wrap items-center gap-3" role="alert">
+          <p className="text-sm text-destructive-foreground">
+            {errorMessage(query.error)}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={query.isFetching}
+            onClick={onRetry}
+          >
+            {query.isFetching ? <Spinner aria-hidden /> : null}
+            {t("pageState.error.retry")}
+          </Button>
+        </div>
       ) : null}
     </>
   )
 }
 
-/** Відновлення з кошика: рядок зайнятий, поки йде запит; після — сповіщення й перечитування. */
-function useTrashRestore({
-  resource,
-  recordHref,
-  afterRestore,
-}: {
-  resource: string
-  recordHref: ((id: string) => string) | undefined
-  afterRestore: (index: number) => void
-}) {
-  const t = useErpUiT(ukTrash)
-  const provider = useAuthProvider<ErpAuthProvider>()
-  const navigate = useNavigate()
-  const restoreError = useRestoreErrorMessage()
-  const refresh = useTrashRefresh()
-  const [restoring, setRestoring] = React.useState<ReadonlySet<string>>(
-    () => new Set(),
-  )
-  const mark = (id: string, isBusy: boolean) => {
-    setRestoring((current) => {
-      const next = new Set(current)
-      if (isBusy) next.add(id)
-      else next.delete(id)
-      return next
-    })
-  }
-  const restore = ({ entry, name }: ShownEntry, index: number) => {
-    if (!provider || restoring.has(entry.id)) return
-    mark(entry.id, true)
-    provider.trash
-      .restore(resource, entry.id)
-      .then(() => {
-        const href = recordHref?.(entry.id)
-        toast.success(t("trash.restored", { name }), {
-          ...(href
-            ? {
-                action: {
-                  label: t("trash.openRestored"),
-                  onClick: () => {
-                    void navigate(href)
-                  },
-                },
-              }
-            : {}),
-        })
-      })
-      .catch((failure: unknown) => {
-        toast.error(restoreError(failure))
-      })
-      .finally(() => {
-        void refresh(resource).then(() => {
-          mark(entry.id, false)
-          afterRestore(index)
-        })
-      })
-  }
-  return { restore, restoring }
-}
-
 /**
- * Рядок зник разом із кнопкою у фокусі: фокус на «Відновити» рядка, що став на його місце, чи
- * попереднього; без рядків — на заголовок сторінки. Фокус, який людина вже поставила деінде, не чіпаємо.
+ * Кнопка у фокусі зникла (рядок відновили, «Показати ще» дійшло до кінця) чи вимкнулась на час запиту:
+ * фокус на «Відновити» рядка `index`, інакше попереднього; без рядків — на заголовок сторінки. Фокус,
+ * який людина вже поставила деінде, не чіпаємо. Викликається з ефекту: список уже оновлено.
  */
-function focusAfterRemoval(
+function focusAfterChange(
   list: HTMLUListElement | null,
   index: number,
   heading: React.RefObject<HTMLHeadingElement | null> | undefined,
 ) {
-  requestAnimationFrame(() => {
-    if (!isFocusLost()) return
-    const buttons =
-      list?.querySelectorAll<HTMLButtonElement>("[data-trash-restore]") ?? []
-    const next = buttons[index] ?? buttons[index - 1]
-    if (next) next.focus()
-    else heading?.current?.focus()
-  })
+  if (!isFocusLost()) return
+  const buttons =
+    list?.querySelectorAll<HTMLButtonElement>("[data-trash-restore]") ?? []
+  const next = buttons[index] ?? buttons[index - 1]
+  if (next) next.focus()
+  else heading?.current?.focus()
+}
+
+/** Записи сторінок без повторів: нове видалення між сторінками зсуває рядок на наступну. */
+function uniqueEntries(pages: readonly TrashPage[]): TrashEntry[] {
+  const seen = new Set<string>()
+  return pages
+    .flatMap((page) => page.data)
+    .filter((entry) => {
+      const key = `${entry.resource}:${entry.id}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
 }

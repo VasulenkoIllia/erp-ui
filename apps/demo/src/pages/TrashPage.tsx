@@ -52,6 +52,7 @@ export function TrashPage() {
               schema={productRowSchema}
               rowLabel={(product) => product.name}
               rowDescription={(product) => t("sku", { sku: product.sku })}
+              headingLevel={3}
             />
           </Section>
           <Section
@@ -62,6 +63,7 @@ export function TrashPage() {
               resource={NO_TRASH_RESOURCE}
               schema={productRowSchema}
               rowLabel={(product) => product.name}
+              headingLevel={3}
             />
           </Section>
         </>

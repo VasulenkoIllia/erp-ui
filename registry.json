@@ -9760,6 +9760,11 @@
           "target": "@hooks/use-trash.ts"
         },
         {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
+        },
+        {
           "path": "registry/hooks/use-virtual-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-virtual-rows.ts"
@@ -11484,6 +11489,11 @@
           "path": "registry/hooks/use-trash.ts",
           "type": "registry:hook",
           "target": "@hooks/use-trash.ts"
+        },
+        {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
         },
         {
           "path": "registry/hooks/use-virtual-rows.ts",
@@ -13266,6 +13276,11 @@
           "path": "registry/hooks/use-trash.ts",
           "type": "registry:hook",
           "target": "@hooks/use-trash.ts"
+        },
+        {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
         },
         {
           "path": "registry/hooks/use-virtual-rows.ts",
@@ -65506,10 +65521,520 @@
       }
     },
     {
+      "name": "hooks/use-trash-restore",
+      "type": "registry:hook",
+      "title": "Відновлення з кошика",
+      "description": "Частина erp/trash-view: useTrashRestore({ resource, recordHref, afterRestore }) — «Відновити» в рядку кошика: рядок зайнятий, поки йде запит, після — зникає з кешу одразу, сповіщення з «Відкрити» картку чи причиною збою, перечитування. Окремим файлом, щоб картки, які лише видаляють, не вантажили код відновлення. Ставиться разом з erp/trash-view (PF16, ADR-0095).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@tanstack/react-query@^5.104.2",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "ra-core@^5.15.4",
+        "react-i18next@^17.0.16",
+        "react-router@^7.18.4",
+        "sonner@^2.0.8",
+        "zod@^4.6.6"
+      ],
+      "files": [
+        {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
+        },
+        {
+          "path": "registry/erp/confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/hooks/use-api-error-message.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-company.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-company.ts"
+        },
+        {
+          "path": "registry/hooks/use-me.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-me.ts"
+        },
+        {
+          "path": "registry/hooks/use-trash.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash.ts"
+        },
+        {
+          "path": "registry/lib/account.ts",
+          "type": "registry:lib",
+          "target": "@lib/account.ts"
+        },
+        {
+          "path": "registry/lib/api.ts",
+          "type": "registry:lib",
+          "target": "@lib/api.ts"
+        },
+        {
+          "path": "registry/lib/appearance.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance.ts"
+        },
+        {
+          "path": "registry/lib/appearance-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/appearance-core.ts"
+        },
+        {
+          "path": "registry/lib/audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/audit.ts"
+        },
+        {
+          "path": "registry/lib/auth.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth.ts"
+        },
+        {
+          "path": "registry/lib/auth-factors.ts",
+          "type": "registry:lib",
+          "target": "@lib/auth-factors.ts"
+        },
+        {
+          "path": "registry/lib/company.ts",
+          "type": "registry:lib",
+          "target": "@lib/company.ts"
+        },
+        {
+          "path": "registry/lib/company-scope.ts",
+          "type": "registry:lib",
+          "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/dates.ts",
+          "type": "registry:lib",
+          "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-core.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-access.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-audit.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-base.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-base.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-company.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-dev-panel.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-dev-panel.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-modules.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-modules.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-profile.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-profile.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-roles.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-security.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-security.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-sign-in.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-sign-in.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/invitations.ts",
+          "type": "registry:lib",
+          "target": "@lib/invitations.ts"
+        },
+        {
+          "path": "registry/lib/invite-check.ts",
+          "type": "registry:lib",
+          "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
+          "path": "registry/lib/localized-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/localized-text.ts"
+        },
+        {
+          "path": "registry/lib/notification-settings.ts",
+          "type": "registry:lib",
+          "target": "@lib/notification-settings.ts"
+        },
+        {
+          "path": "registry/lib/notifications.ts",
+          "type": "registry:lib",
+          "target": "@lib/notifications.ts"
+        },
+        {
+          "path": "registry/lib/passkey.ts",
+          "type": "registry:lib",
+          "target": "@lib/passkey.ts"
+        },
+        {
+          "path": "registry/lib/platform-api.ts",
+          "type": "registry:lib",
+          "target": "@lib/platform-api.ts"
+        },
+        {
+          "path": "registry/lib/ra-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/ra-core.ts"
+        },
+        {
+          "path": "registry/lib/realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/realtime.ts"
+        },
+        {
+          "path": "registry/lib/record-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/record-access.ts"
+        },
+        {
+          "path": "registry/lib/rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/rich-text.ts"
+        },
+        {
+          "path": "registry/lib/roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/roles.ts"
+        },
+        {
+          "path": "registry/lib/security-policy.ts",
+          "type": "registry:lib",
+          "target": "@lib/security-policy.ts"
+        },
+        {
+          "path": "registry/lib/session.ts",
+          "type": "registry:lib",
+          "target": "@lib/session.ts"
+        },
+        {
+          "path": "registry/lib/sse.ts",
+          "type": "registry:lib",
+          "target": "@lib/sse.ts"
+        },
+        {
+          "path": "registry/lib/timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/timeline.ts"
+        },
+        {
+          "path": "registry/lib/trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/trash.ts"
+        },
+        {
+          "path": "registry/lib/user-timezone.ts",
+          "type": "registry:lib",
+          "target": "@lib/user-timezone.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/lib/web-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/web-push.ts"
+        },
+        {
+          "path": "registry/lib/webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/webhooks.ts"
+        },
+        {
+          "path": "registry/ui/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert-dialog.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "trash",
+        "spec": [
+          "PF16",
+          "§8"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-trash",
       "type": "registry:hook",
       "title": "Кошик в інтерфейсі",
-      "description": "useTrashSettings: строк і ресурси кошика компанії (GET /trash/settings, раз на компанію); useKeepsInTrash(resource): чи переносить сервер записи ресурсу в кошик, бекенд без кошика чи збій налаштувань — ні (видалення з підтвердженням); useMovedToTrash: сповіщення «Перенесено в кошик» зі «Скасувати», що не зникає само (SPEC §8.2, рівень 1); useRestoreErrorMessage: запису вже немає (404), його місце зайняв інший (409 restore_conflict); useTrashRefresh — списки ресурсу й кошик (PF16, ADR-0095).",
+      "description": "useTrashSettings: строк і ресурси кошика компанії (GET /trash/settings, раз на компанію, перечитує через TRASH_SETTINGS_STALE_MS, без повтору); useKeepsInTrash(resource): чи переносить сервер записи ресурсу в кошик, бекенд без кошика чи збій налаштувань — ні (видалення з підтвердженням); useMovedToTrash: сповіщення «Перенесено в кошик» зі «Скасувати», що не зникає само (SPEC §8.2, рівень 1); useRestoreErrorMessage: запису вже немає (404), його місце зайняв інший (409 restore_conflict); useTrashRefresh — списки ресурсу й кошик (PF16, ADR-0095).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -145549,7 +146074,7 @@
       "name": "erp/trash-view",
       "type": "registry:component",
       "title": "Кошик ресурсу",
-      "description": "TrashView({ resource, schema, rowLabel, rowDescription, recordHref }): видалені записи ресурсу новіші першими, хто й коли видалив, коли сервер видалить назавжди (за TRASH_PURGE_SOON_DAYS до того — попередження словами), «Відновити» в рядку; після відновлення — сповіщення з «Відкрити», фокус на сусідній рядок; запису вже немає чи місце зайняте — причина; стани завантаження, офлайн, помилки, немає права, бекенд без кошика, порожньо, «Показати ще» (PF16, ADR-0095).",
+      "description": "TrashView({ resource, schema, rowLabel, rowDescription, recordHref }): видалені записи ресурсу новіші першими, хто й коли видалив, коли сервер видалить назавжди (за TRASH_PURGE_SOON_DAYS до того — попередження словами), «Відновити» в рядку; після відновлення — сповіщення з «Відкрити», фокус на сусідній рядок; запису вже немає чи місце зайняте — причина; стани завантаження, офлайн, помилки, немає права, бекенд без кошика, порожньо, «Показати ще», збій перечитування під списком із повтором; headingLevel — кошик усередині розділу (PF16, ADR-0095).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -145603,6 +146128,11 @@
           "path": "registry/hooks/use-trash.ts",
           "type": "registry:hook",
           "target": "@hooks/use-trash.ts"
+        },
+        {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -155941,6 +156471,11 @@
           "path": "registry/hooks/use-trash.ts",
           "type": "registry:hook",
           "target": "@hooks/use-trash.ts"
+        },
+        {
+          "path": "registry/hooks/use-trash-restore.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-trash-restore.ts"
         },
         {
           "path": "registry/lib/account.ts",

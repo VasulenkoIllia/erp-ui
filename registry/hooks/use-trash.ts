@@ -2,10 +2,11 @@
  * Кошик в інтерфейсі (lib/trash, PF16, ADR-0095): чи переносить сервер записи ресурсу в кошик, текст
  * збою відновлення й «Скасувати» після видалення.
  *
- * - Налаштування читаються раз на компанію й не застарівають: строк і ресурси кошика сервер не міняє
- *   посеред роботи. Бекенд без кошика (404) — `keeps: false`: видалення назавжди з підтвердженням.
- * - Збій налаштувань (мережа, 500) — теж `keeps: false`: людина побачить підтвердження, а не
- *   видалення без нього, яке не можна повернути.
+ * - Налаштування читаються раз на компанію й перечитуються, коли застаріли (`TRASH_SETTINGS_STALE_MS`):
+ *   вкладка живе днями, а кошик для ресурсу можуть вимкнути. Бекенд без кошика (404) — `keeps: false`:
+ *   видалення назавжди з підтвердженням.
+ * - Збій налаштувань (мережа, 500) — теж `keeps: false`, без повтору: людина побачить підтвердження, а не
+ *   видалення без нього, яке не можна повернути. Збій пишемо в консоль: кошик вимкнено не мовчки.
  */
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthProvider } from "@/registry/lib/ra-core"
@@ -17,15 +18,19 @@ import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
 import type { ErpAuthProvider } from "@/registry/lib/auth"
-import { companyScope } from "@/registry/lib/company-scope"
+import { companyScope, getCompanyId } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukTrash } from "@/registry/lib/i18n-uk-trash"
 import {
+  isTrashUnsupported,
   keepsInTrash,
   RESTORE_CONFLICT,
   TRASH_QUERY_KEYS,
   type TrashSettings,
 } from "@/registry/lib/trash"
+
+/** Скільки налаштування кошика свіжі: далі перечитуються на новій картці чи поверненні на вкладку. */
+export const TRASH_SETTINGS_STALE_MS = 5 * 60_000
 
 export interface TrashSettingsState {
   /** Налаштування; `null` — бекенд кошика не веде; `undefined` — ще вантажаться чи збій. */
@@ -42,10 +47,16 @@ export function useTrashSettings(): TrashSettingsState {
       if (!provider) throw new Error("authProvider is required")
       return provider.trash.getSettings()
     },
-    staleTime: Number.POSITIVE_INFINITY,
-    retry: 1,
+    staleTime: TRASH_SETTINGS_STALE_MS,
+    // Збій безпечний (видалення з підтвердженням): кнопка не чекає повторів після тайм-ауту.
+    retry: false,
     enabled: Boolean(provider),
   })
+  const failure = query.error
+  React.useEffect(() => {
+    if (failure && !isTrashUnsupported(failure))
+      console.error("erp-ui: trash settings", failure)
+  }, [failure])
   return {
     settings: query.isError ? undefined : query.data,
     // Без мережі запит на паузі: кнопка не чекає, видалення йде з підтвердженням.
@@ -91,7 +102,11 @@ export function useRestoreErrorMessage(): (error: unknown) => string {
     (error: unknown) => {
       if (isApiError(error) && error.status === 404)
         return t("trash.restoreGone")
-      if (isApiError(error) && error.code === RESTORE_CONFLICT)
+      // Відновлення не має версії: будь-який 409 — місце зайняв інший, навіть без коду `restore_conflict`.
+      if (
+        isApiError(error) &&
+        (error.status === 409 || error.code === RESTORE_CONFLICT)
+      )
         return t("trash.restoreConflict")
       return errorMessage(error)
     },
@@ -116,8 +131,8 @@ export function useTrashRefresh(): (resource: string) => Promise<void> {
 export interface MovedToTrash {
   readonly resource: string
   readonly id: string
-  /** Назва запису для «Відновлено: …». */
-  readonly name: string
+  /** Назва запису для «Відновлено: …»; без неї — «Запис <id>». */
+  readonly name?: string | undefined
   /** Сповіщення словами модуля: «Чернетку перенесено в кошик»; без нього — текст кіта. */
   readonly message?: string
 }
@@ -125,7 +140,8 @@ export interface MovedToTrash {
 /**
  * Сповіщення «Перенесено в кошик» зі «Скасувати» (SPEC §8.2, рівень 1): тост не зникає сам, «Скасувати»
  * повертає запис із кошика, списки перечитуються. Збій повернення — сповіщення з причиною. Кошик на тому
- * самому екрані перечитується одразу: запис уже в ньому.
+ * самому екрані перечитується одразу: запис уже в ньому. Людина перемкнула компанію — «Скасувати» не
+ * шле запит з іншою компанією (запис лежить у кошику тієї, де його видалили), а каже, де його шукати.
  */
 export function useMovedToTrash(): (moved: MovedToTrash) => void {
   const t = useErpUiT(ukTrash)
@@ -135,13 +151,19 @@ export function useMovedToTrash(): (moved: MovedToTrash) => void {
   const refresh = useTrashRefresh()
   return React.useCallback(
     ({ resource, id, name, message }: MovedToTrash) => {
+      const deletedIn = getCompanyId()
+      const label = name || t("trash.unnamed", { id })
       void refresh(resource)
       showUndo(message ?? t("trash.moved"), () => {
+        if (getCompanyId() !== deletedIn) {
+          toast.error(t("trash.undoOtherCompany"))
+          return
+        }
         if (!provider) return
         provider.trash
           .restore(resource, id)
           .then(() => {
-            toast.success(t("trash.restored", { name }))
+            toast.success(t("trash.restored", { name: label }))
           })
           .catch((failure: unknown) => {
             toast.error(

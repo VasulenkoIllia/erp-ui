@@ -15,8 +15,8 @@
  *   (`{ id, name }`, `null` — сервер чи токен API) і `record` — рядок списку ресурсу, яким він був у мить
  *   видалення. Лише те, що людина могла б видалити: право `<ресурс>:delete`, з `:own` — свої записи
  *   (ADR-0039). Без права на ресурс — 403.
- * - `POST /trash/<ресурс>/<id>/restore` без тіла → 200 запис, як `GET /<ресурс>/:id`: той самий `id`,
- *   нова версія, без закріплення. Право — як для списку. 404 — запису в кошику вже немає (відновили, минув
+ * - `POST /trash/<ресурс>/<id>/restore` без тіла → 200 відновлений запис: той самий `id`, нова версія
+ *   (кошик бере лише їх, картку модуль перечитує сам). Право — як для списку. 404 — запису в кошику вже немає (відновили, минув
  *   строк); 409 `restore_conflict` — поки запис лежав у кошику, його місце зайняв інший: унікальне поле
  *   має інший запис, зв'язок, який звільнило видалення, уже зайнято (з тієї самої пропозиції зробили нове
  *   замовлення). Зв'язки, які видалення звільнило, відновлення повертає.
@@ -48,11 +48,14 @@ export const trashSettingsSchema = z.object({
 })
 export type TrashSettings = z.infer<typeof trashSettingsSchema>
 
+/** Мить із поясом: дату, яку не розбере `format.date`, схема відкидає, а не рядок кошика падає. */
+const instantSchema = z.iso.datetime({ offset: true })
+
 export const trashEntrySchema = z.object({
   resource: z.string(),
   id: z.string(),
-  deletedAt: z.string(),
-  purgeAt: z.string(),
+  deletedAt: instantSchema,
+  purgeAt: instantSchema,
   deletedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   /** Рядок списку ресурсу в мить видалення: модуль показує його своїм підписом. */
   record: z.record(z.string(), z.unknown()),

@@ -41,7 +41,6 @@ export const TRASH_SCENARIO_RESOURCE = "trash"
 
 const DAY_MS = 86_400_000
 const DEFAULT_RETENTION_DAYS = 30
-const DEFAULT_PER_PAGE = 20
 
 /** Запис засіву, який лежить у кошику з першого запиту (демо): видалений `daysAgo` днів тому, без автора. */
 export interface MockTrashSeed {
@@ -96,6 +95,8 @@ export interface MockTrashBin {
     record: MockRecord,
     daysAgo?: number,
   ) => void
+  /** Забути записи ресурсу в кошику: `db.reset()` ресурсу засіває його знову разом із кошиком. */
+  readonly forget: (resource: string) => void
 }
 
 const keyOf = (resource: string, id: string) => `${resource}:${id}`
@@ -130,6 +131,10 @@ export function createTrashMocks({
         deletedAt: Date.now() - (daysAgo ?? 0) * DAY_MS,
         deletedBy: user ? { id: user.id, name: user.name } : null,
       })
+    },
+    forget: (resource) => {
+      for (const [key, entry] of entries)
+        if (entry.resource === resource) entries.delete(key)
     },
   }
 
@@ -183,12 +188,13 @@ export function createTrashMocks({
       }
       if (scenarioFor(TRASH_SCENARIO_RESOURCE) === "empty")
         return json({ data: [], total: 0 })
+      // Спершу засів (записи засіву переходять у кошик), потім прибирання: прострочений засів не видно.
+      for (const resource of resources) sources.get(resource)?.ensureSeeded()
       purgeExpired()
       const found: TrashEntry[] = []
       for (const resource of resources) {
         const source = sources.get(resource)
         if (!source) continue
-        source.ensureSeeded()
         for (const entry of entries.values())
           if (
             entry.resource === resource &&
@@ -198,10 +204,9 @@ export function createTrashMocks({
             found.push(toEntry(entry, source))
       }
       found.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt))
-      const size = perPage ?? DEFAULT_PER_PAGE
-      const start = ((page ?? 1) - 1) * size
+      const start = (page - 1) * perPage
       return json({
-        data: found.slice(start, start + size),
+        data: found.slice(start, start + perPage),
         total: found.length,
       })
     }),
@@ -261,8 +266,6 @@ export function createTrashMocks({
   }
 }
 
-export type MockTrash = ReturnType<typeof createTrashMocks>
-
 /** Записи засіву з `trash.deleted` — одразу в кошику, а не в даних ресурсу (`createResourceHandlers`). */
 export function withoutTrashSeeds<T extends MockRecord>(
   resource: string,
@@ -289,7 +292,7 @@ export interface MockTrashResourceDb<T extends MockRecord> {
     record: T,
   ) => boolean
   readonly listRow: (record: T) => Record<string, unknown>
-  /** Вставити відновлений запис із журналом і подією; `false` — повтор унікального поля. */
+  /** Вставити відновлений запис із журналом і подією; `false` — `id` чи унікальне поле вже зайняте. */
   readonly insert: (record: T) => boolean
   readonly ensureSeeded: () => void
 }

@@ -37,5 +37,7 @@ export const enTrash = {
     more: "Show more",
     moved: "Moved to the trash",
     undoFailed: "Couldn't bring the record back: {{reason}}",
+    undoOtherCompany:
+      "The record was deleted in another company: switch to it and restore the record from the trash",
   },
 } satisfies ErpUiTranslation<typeof ukTrash>

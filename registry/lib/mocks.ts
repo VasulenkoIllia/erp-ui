@@ -553,7 +553,12 @@ export function createResourceHandlers<T extends MockRecord>({
         deniedBy(accessOf(user, permissions), record, "delete") === null,
       listRow,
       insert: (record) => {
-        if (duplicateFields(all(), record, unique)) return false
+        const records = all()
+        if (
+          records.some((r) => r.id === record.id) ||
+          duplicateFields(records, record, unique)
+        )
+          return false
         replace([record, ...all()])
         changed("restored", record)
         return true
@@ -749,6 +754,7 @@ export function createResourceHandlers<T extends MockRecord>({
       },
       reset: () => {
         stored = null
+        trash?.bin.forget(resource)
         sorted.clear()
         bumped.clear()
       },

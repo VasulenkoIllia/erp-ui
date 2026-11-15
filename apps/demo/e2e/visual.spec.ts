@@ -212,6 +212,21 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
   // Нумерація: перегляд уже з лічильником сервера, а не «…».
   if (pageId === "numbering")
     await expect(page.locator("output")).toHaveText(/^ДОК-\d{4}-\d{4}$/)
+  // Кошик: рядки кошика товарів і варіант без кошика вже з сервера, а не скелетони.
+  if (pageId === "trash") {
+    await expect(
+      page
+        .getByRole("list", { name: /^(Видалені записи|Deleted records)$/ })
+        .getByRole("listitem"),
+    ).toHaveCount(4)
+    await expect(
+      page.getByRole("button", { name: /^(Видалити товар|Delete product)$/ }),
+    ).toBeVisible()
+  }
+  if (pageId === "contactsTrash")
+    await expect(
+      page.getByText(/^(Кошик порожній|The trash is empty)$/),
+    ).toBeVisible()
   // Закриті періоди: запис, винятки й документ уже з сервера, а не скелетони.
   if (pageId === "periodLock") {
     await expect(

@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { TrashPage } from "@/components/templates/trash-page"
+import { isCalendarDate } from "@/lib/dates"
 
 import { useDocumentTrashLabel } from "../components/document-trash-label"
 import { CREDIT_NOTE_KIND } from "../credit-note-kind"
@@ -13,7 +14,8 @@ import { useInvoicesT } from "../use-invoices-t"
 const documentTrashRowSchema = z.object({
   number: z.string().nullable(),
   clientName: z.string(),
-  date: z.string(),
+  // Дата, яку не розбере форматер, — рядок «Запис <id>», а не збій сторінки.
+  date: z.string().refine(isCalendarDate),
 })
 
 /** Кошик рахунків (PF16, ADR-0095). */

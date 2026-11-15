@@ -52,7 +52,10 @@ export interface DocumentDeleteTexts {
  * - Сервер переносить записи ресурсу в кошик (`useKeepsInTrash`) — без діалогу: запис іде в кошик одразу,
  *   сповіщення зі «Скасувати» не зникає само (SPEC §8.2, рівень 1).
  * - Кошика немає (чи його налаштування не прочитались) — підтвердження, що називає наслідок (рівень 2).
- * - Поки права й налаштування кошика невідомі — кнопки немає.
+ * - Поки права невідомі — кнопки немає; без права — неактивна з причиною, не чекаючи налаштувань кошика;
+ *   поки налаштування кошика невідомі — кнопки немає.
+ * - Без діалогу сторінку ніщо не тримає: людина, що за час запиту пішла з картки, лишається там, куди
+ *   пішла, а сповіщення однаково з'являється.
  */
 export function DocumentDeleteAction({
   resource,
@@ -94,7 +97,7 @@ export function DocumentDeleteAction({
   // Дію заборонили, поки діалог відкритий (чернетку взяли в редагування): діалог закривається, а не
   // з'являється сам, коли заборону знімуть.
   if (open && (isPending || reason !== undefined)) setOpen(false)
-  if (isPending || keeps === undefined) return null
+  if (isPending) return null
   const content = (
     <>
       {isDeleting ? <Spinner aria-hidden /> : <DeleteIcon aria-hidden />}
@@ -103,7 +106,9 @@ export function DocumentDeleteAction({
   )
   if (reason !== undefined)
     return <DeniedAction reason={reason}>{content}</DeniedAction>
+  if (keeps === undefined) return null
   const run = async () => {
+    const page = window.location.href
     try {
       await remove(
         resource,
@@ -114,23 +119,24 @@ export function DocumentDeleteAction({
         },
         { mutationMode: "pessimistic", returnPromise: true },
       )
-      if (keeps)
-        movedToTrash({
-          resource,
-          id: String(document.id),
-          name: name ?? String(document.id),
-          message: texts.trashed,
-        })
-      else toast.success(texts.done)
-      setOpen(false)
-      void navigate(listPath)
     } catch (failure: unknown) {
       toast.error(errorMessage(failure))
       if (isApiError(failure) && FINAL_STATUSES.has(failure.status)) {
         setOpen(false)
         void queryClient.invalidateQueries({ queryKey: [resource] })
       }
+      return
     }
+    if (keeps)
+      movedToTrash({
+        resource,
+        id: String(document.id),
+        name,
+        message: texts.trashed,
+      })
+    else toast.success(texts.done)
+    setOpen(false)
+    if (window.location.href === page) void navigate(listPath)
   }
   const deleteToTrash = () => {
     if (isDeleting) return
@@ -151,7 +157,8 @@ export function DocumentDeleteAction({
       >
         {content}
       </Button>
-      {keeps ? null : (
+      {/* Налаштування кошика прийшли, поки діалог відкритий: діалог лишається до відповіді людини. */}
+      {keeps && !open ? null : (
         <ConfirmDialog
           open={open}
           title={texts.title}

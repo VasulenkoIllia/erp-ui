@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { TrashPage } from "@/components/templates/trash-page"
+import { isCalendarDate } from "@/lib/dates"
 
 import { useSalesTrashLabel } from "../components/sales-trash-label"
 import { useSalesModule } from "../module-context"
@@ -11,7 +12,8 @@ import { useSalesT } from "../use-sales-t"
 const salesTrashRowSchema = z.object({
   number: z.string().nullable(),
   clientName: z.string(),
-  date: z.string(),
+  // Дата, яку не розбере форматер, — рядок «Запис <id>», а не збій сторінки.
+  date: z.string().refine(isCalendarDate),
 })
 
 /** Кошик пропозицій (PF16, ADR-0095). */
