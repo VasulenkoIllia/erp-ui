@@ -35,7 +35,7 @@ import {
  * Тема, палітра, щільність, сайдбар і мова змінюються через lib/appearance — одразу для всього застосунку.
  * `children` — пункти проекту (профіль, налаштування) між вподобаннями й виходом.
  * `showPalette`, `showDensity` — проект ховає пункт, якого йому не треба (за замовчуванням видно);
- * `onLanguageChange` — мова, щойно людина обрала її в меню (зберегти на сервері проекту).
+ * `onLanguageChange` — мова, щойно людина обрала в меню іншу (зберегти на сервері проекту).
  */
 
 export interface MenuUser {
@@ -62,7 +62,7 @@ export interface UserMenuProps {
   /** Пункт «Щільність»; `false` — проект з однією щільністю. */
   showDensity?: boolean
   /**
-   * Людина обрала мову в меню: мова вже застосована й збережена в браузері (lib/appearance),
+   * Людина обрала в меню іншу мову: мова вже застосована й збережена в браузері (lib/appearance),
    * проект зберігає її у себе (`/me/preferences`, свій API). Інші зміни вигляду — `subscribeAppearance`.
    */
   onLanguageChange?: (language: Language) => void
@@ -193,6 +193,8 @@ export function UserMenu({
             <DropdownMenuRadioGroup
               value={appearance.language}
               onValueChange={(language: Language) => {
+                // Радіопункт Base UI повідомляє й про вже обрану мову: проекту — лише зміну.
+                if (language === appearance.language) return
                 setAppearance({ language })
                 onLanguageChange?.(language)
               }}

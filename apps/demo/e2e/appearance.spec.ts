@@ -52,12 +52,10 @@ test.describe("перемикачі вигляду", () => {
     page,
   }) => {
     await openWith(page, {})
-    const samples = page.getByRole("button", {
-      name: /Меню користувача: Марта Демченко/,
-    })
-    await expect(samples).toHaveCount(3)
+    const menuOf = (name: string) =>
+      page.getByRole("button", { name: `Меню користувача: ${name}` })
 
-    await samples.nth(1).click()
+    await menuOf("Ігор Савчук").click()
     const menu = page.getByRole("menu")
     await expect(
       menu.getByRole("menuitemradio", { name: "Темна" }),
@@ -70,12 +68,12 @@ test.describe("перемикачі вигляду", () => {
     await page.keyboard.press("Escape")
     await expect(menu).toBeHidden()
 
-    await samples.nth(2).click()
+    await menuOf("Ніна Левченко").click()
     await chooseInSubmenu(page, /Мова/, "English")
     await expect(page.locator("html")).toHaveAttribute("lang", "en")
     await expect(
-      page.getByText("Мову «English» збережено на сервері (демо)"),
-    ).toBeVisible()
+      page.getByRole("status").filter({ hasText: "English" }),
+    ).toHaveText("Language “English” saved on the server (demo)")
   })
 
   test("усе керується з клавіатури", async ({ page }) => {

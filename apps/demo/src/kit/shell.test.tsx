@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { FileText, Users } from "lucide-react"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { AppShell, type NavGroup } from "@/registry/erp/app-shell"
 import { PageState } from "@/registry/erp/page-state"
@@ -215,6 +215,10 @@ describe("PageState", () => {
 })
 
 describe("UserMenu", () => {
+  // Мова — у стані модуля lib/appearance: тест, що впав посередині, не лишає англійську наступним.
+  afterEach(() => {
+    setAppearance({ language: "uk" })
+  })
   const USER = { name: "Олена Коваль", email: "olena@test.example" }
   const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(
@@ -273,8 +277,27 @@ describe("UserMenu", () => {
     await user.keyboard("{Enter}")
     expect(onLanguageChange).toHaveBeenCalledExactlyOnceWith("en")
     expect(getAppearance().language).toBe("en")
+    // Зміна мови не з меню (палітра команд, інша вкладка) колбек не кличе.
     setAppearance({ language: "uk" })
     expect(onLanguageChange).toHaveBeenCalledOnce()
+  })
+
+  it("onLanguageChange не кличеться, коли обрали вже поточну мову", async () => {
+    const user = userEvent.setup()
+    const onLanguageChange = vi.fn()
+    render(<UserMenu user={USER} onLanguageChange={onLanguageChange} />)
+    const menu = await openMenu(user)
+    within(menu).getByRole("menuitem", { name: /Мова/ }).focus()
+    await user.keyboard("{ArrowRight}")
+    const ukrainian = await screen.findByRole("menuitemradio", {
+      name: "Українська",
+    })
+    await vi.waitFor(() => {
+      expect(ukrainian).toHaveFocus()
+    })
+    await user.keyboard("{Enter}")
+    expect(onLanguageChange).not.toHaveBeenCalled()
+    expect(getAppearance().language).toBe("uk")
   })
 })
 

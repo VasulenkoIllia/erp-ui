@@ -45,9 +45,9 @@ test.describe("скриншоти кроку Б11 @screenshots", () => {
         test.skip(skip())
         await page.setViewportSize({ width, height: HEIGHTS[width] ?? 900 })
         await openWith(page, seed)
-        const sample = page
-          .getByRole("button", { name: /Меню користувача: Марта Демченко/ })
-          .nth(1)
+        const sample = page.getByRole("button", {
+          name: "Меню користувача: Ігор Савчук",
+        })
         await sample.scrollIntoViewIfNeeded()
         await sample.click()
         await expect(

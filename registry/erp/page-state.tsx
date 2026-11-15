@@ -145,7 +145,10 @@ export function PageState({
       <div
         className={cn(
           "flex flex-wrap gap-2",
-          compact ? "ps-11 @md:shrink-0 @md:ps-0" : "justify-center",
+          // У рядку дії беруть не більше половини: дві кнопки переносяться, а не стискають текст.
+          compact
+            ? "ps-11 @lg:max-w-1/2 @lg:justify-end @lg:ps-0"
+            : "justify-center",
         )}
       >
         {action}
@@ -191,7 +194,7 @@ export function PageState({
         role={isAlert ? "alert" : undefined}
         className={cn("@container w-full min-w-0", className)}
       >
-        <div className="flex flex-col gap-3 @md:flex-row @md:items-center">
+        <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             <span
               className={cn(
