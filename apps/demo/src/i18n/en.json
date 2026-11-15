@@ -485,7 +485,7 @@
   },
   "organizationsPage": {
     "title": "Organizations",
-    "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs. The “Table · Cards” switch shows the same records as a card grid: tabs, search and views are shared, and the address and saved views remember the layout.",
+    "lead": "The List Report template with pages on the organizations directory: the pin keeps a record at the top of the list for you only (in the order you pinned, at most 50), and “Rows per page” is remembered for this list on the server. The name opens a record page with tabs. “Cards” shows the same records as a grid; the address and views remember the layout.",
     "search": "Search by name or code",
     "tabsLabel": "Organization type",
     "tableLabel": "Organizations",

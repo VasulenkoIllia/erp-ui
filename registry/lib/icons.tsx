@@ -33,7 +33,6 @@ import {
   Calendar,
   CalendarCheck,
   CalendarClock,
-  CalendarDays,
   CalendarPlus,
   CalendarRange,
   Car,
@@ -138,7 +137,6 @@ import {
   ShoppingBag,
   Signature,
   Sparkles,
-  SquareKanban,
   Store,
   Sun,
   Table2,
@@ -495,10 +493,11 @@ export const SHELL_ICONS = {
   shortcuts: Keyboard,
 } satisfies Record<string, LucideIcon>
 
-/** Подання списку (ADR-0091): та сама вибірка таблицею, картками, дошкою чи календарем. */
+/**
+ * Подання списку (ADR-0091): та сама вибірка таблицею чи картками. Нове подання (дошка, календар) додає
+ * свою іконку сюди разом із собою: словник — у вхідному чанку застосунку.
+ */
 export const LAYOUT_ICONS = {
   table: Table2,
   cards: LayoutGrid,
-  board: SquareKanban,
-  calendar: CalendarDays,
 } satisfies Record<string, LucideIcon>
