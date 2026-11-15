@@ -2,10 +2,51 @@
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { fileURLToPath } from "node:url"
-import { defineConfig } from "vite"
+import { gzipSync } from "node:zlib"
+import { defineConfig, type Plugin } from "vite"
+
+const REGISTRY_DIR = fileURLToPath(new URL("../../registry/", import.meta.url))
+
+/**
+ * Склад чанків для звіту `check:bundle` (ADR-0092): gzip коду бібліотек, кіта й демо в кожному
+ * чанку — `dist/.vite/bundle-sources.json`. Скрипт зводить ці числа до справжнього розміру чанка.
+ */
+function bundleSources(): Plugin {
+  // Бібліотеки першими: у `registry` є свій `node_modules` (пакет workspace).
+  const group = (id: string) =>
+    id.startsWith("\0") || id.includes("/node_modules/")
+      ? "libs"
+      : id.startsWith(REGISTRY_DIR)
+        ? "kit"
+        : "demo"
+  return {
+    name: "erp-ui:bundle-sources",
+    apply: "build",
+    generateBundle(_options, bundle) {
+      const sources: Record<string, Record<string, number>> = {}
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type !== "chunk") continue
+        const code: Record<string, string> = { libs: "", kit: "", demo: "" }
+        for (const [id, module] of Object.entries(chunk.modules))
+          code[group(id)] += module.code ?? ""
+        sources[chunk.fileName] = Object.fromEntries(
+          Object.entries(code).map(([name, text]) => [
+            name,
+            text ? gzipSync(text).length : 0,
+          ]),
+        )
+      }
+      this.emitFile({
+        type: "asset",
+        fileName: ".vite/bundle-sources.json",
+        source: JSON.stringify(sources),
+      })
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), bundleSources()],
   // Маніфест чанків — для перевірки бюджету першого екрана (scripts/check-bundle.mjs, ADR-0009).
   build: { manifest: true },
   resolve: {

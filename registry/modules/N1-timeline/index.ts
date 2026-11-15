@@ -16,7 +16,7 @@
 import { createElement, type ComponentType } from "react"
 
 import type { ExtensionAside } from "@/components/templates/object-page"
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import { MODULE_ICONS } from "@/lib/icons"
 import { lazyWithPreload, type PreloadableComponent } from "@/lib/lazy"
 import { createModule, type ErpModule, type ModuleNavItem } from "@/lib/module"

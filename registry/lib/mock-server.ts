@@ -15,12 +15,8 @@ import { delay } from "msw/utils/delay"
 
 import { deviceFromUserAgent, type Device } from "@/registry/lib/account"
 import { COMPANY_HEADER, type ApiErrorBody } from "@/registry/lib/api"
-import {
-  meSchema,
-  type AuthFactor,
-  type LocalizedText,
-  type Me,
-} from "@/registry/lib/auth"
+import { meSchema, type AuthFactor, type Me } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import { SLOW_DELAY_MS, type Scenario } from "@/registry/lib/mock-scenarios"
 import {
   BACKGROUND_HEADER,

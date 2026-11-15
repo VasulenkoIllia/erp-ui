@@ -21,7 +21,7 @@ import { documentTemplateVariables } from "@/registry/erp/document-template-vari
 import { DocxPreview, type DocxPreviewState } from "@/registry/erp/docx-preview"
 import { FileDrop } from "@/registry/erp/file-drop"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
-import { localizedText } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import { templateData } from "@/registry/lib/document-template"
 import { DOCX_MAX_BYTES, DOCX_MIME } from "@/registry/lib/docx-template"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"

@@ -15,7 +15,7 @@ import { http, type HttpHandler } from "msw/http"
 import type { z } from "zod"
 
 import { fromSearchParams } from "@/lib/api"
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import { validation } from "@/lib/mock-account-state"
 import { mockRequestPermissions } from "@/lib/mock-company-roles"

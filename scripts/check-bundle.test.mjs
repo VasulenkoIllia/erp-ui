@@ -3,10 +3,11 @@ import { test } from "node:test"
 
 import {
   budgetReport,
-  ENTRY_ROW,
+  ratchetLimit,
+  scaleParts,
   splitFirstScreen,
   staticClosure,
-  updatedLimits,
+  updatedBudget,
 } from "./check-bundle.mjs"
 
 // Вхід → react; сторінка Data → таблиця + react (спільний); моки → msw; динамічний модуль кіта.
@@ -41,6 +42,16 @@ const sizes = {
   "_msw.js": 40_000,
 }
 const size = (key) => sizes[key] ?? 0
+// Склад: вхідний чанк — пів на пів кіт і демо, решта — бібліотеки.
+const parts = (key) =>
+  key === "index.html"
+    ? { libs: 0, kit: size(key) / 2, demo: size(key) / 2 }
+    : { libs: size(key), kit: 0, demo: 0 }
+const budget = {
+  entryCeilingKb: 60,
+  mocksLimitKb: 43,
+  pageLimitsKb: { "DataPage.tsx": 25, "HomePage.tsx": 1 },
+}
 
 test("статичне замикання без циклів і динамічних імпортів", () => {
   assert.deepEqual(
@@ -61,28 +72,61 @@ test("перший екран: сторінка без спільного з в�
   assert.equal(Object.keys(split.pages).length, 2)
 })
 
-test("межі: перевищення й маршрут без межі валять перевірку", () => {
-  const report = budgetReport(splitFirstScreen(manifest), size, {
-    [ENTRY_ROW]: 60,
-    "DataPage.tsx": 80,
-  })
-  const byName = Object.fromEntries(report.rows.map((r) => [r.name, r]))
-  assert.equal(byName[ENTRY_ROW].kb, 60)
-  assert.equal(byName[ENTRY_ROW].over, false)
-  assert.equal(byName["DataPage.tsx"].kb, 85)
-  assert.equal(byName["DataPage.tsx"].over, true)
-  assert.equal(byName["HomePage.tsx"].over, true, "немає межі")
+test("стеля входу, власна частина сторінки й шар моків; склад входу", () => {
+  const report = budgetReport(splitFirstScreen(manifest), size, budget, parts)
+  assert.equal(report.entry.kb, 60)
+  assert.equal(report.entry.over, false)
+  assert.deepEqual(report.entry.parts, { libs: 50, kit: 5, demo: 5 })
+  const byName = Object.fromEntries(report.pages.map((p) => [p.name, p]))
+  // Власна частина — без входу; увесь перший екран — разом із ним.
+  assert.equal(byName["DataPage.tsx"].kb, 25)
+  assert.equal(byName["DataPage.tsx"].totalKb, 85)
+  assert.equal(byName["DataPage.tsx"].over, false)
+  assert.equal(report.mocks.kb, 43)
+  assert.equal(report.mocks.over, false)
   assert.deepEqual(report.stale, [])
-  assert.equal(report.mocksKb, 43)
 })
 
-test("межа маршруту, якого немає у збірці, — застаріла", () => {
-  const report = budgetReport(splitFirstScreen(manifest), size, {
-    [ENTRY_ROW]: 60,
-    "DataPage.tsx": 90,
-    "HomePage.tsx": 70,
-    "OldPage.tsx": 50,
-  })
+test("понад стелю, понад межу й сторінка без межі валять перевірку", () => {
+  const report = budgetReport(
+    splitFirstScreen(manifest),
+    size,
+    {
+      entryCeilingKb: 59.9,
+      mocksLimitKb: 42.9,
+      pageLimitsKb: { "DataPage.tsx": 24.9 },
+    },
+    parts,
+  )
+  const byName = Object.fromEntries(report.pages.map((p) => [p.name, p]))
+  assert.equal(report.entry.over, true)
+  assert.equal(byName["DataPage.tsx"].over, true)
+  assert.equal(byName["HomePage.tsx"].over, true, "немає межі")
+  assert.equal(report.mocks.over, true)
+})
+
+test("ріст входу під стелею не зачіпає межі сторінок", () => {
+  const heavierEntry = (key) => (key === "index.html" ? 14_000 : size(key))
+  const report = budgetReport(
+    splitFirstScreen(manifest),
+    heavierEntry,
+    { ...budget, entryCeilingKb: 65 },
+    parts,
+  )
+  assert.equal(report.entry.over, false)
+  assert.equal(
+    report.pages.some((p) => p.over),
+    false,
+  )
+})
+
+test("межа сторінки, якої немає у збірці, — застаріла", () => {
+  const report = budgetReport(
+    splitFirstScreen(manifest),
+    size,
+    { ...budget, pageLimitsKb: { ...budget.pageLimitsKb, "OldPage.tsx": 50 } },
+    parts,
+  )
   assert.deepEqual(report.stale, ["OldPage.tsx"])
 })
 
@@ -101,6 +145,20 @@ test("сторінка модуля кіта — свій маршрут, як �
   ])
 })
 
+test("дві сторінки з однаковою назвою файла валять перевірку", () => {
+  assert.throws(
+    () =>
+      splitFirstScreen({
+        ...manifest,
+        "../../registry/modules/N5-notifications/pages/DataPage.tsx": {
+          file: "a/n5-data.js",
+          isDynamicEntry: true,
+        },
+      }),
+    /дві сторінки з назвою DataPage\.tsx/,
+  )
+})
+
 test("збірка без сторінок валить перевірку, а не проходить порожньою", () => {
   const withoutPages = Object.fromEntries(
     Object.entries(manifest).filter(([key]) => !key.startsWith("src/pages/")),
@@ -108,12 +166,23 @@ test("збірка без сторінок валить перевірку, а �
   assert.throws(() => splitFirstScreen(withoutPages), /немає сторінок/)
 })
 
-test("оновлення меж: факт + 5 %, угору до 0,1 КБ", () => {
-  assert.deepEqual(
-    updatedLimits([
-      { name: ENTRY_ROW, kb: 334.2 },
-      { name: "DataPage.tsx", kb: 100 },
-    ]),
-    { [ENTRY_ROW]: 351, "DataPage.tsx": 105 },
-  )
+test("оновлення меж: факт до 0,1 КБ + 0,1; стеля входу та сама", () => {
+  assert.equal(ratchetLimit(404.64), 404.7)
+  assert.equal(ratchetLimit(404.66), 404.8)
+  assert.equal(ratchetLimit(100), 100.1)
+  const report = budgetReport(splitFirstScreen(manifest), size, budget, parts)
+  assert.deepEqual(updatedBudget(report, { ...budget, entryCeilingKb: 1 }), {
+    entryCeilingKb: 1,
+    mocksLimitKb: 43.1,
+    pageLimitsKb: { "DataPage.tsx": 25.1, "HomePage.tsx": 1.1 },
+  })
+})
+
+test("склад чанка зводиться до справжнього розміру; чанк без коду — нуль", () => {
+  assert.deepEqual(scaleParts({ libs: 300, kit: 100, demo: 0 }, 200), {
+    libs: 150,
+    kit: 50,
+    demo: 0,
+  })
+  assert.deepEqual(scaleParts(undefined, 0), { libs: 0, kit: 0, demo: 0 })
 })

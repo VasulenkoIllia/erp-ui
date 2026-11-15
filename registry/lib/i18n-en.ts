@@ -239,6 +239,8 @@ export const en = {
     transition_not_allowed:
       "This action isn't available in the record's status",
     unknown: "Something went wrong. Please try again",
+    chunk_load:
+      "Part of the app failed to load. Reload the page: a new version may be out",
     provider: "{{message}} (service response: {{provider}})",
   },
   auth: {

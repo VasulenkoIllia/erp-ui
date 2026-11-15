@@ -28,7 +28,7 @@ import {
   type SortField,
 } from "@/registry/lib/api"
 import type { AuditValue } from "@/registry/lib/audit"
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { MockAccountSeed } from "@/registry/lib/mock-account"
 import {
   auditChanges,

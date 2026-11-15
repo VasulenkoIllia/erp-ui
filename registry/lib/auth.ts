@@ -52,51 +52,43 @@
 import type { AuthProvider } from "@/registry/lib/ra-core"
 import { z } from "zod"
 
-import {
-  createAccountApi,
-  SETUP_FACTORS,
-  type AccountApi,
-} from "@/registry/lib/account"
 import { ApiError, isApiError, type ApiClient } from "@/registry/lib/api"
 import { PALETTES } from "@/registry/lib/appearance"
-import { createAuditApi, type AuditApi } from "@/registry/lib/audit"
-import { createCompanyApi, type CompanyApi } from "@/registry/lib/company"
+import {
+  AUTH_FACTORS,
+  SETUP_FACTORS,
+  type AuthFactor,
+} from "@/registry/lib/auth-factors"
 import {
   getCompanyId,
   setCompanyId,
   syncCompany,
 } from "@/registry/lib/company-scope"
 import {
-  createInvitationsApi,
-  type InvitationsApi,
-} from "@/registry/lib/invitations"
-import {
   inviteChecker,
   inviteSchema,
   type Invite,
   type InviteAccount,
 } from "@/registry/lib/invite-check"
-import { createInboxApi, type InboxApi } from "@/registry/lib/notifications"
-import { createRealtimeApi, type RealtimeApi } from "@/registry/lib/realtime"
+import {
+  localizedText,
+  localizedTextSchema,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import { getPasskeyAssertion } from "@/registry/lib/passkey"
+import {
+  createPlatformApis,
+  type PlatformApis,
+} from "@/registry/lib/platform-api"
 import { kitAction, recordDenial } from "@/registry/lib/record-access"
-import { createRolesApi, grants, type RolesApi } from "@/registry/lib/roles"
-import { createAdminApi, type AdminApi } from "@/registry/lib/security-policy"
+import { grants } from "@/registry/lib/roles"
 import { broadcastAuthEvent, setSessionExpiresAt } from "@/registry/lib/session"
-import { createTimelineApi, type TimelineApi } from "@/registry/lib/timeline"
-import { createWebhooksApi, type WebhooksApi } from "@/registry/lib/webhooks"
 
 /* --------------------------------- Схеми --------------------------------- */
 
-/** Методи підтвердження: застосунок, резервний код, SMS/Viber, email, ключ доступу. */
-export const AUTH_FACTORS = [
-  "totp",
-  "backup_code",
-  "sms",
-  "email",
-  "passkey",
-] as const
-export type AuthFactor = (typeof AUTH_FACTORS)[number]
+// Сумісність: імена жили тут до ADR-0092; новий код бере їх з lib/auth-factors.
+export { AUTH_FACTORS }
+export type { AuthFactor }
 
 /** Вхід без пароля: код чи посилання на email, код у SMS/Viber, ключ доступу. */
 export const PASSWORDLESS_METHODS = ["email", "sms", "passkey"] as const
@@ -112,21 +104,9 @@ export const ssoProviderSchema = z.object({
 })
 export type SsoProvider = z.infer<typeof ssoProviderSchema>
 
-/** Текст однією мовою або за мовами: «Вхід» чи { uk: "Вхід", en: "Sign in" }. */
-export const localizedTextSchema = z.union([
-  z.string(),
-  z.record(z.string(), z.string()),
-])
-export type LocalizedText = z.infer<typeof localizedTextSchema>
-
-/** Текст мовою інтерфейсу; немає перекладу — перший наявний. */
-export function localizedText(
-  value: LocalizedText | undefined,
-  language: string,
-): string | undefined {
-  if (value === undefined || typeof value === "string") return value
-  return value[language] ?? Object.values(value)[0]
-}
+// Сумісність: імена жили тут до ADR-0092; новий код бере їх з lib/localized-text.
+export { localizedText, localizedTextSchema }
+export type { LocalizedText }
 
 /** Бренд сторінки входу (white-label): сервер обирає за доменом. */
 export const brandingSchema = z.object({
@@ -385,7 +365,11 @@ export type LoginParams =
   | { method: "passkey"; trustDevice?: boolean }
   | { link: string }
 
-export interface ErpAuthProvider extends AuthProvider {
+/**
+ * Провайдер входу для ra-core. Поля API платформи (`account`, `audit`, `roles`, `timeline`…) — з
+ * `PlatformApis` (lib/platform-api, ADR-0092): тип і доступ `authProvider.audit` ті самі.
+ */
+export interface ErpAuthProvider extends AuthProvider, PlatformApis {
   /** Профіль поточного користувача (кешується до виходу чи нового входу). */
   getMe: () => Promise<Me>
   /** Завантажити профіль заново (вхід в іншій вкладці, зміна даних). */
@@ -430,29 +414,6 @@ export interface ErpAuthProvider extends AuthProvider {
   impersonate: (userId: string, reason: string) => Promise<void>
   /** Повернутися до свого акаунта. */
   stopImpersonation: () => Promise<void>
-  /** Фактори, резервні коди, сесії, пристрої, журнал входів, профіль, токени API (lib/account). */
-  account: AccountApi
-  /**
-   * Політика безпеки, запити на відновлення, скидання другого кроку, доступ користувачів —
-   * сесії й блокування (lib/security-policy).
-   */
-  admin: AdminApi
-  /** Журнал аудиту (lib/audit, ADR-0013). */
-  audit: AuditApi
-  /** Вебхуки (lib/webhooks, ADR-0013). */
-  webhooks: WebhooksApi
-  /** Ролі, права й призначення ролей (lib/roles, ADR-0014). */
-  roles: RolesApi
-  /** Запрошення колег (lib/invitations, ADR-0014). */
-  invitations: InvitationsApi
-  /** Центр сповіщень (lib/notifications, ADR-0014). */
-  inbox: InboxApi
-  /** Канал подій сервера (lib/realtime, ADR-0051). */
-  realtime: RealtimeApi
-  /** Стрічка запису (lib/timeline, ADR-0053). */
-  timeline: TimelineApi
-  /** Налаштування поточної компанії (lib/company, ADR-0014). */
-  company: CompanyApi
   /** Обов'язковий другий крок налаштовано — завершити вхід. */
   completeFactorSetup: () => Promise<void>
   /** Немає доступу до жодного фактора: попросити адміністратора відновити (на кроці коду). */
@@ -689,7 +650,7 @@ export function createAuthProvider(
       await switched()
     },
 
-    account: createAccountApi(client, {
+    ...createPlatformApis(client, {
       onMeChange: () => {
         // На кроці налаштування другого кроку профілю ще немає — оновлювати нічого.
         if (!me) return Promise.resolve()
@@ -697,22 +658,6 @@ export function createAuthProvider(
         return loadMe()
       },
     }),
-
-    admin: createAdminApi(client),
-
-    audit: createAuditApi(client),
-
-    webhooks: createWebhooksApi(client),
-
-    roles: createRolesApi(client),
-
-    invitations: createInvitationsApi(client),
-
-    inbox: createInboxApi(client),
-    realtime: createRealtimeApi(client),
-    timeline: createTimelineApi(client),
-
-    company: createCompanyApi(client),
 
     completeFactorSetup: () => post("/auth/factor-setup/complete"),
 

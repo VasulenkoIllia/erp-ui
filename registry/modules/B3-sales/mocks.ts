@@ -33,7 +33,7 @@
  */
 import type { z } from "zod"
 
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import { extensionShape, withMockValues } from "@/lib/extension-fields"
 import type {

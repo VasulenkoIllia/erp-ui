@@ -2,7 +2,7 @@
  * Довідник фікстур A2 (`fixtures.ts`): колеги з іменами й посадами українською й англійською,
  * локальна частина email латиницею. Імена — дані, а не рядки інтерфейсу (SPEC §11).
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 
 export interface ColleagueData {
   readonly name: LocalizedText & { readonly uk: string; readonly en: string }

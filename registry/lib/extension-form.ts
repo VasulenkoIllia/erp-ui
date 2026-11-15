@@ -11,7 +11,7 @@
  */
 import { z } from "zod"
 
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import { isCalendarDate } from "@/registry/lib/dates"
 import {
   unknownFieldType,

@@ -23,7 +23,10 @@ import {
   recordCeilingDenied,
   type MockCeilingDenial,
 } from "@/registry/lib/mock-audit"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import {
   CURRENT_IP,
   CURRENT_LOCATION,

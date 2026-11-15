@@ -18,6 +18,7 @@
 import { onlineManager, QueryClient } from "@tanstack/react-query"
 
 import { isApiError } from "@/registry/lib/api"
+import { isChunkLoadError } from "@/registry/lib/lazy"
 
 /** Скільки разів повторити читання після тимчасового збою. */
 const QUERY_RETRIES = 1
@@ -26,8 +27,12 @@ const QUERY_RETRY_DELAY_MS = 1000
 /** Скільки дані вважаються свіжими: повторний візит на сторінку не смикає сервер. */
 const QUERY_STALE_TIME_MS = 30_000
 
-/** Тимчасовий збій, який має сенс повторити: мережа, тайм-аут чи помилка сервера. */
+/**
+ * Тимчасовий збій, який має сенс повторити: мережа, тайм-аут, помилка сервера чи чанк API платформи,
+ * що не завантажився (ADR-0092): мережа могла кліпнути.
+ */
 function isTransientError(error: unknown): boolean {
+  if (isChunkLoadError(error)) return true
   return isApiError(error) && (error.code === "offline" || error.status >= 500)
 }
 

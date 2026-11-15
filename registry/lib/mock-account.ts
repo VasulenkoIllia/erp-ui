@@ -23,13 +23,11 @@ import {
 import { API_PREFIX } from "@/registry/lib/api"
 import { recordAudit } from "@/registry/lib/mock-audit"
 import { mockRequestPermissions } from "@/registry/lib/mock-company-roles"
+import { AUTH_FACTORS, type AuthFactor, type Me } from "@/registry/lib/auth"
 import {
-  AUTH_FACTORS,
   localizedText,
-  type AuthFactor,
   type LocalizedText,
-  type Me,
-} from "@/registry/lib/auth"
+} from "@/registry/lib/localized-text"
 import {
   accountChangeGuard,
   actorOf,

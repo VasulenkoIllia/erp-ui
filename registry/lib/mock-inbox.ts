@@ -10,7 +10,10 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX } from "@/registry/lib/api"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import {
   languageOf,
   mockChannelEnabled,

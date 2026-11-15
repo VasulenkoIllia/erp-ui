@@ -17,7 +17,10 @@ import type {
   RecordFormItem,
   RecordFormItemChange,
 } from "@/registry/erp/record-form"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import {
   listFilterOf,
   useExtensionFields,

@@ -17,7 +17,7 @@
  * Частина лінивого чанка генератора (`erp/document-generator-panel`): дія на картці його не тягне.
  */
 import { partyClause } from "@/registry/erp/print-requisites"
-import { localizedText } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import { amountInWords, hasCurrencyWords } from "@/registry/lib/amount-in-words"
 import {
   emptyPartyDetails,

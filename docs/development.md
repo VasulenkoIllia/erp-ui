@@ -15,7 +15,7 @@ pnpm lint         # eslint + prettier --check + check-tokens + check:contrast + 
 pnpm test         # тести скриптів (node:test) + Vitest
 pnpm e2e          # Playwright + axe (збирає демо й піднімає vite preview на :4173)
 pnpm perf         # бюджети швидкості: LCP і INP
-pnpm check:bundle # JS першого екрана кожного маршруту ≤ межі з apps/demo/bundle-budget.json (після pnpm build)
+pnpm check:bundle # JS першого екрана: вхід під стелею, сторінки й шар моків у межах apps/demo/bundle-budget.json (після pnpm build; ADR-0092)
 pnpm format       # prettier --write
 pnpm themes       # згенерувати design/themes.css і звіт контрасту з palette-tokens.json
 pnpm check:contrast  # themes.css актуальний, контраст проходить (входить у lint)

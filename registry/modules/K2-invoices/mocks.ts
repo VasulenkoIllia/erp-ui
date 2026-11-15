@@ -35,7 +35,7 @@
  *   поверненням, що діє, не скасовують і не сторнують (`has_payments`). Моки K4 беруть рахунки з
  *   `forPayments`. З оплатами є й звіт старіння боргу `GET /sales-invoices/aging` (ADR-0084).
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import type { PartyDetails } from "@/lib/document-parties"
 import { extensionShape, withMockValues } from "@/lib/extension-fields"

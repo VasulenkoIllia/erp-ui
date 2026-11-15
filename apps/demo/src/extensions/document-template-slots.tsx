@@ -6,7 +6,7 @@ import {
   type DocumentTemplateOption,
 } from "@/registry/erp/document-generator"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
-import { localizedText } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import { useLanguage } from "@/registry/lib/i18n"
 import {
   partyDetailsFrom,
