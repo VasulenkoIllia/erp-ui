@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { useRecordHistorySheet } from "@/components/erp/record-history"
 import { usePageHeading } from "@/hooks/use-page-heading"
-import { localizedText, type LocalizedText } from "@/lib/auth"
+import { localizedText, type LocalizedText } from "@/lib/localized-text"
 import { useLanguage } from "@/lib/i18n"
 
 import { AUDIT } from "../resources"

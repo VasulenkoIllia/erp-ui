@@ -11,11 +11,8 @@ import { clearEmailLinkTokens } from "@/registry/hooks/use-email-link-token"
 import { useFocusHeadingOnMount } from "@/registry/hooks/use-focus-heading"
 import { isApiError } from "@/registry/lib/api"
 import { setBrandAppearance, type Palette } from "@/registry/lib/appearance"
-import {
-  localizedText,
-  type Branding,
-  type ErpAuthProvider,
-} from "@/registry/lib/auth"
+import { type Branding, type ErpAuthProvider } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import { useErpUiT, useLanguage, type ErpUiKey } from "@/registry/lib/i18n"
 import { cn } from "@/registry/lib/utils"
 import {

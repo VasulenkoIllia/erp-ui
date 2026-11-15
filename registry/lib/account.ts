@@ -33,6 +33,7 @@
 import { z } from "zod"
 
 import { listResultSchema, type ApiClient } from "@/registry/lib/api"
+import { SETUP_FACTORS, type SetupFactor } from "@/registry/lib/auth-factors"
 import {
   notificationSettingsSchema,
   type NotificationSettings,
@@ -42,9 +43,9 @@ import { createPasskey } from "@/registry/lib/passkey"
 
 /* --------------------------------- Схеми --------------------------------- */
 
-/** Фактори, які користувач налаштовує сам; резервні коди — окремо (`backupCodes`). */
-export const SETUP_FACTORS = ["totp", "sms", "email", "passkey"] as const
-export type SetupFactor = (typeof SETUP_FACTORS)[number]
+// Сумісність: константа жила тут до ADR-0092, тепер — у lib/auth-factors.
+export { SETUP_FACTORS }
+export type { SetupFactor }
 
 export const DEVICE_TYPES = ["desktop", "mobile", "tablet"] as const
 

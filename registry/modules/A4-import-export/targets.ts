@@ -8,7 +8,7 @@
  */
 import type { RaRecord } from "@/lib/ra-core"
 
-import { localizedText, type LocalizedText } from "@/lib/auth"
+import { localizedText, type LocalizedText } from "@/lib/localized-text"
 import type { ExportColumn } from "@/lib/exports"
 import {
   cellText,

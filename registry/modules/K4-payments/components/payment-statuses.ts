@@ -5,7 +5,7 @@ import {
   mapKeyedChanges,
   type Keyed,
 } from "@/lib/extensions"
-import { localizedText } from "@/lib/auth"
+import { localizedText } from "@/lib/localized-text"
 import {
   useDocumentStatuses,
   useDocumentTransitions,

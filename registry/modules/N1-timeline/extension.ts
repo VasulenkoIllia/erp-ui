@@ -7,7 +7,7 @@
  * в слот: `aside: timelineModule.aside` у розширенні модуля картки.
  */
 import type { RecordTimelineProps } from "@/components/erp/record-timeline"
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
 
 import type { TimelineTarget } from "./contract"

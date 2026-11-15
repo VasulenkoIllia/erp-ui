@@ -2,7 +2,7 @@
 
 > Генерується з `registry/registry.config.mjs` скриптом `pnpm registry` — руками не правити.
 
-Елементів: 451. Встановлення в проект: перший раз `pnpm exec shadcn add VasulenkoIllia/erp-ui/base#vX.Y.Z`, далі лише командою кіта `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`. Як підключити кіт — `docs/using-erp-ui.md`.
+Елементів: 454. Встановлення в проект: перший раз `pnpm exec shadcn add VasulenkoIllia/erp-ui/base#vX.Y.Z`, далі лише командою кіта `node scripts/erp-ui-kit.mjs update <версія> --add <елемент>`. Як підключити кіт — `docs/using-erp-ui.md`.
 
 Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.
 
@@ -34,6 +34,7 @@
 | `lib/api` | Конвенції API | HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія; межа часу запиту timeoutMs (сервер мовчить — ApiError offline). | beta | `data` | §17 |
 | `lib/appearance` | Вподобання вигляду | Палітра, тема, щільність, сайдбар і мова: атрибути <html>, кеш у localStorage, initAppearance, syncLanguage з i18next. | beta | `appearance` | §6.2, §11, PF11 |
 | `lib/audit` | Журнал аудиту | Контракт журналу (хто, що, коли, звідки; «було → стало»; причина), плоскі фільтри, експорт CSV — provider.audit. | beta | `audit` | A5, PF01 |
+| `lib/auth-factors` | Методи підтвердження | AUTH_FACTORS і SETUP_FACTORS без залежностей: схема входу бере їх на першому екрані, lib/auth і lib/account реекспортують (ADR-0092). | beta | `data` | PF01 |
 | `lib/auth` | Вхід і права | createAuthProvider (ADR-0003): httpOnly cookie + 2FA (TOTP), /me з ролями, правами й компаніями, hasPermission із діями ra-core. | beta | `data` | PF01, A2 |
 | `lib/brand-icons` | Логотипи провайдерів входу | Google «G» (офіційні кольори) і Apple (CC0, currentColor) — лише для кнопок «Увійти через …». | beta | `login` | PF01, §20 |
 | `lib/company-scope` | Поточна компанія | Вибрана компанія для X-Company-Id і ключів кешу: getCompanyId/setCompanyId/subscribeCompany, syncCompany з профілю, companyScope для ключів запитів. | beta | `company` | PF02 |
@@ -109,6 +110,7 @@
 | `lib/lazy` | Ліниві компоненти | lazyWithPreload: сторінка чи важка частина окремим чанком із preload (наведення, старт, вільний браузер); збій завантаження — ChunkLoadError з повтором для erp/error-boundary; isChunkLoadError відрізняє його від помилки рендеру; whenIdle (ADR-0009, ADR-0055). | beta | `appearance` | §18.5 |
 | `lib/list-settings` | Налаштування списків: контракт | GET і PATCH /me/list-settings/<ресурс> → { perPage } (null — нічого не збережено), розміри сторінки на вибір 10, 20, 50, 100; особисті, як і збережені види (ADR-0024). | beta | `organizations` | §7, §17, PF11 |
 | `lib/list-state` | Стан списку | Без React: вкладка-статус, фільтри й сортування ⇄ параметри адреси тим самим синтаксисом, що й API (ADR-0002), порівняння станів, фільтр запиту з вкладкою (ADR-0017). | beta | `data` | §7, UI03 |
+| `lib/localized-text` | Текст за мовами | localizedText і localizedTextSchema без залежностей кіта: рядок однією мовою чи { uk, en } мовою інтерфейсу. Компонент, якому потрібен лише переклад рядка, не тягне lib/auth; той реекспортує ці імена (ADR-0092). | beta | `data` | §11 |
 | `lib/mention-menu` | Список згадок: стан | Контролер списку під курсором поза React (ADR-0052): запит із паузою й скасуванням, індикатор після 1 с, помилка з повтором, клавіші. Tiptap не потрібен. | beta | `richText` | UI12 |
 | `lib/mock-account-state` | Стан акаунта в моках | Дані акаунта кожного користувача в localStorage, сесії й журнал входів, лист про новий вхід, перевірка зміни безпеки (частина lib/mock-account). | beta | `security` | PF01, §17 |
 | `lib/mock-account` | Мок безпеки акаунта | Налаштування факторів, резервні коди, сесії, довірені пристрої, журнал входів, «Увійти як…»; стан акаунта в localStorage. | beta | `security` | PF01, §17 |
@@ -161,6 +163,7 @@
 | `lib/period-lock` | Закриті періоди | Контракт закритих періодів (PF13): period-lock/current — дата «закрито по» компанії й чинний виняток того, хто питає; винятки period-lock-exceptions — одній людині до часу не далі ніж за 7 днів, із причиною; код period_locked позначки запису й помилки поля дати; сторно дозволене (PERIOD_LOCK_ALLOWED_ACTIONS); isPeriodLocked, reopensPeriod, isLockDateTooLate, isExceptionActive, exceptionUntilIssue; роки компанії fiscalYears з fiscalYearStartMonth профілю (поточний і два попередні, стан щодо закриття), previousMonthEnd (ADR-0069). | beta | `periodLock` | PF13, §17 |
 | `lib/phone` | Телефони | Номери будь-яких країн на даних Google (google-libphonenumber): E.164, маска під час введення, перевірка, список країн. | beta | `formats` | LC12 |
 | `lib/pins` | Закріплення записів: контракт | PUT і DELETE /<ресурс>/:id/pin (ідемпотентні, право на читання), pinned: true у списку й записі, закріплені — першим блоком у порядку закріплення поверх сортування, total не змінюється; межа 50 на ресурс — 422 pin_limit; pinnedFirst для моків і серверів на TypeScript (ADR-0024). | beta | `organizations` | §7, §17 |
+| `lib/platform-api` | API платформи | createPlatformApis (ADR-0092): акаунт, безпека, аудит, вебхуки, ролі, запрошення, сповіщення, канал подій, стрічка, компанія для authProvider. Код API, якого оболонка на старті не потребує, вантажиться окремим чанком при першому виклику; методи — власні поля, тож адаптер перевизначає їх як завжди. | beta | `data` | PF01, §18.5 |
 | `lib/preferences` | Вподобання на сервері | syncPreferences: після входу застосовує вподобання з /me/preferences і зберігає кожну зміну (PF11). | beta | `data` | PF11, §6.2 |
 | `lib/print` | Друк сторінки й мова аркуша | PF08a: printPage — дочекатися шрифтів і зображень аркуша (логотипа, печатки) не довше PRINT_READY_TIMEOUT_MS і відкрити діалог друку, на час друку заголовок сторінки — назва документа (назва файла PDF); usePrintTitle — те саме для Ctrl+P; usePrintLanguage — рядки кіта мовою документа, окремо від інтерфейсу (SPEC §11), інша мова довантажується; usePrintSheet — мова аркуша для блоків; A4 і поля, як у @page tokens/base.css (ADR-0062). | beta | `print` | PF08, §11 |
 | `lib/push-device` | Web push у браузері | Дозвіл браузера лише з натискання, фоновий файл у власній області, підписка, звірка під час запуску, скасування під час явного виходу (ADR-0046). | beta | `notificationsModule` | PF19 |

@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import { localizedText } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import type { DocumentLine } from "@/registry/lib/document-lines"
 import {
   extensionFieldText,

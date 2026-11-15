@@ -16,12 +16,8 @@ import { http, type HttpHandler } from "msw/http"
 
 import { SETUP_FACTORS, type SetupFactor } from "@/registry/lib/account"
 import { API_PREFIX } from "@/registry/lib/api"
-import type {
-  AuthFactor,
-  AuthMethods,
-  Branding,
-  LocalizedText,
-} from "@/registry/lib/auth"
+import type { AuthFactor, AuthMethods, Branding } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import {
   consumeBackupCode,
   createAccountHandlers,

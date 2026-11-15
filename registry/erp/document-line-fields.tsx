@@ -24,7 +24,7 @@ import {
   NO_DISCOUNT,
   type Totals,
 } from "@/registry/lib/document-totals"
-import { localizedText } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"

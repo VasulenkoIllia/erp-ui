@@ -15,7 +15,10 @@
 import { useMemo } from "react"
 import { z } from "zod"
 
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import {
   applyKeyedChanges,
   mapKeyedChanges,

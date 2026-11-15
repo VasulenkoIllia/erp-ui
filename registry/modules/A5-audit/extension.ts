@@ -5,7 +5,7 @@
  * Розширення лежить у файлі проекту `src/extensions/A5-audit.ts` і передається у фабрику
  * `createAuditModule({ extension })`.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
 
 import type ukMessages from "./i18n/uk.json"

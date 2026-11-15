@@ -17,9 +17,9 @@ import {
   isChallengeRequired,
   isImpersonationForbidden,
   isReauthRequired,
-  localizedText,
   type Branding,
 } from "@/registry/lib/auth"
+import { localizedText } from "@/registry/lib/localized-text"
 import {
   createPlatformHandlers,
   signInMock,

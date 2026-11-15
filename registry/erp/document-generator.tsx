@@ -2,7 +2,7 @@ import * as React from "react"
 import { FileTextIcon } from "lucide-react"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { TemplateDocument } from "@/registry/lib/document-template"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { lazyWithPreload } from "@/registry/lib/lazy"

@@ -10,7 +10,10 @@ import { PermissionGate } from "@/registry/erp/permission-gate"
 import { RecordHeader, type RecordField } from "@/registry/erp/record-header"
 import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import { mapKeyedChanges, type KeyedChanges } from "@/registry/lib/extensions"
 import { isChunkLoadError } from "@/registry/lib/lazy"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"

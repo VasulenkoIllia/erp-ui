@@ -19,7 +19,10 @@ import {
   type AuditEvent,
   type AuditValue,
 } from "@/registry/lib/audit"
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
   applyScenario,

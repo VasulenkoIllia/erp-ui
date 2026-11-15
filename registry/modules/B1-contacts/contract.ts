@@ -36,7 +36,7 @@
 import { z } from "zod"
 
 import { recordBaseSchema } from "@/lib/api"
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import {
   extendSchema,
   type ExtensionField,

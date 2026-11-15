@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react"
 
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import type { Keyed } from "@/registry/lib/extensions"
 

@@ -1,4 +1,4 @@
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { MockNotificationEvent } from "@/registry/lib/mock-notifications"
 import type {
   MockWebhookEventType,

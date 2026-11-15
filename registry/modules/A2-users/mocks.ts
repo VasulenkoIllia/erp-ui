@@ -27,7 +27,7 @@
 import { http, type HttpHandler } from "msw/http"
 
 import { API_PREFIX, fromSearchParams } from "@/lib/api"
-import { localizedText } from "@/lib/auth"
+import { localizedText } from "@/lib/localized-text"
 import { withMockValues } from "@/lib/extension-fields"
 import { mockAccessSummary, mockBlocked, mockProfile } from "@/lib/mock-account"
 import { scenarioFor } from "@/lib/mock-scenarios"

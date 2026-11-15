@@ -23,11 +23,11 @@ import type { LucideIcon } from "lucide-react"
 import { createContext, createElement, useContext, type Context } from "react"
 import { matchRoutes, Navigate, type RouteObject } from "react-router"
 
+import { hasPermission } from "@/registry/lib/auth"
 import {
-  hasPermission,
   localizedText,
   type LocalizedText,
-} from "@/registry/lib/auth"
+} from "@/registry/lib/localized-text"
 import type { PreloadableComponent } from "@/registry/lib/lazy"
 
 /** Право `<ресурс>:<дія>`, без якого пункт навігації ховають. */

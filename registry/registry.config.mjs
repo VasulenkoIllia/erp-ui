@@ -417,6 +417,30 @@ export const CODE_ITEMS = {
     demo: "data",
     spec: ["PF01", "A2"],
   },
+  "lib/platform-api": {
+    title: "API платформи",
+    description:
+      "createPlatformApis (ADR-0092): акаунт, безпека, аудит, вебхуки, ролі, запрошення, сповіщення, канал подій, стрічка, компанія для authProvider. Код API, якого оболонка на старті не потребує, вантажиться окремим чанком при першому виклику; методи — власні поля, тож адаптер перевизначає їх як завжди.",
+    status: "beta",
+    demo: "data",
+    spec: ["PF01", "§18.5"],
+  },
+  "lib/auth-factors": {
+    title: "Методи підтвердження",
+    description:
+      "AUTH_FACTORS і SETUP_FACTORS без залежностей: схема входу бере їх на першому екрані, lib/auth і lib/account реекспортують (ADR-0092).",
+    status: "beta",
+    demo: "data",
+    spec: ["PF01"],
+  },
+  "lib/localized-text": {
+    title: "Текст за мовами",
+    description:
+      "localizedText і localizedTextSchema без залежностей кіта: рядок однією мовою чи { uk, en } мовою інтерфейсу. Компонент, якому потрібен лише переклад рядка, не тягне lib/auth; той реекспортує ці імена (ADR-0092).",
+    status: "beta",
+    demo: "data",
+    spec: ["§11"],
+  },
   "lib/ra-core": {
     title: "Шов ra-core",
     description:

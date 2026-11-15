@@ -1,4 +1,4 @@
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { MockCompanyProfile } from "@/registry/lib/mock-company"
 import type { MockInboxItem } from "@/registry/lib/mock-inbox"
 import type { MockPermissionResource, MockRole } from "@/registry/lib/mock-team"

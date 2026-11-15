@@ -19,7 +19,10 @@
 import { createElement, useMemo, type ReactNode } from "react"
 import { z } from "zod"
 
-import { localizedText, type LocalizedText } from "@/registry/lib/auth"
+import {
+  localizedText,
+  type LocalizedText,
+} from "@/registry/lib/localized-text"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { isCalendarDate } from "@/registry/lib/dates"
 import {

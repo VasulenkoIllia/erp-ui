@@ -14,7 +14,7 @@
 import { z } from "zod"
 
 import type { CurrencyWords } from "@/registry/lib/amount-in-words"
-import type { LocalizedText } from "@/registry/lib/auth"
+import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { PartyDetails, PartyRole } from "@/registry/lib/document-parties"
 import {
   documentTotalsSchema,

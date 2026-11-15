@@ -7,7 +7,7 @@
  * `transitions`) — `createPaymentsMocks({ extension })`. Ключі модуля в `hide`, `move`, `place` і `change`
  * — типи нижче. Повернення (ADR-0083) — ключ `refunds` з тими самими частинами списку, картки й форми.
  */
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import type { Keyed, KeyedChanges } from "@/lib/extensions"
 import type { ModuleStrings } from "@/lib/i18n-namespaces"
 import type { ExtensionAside } from "@/components/templates/object-page"

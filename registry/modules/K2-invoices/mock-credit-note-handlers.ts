@@ -11,7 +11,7 @@
  */
 import { z } from "zod"
 
-import type { LocalizedText } from "@/lib/auth"
+import type { LocalizedText } from "@/lib/localized-text"
 import { addDays, type CalendarDate } from "@/lib/dates"
 import {
   documentTotalsSchema,
