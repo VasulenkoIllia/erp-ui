@@ -63,12 +63,12 @@ import {
   extendSchema,
   type ExtensionField,
   type ExtensionValues,
-} from "@/lib/extension-fields"
+} from "@/lib/extension-fields-core"
 import {
   statusSchema,
   type ExtensionStatusChanges,
   type StatusTransition,
-} from "@/lib/statuses"
+} from "@/lib/statuses-core"
 
 export { PAYMENTS, PAYMENTS_RESOURCES, REFUNDS } from "./resources"
 

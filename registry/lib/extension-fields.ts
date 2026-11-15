@@ -3,10 +3,8 @@
  * підпис uk/en, обов'язковість, значення для моків — без функцій, щоб ті самі поля зміг прислати
  * сервер (PF09, хвиля 2).
  *
- * - `extendSchema(schema, fields)` — схема контракту з полями розширення: без неї zod відкидає
- *   невідомі поля, а з нею вони проходять перевірку у відповідях бекенду й у моках.
- * - `withMockValues(records, fields)` — значення нових полів у фікстурах: проект працює на моках;
- *   `extensionAuditOptions(language, fields)` — підписи й значення нових полів у журналі моків.
+ * - Схеми й дані без React — `extendSchema`, `extensionShape`, `withMockValues`, `inheritedFieldValues`,
+ *   `extensionAuditOptions` — у `lib/extension-fields-core` (ADR-0093); тут вони реекспортуються.
  * - `useExtensionFields(fields)` — значення текстом мовою інтерфейсу (числа й дати — `useFormat`),
  *   колонка списку (`ExtensionColumn` → `DataTableColumn`), ключове поле шапки картки, фільтр
  *   панелі (`ExtensionFilter` → `FilterDefinition`) і вкладка списку (`ExtensionTab` → `ListTab`).
@@ -17,7 +15,6 @@
  *   без опису поля, невідомий тип — виняток під час збирання, а не тихий пропуск.
  */
 import { createElement, useMemo, type ReactNode } from "react"
-import { z } from "zod"
 
 import {
   localizedText,
@@ -25,6 +22,13 @@ import {
 } from "@/registry/lib/localized-text"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { isCalendarDate } from "@/registry/lib/dates"
+import {
+  extendSchema,
+  extensionAuditOptions,
+  extensionShape,
+  inheritedFieldValues,
+  withMockValues,
+} from "@/registry/lib/extension-fields-core"
 import {
   unknownFieldType,
   type ExtensionAuditOptions,
@@ -55,8 +59,14 @@ import {
 import type { ListFilter, ListTab } from "@/registry/lib/list-state"
 import { RecordLabel } from "@/registry/lib/record-label"
 
-// Проект імпортує типи полів звідси, як до винесення їх у `lib/extension-field-types`.
+// Проект імпортує типи полів і чисті функції звідси, як до винесення їх у `lib/extension-field-types`
+// і `lib/extension-fields-core` (ADR-0093).
 export {
+  extendSchema,
+  extensionAuditOptions,
+  extensionShape,
+  inheritedFieldValues,
+  withMockValues,
   unknownFieldType,
   type ExtensionAuditOptions,
   type ExtensionColumn,
@@ -70,137 +80,6 @@ export {
   type ExtensionTab,
   type ExtensionValues,
   type RecordTitle,
-}
-
-function valueSchema(field: ExtensionField): z.ZodType<ExtensionFieldValue> {
-  switch (field.type) {
-    case "text":
-      return field.required ? z.string().trim().min(1) : z.string()
-    case "number":
-      return z.number()
-    case "date":
-      return z.iso.date()
-    case "boolean":
-      return z.boolean()
-    case "options": {
-      const values = new Set(field.options.map((option) => option.value))
-      return z.string().refine((value) => values.has(value))
-    }
-    case "record":
-      return z.string().min(1)
-    default:
-      return unknownFieldType(field)
-  }
-}
-
-/**
- * Схеми полів розширення для `extend` об'єкта контракту: необов'язкове — `null` чи немає. Ключ поля
- * модуля (`moduleKeys`) і два поля з одним ключем — помилка розробника.
- */
-export function extensionShape(
-  fields: readonly ExtensionField[] = [],
-  moduleKeys: readonly string[] = [],
-): Record<string, z.ZodType> {
-  const shape: Record<string, z.ZodType> = {}
-  for (const field of fields) {
-    if (moduleKeys.includes(field.id))
-      throw new Error(
-        `erp-ui: extension field "${field.id}" clashes with a module field`,
-      )
-    if (Object.hasOwn(shape, field.id))
-      throw new Error(`erp-ui: extension field "${field.id}" is declared twice`)
-    const value = valueSchema(field)
-    shape[field.id] = field.required ? value : value.nullable().optional()
-  }
-  return shape
-}
-
-/** Схема контракту з полями розширення. */
-export function extendSchema<S extends z.ZodObject>(
-  schema: S,
-  fields: readonly ExtensionField[] = [],
-): z.ZodType<z.output<S> & ExtensionValues> {
-  const shape = extensionShape(fields, Object.keys(schema.shape))
-  // `extend` з рядковими ключами TypeScript виводить загально: поля розширення — `ExtensionValues`.
-  return schema.extend(shape) as unknown as z.ZodType<
-    z.output<S> & ExtensionValues
-  >
-}
-
-/** Фікстури з нових полів: запис № i отримує `mockValues[i % length]` кожного поля. */
-export function withMockValues<T extends object>(
-  records: readonly T[],
-  fields: readonly ExtensionField[] = [],
-): (T & ExtensionValues)[] {
-  const samples = fields.flatMap((field) =>
-    field.mockValues?.length
-      ? [{ id: field.id, values: field.mockValues }]
-      : [],
-  )
-  return records.map((record, index) => {
-    const values: Record<string, ExtensionFieldValue | undefined> = {}
-    for (const { id, values: list } of samples)
-      values[id] = list[index % list.length]
-    return { ...record, ...values }
-  })
-}
-
-/**
- * Поля розширення документа на підставі (рішення власника 10.11.2026, ADR-0070): нового документа поле з
- * тим самим ключем, що й у документа-джерела, отримує його значення, якщо воно проходить схему поля
- * нового документа (той самий список, тип). Решта полів лишається порожньою. Так переходять поля
- * пропозиції в замовлення й замовлення в рахунок; правило — сервера, моки беруть цю функцію.
- */
-export function inheritedFieldValues(
-  source: object,
-  fields: readonly ExtensionField[] = [],
-): Record<string, ExtensionFieldValue> {
-  const values: Record<string, ExtensionFieldValue> = {}
-  for (const field of fields) {
-    const value: unknown = Reflect.get(source, field.id)
-    if (value === undefined || value === null) continue
-    const parsed = valueSchema(field).safeParse(value)
-    if (parsed.success) values[field.id] = parsed.data
-  }
-  return values
-}
-
-/**
- * Журнал змін у моках (`createResourceHandlers` з `lib/mocks`): підписи полів розширення в «було →
- * стало» і значення зі списку — підписом мовою даних (`language`), а не ключем. Так/ні журнал
- * підписує сам. Запис із довідника — тим самим полем назви (`labelField`), що й список, із
- * довідника моків (`recordTitle`, у моках — `mockRecordTitle` з `lib/mocks`), інакше `id`.
- */
-export function extensionAuditOptions(
-  language: string,
-  fields: readonly ExtensionField[] = [],
-  recordTitle?: RecordTitle,
-): ExtensionAuditOptions {
-  const fieldLabels: Record<string, LocalizedText> = {}
-  const auditValue: Record<string, (value: unknown) => string> = {}
-  for (const field of fields) {
-    fieldLabels[field.id] = field.label
-    if (field.type === "record") {
-      const { resource, labelField } = field
-      auditValue[field.id] = (value) =>
-        (typeof value === "string"
-          ? recordTitle?.(resource, value, labelField)
-          : undefined) ?? String(value)
-      continue
-    }
-    if (field.type !== "options") continue
-    const labels = new Map(
-      field.options.map((option) => [
-        option.value,
-        localizedText(option.label, language),
-      ]),
-    )
-    // Значення, якого вже немає в списку, — ключем, а не порожнім місцем.
-    auditValue[field.id] = (value) =>
-      (typeof value === "string" ? labels.get(value) : undefined) ??
-      String(value)
-  }
-  return { fieldLabels, auditValue }
 }
 
 /** Зміна колонки мовою інтерфейсу — для `applyKeyedChanges` поверх колонок модуля. */

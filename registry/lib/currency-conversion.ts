@@ -15,7 +15,7 @@ import { z } from "zod"
 
 import { moneyAmountSchema } from "@/registry/lib/api"
 import { isCalendarDate } from "@/registry/lib/dates"
-import { currencyDigits } from "@/registry/lib/format"
+import { currencyDigits } from "@/registry/lib/format-core"
 
 /** Знаків курсу після коми: як у таблиці курсів компанії. */
 export const EXCHANGE_RATE_DECIMALS = 6

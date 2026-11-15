@@ -29,6 +29,13 @@ import {
   type LocalizedText,
 } from "@/registry/lib/localized-text"
 import type { PreloadableComponent } from "@/registry/lib/lazy"
+import type {
+  ModuleResource,
+  ModuleResourceWithActions,
+} from "@/registry/lib/module-core"
+
+// Ресурси модуля без React — у `lib/module-core` (ADR-0093); проект бере їх і звідси, як раніше.
+export type { ModuleResource, ModuleResourceWithActions }
 
 /** Право `<ресурс>:<дія>`, без якого пункт навігації ховають. */
 export interface ModuleAccess {
@@ -49,19 +56,6 @@ export interface ModuleNavItem {
 /** Пункт, який видно лише з правом. */
 export type ModuleNavItemWithAccess = ModuleNavItem & {
   readonly access: ModuleAccess
-}
-
-/** Ресурс модуля: права, журнал аудиту, токени API, сценарії моків. */
-export interface ModuleResource {
-  readonly name: string
-  readonly label: LocalizedText
-  /** Дії прав (`<ресурс>:<дія>`); без них прав немає: людина бачить лише своє. */
-  readonly actions?: readonly string[]
-}
-
-/** Ресурс із правами. */
-export type ModuleResourceWithActions = ModuleResource & {
-  readonly actions: readonly string[]
 }
 
 /** Модуль, як його ставить проект: маршрути — у свій роутер, пункти — у свою навігацію. */

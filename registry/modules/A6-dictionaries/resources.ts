@@ -2,7 +2,7 @@
  * Ресурси модуля A6 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту й панелі
  * розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 export const TAXES = "taxes"
 export const UNITS = "units"

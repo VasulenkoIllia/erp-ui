@@ -23,14 +23,21 @@ import { fileURLToPath } from "node:url"
 
 import { registrySchema } from "shadcn/schema"
 
+import {
+  contractLayerFiles,
+  contractLayerProblems,
+  contractLayerSection,
+  importSpecifiers,
+  packageName,
+} from "./contract-layer.mjs"
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REGISTRY_JSON = path.join(root, "registry.json")
 const CATALOG_MD = path.join(root, "docs/CATALOG.md")
 const ROUTER = path.join(root, "apps/demo/src/router.ts")
 
-const { REPO, CODE_ITEMS, BUNDLE_ITEMS, MODULE_ITEMS } = await import(
-  path.join(root, "registry/registry.config.mjs")
-)
+const { REPO, CODE_ITEMS, BUNDLE_ITEMS, MODULE_ITEMS, CONTRACT_LAYER } =
+  await import(path.join(root, "registry/registry.config.mjs"))
 const MODULES_DIR = "registry/modules"
 const pkg = JSON.parse(
   readFileSync(path.join(root, "registry/package.json"), "utf8"),
@@ -130,19 +137,8 @@ function moduleDirs() {
 }
 
 function importsOf(file) {
-  const src = readFileSync(path.join(root, file), "utf8")
   // І статичні імпорти, і динамічні `import("…")` (мова за запитом у lib/i18n): файл має їхати з елементом.
-  return [
-    ...src.matchAll(
-      /(?:from|import)\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g,
-    ),
-  ].map((m) => m[1] ?? m[2])
-}
-
-/** Ім'я npm-пакета з шляху імпорту: @base-ui/react/dialog → @base-ui/react, cn/config → cn. */
-function packageName(spec) {
-  const parts = spec.split("/")
-  return spec.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0]
+  return importSpecifiers(readFileSync(path.join(root, file), "utf8"))
 }
 
 function dependency(name) {
@@ -185,6 +181,15 @@ function build() {
   problems.push(...sharedImportProblems(files))
   problems.push(...useClientProblems(files.map((f) => f.file)))
   problems.push(...nulProblems(files.map((f) => f.file)))
+  // Чистий шар контрактів (ADR-0093): лише zod і файли шару, зокрема типами.
+  const exists = (file) => existsSync(path.join(root, file))
+  problems.push(
+    ...contractLayerProblems(
+      contractLayerFiles(CONTRACT_LAYER, moduleDirs(), exists),
+      (file) => readFileSync(path.join(root, file), "utf8"),
+      exists,
+    ),
+  )
   // shadcn CLI переписує шлях у `export … from "@/registry/lib/x"` і в `import("@/registry/lib/x")`
   // на `@/components/x` — ламає збірку в проекті.
   for (const f of files) {
@@ -621,6 +626,7 @@ function catalog(items) {
     "Статуси: **draft** — у роботі; **beta** — є в демо й тестах, API може змінитися; **stable** — підтверджено стрес-сторінкою.",
     "",
     ...sections,
+    contractLayerSection(CONTRACT_LAYER),
   ].join("\n")
 }
 

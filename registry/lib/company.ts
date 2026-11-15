@@ -20,7 +20,7 @@
 import { z } from "zod"
 
 import type { ApiClient } from "@/registry/lib/api"
-import { PALETTES } from "@/registry/lib/appearance"
+import { PALETTES } from "@/registry/lib/appearance-core"
 
 export const COMPANY_KINDS = ["legal", "fop"] as const
 export type CompanyKind = (typeof COMPANY_KINDS)[number]

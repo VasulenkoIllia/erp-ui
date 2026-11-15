@@ -7,6 +7,8 @@ import reactRefresh from "eslint-plugin-react-refresh"
 import globals from "globals"
 import tseslint from "typescript-eslint"
 
+import { CONTRACT_LAYER } from "./registry/registry.config.mjs"
+
 /** Модуль бере кіт шляхами проекту (ADR-0025), а не через @/registry. */
 const MODULE_PROJECT_PATHS = {
   group: ["@/registry/*"],
@@ -29,6 +31,36 @@ const RA_CORE_SEAM = {
   message:
     "ra-core — через шов: @/registry/lib/ra-core, у модулі — @/lib/ra-core (ADR-0090). Бракує імені — додайте його в шов",
 }
+
+/**
+ * Чистий шар контрактів (ADR-0093): файл шару імпортує лише zod і утиліти, зокрема типами; які саме утиліти
+ * належать шару, перевіряє `pnpm check:registry` за переліком CONTRACT_LAYER.
+ */
+const CONTRACT_LAYER_IMPORTS = {
+  group: [
+    "*",
+    "!zod",
+    "!@/",
+    "!@/lib/",
+    "!@/lib/*",
+    "!@/registry/",
+    "!@/registry/lib/",
+    "!@/registry/lib/*",
+    "!./",
+    "!./*",
+  ],
+  message:
+    "Чистий шар контрактів (ADR-0093): лише zod і файли шару; чиста частина змішаного файла — <ім'я>-core",
+}
+const CONTRACT_LAYER_LIB = CONTRACT_LAYER.lib.map(
+  (name) => `registry/lib/${name}.ts`,
+)
+const CONTRACT_LAYER_MODULES = [
+  "registry/modules/*/{contract,resources}.ts",
+  ...Object.entries(CONTRACT_LAYER.modules).flatMap(([dir, names]) =>
+    names.map((name) => `registry/modules/${dir}/${name}.ts`),
+  ),
+]
 
 export default defineConfig(
   globalIgnores([
@@ -149,6 +181,31 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         { paths: [RA_CORE_SEAM], patterns: [REGISTRY_PATHS] },
+      ],
+    },
+  },
+  // Чистий шар контрактів (ADR-0093): поверх правил шару файла вище — лише zod і файли шару.
+  {
+    files: CONTRACT_LAYER_LIB,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [RA_CORE_SEAM],
+          patterns: [REGISTRY_PATHS, CONTRACT_LAYER_IMPORTS],
+        },
+      ],
+    },
+  },
+  {
+    files: CONTRACT_LAYER_MODULES,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [RA_CORE_SEAM],
+          patterns: [MODULE_PROJECT_PATHS, CONTRACT_LAYER_IMPORTS],
+        },
       ],
     },
   },

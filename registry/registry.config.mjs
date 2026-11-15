@@ -26,6 +26,14 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["§11"],
   },
+  "lib/i18n-core": {
+    title: "Мови без i18next",
+    description:
+      "Мови інтерфейсу без i18next і React (ADR-0093): LANGUAGES, Language, DEFAULT_LANGUAGE, LOCALES, isLanguage, toLanguage; для чистого шару й сервера на TypeScript, lib/i18n реекспортує.",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11"],
+  },
   "lib/i18n-namespaces": {
     title: "Рядки модуля",
     description:
@@ -217,6 +225,14 @@ export const CODE_ITEMS = {
     demo: "contacts",
     spec: ["§14", "§17", "PF09"],
   },
+  "lib/module-core": {
+    title: "Ресурси модуля",
+    description:
+      "Типи ModuleResource і ModuleResourceWithActions без React (ADR-0093): назва ресурсу API, підпис і дії прав; їх беруть resources.ts модулів, lib/module реекспортує.",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§17"],
+  },
   "lib/document-kind": {
     title: "Вид документа",
     description:
@@ -240,6 +256,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§11", "§17", "PF09"],
+  },
+  "lib/extension-fields-core": {
+    title: "Поля розширення як дані",
+    description:
+      "Типи полів розширення й схеми без React (ADR-0093): extendSchema, extensionShape, withMockValues, inheritedFieldValues, extensionAuditOptions, unknownFieldType; для контрактів, моків і сервера на TypeScript, lib/extension-fields реекспортує.",
+    status: "beta",
+    demo: "data",
+    spec: ["§17", "PF09"],
   },
   "lib/extension-field-types": {
     title: "Типи полів розширення",
@@ -277,6 +301,14 @@ export const CODE_ITEMS = {
     title: "Форматери Intl",
     description:
       "Числа, відсотки, гроші з мінорних одиниць (₴ після суми, інші валюти кодом), дати явними стилями без «р.», періоди, відносний час, тиждень ISO, useFormat (мітки часу — у поясі користувача з lib/user-timezone).",
+    status: "beta",
+    demo: "formats",
+    spec: ["§11", "§17"],
+  },
+  "lib/format-core": {
+    title: "Форматери Intl без React",
+    description:
+      "Ті самі чисті функції форматування з локаллю явно (ADR-0093): числа, гроші, currencyDigits, minorToDecimal, decimalToMinor, дати, періоди, відносний час, тиждень ISO; для чистого шару й сервера на TypeScript, lib/format реекспортує й додає useFormat.",
     status: "beta",
     demo: "formats",
     spec: ["§11", "§17"],
@@ -368,6 +400,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "appearance",
     spec: ["§6.2", "§11", "PF11"],
+  },
+  "lib/appearance-core": {
+    title: "Значення вигляду",
+    description:
+      "Палітри, теми, щільність і сайдбар без DOM та i18next (ADR-0093): їх бере схема профілю компанії lib/company, lib/appearance реекспортує.",
+    status: "beta",
+    demo: "appearance",
+    spec: ["§6.2"],
   },
   "lib/icons": {
     title: "Словник іконок",
@@ -1342,6 +1382,14 @@ export const CODE_ITEMS = {
     title: "Статуси запису модуля",
     description:
       "Статуси з точкою розширення (ADR-0020): модуль має свої, розширення проекту додає нові (mockEvery — для фікстур), змінює підпис, тон чи іконку без заміни (change) чи ховає з вибору; схований лишається дійсним у схемі й на бейджі. statusSchema — ключі для zod, useResolvedStatuses — підписи мовою інтерфейсу для вкладок і бейджа; тон — колір і іконка лише з токенів (ADR-0025). Дозволені переходи (ADR-0057): StatusTransition { id, from, to?, reason?, creates? } (creates — ресурс документа, який дія створює на підставі цього, ADR-0067), розширення додає, ховає чи змінює from, підпис і причину (change); mergeTransitions — граф для моків і сервера, useResolvedTransitions — кнопки мовою інтерфейсу, transitionsFrom і findTransition.",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§6.3", "§17"],
+  },
+  "lib/statuses-core": {
+    title: "Статуси й переходи як дані",
+    description:
+      "Типи статусів і переходів, назви іконок статусів, statusSchema, mergeTransitions, findTransition, transitionsFrom без React (ADR-0093): для контрактів, моків і сервера на TypeScript, lib/statuses реекспортує й додає хуки з підписами.",
     status: "beta",
     demo: "contacts",
     spec: ["§6.3", "§17"],
@@ -3868,5 +3916,64 @@ export const BUNDLE_ITEMS = {
     files: [{ path: "registry/tools/e2e.ts", target: "~/e2e/erp-ui.ts" }],
     dependencies: ["@playwright/test", "@axe-core/playwright"],
     docs: "Помічники e2e — e2e/erp-ui.ts (не правте); свої (користувачі моків, ширини) — у своєму файлі поруч.",
+  },
+}
+
+/**
+ * Чистий шар контрактів (ADR-0093): схеми, правила й типи без React, i18next і ra-core, які бере й сервер на
+ * TypeScript. Файл шару імпортує лише zod і файли шару, зокрема типами: перевіряють `pnpm check:registry`
+ * (scripts/contract-layer.mjs) і ESLint. Утиліти — `lib`; у кожному модулі — `contract.ts`, `resources.ts`
+ * і файли правил із `modules`. Новий імпорт із файла шару — лише файл шару: чисту частину змішаного файла
+ * виносимо в `<ім'я>-core`, старий шлях її реекспортує.
+ */
+export const CONTRACT_LAYER = {
+  lib: [
+    "account",
+    "amount-in-words",
+    "api",
+    "appearance-core",
+    "audit",
+    "auth-factors",
+    "company",
+    "company-scope",
+    "currency-conversion",
+    "dates",
+    "document-lifecycle",
+    "document-lines",
+    "document-parties",
+    "document-sums",
+    "document-totals",
+    "extension-fields-core",
+    "extensions",
+    "format-core",
+    "i18n-core",
+    "jobs",
+    "key-value",
+    "localized-text",
+    "module-core",
+    "notification-settings",
+    "notifications",
+    "numbering",
+    "passkey",
+    "payment-qr",
+    "period-lock",
+    "record-access",
+    "rich-text",
+    "roles",
+    "session",
+    "shortcuts",
+    "statuses-core",
+    "timeline",
+    "ua-ids",
+    "web-push",
+  ],
+  modules: {
+    "K2-invoices": [
+      "aging-buckets",
+      "credit-note-sums",
+      "debt-aging",
+      "invoice-debt",
+    ],
+    "K4-payments": ["allocation"],
   },
 }

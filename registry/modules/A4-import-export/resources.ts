@@ -2,7 +2,7 @@
  * Ресурси модуля A4 без схем: їх бере точка входу (`index.ts`) для прав і панелі розробника, не тягнучи
  * zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 export const IMPORT_RUNS = "import-runs"
 

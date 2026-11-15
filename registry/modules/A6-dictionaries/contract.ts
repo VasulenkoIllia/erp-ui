@@ -29,7 +29,7 @@
 import { z } from "zod"
 
 import { recordBaseSchema } from "@/lib/api"
-import { extendSchema, type ExtensionField } from "@/lib/extension-fields"
+import { extendSchema, type ExtensionField } from "@/lib/extension-fields-core"
 import {
   KEY_VALUE_KEY_MAX,
   KEY_VALUE_MAX_ROWS,
@@ -39,7 +39,7 @@ import {
   statusSchema,
   type ExtensionStatusChanges,
   type StatusTone,
-} from "@/lib/statuses"
+} from "@/lib/statuses-core"
 
 export {
   DICTIONARY_DEFAULTS,

@@ -20,7 +20,7 @@ pnpm format       # prettier --write
 pnpm themes       # згенерувати design/themes.css і звіт контрасту з palette-tokens.json
 pnpm check:contrast  # themes.css актуальний, контраст проходить (входить у lint)
 pnpm registry     # згенерувати registry.json і docs/CATALOG.md з registry/registry.config.mjs
-pnpm check:registry  # вони актуальні, схема shadcn, сторінки демо (входить у lint)
+pnpm check:registry  # вони актуальні, схема shadcn, сторінки демо, чистий шар контрактів лише з zod (ADR-0093; входить у lint)
 pnpm adr-index    # стовпець «Статус» покажчика docs/adr/README.md з файлів ADR
 pnpm check:docs   # покажчик ADR і рядки «Змінено», межі розміру скіла, назви в скілі є в коді (входить у lint)
 pnpm consumer-smoke --ref <коміт|тег>  # поставити кіт із GitHub у чистий проект і зібрати

@@ -8,8 +8,8 @@
  * - Мова документа задається явно: вона може відрізнятися від мови інтерфейсу (SPEC §11).
  * - Англійська — британська: "one hundred and five", короткі шкали (billion = 10⁹).
  */
-import { currencyDigits, type Money } from "@/registry/lib/format"
-import type { Language } from "@/registry/lib/i18n"
+import { currencyDigits, type Money } from "@/registry/lib/format-core"
+import type { Language } from "@/registry/lib/i18n-core"
 
 type Gender = "masculine" | "feminine"
 

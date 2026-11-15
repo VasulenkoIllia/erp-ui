@@ -2,7 +2,7 @@
  * Ресурс модуля A5 без схем: його бере точка входу (`index.ts`) для прав і панелі розробника, не
  * тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 /** Право `audit:read` і ресурс сценаріїв моків (`lib/mock-audit`). */
 export const AUDIT = "audit"

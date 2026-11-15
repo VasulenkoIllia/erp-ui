@@ -11,25 +11,29 @@
  */
 import type { i18n } from "i18next"
 
+import {
+  DENSITIES,
+  PALETTES,
+  SIDEBARS,
+  THEME_MODES,
+  type Density,
+  type Palette,
+  type Sidebar,
+  type ThemeMode,
+} from "@/registry/lib/appearance-core"
 import { DEFAULT_LANGUAGE, LANGUAGES, type Language } from "@/registry/lib/i18n"
 
-export const PALETTES = [
-  "sapphire",
-  "graphite",
-  "indigo",
-  "teal",
-  "terracotta",
-] as const
-export type Palette = (typeof PALETTES)[number]
-
-export const THEME_MODES = ["light", "dark", "system"] as const
-export type ThemeMode = (typeof THEME_MODES)[number]
-
-export const DENSITIES = ["comfortable", "compact"] as const
-export type Density = (typeof DENSITIES)[number]
-
-export const SIDEBARS = ["light", "dark"] as const
-export type Sidebar = (typeof SIDEBARS)[number]
+// Значення вигляду без DOM — у `lib/appearance-core` (ADR-0093); проект бере їх і звідси, як раніше.
+export {
+  DENSITIES,
+  PALETTES,
+  SIDEBARS,
+  THEME_MODES,
+  type Density,
+  type Palette,
+  type Sidebar,
+  type ThemeMode,
+}
 
 export interface Appearance {
   palette: Palette

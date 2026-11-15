@@ -1439,6 +1439,35 @@ const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, ...
 - **Перевірка.** Модульні тести адаптера на підставному `fetch`; контрактні тести zod-схемами проти запущеної копії бекенду (окремий скрипт, напр. `pnpm test:pilot-api`) і e2e з бекендом (`pnpm e2e:pilot-api`) — окремо від звичайних `pnpm test`, `pnpm e2e` і CI. Локальна копія бекенду — Docker з тестовими даними й скриптом наповнення, порти лише на `127.0.0.1`.
 - **README проекту** називає, чого адаптер не дає (конфлікти версій, масові дії, історія, вихід на сервері тощо) і вади бекенду, які видно з кодом.
 
+### Сервер на TypeScript: схеми й правила з кіта (ADR-0093)
+
+Бекенд проекту на TypeScript бере ті самі zod-схеми й функції правил, що й інтерфейс і моки: підсумки документа, нумерацію, межу прав ролей, закритий період, рознесення оплати. Тоді після оновлення кіта сервер рахує так само, як екрани, без ручних копій.
+
+- **Що брати.** Файли чистого шару контрактів: `contract.ts` і `resources.ts` модулів, правила модулів і утиліти з розділу «Чистий шар контрактів» каталогу (`docs/erp-ui/CATALOG.md`). Вони імпортують лише `zod` і одне одного, зокрема типами: серверу не потрібні React, i18next чи ra-core. Решта файлів кіта (компоненти, хуки, `lib/format`, `lib/statuses`) — для інтерфейсу.
+- **Де лежать.** Бекенд у тому самому репозиторії, що й інтерфейс, бере їх із теки інтерфейсу (`apps/web/src/modules/…`, `apps/web/src/lib/…`): оновлює їх та сама команда кіта. Окремого елемента реєстру для серверного пакета поки немає.
+- **Шляхи й запуск.** Файли шару імпортують одне одного як `@/lib/…`, модуль — ще `./resources`, без розширення файла. У `tsconfig.json` бекенду (`apps/server`) — `"moduleResolution": "bundler"`, `"paths": { "@/lib/*": ["../web/src/lib/*"], "@/modules/*": ["../web/src/modules/*"] }` і `"DOM"` у `lib`: кілька файлів шару називають типи браузера (`Window` і `MessageEvent` у `lib/session`, ключі доступу в `lib/passkey`), хоч на сервері їх не викликають. Запуск і збірка — інструментом, що розуміє `paths` і імпорт без розширення (tsx, esbuild, збирач бекенду); вбудоване в Node зняття типів і `NodeNext` цього не вміють. `zod` — та сама мажорна версія, що в інтерфейсі. Під час імпорту Node 26 друкує `ExperimentalWarning` про `localStorage` (`lib/company-scope` читає збережену компанію): це попередження, не помилка.
+- **Розширення проекту.** Схема з полями й статусами клієнта — та сама функція контракту з даними розширення: `invoiceSchemaFor({ fields, lineFields, statuses })`, `mergeTransitions(…)` для графа дій. Файл розширення (`src/extensions/K2-invoices.ts(x)`) може мати компоненти, тож дані для сервера тримайте окремим файлом без компонентів, який імпортують і розширення, і бекенд.
+
+  ```ts
+  // apps/web/src/extensions/K2-invoices.data.ts: поля й статуси клієнта без компонентів
+  import type {
+    InvoiceSchemaExtension,
+    InvoiceStatus,
+  } from "@/modules/K2-invoices/contract"
+
+  export const invoicesData = {
+    fields: [{ id: "project", type: "text", label: { uk: "Проект", en: "Project" } }],
+    statuses: { hide: ["reversed"] },
+  } satisfies InvoiceSchemaExtension<InvoiceStatus>
+
+  // apps/server/src/invoices.ts: та сама схема відповіді, що в інтерфейсі й моках
+  import { invoiceSchemaFor } from "@/modules/K2-invoices/contract"
+  import { invoicesData } from "../../web/src/extensions/K2-invoices.data"
+
+  const invoiceSchema = invoiceSchemaFor(invoicesData)
+  ```
+- **Свій файл правил**, який має брати сервер, імпортує з кіта лише файли шару: `@/lib/format-core`, а не `@/lib/format`; `@/lib/statuses-core`, а не `@/lib/statuses`. Старі шляхи реекспортують ті самі функції для інтерфейсу.
+
 ## 6. Вхід і акаунт
 
 ```sh
