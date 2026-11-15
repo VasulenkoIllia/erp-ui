@@ -1,8 +1,8 @@
 import { useAuthenticated } from "@/lib/ra-core"
 
 import { NotificationSettingsForm } from "@/components/erp/notification-settings-form"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton } from "@/components/erp/page-state"
-import { ListReportHeader } from "@/components/templates/list-report"
 import { usePageHeading } from "@/hooks/use-page-heading"
 
 import { useNotificationsT } from "../use-notifications-t"
@@ -17,7 +17,7 @@ export function SettingsPage() {
   const heading = usePageHeading(t("settings.title"))
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("settings.title")}
         description={t("settings.lead")}
         headingRef={heading}

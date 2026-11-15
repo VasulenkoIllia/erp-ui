@@ -109,4 +109,7 @@ export const enLists = {
   pageSize: {
     label: "Rows per page",
   },
+  listLayouts: {
+    label: "List layout",
+  },
 } satisfies ErpUiTranslation<typeof ukLists>

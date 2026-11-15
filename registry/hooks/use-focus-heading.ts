@@ -5,7 +5,7 @@ let started = false
 
 /**
  * Після переходу між сторінками — фокус на h1 (скрінрідер чує, куди прийшов, WCAG 2.4.3): шапка
- * `ListReportHeader` чи `RecordHeader`, прихований h1 `ObjectPage`, поки запису немає.
+ * `PageHeader` чи `RecordHeader`, прихований h1 `ObjectPage`, поки запису немає.
  *
  *   const heading = useRef<HTMLHeadingElement>(null)
  *   useFocusHeadingOnNavigation(heading, useLocation().pathname, !isPending)

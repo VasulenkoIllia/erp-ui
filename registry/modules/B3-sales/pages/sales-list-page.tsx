@@ -3,10 +3,10 @@ import { useMemo, type ReactNode } from "react"
 import { useSearchParams } from "react-router"
 
 import { AccessLink } from "@/components/erp/access-link"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
   type ListReportBulk,
@@ -124,7 +124,7 @@ function SalesListPage({
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t(`${list}.title`)}
         description={t(`${list}.lead`)}
         headingRef={heading}

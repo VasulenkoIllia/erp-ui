@@ -2,11 +2,11 @@ import { useAuthenticated, useCanAccess } from "@/lib/ra-core"
 import { useMemo } from "react"
 import { Link, useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { DeniedAction } from "@/components/erp/permission-gate"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -112,7 +112,7 @@ function MoneyDocumentsListPage({ kind }: { kind: K4DocumentKind }) {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t(`${kind.list}.title`)}
         description={t(`${kind.list}.lead`)}
         headingRef={heading}

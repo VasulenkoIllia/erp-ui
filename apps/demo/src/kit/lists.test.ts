@@ -119,6 +119,46 @@ describe("lib/list-state", () => {
       ),
     ).toBe("tab=overdue&client=%D0%90")
   })
+
+  it("подання (ADR-0091): лише зі списком подань; перше — за замовчуванням, невідоме — перше", () => {
+    const withLayouts: ListDefaults = {
+      ...DEFAULTS,
+      layouts: ["table", "board"],
+    }
+    const board = listStateFromParams(
+      new URLSearchParams("layout=board&client=А"),
+      withLayouts,
+      TABS,
+    )
+    expect(board).toEqual({
+      tab: "all",
+      filter: { client: "А" },
+      sort: DEFAULTS.sort,
+      layout: "board",
+    })
+    expect(listStateToParams(board, withLayouts).toString()).toBe(
+      "layout=board&client=%D0%90",
+    )
+    expect(listParamsOf({ ...board, layout: "table" }, withLayouts)).toBe(
+      "client=%D0%90",
+    )
+    expect(
+      listStateFromParams(new URLSearchParams("layout=map"), withLayouts)
+        .layout,
+    ).toBe("table")
+    expect(sameListState(board, { ...board, layout: "table" })).toBe(false)
+    // Без подань `layout` — звичайне поле фільтра, як до ADR-0091.
+    const plain = listStateFromParams(
+      new URLSearchParams("layout=board"),
+      DEFAULTS,
+    )
+    expect(plain).toEqual({
+      tab: "all",
+      filter: { layout: "board" },
+      sort: DEFAULTS.sort,
+    })
+    expect(listStateToParams(plain, DEFAULTS).toString()).toBe("layout=board")
+  })
 })
 
 const CLIENT: FilterDefinition = {

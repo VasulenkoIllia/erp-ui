@@ -2,10 +2,10 @@ import { useAuthenticated } from "@/lib/ra-core"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -81,7 +81,7 @@ export function ContactsListPage() {
   ]
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("contacts.title")}
         description={t("contacts.lead")}
         headingRef={heading}

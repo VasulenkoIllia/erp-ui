@@ -213,6 +213,66 @@ test.describe("організації: телефон", () => {
   })
 })
 
+/** Подання «Картки» (ADR-0091): та сама вибірка сіткою карток. */
+const layoutButton = (page: Page, name: string) =>
+  page
+    .getByRole("group", { name: "Подання списку" })
+    .getByRole("button", { name, exact: true })
+const cardItems = (page: Page) =>
+  page.getByRole("region", { name: "Організації" }).getByRole("listitem")
+
+test.describe("організації: подання «Картки»", () => {
+  test("клавіатурою; вкладка й подання в адресі, «Назад» і перезавантаження їх повертають; axe", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await openWith(page, {}, LIST)
+    await expect(rows(page).first()).toBeVisible()
+    await expect(layoutButton(page, "Таблиця")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    await layoutButton(page, "Картки").focus()
+    await page.keyboard.press("Enter")
+    await expect(page).toHaveURL(/[?&]layout=cards/)
+    await expect(layoutButton(page, "Картки")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    await expect(cardItems(page).first()).toBeVisible()
+    await expect(rows(page)).toHaveCount(0)
+
+    await page.getByRole("tab", { name: /^ФОП/ }).click()
+    await expect(page).toHaveURL(/tab=fop&layout=cards/)
+    await expect(cardItems(page)).toHaveCount(6)
+    await expect(cardItems(page).filter({ hasNotText: "ФОП" })).toHaveCount(0)
+
+    await page.goBack()
+    await expect(page).toHaveURL(/[?&]layout=cards$/)
+    await expect(cardItems(page)).toHaveCount(31)
+    await page.reload()
+    await expect(cardItems(page).first()).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  for (const theme of ["light", "dark"] as const)
+    test(`телефон ${theme}: картки без прокрутки вбік, axe`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 })
+      await openWith(page, { theme }, `${LIST}?layout=cards`)
+      await expect(cardItems(page).first()).toBeVisible()
+      expect(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      ).toBe(true)
+      await expectNoA11yViolations(page)
+    })
+})
+
 test.describe("організації: axe", () => {
   for (const palette of ["sapphire", "graphite"] as const)
     for (const theme of ["light", "dark"] as const)

@@ -3,12 +3,10 @@ import { useMemo, useRef, useState, type MouseEvent } from "react"
 import { Link } from "react-router"
 
 import { ExportDialog } from "@/components/erp/export-dialog"
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import { DeniedAction } from "@/components/erp/permission-gate"
-import {
-  ListReportHeader,
-  type ListReportAction,
-} from "@/components/templates/list-report"
+import { type ListReportAction } from "@/components/templates/list-report"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useMe } from "@/hooks/use-me"
 import { usePageHeading } from "@/hooks/use-page-heading"
@@ -155,7 +153,7 @@ export function TargetsPage() {
       : []
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("targets.title")}
         description={t("targets.lead")}
         headingRef={heading}

@@ -2,10 +2,10 @@ import { useAuthenticated } from "@/lib/ra-core"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
   ListReport,
-  ListReportHeader,
   useListReport,
   type ListReportAction,
 } from "@/components/templates/list-report"
@@ -83,7 +83,7 @@ export function OrganizationsListPage() {
   // Шапка — над перевіркою сесії: той самий вузол від першого кадру (ADR-0022).
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("organizations.title")}
         description={t("organizations.lead")}
         headingRef={heading}

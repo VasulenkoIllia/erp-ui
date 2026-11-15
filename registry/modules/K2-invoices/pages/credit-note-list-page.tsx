@@ -1,12 +1,9 @@
 import { useAuthenticated } from "@/lib/ra-core"
 import { useSearchParams } from "react-router"
 
+import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
-import {
-  ListReport,
-  ListReportHeader,
-  useListReport,
-} from "@/components/templates/list-report"
+import { ListReport, useListReport } from "@/components/templates/list-report"
 import { useListSlots } from "@/components/templates/list-report-slots"
 import { useExtendedList } from "@/hooks/use-extended-list"
 import { usePageHeading } from "@/hooks/use-page-heading"
@@ -46,7 +43,7 @@ export function CreditNotesListPage() {
   const heading = usePageHeading(t("creditNotes.title"))
   return (
     <div className="space-y-6">
-      <ListReportHeader
+      <PageHeader
         title={t("creditNotes.title")}
         description={t("creditNotes.lead")}
         headingRef={heading}

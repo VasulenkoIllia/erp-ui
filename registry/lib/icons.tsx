@@ -82,6 +82,7 @@ import {
   Languages,
   Layers,
   LayoutDashboard,
+  LayoutGrid,
   Leaf,
   LifeBuoy,
   Link,
@@ -138,6 +139,7 @@ import {
   Sparkles,
   Store,
   Sun,
+  Table2,
   Tags,
   Ticket,
   Timer,
@@ -489,4 +491,13 @@ export const SHELL_ICONS = {
   language: Languages,
   help: CircleHelp,
   shortcuts: Keyboard,
+} satisfies Record<string, LucideIcon>
+
+/**
+ * Подання списку (ADR-0091): та сама вибірка таблицею чи картками. Нове подання (дошка, календар) додає
+ * свою іконку сюди разом із собою: словник — у вхідному чанку застосунку.
+ */
+export const LAYOUT_ICONS = {
+  table: Table2,
+  cards: LayoutGrid,
 } satisfies Record<string, LucideIcon>

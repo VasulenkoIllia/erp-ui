@@ -5,6 +5,7 @@ import { useErpUiT } from "@/registry/lib/i18n"
 import {
   ACTION_ICONS,
   HryvniaIcon,
+  LAYOUT_ICONS,
   MODULE_ICONS,
   MODULE_IDS,
   SHELL_ICONS,
@@ -134,6 +135,15 @@ export function IconsPage() {
         <Section title={t("shell")}>
           <IconGrid
             items={Object.entries(SHELL_ICONS).map(([key, icon]) => ({
+              key,
+              icon,
+              label: key,
+            }))}
+          />
+        </Section>
+        <Section title={t("layouts")}>
+          <IconGrid
+            items={Object.entries(LAYOUT_ICONS).map(([key, icon]) => ({
               key,
               icon,
               label: key,
