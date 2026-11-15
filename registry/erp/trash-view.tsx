@@ -161,6 +161,14 @@ export function TrashView<T>({
       if (!result.isFetchNextPageError) setFocusAt({ index: from })
     })
   }
+  // «Спробувати ще» під списком зникає після вдалого повтору: фокус — на перший новий чи перший рядок.
+  const retryBelow = () => {
+    if (query.isFetchNextPageError) showMore()
+    else
+      void query.refetch().then((result) => {
+        if (!result.isError) setFocusAt({ index: 0 })
+      })
+  }
   const total = query.data.pages[0]?.total ?? 0
   const lead = settings
     ? t("trash.lead", { count: settings.retentionDays })
@@ -193,7 +201,7 @@ export function TrashView<T>({
             shown={shown.length}
             total={total}
             onMore={showMore}
-            onRetry={retry}
+            onRetry={retryBelow}
           />
         </>
       ) : (

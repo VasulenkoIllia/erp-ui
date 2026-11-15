@@ -252,9 +252,12 @@ describe("TrashView", () => {
         screen.queryByRole("button", { name: "Відновити: Друга" }),
       ).toBeNull()
     })
-    expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Відновити: Третя" }),
-    )
+    // Рядок зникає з кешу одразу, фокус — після перечитування.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Відновити: Третя" }),
+      )
+    })
     expect(notes.db.all().map((note) => note.id)).toContain("n2")
     await pressToastButton(user, "Відкрити")
     expect(await screen.findByText("Картка нотатки")).toBeTruthy()
@@ -277,6 +280,41 @@ describe("TrashView", () => {
         screen.getByRole("heading", { name: "Кошик нотаток" }),
       )
     })
+  })
+
+  it("«Показати ще» до кінця: кнопка зникла — фокус на першому новому рядку; збій сторінки — повтор, фокус лишається", async () => {
+    const user = userEvent.setup()
+    renderAt(
+      <TrashView
+        resource="notes"
+        schema={rowSchema}
+        rowLabel={(note) => note.name}
+        perPage={1}
+      />,
+    )
+    await restoreButton("Друга")
+    expect(screen.getByText("Показано 1 з 2")).toBeTruthy()
+    server.use(
+      http.get(`${BASE}/trash`, () =>
+        HttpResponse.json({ code: "boom", message: "x" }, { status: 500 }),
+      ),
+    )
+    await user.click(screen.getByRole("button", { name: "Показати ще" }))
+    const alert = await screen.findByRole("alert", {}, { timeout: 5_000 })
+    expect(
+      screen.queryByRole("button", { name: "Відновити: Третя" }),
+    ).toBeNull()
+    server.resetHandlers()
+    await user.click(
+      within(alert).getByRole("button", { name: "Спробувати ще" }),
+    )
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Відновити: Третя" }),
+      )
+    })
+    expect(screen.queryByRole("button", { name: "Показати ще" })).toBeNull()
+    expect(screen.getByText("Показано 2 з 2")).toBeTruthy()
   })
 
   it("перечитування після відновлення впало — рядок зник, під списком збій із повтором", async () => {

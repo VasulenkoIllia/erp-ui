@@ -108,7 +108,7 @@ export function DocumentDeleteAction({
     return <DeniedAction reason={reason}>{content}</DeniedAction>
   if (keeps === undefined) return null
   const run = async () => {
-    const page = window.location.href
+    const page = currentPage()
     try {
       await remove(
         resource,
@@ -136,7 +136,7 @@ export function DocumentDeleteAction({
       })
     else toast.success(texts.done)
     setOpen(false)
-    if (window.location.href === page) void navigate(listPath)
+    if (currentPage() === page) void navigate(listPath)
   }
   const deleteToTrash = () => {
     if (isDeleting) return
@@ -176,4 +176,13 @@ export function DocumentDeleteAction({
       )}
     </>
   )
+}
+
+/**
+ * Сторінка без параметрів запиту: людина, що перемкнула вкладку картки (`?tab=`), лишилась на ній, а та,
+ * що пішла деінде, — ні. Працює і з HashRouter (шлях у `hash`), і з BrowserRouter (у `pathname`).
+ */
+function currentPage(): string {
+  const { origin, pathname, hash } = window.location
+  return `${origin}${pathname}${hash.split("?")[0] ?? ""}`
 }
