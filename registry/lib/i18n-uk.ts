@@ -36,7 +36,8 @@ import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 
 export const uk = {
   ...ukBase,
-  // Розділи, що діляться між базою й частинами: зливаємо глибше, інакше частина затерла б базу.
+  // Розділи, що діляться між базою й частинами: зливаємо на рівень глибше, інакше частина затерла б
+  // базу. Розбіжність ловить тест `i18n-parts.test.tsx` (база й частини дають усі рядки без перекриття).
   auth: { ...ukBase.auth, ...ukSignIn.auth, ...ukSecurity.auth },
   documentGenerator: {
     ...ukBase.documentGenerator,

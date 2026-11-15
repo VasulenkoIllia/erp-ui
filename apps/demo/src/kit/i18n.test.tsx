@@ -173,7 +173,7 @@ describe("множина через i18next (SPEC §11)", () => {
     it(lng, async () => {
       const i18n = createDemoI18n(lng)
       // Рядки сторінки форматів приходять із її чанком (ADR-0094).
-      addStrings(i18n, DEMO_NAMESPACE, [demoPages.ukFormatsPage])
+      addStrings(i18n, DEMO_NAMESPACE, demoPages.ukFormatsPage)
       await whenI18nReady(i18n)
       for (const [count, text] of cases[lng]) {
         expect(i18n.t("formatsPage.plurals.invoices", { count })).toBe(text)

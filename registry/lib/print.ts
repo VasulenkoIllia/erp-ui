@@ -15,6 +15,7 @@ import {
   ERP_UI_NAMESPACE,
   LOCALES,
   toLanguage,
+  type ErpUiStrings,
   type ErpUiTranslate,
   type Language,
 } from "@/registry/lib/i18n"
@@ -155,11 +156,11 @@ export interface PrintLanguage {
  */
 export function usePrintLanguage(
   language?: string | null,
-  ...parts: readonly object[]
+  ...parts: readonly ErpUiStrings[]
 ): PrintLanguage {
   const { i18n } = useTranslation()
   // Рядки функції, які бере аркуш (ADR-0094): мовою документа англійська приходить цілою, українська — частинами.
-  addStrings(i18n, ERP_UI_NAMESPACE, parts)
+  addStrings(i18n, ERP_UI_NAMESPACE, ...parts)
   const requested = toLanguage(
     language ?? i18n.resolvedLanguage ?? i18n.language,
   )
@@ -192,7 +193,9 @@ export const PrintSheetContext = React.createContext<PrintLanguage | null>(null)
  * Мова аркуша; поза `erp/print-preview` — мова інтерфейсу. `parts` — рядки функції, які бере блок
  * аркуша (`usePrintSheet(ukPrint)`, ADR-0094).
  */
-export function usePrintSheet(...parts: readonly object[]): PrintLanguage {
+export function usePrintSheet(
+  ...parts: readonly ErpUiStrings[]
+): PrintLanguage {
   const fallback = usePrintLanguage(undefined, ...parts)
   return React.useContext(PrintSheetContext) ?? fallback
 }

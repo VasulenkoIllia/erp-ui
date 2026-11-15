@@ -75,7 +75,7 @@ const VARIABLES: TemplateVariables = {
 /** Рядки кіта, які бере генератор (ADR-0094): у застосунку їх підключає панель генератора. */
 const ukT = () => {
   const i18n = createI18n({ language: "uk" })
-  addStrings(i18n, ERP_UI_NAMESPACE, [ukDocumentGenerator, ukParty, ukPrint])
+  addStrings(i18n, ERP_UI_NAMESPACE, ukDocumentGenerator, ukParty, ukPrint)
   return i18n.getFixedT("uk", ERP_UI_NAMESPACE) as unknown as ErpUiTranslate
 }
 

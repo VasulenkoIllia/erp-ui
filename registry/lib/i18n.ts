@@ -150,8 +150,8 @@ export function createI18n({
     const project = resources[lng]
     return typeof project === "function" ? {} : (project ?? {})
   }
-  // Копія: i18next доливає частини (`addStrings`) у ті самі об'єкти, а модулі рядків мають лишатись
-  // незмінними для наступного екземпляра (тести, кілька застосунків на сторінці).
+  // Копія: i18next доливає частини (`addStrings`) у ті самі об'єкти, а база й рядки проекту мають
+  // лишатись незмінними для наступного екземпляра (тести, кілька застосунків на сторінці).
   const bundled = structuredClone(
     Object.fromEntries(
       LANGUAGES.map((lng) => [
@@ -261,8 +261,19 @@ export type ErpUiTranslate = (
   options?: Record<string, unknown>,
 ) => string
 
-/** Частини рядків, які вже додано в простір імен екземпляра. */
-const addedParts = new WeakMap<i18n, Map<string, WeakSet<object>>>()
+/**
+ * Частина рядків кіта (`lib/i18n-uk-*`, ADR-0094): розділи дерева `ErpUiMessages`, розділ може бути
+ * неповним (`auth` ділиться між базою й частинами). Розділ демо чи проекту сюди не пройде.
+ */
+export type ErpUiStrings = {
+  readonly [Section in keyof ErpUiMessages]?: Partial<ErpUiMessages[Section]>
+}
+
+/**
+ * Частини рядків, які вже додано в простір імен. Ключ — сховище рядків екземпляра: `useTranslation()`
+ * дає кожному компоненту свою обгортку над екземпляром, а сховище в них спільне.
+ */
+const addedParts = new WeakMap<object, Map<string, WeakSet<object>>>()
 
 /**
  * Додає частини рядків мовою за замовчуванням у простір імен (ADR-0094): рядки функції, що приходять
@@ -273,13 +284,13 @@ const addedParts = new WeakMap<i18n, Map<string, WeakSet<object>>>()
 export function addStrings(
   instance: i18n,
   namespace: string,
-  parts: readonly object[],
+  ...parts: readonly object[]
 ): void {
   if (parts.length === 0) return
-  let byNamespace = addedParts.get(instance)
+  let byNamespace = addedParts.get(instance.store)
   if (!byNamespace) {
     byNamespace = new Map()
-    addedParts.set(instance, byNamespace)
+    addedParts.set(instance.store, byNamespace)
   }
   let added = byNamespace.get(namespace)
   if (!added) {
@@ -288,8 +299,12 @@ export function addStrings(
   }
   for (const part of parts) {
     if (added.has(part)) continue
+    // Без події `added`: виклик іде під час рендера, а підписник на неї (`bindI18nStore: "added"`)
+    // оновлював би інші компоненти посеред нього. Свої рядки компонент бере після цього виклику.
+    instance.addResourceBundle(DEFAULT_LANGUAGE, namespace, part, true, false, {
+      silent: true,
+    })
     added.add(part)
-    instance.addResourceBundle(DEFAULT_LANGUAGE, namespace, part, true, false)
   }
 }
 
@@ -303,16 +318,16 @@ export function useStrings(
   ...parts: readonly object[]
 ): void {
   const { i18n } = useTranslation()
-  addStrings(i18n, namespace, parts)
+  addStrings(i18n, namespace, ...parts)
 }
 
 /**
  * Переклад рядків кіта — для компонентів реєстру. Рядки функції (`lib/i18n-uk-*`, крім бази) компонент
  * передає сюди: `useErpUiT(ukAudit)`, і вони приходять із його чанком (ADR-0094).
  */
-export function useErpUiT(...parts: readonly object[]): ErpUiTranslate {
+export function useErpUiT(...parts: readonly ErpUiStrings[]): ErpUiTranslate {
   const { i18n } = useTranslation()
-  addStrings(i18n, ERP_UI_NAMESPACE, parts)
+  addStrings(i18n, ERP_UI_NAMESPACE, ...parts)
   const language = i18n.resolvedLanguage ?? i18n.language
   return useMemo(() => {
     // Власні типи ключів: не залежимо від CustomTypeOptions проекту, де простору erp-ui може не бути.

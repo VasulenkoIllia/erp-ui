@@ -150,9 +150,7 @@ function InvoiceCard({
     void refetch()
   }, [refetch])
 
-  const pagesT = useDemoTranslation([ukDataPage, ukInvoicePage, ukStatuses], {
-    keyPrefix: "app.pages",
-  }).t
+  const pagesT = useDemoTranslation([], { keyPrefix: "app.pages" }).t
   const title = invoice
     ? t("title", { number: invoice.number })
     : pagesT("invoice")

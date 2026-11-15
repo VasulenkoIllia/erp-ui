@@ -2,7 +2,7 @@ import { posix } from "node:path"
 
 import { render, screen } from "@testing-library/react"
 import { I18nextProvider } from "react-i18next"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   addStrings,
@@ -10,6 +10,7 @@ import {
   ERP_UI_NAMESPACE,
   useErpUiT,
   useStrings,
+  type ErpUiStrings,
 } from "@/registry/lib/i18n"
 import { uk } from "@/registry/lib/i18n-uk"
 import { ukAudit } from "@/registry/lib/i18n-uk-audit"
@@ -49,9 +50,12 @@ interface Part {
   readonly tree: Tree
 }
 
-const parts: Part[] = Object.values(kitParts).map((module) => {
-  const [name, tree] = Object.entries(module)[0] ?? []
-  if (!name || !tree) throw new Error("частина рядків без експорту")
+const parts: Part[] = Object.entries(kitParts).map(([file, module]) => {
+  const entries = Object.entries(module)
+  const [name, tree] = entries[0] ?? []
+  // Один експорт на файл: за ним сторож шукає імпорт частини.
+  if (entries.length !== 1 || !name || !tree)
+    throw new Error(`${file}: частина рядків — рівно один експорт`)
   return { name, tree }
 })
 
@@ -92,7 +96,8 @@ function partOf(
 }
 
 const KIT_KEY = /["'`](?:erp-ui:)?([a-zA-Z_$][\w$]*)\.(\$\{|[a-zA-Z_$][\w$]*)/g
-const KIT_HOOK = /\b(useErpUiT|usePrintSheet|usePrintLanguage)\(/
+const KIT_HOOK =
+  /\b(useErpUiT|usePrintSheet|usePrintLanguage)\(|\buseTranslation\(\s*(?:["'`]erp-ui|ERP_UI_NAMESPACE)/
 const DEMO_KEY =
   /keyPrefix: ["'`]([a-zA-Z]+)[."'`]|["'`](?:demo:)?([a-zA-Z]+)\.[a-zA-Z$]/g
 const DEMO_HOOK = /\b(useDemoTranslation|useTranslation)\(/
@@ -188,24 +193,28 @@ function missingParts(
     }
     return names
   }
-  const helpers = new Map<string, Set<string>>()
-  const helperParts = (path: string, seen: Set<string>): Set<string> => {
-    const known = helpers.get(path)
-    if (known) return known
-    if (seen.has(path)) return new Set()
-    seen.add(path)
-    const names = new Set(ownOf(path))
-    for (const dep of helperImports(path, sourceByPath.get(path) ?? ""))
-      for (const name of helperParts(dep, seen)) names.add(name)
-    helpers.set(path, names)
-    return names
+  const deps = new Map<string, string[]>()
+  const depsOf = (path: string) => {
+    let found = deps.get(path)
+    if (!found) {
+      found = helperImports(path, sourceByPath.get(path) ?? "")
+      deps.set(path, found)
+    }
+    return found
   }
   const problems: string[] = []
   for (const [path, source] of sourceByPath) {
     if (!hook.test(withoutComments(source))) continue
+    // Обхід без запам'ятовування підсумків: у циклі імпортів підсумок вузла був би неповним.
     const needed = new Set(ownOf(path))
-    for (const dep of helperImports(path, source))
-      for (const name of helperParts(dep, new Set([path]))) needed.add(name)
+    const seen = new Set([path])
+    const queue = [...depsOf(path)]
+    for (let dep = queue.pop(); dep !== undefined; dep = queue.pop()) {
+      if (seen.has(dep)) continue
+      seen.add(dep)
+      for (const name of ownOf(dep)) needed.add(name)
+      queue.push(...depsOf(dep))
+    }
     for (const name of needed)
       if (!imports(source, name)) problems.push(`${path}: ${name}`)
   }
@@ -220,8 +229,8 @@ describe("рядки функції з її чанком", () => {
       uk.common.close,
     )
 
-    addStrings(i18n, ERP_UI_NAMESPACE, [ukAudit])
-    addStrings(i18n, ERP_UI_NAMESPACE, [ukAudit])
+    addStrings(i18n, ERP_UI_NAMESPACE, ukAudit)
+    addStrings(i18n, ERP_UI_NAMESPACE, ukAudit)
     expect(i18n.t("audit.title", { ns: ERP_UI_NAMESPACE })).toBe(uk.audit.title)
     // База — та сама: частина доливається, а не замінює простір.
     expect(i18n.t("common.close", { ns: ERP_UI_NAMESPACE })).toBe(
@@ -238,7 +247,7 @@ describe("рядки функції з її чанком", () => {
       true,
       true,
     )
-    addStrings(i18n, ERP_UI_NAMESPACE, [ukAudit])
+    addStrings(i18n, ERP_UI_NAMESPACE, ukAudit)
     expect(i18n.t("audit.title", { ns: ERP_UI_NAMESPACE })).toBe(
       "Хто що змінив",
     )
@@ -249,7 +258,7 @@ describe("рядки функції з її чанком", () => {
 
   it("частина не змінює модуль бази: новий екземпляр знову без неї", () => {
     // `auth` ділиться між базою й частиною входу: i18next доливає частину глибоко.
-    addStrings(createI18n(), ERP_UI_NAMESPACE, [ukSignIn])
+    addStrings(createI18n(), ERP_UI_NAMESPACE, ukSignIn)
     expect(ukBase.auth).not.toHaveProperty("signIn")
     expect(createI18n().exists("auth.signIn", { ns: ERP_UI_NAMESPACE })).toBe(
       false,
@@ -270,6 +279,38 @@ describe("рядки функції з її чанком", () => {
     expect(
       screen.getByRole("heading", { name: uk.audit.title }),
     ).toBeInTheDocument()
+  })
+
+  it("частину додано раз на екземпляр, хоч скільки компонентів її беруть", () => {
+    const i18n = createI18n()
+    // У типі сховища методу немає, хоч екземпляр передає виклик саме йому.
+    const store = i18n.store as typeof i18n.store &
+      Pick<typeof i18n, "addResourceBundle">
+    const added = vi.spyOn(store, "addResourceBundle")
+    function AuditTitle() {
+      const t = useErpUiT(ukAudit)
+      return <li>{t("audit.title")}</li>
+    }
+    render(
+      <I18nextProvider i18n={i18n}>
+        <ul>
+          {Array.from({ length: 5 }, (_, index) => (
+            <AuditTitle key={index} />
+          ))}
+        </ul>
+      </I18nextProvider>,
+    )
+    expect(screen.getAllByRole("listitem")).toHaveLength(5)
+    expect(added).toHaveBeenCalledTimes(1)
+  })
+
+  it("частина рядків кіта — лише розділи кіта", () => {
+    const own: ErpUiStrings[] = [ukAudit, ukSignIn]
+    // @ts-expect-error розділ демо — не частина рядків кіта
+    const demo: ErpUiStrings = demoPages.ukDataPage
+    // @ts-expect-error вміст розділу, а не частина
+    const section: ErpUiStrings = ukAudit.audit
+    expect([...own, demo, section]).toHaveLength(4)
   })
 
   it("useStrings додає частину рядків проекту в її простір імен", () => {
@@ -304,6 +345,9 @@ describe("рядки функції з її чанком", () => {
   })
 
   it("файл кіта, що бере рядки частини, імпортує її", () => {
+    // Сторож бачить код: інакше після перенесення тек він зеленів би без жодного файла.
+    expect(sourceByPath.size).toBeGreaterThan(700)
+    expect(parts.length).toBeGreaterThan(20)
     expect(
       missingParts(KIT_HOOK, KIT_KEY, (match) =>
         partOf(ukBase as Tree, parts, match[1] ?? "", match[2] ?? ""),
@@ -315,7 +359,9 @@ describe("рядки функції з її чанком", () => {
     const sections = new Map(
       demoParts.map((part) => [Object.keys(part.tree)[0] ?? "", part]),
     )
-    // Назва частини — розділ із префіксом `uk`: так її легко знайти за ключем.
+    // Один розділ на частину, назва — розділ із префіксом `uk`: так її легко знайти за ключем.
+    expect(demoParts.length).toBeGreaterThan(40)
+    for (const part of demoParts) expect(Object.keys(part.tree)).toHaveLength(1)
     for (const [section, part] of sections)
       expect(part.name).toBe(`uk${capitalize(section)}`)
     expect(Object.keys(demoShell).filter((key) => sections.has(key))).toEqual(
