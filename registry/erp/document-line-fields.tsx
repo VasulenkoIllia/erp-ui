@@ -30,6 +30,7 @@ import { lazyWithPreload } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
 import { currencyLabel, useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { FieldTitle } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
@@ -163,7 +164,7 @@ export function DocumentLineFields<T extends RaRecord>({
   lineFields,
   readOnly,
 }: DocumentLineFieldsProps<T>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const { locale, language } = useLanguage()
   const path = <K extends keyof DocumentLine>(key: K) =>
     `lines.${index}.${key}` as const
@@ -354,7 +355,7 @@ export function LineSum({
   currency: string
   className?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const format = useFormat()
   return (
     <div

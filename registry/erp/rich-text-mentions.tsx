@@ -3,6 +3,7 @@ import type { Editor } from "@tiptap/core"
 
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
 import type { MentionMenu, MentionMenuState } from "@/registry/lib/mention-menu"
 import { Button } from "@/registry/ui/button"
 import { Popover, PopoverContent } from "@/registry/ui/popover"
@@ -68,7 +69,7 @@ function MentionOptions({
   state: MentionMenuState
   menu: MentionMenu
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   return (
     <div
       id={id}
@@ -109,7 +110,7 @@ function MentionStatus({
   state: MentionMenuState
   menu: MentionMenu
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   if (state.status === "failed")
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 p-1">
@@ -147,7 +148,7 @@ function MentionPopup({
   hasList: boolean
   onDismiss: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   const anchor = React.useMemo(
     () => ({
       contextElement: editor.view.dom,
@@ -194,7 +195,7 @@ export function RichTextMentions({
   /** Закрили Esc чи кліком поза списком: плагін має вийти із запиту. */
   onDismiss: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   const state = React.useSyncExternalStore(menu.subscribe, menu.getState)
   const id = React.useId()
   const count = state?.items.length ?? 0

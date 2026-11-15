@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { Button } from "@/registry/ui/button"
 import {
   Select,
@@ -46,7 +47,7 @@ export function DataTablePager({
   label: string
   shown: number
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const to = Math.min((page - 1) * perPage + shown, total)
   const from = Math.min((page - 1) * perPage + 1, Math.max(to, 1))
@@ -109,7 +110,7 @@ function PerPageSelect({
   options: readonly number[]
   onValueChange: (perPage: number) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const id = React.useId()
   const [choice, setChoice] = React.useState({ size: value, base: value })

@@ -6,6 +6,7 @@ import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useSetupDismissals } from "@/registry/hooks/use-setup-dismissals"
 import { errorStateKind } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { cn } from "@/registry/lib/utils"
 import { Button, buttonVariants } from "@/registry/ui/button"
 import { Progress } from "@/registry/ui/progress"
@@ -68,7 +69,7 @@ function Checklist({
   onPreload,
   className,
 }: SetupChecklistProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSetup)
   const headingId = React.useId()
   const { dismissedIds, dismiss, restore } = useSetupDismissals(scope)
   const [closedHere, setClosedHere] = React.useState(false)
@@ -175,7 +176,7 @@ function ChecklistRow({
   onDismiss: () => void
   onRestore: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSetup)
   const pending = !item.done && !dismissed
   const preload = () => {
     onPreload?.(item.href)

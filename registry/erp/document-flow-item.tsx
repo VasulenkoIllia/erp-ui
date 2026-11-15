@@ -10,6 +10,8 @@ import {
 import type { DocumentState } from "@/registry/lib/document-lifecycle"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
+import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import type {
   ModuleStatus,
   ResolvedStatuses,
@@ -51,7 +53,7 @@ export function DocumentFlowItem({
   /** Номер документа, з якого цей, для підпису зв'язку; `undefined` — зв'язку не показуємо. */
   numberOf: (link: DocumentFlowLink) => string | undefined
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments, ukNumbering)
   const format = useFormat()
   const title =
     node.number === undefined ? null : (node.number ?? t("numbering.noNumber"))

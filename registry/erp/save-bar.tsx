@@ -3,6 +3,7 @@ import * as React from "react"
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
 import { keepFieldFocus } from "@/registry/erp/form"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -38,7 +39,7 @@ function SaveBar({
   submitLabel,
   className,
 }: SaveBarProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const [isConfirming, setConfirming] = React.useState(false)
   const discardRef = React.useRef<HTMLButtonElement>(null)
   const state = isSaving

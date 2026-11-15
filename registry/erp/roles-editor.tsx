@@ -13,6 +13,7 @@ import { useHasPermission, useMe, useRefreshMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { ME_QUERY_KEY } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import {
   ROLES_QUERY_KEYS,
   type Role,
@@ -64,7 +65,7 @@ function RolesEditorContent({
   selectedId: routeId,
   onSelect,
 }: RolesEditorProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const queryClient = useQueryClient()
   const refreshMe = useRefreshMe()
   const canEdit = useHasPermission("roles", "update")

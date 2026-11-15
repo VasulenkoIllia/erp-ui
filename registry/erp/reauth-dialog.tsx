@@ -11,6 +11,7 @@ import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useMe } from "@/registry/hooks/use-me"
 import { isReauthRequired } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import {
@@ -90,7 +91,7 @@ export function ReauthDialog({
   onConfirmed: () => void
   onCancel: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const apiMessage = useApiErrorMessage()

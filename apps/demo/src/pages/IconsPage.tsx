@@ -1,7 +1,7 @@
 import { Euro, DollarSign, PoundSterling, type LucideIcon } from "lucide-react"
-import { useTranslation } from "react-i18next"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukModules } from "@/registry/lib/i18n-uk-modules"
 import {
   ACTION_ICONS,
   HryvniaIcon,
@@ -11,6 +11,8 @@ import {
   SHELL_ICONS,
   STATUS_ICONS,
 } from "@/registry/lib/icons"
+import { useDemoTranslation } from "@/i18n"
+import { ukIconsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -55,8 +57,10 @@ const STROKE_SAMPLE = [
 ]
 
 export function IconsPage() {
-  const { t, i18n } = useTranslation("demo", { keyPrefix: "iconsPage" })
-  const kitT = useErpUiT()
+  const { t, i18n } = useDemoTranslation([ukIconsPage], {
+    keyPrefix: "iconsPage",
+  })
+  const kitT = useErpUiT(ukModules)
   const number = (n: number) => new Intl.NumberFormat(i18n.language).format(n)
   return (
     <div className="space-y-6">

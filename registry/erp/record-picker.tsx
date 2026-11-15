@@ -12,6 +12,7 @@ import {
 } from "@/registry/erp/record-picker-parts"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -120,7 +121,7 @@ export function RecordPicker<T extends RaRecord>(props: RecordPickerProps<T>) {
     "aria-invalid": ariaInvalid,
     "aria-describedby": ariaDescribedBy,
   }
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const phone = useBreakpoint() === "phone"
   const picker = useRecordPicker(props)
   const sheetId = React.useId()

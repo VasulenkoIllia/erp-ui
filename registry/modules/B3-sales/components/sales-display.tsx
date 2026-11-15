@@ -2,6 +2,7 @@ import { StatusBadge } from "@/components/erp/status-badge"
 import { compareCalendarDates, todayIn } from "@/lib/dates"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukNumbering } from "@/lib/i18n-uk-numbering"
 
 import type { SalesDocument } from "../contract"
 import type { SalesDocumentKind, SalesKindBase } from "../sales-kinds"
@@ -9,7 +10,7 @@ import { useSalesT } from "../use-sales-t"
 
 /** Номер документа; чернетка номера не має, поки її не проведуть (ADR-0058). */
 export function SalesNumber({ number }: { number: string | null }) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukNumbering)
   return number ? (
     <span className="tabular-nums">{number}</span>
   ) : (

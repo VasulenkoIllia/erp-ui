@@ -1,8 +1,8 @@
 /**
- * Document-from-template (.docx) strings in English (UI44, ADR-0087). Ukrainian — lib/i18n-uk-document-generator.
+ * Document-from-template (.docx) strings in English (UI44, ADR-0087). Ukrainian — lib/i18n-uk-document-generator,
+ * the `action` label — lib/i18n-uk-base (ADR-0094); English comes whole, so it stays here.
  */
-import type { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
-import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
+import type { ErpUiMessages, ErpUiTranslation } from "@/registry/lib/i18n-uk"
 
 export const enDocumentGenerator = {
   documentGenerator: {
@@ -116,4 +116,4 @@ export const enDocumentGenerator = {
       total: "Amount",
     },
   },
-} satisfies ErpUiTranslation<typeof ukDocumentGenerator>
+} satisfies ErpUiTranslation<Pick<ErpUiMessages, "documentGenerator">>

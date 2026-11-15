@@ -10,6 +10,7 @@ import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useRolesCeiling } from "@/registry/erp/user-access-data"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import type { Invitation } from "@/registry/lib/invitations"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -28,7 +29,7 @@ export interface InvitationCeiling {
  * «стелю» доступу (ADR-0034); без каталогу — без причини, відмову сервера показує тост.
  */
 export function useInvitationCeiling(): InvitationCeiling {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const ceiling = useRolesCeiling()
   return {
     checking: ceiling.checking,
@@ -58,7 +59,7 @@ export function InvitationActions({
   onResend: () => void
   onRevoke: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const resendLabel = t("invitations.resendFor", { email: invitation.email })
   const revokeLabel = t("invitations.revokeFor", { email: invitation.email })
   if (deniedReason)
@@ -112,7 +113,7 @@ export function InvitationActions({
  * паролем ще раз (ADR-0040): `reauthDialog` рендерить секція.
  */
 export function useInvitationActions(refresh: () => Promise<unknown>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const { guard, dialog: reauthDialog } = useReauth()

@@ -3,6 +3,7 @@ import { toast } from "sonner"
 
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -89,7 +90,7 @@ export function EditableCell<V>({
   readOnly = false,
   align = "start",
 }: EditableCellProps<V>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const errorMessage = useApiErrorMessage()
   const issueId = React.useId()
   const [editing, setEditing] = React.useState(false)

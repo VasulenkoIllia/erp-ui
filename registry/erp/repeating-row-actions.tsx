@@ -10,6 +10,7 @@ import {
 import { keepFieldFocus } from "@/registry/erp/form"
 import type { RowGroupDirection } from "@/registry/erp/repeating-rows-groups"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -101,7 +102,7 @@ export function RepeatingRowActions({
   onMove,
   onRemove,
 }: RepeatingRowActionsProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const Remove = ACTION_ICONS.delete
   return (
     <ActionsColumn tableFrom={tableFrom} labelSpacer={isFirst}>
@@ -211,7 +212,7 @@ export function RepeatingRowMenu({
   groupMoves,
   onMoveGroup,
 }: RepeatingRowMenuProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const Remove = ACTION_ICONS.delete
   // Вибрана дія чекає, доки меню закриється; `chosen` лишається до наступного відкриття: меню може
   // спитати `finalFocus` і після того, як дія вже виконалась.

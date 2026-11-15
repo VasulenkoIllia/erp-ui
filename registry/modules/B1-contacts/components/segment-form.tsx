@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useRecordForm } from "@/hooks/use-record-form"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 
 import { SEGMENTS, segmentSchema, type Segment } from "../contract"
 import { useContactsT } from "../use-contacts-t"
@@ -46,7 +47,7 @@ export function SegmentFormDialog({
   finalFocus,
 }: SegmentFormDialogProps) {
   const t = useContactsT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const schema = useMemo(
     () =>
       z.object({

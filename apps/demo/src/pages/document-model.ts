@@ -1,7 +1,7 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import {
   useResolvedStatuses,
   useResolvedTransitions,
@@ -16,6 +16,8 @@ import {
   type DocumentStatus,
 } from "@/data/documents"
 import { documentsExtension } from "@/extensions/documents"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentPage, ukStatuses } from "@/i18n/pages"
 
 export const DOCUMENT_RESOURCE = "documents"
 
@@ -29,7 +31,9 @@ const TONES: Record<DocumentStatus, StatusTone> = {
 
 /** Статуси документа мовою інтерфейсу зі статусом розширення проекту («На перевірці»). */
 export function useDocumentStatuses(): ResolvedStatuses {
-  const { t } = useTranslation("demo", { keyPrefix: "documentPage" })
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses], {
+    keyPrefix: "documentPage",
+  })
   const statuses = useMemo(
     () =>
       DOCUMENT_STATUSES.map((id) => ({
@@ -44,8 +48,10 @@ export function useDocumentStatuses(): ResolvedStatuses {
 
 /** Граф дій зі змінами розширення: підписи дій життєвого циклу — кіта, власної дії — демо. */
 export function useDocumentTransitions(): readonly ModuleTransition[] {
-  const kitT = useErpUiT()
-  const { t } = useTranslation("demo", { keyPrefix: "documentPage" })
+  const kitT = useErpUiT(ukDocuments)
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses], {
+    keyPrefix: "documentPage",
+  })
   const transitions = useMemo(
     () =>
       DOCUMENT_TRANSITIONS.map((transition) => ({

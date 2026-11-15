@@ -16,6 +16,7 @@ import {
 } from "@/registry/lib/filters"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { lazyWithPreload, whenIdle } from "@/registry/lib/lazy"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { RecordLabels } from "@/registry/lib/record-label"
@@ -227,7 +228,7 @@ function FilterPanelButton({
   activeCount,
   onApply,
 }: FilterPanelButtonProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const [open, setOpen] = React.useState(false)
   // Поки панель відкрита, вигляд не міняється (поворот екрана, смуга прокрутки під шторкою): інакше
   // форма перемонтується й чернетка зникне.
@@ -338,7 +339,7 @@ function FilterChips({
   onClear,
   fallbackFocus,
 }: FilterChipsProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const textFormat: FilterTextFormat = {
     date: (value) => format.date(value, "medium"),

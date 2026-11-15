@@ -8,6 +8,7 @@ import { announce } from "@/registry/lib/announce"
 import { isApiError } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import {
   isPinned,
   PIN_LIMIT_CODE,
@@ -48,7 +49,7 @@ export function usePin(
 ): PinApi {
   const dataProvider = useDataProvider<ErpDataProvider>()
   const queryClient = useQueryClient()
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const errorText = useApiErrorMessage()
   const [state, setState] = React.useState<PinState>(IDLE)
   // Подвійний клік до наступного рендеру: стан ще не встиг змінитись.

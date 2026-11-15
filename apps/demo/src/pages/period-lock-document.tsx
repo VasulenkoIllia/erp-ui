@@ -1,6 +1,5 @@
 import { useGetOne } from "@/registry/lib/ra-core"
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -23,6 +22,8 @@ import { Button } from "@/registry/ui/button"
 
 import { documentSchema, type DemoDocument } from "@/data/documents"
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentPage, ukPeriodLockPage, ukStatuses } from "@/i18n/pages"
 
 import { DOCUMENT_RESOURCE, useDocumentTransitions } from "./document-model"
 import { Section } from "./Section"
@@ -38,7 +39,12 @@ const isSample = (value: string | null): value is Sample =>
   (SAMPLES as readonly (string | null)[]).includes(value)
 
 export function PeriodLockDocument() {
-  const { t } = useTranslation("demo", { keyPrefix: "periodLockPage" })
+  const { t } = useDemoTranslation(
+    [ukDocumentPage, ukPeriodLockPage, ukStatuses],
+    {
+      keyPrefix: "periodLockPage",
+    },
+  )
   const selected = useSearchParamState("doc")
   const id = isSample(selected.value) ? selected.value : DEFAULT_SAMPLE
   const companyId = useCompanyId()
@@ -82,7 +88,12 @@ export function PeriodLockDocument() {
 }
 
 function DocumentSample({ document }: { document: DemoDocument }) {
-  const { t } = useTranslation("demo", { keyPrefix: "periodLockPage" })
+  const { t } = useDemoTranslation(
+    [ukDocumentPage, ukPeriodLockPage, ukStatuses],
+    {
+      keyPrefix: "periodLockPage",
+    },
+  )
   const navigate = useNavigate()
   const transitions = useDocumentTransitions()
   return (
@@ -116,7 +127,12 @@ interface DateValues {
  * для читання з причиною сервера під полем.
  */
 function DateForm({ document }: { document: DemoDocument }) {
-  const { t } = useTranslation("demo", { keyPrefix: "periodLockPage" })
+  const { t } = useDemoTranslation(
+    [ukDocumentPage, ukPeriodLockPage, ukStatuses],
+    {
+      keyPrefix: "periodLockPage",
+    },
+  )
   const dateIssue = useDateIssueText()
   const posting = usePostingDate()
   const access = useRecordAccess({

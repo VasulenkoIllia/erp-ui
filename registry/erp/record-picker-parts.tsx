@@ -19,6 +19,7 @@ import {
 import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { ComboboxItem, ComboboxList } from "@/registry/ui/combobox"
@@ -51,7 +52,7 @@ function useValueText<T extends RaRecord>(
   optionLabel: (record: T) => string,
   missingLabel: string | undefined,
 ): { label: string; muted: boolean } {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   if (value === null) return { label: "", muted: true }
   if (current.record)
     return { label: optionLabel(current.record), muted: false }
@@ -73,7 +74,7 @@ function useStatusText<T>(search: RecordSearch<T>): {
   text: string
   visible: boolean
 } {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const format = useFormat()
   const shown = search.records.length
   if (search.error)
@@ -116,7 +117,7 @@ export function PickerResults<T extends RaRecord>({
   resource: string
   listClassName?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const status = useStatusText(search)
   const canCreate = useHasPermission(resource, create?.access ?? "create")
   return (
@@ -211,7 +212,7 @@ function usePickerItems<T extends RaRecord>(
   typed: string,
   optionLabel: (record: T) => string,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const items = React.useMemo<PickerItem<T>[]>(() => {
     const options = records.map((record): PickerItem<T> => ({
       kind: "record",

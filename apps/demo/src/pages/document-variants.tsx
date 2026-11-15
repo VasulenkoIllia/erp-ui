@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next"
-
 import { DocumentActionBar } from "@/registry/erp/document-action-bar"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentPage, ukStatuses } from "@/i18n/pages"
 
 import { DOCUMENT_RESOURCE, useDocumentTransitions } from "./document-model"
 import { Section } from "./Section"
@@ -39,7 +39,7 @@ const VARIANTS = [
 ] as const
 
 export function DocumentVariants() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
   const transitions = useDocumentTransitions()
   return (
     <Section

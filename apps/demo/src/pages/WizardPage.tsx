@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -24,13 +23,15 @@ import { Wizard, WizardReview } from "@/registry/templates/wizard"
 import { Field, FieldDescription, FieldLabel } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import { Switch } from "@/registry/ui/switch"
+import { useDemoTranslation } from "@/i18n"
+import { ukWizardPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Майстер UI06 (ADR-0043): стани степера й справжній сценарій «Нова філія» на моках. */
 export function WizardPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukWizardPage])
   const companyId = useCompanyId()
   const [run, setRun] = useState(0)
   const branchArea = useRef<HTMLDivElement>(null)
@@ -111,7 +112,7 @@ function loadDraft(key: string) {
 }
 
 function BranchWizard({ onCreated }: { onCreated: () => void }) {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukWizardPage])
   const kitT = useErpUiT()
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()

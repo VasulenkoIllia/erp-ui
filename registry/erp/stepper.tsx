@@ -1,6 +1,7 @@
 import { CheckIcon, TriangleAlertIcon } from "lucide-react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Progress } from "@/registry/ui/progress"
@@ -39,7 +40,7 @@ export function Stepper({
   onStepSelect,
   className,
 }: StepperProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukWizard)
   const currentIndex = Math.max(
     steps.findIndex((step) => step.id === currentId),
     0,
@@ -96,7 +97,7 @@ function StepItem({
   isLast: boolean
   onSelect?: (stepId: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukWizard)
   const content = (
     <>
       <StepMarker

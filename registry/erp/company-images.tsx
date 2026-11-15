@@ -21,6 +21,7 @@ import {
   type CompanyProfile,
 } from "@/registry/lib/company"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukCompany } from "@/registry/lib/i18n-uk-company"
 import { Button } from "@/registry/ui/button"
 import { FieldError } from "@/registry/ui/field"
 import { Spinner } from "@/registry/ui/spinner"
@@ -49,7 +50,7 @@ function ImageField({
   kind: CompanyImage
   profile: CompanyProfile
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const fieldError = useFieldError()

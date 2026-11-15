@@ -1,7 +1,6 @@
 import tokens from "@design/palette-tokens.json"
 import { Check, Monitor, Moon, Sun, type LucideIcon } from "lucide-react"
 import { useId, type ReactNode } from "react"
-import { useTranslation } from "react-i18next"
 
 import {
   DENSITIES,
@@ -13,6 +12,8 @@ import {
 } from "@/registry/lib/appearance"
 import { useAppearance } from "@/registry/hooks/use-appearance"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { useDemoTranslation } from "@/i18n"
+import { ukControls, ukSidebars } from "@/i18n/pages"
 
 interface Option<T extends string> {
   value: T
@@ -100,7 +101,7 @@ const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
 
 export function AppearanceControls() {
   const [appearance, setAppearance] = useAppearance()
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukControls, ukSidebars])
   const kitT = useErpUiT()
 
   return (

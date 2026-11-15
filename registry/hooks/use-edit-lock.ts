@@ -41,6 +41,7 @@ import {
   type EditLockState,
 } from "@/registry/lib/edit-lock"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
 import { REALTIME_RESYNC } from "@/registry/lib/realtime"
 
 export interface UseEditLockOptions {
@@ -71,7 +72,7 @@ export function useEditLock({
   id,
   enabled = true,
 }: UseEditLockOptions): EditLock {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRealtime)
   const dataProvider = useDataProvider<ErpDataProvider>()
   const queryClient = useQueryClient()
   const companyId = useCompanyId()

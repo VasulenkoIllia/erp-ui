@@ -1,6 +1,7 @@
 import { PALETTES } from "@/registry/lib/appearance"
 import { COMPANY_KINDS, type CompanyKind } from "@/registry/lib/company"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukCompany } from "@/registry/lib/i18n-uk-company"
 import {
   Select,
   SelectContent,
@@ -59,7 +60,7 @@ export function CompanyKindSelect({
   onValueChange,
   ...props
 }: SelectFieldProps<CompanyKind>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   return (
     <CompanySelect
       {...props}
@@ -80,7 +81,7 @@ export function CompanyPaletteSelect({
   onValueChange,
   ...props
 }: SelectFieldProps<string>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   return (
     <CompanySelect
       {...props}

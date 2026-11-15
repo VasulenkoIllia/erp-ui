@@ -1,13 +1,13 @@
-import { useTranslation } from "react-i18next"
-
 import { AppearanceControls } from "@/appearance/AppearanceControls"
 import { MotionPreview } from "@/preview/MotionPreview"
 import { TokenPreview } from "@/preview/TokenPreview"
+import { useDemoTranslation } from "@/i18n"
+import { ukAppearancePage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 
 export function AppearancePage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukAppearancePage])
   return (
     <div className="space-y-6">
       <PageHeader

@@ -3,6 +3,7 @@ import { FileSpreadsheetIcon, UploadIcon, XIcon } from "lucide-react"
 
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { FieldError } from "@/registry/ui/field"
@@ -52,7 +53,7 @@ const BYTES_IN_MB = 1024 * 1024
 
 /** Розмір файла мовою інтерфейсу: «12 КБ», «2,5 МБ». */
 export function useFileSizeText(): (bytes: number) => string {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   return (bytes) =>
     bytes < BYTES_IN_MB
@@ -78,7 +79,7 @@ export function FileDrop({
   status,
   className,
 }: FileDropProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const input = React.useRef<HTMLInputElement>(null)
   const choose = React.useRef<HTMLButtonElement>(null)
   const refocus = React.useRef(false)

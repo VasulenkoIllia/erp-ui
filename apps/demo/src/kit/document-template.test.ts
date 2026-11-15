@@ -11,11 +11,15 @@ import {
   type TemplateVariables,
 } from "@/registry/lib/document-template"
 import {
+  addStrings,
   createI18n,
   ERP_UI_NAMESPACE,
   LOCALES,
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
+import { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 
 import { DEMO_DOCUMENT } from "@/pages/document-generator-model"
 import { DEMO_COUNTERPARTIES } from "@/pages/party-details-model"
@@ -68,11 +72,12 @@ const VARIABLES: TemplateVariables = {
   ],
 }
 
-const ukT = () =>
-  createI18n({ language: "uk" }).getFixedT(
-    "uk",
-    ERP_UI_NAMESPACE,
-  ) as unknown as ErpUiTranslate
+/** Рядки кіта, які бере генератор (ADR-0094): у застосунку їх підключає панель генератора. */
+const ukT = () => {
+  const i18n = createI18n({ language: "uk" })
+  addStrings(i18n, ERP_UI_NAMESPACE, ukDocumentGenerator, ukParty, ukPrint)
+  return i18n.getFixedT("uk", ERP_UI_NAMESPACE) as unknown as ErpUiTranslate
+}
 
 describe("мітки шаблону", () => {
   it("невідома мітка — помилка біля неї, у циклі — з назвою циклу; відомі й мітки документа в циклі — ні", () => {

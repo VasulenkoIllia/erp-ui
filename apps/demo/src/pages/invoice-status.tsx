@@ -1,12 +1,14 @@
 import { type LucideIcon } from "lucide-react"
-import { useTranslation } from "react-i18next"
 
 import { ACTION_ICONS, STATUS_ICONS } from "@/registry/lib/icons"
 import { Badge } from "@/registry/ui/badge"
 
 import type { InvoiceStatus } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage, ukStatuses } from "@/i18n/pages"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage, ukStatuses], { keyPrefix: "dataPage" }).t
 
 const STATUS_BADGES: Record<
   InvoiceStatus,

@@ -33,6 +33,7 @@ import {
 } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Skeleton } from "@/registry/ui/skeleton"
@@ -165,7 +166,7 @@ export function DataTable<T extends object>({
   isPinned,
   className,
 }: DataTableProps<T>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const container = React.useRef<HTMLDivElement>(null)
   const width = useElementSize(container, "width")

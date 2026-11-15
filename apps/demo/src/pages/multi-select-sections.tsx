@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useId, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import { FormField, keepFieldFocus } from "@/registry/erp/form"
@@ -17,6 +16,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/registry/ui/field"
+import { useDemoTranslation } from "@/i18n"
+import { ukPickersPage } from "@/i18n/pages"
 
 import { Section } from "./Section"
 
@@ -25,7 +26,8 @@ import { Section } from "./Section"
  * перевіркою й стани поля та довідника. Довідник — у пам'яті: стани задає сама сторінка.
  */
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "pickersPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukPickersPage], { keyPrefix: "pickersPage" }).t
 
 const TAGS = [
   "key",

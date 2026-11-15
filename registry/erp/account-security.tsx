@@ -13,6 +13,7 @@ import { useReauth } from "@/registry/erp/reauth-dialog"
 import { useMe } from "@/registry/hooks/use-me"
 import type { Challenge } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import {
@@ -47,7 +48,7 @@ function useFormState() {
 }
 
 export function ChangePasswordForm() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
@@ -155,7 +156,7 @@ export function ChangePasswordForm() {
 }
 
 export function ChangeEmailForm() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
@@ -317,7 +318,7 @@ export function ChangeEmailForm() {
 
 /** Експорт даних і видалення акаунта (SPEC §8.2: критичне видалення — з введенням слова). */
 export function AccountDataSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const logout = useLogout()

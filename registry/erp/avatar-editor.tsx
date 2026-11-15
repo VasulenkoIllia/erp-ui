@@ -2,6 +2,7 @@ import * as React from "react"
 import { ImageUpIcon, Trash2Icon } from "lucide-react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
 import { isShortcutKey, SHORTCUTS } from "@/registry/lib/shortcuts"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/avatar"
@@ -101,7 +102,7 @@ export function AvatarEditor({
   /** Сторона готового зображення, px. */
   size?: number
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const input = React.useRef<HTMLInputElement>(null)
   const [file, setFile] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -222,7 +223,7 @@ function CropDialog({
   onClose: () => void
   onSave: (image: Blob) => Promise<void>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const frameRef = React.useRef<HTMLDivElement>(null)
   const imageRef = React.useRef<HTMLImageElement>(null)
   const drag = React.useRef<{ x: number; y: number } | null>(null)

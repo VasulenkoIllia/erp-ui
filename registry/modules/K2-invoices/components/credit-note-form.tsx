@@ -22,6 +22,7 @@ import { quantitySchema } from "@/lib/document-lines"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukDocumentLines } from "@/lib/i18n-uk-document-lines"
 
 import {
   CREDIT_NOTE_ISSUES,
@@ -44,7 +45,7 @@ type Basis = CreditNoteCard["basis"]
 /** Текст помилки кількості рядка: порожня, не число, нуль чи понад залишок рахунку; правильна — `null`. */
 function useQuantityIssue(basis: Basis) {
   const t = useInvoicesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const format = useFormat()
   return useCallback(
     (id: string, quantity: string): string | null => {
@@ -69,7 +70,7 @@ function useQuantityIssue(basis: Basis) {
 
 function useCreditNoteFormSchema(basis: Basis, extensionShape: z.ZodRawShape) {
   const t = useInvoicesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const quantityIssue = useQuantityIssue(basis)
   return useMemo(() => {
     const required = kitT("validation.required")

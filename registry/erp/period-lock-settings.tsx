@@ -22,6 +22,8 @@ import {
 } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import {
   isLockDateTooLate,
   PERIOD_LOCK,
@@ -55,7 +57,7 @@ export interface PeriodLockSettingsProps {
 export function PeriodLockSettings({
   headingLevel = 2,
 }: PeriodLockSettingsProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const format = useFormat()
   const companyId = useCompanyId()
   const canUpdate = useHasPermission(PERIOD_LOCK, "update")
@@ -119,7 +121,7 @@ const lockDateOf = (value: string): CalendarDate | null => value || null
 
 /** Схема форми: дата — минулий день, причина — коли період відкривають знову. */
 function usePeriodLockSchema(saved: CalendarDate | null, today: CalendarDate) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const dateIssue = useDateIssueText()
   return React.useMemo(
     () =>
@@ -171,7 +173,7 @@ function PeriodLockForm({
   lock: PeriodLock
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const today = todayIn(useUserTimeZone())
   const schema = usePeriodLockSchema(lock.lockedThrough, today)
   const state = useRecordForm<LockValues, PeriodLock>({
@@ -260,7 +262,7 @@ function CloseMonthButton({
   saved: PeriodLock
   today: CalendarDate
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const format = useFormat()
   const monthEnd = previousMonthEnd(today)
   if (saved.lockedThrough !== null && saved.lockedThrough >= monthEnd)

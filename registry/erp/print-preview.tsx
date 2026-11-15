@@ -9,6 +9,7 @@ import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { PrintButton } from "@/registry/erp/print-button"
 import { useElementSize } from "@/registry/hooks/use-element-size"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import {
   A4_WIDTH_MM,
   mmToPx,
@@ -80,7 +81,7 @@ export function PrintPreview({
   children,
   className,
 }: PrintPreviewProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPrint)
   const sheet = usePrintLanguage(language)
   usePrintTitle(state ? undefined : title)
   const [isActualSize, setActualSize] = React.useState(false)
@@ -142,7 +143,7 @@ function Sheet({
   isActualSize: boolean
   children: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPrint)
   const ref = React.useRef<HTMLDivElement>(null)
   const width = useElementSize(ref, "width")
   // Ширини ще немає (перший кадр) чи контейнер прихований — справжній розмір, а не нульовий масштаб.
@@ -174,7 +175,7 @@ function Sheet({
 
 /** Завантаження: скелет у формі аркуша, після 1 с — «Завантажуємо аркуш» для скрінрідера. */
 function SheetSkeleton() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPrint)
   useLoadingAnnouncement(t("print.loading"))
   return (
     <div

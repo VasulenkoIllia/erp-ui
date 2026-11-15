@@ -17,6 +17,7 @@ import {
   type AccessTarget,
 } from "@/registry/erp/user-access-data"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
 import type { UserAccess } from "@/registry/lib/security-policy"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -138,7 +139,7 @@ export function UserAccessButtons({
   checking?: boolean
   showReason?: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const blocked = access.status === "blocked"
   const removeDenied =
     access.canRemove === false ? t("userAccess.removeDenied") : undefined
@@ -232,7 +233,7 @@ function BlockDialog({
   onClose: () => void
   onDone: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
@@ -340,7 +341,7 @@ function AccessConfirm({
   onClose: () => void
   onDone: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const { guard, dialog: reauthDialog } = useReauth()

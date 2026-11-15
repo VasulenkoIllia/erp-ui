@@ -27,6 +27,7 @@ import type { ExtensionField } from "@/lib/extension-fields"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukDocumentLines } from "@/lib/i18n-uk-document-lines"
 
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import type { SalesDocumentIds } from "../extension"
@@ -50,7 +51,7 @@ function useSalesFormSchema(
   extensionShape: z.ZodRawShape,
   lineShape: DocumentLineFieldsApi["shape"],
 ) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const lines = useDocumentLinesSchema(currency, lineShape)
   return useMemo(() => {
     const required = kitT("validation.required")
@@ -295,7 +296,7 @@ function SalesFormView({
   document: SalesDocumentDetail | undefined
 }) {
   const t = useSalesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const { lineItem } = useSalesModule()
   // Сталі посилання: форма перемальовується зі станом збереження, а документ буває на сотні рядків.
   const items = useMemo((): readonly RecordFormItem[] => {

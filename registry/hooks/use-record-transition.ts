@@ -40,6 +40,7 @@ import {
   isDocumentAction,
 } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import type { ModuleTransition } from "@/registry/lib/statuses"
 
 /** Запис, над яким дія: статус для графа, версія для конфлікту, позначка заборон сервера. */
@@ -145,7 +146,7 @@ function useTransitionMessages<R extends TransitionRecord>(
   reload: () => Promise<void>,
   lockedReason: RecordDenialText | undefined,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const errorText = useApiErrorMessage()
   const denialReason = useRecordDenialReason(lockedReason)
   /** Текст і версія, яку він описує: свіже перечитування з тією самою версією його не стирає. */
@@ -260,7 +261,7 @@ export function useRecordTransition<R extends TransitionRecord>({
 }) {
   const dataProvider = useDataProvider<ErpDataProvider>()
   const queryClient = useQueryClient()
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const latest = useLatest(record)
   const reload = () => {
     // Потік — частина картки нижчого пріоритету: повільний ланцюг на сервері не тримає панель зайнятою.

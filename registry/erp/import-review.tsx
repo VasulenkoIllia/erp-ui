@@ -10,6 +10,7 @@ import {
 import type { ImportWizardApi } from "@/registry/hooks/use-import-wizard"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import { fieldValueText, type CheckedRow } from "@/registry/lib/import-rows"
 import {
   isJobActive,
@@ -36,7 +37,7 @@ const PREVIEW_ROWS = 5
 const ACTION_COUNTS = ["create", "update", "skip", "invalid"] as const
 
 export function ImportCheckStep({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const { counts, state, errorText } = api
   const invalid = state.checked.filter(({ action }) => action === "invalid")
@@ -97,7 +98,7 @@ export function ImportCheckStep({ api }: { api: ImportWizardApi }) {
 }
 
 function ImportErrorsButton({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   return (
     <Button type="button" variant="outline" onClick={api.downloadErrors}>
       <DownloadIcon aria-hidden />
@@ -107,7 +108,7 @@ function ImportErrorsButton({ api }: { api: ImportWizardApi }) {
 }
 
 export function ImportPreviewStep({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const records = api.state.checked.filter(
     ({ action }) => action === "create" || action === "update",
@@ -137,7 +138,7 @@ function ImportPreviewCard({
   api: ImportWizardApi
   record: CheckedRow
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const text = {
     yes: t("importWizard.yes"),
@@ -187,7 +188,7 @@ interface ReportRun {
 const NO_OUTCOMES = { created: 0, updated: 0, skipped: 0 }
 
 export function ImportReportStep({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const { state, counts, target } = api
   const [run, setRun] = React.useState<ReportRun>({

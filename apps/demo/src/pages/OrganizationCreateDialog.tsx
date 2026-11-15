@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useCreate } from "@/registry/lib/ra-core"
 import { useMemo, type RefObject } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import { FormField, keepFieldFocus } from "@/registry/erp/form"
@@ -27,11 +26,13 @@ import { Input } from "@/registry/ui/input"
 import { Spinner } from "@/registry/ui/spinner"
 
 import type { Organization } from "@/data/organizations"
+import { useDemoTranslation } from "@/i18n"
+import { ukPickersPage } from "@/i18n/pages"
 
 import { ORGANIZATIONS } from "./organization-options"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "pickersPage.create" }).t
+  useDemoTranslation([ukPickersPage], { keyPrefix: "pickersPage.create" }).t
 
 /**
  * «Створити нову організацію» з вибору компанії (UI40): назва з тексту пошуку, ЄДРПОУ. Решту

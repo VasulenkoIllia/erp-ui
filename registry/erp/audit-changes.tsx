@@ -2,6 +2,7 @@ import { useMemo } from "react"
 
 import type { AuditEvent } from "@/registry/lib/audit"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAudit } from "@/registry/lib/i18n-uk-audit"
 import { diffAuditValues, type DiffPart } from "@/registry/lib/value-diff"
 
 /**
@@ -41,7 +42,7 @@ function DiffValue({
 }
 
 function ChangeRow({ change }: { change: AuditChange }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit)
   const { before, after } = useMemo(
     () =>
       diffAuditValues(change.from, change.to, (value) =>
@@ -65,7 +66,7 @@ function ChangeRow({ change }: { change: AuditChange }) {
 }
 
 export function AuditChanges({ changes }: { changes: readonly AuditChange[] }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit)
   return (
     <ul
       className="space-y-2 text-sm"

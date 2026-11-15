@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { useRecordForm } from "@/hooks/use-record-form"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 
 import {
   CONTACTS,
@@ -239,7 +240,7 @@ export function ContactFormDialog({
   finalFocus,
 }: ContactFormDialogProps) {
   const t = useContactsT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const { extension } = useContactsModule()
   const form = extension.contacts?.form
   const announceHandover = useAnnounceHandover(ORGANIZATIONS)

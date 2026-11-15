@@ -23,6 +23,7 @@ import { errorStateKind } from "@/lib/api"
 import { DEFAULT_BASE_CURRENCY, type CompanyProfile } from "@/lib/company"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useErpUiT } from "@/lib/i18n"
+import { ukCompany } from "@/lib/i18n-uk-company"
 
 import { CompanyLocaleForm } from "../components/company-locale-form"
 import { useCompanyPaletteActions } from "../components/use-company-palette-actions"
@@ -159,7 +160,7 @@ function useCompanyHeader(
   profile: CompanyProfile | undefined,
 ): ObjectPageHeader | undefined {
   const t = useCompanyT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukCompany)
   if (!profile) return undefined
   const isLegal = profile.kind === "legal"
   return {

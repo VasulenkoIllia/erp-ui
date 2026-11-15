@@ -1,6 +1,7 @@
 import { partyRequisiteLines } from "@/components/erp/print-requisites"
 import type { PartyDetails } from "@/lib/document-parties"
 import { useErpUiT } from "@/lib/i18n"
+import { ukPrint } from "@/lib/i18n-uk-print"
 
 import type { K2Document } from "../contract"
 import type { K2DocumentKind } from "../document-kind"
@@ -18,7 +19,7 @@ export function InvoiceParties({
   invoice: K2Document
 }) {
   const t = useInvoicesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukPrint)
   const parties: {
     id: string
     label: string

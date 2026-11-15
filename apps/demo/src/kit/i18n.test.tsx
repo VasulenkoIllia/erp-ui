@@ -9,6 +9,7 @@ import {
   syncLanguage,
 } from "@/registry/lib/appearance"
 import {
+  addStrings,
   createI18n,
   LANGUAGES,
   whenI18nReady,
@@ -37,9 +38,16 @@ import usersEn from "@/registry/modules/A2-users/i18n/en.json"
 import usersUk from "@/registry/modules/A2-users/i18n/uk.json"
 import { Spinner } from "@/registry/ui/spinner"
 
-import { createDemoI18n } from "@/i18n"
+import { createDemoI18n, DEMO_NAMESPACE } from "@/i18n"
 import demoEn from "@/i18n/en.json"
-import demoUk from "@/i18n/uk.json"
+import * as demoPages from "@/i18n/pages"
+import demoShell from "@/i18n/uk.json"
+
+// Рядки демо українською: шапка й частини сторінок разом (ADR-0094).
+const demoUk = Object.values(demoPages).reduce<Tree>(
+  (all, part) => ({ ...all, ...part }),
+  demoShell,
+)
 
 type Tree = { [key: string]: string | Tree }
 
@@ -164,6 +172,8 @@ describe("множина через i18next (SPEC §11)", () => {
   for (const lng of LANGUAGES) {
     it(lng, async () => {
       const i18n = createDemoI18n(lng)
+      // Рядки сторінки форматів приходять із її чанком (ADR-0094).
+      addStrings(i18n, DEMO_NAMESPACE, demoPages.ukFormatsPage)
       await whenI18nReady(i18n)
       for (const [count, text] of cases[lng]) {
         expect(i18n.t("formatsPage.plurals.invoices", { count })).toBe(text)

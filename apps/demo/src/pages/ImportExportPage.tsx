@@ -1,6 +1,5 @@
 import { useGetList } from "@/registry/lib/ra-core"
 import { useMemo, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 
 import { ExportDialog } from "@/registry/erp/export-dialog"
 import { FileDrop } from "@/registry/erp/file-drop"
@@ -11,7 +10,8 @@ import type { ImportTarget } from "@/registry/lib/import-rows"
 import { Button } from "@/registry/ui/button"
 
 import { PRODUCT_CATEGORIES, type Product } from "@/data/products"
-import ukMessages from "@/i18n/uk.json"
+import { useDemoTranslation } from "@/i18n"
+import { ukImportExportPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -20,11 +20,11 @@ const PRODUCTS = "products"
 const SAMPLE_FILE = new File(["sku;name"], "товари.csv", { type: "text/csv" })
 const SELECTED_IDS = ["product-1", "product-2"]
 
-type ProductField = keyof typeof ukMessages.importExportPage.fields
+type ProductField = keyof typeof ukImportExportPage.importExportPage.fields
 
 /** Цілі імпорту й експорту на одних товарах: кожен тип поля, збіг за артикулом. */
 function useProductDefinitions() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukImportExportPage])
   return useMemo(() => {
     const label = (key: ProductField) => t(`importExportPage.fields.${key}`)
     const categories = PRODUCT_CATEGORIES.map((value) => ({
@@ -112,7 +112,7 @@ function useProductDefinitions() {
 
 /** PF07 і вибір файла UI11 (ADR-0049): стани поля, діалог експорту, майстер імпорту. */
 export function ImportExportPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukImportExportPage])
   const format = useFormat()
   const { target, columns } = useProductDefinitions()
   const [run, setRun] = useState(0)

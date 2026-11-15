@@ -12,6 +12,7 @@ import type {
 } from "@/registry/hooks/use-record-transition"
 import { TRANSITION_REASON_MAX_LENGTH } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import type {
   ModuleTransition,
   TransitionConfirmText,
@@ -51,7 +52,7 @@ export function TransitionConflict<R extends TransitionRecord>({
   onRetry: () => void
   onReload: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   // Під час закриття діалог ще видно: таблиця й кнопка — останнього конфлікту.
   const [shown, setShown] = React.useState(conflict)
   if (conflict && conflict !== shown) setShown(conflict)
@@ -115,7 +116,7 @@ export function TransitionDialog({
   /** Повернути фокус після закриття: кнопка дії могла зникнути чи стати неактивною. */
   returnFocus: (action: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
   const [reason, setReason] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
@@ -206,7 +207,7 @@ export function TransitionReasonField({
   error: string | null
   onChange: (value: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const id = React.useId()
   return (
     <Field data-invalid={error ? true : undefined}>

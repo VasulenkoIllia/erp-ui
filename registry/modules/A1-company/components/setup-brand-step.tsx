@@ -2,6 +2,7 @@ import { CompanyImages } from "@/components/erp/company-images"
 import { CompanyPaletteSelect } from "@/components/erp/company-selects"
 import { FormField } from "@/components/erp/form"
 import { useErpUiT } from "@/lib/i18n"
+import { ukCompany } from "@/lib/i18n-uk-company"
 
 import type { SetupForm } from "./use-setup-form"
 
@@ -13,7 +14,7 @@ export function SetupBrandStep({
   form: SetupForm
   showLogo: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   return (
     <div className="space-y-6">
       {showLogo ? <CompanyImages /> : null}

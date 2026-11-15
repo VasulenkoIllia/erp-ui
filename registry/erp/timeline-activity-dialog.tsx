@@ -21,6 +21,7 @@ import { isApiError } from "@/registry/lib/api"
 import { addDays, todayIn } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import {
   TIMELINE_ACTIVITY_TYPES,
   timelineActivitySchema,
@@ -50,7 +51,7 @@ interface TeamMember {
 const memberName = (member: TeamMember) => member.name ?? member.id
 
 function useActivitySchema() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const dateIssue = useDateIssueText()
   return React.useMemo(() => {
     const required = t("timeline.activities.required")
@@ -72,7 +73,7 @@ function useConflictFields(
   mineAssignee: string,
   theirs: TimelineActivity | null,
 ): ConflictField[] {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const format = useFormat()
   if (!theirs) return []
   const dateOf = (value: string) => format.date(value, "date")
@@ -113,7 +114,7 @@ export function TimelineActivityDialog({
   finalFocus: () => HTMLElement | null
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const timeZone = useUserTimeZone()
   const { data: me } = useMe()

@@ -21,6 +21,7 @@ import {
 import { isApiError } from "@/registry/lib/api"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import {
   EMPTY_RICH_TEXT,
   isRichTextEmpty,
@@ -49,7 +50,7 @@ export interface TimelineComposerProps {
 }
 
 function KindHint({ kind }: { kind: TimelinePostKind }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const Icon = kind === "message" ? SendIcon : LockIcon
   return (
     <span
@@ -74,7 +75,7 @@ export function TimelineComposer({
   maxFileBytes,
   editorRef,
 }: TimelineComposerProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const [kind, setKind] = React.useState<TimelinePostKind>("note")
   const [error, setError] = React.useState<string | null>(null)

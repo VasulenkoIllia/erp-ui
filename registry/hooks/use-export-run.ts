@@ -20,6 +20,7 @@ import {
 } from "@/registry/lib/exports"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import {
   isSpreadsheetLoadFailure,
   saveFile,
@@ -60,7 +61,7 @@ function useExportSource<T extends RaRecord>(
 }
 
 function useExportFailureText(maxRows: number) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const errorMessage = useApiErrorMessage()
   return (error: unknown) => {
@@ -112,7 +113,7 @@ export function useExportRun<T extends RaRecord>({
   maxRows,
   onDone,
 }: ExportRunOptions) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const { language } = useLanguage()
   const failureText = useExportFailureText(maxRows)

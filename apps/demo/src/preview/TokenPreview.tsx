@@ -12,11 +12,12 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react"
-import { useTranslation } from "react-i18next"
 
 import { useFormat } from "@/registry/lib/format"
 
 import { INVOICES, type StatusKind } from "@/fixtures"
+import { useDemoTranslation } from "@/i18n"
+import { ukPreview, ukStatuses } from "@/i18n/pages"
 
 /**
  * Прев'ю токенів: міні-оболонка зі списком рахунків. Лише для перевірки тем і щільності;
@@ -61,7 +62,7 @@ const CHART_CLASSES = [
 
 function StatusBadge({ kind }: { kind: StatusKind }) {
   const { className, icon: Icon } = STATUS_STYLES[kind]
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukPreview, ukStatuses])
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${className}`}
@@ -73,7 +74,9 @@ function StatusBadge({ kind }: { kind: StatusKind }) {
 }
 
 export function TokenPreview() {
-  const { t } = useTranslation("demo", { keyPrefix: "preview" })
+  const { t } = useDemoTranslation([ukPreview, ukStatuses], {
+    keyPrefix: "preview",
+  })
   const format = useFormat()
 
   return (

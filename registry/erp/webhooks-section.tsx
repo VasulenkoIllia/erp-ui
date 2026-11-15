@@ -26,6 +26,8 @@ import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAudit } from "@/registry/lib/i18n-uk-audit"
+import { ukWebhooks } from "@/registry/lib/i18n-uk-webhooks"
 import { cn } from "@/registry/lib/utils"
 import {
   WEBHOOK_QUERY_KEYS,
@@ -87,7 +89,7 @@ type Open =
   | { kind: "deliveries"; webhook: Webhook }
 
 export function WebhooksSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()
@@ -423,7 +425,7 @@ function WebhookDialog({
   onSaved: (secret?: string) => void
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const ids = React.useId()
@@ -662,7 +664,7 @@ function SecretDialog({
   title: string
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   return (
     <Dialog
       open={secret !== null}
@@ -717,7 +719,7 @@ function DeliveriesSheet({
   onClose: () => void
   onChanged: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   // Вебхук лишається й після закриття: панель виїжджає зі своїм умістом, а не порожньою.
   const [shown, setShown] = React.useState(webhook)
   if (webhook && webhook !== shown) setShown(webhook)
@@ -759,7 +761,7 @@ function DeliveriesList({
   events: WebhookEventType[]
   onChanged: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const companyId = useCompanyId()
@@ -853,7 +855,7 @@ function DeliveryItem({
   label: string
   onRedelivered: () => Promise<unknown>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukWebhooks)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const format = useFormat()

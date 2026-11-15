@@ -11,6 +11,7 @@ import { MAX_PER_PAGE } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { todayIn } from "@/registry/lib/dates"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import {
   NUMBERING_COUNTERS,
   NUMBERING_TEMPLATE_MAX_LENGTH,
@@ -33,7 +34,7 @@ export type NumberingPreviewValues = NumberingRules & { template: string }
 
 /** Текст помилки шаблону мовою інтерфейсу: біля поля, у перегляді й для коду 422 сервера. */
 export function useNumberingIssueText() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   return React.useCallback(
     (issue: NumberingTemplateIssue) =>
       t(`numbering.issues.${issue}`, { max: NUMBERING_TEMPLATE_MAX_LENGTH }),
@@ -51,7 +52,7 @@ export function NumberingPreview({
   control: Control<NumberingPreviewValues>
   series: NumberingSeries
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   const issueText = useNumberingIssueText()
   const id = React.useId()
   const companyId = useCompanyId()

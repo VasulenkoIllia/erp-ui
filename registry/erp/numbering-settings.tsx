@@ -9,6 +9,7 @@ import { useSearchParamState } from "@/registry/hooks/use-tab-param"
 import { errorStateKind, MAX_PER_PAGE } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import {
   NUMBERING_SERIES,
   type NumberingSeries,
@@ -58,7 +59,7 @@ function SeriesBrowser({
   headingLevel,
 }: Required<NumberingSettingsProps>) {
   const Heading = headingLevel === 2 ? "h2" : "h3"
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   const companyId = useCompanyId()
   const canUpdate = useHasPermission(NUMBERING_SERIES, "update")
   const selected = useSearchParamState(NUMBERING_SERIES_PARAM)
@@ -161,7 +162,7 @@ function SeriesList({
   labelOf: (series: NumberingSeries) => string
   onSelect: (id: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   return (
     <ul className="space-y-1" aria-label={t("numbering.seriesList")}>
       {series.map((item) => (

@@ -5,6 +5,7 @@ import { useErpAuthProvider } from "@/registry/erp/auth-layout"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import { canGrant, ROLES_QUERY_KEYS, type Role } from "@/registry/lib/roles"
 import { Checkbox } from "@/registry/ui/checkbox"
 import { FieldError, FieldLegend, FieldSet } from "@/registry/ui/field"
@@ -54,7 +55,7 @@ export function RolePicker({
   readOnlyReason?: string
   ceiling?: readonly string[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const ids = React.useId()
   const reasonId = readOnly && readOnlyReason ? `${ids}-read-only` : ""
   return (

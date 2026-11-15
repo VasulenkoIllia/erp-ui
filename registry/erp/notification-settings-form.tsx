@@ -11,6 +11,7 @@ import { PushDeviceSection } from "@/registry/erp/push-device-section"
 import { ACCOUNT_QUERY_KEYS } from "@/registry/lib/account"
 import { errorStateKind } from "@/registry/lib/api"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
 import type {
   NotificationSettings,
   QuietHours,
@@ -74,7 +75,7 @@ export function NotificationSettingsForm() {
 }
 
 function Editor({ data }: { data: NotificationSettings }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

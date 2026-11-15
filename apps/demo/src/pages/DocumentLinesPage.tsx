@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuthenticated, useGetList, useGetOne } from "@/registry/lib/ra-core"
 import { useId, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import type { DocumentLineItem } from "@/registry/erp/document-line-fields"
@@ -22,6 +21,7 @@ import type {
   DocumentLineUnit,
 } from "@/registry/lib/document-lines"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import type {
   DictionaryDefaults,
   Tax,
@@ -31,6 +31,8 @@ import { Checkbox } from "@/registry/ui/checkbox"
 import { Field, FieldLabel } from "@/registry/ui/field"
 
 import type { Product } from "@/data/products"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentLinesPage } from "@/i18n/pages"
 
 import { DocumentLinesVariants } from "./document-lines-variants"
 import { PageHeader } from "./PageHeader"
@@ -42,7 +44,8 @@ const DICTIONARY_SIZE = 100
 const PRODUCTS = "products"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "documentLinesPage" }).t
+  useDemoTranslation([ukDocumentLinesPage], { keyPrefix: "documentLinesPage" })
+    .t
 
 const wait = (ms: number) =>
   new Promise((resolve) => {
@@ -163,7 +166,7 @@ function LinesForm({
   readOnly: boolean
 }) {
   const t = usePageT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const schema = useDocumentLinesSchema(CURRENCY)
   const form = useForm<DocumentLinesValues>({
     mode: "onTouched",
@@ -288,7 +291,7 @@ function EditorSection() {
 
 /** Рядки документа (UI05a, ADR-0059): редактор на моках товарів і довідників A6, варіанти станів. */
 export function DocumentLinesPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentLinesPage])
   return (
     <div className="space-y-6">
       <PageHeader

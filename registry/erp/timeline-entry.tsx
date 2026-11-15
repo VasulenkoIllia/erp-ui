@@ -22,6 +22,7 @@ import { useRecordDenialReason } from "@/registry/hooks/use-record-access"
 import type { TimelineActions } from "@/registry/hooks/use-timeline"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { safeLinkHref, type MentionSearch } from "@/registry/lib/rich-text"
 import { type TimelineEntry, type TimelineFile } from "@/registry/lib/timeline"
 import { cn } from "@/registry/lib/utils"
@@ -92,7 +93,7 @@ const STATUS_BADGES = {
 } as const
 
 function EntryKind({ entry }: { entry: TimelineEntry }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   return (
     <span className="text-xs text-muted-foreground">
       {t(`timeline.kinds.${lookKey(entry)}`)}
@@ -145,7 +146,7 @@ function EntryMenu({
   onEdit?: () => void
   onDelete: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const format = useFormat()
   const denial = useRecordDenialReason()
   const editDenied = denial(entry, "update")
@@ -222,7 +223,7 @@ function ActivityLine({
 }: {
   entry: Extract<TimelineEntry, { kind: "activity" }>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const { status, title } = entry.activity
   return (
     <p className="text-sm">
@@ -236,7 +237,7 @@ function MessageMeta({
 }: {
   entry: Extract<TimelineEntry, { kind: "message" }>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const { direction, party, status } = entry
   return (
     <>
@@ -283,7 +284,7 @@ export function TimelineEntryItem({
   renderMention,
   onDelete,
 }: TimelineEntryItemProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const [isEditing, setIsEditing] = React.useState(false)
   const item = React.useRef<HTMLLIElement>(null)
   const menuButton = React.useRef<HTMLButtonElement>(null)

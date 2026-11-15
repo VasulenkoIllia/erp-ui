@@ -24,6 +24,8 @@ import {
   type PartyRole,
 } from "@/registry/lib/document-parties"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukCompany } from "@/registry/lib/i18n-uk-company"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
 import type { UaIdKind } from "@/registry/lib/ua-ids"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -78,7 +80,7 @@ export function PartyDetailsFields<TValues extends FieldValues>({
   readOnly,
   className,
 }: PartyDetailsFieldsProps<TValues>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   const host = form as unknown as PartyForm
   const path = (field: PartyField) => `${name}.${field}`
   const kind =
@@ -137,7 +139,7 @@ function KindField({
   party: string
   readOnly?: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   const items = COMPANY_KINDS.map((value) => ({
     value,
     label: t(`companySettings.kinds.${value}`),
@@ -169,7 +171,7 @@ function KindField({
 
 /** Підпис і підказка поля мовою інтерфейсу. */
 function useFieldText(field: Exclude<PartyField, "kind">, kind: CompanyKind) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   switch (field) {
     case "code":
       return { label: t(`companySettings.${partyCodeKind(kind)}`) }
@@ -291,7 +293,7 @@ function SignatureHint({
   name: string
   fallback?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   const value = useWatch({ control: form.control, name }) as string | undefined
   const signature = signatureName(value ?? "")
   return signature ? t("partyDetails.signature", { name: signature }) : fallback
@@ -314,7 +316,7 @@ function FillFromSource({
   name: string
   source: PartyDetailsSource
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   const reasonId = React.useId()
   const party = useWatch({ control: form.control, name }) as
     PartyDetails | undefined
@@ -381,7 +383,7 @@ export function PartyRoleField<TValues extends FieldValues>({
   readOnly,
   className,
 }: PartyRoleFieldProps<TValues>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany, ukParty)
   const host = form as unknown as PartyForm
   const items = PARTY_ROLES.map((value) => ({
     value,

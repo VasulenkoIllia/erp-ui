@@ -15,6 +15,7 @@ import {
 } from "@/registry/hooks/use-import-wizard"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import {
   cellText,
   columnSample,
@@ -54,7 +55,7 @@ export function ImportWizard({
   headingRef,
   ...options
 }: ImportWizardProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const api = useImportWizard(options)
   return (
     <Wizard
@@ -86,7 +87,7 @@ function ImportStep({ api }: { api: ImportWizardApi }) {
 }
 
 function ImportFileStep({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const { state, sheet, headerRow, fileError, maxRows } = api
   const selectId = React.useId()
@@ -177,7 +178,7 @@ function ImportFileStep({ api }: { api: ImportWizardApi }) {
 }
 
 function ImportMappingStep({ api }: { api: ImportWizardApi }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const { state, sheet, headerRow, target, issues } = api
   const duplicatesId = React.useId()
   const rows = sheet?.rows ?? []
@@ -280,7 +281,7 @@ function ImportColumnRow({
   repeated: boolean
   onChange: (key: string | null) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const selectId = React.useId()
   const errorId = React.useId()
   return (

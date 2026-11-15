@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useId, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -11,15 +10,18 @@ import { NumberInput } from "@/registry/erp/number-input"
 import { RepeatingRows } from "@/registry/erp/repeating-rows"
 import { SaveBar } from "@/registry/erp/save-bar"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { keyValueSchema, type KeyValueRow } from "@/registry/lib/key-value"
 import { Checkbox } from "@/registry/ui/checkbox"
 import { Field, FieldLabel } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
+import { useDemoTranslation } from "@/i18n"
+import { ukFormsPage } from "@/i18n/pages"
 
 import { Section } from "./Section"
 
 const useSectionT = () =>
-  useTranslation("demo", { keyPrefix: "formsPage.rows" }).t
+  useDemoTranslation([ukFormsPage], { keyPrefix: "formsPage.rows" }).t
 
 const SAVE_DELAY_MS = 600
 const STEPS_MIN = 1
@@ -42,7 +44,7 @@ const wait = (ms: number) =>
 
 function useRowsSchema() {
   const t = useSectionT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   return useMemo(() => {
     const required = kitT("validation.required")
     return z.object({
@@ -77,7 +79,7 @@ function useRowsSchema() {
  */
 function RowsForm({ readOnly }: { readOnly: boolean }) {
   const t = useSectionT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const schema = useRowsSchema()
   const form = useForm<RowsValues>({
     mode: "onTouched",

@@ -19,6 +19,7 @@ import {
 } from "@/registry/hooks/use-timeline"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import {
   toRichText,
   type MentionSearch,
@@ -50,7 +51,7 @@ export function TimelineNoteEditor({
   mentions?: MentionSearch | false
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const [baseVersion] = React.useState(note.version)
   const [error, setError] = React.useState<string | null>(null)

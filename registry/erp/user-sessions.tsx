@@ -15,6 +15,8 @@ import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import {
   ADMIN_QUERY_KEYS,
   type AdminSession,
@@ -47,7 +49,7 @@ function SessionRow({
   deniedReason?: string
   onEnd: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const format = useFormat()
   const device = deviceLabel(session.device, t)
   const endLabel = t("userAccess.endSessionFor", {
@@ -146,7 +148,7 @@ export function UserSessionsList({
   checking?: boolean
   showReason?: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const refresh = useRefreshAccess()
@@ -205,7 +207,7 @@ const PER_PAGE = 20
 
 /** Активні сесії всіх користувачів: пошук за ім'ям чи email, завершення сесії. */
 export function ActiveSessionsSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

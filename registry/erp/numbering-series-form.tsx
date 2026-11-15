@@ -20,6 +20,7 @@ import type {
 import { RecordFormPage } from "@/registry/erp/record-form-page"
 import { useRecordForm } from "@/registry/hooks/use-record-form"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import {
   NUMBERING_SERIES,
   NUMBERING_TEMPLATE_ISSUES,
@@ -79,7 +80,7 @@ export function NumberingSeriesForm({
   series: NumberingSeries
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   const issueText = useNumberingIssueText()
   const schema = React.useMemo(
     () =>
@@ -183,7 +184,7 @@ function TemplateField({
   control: Control<SeriesValues>
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukNumbering)
   const input = React.useRef<HTMLInputElement | null>(null)
   return (
     <FormField

@@ -7,6 +7,7 @@ import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { isApiError } from "@/registry/lib/api"
 import type { AuthFactor, Challenge } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { PasskeyCancelledError, readSmsCode } from "@/registry/lib/passkey"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -81,7 +82,7 @@ export function ChallengeForm({
   /** Запит адміністратору відновити доступ (`provider.requestRecovery`). */
   onRequestRecovery?: (comment: string) => Promise<void>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const apiMessage = useApiErrorMessage()
   const fieldError = useFieldError()
   const ids = React.useId()
@@ -369,7 +370,7 @@ function RecoveryRequest({
 }: {
   onRequest: (comment: string) => Promise<void>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const apiMessage = useApiErrorMessage()
   const id = React.useId()
   const [open, setOpen] = React.useState(false)
@@ -485,7 +486,7 @@ function TrustDevice({
   disabled: boolean
   onChange: (checked: boolean) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   return (
     <Field orientation="horizontal" data-disabled={disabled || undefined}>
       <Checkbox

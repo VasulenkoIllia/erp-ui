@@ -12,6 +12,7 @@ import {
 } from "@/registry/hooks/use-timeline"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import type { TimelineTarget } from "@/registry/lib/timeline"
 import { Button } from "@/registry/ui/button"
 import {
@@ -51,7 +52,7 @@ function FollowersDialog({
   finalFocus: React.RefObject<HTMLElement | null>
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const pickerId = React.useId()
   const picker = React.useRef<HTMLButtonElement>(null)
@@ -158,7 +159,7 @@ export function TimelineFollowers({
   actions: TimelineActions
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const { data: me } = useMe()
   const query = useTimelineFollowers(target)

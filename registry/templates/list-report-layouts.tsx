@@ -4,6 +4,7 @@ import type { SortPayload } from "@/registry/lib/ra-core"
 
 import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { Button } from "@/registry/ui/button"
 
@@ -66,7 +67,7 @@ export function ListLayoutSwitch({
   value: string | undefined
   onValueChange: (layout: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   if (layouts.length < 2) return null
   return (
     <div

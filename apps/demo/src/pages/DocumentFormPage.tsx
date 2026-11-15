@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useId, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
@@ -14,6 +13,7 @@ import {
 import { FormErrorSummary, UnsavedChangesGuard } from "@/registry/erp/form"
 import { SaveBar } from "@/registry/erp/save-bar"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { Checkbox } from "@/registry/ui/checkbox"
 import { Field, FieldLabel } from "@/registry/ui/field"
 import {
@@ -25,6 +25,8 @@ import {
 } from "@/registry/ui/select"
 
 import type { Product } from "@/data/products"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentFormPage } from "@/i18n/pages"
 
 import {
   DOCUMENT_SIZES,
@@ -43,7 +45,7 @@ const DEFAULT_SIZE: DocumentSize = 500
 const SIZE_PARAM = "lines"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "documentFormPage" }).t
+  useDemoTranslation([ukDocumentFormPage], { keyPrefix: "documentFormPage" }).t
 
 const wait = (ms: number) =>
   new Promise((resolve) => {
@@ -64,7 +66,7 @@ function DocumentForm({
   readOnly: boolean
 }) {
   const t = usePageT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const schema = useDocumentLinesSchema(CURRENCY)
   // 500 рядків будуються раз: форма бере лише перше значення.
   const [defaultValues] = useState<DocumentLinesValues>(() => ({
@@ -205,7 +207,7 @@ function Options({
  * 12 рядків лише видимі рядки. Перевірка `pnpm perf` міряє тут відгук на введення, вставку й порядок.
  */
 export function DocumentFormPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentFormPage])
   const pageT = usePageT()
   const [searchParams, setSearchParams] = useSearchParams()
   const size = documentSizeOf(searchParams.get(SIZE_PARAM)) ?? DEFAULT_SIZE

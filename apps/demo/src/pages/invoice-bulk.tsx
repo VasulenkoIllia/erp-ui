@@ -1,6 +1,5 @@
 import { useCanAccess, useDataProvider } from "@/registry/lib/ra-core"
 import { useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
@@ -15,6 +14,8 @@ import { ACTION_ICONS } from "@/registry/lib/icons"
 import type { BulkSelection, Job } from "@/registry/lib/jobs"
 import { toBulkSelection } from "@/registry/lib/row-selection"
 import { Button } from "@/registry/ui/button"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 /**
  * Масове погодження рахунків стрес-сторінки (SPEC §8.1 стани 12–14, ADR-0018): підтвердження з
@@ -32,7 +33,7 @@ const isReason = (code: string): code is (typeof REASONS)[number] =>
 const loadJobProgress = () => import("@/registry/erp/job-progress")
 
 const useApproveT = () =>
-  useTranslation("demo", { keyPrefix: "dataPage.approve" }).t
+  useDemoTranslation([ukDataPage], { keyPrefix: "dataPage.approve" }).t
 
 /**
  * Запуск задачі погодження й сповіщення з прогресом — для панелі вибраного й картки рахунку.

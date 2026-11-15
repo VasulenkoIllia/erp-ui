@@ -29,6 +29,7 @@ import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useHasPermission } from "@/registry/hooks/use-me"
 import type { CompanyProfile } from "@/registry/lib/company"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukCompany } from "@/registry/lib/i18n-uk-company"
 import {
   ibanBankCode,
   validateUaId,
@@ -60,7 +61,7 @@ export function CompanyProfileForm() {
 }
 
 function ProfileFields({ profile }: { profile: CompanyProfile }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()

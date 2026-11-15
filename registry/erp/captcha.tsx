@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { cn } from "@/registry/lib/utils"
 import { Spinner } from "@/registry/ui/spinner"
 
@@ -64,7 +65,7 @@ export function TurnstileCaptcha({
   onError: () => void
   className?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const { language } = useLanguage()
   const container = React.useRef<HTMLDivElement>(null)
   const [state, setState] = React.useState<"loading" | "ready" | "failed">(

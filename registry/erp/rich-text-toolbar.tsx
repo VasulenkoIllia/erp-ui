@@ -15,6 +15,7 @@ import {
 
 import { richTextLinkSlot } from "@/registry/erp/rich-text-styles"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
 import { linkFromInput } from "@/registry/lib/rich-text"
 import { Button } from "@/registry/ui/button"
 import { Field, FieldError, FieldLabel } from "@/registry/ui/field"
@@ -122,7 +123,7 @@ function applyLink(editor: Editor, href: string) {
 }
 
 function LinkButton({ editor, active }: { editor: Editor; active: boolean }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   const id = React.useId()
   const [open, setOpen] = React.useState(false)
   const [address, setAddress] = React.useState("")
@@ -230,7 +231,7 @@ export function RichTextToolbar({
   editor: Editor
   hasMentions: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   const active = useEditorState({
     editor,
     selector: ({ editor: current }) => ({

@@ -22,6 +22,8 @@ import {
 } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import {
   PERIOD_LOCK_EXCEPTION_MAX_DAYS,
   PERIOD_LOCK,
@@ -91,7 +93,7 @@ const LABELS: Readonly<Record<keyof ExceptionValues, ErpUiKey>> = {
 }
 
 function useExceptionSchema(today: CalendarDate, last: CalendarDate) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const dateIssue = useDateIssueText()
   return React.useMemo(
     () =>
@@ -134,7 +136,7 @@ export function PeriodLockExceptionDialog({
   onClose,
   finalFocus,
 }: PeriodLockExceptionDialogProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const format = useFormat()
   const timeZone = useUserTimeZone()
   const today = todayIn(timeZone)
@@ -210,7 +212,7 @@ function useExceptionItems(
   today: CalendarDate,
   last: CalendarDate,
 ): RecordFormItem[] {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock, ukRecords)
   const format = useFormat()
   const [userName, setUserName] = React.useState("")
   const { control } = form

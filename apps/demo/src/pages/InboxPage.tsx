@@ -1,15 +1,16 @@
-import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { NotificationInbox } from "@/registry/erp/notification-inbox"
 import { PageSkeleton } from "@/registry/erp/page-state"
+import { useDemoTranslation } from "@/i18n"
+import { ukInboxPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 
 /** Центр сповіщень (ADR-0014, PF10): усі й непрочитані, позначки, «Прочитати все». */
 export function InboxPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "inboxPage" })
+  const { t } = useDemoTranslation([ukInboxPage], { keyPrefix: "inboxPage" })
   const navigate = useNavigate()
   const { isPending } = useAuthenticated()
   return (

@@ -23,7 +23,7 @@ import {
 import type { TotalsDiscount } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
-import type { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 
 /**
  * Схема форми `erp/document-lines-editor` (UI05, ADR-0059): ті самі правила, що в контракті `lib/document-lines`,
@@ -54,7 +54,7 @@ export function useDocumentLinesSchema(
   currency: string,
   lineShape: LineExtensionShape = NO_LINE_SHAPE,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   return React.useMemo(() => {
     // Поле рядка з ключем кіта перекрило б його перевірку: помилка одразу, як у схемах контракту.
     assertLineShape(lineShape)

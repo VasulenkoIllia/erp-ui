@@ -12,6 +12,7 @@ import { RolePicker, useRoles } from "@/registry/erp/role-picker"
 import { useRefreshAccess } from "@/registry/erp/user-access-data"
 import { useHasPermission, useMe } from "@/registry/hooks/use-me"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -36,7 +37,7 @@ export function UserRolesSection({
   selfReason?: string
   onChange?: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const queryClient = useQueryClient()

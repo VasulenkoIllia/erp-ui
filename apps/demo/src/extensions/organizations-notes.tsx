@@ -1,8 +1,8 @@
-import { useTranslation } from "react-i18next"
-
 import type { RecordSlotProps } from "@/registry/templates/object-page"
 
 import type { Organization } from "@/data/organizations"
+import { useDemoTranslation } from "@/i18n"
+import { ukOrganizationPage } from "@/i18n/pages"
 
 /**
  * Вкладка проекту «Нотатки» в картці організації (розширення — `organizations.ts`). Окремий чанк:
@@ -11,7 +11,9 @@ import type { Organization } from "@/data/organizations"
 export default function OrganizationNotes({
   record,
 }: RecordSlotProps<Organization>) {
-  const { t } = useTranslation("demo", { keyPrefix: "organizationPage" })
+  const { t } = useDemoTranslation([ukOrganizationPage], {
+    keyPrefix: "organizationPage",
+  })
   return (
     <div className="space-y-2 text-sm" data-slot="organization-notes">
       <p>{t("notes.lead", { name: record.name })}</p>

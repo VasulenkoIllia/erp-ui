@@ -28,6 +28,7 @@ import {
   type Challenge,
 } from "@/registry/lib/auth"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button, buttonVariants } from "@/registry/ui/button"
@@ -49,7 +50,7 @@ interface ScreenProps {
 }
 
 function BackToLogin({ paths }: { paths?: Partial<AuthPaths> }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   return (
     <LinkBase
       to={paths?.login ?? AUTH_PATHS.login}
@@ -114,7 +115,7 @@ export function ForgotPasswordScreen({
   paths,
   renderCaptcha,
 }: ScreenProps & { renderCaptcha?: CaptchaRenderer }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const methods = useAuthMethods()
@@ -269,7 +270,7 @@ export function ResetPasswordScreen({
   paths,
   afterLogin,
 }: ScreenProps & { token: string | null }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const { handle, challengeForm, stepTitle } = useLoginFlow(afterLogin)
   const [expired, setExpired] = React.useState(!token)
@@ -328,7 +329,7 @@ export function AcceptInviteScreen({
   paths,
   afterLogin,
 }: ScreenProps & { token: string | null }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const ids = React.useId()
@@ -491,7 +492,7 @@ export function EmailLinkScreen({
   paths,
   afterLogin,
 }: ScreenProps & { token: string | null }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const { handle, challengeForm, stepTitle } = useLoginFlow(afterLogin)
   const [failed, setFailed] = React.useState(!token)
@@ -536,7 +537,7 @@ export function EmailLinkScreen({
 
 /** Маршрут повернення з SSO: ra-core викликає `handleCallback` і перенаправляє на `next`. */
 export function SsoCallbackScreen({ logo, footer, paths }: ScreenProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const [failed, setFailed] = React.useState(false)
   useHandleAuthCallback({
     onError: () => {

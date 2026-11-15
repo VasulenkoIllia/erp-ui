@@ -20,6 +20,7 @@ import { browserTimezone, TimezoneSelect } from "@/registry/erp/timezone-select"
 import { useMe } from "@/registry/hooks/use-me"
 import type { ProfileUpdate } from "@/registry/lib/account"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
 import { validatePhone } from "@/registry/lib/phone"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -38,7 +39,7 @@ type Fields = Required<ProfileUpdate>
 
 /** Фото профілю: завантаження з обрізанням і видалення. */
 export function ProfilePhoto() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const { data: me } = useMe()
@@ -69,7 +70,7 @@ export function ProfilePhoto() {
 
 /** Схема з текстами мовою інтерфейсу: перевірка при виході з поля й під час відправки (SPEC §8.3). */
 function useProfileSchema() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   return React.useMemo(
     () =>
       z.object({
@@ -91,7 +92,7 @@ function useProfileSchema() {
 }
 
 export function ProfileForm() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()

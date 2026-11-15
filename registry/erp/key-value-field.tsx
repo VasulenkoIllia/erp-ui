@@ -10,6 +10,7 @@ import type {
 import { FormField } from "@/registry/erp/form"
 import { RepeatingRows } from "@/registry/erp/repeating-rows"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { KEY_VALUE_MAX_ROWS, type KeyValueRow } from "@/registry/lib/key-value"
 import { Input } from "@/registry/ui/input"
 
@@ -58,7 +59,7 @@ function KeyValueField<
   readOnly = false,
   className,
 }: KeyValueFieldProps<TValues, TName, TTransformed>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const name = rawName as TName
   const cell = (index: number, part: keyof KeyValueRow) =>
     `${name}.${index}.${part}` as FieldPath<TValues>

@@ -8,6 +8,7 @@ import type {
 } from "@/registry/erp/multi-select"
 import { errorStateKind } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -34,7 +35,7 @@ export function useChoices(
   value: readonly string[],
   query: string,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   // Вибрані — окремо від пошуку: значення Combobox не змінюється з кожною літерою.
   const { selected, all } = React.useMemo(() => {
     const byValue = new Map<string, Choice>(
@@ -79,7 +80,7 @@ function useStatusText({
   query: string
   selected: number
 }): { text: string; visible: boolean } {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   if (error)
     return { text: t(`multiSelect.${errorStateKind(error)}`), visible: true }
   if (!options) return { text: t("multiSelect.loading"), visible: true }
@@ -114,7 +115,7 @@ export function MultiSelectResults({
   selected: number
   listClassName?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const status = useStatusText({
     options,
     error,
@@ -178,7 +179,7 @@ export function MultiSelectValue({
   placeholder: string
   className?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   if (!selected.length || isLoading)
     return (
       <span className={cn("min-w-0 truncate text-muted-foreground", className)}>
@@ -204,7 +205,7 @@ export function MultiSelectClear({
   label: string
   onClear: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   return (
     <Button
       type="button"

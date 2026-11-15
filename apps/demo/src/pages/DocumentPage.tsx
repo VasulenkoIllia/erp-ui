@@ -1,6 +1,5 @@
 import { useGetList, useGetOne } from "@/registry/lib/ra-core"
 import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router"
 
 import type { ConflictField } from "@/registry/erp/conflict-dialog"
@@ -17,10 +16,14 @@ import { companyScope } from "@/registry/lib/company-scope"
 import { DOCUMENT_STATES } from "@/registry/lib/document-lifecycle"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
+import { ukNumbering } from "@/registry/lib/i18n-uk-numbering"
 import { Button } from "@/registry/ui/button"
 
 import type { DemoDocument } from "@/data/documents"
 import { ROUTES, useSearchParam } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentPage, ukStatuses } from "@/i18n/pages"
 
 import {
   DOCUMENT_RESOURCE,
@@ -41,7 +44,7 @@ const documentHref = (id: string) =>
 
 /** Документ (PF03, ADR-0057): життєвий цикл, граф переходів і панель дій на моках. */
 export function DocumentPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
   const id = useSearchParam("id") ?? DEFAULT_ID
   return (
     <div className="space-y-6">
@@ -58,7 +61,7 @@ export function DocumentPage() {
 
 /** Номер документа; чернетка номера не має, поки її не проведуть (ADR-0058). */
 function DocumentNumber({ number }: { number: string | null }) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocuments, ukNumbering)
   return (
     number ?? (
       <span className="text-muted-foreground">
@@ -69,7 +72,7 @@ function DocumentNumber({ number }: { number: string | null }) {
 }
 
 function DocumentList({ current }: { current: string }) {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
   const companyId = useCompanyId()
   const statuses = useDocumentStatuses()
   const { data, isPending, error, refetch } = useGetList<DemoDocument>(
@@ -123,8 +126,8 @@ function DocumentList({ current }: { current: string }) {
 }
 
 function DocumentCard({ id }: { id: string }) {
-  const { t } = useTranslation()
-  const kitT = useErpUiT()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
+  const kitT = useErpUiT(ukDocuments, ukNumbering)
   const format = useFormat()
   const navigate = useNavigate()
   const companyId = useCompanyId()
@@ -263,7 +266,7 @@ function Field({ label, value }: { label: string; value: string }) {
  * посилання ведуть на картку документа.
  */
 function RelatedDocuments({ id }: { id: string }) {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
   const statuses = useDocumentStatuses()
   const types = {
     [DOCUMENT_RESOURCE]: {
@@ -282,7 +285,7 @@ function RelatedDocuments({ id }: { id: string }) {
 
 /** Колега провів оплату: картка цього не знає, тож «Скасувати» активна, а сервер відмовить. */
 function ColleaguePays({ id }: { id: string }) {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentPage, ukStatuses])
   const [isPaid, setPaid] = useState(false)
   return (
     <div className="space-y-2 rounded-lg border border-dashed p-3 text-sm">

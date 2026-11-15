@@ -7,6 +7,7 @@ import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import type { CompanyProfile } from "@/lib/company"
 import { toLanguage, useLanguage } from "@/lib/i18n"
+import { ukPrint } from "@/lib/i18n-uk-print"
 import { usePrintLanguage } from "@/lib/print"
 
 import type { InvoiceDetail, K2Document } from "../contract"
@@ -61,7 +62,7 @@ export function DocumentPrint<D extends K2Document>({
   // Тексти аркуша — рядки модуля мовою аркуша (не довантажились рядки кіта цієї мови — запасна українська,
   // і рядки модуля теж): поки їх немає, аркуш чекає, а не блимає іншою мовою.
   const sheetT = useInvoicesSheetT(
-    usePrintLanguage(toLanguage(language)).language,
+    usePrintLanguage(toLanguage(language), ukPrint).language,
   )
   // Аркуш — лише з картки, свіжої з сервера: суми до сплати й QR-код оплати не беруться зі збереженої в
   // браузері, яку картка показує на мить, доки не прийде відповідь (ADR-0083).

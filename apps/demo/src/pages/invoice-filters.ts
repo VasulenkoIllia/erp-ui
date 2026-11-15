@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 
 import type { FilterDefinition } from "@/registry/lib/filters"
 import type { ListDefaults, ListTab } from "@/registry/lib/list-state"
@@ -9,6 +8,8 @@ import {
   INVOICE_CURRENCIES,
   INVOICE_STATUSES,
 } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 /**
  * Вкладки-статуси й фільтри списку рахунків стрес-сторінки (SPEC §7 List Report, §18.1; ADR-0017).
@@ -26,7 +27,7 @@ export function useInvoiceListSetup(): {
   tabs: ListTab[]
   filters: FilterDefinition[]
 } {
-  const { t } = useTranslation("demo", { keyPrefix: "dataPage" })
+  const { t } = useDemoTranslation([ukDataPage], { keyPrefix: "dataPage" })
   return useMemo(
     () => ({
       tabs: [

@@ -3,6 +3,7 @@ import * as React from "react"
 import { AuditLog } from "@/registry/erp/audit-log"
 import type { AuditTarget } from "@/registry/lib/audit"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAudit } from "@/registry/lib/i18n-uk-audit"
 import {
   Sheet,
   SheetContent,
@@ -34,7 +35,7 @@ export interface RecordHistoryOptions {
 export function useRecordHistorySheet({
   actionLabels,
 }: RecordHistoryOptions = {}) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit)
   // Запис лишається й після закриття: панель виїжджає зі своїм умістом, а не порожньою.
   const [target, setTarget] = React.useState<AuditTarget | null>(null)
   const [isOpen, setIsOpen] = React.useState(false)

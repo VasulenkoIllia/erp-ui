@@ -1,0 +1,31 @@
+{
+  "organizationPage": {
+    "back": "До списку організацій",
+    "requisites": "Реквізити",
+    "invoices": "Рахунки",
+    "history": "Історія",
+    "edrpou": "ЄДРПОУ",
+    "rnokpp": "РНОКПП",
+    "phone": "Телефон",
+    "city": "Місто",
+    "types": {
+      "legal": "Юрособа",
+      "fop": "ФОП"
+    },
+    "invoicesLabel": "Рахунки клієнта {{name}}",
+    "invoiceCount_one": "{{value}} рахунок",
+    "invoiceCount_few": "{{value}} рахунки",
+    "invoiceCount_many": "{{value}} рахунків",
+    "invoiceCount_other": "{{value}} рахунку",
+    "invoiceColumns": {
+      "number": "Номер",
+      "date": "Дата",
+      "status": "Статус",
+      "amount": "Сума"
+    },
+    "notes": {
+      "lead": "Нотатки про {{name}}: вкладка проекту з файлу розширення.",
+      "hint": "Її код вантажиться окремо, лише коли вкладку відкривають; файли картки модуля для неї не змінювались."
+    }
+  }
+}

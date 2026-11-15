@@ -11,6 +11,7 @@ import { RolePicker } from "@/registry/erp/role-picker"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import type { Invitation } from "@/registry/lib/invitations"
 import type { Role } from "@/registry/lib/roles"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
@@ -49,7 +50,7 @@ export function InviteDialog({
   onClose: () => void
   onSent: (invitation: Invitation) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()

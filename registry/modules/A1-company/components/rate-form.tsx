@@ -16,6 +16,7 @@ import { isCalendarDate, todayIn } from "@/lib/dates"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 
 import {
   EXCHANGE_RATES,
@@ -58,7 +59,7 @@ export function RateFormDialog({
   finalFocus?: RefObject<HTMLElement | null>
 }) {
   const t = useCompanyT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const { timeZone } = useFormat()
   const { extension } = useCompanyModule()
   const ext = useExtensionForm<RateFormFieldId>(

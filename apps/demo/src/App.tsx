@@ -80,6 +80,8 @@ import {
   THEME_MODES,
 } from "@/registry/lib/appearance"
 import { LANGUAGES, useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukModules } from "@/registry/lib/i18n-uk-modules"
+import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { isChunkLoadError, whenIdle } from "@/registry/lib/lazy"
 import type { MockMessage } from "@/registry/lib/mock-server"
@@ -368,7 +370,7 @@ function Shell({
   devPanel: React.ReactNode
 }) {
   const { t } = useTranslation()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukModules, ukShortcuts)
   const navigate = useNavigate()
   const { language } = useLanguage()
   // Крихта «Дані й моки» з картки веде до списку з тими ж фільтрами, що й «До списку».

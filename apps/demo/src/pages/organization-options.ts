@@ -1,10 +1,11 @@
 import { useCallback } from "react"
-import { useTranslation } from "react-i18next"
 
 import type { ListDefaults } from "@/registry/lib/list-state"
 import type { PinnableRecord } from "@/registry/lib/pins"
 
 import type { Organization } from "@/data/organizations"
+import { useDemoTranslation } from "@/i18n"
+import { ukPickersPage } from "@/i18n/pages"
 
 /** Ресурс довідника організацій (mocks/handlers). */
 export const ORGANIZATIONS = "organizations"
@@ -27,7 +28,9 @@ export const ORGANIZATION_SORT = { field: "name", order: "ASC" } as const
 
 /** Другий рядок варіанта: «ЄДРПОУ 41234005 · Київ»; без міста — лише код. */
 export function useOrganizationDescription() {
-  const { t } = useTranslation("demo", { keyPrefix: "pickersPage" })
+  const { t } = useDemoTranslation([ukPickersPage], {
+    keyPrefix: "pickersPage",
+  })
   return useCallback(
     (organization: Organization) =>
       [

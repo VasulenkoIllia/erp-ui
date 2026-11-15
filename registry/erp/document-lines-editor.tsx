@@ -34,6 +34,7 @@ import {
 import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { extensionFormValues } from "@/registry/lib/extension-form"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import {
   ariaKeyShortcuts,
   isMacPlatform,
@@ -173,7 +174,7 @@ const ROW_GRID =
 
 /** Підписи колонок таблиці в порядку полів рядка; сума — праворуч, як у рядках. */
 function LinesHeader() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const columns = [
     t("documentLines.name"),
     t("documentLines.quantity"),
@@ -216,7 +217,7 @@ export function DocumentLinesEditor<
   lineFields,
   className,
 }: DocumentLinesEditorProps<TValues, TItem, TTransformed>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   // Поля редактора однакові в будь-якій формі документа: шапку модуля редактор не чіпає.
   const linesForm = form as unknown as UseFormReturn<DocumentLinesValues>
   const { control } = linesForm

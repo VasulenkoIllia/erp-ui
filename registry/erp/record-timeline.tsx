@@ -14,6 +14,7 @@ import {
   useTimelineRealtime,
 } from "@/registry/hooks/use-timeline"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import type { MentionSearch } from "@/registry/lib/rich-text"
 import {
   TIMELINE_FILTERS,
@@ -72,7 +73,7 @@ function FilterSelect({
   onChange: (value: TimelineFilter) => void
   isRefreshing: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const id = React.useId()
   const items = filters.map((filter) => ({
     value: filter,
@@ -110,7 +111,7 @@ function TimelineBody({
   renderMention,
   maxFileBytes = TIMELINE_MAX_FILE_BYTES,
 }: RecordTimelineProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const target = React.useMemo<TimelineTarget>(
     () => ({ resource, id }),
     [resource, id],
@@ -191,7 +192,7 @@ export function RecordTimeline({
   className,
   ...props
 }: RecordTimelineProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   return (
     <section
       data-slot="record-timeline"

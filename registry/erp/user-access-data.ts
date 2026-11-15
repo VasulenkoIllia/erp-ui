@@ -8,6 +8,7 @@ import { AUDIT_QUERY_KEYS } from "@/registry/lib/audit"
 import { hasPermission } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
 import {
   canGrant,
   permissionsOfRoles,
@@ -98,7 +99,7 @@ export function useAccessCeiling(
   enabled = true,
   canManage?: boolean | null,
 ): AccessCeiling {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const ceiling = useRolesCeiling(enabled && canManage === undefined)
   if ((enabled && canManage === null) || ceiling.checking)
     return { checking: true }

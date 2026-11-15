@@ -9,6 +9,7 @@ import { useWizard, type WizardApi } from "@/registry/hooks/use-wizard"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import {
   applicableRows,
   buildRows,
@@ -318,7 +319,7 @@ function useImportSteps({
   onDone,
   ...options
 }: ImportStepsOptions & { onDone: () => void }): WizardApi {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const { state, applyCount } = options
   const { fileReady, checkRows, startRun } = useImportActions(options)

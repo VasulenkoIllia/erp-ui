@@ -21,6 +21,7 @@ import type {
 import type { ExtensionField } from "@/registry/lib/extension-fields"
 import { currencyDigits } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { Input } from "@/registry/ui/input"
 import { Textarea } from "@/registry/ui/textarea"
 
@@ -118,7 +119,7 @@ function SectionFields({
   readOnly: boolean
   currency: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const sum = useSectionSum(id)
   return (
     <>
@@ -158,7 +159,7 @@ function NoteFields({
   index: number
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   return (
     <FormField
       control={form.control}

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 
 import { DocumentLinesEditor } from "@/registry/erp/document-lines-editor"
 import {
@@ -21,6 +20,8 @@ import {
   NO_DISCOUNT,
 } from "@/registry/lib/document-totals"
 import { currencyDigits } from "@/registry/lib/format"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentLinesPage } from "@/i18n/pages"
 
 import { Section } from "./Section"
 
@@ -67,7 +68,9 @@ interface Variant {
 }
 
 function useVariants(): readonly Variant[] {
-  const { t } = useTranslation("demo", { keyPrefix: "documentLinesPage" })
+  const { t } = useDemoTranslation([ukDocumentLinesPage], {
+    keyPrefix: "documentLinesPage",
+  })
   return [
     {
       id: "empty",
@@ -205,7 +208,9 @@ function VariantForm({ variant }: { variant: Variant }) {
 }
 
 export function DocumentLinesVariants() {
-  const { t } = useTranslation("demo", { keyPrefix: "documentLinesPage" })
+  const { t } = useDemoTranslation([ukDocumentLinesPage], {
+    keyPrefix: "documentLinesPage",
+  })
   const variants = useVariants()
   return (
     <Section title={t("variantsTitle")} description={t("variantsDescription")}>

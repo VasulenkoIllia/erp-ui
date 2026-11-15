@@ -1,6 +1,5 @@
 import { useAuthenticated, useCanAccess } from "@/registry/lib/ra-core"
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
 
@@ -13,6 +12,8 @@ import { ListReport, useListReport } from "@/registry/templates/list-report"
 import { Button } from "@/registry/ui/button"
 
 import type { Invoice } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 import { usePageHeading } from "./heading-focus"
 import { useApproveAction } from "./invoice-bulk"
@@ -27,7 +28,8 @@ import {
   type InvoicesExtension,
 } from "./invoice-extension"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage], { keyPrefix: "dataPage" }).t
 
 const RESOURCE = "invoices"
 

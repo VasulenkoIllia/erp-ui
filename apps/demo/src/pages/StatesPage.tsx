@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
@@ -11,6 +10,8 @@ import { ChunkLoadError } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
 import { Label } from "@/registry/ui/label"
+import { useDemoTranslation } from "@/i18n"
+import { ukStatesPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -22,7 +23,7 @@ function FailedChunk(): never {
 
 /** Збій чанка (ADR-0055): справжня межа помилок, «Оновити сторінку» оновлює цю сторінку. */
 function ChunkFailureSection() {
-  const { t } = useTranslation("demo", { keyPrefix: "statesPage" })
+  const { t } = useDemoTranslation([ukStatesPage], { keyPrefix: "statesPage" })
   const [isDirty, setIsDirty] = useState(false)
   return (
     <Section title={t("chunkFailed")} description={t("chunkFailedLead")}>
@@ -42,7 +43,7 @@ function ChunkFailureSection() {
 
 /** Стани сторінки SPEC §8.1 у контейнерах — так, як їх побачить користувач у списку. */
 export function StatesPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "statesPage" })
+  const { t } = useDemoTranslation([ukStatesPage], { keyPrefix: "statesPage" })
   const kitT = useErpUiT()
   const Create = ACTION_ICONS.create
   return (

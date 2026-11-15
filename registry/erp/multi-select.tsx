@@ -19,6 +19,7 @@ import {
 } from "@/registry/erp/multi-select-parts"
 import { useBreakpoint } from "@/registry/hooks/use-breakpoint"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import {
@@ -153,7 +154,7 @@ export function MultiSelect(props: MultiSelectProps) {
     "aria-invalid": props["aria-invalid"],
     "aria-describedby": props["aria-describedby"],
   }
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const sheetId = React.useId()
   const [fieldRef, setFieldRef] = useFieldRef(ref)
   const state = useMultiSelectOpen({

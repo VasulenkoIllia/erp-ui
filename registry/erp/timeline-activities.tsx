@@ -27,6 +27,7 @@ import { isApiError } from "@/registry/lib/api"
 import { todayIn } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import type { TimelineActivity, TimelineTarget } from "@/registry/lib/timeline"
 import { useUserTimeZone } from "@/registry/lib/user-timezone"
 import { cn } from "@/registry/lib/utils"
@@ -79,7 +80,7 @@ export function ActivityRow({
   onEdit,
   onCancel,
 }: ActivityRowProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const format = useFormat()
   const denial = useRecordDenialReason()
   const denied = denial(activity, "update")
@@ -180,7 +181,7 @@ function useActivityClosing<T extends TimelineActivity>(
   focusTarget: React.RefObject<HTMLElement | null>,
   listRef?: React.RefObject<HTMLElement | null>,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const [closingKeys, setClosingKeys] = React.useState<readonly string[]>([])
   // Рядок зникає разом із кнопкою, на якій стояв фокус: він лишається в блоці (WCAG 2.4.3).
@@ -247,7 +248,7 @@ export function useActivityRows<T extends TimelineActivity>({
   /** Довгий список, де `focusTarget` далеко від рядка: фокус лишається в ньому. Рядки — `tabIndex={-1}`. */
   listRef?: React.RefObject<HTMLElement | null>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const { closingKeys, close } = useActivityClosing(
     actionsFor,
     items,
@@ -316,7 +317,7 @@ export function TimelineActivities({
   actions: TimelineActions
   readOnly: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const timeZone = useUserTimeZone()
   const query = useTimelineActivities(target)
   const addButton = React.useRef<HTMLButtonElement>(null)

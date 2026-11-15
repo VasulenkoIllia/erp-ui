@@ -32,6 +32,7 @@ import {
   type SsoProvider,
 } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import {
   PasskeyCancelledError,
   passkeysSupported,
@@ -101,7 +102,7 @@ export function LoginScreen({
   defaultValues,
   onSignedIn,
 }: LoginScreenProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const done = useAfterLogin(afterLogin)
   const target = useLoginTarget(afterLogin)
@@ -241,7 +242,7 @@ export function LoginScreen({
 }
 
 function MethodsError({ onRetry }: { onRetry: () => void }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   return (
     <Alert variant="destructive" role="alert">
       <AlertDescription className="space-y-2">
@@ -269,7 +270,7 @@ function LoginStart({
   onSubmit: (action: () => Promise<void>) => Promise<void>
   onSso: (provider: SsoProvider) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const fieldError = useFieldError()
@@ -552,7 +553,7 @@ export function NewPasswordForm({
   /** Поля перед паролем (ім'я в запрошенні). */
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const ids = React.useId()

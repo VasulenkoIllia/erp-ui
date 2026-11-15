@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useId, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import { CopyableValue } from "@/registry/erp/copyable-value"
@@ -36,6 +35,8 @@ import {
 import type { UserDirectoryEntry } from "@/registry/modules/A2-users"
 
 import type { Organization } from "@/data/organizations"
+import { useDemoTranslation } from "@/i18n"
+import { ukPickersPage } from "@/i18n/pages"
 
 import { MultiSelectSections } from "./multi-select-sections"
 import { OrganizationCreateDialog } from "./OrganizationCreateDialog"
@@ -48,7 +49,8 @@ import {
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "pickersPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukPickersPage], { keyPrefix: "pickersPage" }).t
 
 const USER_SORT = { field: "name", order: "ASC" } as const
 
