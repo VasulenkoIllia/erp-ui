@@ -480,7 +480,7 @@ export function shadcnBin(root) {
   const bin = path.join(root, "node_modules", ".bin", "shadcn")
   if (!existsSync(bin))
     throw new KitError(
-      "У проекті немає CLI shadcn (node_modules/.bin/shadcn): закріпіть версію в package.json і встановіть залежності",
+      "У проекті немає CLI shadcn (node_modules/.bin/shadcn): закріпіть точну версію в devDependencies цього package.json (у монорепо — пакета адмінки) і встановіть залежності",
     )
   return bin
 }
