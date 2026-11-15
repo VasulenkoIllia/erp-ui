@@ -40,6 +40,13 @@ export function importSpecifiers(text) {
   ].map((m) => m[1] ?? m[2])
 }
 
+/** Пакети з `/// <reference types="…" />`: типи пакета без імпорту теж тягнуть його в шар. */
+function referencedTypes(text) {
+  return [
+    ...text.matchAll(/^\s*\/\/\/\s*<reference\s+types=["']([^"']+)["']/gm),
+  ].map((m) => m[1])
+}
+
 /** Ім'я npm-пакета з шляху імпорту: @base-ui/react/dialog → @base-ui/react, cn/config → cn. */
 export function packageName(spec) {
   const parts = spec.split("/")
@@ -67,7 +74,8 @@ export function contractLayerProblems(files, read, exists) {
       problems.push(`${file}: файл чистого шару з CONTRACT_LAYER не знайдено`)
       continue
     }
-    for (const spec of importSpecifiers(read(file))) {
+    const text = read(file)
+    for (const spec of [...importSpecifiers(text), ...referencedTypes(text)]) {
       if (!spec.startsWith("@/") && !spec.startsWith(".")) {
         const pkg = packageName(spec)
         if (!CONTRACT_PACKAGES.has(pkg))
@@ -79,12 +87,15 @@ export function contractLayerProblems(files, read, exists) {
       const target = resolveImport(spec, file)
       if (target && layer.has(target)) continue
       const core = target?.replace(/\.ts$/, "-core.ts")
+      const isComponent = target && exists(target.replace(/\.ts$/, ".tsx"))
       const hint =
         core && layer.has(core)
           ? `; чиста частина — «${spec}-core»`
-          : target
-            ? "; файл без React — у CONTRACT_LAYER (registry/registry.config.mjs)"
-            : ""
+          : isComponent
+            ? "; файл .tsx — інтерфейс, не шар"
+            : target
+              ? "; файл без React — у CONTRACT_LAYER (registry/registry.config.mjs)"
+              : ""
       problems.push(
         `${file}: імпорт «${spec}» — поза чистим шаром (ADR-0093)${hint}`,
       )

@@ -167,8 +167,6 @@ import {
 } from "lucide-react"
 import type { ReactNode } from "react"
 
-import type { StatusIcon } from "@/registry/lib/statuses-core"
-
 /** Товщина лінії іконок у всьому застосунку. */
 export const ICON_STROKE_WIDTH = 2
 
@@ -428,10 +426,9 @@ export const STATUS_ICONS = {
   locked: Lock,
   syncing: RefreshCw,
   offline: WifiOff,
-} satisfies Record<StatusIcon, LucideIcon>
+} satisfies Record<string, LucideIcon>
 
-// Назви іконок статусів — дані розширення й сервера, тож тип у `lib/statuses-core` (ADR-0093).
-export type { StatusIcon }
+export type StatusIcon = keyof typeof STATUS_ICONS
 
 /** Дії із записами й документами (PF03). */
 export const ACTION_ICONS = {

@@ -22,7 +22,10 @@ import type { LocalizedText } from "@/registry/lib/localized-text"
 export type StatusTone =
   "neutral" | "info" | "success" | "warning" | "destructive"
 
-/** Іконка бейджа статусу за назвою (SPEC §6.3): компоненти іконок — `STATUS_ICONS` у `lib/icons`. */
+/**
+ * Іконка бейджа статусу за назвою (SPEC §6.3): компоненти іконок — `STATUS_ICONS` у `lib/icons`, той самий
+ * перелік (тест `contract-layer.test.ts` у демо). Тут — без lucide, бо назву бере й сервер.
+ */
 export type StatusIcon =
   | "success"
   | "warning"
@@ -161,7 +164,12 @@ export type ExtensionTransitionChanges<A extends string = string> =
 /** Граф без підписів: для сервера й моків. */
 type TransitionChangeData = Pick<StatusTransition, "from" | "reason">
 
-/** Без нових переходів із ключем дії модуля (див. `ExtensionTransitionChanges`). */
+/**
+ * Без нових переходів із ключем дії модуля (див. `ExtensionTransitionChanges`). Внутрішня: її бере
+ * `useResolvedTransitions` у `lib/statuses`, проект — `mergeTransitions`.
+ *
+ * @internal
+ */
 export function onlyNewTransitions<A extends string>(
   module: readonly { readonly id: string }[],
   changes?: ExtensionTransitionChanges<A>,

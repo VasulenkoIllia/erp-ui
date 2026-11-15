@@ -14,8 +14,7 @@
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "react-i18next@^17.0.16",
-        "tw-animate-css@^1.4.0",
-        "zod@^4.6.6"
+        "tw-animate-css@^1.4.0"
       ],
       "files": [
         {
@@ -392,21 +391,6 @@
           "path": "registry/lib/icons.tsx",
           "type": "registry:lib",
           "target": "@lib/icons.tsx"
-        },
-        {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         }
       ],
       "docs": "erp-ui встановлено.\n1) src/index.css тепер — точка входу стилів erp-ui; власні стилі проекту додавайте нижче імпортів.\n2) Додайте в CLAUDE.md проекту рядок: @docs/erp-ui/CLAUDE.project.md\n3) У main.tsx до рендеру: initAppearance() з @/lib/appearance, const i18n = createI18n({ language: getAppearance().language, resources }) з @/lib/i18n, syncLanguage(i18n) і await whenI18nReady(i18n).\n4) Вигляд задається на <html>: data-palette=\"sapphire|graphite|…\", клас dark, data-density=\"compact\", data-sidebar=\"dark\".\nКомпоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.\n5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.\n6) Лише токени тем у коді проекту — node scripts/erp-ui-check-tokens.mjs у lint проекту (за замовчуванням тека src).",
@@ -1734,19 +1718,9 @@
           "target": "@hooks/use-tab-counter.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/icons.tsx",
           "type": "registry:lib",
           "target": "@lib/icons.tsx"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/ui/popover.tsx",
@@ -6883,11 +6857,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -7281,11 +7250,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -16020,11 +15984,6 @@
           "target": "@lib/sse.ts"
         },
         {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
-        },
-        {
           "path": "registry/lib/timeline.ts",
           "type": "registry:lib",
           "target": "@lib/timeline.ts"
@@ -16448,11 +16407,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/format.ts",
           "type": "registry:lib",
           "target": "@lib/format.ts"
@@ -16776,11 +16730,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -25662,29 +25611,13 @@
       "title": "Словник іконок",
       "description": "Поняття → іконка lucide: модулі A1…T1 і LC01…LC12, статуси, дії з документами, оболонка; HryvniaIcon; IconProvider (лінія 2).",
       "dependencies": [
-        "lucide-react@^1.55.0",
-        "zod@^4.6.6"
+        "lucide-react@^1.55.0"
       ],
       "files": [
         {
           "path": "registry/lib/icons.tsx",
           "type": "registry:lib",
           "target": "@lib/icons.tsx"
-        },
-        {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         }
       ],
       "meta": {
@@ -57241,11 +57174,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -57514,11 +57442,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -73286,11 +73209,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -73564,11 +73482,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -79496,11 +79409,6 @@
           "target": "@lib/sse.ts"
         },
         {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
-        },
-        {
           "path": "registry/lib/timeline.ts",
           "type": "registry:lib",
           "target": "@lib/timeline.ts"
@@ -81549,11 +81457,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -91813,11 +91716,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -92023,11 +91921,6 @@
           "target": "@lib/list-state.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
@@ -92041,11 +91934,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -93232,19 +93120,13 @@
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
-        "react-i18next@^17.0.16",
-        "zod@^4.6.6"
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
           "path": "registry/erp/notification-bell.tsx",
           "type": "registry:component",
           "target": "@components/erp/notification-bell.tsx"
-        },
-        {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -93442,16 +93324,6 @@
           "target": "@lib/icons.tsx"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
-        },
-        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -93614,11 +93486,6 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
-        },
-        {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -93909,11 +93776,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -101261,11 +101123,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -101539,11 +101396,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -102431,11 +102283,6 @@
           "target": "@lib/dates.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -102709,11 +102556,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",
@@ -109385,11 +109227,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -109590,11 +109427,6 @@
           "target": "@lib/list-state.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
@@ -109608,11 +109440,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -109764,11 +109591,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -109969,11 +109791,6 @@
           "target": "@lib/list-state.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
@@ -109987,11 +109804,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -110133,11 +109945,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -110338,11 +110145,6 @@
           "target": "@lib/list-state.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
@@ -110356,11 +110158,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -110501,11 +110298,6 @@
           "target": "@lib/company-scope.ts"
         },
         {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
-        },
-        {
           "path": "registry/lib/i18n.ts",
           "type": "registry:lib",
           "target": "@lib/i18n.ts"
@@ -110706,11 +110498,6 @@
           "target": "@lib/list-state.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
           "path": "registry/lib/page-reload.ts",
           "type": "registry:lib",
           "target": "@lib/page-reload.ts"
@@ -110724,11 +110511,6 @@
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -126514,8 +126296,7 @@
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
-        "react-i18next@^17.0.16",
-        "zod@^4.6.6"
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
@@ -126537,11 +126318,6 @@
           "path": "registry/lib/appearance-core.ts",
           "type": "registry:lib",
           "target": "@lib/appearance-core.ts"
-        },
-        {
-          "path": "registry/lib/extensions.ts",
-          "type": "registry:lib",
-          "target": "@lib/extensions.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -126742,16 +126518,6 @@
           "path": "registry/lib/language-names.ts",
           "type": "registry:lib",
           "target": "@lib/language-names.ts"
-        },
-        {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/utils.ts",
@@ -129948,11 +129714,6 @@
           "path": "registry/lib/sse.ts",
           "type": "registry:lib",
           "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/statuses-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/statuses-core.ts"
         },
         {
           "path": "registry/lib/timeline.ts",

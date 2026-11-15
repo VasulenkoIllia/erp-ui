@@ -60,10 +60,11 @@ test("contractLayerProblems: zod і файли шару — без поруше�
   assert.deepEqual(contractLayerProblems(Object.keys(files), read, exists), [])
 })
 
-test("contractLayerProblems: пакет інтерфейсу навіть типом, компонент, файл поза шаром — порушення з підказкою", () => {
+test("contractLayerProblems: пакет інтерфейсу навіть типом чи /// reference, компонент, файл поза шаром — порушення з підказкою", () => {
   const files = {
     "registry/lib/statuses-core.ts": 'import { z } from "zod"',
     "registry/modules/K2/contract.ts": [
+      '/// <reference types="vite/client" />',
       'import type { ReactNode } from "react"',
       'import { statusSchema } from "@/lib/statuses"',
       'import { useMe } from "@/hooks/use-me"',
@@ -84,7 +85,28 @@ test("contractLayerProblems: пакет інтерфейсу навіть тип
       "registry/modules/K2/contract.ts: імпорт «@/hooks/use-me» — поза чистим шаром (ADR-0093)",
       "registry/modules/K2/contract.ts: імпорт «@/lib/format» — поза чистим шаром (ADR-0093); файл без React — у CONTRACT_LAYER (registry/registry.config.mjs)",
       "registry/modules/K2/contract.ts: імпорт «./invoice-kind» — поза чистим шаром (ADR-0093); файл без React — у CONTRACT_LAYER (registry/registry.config.mjs)",
+      "registry/modules/K2/contract.ts: пакет «vite» — у чистому шарі лише zod (ADR-0093)",
       "registry/lib/gone.ts: файл чистого шару з CONTRACT_LAYER не знайдено",
+    ],
+  )
+})
+
+test("contractLayerProblems: реекспорт пакета, шлях угору й файл .tsx поза шаром — порушення", () => {
+  const files = {
+    "registry/lib/icons.tsx": "",
+    "registry/lib/api.ts": [
+      'export * from "lucide-react"',
+      'import { a } from "../api"',
+      'import { STATUS_ICONS } from "@/registry/lib/icons"',
+    ].join("\n"),
+  }
+  const { read, exists } = fsOf(files)
+  assert.deepEqual(
+    contractLayerProblems(["registry/lib/api.ts"], read, exists),
+    [
+      "registry/lib/api.ts: пакет «lucide-react» — у чистому шарі лише zod (ADR-0093)",
+      "registry/lib/api.ts: імпорт «../api» — поза чистим шаром (ADR-0093)",
+      "registry/lib/api.ts: імпорт «@/registry/lib/icons» — поза чистим шаром (ADR-0093); файл .tsx — інтерфейс, не шар",
     ],
   )
 })
