@@ -177,8 +177,12 @@ export async function buildProject(dir, what) {
   rmSync(path.join(dir, "dist"), { recursive: true, force: true })
 }
 
-/** Шаблон тегу й адаптер, CLI shadcn проекту, `shadcn init`, `base` тегу — як у посібнику. */
-async function startProject(tag, dir, temp) {
+/**
+ * Шаблон тегу й адаптер, CLI shadcn проекту, `shadcn init`, `base` тегу — як у посібнику. `repo` — корінь git і
+ * робочого простору, коли проект — пакет адмінки в монорепо (ADR-0097); `dependencies` — записи проекту до
+ * встановлення кіта.
+ */
+async function startProject(tag, dir, temp, { repo = dir, dependencies = {} }) {
   await extractAt(tag, [TEMPLATE], dir, temp, 3)
   cpSync(path.join(root, "tests/consumer/upgrade"), dir, { recursive: true })
   writeFileSync(path.join(dir, ".gitignore"), "node_modules/\ndist/\n")
@@ -188,8 +192,14 @@ async function startProject(tag, dir, temp) {
   pkg.devDependencies.shadcn = JSON.parse(
     readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
   ).version
+  Object.assign(pkg.dependencies, dependencies)
   writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`)
-  await mustRun("pnpm", ["install", "--ignore-workspace"], { cwd: dir })
+  // Пакет робочого простору ставиться з кореня воркспейсу; окремий проект — без воркспейсів вище.
+  await mustRun(
+    "pnpm",
+    repo === dir ? ["install", "--ignore-workspace"] : ["install"],
+    { cwd: repo },
+  )
   const shadcn = path.join(dir, "node_modules/.bin/shadcn")
   await mustRun(
     shadcn,
@@ -220,7 +230,7 @@ async function startProject(tag, dir, temp) {
     ["add", path.join(built, "base.json"), "-y", "--overwrite"],
     { cwd: dir },
   )
-  await git(dir, "init", "-q")
+  await git(repo, "init", "-q")
   await commitAll(dir, `erp-ui: base ${tag}`)
   return JSON.parse(readFileSync(registry, "utf8"))
     .items.filter(
@@ -235,10 +245,10 @@ async function startProject(tag, dir, temp) {
 /**
  * Проект на тегу: шаблон тегу й адаптер, `base` тегу, решта кіта командою тегу, сирота сценарію в
  * маніфесті, typecheck. Маніфест із сумою (команда після v1.3.0) сума більше не збігається: `update`
- * лише попереджає й записує нову.
+ * лише попереджає й записує нову. `options` — як у `startProject` (пакет адмінки в монорепо).
  */
-export async function projectAt(tag, dir, temp) {
-  const items = await startProject(tag, dir, temp)
+export async function projectAt(tag, dir, temp, options = {}) {
+  const items = await startProject(tag, dir, temp, options)
   const command = await commandAt(tag, path.join(temp, `command-${tag}`))
   await kit(dir, command, [
     "update",

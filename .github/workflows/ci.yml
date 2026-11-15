@@ -179,7 +179,15 @@ jobs:
   # Доставка й оновлення пропущені лише тоді, коли для проектів нічого не змінено.
   checks:
     name: typecheck · lint · test · e2e
-    needs: [static, e2e, e2e-repeat, perf, delivery-changes, consumer, upgrade]
+    needs:
+      - static
+      - e2e
+      - e2e-repeat
+      - perf
+      - delivery-changes
+      - consumer
+      - upgrade
+      - workspace
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -192,6 +200,7 @@ jobs:
           test "${{ needs.delivery-changes.result }}" = success
           [ "${{ needs.consumer.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
           [ "${{ needs.upgrade.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
+          [ "${{ needs.workspace.result }}" = success ] || [ "${{ needs.delivery-changes.outputs.relevant }}" = false ]
 
   # Що змінено з того, що потрапляє в проекти чи в звіт оновлення (CHANGELOG.md, SPEC і каталог у
   # реєстрі): від цього залежать доставка й оновлення. Шляхи без лапок git і перейменування обома
@@ -216,7 +225,7 @@ jobs:
         run: |
           set -euo pipefail
           changed=$(git -c core.quotePath=false diff --name-only --no-renames "$BASE_SHA" HEAD)
-          if grep -qE '^(registry/|registry\.json|design/|docs/(SPEC|CATALOG)\.md|CHANGELOG\.md|scripts/(consumer|upgrade)-smoke[^/]*\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
+          if grep -qE '^(registry/|registry\.json|design/|docs/(SPEC|CATALOG)\.md|CHANGELOG\.md|scripts/(consumer|upgrade|workspace)-smoke[^/]*\.mjs|tests/consumer/|package\.json|pnpm-lock\.yaml|\.nvmrc|\.github/workflows/)' <<< "$changed"; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
           else
             echo "relevant=false" >> "$GITHUB_OUTPUT"
@@ -281,3 +290,30 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm upgrade-smoke
+
+  # Адмінка в монорепо (ADR-0097): сервер і адмінка в одному робочому просторі pnpm; кіт попереднього тегу
+  # ставиться в пакет адмінки й оновлюється до цього коміту командою цієї версії. Файли й залежності кіта — лише
+  # в пакеті адмінки, корінь і сервер без змін, правка сервера зупиняє update, сервер компілюється зі схемами кіта.
+  workspace:
+    name: адмінка в монорепо
+    needs: delivery-changes
+    if: needs.delivery-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # Уся історія з тегами: кіт ставиться з попереднього тегу цієї копії, без GitHub.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm workspace-smoke

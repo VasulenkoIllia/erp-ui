@@ -26,6 +26,7 @@ pnpm check:docs   # покажчик ADR і рядки «Змінено», ме�
 pnpm consumer-smoke --ref <коміт|тег>  # поставити кіт із GitHub у чистий проект і зібрати
 pnpm consumer-smoke --local --ref main  # те саме з реєстру робочої копії; з GitHub лише ui/button (як у CI)
 pnpm upgrade-smoke  # проект на попередньому тегу оновити командою кіта до HEAD (закомічений стан), зібрати (як у CI)
+pnpm workspace-smoke  # те саме для адмінки окремим пакетом у монорепо з сервером (ADR-0097, як у CI)
 ```
 
 Браузер для e2e ставиться один раз: `pnpm --filter @erp-ui/demo exec playwright install chromium`.

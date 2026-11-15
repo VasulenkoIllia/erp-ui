@@ -10,6 +10,9 @@
  *   node scripts/erp-ui-kit.mjs update v1.0.0 --prune     # і видалити незмінені файли-сироти
  *   node scripts/erp-ui-kit.mjs update <гілка|SHA> --from ../erp-ui       # з локальної копії кіта
  *
+ * Запуск — з теки з `components.json`; у монорепо — з теки пакета адмінки: файли кіта й нові залежності йдуть у
+ * цей пакет, чистим має бути весь репозиторій (ADR-0097).
+ *
  * Список встановлених елементів, версія з SHA коміту й відбитком реєстру, відбитки файлів, сироти й
  * контрольна сума — у `kit-files.json` проекту (ADR-0078); перший раз (у файлі ще немає `items`) —
  * `--items base,data,…`. Оновлення: чисте git → SHA коміту тегу й архів цього коміту (`gh api`,
@@ -99,8 +102,9 @@ const VITE_CONFIGS = [
  */
 const MOCKS_ITEM = "mocks"
 const MOCKS_FILE = "mocks.ts"
+/** З кореня репозиторію: у монорепо `update` пакета адмінки змінює й lock-файл воркспейсу в корені (ADR-0097). */
 const RECOVERY_HINT =
-  "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
+  "Змінені файли — git diff, повернути все — git restore . з кореня репозиторію (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
 
 /** Файли кіта, змінені чи видалені в проекті (файли, які проект доповнює сам, — не рахуються). */
 export function kitFileProblems(manifestFiles, hashOf) {
@@ -525,7 +529,9 @@ async function updateCommand(root, args) {
 async function main([command, ...args]) {
   const root = process.cwd()
   if (!existsSync(path.join(root, "components.json")))
-    throw new KitError("Запускайте з кореня проекту (поруч із components.json)")
+    throw new KitError(
+      "Запускайте з кореня проекту (поруч із components.json); у монорепо — з теки пакета адмінки",
+    )
   if (command === "check") checkCommand(root)
   else if (command === "update") await updateCommand(root, args)
   else
