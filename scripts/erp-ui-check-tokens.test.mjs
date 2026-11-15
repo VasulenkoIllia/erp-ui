@@ -172,7 +172,10 @@ test("команда: без src, без файлів чи з порушення
     const failed = run(bad)
     assert.equal(failed.status, 1)
     assert.match(failed.stderr, /src\/a\.tsx:1 {2}tailwind-palette/)
-    assert.match(run(clean).stdout, /порушень немає \(файлів — 1\)/)
+    assert.match(
+      run(clean).stdout,
+      /порушень немає \(теки: src — без components\.json; файлів — 1\)/,
+    )
     symlinkSync(path.dirname(TOOL), path.join(links, "tools"))
     const linked = run(bad, [], path.join(links, "tools", path.basename(TOOL)))
     assert.equal(linked.status, 1, "через посилання main() має запуститися")
@@ -185,30 +188,68 @@ test("команда: без src, без файлів чи з порушення
 test("тека за замовчуванням — тека tailwind.css з components.json, без нього чи з файлом у корені — src", () => {
   const config = (tailwind) =>
     project({ "components.json": JSON.stringify({ tailwind }) })
-  const dirs = [
-    project({}),
-    config({ css: "app/globals.css" }),
-    config({ css: "./apps/admin/src/index.css" }),
-    config({ css: "index.css" }),
-    config({}),
-    project({ "components.json": "{ не json" }),
+  const cases = [
+    [project({}), "src"],
+    [config({ css: "app/globals.css" }), "app"],
+    [config({ css: "src/styles/globals.css" }), "src"],
+    [config({ css: "src/app/globals.css" }), "src"],
+    [config({ css: "apps/admin/src/styles/index.css" }), "apps/admin/src"],
+    [config({ css: "./apps/admin/src/index.css" }), "apps/admin/src"],
+    [config({ css: "app\\styles\\globals.css" }), "app/styles"],
+    [config({ css: "index.css" }), "src"],
+    [config({ css: "./index.css" }), "src"],
+    [config({ css: "  " }), "src"],
+    [config({ css: 42 }), "src"],
+    [config({}), "src"],
+    [
+      project({
+        "components.json":
+          "\uFEFF" + JSON.stringify({ tailwind: { css: "web/a.css" } }),
+      }),
+      "web",
+    ],
   ]
+  const outside = [
+    config({ css: "../../packages/ui/src/styles/globals.css" }),
+    config({ css: "../x.css" }),
+    config({ css: "/index.css" }),
+    config({ css: "C:/project/src/index.css" }),
+  ]
+  const broken = project({ "components.json": "{ не json" })
+  const folder = project({ "components.json/inner.txt": "тека, а не файл" })
   try {
     assert.deepEqual(
-      dirs.slice(0, 5).map((dir) => defaultRoots(dir)),
-      [["src"], ["app"], ["apps/admin/src"], ["src"], ["src"]],
+      cases.map(([dir]) => defaultRoots(dir).roots),
+      cases.map(([, root]) => [root]),
     )
-    assert.throws(() => defaultRoots(dirs[5]), /components\.json не читається/)
+    for (const dir of outside)
+      assert.throws(() => defaultRoots(dir), /поза проектом/)
+    assert.throws(() => defaultRoots(broken), /components\.json — не JSON/)
+    assert.throws(() => defaultRoots(folder), /components\.json не читається/)
   } finally {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
+    for (const dir of [
+      ...cases.map(([dir]) => dir),
+      ...outside,
+      broken,
+      folder,
+    ])
+      rmSync(dir, { recursive: true, force: true })
   }
 })
 
-test("команда без аргументів перевіряє теку з components.json; зламаний файл — помилка", () => {
+test("команда без аргументів перевіряє лише теку з components.json і називає її; зламаний файл — помилка", () => {
   const app = project({
     "components.json": JSON.stringify({ tailwind: { css: "app/styles.css" } }),
     "app/a.tsx": 'export const A = () => <b className="text-white" />',
-    "src/clean.ts": "export {}",
+    "src/b.tsx": 'export const B = () => <b className="bg-red-500" />',
+  })
+  const clean = project({
+    "components.json": JSON.stringify({ tailwind: { css: "app/styles.css" } }),
+    "app/a.tsx": "export {}",
+  })
+  const absent = project({
+    "components.json": JSON.stringify({ tailwind: { css: "web/styles.css" } }),
+    "src/a.ts": "export {}",
   })
   const broken = project({
     "components.json": "{",
@@ -218,20 +259,37 @@ test("команда без аргументів перевіряє теку з 
     const failed = run(app)
     assert.equal(failed.status, 1)
     assert.match(failed.stderr, /app\/a\.tsx:1 {2}tailwind-palette/)
-    assert.equal(run(app, ["src"]).status, 0, "явні теки — як і раніше")
+    assert.doesNotMatch(
+      failed.stderr,
+      /src\/b\.tsx/,
+      "src не перевіряється разом з app",
+    )
+    assert.equal(run(app, ["app"]).status, 1, "явні теки — як і раніше")
+    assert.match(
+      run(clean).stdout,
+      /порушень немає \(теки: app — тека tailwind\.css з components\.json; файлів — 1\)/,
+    )
+    const missing = run(absent)
+    assert.equal(missing.status, 1)
+    assert.match(
+      missing.stderr,
+      /немає теки «web» \(тека tailwind\.css з components\.json\)/,
+    )
     const unreadable = run(broken)
     assert.equal(unreadable.status, 1)
-    assert.match(unreadable.stderr, /components\.json не читається як JSON/)
+    assert.match(unreadable.stderr, /components\.json — не JSON/)
   } finally {
-    for (const dir of [app, broken])
+    for (const dir of [app, clean, absent, broken])
       rmSync(dir, { recursive: true, force: true })
   }
 })
 
 test("файл ставиться в проект сам: імпортує лише вбудовані модулі node", () => {
-  const imports = [
-    ...readFileSync(TOOL, "utf8").matchAll(/^import .* from "([^"]+)"/gm),
-  ]
+  const source = readFileSync(TOOL, "utf8")
+  // Імпорт буває в кілька рядків: кожен рядок `import` має знайтися зі своїм `from`.
+  const imports = [...source.matchAll(/^import\s[^;]*?\sfrom\s+"([^"]+)"/gm)]
   assert.ok(imports.length > 0)
+  assert.equal(imports.length, source.match(/^import\s/gm)?.length)
+  assert.doesNotMatch(source, /\bimport\(|\brequire\(/)
   for (const [, from] of imports) assert.match(from, /^node:/)
 })

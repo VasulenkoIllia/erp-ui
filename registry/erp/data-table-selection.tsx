@@ -53,7 +53,7 @@ export interface SelectionScope {
 }
 
 const SELECT_COLUMN_ID = "select"
-/** Ширина колонки прапорців — ціль дотику 44 px (SPEC §6.5); зону натиску дає сам `ui/checkbox`. */
+/** Ширина колонки прапорців — ціль дотику 44 px (SPEC §6.5); зону натиску (на дотиковому — 44 px) дає сам `ui/checkbox`. */
 const SELECT_COLUMN_REM = 2.75
 
 /** Зупинка Tab таблиці (активна клітинка гріда чи картка) — куди повернути фокус. */

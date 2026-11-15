@@ -34,6 +34,7 @@ import {
   parseDryRun,
 } from "../registry/tools/erp-ui-kit-lib.mjs"
 import {
+  hasKitMocks,
   keepProjectOwned,
   kitFileProblems,
   PROJECT_OWNED,
@@ -427,6 +428,29 @@ test("printDependencyWarnings: версії — поточні; доставле
   write("node_modules/kept/package.json", { version: "1.0.2" })
   printDependencyWarnings(root, plan)
   assert.equal(warn.mock.callCount(), 0)
+})
+
+test("hasKitMocks: елемент mocks чи файл кіта mocks.ts за будь-якого псевдоніма; старий маніфест без items", () => {
+  const withFiles = (...files) => ({
+    files: Object.fromEntries(files.map((file) => [file, "x"])),
+  })
+  assert.equal(hasKitMocks({ items: ["base", "mocks"], files: {} }), true)
+  assert.equal(hasKitMocks(withFiles("src/lib/mocks.ts")), true)
+  assert.equal(hasKitMocks(withFiles("apps/admin/src/utils/mocks.ts")), true)
+  assert.equal(hasKitMocks(withFiles("src/modules/B1-contacts/mocks.ts")), true)
+  assert.equal(hasKitMocks(withFiles("lib/mocks.ts")), true)
+  assert.equal(
+    hasKitMocks({
+      items: ["base"],
+      ...withFiles(
+        "src/lib/mock-scenarios.ts",
+        "src/lib/mocks.test.ts",
+        "src/lib/a.ts",
+      ),
+    }),
+    false,
+  )
+  assert.equal(hasKitMocks({ files: {} }), false)
 })
 
 test("kitFileProblems: змінені й видалені; файли проекту не рахуються", () => {

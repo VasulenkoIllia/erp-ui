@@ -590,7 +590,11 @@ function CheckboxGroup<T extends string>({
       {/* Між рядками — щоб галочки після переносу не стояли ближче 24 px одна від одної (WCAG 2.5.8). */}
       <div className="flex flex-wrap gap-x-6 gap-y-3">
         {items.map((item) => (
-          <Field key={item.value} orientation="horizontal" className="w-auto">
+          <Field
+            key={item.value}
+            orientation="horizontal"
+            className="w-auto pointer-coarse:min-h-touch"
+          >
             <Checkbox
               id={`${ids}-${item.value}`}
               checked={item.checked}

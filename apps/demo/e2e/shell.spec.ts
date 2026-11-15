@@ -240,6 +240,7 @@ test.describe("оболонка: телефон", () => {
       .getByRole("navigation", { name: "Quick sections" })
       .getByRole("link", { name: "Languages & formats" })
     await expect(formats).toHaveText("Formats")
+    await expect(formats).toHaveAccessibleName("Languages & formats")
     const label = formats.locator("span")
     const clipped = await label.evaluate(
       (span) => span.scrollWidth > span.clientWidth,

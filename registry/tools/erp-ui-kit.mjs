@@ -93,9 +93,12 @@ const VITE_CONFIGS = [
   "vite.config.js",
   "vite.config.mjs",
 ]
-/** Елемент моків і його файл: лише з ними в проекті є що пускати в продакшн без запобіжника. */
+/**
+ * Елемент моків і назва файла моків кіта (`@lib/mocks.ts` за псевдонімом `lib` проекту, `mocks.ts` модуля): лише з
+ * ними в проекті є що пускати в продакшн без запобіжника.
+ */
 const MOCKS_ITEM = "mocks"
-const MOCKS_FILE = "lib/mocks.ts"
+const MOCKS_FILE = "mocks.ts"
 const RECOVERY_HINT =
   "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
 
@@ -208,14 +211,14 @@ async function kitFileHashes(root, files) {
 }
 
 /**
- * Моки кіта в проекті: елемент `mocks` у списку або файл `lib/mocks.ts` у відбитках — його тягне й
- * модуль кіта, бо мок модуля будується на ньому (ADR-0096 п. 1).
+ * Моки кіта в проекті: елемент `mocks` у списку або файл кіта `mocks.ts` у відбитках — `lib/mocks.ts` (його
+ * тягне й модуль) чи моки модуля; маніфест старого формату — без `items` (ADR-0096 п. 1).
  */
 export function hasKitMocks(manifest) {
   return (
     Boolean(manifest.items?.includes(MOCKS_ITEM)) ||
     Object.keys(manifest.files).some(
-      (file) => file === MOCKS_FILE || file.endsWith(`/${MOCKS_FILE}`),
+      (file) => path.posix.basename(file) === MOCKS_FILE,
     )
   )
 }

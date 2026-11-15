@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 import { expectNoA11yViolations, openWith } from "./helpers"
 
@@ -12,6 +12,22 @@ const PALETTES = [
 ] as const
 const THEMES = ["light", "dark"] as const
 const DENSITIES = ["comfortable", "compact"] as const
+
+/** Чи влучає точка на `dx` px ліворуч від прапорця «Платник ПДВ» у нього самого (зона натиску). */
+async function checkboxHits(page: Page) {
+  const checkbox = page.getByRole("checkbox", { name: "Платник ПДВ" })
+  // elementFromPoint бачить лише видиму частину сторінки.
+  await checkbox.scrollIntoViewIfNeeded()
+  const box = await checkbox.boundingBox()
+  if (!box) throw new Error("прапорця не видно")
+  return (dx: number) =>
+    page.evaluate(
+      ([x, y]) =>
+        document.elementFromPoint(x, y)?.closest("[data-slot=checkbox]") !=
+        null,
+      [box.x - dx, box.y + box.height / 2] as const,
+    )
+}
 
 test.describe("примітиви: axe", () => {
   for (const palette of PALETTES)
@@ -50,31 +66,20 @@ test.describe("примітиви: поведінка", () => {
       expect((await row1.boundingBox())?.height).toBeCloseTo(row, 0)
     })
 
-  // Зона натиску прапорця — touch-target: ≥ --touch-min, 44 px у звичайній щільності, 24 px у компактній.
-  for (const [density, reachesFar] of [
-    ["comfortable", true],
-    ["compact", false],
-  ] as const)
-    test(`прапорець у щільності ${density}: зона натиску ${reachesFar ? 44 : 24} px`, async ({
-      page,
-    }) => {
-      await openWith(page, { density }, PATH)
-      const box = await page
-        .getByRole("checkbox", { name: "Платник ПДВ" })
-        .boundingBox()
-      if (!box) throw new Error("прапорця не видно")
-      const hits = (dx: number) =>
-        page.evaluate(
-          ([x, y]) =>
-            document.elementFromPoint(x, y)?.closest("[data-slot=checkbox]") !=
-            null,
-          [box.x - dx, box.y + box.height / 2] as const,
-        )
-      expect(await hits(3)).toBe(true)
-      expect(await hits(10)).toBe(reachesFar)
-    })
+  test("з мишею зона прапорця — 40 × 32 px основи, без зони дотику 44 px", async ({
+    page,
+  }) => {
+    await openWith(page, {}, PATH)
+    const hits = await checkboxHits(page)
+    expect(await hits(10)).toBe(true)
+    expect(await hits(13)).toBe(false)
+  })
 
-  test("з мишею текст поля й коментаря — 14 px", async ({ page }) => {
+  test("з мишею текст поля й коментаря — 14 px і на вузькому вікні", async ({
+    page,
+  }) => {
+    // Розмір тексту залежить від вказівника, а не від ширини (ADR-0096 п. 3).
+    await page.setViewportSize({ width: 390, height: 844 })
     await openWith(page, {}, PATH)
     await expect(page.getByLabel("Назва компанії")).toHaveCSS(
       "font-size",
@@ -165,4 +170,19 @@ test.describe("примітиви: дотиковий планшет", () => {
       page.getByRole("textbox", { name: "Коментар до рахунку" }),
     ).toHaveCSS("font-size", "16px")
   })
+
+  // Зона дотику прапорця — touch-target: ≥ --touch-min, 44 px у звичайній щільності, 24 px у компактній
+  // (тоді лишається 40 × 32 px основи: 12 px ліворуч).
+  for (const [density, reachesFar] of [
+    ["comfortable", true],
+    ["compact", false],
+  ] as const)
+    test(`прапорець у щільності ${density}: зона дотику ${reachesFar ? 44 : 24} px`, async ({
+      page,
+    }) => {
+      await openWith(page, { density }, PATH)
+      const hits = await checkboxHits(page)
+      expect(await hits(3)).toBe(true)
+      expect(await hits(13)).toBe(reachesFar)
+    })
 })

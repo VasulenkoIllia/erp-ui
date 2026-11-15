@@ -8,8 +8,8 @@
  *   - рух поза токенами (ADR-0009): transition-all, duration-200, ease-linear тощо.
  * Виняток для окремого рядка: коментар `erp-ui: allow-raw-value — <причина>`.
  *
- * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` у lint проекту (ADR-0089). Без аргументів — тека
- * файла `tailwind.css` з `components.json`, без нього `src` (ADR-0096).
+ * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` у lint проекту (ADR-0089). Без аргументів — найближча
+ * `src` над файлом `tailwind.css` з `components.json` (без неї — тека файла), без нього `src` (ADR-0096).
  * Файл ставить команда кіта разом із `base`: у проекті його не правте.
  */
 import {
@@ -92,28 +92,71 @@ export function findViolations(text) {
 const FALLBACK_ROOT = "src"
 const SHADCN_CONFIG = "components.json"
 
-/**
- * Тека за замовчуванням (ADR-0096 п. 2): тека файла стилів `tailwind.css` з `components.json` (там, де
- * код проекту, і в підпакеті робочого простору), без нього — `src`. Файл стилів у корені проекту —
- * теж `src`: корінь цілком зачепив би скрипти й конфіги. Зламаний `components.json` — помилка.
- */
-export function defaultRoots(cwd) {
-  const file = path.join(cwd, SHADCN_CONFIG)
-  if (!existsSync(file)) return [FALLBACK_ROOT]
-  let config
+const errorText = (error) =>
+  error instanceof Error ? error.message : String(error)
+
+/** `components.json`: помилку читання й зламаний JSON не ковтаємо, BOM (файл з Windows) прибираємо. */
+function readShadcnConfig(file) {
+  let text
   try {
-    config = JSON.parse(readFileSync(file, "utf8"))
+    text = readFileSync(file, "utf8")
   } catch (error) {
     throw new Error(
-      `${SHADCN_CONFIG} не читається як JSON (${error instanceof Error ? error.message : String(error)}) — виправте файл або назвіть теки аргументами`,
+      `${SHADCN_CONFIG} не читається (${errorText(error)}) — назвіть теки коду аргументами`,
       { cause: error },
     )
   }
-  const css = config?.tailwind?.css
-  if (typeof css !== "string" || !css.trim()) return [FALLBACK_ROOT]
-  // Шляхи в components.json — зі скісною рискою на будь-якій системі.
-  const dir = path.posix.dirname(path.posix.normalize(css.trim()))
-  return [dir === "." ? FALLBACK_ROOT : dir]
+  try {
+    return JSON.parse(text.replace(/^\uFEFF/, ""))
+  } catch (error) {
+    throw new Error(
+      `${SHADCN_CONFIG} — не JSON (${errorText(error)}): виправте файл або назвіть теки коду аргументами`,
+      { cause: error },
+    )
+  }
+}
+
+const isOutside = (dir) =>
+  dir === ".." ||
+  dir.startsWith("../") ||
+  path.posix.isAbsolute(dir) ||
+  /^[A-Za-z]:/.test(dir)
+
+/**
+ * Тека за замовчуванням і звідки вона (ADR-0096 п. 2): найближча `src` над файлом стилів `tailwind.css` з
+ * `components.json`, а без неї — тека самого файла (так і в підпакеті робочого простору); без файла — `src`. Файл стилів у корені проекту —
+ * теж `src`: корінь цілком зачепив би скрипти й конфіги. Зламаний `components.json` і тека стилів поза
+ * проектом (спільний пакет стилів у монорепо) — помилка: мовчки перевірили б не той код.
+ */
+export function defaultRoots(cwd) {
+  const file = path.join(cwd, SHADCN_CONFIG)
+  if (!existsSync(file))
+    return { roots: [FALLBACK_ROOT], source: `без ${SHADCN_CONFIG}` }
+  const css = readShadcnConfig(file)?.tailwind?.css
+  if (typeof css !== "string" || !css.trim())
+    return {
+      roots: [FALLBACK_ROOT],
+      source: `у ${SHADCN_CONFIG} немає tailwind.css`,
+    }
+  // Шлях у components.json — зі скісною рискою; зворотну (файл правили руками на Windows) теж приймаємо.
+  const dir = path.posix.dirname(
+    path.posix.normalize(css.trim().replaceAll("\\", "/")),
+  )
+  if (isOutside(dir))
+    throw new Error(
+      `тека стилів «${dir}» з ${SHADCN_CONFIG} поза проектом — назвіть теки коду аргументами`,
+    )
+  if (dir === ".")
+    return { roots: [FALLBACK_ROOT], source: "файл стилів у корені проекту" }
+  // Стилі буває глибше за код (`src/styles/globals.css`, `src/app/globals.css`): тоді — найближча `src` над ними.
+  const parts = dir.split("/")
+  const srcAt = parts.lastIndexOf(FALLBACK_ROOT)
+  return srcAt >= 0
+    ? {
+        roots: [parts.slice(0, srcAt + 1).join("/")],
+        source: `тека src над tailwind.css з ${SHADCN_CONFIG}`,
+      }
+    : { roots: [dir], source: `тека tailwind.css з ${SHADCN_CONFIG}` }
 }
 /**
  * Палітри тем генерує кіт із власних кольорів (`design/generate-themes.mjs`): там сирі кольори — джерело токенів.
@@ -186,24 +229,22 @@ export function scanRoots(cwd, roots) {
 }
 
 function rootsOrExit(cwd, args) {
-  if (args.length) return args
+  if (args.length) return { roots: args, source: "аргументи" }
   try {
     return defaultRoots(cwd)
   } catch (error) {
-    console.error(
-      `check-tokens: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    console.error(`check-tokens: ${errorText(error)}`)
     process.exit(1)
   }
 }
 
 function main() {
   const cwd = process.cwd()
-  const roots = rootsOrExit(cwd, process.argv.slice(2))
+  const { roots, source } = rootsOrExit(cwd, process.argv.slice(2))
   const missing = missingRoots(cwd, roots)
   if (missing.length) {
     console.error(
-      `check-tokens: немає теки ${missing.map((root) => `«${root}»`).join(", ")} — назвіть теки коду аргументами`,
+      `check-tokens: немає теки ${missing.map((root) => `«${root}»`).join(", ")} (${source}) — назвіть теки коду аргументами`,
     )
     process.exit(1)
   }
@@ -222,7 +263,9 @@ function main() {
     )
     process.exit(1)
   }
-  console.log(`check-tokens: порушень немає (файлів — ${files})`)
+  console.log(
+    `check-tokens: порушень немає (теки: ${roots.join(", ")} — ${source}; файлів — ${String(files)})`,
+  )
 }
 
 // `import.meta.main` — Node ≥ 24.2; на старішій порівняння шляхів, щоб перевірка не вийшла мовчки з кодом 0.

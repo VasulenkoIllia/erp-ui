@@ -338,3 +338,32 @@ test.describe("A2: ролі, axe", () => {
       expect(await noHorizontalScroll(page)).toBe(true)
     })
 })
+
+test.describe("A2: галочки на дотиковому телефоні", () => {
+  // hasTouch — «грубий» вказівник: зона галочки 44 px (touch-target), рядки матриці не нижчі за неї.
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true })
+
+  test("край квадрата перемикає свою галочку, а не сусідню", async ({
+    page,
+  }) => {
+    await openWith(page, {}, ROLES)
+    await expect(roleHeading(page)).toHaveText("Бухгалтер")
+    const misses = await page.evaluate(() => {
+      const boxes = [
+        ...document.querySelectorAll("main [data-slot=checkbox]"),
+      ].slice(0, 12)
+      return boxes.flatMap((box, index) => {
+        box.scrollIntoView({ block: "center" })
+        const rect = box.getBoundingClientRect()
+        const x = rect.x + rect.width / 2
+        return [rect.y + 1, rect.bottom - 1].flatMap((y) =>
+          document.elementFromPoint(x, y)?.closest("[data-slot=checkbox]") ===
+          box
+            ? []
+            : [`${String(index)} @ ${String(Math.round(y - rect.y))}px`],
+        )
+      })
+    })
+    expect(misses).toEqual([])
+  })
+})

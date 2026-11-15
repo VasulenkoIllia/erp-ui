@@ -106,7 +106,7 @@ const MOBILE_ITEMS = 4
 function bottomNavName(item: Pick<NavItem, "label" | "shortLabel">) {
   const short = item.shortLabel?.trim()
   if (!short || short === item.label) return undefined
-  return item.label.toLocaleLowerCase().includes(short.toLocaleLowerCase())
+  return item.label.toLowerCase().includes(short.toLowerCase())
     ? item.label
     : `${short}, ${item.label}`
 }
@@ -174,6 +174,8 @@ function BottomNav({
         {items.map((item) => {
           const active = item.id === activeId
           const link = renderLink(item.href)
+          // Без короткого підпису aria-label не ставимо: він перекрив би свій aria-label посилання з renderLink.
+          const name = bottomNavName(item)
           return (
             <li key={item.id} className="flex min-w-0 flex-1">
               {React.cloneElement(
@@ -181,7 +183,7 @@ function BottomNav({
                 {
                   className: itemClass,
                   "aria-current": active ? "page" : undefined,
-                  "aria-label": bottomNavName(item),
+                  ...(name ? { "aria-label": name } : {}),
                 } as React.HTMLAttributes<HTMLElement>,
                 <item.icon aria-hidden />,
                 <span className="max-w-full truncate">
