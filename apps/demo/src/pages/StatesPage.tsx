@@ -41,6 +41,42 @@ function ChunkFailureSection() {
   )
 }
 
+/** Компактний стан (`compact`): той самий набір станів рядком у секції, як у картці налаштувань. */
+function CompactStatesSection() {
+  const { t } = useDemoTranslation([ukStatesPage], { keyPrefix: "statesPage" })
+  const Create = ACTION_ICONS.create
+  const retried = () => {
+    toast(t("retried"))
+  }
+  return (
+    <Section title={t("compact")} description={t("compactLead")}>
+      <div data-testid="compact-states" className="space-y-5">
+        <PageState
+          kind="empty"
+          compact
+          action={
+            <Button>
+              <Create aria-hidden />
+              {t("createInvoice")}
+            </Button>
+          }
+        />
+        <PageState
+          kind="no-results"
+          compact
+          onReset={() => {
+            toast(t("reset"))
+          }}
+        />
+        <PageState kind="error" compact onRetry={retried} />
+        <PageState kind="forbidden" compact />
+        <PageState kind="offline" compact onRetry={retried} />
+        <PageState kind="not-found" compact />
+      </div>
+    </Section>
+  )
+}
+
 /** Стани сторінки SPEC §8.1 у контейнерах — так, як їх побачить користувач у списку. */
 export function StatesPage() {
   const { t } = useDemoTranslation([ukStatesPage], { keyPrefix: "statesPage" })
@@ -94,6 +130,9 @@ export function StatesPage() {
             }}
           />
         </Section>
+        <div className="@4xl:col-span-2">
+          <CompactStatesSection />
+        </div>
         <ChunkFailureSection />
         <Section title={t("chunkReloadFutile")}>
           <PageState

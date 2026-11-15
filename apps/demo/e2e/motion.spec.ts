@@ -1,12 +1,11 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { chooseLanguage, openWith } from "./helpers"
+import { chooseLanguage, openWith, topbarUserMenu } from "./helpers"
 
 /** ADR-0009: токени руху доходять до попапів, а в пам'яті лише мова інтерфейсу. */
 test.use({ viewport: { width: 1440, height: 900 } })
 
-const userMenu = (page: Page) =>
-  page.getByRole("button", { name: /Меню користувача/ })
+const userMenu = topbarUserMenu
 
 /** Тривалість і крива анімації появи меню користувача. */
 async function menuAnimation(page: Page) {

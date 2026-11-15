@@ -4,6 +4,7 @@ import {
   chooseInSubmenu,
   expectNoA11yViolations,
   openWith,
+  topbarUserMenu,
   waitForMenuFocus,
 } from "./helpers"
 
@@ -248,6 +249,23 @@ test.describe("оболонка: телефон", () => {
     expect(clipped).toBe(false)
   })
 
+  for (const language of ["uk", "en"] as const)
+    test(`підписи нижньої панелі не обрізані на 360 px (${language})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 360, height: 780 })
+      await openWith(page, { language }, "/#/states")
+      await page.evaluate(() => document.fonts.ready.then(() => true))
+      const labels = page.locator('[data-slot="bottom-nav"] li span')
+      await expect(labels).toHaveCount(5)
+      const clipped = await labels.evaluateAll((spans) =>
+        spans
+          .filter((span) => span.scrollWidth > span.clientWidth)
+          .map((span) => span.textContent),
+      )
+      expect(clipped).toEqual([])
+    })
+
   test("елемент у фокусі не ховається під нижньою панеллю (WCAG 2.4.11)", async ({
     page,
   }) => {
@@ -299,7 +317,7 @@ test.describe("оболонка: axe на нових сторінках", () => 
     await page.getByRole("combobox", { name: "Пошук і команди" }).fill("пал")
     await expectNoA11yViolations(page)
     await page.keyboard.press("Escape")
-    await page.getByRole("button", { name: /Меню користувача/ }).click()
+    await topbarUserMenu(page).click()
     await expectNoA11yViolations(page)
   })
 })

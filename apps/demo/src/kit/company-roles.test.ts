@@ -118,6 +118,15 @@ const server = setupServer(
         label: { uk: "Ролі", en: "Roles" },
         actions: ["read", "update"],
       },
+      // Назви дій: мок знає дії документів кіта, ресурс дає свої й перекриває відомі.
+      docs: {
+        label: { uk: "Документи", en: "Documents" },
+        actions: ["read", "submit", "reverse", "publish", "archive"],
+        actionLabels: {
+          submit: { uk: "Надсилання", en: "Send" },
+          publish: { uk: "Публікація", en: "Publish" },
+        },
+      },
     },
   }),
 )
@@ -391,6 +400,18 @@ describe("сценарії ресурсу roles", () => {
       "notes",
       "users",
       "roles",
+      "docs",
+    ])
+    expect(
+      empty.resources
+        .find((r) => r.id === "docs")
+        ?.actions.map((action) => action.label),
+    ).toEqual([
+      "Перегляд",
+      "Надсилання",
+      "Сторнування",
+      "Публікація",
+      "archive",
     ])
     setScenario("error", "roles")
     expect(await statusOf(auth.roles.list())).toBe(500)

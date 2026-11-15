@@ -35,6 +35,7 @@ import { Spinner } from "@/registry/ui/spinner"
  *   для `no-results` — `onReset` дають стандартні кнопки.
  * - Порожній стан ніколи не підміняє помилку: показуйте `error`, якщо дані не завантажились.
  * - Помилка й офлайн оголошуються скрінрідеру (role="alert"), решта — ні.
+ * - `compact` — стан секції чи картки рядком, без великого блоку (заголовок h3).
  * - Стан замість усієї сторінки (h1) бере фокус на заголовок, коли фокус загубився разом зі зниклим
  *   вмістом (`useFocusHeadingOnMount`, WCAG 2.4.3); `focusHeading` — так само для іншого рівня;
  *   `headingRef` — заголовок для фокусу ззовні (межа помилок після невдалого повтору).
@@ -94,8 +95,15 @@ export interface PageStateProps {
   onRetry?: () => void
   onReset?: () => void
   /**
+   * Компактний стан частини сторінки (секція, картка, вкладка): рядок з іконкою, текстом і діями
+   * без мінімальної висоти й пунктирної рамки; на вузькому контейнері дії переносяться під текст.
+   * Рамку чи відступ, якщо треба, дає `className`.
+   */
+  compact?: boolean
+  /**
    * Рівень заголовка: 2 — стан частини сторінки під її h1 (за замовчуванням); 1 — стан замість
-   * усієї сторінки («не знайдено», профіль не завантажився); 3 — стан секції чи вкладки під h2.
+   * усієї сторінки («не знайдено», профіль не завантажився); 3 — стан секції чи вкладки під h2
+   * (за замовчуванням для `compact`).
    */
   headingLevel?: 1 | 2 | 3
   /**
@@ -115,7 +123,8 @@ export function PageState({
   action,
   onRetry,
   onReset,
-  headingLevel = 2,
+  compact = false,
+  headingLevel = compact ? 3 : 2,
   focusHeading = headingLevel === 1,
   headingRef,
   className,
@@ -124,16 +133,92 @@ export function PageState({
   const config = KINDS[kind]
   const Heading = HEADINGS[headingLevel]
   const Icon = icon ?? config.icon
-  const announce = kind === "error" || kind === "offline"
+  const isAlert = kind === "error" || kind === "offline"
   const ownHeading = React.useRef<HTMLHeadingElement>(null)
   const heading = headingRef ?? ownHeading
   const focusable = focusHeading || Boolean(headingRef)
   useFocusHeadingOnMount(heading, focusHeading)
+  const retry = isAlert ? onRetry : undefined
+  const reset = kind === "no-results" ? onReset : undefined
+  const actions =
+    action || retry || reset ? (
+      <div
+        className={cn(
+          "flex flex-wrap gap-2",
+          // У рядку дії беруть не більше половини: дві кнопки переносяться, а не стискають текст.
+          compact
+            ? "ps-11 @lg:max-w-1/2 @lg:justify-end @lg:ps-0"
+            : "justify-center",
+        )}
+      >
+        {action}
+        {retry ? (
+          <Button variant={action ? "outline" : "default"} onClick={retry}>
+            {t(
+              kind === "offline"
+                ? "pageState.offline.retry"
+                : "pageState.error.retry",
+            )}
+          </Button>
+        ) : null}
+        {reset ? (
+          <Button variant="outline" onClick={reset}>
+            <CircleSlashIcon aria-hidden />
+            {t("pageState.noResults.reset")}
+          </Button>
+        ) : null}
+      </div>
+    ) : null
+  const headingNode = (
+    <Heading
+      ref={heading}
+      tabIndex={focusable ? -1 : undefined}
+      className={
+        cn(
+          compact && "text-sm font-semibold",
+          focusable && "focus-visible:outline-none",
+        ) || undefined
+      }
+    >
+      {title ?? t(config.title)}
+    </Heading>
+  )
+  const text = description ?? t(config.description)
+
+  if (compact)
+    return (
+      <div
+        data-slot="page-state"
+        data-kind={kind}
+        data-compact=""
+        role={isAlert ? "alert" : undefined}
+        className={cn("@container w-full min-w-0", className)}
+      >
+        <div className="flex flex-col gap-3 @lg:flex-row @lg:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <span
+              className={cn(
+                "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg]:size-4",
+                config.tone,
+              )}
+            >
+              <Icon aria-hidden />
+            </span>
+            <div className="min-w-0 space-y-0.5 break-words">
+              {headingNode}
+              <p className="text-sm text-muted-foreground">{text}</p>
+            </div>
+          </div>
+          {actions}
+        </div>
+      </div>
+    )
+
   return (
     <Empty
       data-slot="page-state"
       data-kind={kind}
-      role={announce ? "alert" : undefined}
+      role={isAlert ? "alert" : undefined}
       className={cn("min-h-64 border border-dashed", className)}
     >
       <EmptyHeader>
@@ -146,44 +231,10 @@ export function PageState({
         >
           <Icon aria-hidden />
         </EmptyMedia>
-        <EmptyTitle>
-          <Heading
-            ref={heading}
-            tabIndex={focusable ? -1 : undefined}
-            className={focusable ? "focus-visible:outline-none" : undefined}
-          >
-            {title ?? t(config.title)}
-          </Heading>
-        </EmptyTitle>
-        <EmptyDescription>
-          {description ?? t(config.description)}
-        </EmptyDescription>
+        <EmptyTitle>{headingNode}</EmptyTitle>
+        <EmptyDescription>{text}</EmptyDescription>
       </EmptyHeader>
-      {action || onRetry || onReset ? (
-        <EmptyContent>
-          <div className="flex flex-wrap justify-center gap-2">
-            {action}
-            {onRetry && (kind === "error" || kind === "offline") ? (
-              <Button
-                variant={action ? "outline" : "default"}
-                onClick={onRetry}
-              >
-                {t(
-                  kind === "offline"
-                    ? "pageState.offline.retry"
-                    : "pageState.error.retry",
-                )}
-              </Button>
-            ) : null}
-            {onReset && kind === "no-results" ? (
-              <Button variant="outline" onClick={onReset}>
-                <CircleSlashIcon aria-hidden />
-                {t("pageState.noResults.reset")}
-              </Button>
-            ) : null}
-          </div>
-        </EmptyContent>
-      ) : null}
+      {actions ? <EmptyContent>{actions}</EmptyContent> : null}
     </Empty>
   )
 }
