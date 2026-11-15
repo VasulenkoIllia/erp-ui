@@ -9,12 +9,15 @@ import type { SalesExtension } from "./extension"
 /** Адреси сторінок модуля від `basePath` фабрики. */
 export interface SalesPaths {
   readonly quotes: string
+  /** Кошик пропозицій (PF16, ADR-0095). */
+  readonly quotesTrash: string
   readonly quote: (id: string) => string
   readonly newQuote: string
   readonly editQuote: (id: string) => string
   /** Друк: окрема сторінка з одним аркушем (ADR-0062). */
   readonly printQuote: (id: string) => string
   readonly orders: string
+  readonly ordersTrash: string
   readonly order: (id: string) => string
   readonly newOrder: string
   readonly editOrder: (id: string) => string
@@ -38,11 +41,13 @@ export function salesPaths(
   const order = (id: string) => `${base}/orders/${encodeURIComponent(id)}`
   return {
     quotes: `${base}/quotes`,
+    quotesTrash: `${base}/quotes/trash`,
     quote,
     newQuote: `${base}/quotes/new`,
     editQuote: (id) => `${quote(id)}/edit`,
     printQuote: (id) => `${quote(id)}/print`,
     orders: `${base}/orders`,
+    ordersTrash: `${base}/orders/trash`,
     order,
     newOrder: `${base}/orders/new`,
     editOrder: (id) => `${order(id)}/edit`,

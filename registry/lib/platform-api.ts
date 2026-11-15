@@ -1,6 +1,6 @@
 /**
  * API платформи (ADR-0092): акаунт, безпека, аудит, вебхуки, ролі, запрошення, сповіщення, канал
- * подій, стрічка, компанія. Проект звертається до них через провайдер входу, як і раніше:
+ * подій, стрічка, компанія, кошик. Проект звертається до них через провайдер входу, як і раніше:
  * `authProvider.audit.getEvents(…)`; `createAuthProvider` бере їх звідси.
  *
  * Перший екран легкий: код API, якого оболонка на старті не потребує, вантажиться окремим чанком
@@ -11,7 +11,7 @@
  * оновити сторінку. Наступний виклик пробує завантажити чанк знову. Компоненти кіта, що читають ці
  * API запитами, імпортують з файла API ключі й схеми, тож його чанк приходить разом із ними.
  *
- * Новий API платформи (кошик, погодження, пошта) додається сюди лінивим, з переліком методів; одразу
+ * Новий API платформи (погодження, пошта) додається сюди лінивим, з переліком методів; одразу
  * — лише те, що потрібне оболонці до першої дії людини (сповіщення, канал подій, компанія, ролі для
  * перевірки прав).
  */
@@ -25,6 +25,7 @@ import { createRealtimeApi, type RealtimeApi } from "@/registry/lib/realtime"
 import { createRolesApi, type RolesApi } from "@/registry/lib/roles"
 import type { AdminApi } from "@/registry/lib/security-policy"
 import type { TimelineApi } from "@/registry/lib/timeline"
+import type { TrashApi } from "@/registry/lib/trash"
 import type { WebhooksApi } from "@/registry/lib/webhooks"
 
 export interface PlatformApis {
@@ -51,6 +52,8 @@ export interface PlatformApis {
   timeline: TimelineApi
   /** Налаштування поточної компанії (lib/company, ADR-0014). */
   company: CompanyApi
+  /** Кошик: налаштування, видалені записи ресурсу, відновлення (lib/trash, ADR-0095). */
+  trash: TrashApi
 }
 
 export interface PlatformApisOptions {
@@ -180,6 +183,12 @@ const TIMELINE_METHODS: Record<keyof TimelineApi, true> = {
   myActivities: true,
 }
 
+const TRASH_METHODS: Record<keyof TrashApi, true> = {
+  getSettings: true,
+  list: true,
+  restore: true,
+}
+
 export function createPlatformApis(
   client: ApiClient,
   { onMeChange }: PlatformApisOptions = {},
@@ -216,5 +225,9 @@ export function createPlatformApis(
       TIMELINE_METHODS,
     ),
     company: createCompanyApi(client),
+    trash: lazyApi(
+      () => import("./trash").then((m) => m.createTrashApi(client)),
+      TRASH_METHODS,
+    ),
   }
 }

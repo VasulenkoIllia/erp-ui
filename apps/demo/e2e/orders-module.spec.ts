@@ -273,17 +273,22 @@ test.describe("модуль B3: замовлення", () => {
     ).toBeVisible()
   })
 
-  test("«Видалити чернетку» з картки — список без неї; у підтвердженого кнопка неактивна з причиною", async ({
+  test("«Видалити чернетку» з картки — у кошик без підтвердження, «Скасувати» повертає; у підтвердженого кнопка неактивна з причиною", async ({
     page,
   }) => {
     await openWith(page, {}, DRAFT)
     await expect(heading(page)).toHaveText("Замовлення без номера")
     await page.getByRole("button", { name: "Видалити чернетку" }).click()
-    const confirm = await openConfirm(page, "Видалити чернетку?")
-    await confirm.getByRole("button", { name: "Видалити чернетку" }).click()
     await expect(heading(page)).toHaveText("Замовлення")
     await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
       /(^|\D)7(\D|$)/,
+    )
+    const moved = page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Чернетку перенесено в кошик" })
+    await moved.getByRole("button", { name: "Скасувати" }).click()
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
+      /(^|\D)8(\D|$)/,
     )
 
     await openWith(page, {}, CONFIRMED)

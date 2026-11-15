@@ -170,6 +170,12 @@ const PAGES = {
   creditNotes: lazyWithPreload(() =>
     import("./pages/credit-note-list-page").then((m) => m.CreditNotesListPage),
   ),
+  invoicesTrash: lazyWithPreload(() =>
+    import("./pages/invoice-trash-page").then((m) => m.InvoicesTrashPage),
+  ),
+  creditNotesTrash: lazyWithPreload(() =>
+    import("./pages/invoice-trash-page").then((m) => m.CreditNotesTrashPage),
+  ),
   creditNote: lazyWithPreload(() =>
     import("./pages/credit-note-record-page").then((m) => m.CreditNotePage),
   ),
@@ -238,10 +244,12 @@ export function createInvoicesModule<TItem extends RaRecord = RaRecord>({
     pages: [
       { path: paths.invoices, page: PAGES.list },
       { path: paths.newInvoice, page: PAGES.form },
+      { path: paths.invoicesTrash, page: PAGES.invoicesTrash },
       { path: `${paths.invoices}/:id`, page: PAGES.record },
       { path: `${paths.invoices}/:id/edit`, page: PAGES.form },
       { path: `${paths.invoices}/:id/print`, page: PAGES.print },
       { path: paths.creditNotes, page: PAGES.creditNotes },
+      { path: paths.creditNotesTrash, page: PAGES.creditNotesTrash },
       { path: `${paths.creditNotes}/:id`, page: PAGES.creditNote },
       { path: `${paths.creditNotes}/:id/edit`, page: PAGES.creditNoteForm },
       { path: `${paths.creditNotes}/:id/print`, page: PAGES.creditNotePrint },

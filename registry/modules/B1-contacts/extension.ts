@@ -52,7 +52,7 @@ export type OrganizationDetailRowId =
 /** Вкладки картки організації. */
 export type OrganizationSectionId =
   "requisites" | "addresses" | "bankAccounts" | "contacts"
-export type OrganizationActionId = "edit" | "pin"
+export type OrganizationActionId = "edit" | "pin" | "delete"
 /** Поля форми організації (ключ — ім'я поля запису). */
 export type OrganizationFormFieldId =
   | "name"
@@ -82,7 +82,7 @@ export type ContactFieldId =
 export type ContactDetailRowId = "phone" | "email" | "position" | "segments"
 /** Секції картки контакту. */
 export type ContactSectionId = "details" | "organization"
-export type ContactActionId = "edit" | "pin"
+export type ContactActionId = "edit" | "pin" | "delete"
 /** Поля форми контакту (ключ — ім'я поля запису). */
 export type ContactFormFieldId =
   | "name"

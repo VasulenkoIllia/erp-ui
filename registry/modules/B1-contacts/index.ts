@@ -87,6 +87,12 @@ const PAGES = {
   segments: lazyWithPreload(() =>
     import("./pages/segments-list-page").then((m) => m.SegmentsListPage),
   ),
+  contactsTrash: lazyWithPreload(() =>
+    import("./pages/contacts-trash-page").then((m) => m.ContactsTrashPage),
+  ),
+  organizationsTrash: lazyWithPreload(() =>
+    import("./pages/contacts-trash-page").then((m) => m.OrganizationsTrashPage),
+  ),
 } satisfies Record<string, PreloadableComponent<object>>
 
 const NO_EXTENSION: ContactsExtension = {}
@@ -102,8 +108,10 @@ export function createContactsModule({
     paths,
     pages: [
       { path: paths.contacts, page: PAGES.contacts },
+      { path: paths.contactsTrash, page: PAGES.contactsTrash },
       { path: `${paths.contacts}/:id`, page: PAGES.contact },
       { path: paths.organizations, page: PAGES.organizations },
+      { path: paths.organizationsTrash, page: PAGES.organizationsTrash },
       { path: `${paths.organizations}/:id`, page: PAGES.organization },
       { path: paths.segments, page: PAGES.segments },
     ],

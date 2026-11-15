@@ -22,6 +22,8 @@ export type K2DocumentKey = "invoice" | "creditNote"
 /** Адреси сторінок документа від `basePath` фабрики. */
 export interface K2DocumentPaths {
   readonly list: string
+  /** Кошик списку (PF16, ADR-0095). */
+  readonly trash: string
   readonly record: (id: string) => string
   readonly edit: (id: string) => string
   readonly print: (id: string) => string

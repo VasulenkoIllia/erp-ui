@@ -4,12 +4,13 @@ import type { K2Document } from "../contract"
 import type { K2DocumentKind } from "../document-kind"
 import { useInvoicesModule } from "../module-context"
 import { useInvoicesT } from "../use-invoices-t"
+import { useDocumentTrashLabel } from "./document-trash-label"
 import { useDocumentLockedReason } from "./invoice-access"
 
 /**
  * «Видалити чернетку» рахунку чи кредит-ноти в шапці картки (ADR-0066): кнопка кіта зі словами модуля;
  * закритий період — причиною кіта. Наслідок у підтвердженні дає шапка (`description`): чернетка з
- * замовлення звільняє його (ADR-0070).
+ * замовлення звільняє його (ADR-0070). З кошиком на сервері — без підтвердження, зі «Скасувати» (ADR-0095).
  */
 export function InvoiceDeleteAction({
   kind,
@@ -29,10 +30,12 @@ export function InvoiceDeleteAction({
   const { paths } = useInvoicesModule()
   const lockedReason = useDocumentLockedReason(kind)
   const { key } = kind
+  const trashLabel = useDocumentTrashLabel(key)
   return (
     <DocumentDeleteAction
       resource={kind.resource}
       document={document}
+      name={trashLabel(document)}
       listPath={kind.pathsOf(paths).list}
       moduleText={lockedReason}
       lockReason={lockReason}
@@ -40,6 +43,7 @@ export function InvoiceDeleteAction({
         button: t(`${key}.delete.button`),
         denied: t(`${key}.delete.denied`),
         done: t(`${key}.delete.done`),
+        trashed: t(`${key}.delete.trashed`),
         title: t(`${key}.delete.title`),
         description,
         confirm: t(`${key}.delete.confirm`),

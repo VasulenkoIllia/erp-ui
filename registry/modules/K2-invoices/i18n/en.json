@@ -61,12 +61,17 @@
         "title_one": "Delete {{value}} invoice?",
         "title_other": "Delete {{value}} invoices?",
         "description": "Only drafts without a number are deleted for good. An issued invoice is cancelled or reversed, not deleted: such invoices stay; the report lists them with the reason.",
+        "descriptionTrash": "Only drafts without a number go to the trash. An issued invoice is not deleted but cancelled or reversed: such invoices stay, the report lists them with the reason.",
         "confirm_one": "Delete {{value}} invoice",
         "confirm_other": "Delete {{value}} invoices",
         "progress": "Deleting drafts",
         "done": "Drafts deleted: {{value}}",
         "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
       }
+    },
+    "trash": {
+      "row": "Invoice {{number}}",
+      "rowDraft": "Draft for {{client}} of {{date}}"
     }
   },
   "debts": {
@@ -187,6 +192,7 @@
       "descriptionOrder": "The draft is deleted for good together with its lines. The order it was issued from can be invoiced again.",
       "confirm": "Delete draft",
       "done": "Draft deleted",
+      "trashed": "Draft moved to the trash",
       "locked": {
         "submitted": "An issued invoice is not deleted: cancel or reverse it",
         "cancelled": "A cancelled invoice is not deleted: it stays in the history"
@@ -292,6 +298,10 @@
       "clientId": "Client",
       "date": "Date"
     },
+    "trash": {
+      "row": "Credit note {{number}}",
+      "rowDraft": "Draft for {{client}} of {{date}}"
+    },
     "empty": {
       "title": "No credit notes yet",
       "description": "Create a credit note on the card of an issued invoice: “Create credit note”, then keep the returned lines and quantities."
@@ -345,6 +355,7 @@
       "descriptionAmended": "The draft will be deleted for good with its lines. The cancelled credit note it was made from can be corrected again.",
       "confirm": "Delete draft",
       "done": "Draft deleted",
+      "trashed": "Draft moved to the trash",
       "locked": {
         "submitted": "An issued credit note is not deleted: cancel or reverse it",
         "cancelled": "A cancelled credit note is not deleted: it stays in the history"

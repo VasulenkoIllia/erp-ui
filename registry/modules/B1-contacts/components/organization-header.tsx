@@ -23,12 +23,13 @@ import { useContactsModule } from "../module-context"
 import { useContactsT } from "../use-contacts-t"
 import { AccessAction } from "./access-action"
 import { codeLabelKey, organizationName } from "./organization-columns"
+import { ContactsDeleteAction } from "./record-delete"
 import { useResponsible } from "./responsible"
 
 /**
  * Шапка картки організації: назва, статус, ключові поля (код, тип, місто, телефон, відповідальний) з
- * полями розширення, «Змінити» (форма в діалозі), «Закріпити вгорі» й дії розширення; без запису —
- * немає.
+ * полями розширення, «Змінити» (форма в діалозі), «Закріпити вгорі», «Видалити» (ADR-0095) й дії
+ * розширення; без запису — немає.
  */
 export function useOrganizationHeader(
   organization: Organization | undefined,
@@ -92,6 +93,16 @@ export function useOrganizationHeader(
           record={organization}
           name={organizationName(organization)}
           variant="button"
+        />
+      ),
+    },
+    {
+      id: "delete",
+      node: (
+        <ContactsDeleteAction
+          entity="organization"
+          record={organization}
+          lockReason={lock.reason}
         />
       ),
     },

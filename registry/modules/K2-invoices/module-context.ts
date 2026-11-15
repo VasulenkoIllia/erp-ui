@@ -10,6 +10,8 @@ import type { InvoicesExtension } from "./extension"
 /** Адреси сторінок модуля від `basePath` фабрики. */
 export interface InvoicesPaths {
   readonly invoices: string
+  /** Кошик рахунків (PF16, ADR-0095). */
+  readonly invoicesTrash: string
   readonly invoice: (id: string) => string
   readonly newInvoice: string
   readonly editInvoice: (id: string) => string
@@ -17,6 +19,7 @@ export interface InvoicesPaths {
   readonly printInvoice: (id: string) => string
   /** Кредит-ноти (ADR-0072): список, картка, зміна чернетки й друк; нову створює дія рахунку. */
   readonly creditNotes: string
+  readonly creditNotesTrash: string
   readonly creditNote: (id: string) => string
   readonly editCreditNote: (id: string) => string
   readonly printCreditNote: (id: string) => string
@@ -35,11 +38,13 @@ export function invoicesPaths(basePath: string): InvoicesPaths {
     `${base}/credit-notes/${encodeURIComponent(id)}`
   return {
     invoices: `${base}/invoices`,
+    invoicesTrash: `${base}/invoices/trash`,
     invoice,
     newInvoice: `${base}/invoices/new`,
     editInvoice: (id) => `${invoice(id)}/edit`,
     printInvoice: (id) => `${invoice(id)}/print`,
     creditNotes: `${base}/credit-notes`,
+    creditNotesTrash: `${base}/credit-notes/trash`,
     creditNote,
     editCreditNote: (id) => `${creditNote(id)}/edit`,
     printCreditNote: (id) => `${creditNote(id)}/print`,

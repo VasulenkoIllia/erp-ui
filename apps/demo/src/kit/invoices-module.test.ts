@@ -237,13 +237,17 @@ describe("модуль K2: фабрика", () => {
     const module = createInvoicesModule({ basePath: "/finance/" })
     expect(module.paths.invoice("i1")).toBe("/finance/invoices/i1")
     expect(module.paths.printInvoice("i1")).toBe("/finance/invoices/i1/print")
+    expect(module.paths.invoicesTrash).toBe("/finance/invoices/trash")
+    expect(module.paths.creditNotesTrash).toBe("/finance/credit-notes/trash")
     expect(module.routes.map((route) => route.path)).toEqual([
       "/finance/invoices",
       "/finance/invoices/new",
+      "/finance/invoices/trash",
       "/finance/invoices/:id",
       "/finance/invoices/:id/edit",
       "/finance/invoices/:id/print",
       "/finance/credit-notes",
+      "/finance/credit-notes/trash",
       "/finance/credit-notes/:id",
       "/finance/credit-notes/:id/edit",
       "/finance/credit-notes/:id/print",

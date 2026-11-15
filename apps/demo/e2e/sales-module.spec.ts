@@ -39,7 +39,7 @@ const rowsWith = (page: Page, text: string) =>
     .filter({ hasText: text })
 const selectionStatus = (page: Page) =>
   page.locator('[data-slot="data-table-selection"]')
-const jobToast = (page: Page, title: string) =>
+const jobToast = (page: Page, title: string | RegExp) =>
   page.locator("[data-sonner-toast]").filter({ hasText: title })
 
 /** Base UI переносить фокус у діалог наступним кадром: до того введення піде повз поле. */
@@ -264,18 +264,23 @@ test.describe("модуль B3: пропозиції", () => {
     ).toBeVisible()
   })
 
-  test("«Видалити чернетку» з картки — список без неї; у надісланої кнопка неактивна з причиною", async ({
+  test("«Видалити чернетку» з картки — у кошик без підтвердження, «Скасувати» повертає; у надісланої кнопка неактивна з причиною", async ({
     page,
   }) => {
     await openWith(page, {}, DRAFT)
     await expect(heading(page)).toHaveText("Пропозиція без номера")
     await page.getByRole("button", { name: "Видалити чернетку" }).click()
-    const confirm = await openConfirm(page, "Видалити чернетку?")
-    await expectNoA11yViolations(page)
-    await confirm.getByRole("button", { name: "Видалити чернетку" }).click()
     await expect(heading(page)).toHaveText("Пропозиції")
     await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
       /(^|\D)9(\D|$)/,
+    )
+    const moved = jobToast(page, "Чернетку перенесено в кошик")
+    await expect(moved).toBeVisible()
+    await expectNoA11yViolations(page)
+    await moved.getByRole("button", { name: "Скасувати" }).click()
+    await expect(jobToast(page, /^Відновлено: /)).toBeVisible()
+    await expect(page.getByRole("tab", { name: /^Усі/ })).toContainText(
+      /(^|\D)10(\D|$)/,
     )
 
     await openWith(page, {}, SENT)

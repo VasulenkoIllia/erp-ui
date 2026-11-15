@@ -36,6 +36,15 @@
     "history": "History",
     "edit": "Edit",
     "editDenied": "You don't have permission to edit organizations",
+    "delete": {
+      "button": "Delete",
+      "denied": "You don't have permission to delete organizations",
+      "title": "Delete the organization?",
+      "description": "The organization will be deleted for good together with its addresses and bank accounts. Its contacts stay without an organization; documents keep the client name.",
+      "confirm": "Delete organization",
+      "done": "Organization deleted",
+      "trashed": "Organization moved to the trash"
+    },
     "form": {
       "createTitle": "New organization",
       "createLead": "Key details. Addresses and bank accounts are on the organization page.",
@@ -206,6 +215,15 @@
     "private": "Private person",
     "edit": "Edit",
     "editDenied": "You don't have permission to edit contacts",
+    "delete": {
+      "button": "Delete",
+      "denied": "You don't have permission to delete contacts",
+      "title": "Delete the contact?",
+      "description": "The contact will be deleted for good.",
+      "confirm": "Delete contact",
+      "done": "Contact deleted",
+      "trashed": "Contact moved to the trash"
+    },
     "form": {
       "createTitle": "New contact",
       "editTitle": "Edit contact",

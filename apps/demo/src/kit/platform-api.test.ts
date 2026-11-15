@@ -14,6 +14,7 @@ import { createPlatformApis, lazyApi } from "@/registry/lib/platform-api"
 import { createQueryClient } from "@/registry/lib/query-client"
 import { createAdminApi } from "@/registry/lib/security-policy"
 import { createTimelineApi } from "@/registry/lib/timeline"
+import { createTrashApi } from "@/registry/lib/trash"
 import { createWebhooksApi } from "@/registry/lib/webhooks"
 
 const client = createApiClient({ baseUrl: "http://erp.test/api/v1" })
@@ -35,6 +36,7 @@ describe("API платформи (ADR-0092)", () => {
     expect(keys(apis.webhooks)).toEqual(keys(createWebhooksApi(client)))
     expect(keys(apis.invitations)).toEqual(keys(createInvitationsApi(client)))
     expect(keys(apis.timeline)).toEqual(keys(createTimelineApi(client)))
+    expect(keys(apis.trash)).toEqual(keys(createTrashApi(client)))
   })
 
   it("вантажить API один раз, при першому виклику, і передає аргументи", async () => {

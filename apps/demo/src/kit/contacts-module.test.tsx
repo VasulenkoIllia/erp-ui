@@ -381,10 +381,14 @@ describe("моки B1", () => {
 describe("фабрика createContactsModule", () => {
   it("маршрути від basePath, перехід з адреси модуля, навігація й ресурси", () => {
     const module = createContactsModule({ basePath: "/crm/" })
+    expect(module.paths.contactsTrash).toBe("/crm/contacts/trash")
+    expect(module.paths.organizationsTrash).toBe("/crm/organizations/trash")
     expect(module.routes.map((route) => route.path)).toEqual([
       "/crm/contacts",
+      "/crm/contacts/trash",
       "/crm/contacts/:id",
       "/crm/organizations",
+      "/crm/organizations/trash",
       "/crm/organizations/:id",
       "/crm/segments",
       "/crm/",
@@ -406,7 +410,7 @@ describe("фабрика createContactsModule", () => {
 
   it("без basePath — без перенаправлення; чужа адреса — без завантаження", () => {
     const module = createContactsModule()
-    expect(module.routes).toHaveLength(5)
+    expect(module.routes).toHaveLength(7)
     expect(() => {
       module.preload("/settings/users")
     }).not.toThrow()

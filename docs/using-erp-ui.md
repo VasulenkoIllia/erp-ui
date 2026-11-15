@@ -642,7 +642,7 @@ setupWorker(...createPlatformHandlers({}), ...dictionaries.handlers)
 
 - Сторінки: «Податки», «Одиниці виміру», «Умови оплати», «Теги», «Причини», «Типові значення», адреси в `dictionariesModule.paths`, `basePath` веде на першу сторінку.
 - Права: `taxes`, `units`, `payment-terms`, `tags`, `reasons` мають `read`, `create`, `update`; `dictionary-defaults` має `read`, `update`. Додайте їх у свої ролі. Форма типових значень бере перелік значень, тож тому, хто її змінює, потрібне ще `read` на довідники.
-- Значення не видаляються: «Вимкнути» прибирає його з нових виборів. Вибір у документі — `RecordPicker` із `filter={{ active: true }}`.
+- Значення не видаляються: «Вимкнути» прибирає його з нових виборів. Це і є архів довідника, кошика довідники не мають (ADR-0095). Вибір у документі — `RecordPicker` із `filter={{ active: true }}`.
 - Вимкнення прибирає значення з типових: це робить сервер у тій самій транзакції. «Скасувати» типового не повертає, тому значення з позначкою «Типове» перед вимкненням питає (потрібне право `dictionary-defaults:read`).
 - Розширення — кожен довідник: `page: false`, `fields`, `columns`, `filters`, `form`; `reasons.kinds` (види причин проекту); `defaults: { page: false }`; `strings`.
 
@@ -1252,6 +1252,39 @@ const posting = usePostingDate()
 - Моки: `createPeriodLockMocks({ seeds })` один на застосунок, `handlers` — до обробників; документам модуля —
   `forResource({ resource, dateField, actions })`: `deniedActions` (злийте з позначками життєвого циклу, ті — останніми),
   `validateWrite` і `afterWrite` — в опції ресурсу, `afterTransition` — у `createTransitionHandlers`.
+
+### Кошик (ADR-0095)
+
+Сервер, що веде кошик, переносить запис туди на `DELETE /<ресурс>/:id` і тримає його `retentionDays` днів, потім видаляє
+назавжди сам. `GET /trash/settings` каже строк і ресурси з кошиком, `GET /trash?resource=` віддає видалені записи ресурсу,
+`POST /trash/<ресурс>/<id>/restore` повертає запис (контракт — SPEC §17, `lib/trash`). Бачить і відновлює той, хто може
+видаляти: `<ресурс>:delete`, з `:own` — свої. Бекенд без кошика відповідає `404` на налаштування: кнопки «Кошик» немає,
+видалення питає підтвердження, як і раніше.
+
+```tsx
+// Шапка списку: кнопка «Кошик» — лише з кошиком і правом
+actions={[{ id: "trash", node: <TrashLink resource="organizations" to={paths.organizationsTrash} /> }]}
+
+// Картка: з кошиком — без діалогу, «Перенесено в кошик» зі «Скасувати»; без нього — підтвердження
+<DocumentDeleteAction resource="organizations" document={record} listPath={paths.organizations}
+  name={record.name} texts={{ …, trashed: t("organization.delete.trashed") }} lockReason={lock.reason} />
+
+// Маршрут `<список>/trash` — перед `/:id`
+<TrashPage resource="organizations" schema={rowSchema} rowLabel={(o) => o.name}
+  listTitle={t("organizations.title")} listPath={paths.organizations}
+  backLabel={t("organization.back")} recordHref={paths.organization} />
+```
+
+- Масове видалення лишає підтвердження: допишіть до опису `useTrashKeptFor(resource)` («Відновити їх можна з кошика
+  протягом 30 днів»), без кошика він `undefined`.
+- Модулі B1, B3 і K2 підключають кошик самі: маршрути `…/trash`, кнопка «Кошик», «Видалити» на картках організації й
+  контакту (дія `delete` у типі розширення: сховати — як інші дії шапки).
+- Рядки — `useErpUiT(ukTrash)` у своєму коді (ADR-0094). API — `authProvider.trash` (`getSettings`, `list`, `restore`):
+  провайдер на `createAuthProvider` отримує його сам, написаний вручну додає (`CHANGELOG.md`).
+- Моки: `createTrashMocks()` один на застосунок, `handlers` — до обробників; ресурсу — опція `trash: { bin, deleted? }` у
+  `createResourceHandlers` і `create<Модуль>Mocks`. Зв'язок, який видалення звільняє (`afterDelete`), відновлення займає
+  знову: `trashLinks(() => [mockLinkSlot(db, "parentId", "childId")])`, зайнятий — `409 restore_conflict`. Сценарії —
+  ресурс `trash` (`empty`, `conflict` і загальні).
 
 ### Модуль B3 «Пропозиції й замовлення» (ADR-0065…ADR-0067)
 

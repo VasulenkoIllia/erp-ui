@@ -41,6 +41,7 @@ export { default as ukDocumentGeneratorPage } from "./uk/document-generator-page
 export { default as ukPartyDetailsPage } from "./uk/party-details-page.json"
 export { default as ukNumberingPage } from "./uk/numbering-page.json"
 export { default as ukPeriodLockPage } from "./uk/period-lock-page.json"
+export { default as ukTrashPage } from "./uk/trash-page.json"
 export { default as ukTimelinePage } from "./uk/timeline-page.json"
 export { default as ukRichTextPage } from "./uk/rich-text-page.json"
 export { default as ukImportExportPage } from "./uk/import-export-page.json"

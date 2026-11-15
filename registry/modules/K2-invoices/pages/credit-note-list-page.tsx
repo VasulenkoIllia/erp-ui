@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router"
 
 import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { TrashLink } from "@/components/erp/trash-link"
 import { ListReport, useListReport } from "@/components/templates/list-report"
 import { useListSlots } from "@/components/templates/list-report-slots"
 import { useExtendedList } from "@/hooks/use-extended-list"
@@ -34,10 +35,12 @@ const DEFAULTS: ListDefaults = {
  * Список кредит-нот на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0072): вкладки за статусом
  * (зі статусами розширення), фільтри «Клієнт» і «Дата», пошук за номером, клієнтом чи рахунком; номер —
  * посилання на картку, «Рахунок» — на картку рахунку-підстави. Кнопки «Створити» немає: кредит-ноту
- * створюють на картці виставленого рахунку, про це каже порожній список.
+ * створюють на картці виставленого рахунку, про це каже порожній список. «Кошик» — видалені чернетки
+ * (ADR-0095).
  */
 export function CreditNotesListPage() {
   const t = useInvoicesT()
+  const { paths, preload } = useInvoicesModule()
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("creditNotes.title"))
@@ -47,6 +50,22 @@ export function CreditNotesListPage() {
         title={t("creditNotes.title")}
         description={t("creditNotes.lead")}
         headingRef={heading}
+        actions={
+          isPending
+            ? undefined
+            : [
+                {
+                  id: "trash",
+                  node: (
+                    <TrashLink
+                      resource={CREDIT_NOTES}
+                      to={paths.creditNotesTrash}
+                      preload={preload}
+                    />
+                  ),
+                },
+              ]
+        }
       />
       {isPending ? <PageSkeleton rows={8} /> : <CreditNoteList />}
     </div>

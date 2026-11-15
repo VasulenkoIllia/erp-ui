@@ -25,6 +25,7 @@ export const ROUTES = {
   documentGenerator: "/document-generator",
   richText: "/rich-text",
   timeline: "/timeline",
+  trash: "/trash",
   setup: "/setup",
   states: "/states",
   data: "/data",

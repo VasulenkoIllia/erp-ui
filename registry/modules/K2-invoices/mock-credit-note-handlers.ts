@@ -38,6 +38,13 @@ import {
   releaseAmendedFrom,
 } from "@/lib/mock-transitions"
 import { createResourceHandlers, type MockResourceDb } from "@/lib/mocks"
+import {
+  mockLinkSlot,
+  trashLinks,
+  type MockLinkSlot,
+  type MockTrashBin,
+  type MockTrashSeed,
+} from "@/lib/mock-trash"
 import { mergeTransitions } from "@/lib/statuses"
 
 import {
@@ -205,6 +212,11 @@ export interface CreditNoteHandlersOptions {
   readonly data: () => CreditNoteCard[]
   /** Після дії кредит-ноти: борг рахунку змінився — статус за оплатами (ADR-0073). */
   readonly settleInvoice?: (invoiceId: string) => void
+  /** Кошик (ADR-0095): видалена чернетка — у кошик, відновлення займає скасовану кредит-ноту знову. */
+  readonly trash?: {
+    readonly bin: MockTrashBin
+    readonly deleted?: readonly MockTrashSeed[] | undefined
+  }
 }
 
 export function createCreditNoteHandlers({
@@ -216,6 +228,7 @@ export function createCreditNoteHandlers({
   openDay,
   data,
   settleInvoice,
+  trash,
 }: CreditNoteHandlersOptions) {
   const transitions = mergeTransitions(
     CREDIT_NOTE_TRANSITIONS,
@@ -272,6 +285,23 @@ export function createCreditNoteHandlers({
     afterDelete: (note) => {
       releaseAmendedFrom(notes.db, note)
     },
+    ...(trash
+      ? {
+          trash: {
+            bin: trash.bin,
+            deleted: trash.deleted,
+            ...trashLinks<CreditNoteCard>(
+              (): MockLinkSlot<CreditNoteCard>[] => [
+                mockLinkSlot<CreditNoteCard, CreditNoteCard>(
+                  notes.db,
+                  "amendedFrom",
+                  "amendedBy",
+                ),
+              ],
+            ),
+          },
+        }
+      : {}),
     // Причини життєвого циклу важливіші: закритий період додає лише дії, яких ще ніщо не забороняє.
     deniedActions: (actor, note) => {
       const denied = {

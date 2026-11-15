@@ -147,14 +147,18 @@ describe("модуль B3: фабрика", () => {
     expect(module.id).toBe(SALES_MODULE_ID)
     expect(module.paths.editQuote("q1")).toBe("/sales/quotes/q1/edit")
     expect(module.paths.printQuote("q1")).toBe("/sales/quotes/q1/print")
+    expect(module.paths.quotesTrash).toBe("/sales/quotes/trash")
+    expect(module.paths.ordersTrash).toBe("/sales/orders/trash")
     expect(module.routes.map((route) => route.path)).toEqual([
       "/sales/quotes",
       "/sales/quotes/new",
+      "/sales/quotes/trash",
       "/sales/quotes/:id",
       "/sales/quotes/:id/edit",
       "/sales/quotes/:id/print",
       "/sales/orders",
       "/sales/orders/new",
+      "/sales/orders/trash",
       "/sales/orders/:id",
       "/sales/orders/:id/edit",
       "/sales/orders/:id/print",
@@ -188,7 +192,7 @@ describe("модуль B3: фабрика", () => {
 
   it("без basePath — адреси від кореня й без переходу з адреси модуля", () => {
     const module = createSalesModule()
-    expect(module.routes).toHaveLength(10)
+    expect(module.routes).toHaveLength(12)
     expect(module.routes[0]?.path).toBe("/quotes")
   })
 })
