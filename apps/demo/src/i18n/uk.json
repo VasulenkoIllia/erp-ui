@@ -42,6 +42,10 @@
       "invoice": "Рахунок",
       "organization": "Організація"
     },
+    "pagesShort": {
+      "formats": "Формати",
+      "states": "Стани"
+    },
     "product": "erp-ui · демо",
     "signIn": "Увійти",
     "meFailed": "Не вдалося завантажити профіль. Перевірте з'єднання.",

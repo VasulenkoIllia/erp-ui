@@ -13,6 +13,8 @@
 
 Потрібен Node.js 26 або новіший (`.nvmrc` проекту): на ньому CI кіта перевіряє доставку й команду `scripts/erp-ui-kit.mjs`.
 
+Браузери: мінімум задає Tailwind CSS v4 — Safari 16.4, Chrome і Edge 111, Firefox 128 ([сумісність Tailwind](https://tailwindcss.com/docs/compatibility)); у старіших кольори тем і тіні можуть не відобразитись. Новіші можливості кіт бере як покращення: без них поле коментаря не росте з текстом (`field-sizing`), а перехід між сторінками йде без анімації (View Transitions, ADR-0009).
+
 ```sh
 pnpm create vite@latest my-erp -- --template react-ts
 cd my-erp
@@ -25,9 +27,12 @@ pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.4.0
 pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
 git add -A && git commit -m "erp-ui: base v1.4.0"   # команда кіта пише лише в чисте дерево
 node scripts/erp-ui-kit.mjs update v1.4.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
+git add -A && git commit -m "erp-ui: кіт v1.4.0"
 ```
 
-Останній рядок ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.4.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check` (файли кіта в проекті не правлені) і `node scripts/erp-ui-check-tokens.mjs` (лише токени тем у коді проекту, ADR-0089).
+Комітів на старті два, і це навмисно: команда кіта пише лише в чисте дерево (ADR-0029, SPEC §3.3), тож перший коміт — шаблон, `init` і `base` (у ньому сама команда), другий — те, що команда поставила. Так кожна зміна кіта, і перша, і кожне оновлення, лежить окремим diff: її видно й можна відкотити, не зачепивши код проекту.
+
+Рядок `update` ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.4.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check` (файли кіта в проекті не правлені) і `node scripts/erp-ui-check-tokens.mjs` (лише токени тем у коді проекту, ADR-0089).
 
 Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `scripts/erp-ui-check-tokens.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
@@ -38,7 +43,7 @@ node scripts/erp-ui-kit.mjs update v1.4.0 --items base,data,mocks,auth,erp/app-g
 - вподобання вигляду `src/lib/appearance.ts` + `src/hooks/use-appearance.ts` і словник іконок `src/lib/icons.tsx`;
 - скіл для Claude Code у `.claude/skills/erp-ui/` (ядро `SKILL.md` і довідки за темами в `references/`, ADR-0089), SPEC і каталог у `docs/erp-ui/`;
 - команду кіта `scripts/erp-ui-kit.mjs` (+ `erp-ui-kit-lib.mjs`, `erp-ui-kit-deps.mjs`, `erp-ui-kit-manifest.mjs`, `erp-ui-kit-changelog.mjs`): оновлення й перевірка файлів кіта (розділ 8, ADR-0029, ADR-0078);
-- перевірку `scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`): сирі кольори, стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами у файлах `.ts`, `.tsx`, `.js`, `.jsx`, `.css`; згенеровані палітри `…/styles/erp-ui/themes.css` пропускає, виняток для рядка — коментар `erp-ui: allow-raw-value — <причина>`; тека, якої немає, чи тека без таких файлів — помилка (ADR-0089).
+- перевірку `scripts/erp-ui-check-tokens.mjs [теки…]` (без аргументів — тека файла `tailwind.css` з `components.json`, без нього `src`; ADR-0096): сирі кольори, стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами у файлах `.ts`, `.tsx`, `.js`, `.jsx`, `.css`; згенеровані палітри `…/styles/erp-ui/themes.css` пропускає, виняток для рядка — коментар `erp-ui: allow-raw-value — <причина>`; тека, якої немає, чи тека без таких файлів — помилка (ADR-0089).
 
 Після цього додайте в `CLAUDE.md` проекту рядок:
 
@@ -57,6 +62,12 @@ npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 ```
 
 Компоненти лягають у `src/components/ui/`, імпорти — `@/components/ui/button`. Кожен елемент приносить усе, що йому потрібно (наприклад, `ui/dialog` — ще й кнопку та `cn`). Ставте елементи командою кіта (`--add`), а не `shadcn add` напряму: так елемент потрапляє в `kit-files.json` і оновлюється разом з рештою (§8). Команди `shadcn add VasulenkoIllia/erp-ui/<елемент>` у розділах нижче — назви елементів для `--add`.
+
+Малий список (десятки записів, свій API, без вікон з сервера) складається з тих самих елементів, окремих «легких» немає:
+
+- таблиця — `erp/data-table` з `rows` (поточна сторінка; `undefined` — ще вантажиться) і, за потреби, `pagination` замість `list`: ті самі стани, сортування й картки на телефоні (`cardsBelow`);
+- вибір файла — `erp/file-drop`: кнопка й перетягування, тип і розмір перевіряються біля поля;
+- вибір з короткого списку у формі — `erp/form-select` у `FormField`; значення — рядки, числовий id перетворіть (`String(id)`, назад — `Number(value)`).
 
 ## 3. Мови й формати
 
@@ -175,7 +186,8 @@ useRoutes([
 
 - Компанія: `const [companyId, switchCompany] = useCompany()` з `hooks/use-company` (пакунок `data`). Перемикання скасовує запити, скидає дані попередньої компанії й перечитує профіль; свої `useQuery` з даними компанії додають у кінець ключа `companyScope(useCompanyId())` з `lib/company-scope`. Компанія з іншого джерела (напр. з адреси сторінки) — через `setCompanyId` з `lib/company-scope`: `X-Company-Id` і ключі кешу беруться лише звідти.
 - Крихти: остання без `href` — поточна сторінка, з `href` — посилання (список над карткою запису, як у прикладі), тож крихті поточної сторінки `href` не давайте; інша крихта без `href` — підпис групи. На телефоні видно лише останню.
-- Десктоп — сайдбар із групами, планшет — вузька панель з іконками, телефон — нижня панель (пункти з `mobile: true`, до 4) + «Ще».
+- Десктоп — сайдбар із групами, планшет — вузька панель з іконками, телефон — нижня панель (пункти з `mobile: true`, до 4) + «Ще». Довга назва в нижній панелі обрізається: дайте пункту `shortLabel` — слово з `label` («Рахунки» для «Рахунки клієнтам»). Видно короткий підпис, а доступна назва посилання лишається повною; якщо слова в `label` немає, доступна назва — обидва підписи (WCAG 2.5.3).
+- Свій `header` (назва продукту, логотип) у вузькій панелі не вміщається: текст сховайте класом `group-data-[collapsible=icon]:hidden` (або `group-data-[collapsible=icon]:sr-only`, щоб скрінрідер його чув), іконку чи логотип лишіть. `CompanySwitcher` робить так сам.
 - Іконки модулів, статусів і дій — лише з `lib/icons` (`MODULE_ICONS`, `STATUS_ICONS`, `ACTION_ICONS`); гривня — `HryvniaIcon`.
 - Стани списків і сторінок — `PageState` і `PageSkeleton` з `erp/page-state`; порожній стан не підміняє помилку. Рівень заголовка стану — `headingLevel`: 2 за замовчуванням (під h1 сторінки), 1 — стан замість усієї сторінки («Не знайдено» картки), 3 — стан секції чи вкладки.
 - Сітки сторінок — з `grid-cols-1` (`minmax(0, 1fr)`), інакше широка таблиця розпирає сторінку на телефоні.
@@ -294,7 +306,7 @@ interface ImportMetaEnv {
 - Панель сценаріїв (`DevPanel`) — під тією ж умовою.
 - Явне `VITE_BACKEND=mocks` у збірці — для e2e і стенду-демо, лише змінною команди (з `.env`-файла збірка `mocks` не бере) і в окрему теку: `VITE_BACKEND=mocks vite build --outDir dist-e2e`. `public/mockServiceWorker.js` від `msw init` лежить і в збірці з бекендом, але реєструє його лише `startMocks`.
 - Перевірка: після збірки з бекендом `grep -rlF -e "[MSW]" -e "erp-ui:mock-" dist` нічого не знаходить (додайте рядок, що є лише у ваших моках, напр. пароль користувача моків). Так само кіт у CI перевіряє тестовий проект (`scripts/consumer-smoke.mjs`): без змінної, з опискою й з `mocks` лише з `.env`-файла збірка зупиняється, з `api` моків у `dist` немає, з `mocks` MSW і моки проекту — лише лінивими чанками.
-- `node scripts/erp-ui-kit.mjs check` попереджає (код 0), якщо в `vite.config.*` проекту немає `VITE_BACKEND`: старий проект бачить так, що запобіжника ще немає (ADR-0088).
+- `node scripts/erp-ui-kit.mjs check` попереджає (код 0), якщо в `vite.config.*` проекту немає `VITE_BACKEND`: старий проект бачить так, що запобіжника ще немає (ADR-0088). Лише коли моки кіта в проекті є: елемент `mocks` у `kit-files.json` чи файл `lib/mocks.ts`, який ставить і модуль кіта; проект без моків попередження не бачить (ADR-0096).
 
 - Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`.
 - Таблиця (ADR-0016) — `DataTable` з `erp/data-table`: колонки описуються один раз для гріда й карток (на контейнері вужчому за 40 rem — картки), сортування й фільтри — на сервері.
@@ -1146,6 +1158,22 @@ const state = order && company ? undefined : error ? errorStateKind(error) : "lo
 - `PrintButton` чекає логотипа й печатки аркуша (до 3 с) і на час друку ставить у заголовок сторінки назву документа: з неї
   браузер бере назву файла PDF. Кнопку прибрали, поки чекали, — друк скасовано; свій виклик `printPage` скасовує `signal`.
 - Сторінка з віртуальними рядками (редактор великого документа, таблиця) друкує лише намальовані рядки: документ друкуйте аркушем.
+- Нестандартний папір (наліпки, чек): правило `@page` кіта (A4) не чіпайте, а дайте своєму аркушу іменовану сторінку в
+  `src/index.css` проекту. Решта документів лишається на A4:
+
+  ```css
+  @page label {
+    size: 58mm 40mm;
+    margin: 2mm;
+  }
+  @media print {
+    .label-preview [data-print-root] {
+      page: label;
+    }
+  }
+  ```
+
+  `<PrintPreview className="label-preview" …>` — клас стоїть на обгортці перегляду, а сторінку бере аркуш усередині.
 
 ### Реквізити сторін (ADR-0068)
 
@@ -1604,7 +1632,7 @@ node scripts/erp-ui-kit.mjs update vX.Y.Z             # оновити всі в
 node scripts/erp-ui-kit.mjs update vX.Y.Z --add erp/command-palette   # і поставити новий
 node scripts/erp-ui-kit.mjs update vX.Y.Z --prune     # і видалити незмінені файли-сироти
 node scripts/erp-ui-kit.mjs check                     # файли кіта не правлені (у pnpm lint і CI)
-node scripts/erp-ui-check-tokens.mjs                  # лише токени тем у src (у pnpm lint і CI)
+node scripts/erp-ui-check-tokens.mjs                  # лише токени тем у теці стилів з components.json, без нього в src (у pnpm lint і CI)
 ```
 
 - Що робить `update`: вимагає чисте git (оновлення видно окремо в `git diff`, повернути — `git restore .`) і незмінені файли кіта → бере SHA коміту тегу (`gh api repos/VasulenkoIllia/erp-ui/commits/refs/tags/vX.Y.Z`) і архів саме цього коміту (`…/tarball/<SHA>`, ~1,5 МБ; тайм-аут 120 с, повтори через 5 і 30 с після збою мережі, 5xx чи 429; на 401, 404 і вичерпаному ліміті — зупинка з поясненням) → перелік архіву до розпакування: символьне чи жорстке посилання — зупинка → перевіряє, що це кіт і та версія, рахує відбиток реєстру → `shadcn build` закріпленою CLI проекту → звіт `add --dry-run` (зміниться, нові, без змін; які залежності додасться) → зупинка, якщо тег той самий, а вміст інший, чи файл, що перезапишеться, має позначку локальної правки; попередження, якщо перезапишеться файл, якого немає в `kit-files.json` (ваш файл на шляху нового файла кіта: перенесіть його під іншу назву; файл, що його git ігнорує, — з приміткою, бо `git restore` його не поверне; скіл і `docs/erp-ui/` — без попередження) → `add --overwrite --yes` (лише файли) → залежності, яких у проекті немає → нові відбитки в `kit-files.json` → наприкінці — розділи «Що зробити в проекті» з `CHANGELOG.md` кіта між версією проекту й новою (і в `--dry-run`): їх проект робить руками; розділи без цього пункту названо окремим рядком — зміни поведінки шукайте в них. Напряму з GitHub CLI робить на модуль тисячі запитів з тайм-аутом 15 с і без повтору, тож команда так не робить (крок 1.7b).

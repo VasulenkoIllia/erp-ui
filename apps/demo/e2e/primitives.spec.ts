@@ -50,6 +50,41 @@ test.describe("примітиви: поведінка", () => {
       expect((await row1.boundingBox())?.height).toBeCloseTo(row, 0)
     })
 
+  // Зона натиску прапорця — touch-target: ≥ --touch-min, 44 px у звичайній щільності, 24 px у компактній.
+  for (const [density, reachesFar] of [
+    ["comfortable", true],
+    ["compact", false],
+  ] as const)
+    test(`прапорець у щільності ${density}: зона натиску ${reachesFar ? 44 : 24} px`, async ({
+      page,
+    }) => {
+      await openWith(page, { density }, PATH)
+      const box = await page
+        .getByRole("checkbox", { name: "Платник ПДВ" })
+        .boundingBox()
+      if (!box) throw new Error("прапорця не видно")
+      const hits = (dx: number) =>
+        page.evaluate(
+          ([x, y]) =>
+            document.elementFromPoint(x, y)?.closest("[data-slot=checkbox]") !=
+            null,
+          [box.x - dx, box.y + box.height / 2] as const,
+        )
+      expect(await hits(3)).toBe(true)
+      expect(await hits(10)).toBe(reachesFar)
+    })
+
+  test("з мишею текст поля й коментаря — 14 px", async ({ page }) => {
+    await openWith(page, {}, PATH)
+    await expect(page.getByLabel("Назва компанії")).toHaveCSS(
+      "font-size",
+      "14px",
+    )
+    await expect(
+      page.getByRole("textbox", { name: "Коментар до рахунку" }),
+    ).toHaveCSS("font-size", "14px")
+  })
+
   test("діалог: відкривається з клавіатури, Esc закриває, фокус повертається", async ({
     page,
   }) => {
@@ -111,5 +146,23 @@ test.describe("примітиви: поведінка", () => {
     await expect(undo).toBeVisible()
     await page.waitForTimeout(4500)
     await expect(undo).toBeVisible()
+  })
+})
+
+test.describe("примітиви: дотиковий планшет", () => {
+  // hasTouch — основний вказівник «грубий» (pointer: coarse), як на iPad.
+  test.use({ viewport: { width: 768, height: 1024 }, hasTouch: true })
+
+  test("текст поля й коментаря — 16 px: сторінка не збільшується на фокусі", async ({
+    page,
+  }) => {
+    await openWith(page, {}, PATH)
+    await expect(page.getByLabel("Назва компанії")).toHaveCSS(
+      "font-size",
+      "16px",
+    )
+    await expect(
+      page.getByRole("textbox", { name: "Коментар до рахунку" }),
+    ).toHaveCSS("font-size", "16px")
   })
 })

@@ -80,7 +80,7 @@ export function CommandPaletteList({
           ref={inputRef}
           aria-label={t("commandPalette.open")}
           placeholder={t("commandPalette.placeholder")}
-          className="h-12 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
+          className="h-12 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground pointer-fine:text-sm"
         />
       </div>
       <div className="min-h-0 overflow-y-auto p-1">

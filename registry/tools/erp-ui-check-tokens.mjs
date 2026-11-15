@@ -8,10 +8,17 @@
  *   - рух поза токенами (ADR-0009): transition-all, duration-200, ease-linear тощо.
  * Виняток для окремого рядка: коментар `erp-ui: allow-raw-value — <причина>`.
  *
- * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` (за замовчуванням `src`), у lint проекту (ADR-0089).
+ * У проекті: `node scripts/erp-ui-check-tokens.mjs [теки…]` у lint проекту (ADR-0089). Без аргументів — тека
+ * файла `tailwind.css` з `components.json`, без нього `src` (ADR-0096).
  * Файл ставить команда кіта разом із `base`: у проекті його не правте.
  */
-import { readdirSync, readFileSync, realpathSync, statSync } from "node:fs"
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  statSync,
+} from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -82,7 +89,32 @@ export function findViolations(text) {
   return violations
 }
 
-const DEFAULT_ROOTS = ["src"]
+const FALLBACK_ROOT = "src"
+const SHADCN_CONFIG = "components.json"
+
+/**
+ * Тека за замовчуванням (ADR-0096 п. 2): тека файла стилів `tailwind.css` з `components.json` (там, де
+ * код проекту, і в підпакеті робочого простору), без нього — `src`. Файл стилів у корені проекту —
+ * теж `src`: корінь цілком зачепив би скрипти й конфіги. Зламаний `components.json` — помилка.
+ */
+export function defaultRoots(cwd) {
+  const file = path.join(cwd, SHADCN_CONFIG)
+  if (!existsSync(file)) return [FALLBACK_ROOT]
+  let config
+  try {
+    config = JSON.parse(readFileSync(file, "utf8"))
+  } catch (error) {
+    throw new Error(
+      `${SHADCN_CONFIG} не читається як JSON (${error instanceof Error ? error.message : String(error)}) — виправте файл або назвіть теки аргументами`,
+      { cause: error },
+    )
+  }
+  const css = config?.tailwind?.css
+  if (typeof css !== "string" || !css.trim()) return [FALLBACK_ROOT]
+  // Шляхи в components.json — зі скісною рискою на будь-якій системі.
+  const dir = path.posix.dirname(path.posix.normalize(css.trim()))
+  return [dir === "." ? FALLBACK_ROOT : dir]
+}
 /**
  * Палітри тем генерує кіт із власних кольорів (`design/generate-themes.mjs`): там сирі кольори — джерело токенів.
  * Шлях — кінець відносного шляху файла, бо тека `src` у монорепо буває глибше.
@@ -153,10 +185,21 @@ export function scanRoots(cwd, roots) {
   return { found, files: seen.size }
 }
 
+function rootsOrExit(cwd, args) {
+  if (args.length) return args
+  try {
+    return defaultRoots(cwd)
+  } catch (error) {
+    console.error(
+      `check-tokens: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    process.exit(1)
+  }
+}
+
 function main() {
-  const args = process.argv.slice(2)
-  const roots = args.length ? args : DEFAULT_ROOTS
   const cwd = process.cwd()
+  const roots = rootsOrExit(cwd, process.argv.slice(2))
   const missing = missingRoots(cwd, roots)
   if (missing.length) {
     console.error(

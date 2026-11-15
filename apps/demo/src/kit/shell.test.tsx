@@ -57,6 +57,47 @@ describe("AppShell (jsdom — ширина телефона)", () => {
     )
   })
 
+  it("короткий підпис: видно його, доступна назва — повна; слова немає в назві — обидва", () => {
+    render(
+      <TooltipProvider>
+        <AppShell
+          nav={[
+            {
+              id: "sales",
+              label: "Продажі",
+              items: [
+                {
+                  id: "k2",
+                  label: "Рахунки клієнтам",
+                  shortLabel: "Рахунки",
+                  href: "#/k2",
+                  icon: FileText,
+                  mobile: true,
+                },
+                {
+                  id: "b1",
+                  label: "Контрагенти",
+                  shortLabel: "Люди",
+                  href: "#/b1",
+                  icon: Users,
+                  mobile: true,
+                },
+              ],
+            },
+          ]}
+          activeId="k2"
+        >
+          <p>Вміст</p>
+        </AppShell>
+      </TooltipProvider>,
+    )
+    const bottom = screen.getByRole("navigation", { name: "Швидкі розділи" })
+    const links = within(bottom).getAllByRole("link")
+    expect(links.map((link) => link.textContent)).toEqual(["Рахунки", "Люди"])
+    expect(links[0]).toHaveAccessibleName("Рахунки клієнтам")
+    expect(links[1]).toHaveAccessibleName("Люди, Контрагенти")
+  })
+
   it("«Ще» відкриває повне меню з групами", async () => {
     const user = userEvent.setup()
     renderShell()

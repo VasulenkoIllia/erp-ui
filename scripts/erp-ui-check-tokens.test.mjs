@@ -13,6 +13,7 @@ import path from "node:path"
 import { test } from "node:test"
 
 import {
+  defaultRoots,
   findViolations,
   missingRoots,
   scanRoots,
@@ -177,6 +178,52 @@ test("команда: без src, без файлів чи з порушення
     assert.equal(linked.status, 1, "через посилання main() має запуститися")
   } finally {
     for (const dir of [empty, blank, bad, clean, links])
+      rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test("тека за замовчуванням — тека tailwind.css з components.json, без нього чи з файлом у корені — src", () => {
+  const config = (tailwind) =>
+    project({ "components.json": JSON.stringify({ tailwind }) })
+  const dirs = [
+    project({}),
+    config({ css: "app/globals.css" }),
+    config({ css: "./apps/admin/src/index.css" }),
+    config({ css: "index.css" }),
+    config({}),
+    project({ "components.json": "{ не json" }),
+  ]
+  try {
+    assert.deepEqual(
+      dirs.slice(0, 5).map((dir) => defaultRoots(dir)),
+      [["src"], ["app"], ["apps/admin/src"], ["src"], ["src"]],
+    )
+    assert.throws(() => defaultRoots(dirs[5]), /components\.json не читається/)
+  } finally {
+    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test("команда без аргументів перевіряє теку з components.json; зламаний файл — помилка", () => {
+  const app = project({
+    "components.json": JSON.stringify({ tailwind: { css: "app/styles.css" } }),
+    "app/a.tsx": 'export const A = () => <b className="text-white" />',
+    "src/clean.ts": "export {}",
+  })
+  const broken = project({
+    "components.json": "{",
+    "src/a.ts": "export {}",
+  })
+  try {
+    const failed = run(app)
+    assert.equal(failed.status, 1)
+    assert.match(failed.stderr, /app\/a\.tsx:1 {2}tailwind-palette/)
+    assert.equal(run(app, ["src"]).status, 0, "явні теки — як і раніше")
+    const unreadable = run(broken)
+    assert.equal(unreadable.status, 1)
+    assert.match(unreadable.stderr, /components\.json не читається як JSON/)
+  } finally {
+    for (const dir of [app, broken])
       rmSync(dir, { recursive: true, force: true })
   }
 })

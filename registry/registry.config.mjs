@@ -1831,7 +1831,7 @@ export const CODE_ITEMS = {
   "erp/app-shell": {
     title: "Оболонка застосунку",
     description:
-      "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон), топбар із хлібними крихтами (остання з href — посилання, напр. список над карткою), «Перейти до вмісту»; оболонка не друкується (ADR-0062).",
+      "Сайдбар із групами (десктоп), вузька панель з іконками (планшет), нижня панель + «Ще» (телефон; короткий підпис пункту — shortLabel, повна назва лишається доступною), топбар із хлібними крихтами (остання з href — посилання, напр. список над карткою), «Перейти до вмісту»; оболонка не друкується (ADR-0062).",
     status: "beta",
     demo: "appearance",
     spec: ["§7", "§9", "§10"],
@@ -3928,7 +3928,7 @@ export const BUNDLE_ITEMS = {
       '4) Вигляд задається на <html>: data-palette="sapphire|graphite|…", клас dark, data-density="compact", data-sidebar="dark".',
       "Компоненти: node scripts/erp-ui-kit.mjs update vX.Y.Z --add ui/<назва>. Каталог: docs/erp-ui/CATALOG.md.",
       "5) Оновлення кіта однією командою: node scripts/erp-ui-kit.mjs update vX.Y.Z (перший раз — з --items base,…, список встановлених елементів); файли кіта не правлені — node scripts/erp-ui-kit.mjs check у lint проекту.",
-      "6) Лише токени тем у коді проекту — node scripts/erp-ui-check-tokens.mjs у lint проекту (за замовчуванням тека src).",
+      "6) Лише токени тем у коді проекту — node scripts/erp-ui-check-tokens.mjs у lint проекту (за замовчуванням — тека файла tailwind.css з components.json, без нього src).",
     ].join("\n"),
   },
   data: {
@@ -4056,7 +4056,7 @@ export const BUNDLE_ITEMS = {
     layer: "tools",
     title: "Перевірка «лише токени»",
     description:
-      "scripts/erp-ui-check-tokens.mjs [теки…]: у файлах .ts, .tsx, .js, .jsx, .css проекту (за замовчуванням тека src) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри …/styles/erp-ui/themes.css пропускає; тека, якої немає, чи жодного файла — помилка; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
+      "scripts/erp-ui-check-tokens.mjs [теки…]: у файлах .ts, .tsx, .js, .jsx, .css проекту (за замовчуванням — тека файла tailwind.css з components.json, без нього src; ADR-0096) — сирі кольори (hex, rgb(), oklch() …), стандартна палітра Tailwind, довільні розміри в класах і рух поза токенами; згенеровані палітри …/styles/erp-ui/themes.css пропускає; тека, якої немає, чи жодного файла — помилка; виняток для рядка — коментар «erp-ui: allow-raw-value — <причина>» (SPEC §19, ADR-0009, ADR-0089). Входить у base.",
     status: "beta",
     spec: ["§6", "§19"],
     files: CHECK_TOKENS_FILES,
