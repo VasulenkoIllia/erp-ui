@@ -1,7 +1,7 @@
-import { useTranslation } from "react-i18next"
-
 import { RecordTimeline } from "@/registry/erp/record-timeline"
 import { Button } from "@/registry/ui/button"
+import { useDemoTranslation } from "@/i18n"
+import { ukTimelinePage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -15,7 +15,7 @@ const colleague = () => import("@/mocks/colleague")
 
 /** Стрічка запису (UI01, PF05, ADR-0053): усе разом, лише перегляд, без пошти, порожньо й вузька колонка. */
 export function TimelinePage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukTimelinePage])
   return (
     <div className="space-y-6">
       <PageHeader

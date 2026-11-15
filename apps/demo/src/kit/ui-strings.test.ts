@@ -4,7 +4,14 @@ import { en as kitEn } from "@/registry/lib/i18n-en"
 import { uk as kitUk } from "@/registry/lib/i18n-uk"
 
 import demoEn from "@/i18n/en.json"
-import demoUk from "@/i18n/uk.json"
+import * as demoPages from "@/i18n/pages"
+import demoShell from "@/i18n/uk.json"
+
+// Рядки демо українською: шапка й частини сторінок разом (ADR-0094).
+const demoUk = Object.values(demoPages).reduce<object>(
+  (all, part) => ({ ...all, ...part }),
+  demoShell,
+)
 
 // Glob, а не перелік: рядки нового модуля потрапляють у перевірку самі.
 const moduleBundles = import.meta.glob<{ default: unknown }>(

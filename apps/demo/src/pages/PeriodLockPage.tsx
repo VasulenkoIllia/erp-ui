@@ -1,13 +1,15 @@
 import { useAuthenticated } from "@/registry/lib/ra-core"
-import { useTranslation } from "react-i18next"
 
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { PeriodLockNotice } from "@/registry/erp/period-lock-banner"
 import { PeriodLockExceptions } from "@/registry/erp/period-lock-exceptions"
 import { PeriodLockSettings } from "@/registry/erp/period-lock-settings"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 
 import { DOCUMENTS_LOCKED_THROUGH } from "@/data/documents"
+import { useDemoTranslation } from "@/i18n"
+import { ukPeriodLockPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { PeriodLockDocument } from "./period-lock-document"
@@ -22,8 +24,10 @@ const VARIANT_UNTIL = new Date(Date.now() + HOUR_MS).toISOString()
  * періоді — смуга, причина на кнопці й 422 біля поля дати; варіанти смуги без запитів.
  */
 export function PeriodLockPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "periodLockPage" })
-  const kitT = useErpUiT()
+  const { t } = useDemoTranslation([ukPeriodLockPage], {
+    keyPrefix: "periodLockPage",
+  })
+  const kitT = useErpUiT(ukPeriodLock)
   const { isPending } = useAuthenticated()
   return (
     <div className="space-y-6">
@@ -54,7 +58,9 @@ export function PeriodLockPage() {
 
 /** Смуга з явними даними: закритий період, чинний виняток, збій читання. */
 function BannerVariants() {
-  const { t } = useTranslation("demo", { keyPrefix: "periodLockPage" })
+  const { t } = useDemoTranslation([ukPeriodLockPage], {
+    keyPrefix: "periodLockPage",
+  })
   return (
     <Section title={t("variantsTitle")} description={t("variantsDescription")}>
       <div className="grid gap-4">

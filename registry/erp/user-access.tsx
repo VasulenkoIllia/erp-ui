@@ -20,6 +20,8 @@ import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import type { UserAccess } from "@/registry/lib/security-policy"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Badge } from "@/registry/ui/badge"
@@ -49,7 +51,7 @@ export type { AccessTarget }
 
 /** «Заблоковано» в рядку списку користувачів; активний — нічого. */
 export function UserBlockedBadge({ userId }: { userId: string }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const { data } = useUserAccess(userId)
   return data?.status === "blocked" ? (
     <Badge variant="destructive">{t("userAccess.statusBlocked")}</Badge>
@@ -107,7 +109,7 @@ export function useUserAccessSheet({
 
 /** Стан акаунта: активний чи заблокований (хто, коли, чому), другий крок, останній вхід. */
 export function UserAccessSummary({ access }: { access: UserAccess }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const format = useFormat()
   const blocked = access.status === "blocked"
   return (
@@ -193,7 +195,7 @@ function AccessDetails({
   onAction: (action: UserAccessAction) => void
   onChange?: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const ceiling = useAccessCeiling(access.roles, !self, access.canManage)
   return (
     <div className="space-y-6">
@@ -242,7 +244,7 @@ function AccessPanel({
   onChange?: () => void
   onRemoved: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const { data: me } = useMe()
   const actions = useUserAccessActions(target, { onChange, onRemoved })
   const self = me?.id === target.id

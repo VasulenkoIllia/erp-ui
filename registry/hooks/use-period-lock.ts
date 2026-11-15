@@ -21,6 +21,7 @@ import { companyScope } from "@/registry/lib/company-scope"
 import { addDays, type CalendarDate } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 import {
   isExceptionActive,
   isPeriodLocked,
@@ -139,7 +140,7 @@ export interface PostingDate {
  * сервер: 422 `period_locked` біля поля (`useRecordForm`).
  */
 export function usePostingDate(): PostingDate {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const format = useFormat()
   const { lockedThrough, exception } = usePeriodLock()
   if (!lockedThrough) return {}

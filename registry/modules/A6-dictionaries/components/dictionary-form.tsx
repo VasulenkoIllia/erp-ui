@@ -16,6 +16,7 @@ import type { ExtensionField } from "@/lib/extension-fields"
 import type { ExtensionFormChanges } from "@/lib/extension-form"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 import { keyValueSchema, keyValueText, type KeyValueRow } from "@/lib/key-value"
 
 import { NAME_MAX, type DictionaryEntry } from "../contract"
@@ -33,7 +34,7 @@ export interface EntryFormValues extends FieldValues {
 /** Схеми полів, що повторюються у формах: тексти мовою інтерфейсу. */
 export function useEntryShape() {
   const t = useDictionariesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   return useMemo(() => {
     const required = kitT("validation.required")
     return {
@@ -157,7 +158,7 @@ export function DictionaryFormDialog<
   finalFocus: RefObject<HTMLElement | null>
 }) {
   const t = useDictionariesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const { state, ext } = form
   return (
     <RecordFormDialog

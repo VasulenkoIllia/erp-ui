@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useDeferredValue, useEffect, useId, useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -16,6 +15,8 @@ import { PrintPreview } from "@/registry/erp/print-preview"
 import { partyClause, PrintPartyDetails } from "@/registry/erp/print-requisites"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { toLanguage, useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import {
   emptyPartyDetails,
   otherPartyRole,
@@ -28,6 +29,8 @@ import {
 import { usePrintSheet } from "@/registry/lib/print"
 import { Button } from "@/registry/ui/button"
 import { Field, FieldLabel } from "@/registry/ui/field"
+import { useDemoTranslation } from "@/i18n"
+import { ukPartyDetailsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import {
@@ -38,11 +41,13 @@ import {
 import { Section } from "./Section"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "partyDetailsPage" }).t
+  useDemoTranslation([ukPartyDetailsPage], { keyPrefix: "partyDetailsPage" }).t
 
 /** Реквізити сторін (UI45, ADR-0068): договір із двома сторонами, аркуш і стани полів. */
 export function PartyDetailsPage() {
-  const pagesT = useTranslation("demo", { keyPrefix: "app.pages" }).t
+  const pagesT = useDemoTranslation([ukPartyDetailsPage], {
+    keyPrefix: "app.pages",
+  }).t
   const t = usePageT()
   return (
     <div className="space-y-6">
@@ -72,7 +77,7 @@ function useCompanySource(): PartyDetailsSource {
 
 function ContractSection() {
   const t = usePageT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukParty, ukPrint)
   const party = usePartyDetailsSchema()
   const schema = useMemo(
     () =>
@@ -186,7 +191,7 @@ function ContractPreview({
 }
 
 function ContractSheet({ values }: { values: ContractValues }) {
-  const { t, language } = usePrintSheet()
+  const { t, language } = usePrintSheet(ukParty, ukPrint)
   const text = CONTRACT_TEXT[language]
   const parties = partiesByRole(values.ourRole, values.ours, values.theirs)
   const label = (role: PartyRole) => t(`print.sheet.party.${role}`)

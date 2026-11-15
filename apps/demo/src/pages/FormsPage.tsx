@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo, useState } from "react"
 import { useForm, useWatch, type Control } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -23,12 +22,15 @@ import { FieldGroup } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
+import { useDemoTranslation } from "@/i18n"
+import { ukFormsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { RepeatingRowsSection } from "./repeating-rows-section"
 import { Section } from "./Section"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "formsPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukFormsPage], { keyPrefix: "formsPage" }).t
 
 /** Номер, який «уже зайнятий» на сервері — показує серверну помилку біля поля. */
 const TAKEN_NUMBER = "РФ-0001"

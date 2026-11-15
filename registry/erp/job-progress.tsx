@@ -14,6 +14,8 @@ import { isKnownApiErrorCode } from "@/registry/lib/api"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import {
   isJobActive,
   retryableCount,
@@ -102,7 +104,7 @@ function renderJobToast(
 
 /** Текст причини невдачі мовою інтерфейсу. */
 function useReason(failureLabel: JobProgressOptions["failureLabel"]) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   return (code: string) =>
     failureLabel?.(code) ??
     (isKnownApiErrorCode(code)
@@ -212,7 +214,7 @@ export function JobRunning({
   title: string
   pollFailed: boolean
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const format = useFormat()
   const started = job && job.status !== "queued"
   const progress = started
@@ -242,7 +244,7 @@ export function JobRunning({
 
 /** Стан задачі не дізнатись: причина; задача могла завершитись — список варто перечитати. */
 export function JobLost({ error }: { error: unknown }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const errorMessage = useApiErrorMessage()
   return (
     <p className="flex items-start gap-2 text-sm text-destructive-foreground">
@@ -262,7 +264,7 @@ export function JobResult({
   carried: JobFailureGroup[]
   onRetried: (jobId: string, from: Job) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const format = useFormat()
   const reason = useReason(options.failureLabel)
   const retry = useRetry(job, onRetried)
@@ -330,7 +332,7 @@ export function JobResult({
 
 /** «Повторити (N)»: нова задача для невдач, які можна повторити. */
 function useRetry(job: Job, onRetried: (jobId: string, from: Job) => void) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const format = useFormat()
   const errorMessage = useApiErrorMessage()
   const dataProvider = useDataProvider<ErpDataProvider>()

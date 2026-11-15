@@ -20,6 +20,7 @@ import {
 import { hasPermission } from "@/registry/lib/auth"
 import { lifecycleAllows } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { transitionsFrom, type ModuleTransition } from "@/registry/lib/statuses"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -128,7 +129,7 @@ function DocumentActionBar<R extends TransitionRecord>({
   lockedReason,
   className,
 }: DocumentActionBarProps<R>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const { data: me, isPending } = useMe()
   const denialReason = useRecordDenialReason(lockedReason)
   const flow = useRecordTransition({

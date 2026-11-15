@@ -15,6 +15,7 @@ import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
 import {
   ADMIN_QUERY_KEYS,
   type RecoveryRequest,
@@ -82,7 +83,7 @@ function ResetFactorsDialog({
   onClose: () => void
   onDone: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const fieldError = useFieldError()
@@ -185,7 +186,7 @@ function ResetFactorsDialog({
 
 /** Запити «втратив доступ до другого кроку» для адміністратора: скинути або відхилити. */
 export function RecoveryRequestsSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

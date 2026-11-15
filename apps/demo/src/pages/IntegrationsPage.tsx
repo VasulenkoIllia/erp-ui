@@ -1,15 +1,18 @@
-import { useTranslation } from "react-i18next"
 import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { WebhooksSection } from "@/registry/erp/webhooks-section"
+import { useDemoTranslation } from "@/i18n"
+import { ukIntegrationsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Інтеграції компанії (PF11/PF17, ADR-0013): вебхуки. */
 export function IntegrationsPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "integrationsPage" })
+  const { t } = useDemoTranslation([ukIntegrationsPage], {
+    keyPrefix: "integrationsPage",
+  })
   const { isPending } = useAuthenticated()
   return (
     <div className="space-y-6">

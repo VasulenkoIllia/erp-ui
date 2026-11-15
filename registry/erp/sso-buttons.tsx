@@ -3,6 +3,7 @@ import { KeyRoundIcon } from "lucide-react"
 import type { SsoProvider } from "@/registry/lib/auth"
 import { AppleIcon, GoogleIcon } from "@/registry/lib/brand-icons"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 
@@ -25,7 +26,7 @@ export function SsoButtons({
   disabled?: boolean
   className?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   if (!providers.length) return null
   return (
     <div data-slot="sso-buttons" className={cn("grid gap-2", className)}>

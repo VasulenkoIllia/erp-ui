@@ -17,6 +17,7 @@ import { useWizard, type WizardStep } from "@/hooks/use-wizard"
 import { errorStateKind } from "@/lib/api"
 import type { CompanyProfile } from "@/lib/company"
 import { useErpUiT } from "@/lib/i18n"
+import { ukSetup } from "@/lib/i18n-uk-setup"
 import {
   clearWizardProgress,
   loadWizardProgress,
@@ -105,7 +106,7 @@ function SetupWizard({
   heading: React.Ref<HTMLHeadingElement>
 }) {
   const t = useCompanyT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukSetup)
   const { afterSetup } = useCompanyModule()
   const navigate = useNavigate()
   const userId = useMe().data?.id ?? "none"

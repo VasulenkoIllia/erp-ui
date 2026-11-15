@@ -5,6 +5,7 @@ import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { selectedCount } from "@/registry/lib/row-selection"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
@@ -123,7 +124,7 @@ function headerState(selection: RowSelection, scope: SelectionScope) {
 }
 
 function HeaderCheckbox() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const { options, scope } = useSelectionContext()
   const { selection } = options
   const { checked, indeterminate } = headerState(selection, scope)
@@ -145,7 +146,7 @@ function HeaderCheckbox() {
 }
 
 function RowCheckbox<T>({ row }: { row: T }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const { options, getRowId } = useSelectionContext<T>()
   const id = getRowId(row)
   return (
@@ -162,7 +163,7 @@ function RowCheckbox<T>({ row }: { row: T }) {
 
 /** Колонка прапорців для гріда й карток (під SelectionProvider); null — таблиця без вибору. */
 function useSelectionColumn<T>(enabled: boolean): DataTableColumn<T> | null {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   return React.useMemo(
     () =>
       enabled
@@ -237,7 +238,7 @@ function SelectionBarContent({
   cards: boolean
   onCleared: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const actions = React.useRef<HTMLSpanElement>(null)
   // «Вибрати всі N» зникає після кліку — фокус на першу дію панелі (WCAG 2.4.3).

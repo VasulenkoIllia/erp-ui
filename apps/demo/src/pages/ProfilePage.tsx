@@ -1,17 +1,21 @@
-import { useTranslation } from "react-i18next"
 import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { ProfileForm, ProfilePhoto } from "@/registry/erp/profile-form"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
+import { useDemoTranslation } from "@/i18n"
+import { ukProfilePage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Профіль користувача (PF01, ADR-0012): фото, ім'я, посада, телефон, часовий пояс, підпис. */
 export function ProfilePage() {
-  const { t } = useTranslation("demo", { keyPrefix: "profilePage" })
-  const kitT = useErpUiT()
+  const { t } = useDemoTranslation([ukProfilePage], {
+    keyPrefix: "profilePage",
+  })
+  const kitT = useErpUiT(ukProfile)
   const { isPending } = useAuthenticated()
   return (
     <div className="space-y-6">

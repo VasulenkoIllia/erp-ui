@@ -12,6 +12,7 @@ import {
   minorToDecimal,
 } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { cn } from "@/registry/lib/utils"
 import { Field, FieldTitle } from "@/registry/ui/field"
 import {
@@ -87,7 +88,7 @@ export function DiscountField({
   readOnly,
   className,
 }: DiscountFieldProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const { locale } = useLanguage()
   const digits = currencyDigits(currency)
   const valueKind = kindOfValue(discount)

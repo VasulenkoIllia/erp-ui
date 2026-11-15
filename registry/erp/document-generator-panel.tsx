@@ -25,6 +25,9 @@ import { localizedText } from "@/registry/lib/localized-text"
 import { templateData } from "@/registry/lib/document-template"
 import { DOCX_MAX_BYTES, DOCX_MIME } from "@/registry/lib/docx-template"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { printFileName, usePrintLanguage } from "@/registry/lib/print"
 import { Button } from "@/registry/ui/button"
 import { FieldLabel } from "@/registry/ui/field"
@@ -71,7 +74,7 @@ function TemplateChoice({
   choice: string
   onChoice: (choice: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator, ukPrint)
   const { language } = useLanguage()
   const labelId = React.useId()
   const items = [
@@ -118,7 +121,7 @@ function GeneratorPreview({
   blockedReason: string | null
   onDownload: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator, ukPrint)
   const [state, setState] = React.useState<DocxPreviewState>("idle")
   const reasonId = React.useId()
   const isFailed = state === "failed"
@@ -182,10 +185,16 @@ export function DocumentGeneratorPanel({
   initialTemplateId,
   unavailableReason,
 }: DocumentGeneratorProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator, ukPrint)
   const ui = useLanguage()
   const company = useCompanyProfile()
-  const sheet = usePrintLanguage(language ?? company.data?.language)
+  // Значення міток — мовою документа: ролі сторін і поля документа (`documentTemplateVariables`).
+  const sheet = usePrintLanguage(
+    language ?? company.data?.language,
+    ukDocumentGenerator,
+    ukParty,
+    ukPrint,
+  )
   const [chosen, setChosen] = React.useState<string | null>(null)
   const choice =
     chosen === FILE_CHOICE || templates.some((item) => item.id === chosen)

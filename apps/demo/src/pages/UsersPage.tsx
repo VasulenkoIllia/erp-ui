@@ -1,6 +1,5 @@
 import { useGetList } from "@/registry/lib/ra-core"
 import { useRef } from "react"
-import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 
 import { useImpersonation } from "@/registry/erp/impersonation"
@@ -16,12 +15,15 @@ import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { hasPermission } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
 import { Avatar, AvatarFallback } from "@/registry/ui/avatar"
 import { Button } from "@/registry/ui/button"
 import { Card, CardContent } from "@/registry/ui/card"
 import type { User } from "@/registry/modules/A2-users"
 
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukUsersPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -39,8 +41,8 @@ const initials = (name: string) =>
  * списком і карткою людини — `/m/A2` (ADR-0031); тут — простий список.
  */
 export function UsersPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "usersPage" })
-  const kitT = useErpUiT()
+  const { t } = useDemoTranslation([ukUsersPage], { keyPrefix: "usersPage" })
+  const kitT = useErpUiT(ukAccess)
   const navigate = useNavigate()
   const { data: me } = useMe()
   // Без `users:read` сервер віддав би лише довідник (ім'я та email, ADR-0031) — сторінки немає.

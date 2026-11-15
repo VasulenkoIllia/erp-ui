@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import {
@@ -9,6 +8,8 @@ import type { DocumentFlow } from "@/registry/lib/document-links"
 import type { ResolvedStatuses, StatusTone } from "@/registry/lib/statuses"
 
 import { ROUTES, useSearchParam } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentFlowPage, ukStatuses } from "@/i18n/pages"
 
 import {
   DEFAULT_CURRENT,
@@ -33,7 +34,9 @@ const currentHref = (resource: string, id: string) =>
 
 /** Типи потоку мовою інтерфейсу; посилання робить документ поточним, як перехід на його картку. */
 function useFlowTypes(): Record<FlowType, DocumentFlowType> {
-  const { t } = useTranslation("demo", { keyPrefix: "documentFlowPage" })
+  const { t } = useDemoTranslation([ukDocumentFlowPage, ukStatuses], {
+    keyPrefix: "documentFlowPage",
+  })
   const statusesOf = (type: FlowType): ResolvedStatuses | undefined => {
     const list = MODULE_STATUSES[type]?.map((status) => ({
       ...status,
@@ -57,7 +60,7 @@ function useFlowTypes(): Record<FlowType, DocumentFlowType> {
 
 /** Потік документів (UI13, ADR-0061): ланцюг, вузький контейнер, сторно й усі стани без запитів. */
 export function DocumentFlowPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukDocumentFlowPage, ukStatuses])
   const types = useFlowTypes()
   const [resource = "orders", id = "o-7"] = (
     useSearchParam("current") ?? DEFAULT_CURRENT

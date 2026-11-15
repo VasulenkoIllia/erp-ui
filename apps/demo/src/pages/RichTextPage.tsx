@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react"
 import { useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { z } from "zod"
 
@@ -37,6 +36,8 @@ import {
 
 import { HOSTILE_NOTE, NOTE, PLAIN_NOTE } from "@/data/rich-text"
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukRichTextPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -45,7 +46,7 @@ const EMPTY = { type: "doc" as const, content: [] }
 
 /** Поле тексту (UI12, ADR-0052): форма, стани, згадки й показ збереженого тексту без редактора. */
 export function RichTextPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   return (
     <div className="space-y-6">
       <PageHeader
@@ -60,7 +61,7 @@ export function RichTextPage() {
 }
 
 function FormSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   const schema = useMemo(
     () =>
       z.object({
@@ -121,7 +122,7 @@ function FormSection() {
 }
 
 function SavedNote({ doc }: { doc: RichTextDoc }) {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   const people = richTextMentions(doc)
   return (
     <div data-testid="rich-text-saved" className="max-w-2xl space-y-2">
@@ -182,7 +183,7 @@ function Example({
 }
 
 function DialogExample() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   return (
     <Dialog>
       <DialogTrigger render={<Button type="button" variant="outline" />}>
@@ -205,7 +206,7 @@ function DialogExample() {
 }
 
 function StatesSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   const flakySearch = useFlakySearch()
   return (
     <Section
@@ -296,7 +297,7 @@ function MentionLink(mention: RichTextMention) {
 }
 
 function ViewSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRichTextPage])
   return (
     <Section
       title={t("richTextPage.viewTitle")}

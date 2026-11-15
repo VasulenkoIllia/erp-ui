@@ -3,6 +3,7 @@ import * as React from "react"
 import { ShortcutKeys } from "@/registry/erp/shortcut-keys"
 import { isFocusLost } from "@/registry/hooks/use-focus-heading"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import {
   areCharacterShortcutsEnabled,
   isCharacterShortcut,
@@ -57,7 +58,7 @@ function CharacterKeysSwitch({
   enabled: boolean
   onChange: (enabled: boolean) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukShortcuts)
   const id = React.useId()
   return (
     <Field orientation="horizontal">
@@ -86,7 +87,7 @@ export function ShortcutsHelpList({
 }: {
   extra?: readonly ProjectShortcut[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukShortcuts)
   const charactersEnabled = React.useSyncExternalStore(
     subscribeCharacterShortcuts,
     areCharacterShortcutsEnabled,

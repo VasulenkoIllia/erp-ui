@@ -1,5 +1,6 @@
 import { CopyButton } from "@/registry/erp/copy-button"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { cn } from "@/registry/lib/utils"
 
 /**
@@ -59,7 +60,7 @@ export function CopyableValue({
   display,
   className,
 }: CopyableValueProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const raw = value?.trim() ?? ""
   if (!raw)
     return (

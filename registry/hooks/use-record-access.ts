@@ -8,6 +8,7 @@ import { useCanAccess } from "@/registry/lib/ra-core"
 import { useCallback } from "react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import {
   isKnownDenialReason,
   kitAction,
@@ -40,7 +41,7 @@ export type RecordDenialText = (
 export function useRecordDenialReason(
   moduleText?: RecordDenialText,
 ): (record: unknown, action: string) => string | undefined {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   return useCallback(
     (record, action) => {
       const code = recordDenial(record, action)

@@ -7,6 +7,7 @@ import { FormField, keepFieldFocus } from "@/registry/erp/form"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import {
   DUPLICATE_VIEW_NAME,
   SAVED_VIEW_NAME_MAX,
@@ -49,7 +50,7 @@ export function SavedViewNameForm({
   onSubmit,
   onCancel,
 }: SavedViewNameFormProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const errorText = useApiErrorMessage()
   const ids = React.useId()
   const [error, setError] = React.useState<string | null>(null)

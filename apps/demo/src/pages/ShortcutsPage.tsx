@@ -1,5 +1,4 @@
 import { use, useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { PageState } from "@/registry/erp/page-state"
@@ -11,13 +10,15 @@ import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
 
 import { OpenHelpContext } from "@/help-context"
+import { useDemoTranslation } from "@/i18n"
+import { ukShortcutsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Довідка гарячих клавіш (ADR-0042): діалог, перелік у широкому й вузькому контейнері, стани. */
 export function ShortcutsPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukShortcutsPage])
   const openHelp = use(OpenHelpContext)
   const projectKeys = useMemo<ProjectShortcut[]>(
     () => [

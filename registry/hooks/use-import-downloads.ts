@@ -2,6 +2,7 @@ import * as React from "react"
 import { toast } from "sonner"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import {
   errorReportRows,
   templateRows,
@@ -37,7 +38,7 @@ const isRowErrorCode = (code: string): code is RowErrorCode =>
 
 /** Текст помилки рядка: код модуля, код кіта, інакше сам код. */
 export function useImportErrorText(target: ImportTarget) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   return React.useCallback(
     ({ code, field: key }: ImportRowError) => {
       const message =
@@ -68,7 +69,7 @@ export function useImportDownloads({
   checked: readonly CheckedRow[]
   errorText: (error: ImportRowError) => string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const save = (
     rows: readonly SpreadsheetRow[],
     name: string,

@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 
 import { DataTable } from "@/registry/erp/data-table"
 import { amountInWords } from "@/registry/lib/amount-in-words"
@@ -8,6 +7,8 @@ import { useFormat } from "@/registry/lib/format"
 import { useLanguage } from "@/registry/lib/i18n"
 
 import type { Invoice, InvoiceLine } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukInvoicePage } from "@/i18n/pages"
 
 /**
  * Рядки рахунку на картці (шаблон Object Page, ADR-0019): малий список на erp/data-table (на телефоні —
@@ -15,7 +16,8 @@ import type { Invoice, InvoiceLine } from "@/data/invoices"
  * вже є з кешу списку, — скелетон таблиці; не прийшли — помилка з повтором лише в цій секції.
  */
 
-const useCardT = () => useTranslation("demo", { keyPrefix: "invoicePage" }).t
+const useCardT = () =>
+  useDemoTranslation([ukInvoicePage], { keyPrefix: "invoicePage" }).t
 
 const getLineId = (line: InvoiceLine) => line.id
 

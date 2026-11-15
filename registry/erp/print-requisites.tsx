@@ -1,5 +1,6 @@
 import type { CompanyProfile } from "@/registry/lib/company"
 import type { ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import {
   isPartyFieldShown,
   signatureName,
@@ -35,7 +36,7 @@ type Requisites = Pick<
 
 /** Рядки реквізитів без порожніх значень. */
 function useRequisiteLines(company: Requisites): string[] {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   const code =
     company.kind === "legal"
       ? company.edrpou && `${t("print.sheet.edrpou")} ${company.edrpou}`
@@ -92,7 +93,7 @@ export function PrintCompanyHeader({
 }: {
   company: Requisites & Pick<CompanyProfile, "logoUrl">
 }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   return (
     <header
       data-slot="print-company-header"
@@ -157,7 +158,7 @@ export function PrintSignatures({
   /** Друкувати печатку компанії, якщо вона є. */
   stamp?: boolean
 }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   const rows: { role: string; name?: string }[] = [
     {
       role: company.director?.position ?? t("print.sheet.signature"),
@@ -273,7 +274,7 @@ export function PrintPartyDetails({
 }: {
   parties: readonly PrintPartyEntry[]
 }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   return (
     <section
       data-slot="print-party-details"

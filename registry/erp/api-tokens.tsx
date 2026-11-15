@@ -20,6 +20,7 @@ import {
 } from "@/registry/lib/account"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -61,7 +62,7 @@ const expiryKey = (days: Expiry) =>
   days === null ? "never" : (String(days) as `${NonNullable<Expiry>}`)
 
 export function ApiTokensSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()
@@ -287,7 +288,7 @@ export function ApiTokensSection() {
 }
 
 function RevokeButton({ onRevoke }: { onRevoke: () => Promise<unknown> }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const [busy, setBusy] = React.useState(false)
   return (
     <Button
@@ -324,7 +325,7 @@ function CreateTokenDialog({
   onCreated: (result: ApiTokenCreated) => void
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukProfile)
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const ids = React.useId()

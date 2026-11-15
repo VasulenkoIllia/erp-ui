@@ -3,6 +3,7 @@ import * as React from "react"
 import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import { LoadingFallback } from "@/registry/erp/page-state"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 import type { ProjectShortcut } from "@/registry/lib/shortcuts"
 import {
@@ -39,7 +40,7 @@ export function ShortcutsHelp({
   /** Клавіші проекту: окрема група наприкінці довідки. */
   extra?: readonly ProjectShortcut[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukShortcuts)
   const popup = React.useRef<HTMLDivElement>(null)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

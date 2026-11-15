@@ -1,11 +1,12 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router"
 
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
 
 import type { Invoice } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 import {
   InvoiceAmountCell,
@@ -21,7 +22,8 @@ import { InvoiceStatusBadge } from "./invoice-status"
  * посилання на картку, клієнт і сума редагуються в комірці (ADR-0018), дія «Редагувати» в рядку.
  */
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage], { keyPrefix: "dataPage" }).t
 
 export const getInvoiceId = (invoice: Invoice) => invoice.id
 

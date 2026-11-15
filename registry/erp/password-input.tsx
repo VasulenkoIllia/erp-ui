@@ -3,6 +3,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 import { useAuthMethods } from "@/registry/erp/auth-layout"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_STRENGTH_KEYS,
@@ -25,7 +26,7 @@ export function PasswordInput({
   className,
   ...props
 }: Omit<React.ComponentProps<typeof InputGroupInput>, "type">) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const [visible, setVisible] = React.useState(false)
   return (
     <InputGroup className={className}>
@@ -73,7 +74,7 @@ export function PasswordStrength({
   id?: string
   className?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   // Мінімальна довжина — з політики організації (ADR-0012), без неї — типова кіта.
   const minLength =
     useAuthMethods().data?.passwordPolicy?.minLength ?? PASSWORD_MIN_LENGTH

@@ -9,6 +9,7 @@ import {
   type TemplateVariables,
 } from "@/registry/lib/document-template"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
 import {
   Field,
   FieldDescription,
@@ -70,7 +71,7 @@ export function TemplateIssueList({
 }: {
   issues: readonly TemplateIssue[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator)
   return (
     <FieldSet data-slot="document-template-issues">
       <FieldLegend variant="label">
@@ -145,7 +146,7 @@ export function DocumentTemplateFields({
   values,
   onValueChange,
 }: DocumentTemplateFieldsProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator)
   const used = React.useMemo(
     () => usedTemplateKeys(tags, variables),
     [tags, variables],
@@ -208,7 +209,7 @@ export const DocumentTemplateReference = React.memo(
   }: {
     variables: TemplateVariables
   }) {
-    const t = useErpUiT()
+    const t = useErpUiT(ukDocumentGenerator)
     const sections = [
       ...variables.groups.map((group) => ({
         id: group.id,

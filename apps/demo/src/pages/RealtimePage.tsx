@@ -1,6 +1,5 @@
 import { useGetOne } from "@/registry/lib/ra-core"
 import { useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { EditLockNotice } from "@/registry/erp/edit-lock-notice"
@@ -19,6 +18,8 @@ import { Button, buttonVariants } from "@/registry/ui/button"
 
 import type { Invoice } from "@/data/invoices"
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukRealtimePage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -42,7 +43,7 @@ const BADGE: Record<RealtimeStatus, "secondary" | "default" | "outline"> = {
 
 /** Реальний час (PF19, ADR-0051): канал подій, живе оновлення запису й «Редагує …». */
 export function RealtimePage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRealtimePage])
   return (
     <div className="space-y-6">
       <PageHeader
@@ -57,7 +58,7 @@ export function RealtimePage() {
 }
 
 function ChannelSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRealtimePage])
   const status = useRealtimeStatus()
   const format = useFormat()
   const [events, setEvents] = useState<readonly LoggedEvent[]>([])
@@ -125,7 +126,7 @@ function ChannelSection() {
 }
 
 function RecordSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRealtimePage])
   const companyId = useCompanyId()
   const { data: invoice } = useGetOne<Invoice>("invoices", {
     id: INVOICE_ID,
@@ -161,7 +162,7 @@ function RecordSection() {
 }
 
 function LockSection() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukRealtimePage])
   const lock = useEditLock({ resource: "invoices", id: INVOICE_ID })
   const setEditing = (isEditing: boolean) => {
     void colleague().then(({ colleagueEditsInvoice }) => {

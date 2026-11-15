@@ -10,6 +10,7 @@ import type { FilterValue, SortField } from "@/registry/lib/api"
 import { EXPORT_MAX_ROWS, type ExportColumn } from "@/registry/lib/exports"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukImport } from "@/registry/lib/i18n-uk-import"
 import type { SpreadsheetFormat } from "@/registry/lib/spreadsheet"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -76,7 +77,7 @@ export function ExportDialog<T extends RaRecord>({
   maxRows = EXPORT_MAX_ROWS,
   finalFocus,
 }: ExportDialogProps<T>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const [scope, setScope] = React.useState<ExportScope>("selected")
   const [fileFormat, setFileFormat] = React.useState<SpreadsheetFormat>("xlsx")
@@ -222,7 +223,7 @@ function ExportProgressBar({
   title: string
   progress: ExportProgress | null
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const format = useFormat()
   const text = progress
     ? t("exportDialog.progress", {
@@ -255,7 +256,7 @@ function ExportColumns<T>({
   isInvalid: boolean
   onChange: (next: ReadonlySet<string>) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukImport)
   const errorId = React.useId()
   const isAll = chosen.size === columns.length
   return (

@@ -12,6 +12,7 @@ import {
 } from "@/registry/erp/rich-text-styles"
 import { RichTextView } from "@/registry/erp/rich-text-view"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
 import { isChunkLoadError, lazyWithPreload } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -59,7 +60,7 @@ function RichTextLoading({
   value,
   className,
 }: Pick<RichTextFieldProps, "value" | "className">) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   useLoadingAnnouncement(t("richText.loading"))
   const [isSlow, setIsSlow] = React.useState(false)
   React.useEffect(() => {
@@ -95,7 +96,7 @@ function RichTextFailed({
   retry: () => void
   error: unknown
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRichText)
   return (
     <div
       data-slot="rich-text-failed"

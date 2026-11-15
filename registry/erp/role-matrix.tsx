@@ -3,6 +3,7 @@ import { RadioGroup } from "@base-ui/react/radio-group"
 import * as React from "react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import {
   canChangeScope,
   permissionScope,
@@ -44,7 +45,7 @@ export const RoleMatrix = React.memo(function RoleMatrix({
   onChange: (update: PermissionsUpdate) => void
   ceiling?: readonly string[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const ids = React.useId()
   const hintId = `${ids}-ceiling`
   const scopeHintId = `${ids}-scope`
@@ -279,7 +280,7 @@ function ActionPermission({
   scopeDescription: (isLocked: boolean) => string
   onChange: (update: PermissionsUpdate) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const names = { action: action.label, resource: resource.label }
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -341,7 +342,7 @@ function ScopeToggle({
   describedBy: string
   onScopeChange: (scope: PermissionScope) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   return (
     <RadioGroup
       value={scope}

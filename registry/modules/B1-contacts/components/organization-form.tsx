@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { useRecordForm } from "@/hooks/use-record-form"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 import type { ResolvedStatuses } from "@/lib/statuses"
 import { validateUaId } from "@/lib/ua-ids"
 
@@ -80,7 +81,7 @@ function useOrganizationFormSchema(
   extensionShape: Record<string, z.ZodType>,
   hidden: ReadonlySet<string>,
 ) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const common = useContactFieldSchemas(hidden)
   return useMemo(
     () =>
@@ -330,7 +331,7 @@ export function OrganizationFormDialog({
   nested,
 }: OrganizationFormDialogProps) {
   const t = useContactsT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const { extension } = useContactsModule()
   const statuses = useOrganizationStatuses()
   const { fields, form } = extension.organizations ?? {}

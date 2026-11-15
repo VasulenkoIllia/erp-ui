@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import {
@@ -10,13 +9,15 @@ import { buttonVariants } from "@/registry/ui/button"
 
 import { companyModule } from "@/company-module"
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukSetupPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Онбординг PF12 (ADR-0044): чек-лист компанії з модуля A1, майстер і стани SetupChecklist. */
 export function SetupPage() {
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukSetupPage])
   const sample = useMemo<SetupChecklistItem[]>(
     () => [
       {

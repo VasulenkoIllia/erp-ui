@@ -37,6 +37,7 @@ import { useCompanyId } from "@/registry/hooks/use-company"
 import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 
 export interface RecordFormOptions<
   TValues extends FieldValues,
@@ -163,7 +164,7 @@ function useServerFieldErrors<TValues extends FieldValues>(
   fieldOf: (field: string) => string = (field) => field,
   textOf?: (field: string, code: string) => string | undefined,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   return (failure: unknown): boolean => {
     if (!isApiError(failure) || !failure.fieldErrors) return false
     const entries = Object.entries(failure.fieldErrors)
@@ -274,7 +275,7 @@ export function useRecordForm<
   TRecord extends RaRecord,
 >(options: RecordFormOptions<TValues, TRecord>): RecordFormState<TValues> {
   const { resource, record, schema, toValues } = options
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const errorMessage = useApiErrorMessage()
   const queryClient = useQueryClient()
   const form = useKitForm(schema, options.defaultValues)

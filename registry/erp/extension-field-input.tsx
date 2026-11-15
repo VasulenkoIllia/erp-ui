@@ -42,6 +42,7 @@ import {
   type KeyedChanges,
 } from "@/registry/lib/extensions"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { recordOptionTexts } from "@/registry/lib/record-label"
 import { Checkbox } from "@/registry/ui/checkbox"
 import {
@@ -176,7 +177,7 @@ function OptionsInput({
   field: Extract<ExtensionField, { type: "options" }>
   value: string | null
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const { language } = useLanguage()
   const items: FormSelectItem<string | null>[] = [
     ...(field.required ? [] : [{ value: null, label: t("recordForm.notSet") }]),
@@ -331,7 +332,7 @@ export function useExtensionForm<K extends string>(
   changes: ExtensionFormChanges<K> | undefined,
   groupChanges?: KeyedChanges<ExtensionFormGroup<K>, never>,
 ): ExtensionFormApi<K> {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const { language } = useLanguage()
   const dateIssue = useDateIssueText()
   const { display } = useExtensionFields(allFields)

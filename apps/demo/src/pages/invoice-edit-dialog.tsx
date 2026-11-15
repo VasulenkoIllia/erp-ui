@@ -1,6 +1,5 @@
 import { useUpdate } from "@/registry/lib/ra-core"
 import { useId, useState, type FormEvent } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { ConflictDialog } from "@/registry/erp/conflict-dialog"
@@ -35,8 +34,11 @@ import {
   type Invoice,
   type InvoiceStatus,
 } from "@/data/invoices"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage, ukStatuses } from "@/i18n/pages"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage, ukStatuses], { keyPrefix: "dataPage" }).t
 
 const RESOURCE = "invoices"
 

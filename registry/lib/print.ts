@@ -10,6 +10,7 @@ import * as React from "react"
 import { useTranslation } from "react-i18next"
 
 import {
+  addStrings,
   DEFAULT_LANGUAGE,
   ERP_UI_NAMESPACE,
   LOCALES,
@@ -152,8 +153,13 @@ export interface PrintLanguage {
  * завершується одразу, і аркуш лишився б запасною мовою). Не довантажилась — запасна українська, як і
  * для інтерфейсу, разом із `lang`, локаллю й сумою прописом (WCAG 3.1.2).
  */
-export function usePrintLanguage(language?: string | null): PrintLanguage {
+export function usePrintLanguage(
+  language?: string | null,
+  ...parts: readonly object[]
+): PrintLanguage {
   const { i18n } = useTranslation()
+  // Рядки функції, які бере аркуш (ADR-0094): мовою документа англійська приходить цілою, українська — частинами.
+  addStrings(i18n, ERP_UI_NAMESPACE, parts)
   const requested = toLanguage(
     language ?? i18n.resolvedLanguage ?? i18n.language,
   )
@@ -182,8 +188,11 @@ export function usePrintLanguage(language?: string | null): PrintLanguage {
 /** Мова аркуша для блоків друку (`erp/print-document`); дає її `erp/print-preview`. */
 export const PrintSheetContext = React.createContext<PrintLanguage | null>(null)
 
-/** Мова аркуша; поза `erp/print-preview` — мова інтерфейсу. */
-export function usePrintSheet(): PrintLanguage {
-  const fallback = usePrintLanguage()
+/**
+ * Мова аркуша; поза `erp/print-preview` — мова інтерфейсу. `parts` — рядки функції, які бере блок
+ * аркуша (`usePrintSheet(ukPrint)`, ADR-0094).
+ */
+export function usePrintSheet(...parts: readonly object[]): PrintLanguage {
+  const fallback = usePrintLanguage(undefined, ...parts)
   return React.useContext(PrintSheetContext) ?? fallback
 }

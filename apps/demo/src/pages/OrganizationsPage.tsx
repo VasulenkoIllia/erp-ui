@@ -1,7 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query"
 import { useAuthenticated, useGetList } from "@/registry/lib/ra-core"
 import { useMemo, type ReactNode } from "react"
-import { useTranslation } from "react-i18next"
 import { Link, useLocation, useSearchParams } from "react-router"
 
 import { PageHeader } from "@/registry/erp/page-header"
@@ -27,6 +26,8 @@ import {
 import { Badge } from "@/registry/ui/badge"
 
 import { invoiceLinkState, organizationHref } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukOrganizationsPage, ukPickersPage } from "@/i18n/pages"
 
 import { usePageHeading } from "./heading-focus"
 import { preloadPage } from "./lazy-pages"
@@ -38,7 +39,9 @@ import {
 } from "./organization-options"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "organizationsPage" }).t
+  useDemoTranslation([ukOrganizationsPage, ukPickersPage], {
+    keyPrefix: "organizationsPage",
+  }).t
 
 /**
  * Довідник організацій на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0024): закріплення

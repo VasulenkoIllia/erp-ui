@@ -13,6 +13,7 @@ import {
 } from "@/registry/hooks/use-list-state"
 import type { SavedViewsApi } from "@/registry/hooks/use-saved-views"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 import type { SavedView } from "@/registry/lib/saved-views"
 import { cn } from "@/registry/lib/utils"
@@ -71,7 +72,7 @@ export function SavedViewsMenu({
   list,
   className,
 }: SavedViewsMenuProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const actions = useViewActions(resource, views, list)
   const [dialog, setDialog] = React.useState<"create" | "rename" | null>(null)
   const active = list.activeView
@@ -203,7 +204,7 @@ function ViewNameDialog({
   onOpenChange: (open: boolean) => void
   onSubmit: (values: SavedViewNameValues) => Promise<void>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const [shown, setShown] = React.useState({
     mode: mode ?? "create",
     initialName,
@@ -252,7 +253,7 @@ function ViewNameDialog({
 }
 
 function ViewLabel({ name, isDefault }: { name: string; isDefault: boolean }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   return (
     <span className="flex min-w-0 flex-1 items-baseline gap-2">
       <span className="truncate">{name}</span>
@@ -271,7 +272,7 @@ function useViewActions(
   views: SavedViewsApi,
   list: ListStateApi,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const errorText = useApiErrorMessage()
   const undoToast = useUndoToast()
   const active = list.activeView

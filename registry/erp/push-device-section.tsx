@@ -10,6 +10,7 @@ import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPush } from "@/registry/lib/i18n-uk-push"
 import {
   devicePushState,
   disableDevicePush,
@@ -44,7 +45,7 @@ async function sectionState(
  * цієї людини, тож кнопок немає.
  */
 export function PushDeviceSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPush)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

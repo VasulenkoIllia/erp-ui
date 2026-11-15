@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import {
@@ -15,13 +14,17 @@ import type { TemplateDocument } from "@/registry/lib/document-template"
 import { buttonVariants } from "@/registry/ui/button"
 
 import { MODULE_ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentGeneratorPage } from "@/i18n/pages"
 
 import { DEMO_DOCUMENT, PAGE_TEMPLATES } from "./document-generator-model"
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 const usePageT = () =>
-  useTranslation("demo", { keyPrefix: "documentGeneratorPage" }).t
+  useDemoTranslation([ukDocumentGeneratorPage], {
+    keyPrefix: "documentGeneratorPage",
+  }).t
 
 /** Документ демо з нашою компанією з профілю: «Постачальник» у тексті договору. */
 function useDemoDocument(): TemplateDocument {
@@ -50,7 +53,9 @@ function useDemoDocument(): TemplateDocument {
  * помилками й такий, що не завантажується) і та сама дія кнопкою з діалогом, як на картках модулів.
  */
 export function DocumentGeneratorPage() {
-  const pagesT = useTranslation("demo", { keyPrefix: "app.pages" }).t
+  const pagesT = useDemoTranslation([ukDocumentGeneratorPage], {
+    keyPrefix: "app.pages",
+  }).t
   const t = usePageT()
   const document = useDemoDocument()
   return (

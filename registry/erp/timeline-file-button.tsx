@@ -9,6 +9,7 @@ import {
 } from "@/registry/hooks/use-timeline"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -28,7 +29,7 @@ export function TimelineFileButton({
   actions: TimelineActions
   maxBytes: number
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const sizeOf = useFileSizeText()
   const input = React.useRef<HTMLInputElement>(null)

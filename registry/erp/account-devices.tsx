@@ -29,6 +29,7 @@ import {
 } from "@/registry/lib/account"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -67,7 +68,7 @@ export function DeviceIcon({ device }: { device: Device }) {
 
 /** Активні сесії: цей пристрій першим, «Вийти» на інших і на всіх інших одразу. */
 export function SessionsSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()
@@ -217,7 +218,7 @@ export function SessionsSection() {
 
 /** Довірені пристрої: «Забути» — наступний вхід із нього знову попросить другий крок. */
 export function TrustedDevicesSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()
@@ -345,7 +346,7 @@ const RESULT_ICONS: Record<
 
 /** Журнал входів: подія, спосіб, пристрій, місце й час; «Показати ще» довантажує сторінки. */
 export function SignInHistory({ perPage = 10 }: { perPage?: number }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity)
   const provider = useErpAuthProvider()
   const format = useFormat()
   const query = useInfiniteQuery({
@@ -462,7 +463,7 @@ export function SignInHistory({ perPage = 10 }: { perPage?: number }) {
 
 /** Перемикач «Лист про вхід з нового пристрою»: зміна видна одразу, помилка повертає назад. */
 export function SignInAlertsSwitch() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

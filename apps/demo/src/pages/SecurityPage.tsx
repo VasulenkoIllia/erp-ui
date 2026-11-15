@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import {
@@ -16,6 +15,10 @@ import {
 } from "@/registry/erp/account-security"
 import { PageSkeleton } from "@/registry/erp/page-state"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukProfile } from "@/registry/lib/i18n-uk-profile"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
+import { useDemoTranslation } from "@/i18n"
+import { ukSecurityPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
@@ -25,8 +28,10 @@ import { Section } from "./Section"
  * входів, токени API, експорт і видалення.
  */
 export function SecurityPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "securityPage" })
-  const kitT = useErpUiT()
+  const { t } = useDemoTranslation([ukSecurityPage], {
+    keyPrefix: "securityPage",
+  })
+  const kitT = useErpUiT(ukProfile, ukSecurity)
   const { isPending } = useAuthenticated()
   return (
     <div className="space-y-6">

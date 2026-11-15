@@ -16,6 +16,7 @@ import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
 import { useHasPermission } from "@/registry/hooks/use-me"
 import type { Branch } from "@/registry/lib/company"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukCompany } from "@/registry/lib/i18n-uk-company"
 import { formatPhone, validatePhone } from "@/registry/lib/phone"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -44,7 +45,7 @@ export function CompanyBranchesSection({
   adding?: boolean
   onAddingChange?: (adding: boolean) => void
 } = {}) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const refresh = useRefreshCompany()
@@ -220,7 +221,7 @@ function BranchDialog({
   onClose: () => void
   onSaved: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const fieldError = useFieldError()

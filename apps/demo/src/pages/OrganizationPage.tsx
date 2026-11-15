@@ -1,6 +1,5 @@
 import { useAuthenticated, useGetOne } from "@/registry/lib/ra-core"
 import { useCallback, useEffect, useRef } from "react"
-import { useTranslation } from "react-i18next"
 import { useLocation as useRouterLocation, useSearchParams } from "react-router"
 
 import { PageSkeleton } from "@/registry/erp/page-state"
@@ -21,6 +20,8 @@ import {
 import { Badge } from "@/registry/ui/badge"
 
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukOrganizationPage, ukPickersPage } from "@/i18n/pages"
 
 import { BackLink } from "./back-link"
 
@@ -48,7 +49,9 @@ import {
  */
 
 const useCardT = () =>
-  useTranslation("demo", { keyPrefix: "organizationPage" }).t
+  useDemoTranslation([ukOrganizationPage, ukPickersPage], {
+    keyPrefix: "organizationPage",
+  }).t
 
 export function OrganizationPage({
   id,
@@ -75,7 +78,9 @@ function OrganizationCard({
   extension: OrganizationsExtension
 }) {
   const t = useCardT()
-  const pagesT = useTranslation("demo", { keyPrefix: "app.pages" }).t
+  const pagesT = useDemoTranslation([ukOrganizationPage, ukPickersPage], {
+    keyPrefix: "app.pages",
+  }).t
   const companyId = useCompanyId()
   const heading = useRef<HTMLHeadingElement>(null)
   const location = useRouterLocation()

@@ -12,7 +12,6 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { useFormat } from "@/registry/lib/format"
@@ -76,11 +75,16 @@ import { Textarea } from "@/registry/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/registry/ui/tooltip"
 
 import { CURRENCIES, INVOICES, SAMPLE, type StatusKind } from "@/fixtures"
+import { useDemoTranslation } from "@/i18n"
+import { ukPreview, ukPrimitivesPage, ukStatuses } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "primitivesPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukPreview, ukPrimitivesPage, ukStatuses], {
+    keyPrefix: "primitivesPage",
+  }).t
 
 const STATUS_ICONS: Record<StatusKind, LucideIcon> = {
   success: CircleCheck,
@@ -92,7 +96,7 @@ const STATUS_ICONS: Record<StatusKind, LucideIcon> = {
 /** Статус: soft-тло + іконка + підпис (SPEC §6.3). Повний StatusBadge з'явиться в PF03. */
 function StatusBadge({ kind }: { kind: StatusKind }) {
   const Icon = STATUS_ICONS[kind]
-  const { t } = useTranslation()
+  const { t } = useDemoTranslation([ukPreview, ukPrimitivesPage, ukStatuses])
   return (
     <Badge variant={kind}>
       <Icon aria-hidden />
@@ -467,7 +471,10 @@ function OverlaysSection() {
 
 function TableSection() {
   const t = usePageT()
-  const { t: tp } = useTranslation("demo", { keyPrefix: "preview" })
+  const { t: tp } = useDemoTranslation(
+    [ukPreview, ukPrimitivesPage, ukStatuses],
+    { keyPrefix: "preview" },
+  )
   const format = useFormat()
   return (
     <Section title={t("table")}>

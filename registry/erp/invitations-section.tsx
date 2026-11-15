@@ -21,6 +21,7 @@ import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import { INVITATION_QUERY_KEYS } from "@/registry/lib/invitations"
 import { ROLES_QUERY_KEYS } from "@/registry/lib/roles"
 import { Badge } from "@/registry/ui/badge"
@@ -34,7 +35,7 @@ import { Button } from "@/registry/ui/button"
  * Надіслати й надіслати ще раз — із паролем ще раз (ADR-0040).
  */
 export function InvitationsSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

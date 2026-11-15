@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import { useAuthenticated } from "@/registry/lib/ra-core"
 
 import {
@@ -7,13 +6,17 @@ import {
   CompanyProfileForm,
 } from "@/registry/erp/company-settings"
 import { PageSkeleton } from "@/registry/erp/page-state"
+import { useDemoTranslation } from "@/i18n"
+import { ukCompanyPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
 /** Налаштування компанії (ADR-0014, основа A1): реквізити, логотип і печатка, філії. */
 export function CompanyPage() {
-  const { t } = useTranslation("demo", { keyPrefix: "companyPage" })
+  const { t } = useDemoTranslation([ukCompanyPage], {
+    keyPrefix: "companyPage",
+  })
   const { isPending } = useAuthenticated()
   return (
     <div className="space-y-6">

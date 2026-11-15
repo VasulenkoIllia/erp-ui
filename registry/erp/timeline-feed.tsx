@@ -20,6 +20,7 @@ import { announce } from "@/registry/lib/announce"
 import { errorStateKind, isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import type { MentionSearch } from "@/registry/lib/rich-text"
 import { timelineEntryKey, type TimelineFilter } from "@/registry/lib/timeline"
 import { cn } from "@/registry/lib/utils"
@@ -118,7 +119,7 @@ function FeedNotice({
   query: FeedQuery
   onRetry: (isMore: boolean) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const format = useFormat()
   const isMoreError = query.isFetchNextPageError
   if (!isMoreError && !query.isRefetchError) return null
@@ -160,7 +161,7 @@ export function FeedFooter({
   total: number
   listRef: React.RefObject<HTMLOListElement | null>
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const focusAfterFetch = useFocusAfterFetch(listRef, query.isFetching, shown)
   return (
     <>
@@ -215,7 +216,7 @@ function FeedList({
   listRef: React.RefObject<HTMLOListElement | null>
   onDelete: TimelineEntryItemProps["onDelete"]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const { query, entries, total } = feed
   return (
     <>
@@ -263,7 +264,7 @@ function DeleteDialog({
   returnFocus: () => HTMLElement | null
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const errorText = useApiErrorMessage()
   const shown = useLastValue(deleting)
   const isFile = shown?.kind === "file"
@@ -314,7 +315,7 @@ export function TimelineFeed({
   onResetFilter: () => void
   onCompose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   const [deleting, setDeleting] = React.useState<{
     entry: TimelineDeletable
     opener: HTMLElement | null
@@ -366,7 +367,7 @@ function FeedContent({
   onResetFilter: () => void
   onCompose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   if (!feed.query.data) return <FeedLoadState query={feed.query} />
   if (feed.entries.length)
     return <FeedList feed={feed} readOnly={readOnly} {...listProps} />

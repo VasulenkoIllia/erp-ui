@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form"
 import type { DocumentLinesValues } from "@/registry/erp/document-lines-schema"
 import type { DocumentBodyLine } from "@/registry/lib/document-lines"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import {
   ariaKeyShortcuts,
   isMacPlatform,
@@ -113,7 +114,7 @@ export function DocumentLinesSearch({
   inputRef,
   className,
 }: DocumentLinesSearchProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const { locale } = useLanguage()
   const { contains } = Autocomplete.useFilter({ sensitivity: "base", locale })
   const [query, setQuery] = React.useState("")

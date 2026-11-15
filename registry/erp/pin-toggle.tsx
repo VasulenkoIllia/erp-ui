@@ -5,6 +5,7 @@ import type { Identifier } from "@/registry/lib/ra-core"
 import { usePin } from "@/registry/hooks/use-pin"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { isPinned, type PinnableRecord } from "@/registry/lib/pins"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -63,7 +64,7 @@ export function PinToggle({
   variant = "icon",
   className,
 }: PinToggleProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const pin = usePin(resource, record, name)
   const ref = React.useRef<HTMLButtonElement>(null)
   // Не нульовий символ-роздільник: CLI shadcn при встановленні пише його справжнім NUL, і git бачить
@@ -137,7 +138,7 @@ export function usePinColumn<T extends { id: Identifier } & PinnableRecord>({
   resource: string
   name: (row: T) => string
 }): DataTableColumn<T> {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const header = t("pins.column")
   return React.useMemo(
     () => ({

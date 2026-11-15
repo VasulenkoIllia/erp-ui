@@ -6,6 +6,8 @@ import {
 import { compareCalendarDates, todayIn } from "@/lib/dates"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukNumbering } from "@/lib/i18n-uk-numbering"
+import { ukDocuments } from "@/lib/i18n-uk-documents"
 
 import { AWAITING_PAYMENT, type Invoice, type K2Document } from "../contract"
 import type { K2DocumentKind } from "../document-kind"
@@ -14,7 +16,7 @@ import { useInvoicesT } from "../use-invoices-t"
 
 /** Номер рахунку; чернетка номера не має, поки її не виставлять (ADR-0058). */
 export function InvoiceNumber({ number }: { number: string | null }) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukNumbering, ukDocuments)
   return number ? (
     <span className="tabular-nums">{number}</span>
   ) : (

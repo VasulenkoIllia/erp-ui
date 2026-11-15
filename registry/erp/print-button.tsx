@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { DeniedAction } from "@/registry/erp/permission-gate"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { printPage } from "@/registry/lib/print"
 import { Button } from "@/registry/ui/button"
@@ -31,7 +32,7 @@ export function PrintButton({
   size,
   className,
 }: PrintButtonProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPrint)
   const [isPreparing, setPreparing] = React.useState(false)
   // Кнопку прибрали, поки чекали логотипа: друк скасовано, а не відкрито вже на іншій сторінці.
   const abort = React.useRef<AbortController | null>(null)

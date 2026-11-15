@@ -5,6 +5,7 @@ import { ErrorBoundary } from "@/registry/erp/error-boundary"
 import type { LocalizedText } from "@/registry/lib/localized-text"
 import type { TemplateDocument } from "@/registry/lib/document-template"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocumentGenerator } from "@/registry/lib/i18n-uk-document-generator"
 import { lazyWithPreload } from "@/registry/lib/lazy"
 import { Button } from "@/registry/ui/button"
 import {
@@ -66,7 +67,7 @@ export const preloadDocumentGenerator = () => {
 }
 
 function GeneratorSkeleton() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator)
   return (
     <div
       className="grid gap-3"
@@ -107,7 +108,7 @@ export function DocumentGeneratorButton({
   onOpenChange,
   ...props
 }: DocumentGeneratorButtonProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentGenerator)
   return (
     <Dialog
       onOpenChange={(isOpen) => {

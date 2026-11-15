@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import {
@@ -25,6 +24,7 @@ import type { CompanyProfile } from "@/registry/lib/company"
 import type { DocumentState } from "@/registry/lib/document-lifecycle"
 import type { DocumentBodyLine } from "@/registry/lib/document-lines"
 import { toLanguage, useLanguage } from "@/registry/lib/i18n"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { usePrintSheet } from "@/registry/lib/print"
 import { buttonVariants } from "@/registry/ui/button"
 
@@ -34,6 +34,8 @@ import {
   type Invoice,
 } from "@/data/invoices"
 import { invoiceHref, ROUTES, useSearchParam } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDocumentFormPage, ukPrintPage } from "@/i18n/pages"
 
 import { BackLink } from "./back-link"
 import { documentLines } from "./document-form-model"
@@ -52,11 +54,16 @@ import {
   type PrintVariant,
 } from "./print-model"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "printPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDocumentFormPage, ukPrintPage], {
+    keyPrefix: "printPage",
+  }).t
 
 /** Друк (PF08, ADR-0062): рахунок стрес-сторінки на аркуші A4 і варіанти аркуша. */
 export function PrintPage() {
-  const pagesT = useTranslation("demo", { keyPrefix: "app.pages" }).t
+  const pagesT = useDemoTranslation([ukDocumentFormPage, ukPrintPage], {
+    keyPrefix: "app.pages",
+  }).t
   const t = usePageT()
   const variant = printVariantOf(useSearchParam("variant"))
   const id = useSearchParam("id") ?? DEFAULT_INVOICE_ID
@@ -176,7 +183,7 @@ function InvoiceSheet({
   company: CompanyProfile
   variant: PrintVariant
 }) {
-  const { language } = usePrintSheet()
+  const { language } = usePrintSheet(ukPrint)
   const issuer = issuerOf(company, variant)
   const docStatus =
     variant === "draft" || variant === "cancelled"
@@ -208,7 +215,9 @@ function InvoiceSheet({
 
 /** Довгий документ: 500 рядків «Великого документа» з розділами й нотатками на кількох сторінках. */
 function LongDocumentPrint() {
-  const formT = useTranslation("demo", { keyPrefix: "documentFormPage" }).t
+  const formT = useDemoTranslation([ukDocumentFormPage, ukPrintPage], {
+    keyPrefix: "documentFormPage",
+  }).t
   const company = useCompanyProfile()
   const lines = useMemo(
     () =>
@@ -271,7 +280,7 @@ function DocumentSheet({
   /** Рядки під «Разом»: частково оплачений рахунок. */
   after?: readonly PrintTotalsRow[]
 }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   return (
     <>
       <PrintWatermark docStatus={docStatus} />

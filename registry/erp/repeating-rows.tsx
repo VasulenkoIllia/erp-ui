@@ -29,6 +29,7 @@ import {
 } from "@/registry/erp/repeating-rows-list"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
@@ -233,7 +234,7 @@ function RepeatingRows<
   readOnly = false,
   className,
 }: RepeatingRowsProps<TValues, TName, TTransformed>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const id = React.useId()
   const scopeRef = React.useRef<HTMLFieldSetElement>(null)
   const pendingFocus = React.useRef<RowFocus | null>(null)

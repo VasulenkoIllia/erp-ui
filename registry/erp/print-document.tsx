@@ -34,6 +34,8 @@ import {
   formatPrice,
 } from "@/registry/lib/format"
 import { usePrintSheet } from "@/registry/lib/print"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 import { cn } from "@/registry/lib/utils"
 
 /**
@@ -71,7 +73,7 @@ export function PrintDocumentTitle({
   dueDate?: string | null
   docStatus?: DocumentState | null
 }) {
-  const { t, locale } = usePrintSheet()
+  const { t, locale } = usePrintSheet(ukDocumentLines, ukPrint)
   const day = (value: string) => formatDate(value, "long", locale)
   return (
     <div data-slot="print-document-title" className="grid gap-1 text-center">
@@ -102,7 +104,7 @@ export function PrintWatermark({
 }: {
   docStatus?: DocumentState | null
 }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukDocumentLines, ukPrint)
   if (!isWatermarked(docStatus)) return null
   return (
     <div
@@ -139,7 +141,7 @@ export function PrintDocumentLines({
   currency,
   lineDetails,
 }: PrintDocumentLinesProps) {
-  const { t, locale } = usePrintSheet()
+  const { t, locale } = usePrintSheet(ukDocumentLines, ukPrint)
   const digits = currencyDigits(currency)
   const items = itemLinesOf(lines)
   const hasDiscount = items.some(hasLineDiscount)
@@ -295,7 +297,7 @@ export function PrintDocumentTotals({
   currencies,
   after = [],
 }: PrintDocumentTotalsProps) {
-  const { t, locale, language } = usePrintSheet()
+  const { t, locale, language } = usePrintSheet(ukDocumentLines, ukPrint)
   const items = itemLinesOf(lines)
   const resolved =
     totals ?? previewTotals(items, currencyDigits(currency), discount).totals

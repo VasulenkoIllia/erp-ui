@@ -14,6 +14,7 @@ import { RoleMatrix } from "@/registry/erp/role-matrix"
 import { useRoleDraft } from "@/registry/hooks/use-role-draft"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import {
   canGrant,
   countGranted,
@@ -65,7 +66,7 @@ export function RoleDetail({
   onDuplicate: (input: RoleInput) => void
   ceiling?: readonly string[]
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const { guard, dialog: reauthDialog } = useReauth()

@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { DeniedAction } from "@/registry/erp/permission-gate"
@@ -7,12 +6,15 @@ import { Button } from "@/registry/ui/button"
 
 import type { Invoice } from "@/data/invoices"
 import { invoiceHref, invoiceLinkState } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 import { preloadPage } from "./lazy-pages"
 
 /** Номер-посилання й дія «Редагувати» в рядку списку рахунків (колонки — invoice-columns.tsx). */
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage], { keyPrefix: "dataPage" }).t
 
 /** Номер — посилання на картку; адреса списку їде зі станом переходу для «До списку». */
 export function InvoiceNumberLink({

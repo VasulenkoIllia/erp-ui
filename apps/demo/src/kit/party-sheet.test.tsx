@@ -8,6 +8,8 @@ import {
 } from "@/registry/erp/print-requisites"
 import { emptyPartyDetails } from "@/registry/lib/document-parties"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukParty } from "@/registry/lib/i18n-uk-party"
+import { ukPrint } from "@/registry/lib/i18n-uk-print"
 
 import { DEMO_COUNTERPARTIES } from "@/pages/party-details-model"
 
@@ -17,7 +19,8 @@ import { DEMO_COUNTERPARTIES } from "@/pages/party-details-model"
  */
 
 const [LEGAL, FOP] = DEMO_COUNTERPARTIES.map((c) => c.party)
-const kitT = () => renderHook(() => useErpUiT()).result.current
+// Рядки сторони й аркуша приходять із функцією друку (ADR-0094).
+const kitT = () => renderHook(() => useErpUiT(ukParty, ukPrint)).result.current
 
 describe("сторона на аркуші", () => {
   it("реквізити юрособи рядками: код, ІПН, IBAN групами й банк, адреса, контакти", () => {

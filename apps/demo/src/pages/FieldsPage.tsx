@@ -1,5 +1,4 @@
 import { useId, useState, type ReactNode } from "react"
-import { useTranslation } from "react-i18next"
 
 import {
   DateInput,
@@ -27,11 +26,14 @@ import {
   FieldError,
   FieldLabel,
 } from "@/registry/ui/field"
+import { useDemoTranslation } from "@/i18n"
+import { ukFieldsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "fieldsPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukFieldsPage], { keyPrefix: "fieldsPage" }).t
 
 /** Поле демо: підпис, керування, помилка або підказка зі збереженим значенням. */
 function DemoField({

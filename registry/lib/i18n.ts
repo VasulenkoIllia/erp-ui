@@ -7,6 +7,9 @@
  * - У пам'яті лише потрібна мова (ADR-0009, бюджет першого екрана): українські рядки — у бандлі,
  *   інші довантажуються окремим чанком. `changeLanguage` чекає на них; перед першим рендером —
  *   `await whenI18nReady(i18n)`.
+ * - На старті з українських рядків кіта лише база (`lib/i18n-uk-base`): рядки функції приходять із її
+ *   чанком, бо компонент передає свою частину в `useErpUiT(частина)` (ADR-0094). Так само проект може
+ *   ділити свої рядки: `useStrings(простір, частина)`. Інші мови вантажаться цілими.
  * - Англійська показує британські формати (en-GB): день перед місяцем, 24-годинний час.
  * - Рядки не довантажились (офлайн) — i18next повторює двічі, далі показує запасну українську;
  *   наступний `changeLanguage` пробує знову. `<html lang>` — мова, якою інтерфейс справді показано.
@@ -25,7 +28,8 @@ import {
   toLanguage,
   type Language,
 } from "@/registry/lib/i18n-core"
-import { uk, type ErpUiMessages } from "@/registry/lib/i18n-uk"
+import type { ErpUiMessages } from "@/registry/lib/i18n-uk"
+import { ukBase } from "@/registry/lib/i18n-uk-base"
 
 // Мови без i18next — у `lib/i18n-core` (ADR-0093); проект бере їх і звідси, як раніше.
 export {
@@ -146,13 +150,17 @@ export function createI18n({
     const project = resources[lng]
     return typeof project === "function" ? {} : (project ?? {})
   }
-  const bundled = Object.fromEntries(
-    LANGUAGES.map((lng) => [
-      lng,
-      lng === DEFAULT_LANGUAGE
-        ? { [ERP_UI_NAMESPACE]: uk, ...inline(lng) }
-        : inline(lng),
-    ]),
+  // Копія: i18next доливає частини (`addStrings`) у ті самі об'єкти, а модулі рядків мають лишатись
+  // незмінними для наступного екземпляра (тести, кілька застосунків на сторінці).
+  const bundled = structuredClone(
+    Object.fromEntries(
+      LANGUAGES.map((lng) => [
+        lng,
+        lng === DEFAULT_LANGUAGE
+          ? { [ERP_UI_NAMESPACE]: ukBase, ...inline(lng) }
+          : inline(lng),
+      ]),
+    ),
   )
   const namespaces = [
     ...new Set([
@@ -253,9 +261,58 @@ export type ErpUiTranslate = (
   options?: Record<string, unknown>,
 ) => string
 
-/** Переклад рядків кіта — для компонентів реєстру. */
-export function useErpUiT(): ErpUiTranslate {
+/** Частини рядків, які вже додано в простір імен екземпляра. */
+const addedParts = new WeakMap<i18n, Map<string, WeakSet<object>>>()
+
+/**
+ * Додає частини рядків мовою за замовчуванням у простір імен (ADR-0094): рядки функції, що приходять
+ * разом із її чанком, а не на старті. Ключі ті самі, що й без поділу: частина доливається глибоко й не
+ * перезаписує наявних рядків. Інші мови вантажаться цілими, тож частина — лише українська. Та сама
+ * частина вдруге нічого не робить; виклик дешевий, його можна робити на кожен рендер.
+ */
+export function addStrings(
+  instance: i18n,
+  namespace: string,
+  parts: readonly object[],
+): void {
+  if (parts.length === 0) return
+  let byNamespace = addedParts.get(instance)
+  if (!byNamespace) {
+    byNamespace = new Map()
+    addedParts.set(instance, byNamespace)
+  }
+  let added = byNamespace.get(namespace)
+  if (!added) {
+    added = new WeakSet()
+    byNamespace.set(namespace, added)
+  }
+  for (const part of parts) {
+    if (added.has(part)) continue
+    added.add(part)
+    instance.addResourceBundle(DEFAULT_LANGUAGE, namespace, part, true, false)
+  }
+}
+
+/**
+ * Рядки сторінки чи функції проекту, що приходять разом із її чанком (ADR-0094): виклик — у компоненті
+ * до першого `t()`, частина — JSON сторінки (`src/i18n/uk/orders.json`) з тими самими ключами простору
+ * імен, що й без поділу: `useStrings("app", ukOrders)`.
+ */
+export function useStrings(
+  namespace: string,
+  ...parts: readonly object[]
+): void {
   const { i18n } = useTranslation()
+  addStrings(i18n, namespace, parts)
+}
+
+/**
+ * Переклад рядків кіта — для компонентів реєстру. Рядки функції (`lib/i18n-uk-*`, крім бази) компонент
+ * передає сюди: `useErpUiT(ukAudit)`, і вони приходять із його чанком (ADR-0094).
+ */
+export function useErpUiT(...parts: readonly object[]): ErpUiTranslate {
+  const { i18n } = useTranslation()
+  addStrings(i18n, ERP_UI_NAMESPACE, parts)
   const language = i18n.resolvedLanguage ?? i18n.language
   return useMemo(() => {
     // Власні типи ключів: не залежимо від CustomTypeOptions проекту, де простору erp-ui може не бути.

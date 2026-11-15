@@ -1,7 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query"
 import { useGetList } from "@/registry/lib/ra-core"
 import { useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { CopyableValue } from "@/registry/erp/copyable-value"
@@ -14,6 +13,8 @@ import { useFormat } from "@/registry/lib/format"
 import type { Invoice } from "@/data/invoices"
 import type { Organization } from "@/data/organizations"
 import { invoiceHref } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukOrganizationPage } from "@/i18n/pages"
 
 import { InvoiceStatusBadge } from "./invoice-status"
 
@@ -24,7 +25,7 @@ import { InvoiceStatusBadge } from "./invoice-status"
  */
 
 const useCardT = () =>
-  useTranslation("demo", { keyPrefix: "organizationPage" }).t
+  useDemoTranslation([ukOrganizationPage], { keyPrefix: "organizationPage" }).t
 
 /** Реквізити: показ для людини, у буфер — як зберігається. */
 export function OrganizationRequisites({

@@ -5,6 +5,7 @@ import { Stepper } from "@/registry/erp/stepper"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import type { WizardApi } from "@/registry/hooks/use-wizard"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
@@ -56,7 +57,7 @@ export function Wizard({
   children,
   className,
 }: WizardProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukWizard)
   const errorMessage = useApiErrorMessage()
   const stepHeading = React.useRef<HTMLHeadingElement>(null)
   const headingId = React.useId()
@@ -210,7 +211,7 @@ export function WizardReview({
   sections: readonly WizardReviewSection[]
   onEdit: (stepId: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukWizard)
   return (
     <div data-slot="wizard-review" className="@container space-y-6">
       {sections.map((section) => (

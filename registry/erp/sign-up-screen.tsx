@@ -20,6 +20,7 @@ import {
   type Challenge,
 } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { normalizeUaId, validateUaId } from "@/registry/lib/ua-ids"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
@@ -47,7 +48,7 @@ export function SignUpScreen({
   afterSignUp?: string
   renderCaptcha?: CaptchaRenderer
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const done = useAfterLogin(afterSignUp)
   const fieldError = useFieldError()

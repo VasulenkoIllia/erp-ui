@@ -25,6 +25,8 @@ import {
 } from "@/registry/lib/account"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { passkeysSupported } from "@/registry/lib/passkey"
 import { validatePhone } from "@/registry/lib/phone"
 import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
@@ -62,7 +64,7 @@ type Open =
   | { kind: "regenerate" }
 
 export function FactorsSection() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()
@@ -360,7 +362,7 @@ function RenameDialog({
   onClose: () => void
   onRenamed: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()

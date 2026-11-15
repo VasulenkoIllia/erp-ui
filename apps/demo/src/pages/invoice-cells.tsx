@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useUpdate } from "@/registry/lib/ra-core"
 import { Suspense } from "react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { ConflictDialog } from "@/registry/erp/conflict-dialog"
@@ -20,6 +19,8 @@ import { Spinner } from "@/registry/ui/spinner"
 
 import { invoiceSchema, type Invoice } from "@/data/invoices"
 import { MoneyInput } from "@/pages/inline-editors"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage } from "@/i18n/pages"
 
 /**
  * Клієнт і сума рахунку в комірці стрес-сторінки (SPEC §8.1 стан 16, ADR-0018): оптимістично через
@@ -40,7 +41,8 @@ export interface InlineConflict {
   current: Invoice
 }
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage], { keyPrefix: "dataPage" }).t
 
 /** Останнє збереження кожного рахунку: збережений запис або null (не вдалося). */
 const saving = new Map<string, Promise<Invoice | null>>()

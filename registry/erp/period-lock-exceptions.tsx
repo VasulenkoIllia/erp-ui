@@ -13,6 +13,7 @@ import { errorStateKind, MAX_PER_PAGE } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 import {
   PERIOD_LOCK_EXCEPTION_MAX_DAYS,
   PERIOD_LOCK,
@@ -58,7 +59,7 @@ export function PeriodLockExceptions({
 }
 
 function ExceptionList({ headingLevel }: { headingLevel: 2 | 3 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const companyId = useCompanyId()
   const canCreate = useHasPermission(PERIOD_LOCK_EXCEPTIONS, "create")
   const [isGranting, setGranting] = React.useState(false)
@@ -156,7 +157,7 @@ function ExceptionRow({
   exception: PeriodLockException
   onRevoked: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const format = useFormat()
   const revoke = useRevoke()
   const canDelete = useHasPermission(PERIOD_LOCK_EXCEPTIONS, "delete")
@@ -218,7 +219,7 @@ function ExceptionRow({
 
 /** Відкликати виняток; `true` — відкликано. Запис закритого періоду перечитується: виняток міг бути свій. */
 function useRevoke() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const companyId = useCompanyId()
   const errorText = useApiErrorMessage()
   const queryClient = useQueryClient()

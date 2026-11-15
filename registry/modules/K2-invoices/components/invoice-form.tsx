@@ -34,6 +34,8 @@ import type { ExtensionField } from "@/lib/extension-fields"
 import { applyKeyedChanges } from "@/lib/extensions"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukDocumentLines } from "@/lib/i18n-uk-document-lines"
+import { ukDocuments } from "@/lib/i18n-uk-documents"
 
 import {
   INVOICE_DUE_DAYS,
@@ -71,7 +73,7 @@ function useInvoiceFormSchema(
   extensionShape: z.ZodRawShape,
   lineShape: DocumentLineFieldsApi["shape"],
 ) {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines, ukDocuments)
   const lines = useDocumentLinesSchema(currency, lineShape)
   const party = usePartyDetailsSchema()
   return useMemo(() => {
@@ -317,7 +319,7 @@ function InvoiceFormView({
   invoice: InvoiceCard | undefined
 }) {
   const t = useInvoicesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines, ukDocuments)
   const { lineItem } = useInvoicesModule()
   // Сталі посилання: форма перемальовується зі станом збереження, а рахунок буває на сотні рядків.
   const items = useMemo((): readonly RecordFormItem[] => {

@@ -8,6 +8,8 @@ import { useCardRecord } from "@/hooks/use-card-record"
 import { useCompanyProfile } from "@/hooks/use-company-profile"
 import { usePageHeading } from "@/hooks/use-page-heading"
 import { toLanguage, useLanguage } from "@/lib/i18n"
+import { ukPrint } from "@/lib/i18n-uk-print"
+import { ukDocuments } from "@/lib/i18n-uk-documents"
 import { usePrintLanguage } from "@/lib/print"
 
 import { useSalesTitle } from "../components/sales-display"
@@ -69,7 +71,9 @@ function SalesPrint<D extends SalesDocument, Due extends string>({
   const language = company.data?.language ?? ui.language
   // Назва й тексти аркуша — рядки модуля мовою аркуша (не довантажились рядки кіта цієї мови — запасна
   // українська, і рядки модуля теж): поки їх немає, аркуш чекає, а не блимає іншою мовою.
-  const sheetT = useSalesSheetT(usePrintLanguage(toLanguage(language)).language)
+  const sheetT = useSalesSheetT(
+    usePrintLanguage(toLanguage(language), ukPrint, ukDocuments).language,
+  )
   const isReady = Boolean(
     document && detail?.success && company.data && !sheetT.isLoading,
   )

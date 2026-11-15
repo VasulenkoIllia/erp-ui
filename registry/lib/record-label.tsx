@@ -12,6 +12,7 @@ import {
   type ErpUiKey,
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 
 /**
  * Підпис запису довідника сервера за `id` (крок A2a, ADR-0030): поле розширення «запис із
@@ -72,7 +73,7 @@ export const RecordLabel = memo(function RecordLabel({
   labelField,
   t: sheetT,
 }: RecordLabelProps) {
-  const uiT = useErpUiT()
+  const uiT = useErpUiT(ukRecords)
   const t = sheetT ?? uiT
   // Як `useCompanyId` з hooks/use-company: шар lib не імпортує hooks.
   const companyId = useSyncExternalStore(

@@ -1,0 +1,27 @@
+{
+  "preview": {
+    "title": "Прев'ю токенів",
+    "nav": "Приклад навігації",
+    "navItems": {
+      "overview": "Огляд",
+      "invoices": "Рахунки",
+      "contacts": "Контакти",
+      "stock": "Склад",
+      "settings": "Налаштування"
+    },
+    "pageTitle": "Рахунки",
+    "create": "Створити рахунок",
+    "export": "Експорт",
+    "search": "Пошук",
+    "searchPlaceholder": "Номер, клієнт або сума",
+    "tableCaption": "Приклад списку рахунків",
+    "columns": {
+      "number": "Номер",
+      "client": "Клієнт",
+      "amount": "Сума",
+      "status": "Статус"
+    },
+    "charts": "Кольори графіків",
+    "series": "Серія {{index}}"
+  }
+}

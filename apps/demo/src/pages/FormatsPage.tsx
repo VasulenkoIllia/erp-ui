@@ -1,5 +1,4 @@
 import { useId, useState } from "react"
-import { useTranslation } from "react-i18next"
 
 import { PhoneInput } from "@/registry/erp/phone-input"
 import { UaIdInput, uaIdIssueKey } from "@/registry/erp/ua-id-input"
@@ -36,11 +35,14 @@ import {
 } from "@/registry/ui/table"
 
 import { DEMO_NOW, DEMO_TIME_ZONE, LC12_SAMPLES } from "@/fixtures"
+import { useDemoTranslation } from "@/i18n"
+import { ukFormatsPage } from "@/i18n/pages"
 
 import { PageHeader } from "./PageHeader"
 import { Section } from "./Section"
 
-const usePageT = () => useTranslation("demo", { keyPrefix: "formatsPage" }).t
+const usePageT = () =>
+  useDemoTranslation([ukFormatsPage], { keyPrefix: "formatsPage" }).t
 
 /** Числа для перевірки множини (SPEC §11) + дріб і число з розрядами. */
 const PLURAL_SAMPLES = [1, 2, 5, 11, 21, 22, 25, 101, 1.5, 1234]

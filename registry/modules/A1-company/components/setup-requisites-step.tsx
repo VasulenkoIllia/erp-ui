@@ -9,6 +9,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useErpUiT } from "@/lib/i18n"
+import { ukCompany } from "@/lib/i18n-uk-company"
 import type { UaIdKind } from "@/lib/ua-ids"
 
 import type { SetupForm } from "./use-setup-form"
@@ -27,7 +28,7 @@ function TextField({
   autoComplete?: string
   maxLength?: number
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   return (
     <FormField
       control={form.control}
@@ -47,7 +48,7 @@ function TextField({
 }
 
 function UaIdField({ form, name }: { form: SetupForm; name: UaIdKind }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   return (
     <FormField
       control={form.control}
@@ -71,7 +72,7 @@ function UaIdField({ form, name }: { form: SetupForm; name: UaIdKind }) {
 
 /** Крок «Реквізити»: основне й банк. Контакти й підписанти — потім, на картці компанії. */
 export function SetupRequisitesStep({ form }: { form: SetupForm }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukCompany)
   const vatId = useId()
   const kind = useWatch({ control: form.control, name: "kind" })
   const vatPayer = useWatch({ control: form.control, name: "vatPayer" })

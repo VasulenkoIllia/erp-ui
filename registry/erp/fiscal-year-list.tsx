@@ -11,6 +11,7 @@ import { companyScope } from "@/registry/lib/company-scope"
 import { todayIn } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 import {
   fiscalYears,
   PERIOD_LOCK,
@@ -46,7 +47,7 @@ export function FiscalYearList({
   headingLevel = 2,
 }: FiscalYearListProps) {
   const Heading = headingLevel === 2 ? "h2" : "h3"
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const format = useFormat()
   const today = todayIn(useUserTimeZone())
   const { data: profile } = useCompanyProfile()
@@ -159,7 +160,7 @@ function YearStatus({
   year: FiscalYear
   lockedThrough: string | null
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const format = useFormat()
   const text =
     year.status === "closed"
@@ -185,7 +186,7 @@ function YearStatus({
 
 /** Закрити рік: дата закриття — останній день року; `true` — збережено. */
 function useCloseYear(lock: PeriodLock) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const companyId = useCompanyId()
   const errorText = useApiErrorMessage()
   const queryClient = useQueryClient()

@@ -21,6 +21,7 @@ import {
   type DocumentFlowNode,
 } from "@/registry/lib/document-links"
 import { useErpUiT, type ErpUiKey } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import { Skeleton } from "@/registry/ui/skeleton"
@@ -101,7 +102,7 @@ export function DocumentFlowView({
   isPaused = false,
   onRetry,
 }: DocumentFlowViewProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const root = React.useRef<HTMLDivElement>(null)
   const isUpdating = useAfterDelay(
     isFetching && flow !== undefined,
@@ -273,7 +274,7 @@ function FlowMessage({
   isFetching: boolean
   onRetry: (() => void) | undefined
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   const { icon: Icon, text } = MESSAGES[kind]
   const canRetry = onRetry !== undefined && kind !== "forbidden"
   return (
@@ -308,7 +309,7 @@ function FlowMessage({
 }
 
 function DocumentFlowSkeleton() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments)
   return (
     <div
       data-slot="document-flow-skeleton"

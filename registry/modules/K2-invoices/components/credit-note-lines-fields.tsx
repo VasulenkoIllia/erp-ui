@@ -16,6 +16,7 @@ import {
 } from "@/lib/document-lines"
 import { useFormat } from "@/lib/format"
 import { useErpUiT } from "@/lib/i18n"
+import { ukDocumentLines } from "@/lib/i18n-uk-document-lines"
 import { ACTION_ICONS } from "@/lib/icons"
 
 import type { CreditNoteCard } from "../contract"
@@ -57,7 +58,7 @@ export function CreditNoteLinesFields({
   readOnly,
 }: CreditNoteLinesFieldsProps) {
   const t = useInvoicesT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocumentLines)
   const format = useFormat()
   // Поля розширення в значеннях (`Record<string, unknown>`) ламають шляхи RHF: рядкам — лише рядки.
   const linesForm = form as unknown as LinesForm

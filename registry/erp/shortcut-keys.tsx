@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import {
   comboLabel,
   isMacPlatform,
@@ -24,7 +25,7 @@ const isSpokenKey = (key: string): key is keyof typeof SPOKEN_KEYS =>
   Object.hasOwn(SPOKEN_KEYS, key)
 
 function ComboKbd({ combo, isMac }: { combo: KeyCombo; isMac: boolean }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukShortcuts)
   const label = comboLabel(combo, isMac)
   const isCommand = combo.mod === true && isMac
   if (!isSpokenKey(combo.key) && !isCommand) return <Kbd>{label}</Kbd>
@@ -51,7 +52,7 @@ function ComboKbd({ combo, isMac }: { combo: KeyCombo; isMac: boolean }) {
  * це варіанти однієї дії, а не послідовність, тож скрінрідер чує між ними «або».
  */
 export function ShortcutKeys({ shortcut }: { shortcut: ShortcutDefinition }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukShortcuts)
   const isMac = isMacPlatform()
   return shortcut.keys.map((combo, index) => (
     <React.Fragment

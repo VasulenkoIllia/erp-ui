@@ -22,6 +22,7 @@ import {
 } from "@/registry/lib/document-totals"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukDocumentLines } from "@/registry/lib/i18n-uk-document-lines"
 import { cn } from "@/registry/lib/utils"
 
 /**
@@ -198,7 +199,7 @@ export function DocumentLinesTotals({
   discount,
   readOnly,
 }: DocumentLinesTotalsProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocumentLines)
   const format = useFormat()
   const isSaved = Boolean(readOnly && savedTotals)
   const totals = (readOnly && savedTotals) || preview.totals

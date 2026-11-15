@@ -16,10 +16,13 @@ import { auditQuery, auditToCsv, type AuditEvent } from "@/registry/lib/audit"
 import { createAuthProvider, isReauthRequired } from "@/registry/lib/auth"
 import { createDataProvider } from "@/registry/lib/data-provider"
 import {
+  addStrings,
   createI18n,
   ERP_UI_NAMESPACE,
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
+import { ukAudit } from "@/registry/lib/i18n-uk-audit"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import {
   createPlatformHandlers,
   createResourceHandlers,
@@ -212,7 +215,10 @@ describe("журнал аудиту (ADR-0013)", () => {
   })
 
   it("назва дії: проект, кіт, сервер, дієслово запису, код", () => {
-    const t = createI18n({ language: "uk" }).getFixedT(
+    const i18n = createI18n({ language: "uk" })
+    // Рядки журналу аудиту приходять із ним (ADR-0094): у застосунку їх підключає `AuditLog`.
+    addStrings(i18n, ERP_UI_NAMESPACE, [ukAudit, ukSecurity])
+    const t = i18n.getFixedT(
       "uk",
       ERP_UI_NAMESPACE,
     ) as unknown as ErpUiTranslate

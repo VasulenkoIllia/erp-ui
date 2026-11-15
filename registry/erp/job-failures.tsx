@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { JOB_FAILURE_SAMPLE, type JobFailureGroup } from "@/registry/lib/jobs"
 import {
   Dialog,
@@ -58,7 +59,7 @@ export function JobFailuresDialog({
   retry: React.ReactNode
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const format = useFormat()
   const count = failures.reduce((sum, group) => sum + group.count, 0)
   return (

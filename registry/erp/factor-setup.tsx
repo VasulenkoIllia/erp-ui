@@ -24,6 +24,8 @@ import type {
   TotpSetup,
 } from "@/registry/lib/account"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import {
   PasskeyCancelledError,
   passkeysSupported,
@@ -150,7 +152,7 @@ function CodeField({
 
 /** Код перевірки: хибний — під полем, решта — банером. */
 function useVerify(onEnrolled: (result: FactorEnrolled) => void) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
   const [busy, setBusy] = React.useState(false)
@@ -189,7 +191,7 @@ function TotpDialog({
   onEnrolled: (result: FactorEnrolled) => void
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const provider = useErpAuthProvider()
   const id = React.useId()
   const { busy, code, setCode, codeError, error, run } = useVerify(onEnrolled)
@@ -279,7 +281,7 @@ function SmsDialog({
   onEnrolled: (result: FactorEnrolled) => void
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
@@ -474,7 +476,7 @@ function PasskeyDialog({
   onEnrolled: (result: FactorEnrolled) => void
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const provider = useErpAuthProvider()
   const fieldError = useFieldError()
   const errorText = useAuthErrorText()
@@ -577,7 +579,7 @@ export function BackupCodesDialog({
   codes: string[] | null
   onClose: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const { data: me } = useMe()
   const formatted = (codes ?? []).map(formatBackupCode)
   const text = [
@@ -745,7 +747,7 @@ export function FactorSetupStep({
   onRestart?: () => void
   phone?: PhoneField
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSecurity, ukSignIn)
   const errorText = useAuthErrorText()
   const [codes, setCodes] = React.useState<string[] | null>(null)
   const [error, setError] = React.useState<string | null>(null)

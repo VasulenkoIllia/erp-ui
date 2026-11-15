@@ -2,6 +2,7 @@ import { PencilLineIcon } from "lucide-react"
 
 import type { EditLockHolder } from "@/registry/lib/edit-lock"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 
 /**
@@ -13,7 +14,7 @@ import { Alert, AlertDescription } from "@/registry/ui/alert"
  * смуга забрала б відступ між блоками картки. Видима смуга тому прихована від дерева доступності.
  */
 export function EditLockNotice({ holder }: { holder: EditLockHolder | null }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRealtime)
   const text = holder ? t("editLock.notice", { name: holder.name }) : ""
   return (
     <>

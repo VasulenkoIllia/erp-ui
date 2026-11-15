@@ -13,6 +13,7 @@ import { useMe } from "@/registry/hooks/use-me"
 import { isApiError } from "@/registry/lib/api"
 import { isReauthRequired } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
 
 /**
  * Підтвердження «Вилучити з компанії» (ADR-0041): назва компанії в заголовку, бо адміністратор може
@@ -32,7 +33,7 @@ export function RemoveMemberDialog({
   onRemoved: () => void
   onStale: () => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess)
   const provider = useErpAuthProvider()
   const apiMessage = useApiErrorMessage()
   const { guard, dialog: reauthDialog } = useReauth()

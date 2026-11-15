@@ -13,6 +13,7 @@ import { UaIdInput, uaIdIssueKey } from "@/components/erp/ua-id-input"
 import { Input } from "@/components/ui/input"
 import { useRecordForm } from "@/hooks/use-record-form"
 import { useErpUiT } from "@/lib/i18n"
+import { ukRecords } from "@/lib/i18n-uk-records"
 import { formatIban, validateUaId } from "@/lib/ua-ids"
 
 import {
@@ -66,7 +67,7 @@ export interface BankAccountFormDialogProps {
 /** IBAN обов'язковий, з дійсними контрольними цифрами й не той, що вже є в організації. */
 function useBankAccountSchema(others: readonly string[]) {
   const t = useContactsT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   return useMemo(
     () =>
       z.object({
@@ -102,7 +103,7 @@ export function BankAccountFormDialog({
   finalFocus,
 }: BankAccountFormDialogProps) {
   const t = useContactsT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukRecords)
   const { extension } = useContactsModule()
   const recordSchema = useMemo(
     () => organizationCardSchemaFor(extension.organizations),

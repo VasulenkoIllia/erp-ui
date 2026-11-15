@@ -1,0 +1,8 @@
+{
+  "statuses": {
+    "success": "Оплачено",
+    "warning": "Частково",
+    "destructive": "Прострочено",
+    "info": "Очікує"
+  }
+}

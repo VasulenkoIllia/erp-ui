@@ -23,7 +23,8 @@ import {
   useEmailLinkToken,
   type EmailLinkScreen as EmailLinkScreenId,
 } from "@/registry/hooks/use-email-link-token"
-import { LANGUAGES, type Language } from "@/registry/lib/i18n"
+import { LANGUAGES, useErpUiT, type Language } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { LANGUAGE_NAMES } from "@/registry/lib/language-names"
 import { Button } from "@/registry/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/registry/ui/card"
@@ -60,7 +61,7 @@ const demoCaptcha: CaptchaRenderer = (props) => <DemoCaptcha {...props} />
 
 function DemoCaptcha({ onToken }: { onToken: (token: string) => void }) {
   const { t } = useTranslation("demo", { keyPrefix: "authDemo" })
-  const { t: kitT } = useTranslation("erp-ui")
+  const kitT = useErpUiT(ukSignIn)
   const [done, setDone] = useState(false)
   const callback = useRef(onToken)
   useEffect(() => {

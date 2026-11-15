@@ -13,6 +13,7 @@ import { useMemo } from "react"
 
 import { isDocumentAction } from "@/registry/lib/document-lifecycle"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
 import {
   useResolvedStatuses,
   useResolvedTransitions,
@@ -93,7 +94,7 @@ export function useDocumentTransitions<
   t: (key: NoInfer<Label | DocumentConfirmKey<Confirm>>) => string,
   changes: ExtensionTransitionChanges | undefined,
 ): readonly ModuleTransition[] {
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukDocuments)
   const { actionLabels, confirms } = texts
   const labelled = useMemo(
     () =>

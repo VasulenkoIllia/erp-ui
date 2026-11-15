@@ -18,6 +18,7 @@ import {
 import type { CompanyProfile } from "@/lib/company"
 import { formatDate } from "@/lib/format"
 import { usePrintSheet } from "@/lib/print"
+import { ukPrint } from "@/lib/i18n-uk-print"
 
 import type { SalesDocument, SalesDocumentDetail } from "../contract"
 import { useSalesModule } from "../module-context"
@@ -46,7 +47,7 @@ export function SalesSheet<D extends SalesDocument, Due extends string>({
   /** Рядки модуля мовою аркуша від сторінки друку (`useSalesSheetT`). */
   sheetT: SalesSheetT
 }) {
-  const { t, locale } = usePrintSheet()
+  const { t, locale } = usePrintSheet(ukPrint)
   const { extension } = useSalesModule()
   const documentExtension = kind.extensionOf(extension)
   const { record } = kind.keys

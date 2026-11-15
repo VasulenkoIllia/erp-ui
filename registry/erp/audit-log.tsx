@@ -37,6 +37,8 @@ import {
   type ErpUiKey,
   type ErpUiTranslate,
 } from "@/registry/lib/i18n"
+import { ukAudit } from "@/registry/lib/i18n-uk-audit"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import { cn } from "@/registry/lib/utils"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
@@ -152,7 +154,7 @@ export function AuditLog({
   /** Кнопка «Історія запису» в рядку події. */
   onRecordHistory?: (target: AuditTarget) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukSecurity)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const ids = React.useId()
@@ -448,7 +450,7 @@ function AuditEventItem({
   expanded: boolean
   onRecordHistory?: (target: AuditTarget) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAudit, ukSecurity)
   const format = useFormat()
   const detailsId = React.useId()
   const [open, setOpen] = React.useState(expanded)

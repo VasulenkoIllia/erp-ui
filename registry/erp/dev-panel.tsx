@@ -2,6 +2,7 @@ import * as React from "react"
 import { FlaskConicalIcon } from "lucide-react"
 
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDevPanel } from "@/registry/lib/i18n-uk-dev-panel"
 import { cn } from "@/registry/lib/utils"
 import {
   getScenarioState,
@@ -54,7 +55,7 @@ export function DevPanel({
   className?: string
   children?: React.ReactNode
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDevPanel)
   const state = React.useSyncExternalStore(
     subscribeScenarios,
     getScenarioState,

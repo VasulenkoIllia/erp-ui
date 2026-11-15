@@ -17,6 +17,7 @@ import type {
 } from "@/registry/hooks/use-record-form"
 import type { Keyed } from "@/registry/lib/extensions"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import {
@@ -246,7 +247,7 @@ export function useConflictFields<TValues extends FieldValues>(
   state: RecordFormState<TValues>,
   items: readonly RecordFormItem[],
 ): ConflictField[] {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const [shown, setShown] = React.useState<{
     conflict: RecordFormConflict<TValues>
     fields: ConflictField[]
@@ -267,7 +268,7 @@ export function useFormMessage<TValues extends FieldValues>(
   state: RecordFormState<TValues>,
   labels: Readonly<Record<string, string>>,
 ) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const ref = React.useRef<HTMLDivElement>(null)
   const orphans = Object.keys(state.form.formState.errors).filter(
     (key) => !Object.hasOwn(labels, key),
@@ -294,7 +295,7 @@ export function RecordFormDialog<TValues extends FieldValues>({
   nested = false,
   children,
 }: RecordFormDialogProps<TValues>) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRecords)
   const [isConfirmingClose, setConfirmingClose] = React.useState(false)
   const { isDirty, errors, submitCount } = state.form.formState
   const requestClose = () => {

@@ -5,6 +5,7 @@ import { usePeriodLock } from "@/registry/hooks/use-period-lock"
 import { isApiError } from "@/registry/lib/api"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukPeriodLock } from "@/registry/lib/i18n-uk-period-lock"
 import {
   isPeriodLocked,
   type OwnPeriodLockException,
@@ -84,7 +85,7 @@ export type PeriodLockNoticeProps =
     }
 
 export function PeriodLockNotice(props: PeriodLockNoticeProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukPeriodLock)
   const format = useFormat()
   if (props.state === "error")
     return (

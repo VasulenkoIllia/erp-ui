@@ -14,6 +14,7 @@ import { defaultSsoReturnUrl, LoginScreen } from "@/registry/erp/login-screen"
 import { isApiError } from "@/registry/lib/api"
 import type { Invite } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
 import { Button } from "@/registry/ui/button"
 import { Spinner } from "@/registry/ui/spinner"
@@ -50,7 +51,7 @@ export function InviteAccountScreen({
   paths?: Partial<AuthPaths>
   afterLogin?: string
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukSignIn)
   const provider = useErpAuthProvider()
   const logout = useLogout()
   const errorText = useAuthErrorText()

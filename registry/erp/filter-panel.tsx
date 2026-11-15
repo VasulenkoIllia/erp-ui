@@ -12,6 +12,8 @@ import {
   type FilterDraft,
 } from "@/registry/lib/filters"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
+import { ukRecords } from "@/registry/lib/i18n-uk-records"
 import type { ListFilter } from "@/registry/lib/list-state"
 import { recordOptionTexts } from "@/registry/lib/record-label"
 import { Button } from "@/registry/ui/button"
@@ -50,7 +52,7 @@ export function FilterPanelForm({
   value,
   onApply,
 }: FilterPanelFormProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const [drafts, setDrafts] = React.useState<Drafts>(() =>
     Object.fromEntries(filters.map((d) => [d.id, readFilter(d, value)])),
   )
@@ -126,7 +128,7 @@ function FilterControl({
   showIssue,
   onChange,
 }: ControlProps) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists, ukRecords)
   const ids = React.useId()
   const issue =
     showIssue && filterIssue(draft) ? t("filterBar.rangeIssue") : null

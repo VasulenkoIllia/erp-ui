@@ -4,6 +4,7 @@ import {
 } from "@/components/templates/wizard"
 import type { CompanyProfile } from "@/lib/company"
 import { useErpUiT } from "@/lib/i18n"
+import { ukCompany } from "@/lib/i18n-uk-company"
 
 import { useCompanyT } from "../use-company-t"
 
@@ -23,7 +24,7 @@ export function SetupReview({
   onEdit: (stepId: string) => void
 }) {
   const t = useCompanyT()
-  const kitT = useErpUiT()
+  const kitT = useErpUiT(ukCompany)
   const isLegal = profile.kind === "legal"
   const uploaded = (url: string | null) =>
     url ? t("setup.review.logoSet") : undefined

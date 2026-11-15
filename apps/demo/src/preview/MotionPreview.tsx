@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 
 import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 
 import { Section } from "@/pages/Section"
+import { useDemoTranslation } from "@/i18n"
+import { ukAppearancePage } from "@/i18n/pages"
 
 /**
  * Токени руху (ADR-0009, SPEC §6.6): тривалості й криві з живим зразком. Смуги заповнюються
@@ -19,7 +20,9 @@ const DURATIONS = [
 const EASINGS = ["ease-standard", "ease-enter", "ease-exit"] as const
 
 export function MotionPreview() {
-  const { t } = useTranslation("demo", { keyPrefix: "appearancePage.motion" })
+  const { t } = useDemoTranslation([ukAppearancePage], {
+    keyPrefix: "appearancePage.motion",
+  })
   const [filled, setFilled] = useState(false)
   return (
     <Section title={t("title")} description={t("lead")}>

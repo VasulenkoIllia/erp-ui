@@ -15,6 +15,8 @@ import { SETUP_FACTORS } from "@/registry/lib/account"
 import { hasPermission } from "@/registry/lib/auth"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukAccess } from "@/registry/lib/i18n-uk-access"
+import { ukSecurity } from "@/registry/lib/i18n-uk-security"
 import {
   ADMIN_QUERY_KEYS,
   isValidCidr,
@@ -112,7 +114,7 @@ function PolicyForm({
   queryKey: readonly unknown[]
   readOnlyReason?: PolicyReadOnlyReason
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukAccess, ukSecurity)
   const provider = useErpAuthProvider()
   const queryClient = useQueryClient()
   const errorText = useAuthErrorText()

@@ -27,6 +27,7 @@ import {
 } from "@/registry/hooks/use-realtime"
 import { companyScope } from "@/registry/lib/company-scope"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { newImportRequestId } from "@/registry/lib/imports"
 import { REALTIME_FLUSH_MS } from "@/registry/lib/realtime-cache"
 import { isRichTextEmpty, richTextSchema } from "@/registry/lib/rich-text"
@@ -299,7 +300,7 @@ export function useTimelineVersionRefresh(
 
 /** Текст нотатки чи повідомлення: порожній на сервер не йде. */
 export function useTimelineBodySchema() {
-  const t = useErpUiT()
+  const t = useErpUiT(ukTimeline)
   return React.useMemo(
     () =>
       z.object({

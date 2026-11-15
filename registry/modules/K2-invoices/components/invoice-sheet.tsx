@@ -21,6 +21,7 @@ import { QrCode } from "@/components/erp/qr-code"
 import type { CompanyProfile } from "@/lib/company"
 import { formatDate } from "@/lib/format"
 import { usePrintSheet } from "@/lib/print"
+import { ukPrint } from "@/lib/i18n-uk-print"
 
 import {
   INVOICES,
@@ -59,7 +60,7 @@ export const invoiceSheetTitle = (invoice: Invoice, t: InvoicesSheetT) =>
 
 /** Постачальник і покупець аркуша документа з реквізитами знімків (ADR-0068). */
 export function SheetParties({ document }: { document: K2Document }) {
-  const { t } = usePrintSheet()
+  const { t } = usePrintSheet(ukPrint)
   return (
     <PrintParties
       parties={[
@@ -98,7 +99,7 @@ export function InvoiceSheet({
   /** Рядки модуля мовою аркуша від сторінки друку (`DocumentPrint`). */
   sheetT: InvoicesSheetT
 }) {
-  const { locale } = usePrintSheet()
+  const { locale } = usePrintSheet(ukPrint)
   const { extension } = useInvoicesModule()
   const invoiceExtension = extension.invoices
   const lineDetails = useSheetLineDetails(invoiceExtension?.lineFields)

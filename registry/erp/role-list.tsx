@@ -8,6 +8,7 @@ import {
 } from "@/registry/erp/auth-layout"
 import { isApiError } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukRoles } from "@/registry/lib/i18n-uk-roles"
 import type { Role, RoleInput } from "@/registry/lib/roles"
 import { cn } from "@/registry/lib/utils"
 import { Alert, AlertDescription } from "@/registry/ui/alert"
@@ -38,7 +39,7 @@ export function RoleList({
   selectedId: string | undefined
   onSelect: (id: string) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   return (
     <ul className="space-y-1" aria-label={t("roles.listLabel")}>
       {roles.map((role) => (
@@ -99,7 +100,7 @@ export function CreateRoleDialog({
   onClose: () => void
   onCreated: (role: Role) => void
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukRoles)
   const provider = useErpAuthProvider()
   const errorText = useAuthErrorText()
   const ids = React.useId()

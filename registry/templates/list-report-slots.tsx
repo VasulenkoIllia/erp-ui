@@ -14,6 +14,7 @@ import {
   type KeyedChanges,
 } from "@/registry/lib/extensions"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import type {
   ListReportBulk,
   ListReportBulkAction,
@@ -96,7 +97,7 @@ export function useListSlots<T, B extends string>(
   columns: readonly DataTableColumn<T>[]
   bulk: ListReportBulk<T> | undefined
 } {
-  const t = useErpUiT()
+  const t = useErpUiT(ukLists)
   const { resource, selection, list } = report
   const filter = list.queryFilter
   const permissions = useMe().data?.permissions

@@ -14,6 +14,8 @@ import { hasPermission } from "@/registry/lib/auth"
 import type { ErpDataProvider } from "@/registry/lib/data-provider"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { ukDocuments } from "@/registry/lib/i18n-uk-documents"
+import { ukLists } from "@/registry/lib/i18n-uk-lists"
 import { ACTION_ICONS, type ActionIcon } from "@/registry/lib/icons"
 import type { BulkSelection, Job } from "@/registry/lib/jobs"
 import { toBulkSelection } from "@/registry/lib/row-selection"
@@ -124,7 +126,7 @@ export interface BulkAction {
 type StartOutcome = "started" | "failed" | { reasonError: string }
 
 function useStartBulk(options: BulkActionOptions) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments, ukLists)
   const errorMessage = useApiErrorMessage()
   const dataProvider = useDataProvider<ErpDataProvider>()
   const { resource, action, texts, failureLabel } = options
@@ -248,7 +250,7 @@ function BulkActionDialog({
   onConfirm: (reason: string | undefined) => Promise<StartOutcome>
   returnFocus: () => HTMLElement | null
 }) {
-  const t = useErpUiT()
+  const t = useErpUiT(ukDocuments, ukLists)
   const format = useFormat()
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
   const [reason, setReason] = React.useState("")

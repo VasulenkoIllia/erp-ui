@@ -11,7 +11,6 @@ import {
   useState,
   type RefObject,
 } from "react"
-import { useTranslation } from "react-i18next"
 import { Link, useLocation as useRouterLocation } from "react-router"
 
 import { ConfirmDialog } from "@/registry/erp/confirm-dialog"
@@ -45,6 +44,8 @@ import {
   type InvoiceStatus,
 } from "@/data/invoices"
 import { ROUTES } from "@/router"
+import { useDemoTranslation } from "@/i18n"
+import { ukDataPage, ukInvoicePage, ukStatuses } from "@/i18n/pages"
 
 import { BackLink } from "./back-link"
 
@@ -71,8 +72,14 @@ import { InvoiceStatusBadge } from "./invoice-status"
 
 const RESOURCE = "invoices"
 
-const useCardT = () => useTranslation("demo", { keyPrefix: "invoicePage" }).t
-const usePageT = () => useTranslation("demo", { keyPrefix: "dataPage" }).t
+const useCardT = () =>
+  useDemoTranslation([ukDataPage, ukInvoicePage, ukStatuses], {
+    keyPrefix: "invoicePage",
+  }).t
+const usePageT = () =>
+  useDemoTranslation([ukDataPage, ukInvoicePage, ukStatuses], {
+    keyPrefix: "dataPage",
+  }).t
 
 /** Етапи життєвого циклу: частково оплачений і прострочений — ще «Надіслано». */
 const STEPS = ["draft", "approved", "sent", "paid"] as const
@@ -143,7 +150,9 @@ function InvoiceCard({
     void refetch()
   }, [refetch])
 
-  const pagesT = useTranslation("demo", { keyPrefix: "app.pages" }).t
+  const pagesT = useDemoTranslation([ukDataPage, ukInvoicePage, ukStatuses], {
+    keyPrefix: "app.pages",
+  }).t
   const title = invoice
     ? t("title", { number: invoice.number })
     : pagesT("invoice")
