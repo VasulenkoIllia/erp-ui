@@ -43,6 +43,8 @@
       "organization": "Організація"
     },
     "pagesShort": {
+      "appearance": "Вигляд",
+      "primitives": "Основа",
       "formats": "Формати",
       "states": "Стани"
     },

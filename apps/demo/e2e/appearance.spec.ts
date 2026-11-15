@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { openWith } from "./helpers"
+import { chooseInSubmenu, openWith } from "./helpers"
 
 test.describe("перемикачі вигляду", () => {
   test("ставлять атрибути на <html> і переживають перезавантаження", async ({
@@ -46,6 +46,36 @@ test.describe("перемикачі вигляду", () => {
 
     await page.getByRole("radio", { name: "Компактна" }).check()
     expect((await row.boundingBox())?.height).toBeCloseTo(32, 0)
+  })
+
+  test("меню користувача: проект ховає палітру й щільність, мову зберігає сам", async ({
+    page,
+  }) => {
+    await openWith(page, {})
+    const samples = page.getByRole("button", {
+      name: /Меню користувача: Марта Демченко/,
+    })
+    await expect(samples).toHaveCount(3)
+
+    await samples.nth(1).click()
+    const menu = page.getByRole("menu")
+    await expect(
+      menu.getByRole("menuitemradio", { name: "Темна" }),
+    ).toBeVisible()
+    await expect(menu.getByRole("menuitem", { name: /Мова/ })).toBeVisible()
+    await expect(menu.getByRole("menuitem", { name: /Палітра/ })).toHaveCount(0)
+    await expect(menu.getByRole("menuitem", { name: /Щільність/ })).toHaveCount(
+      0,
+    )
+    await page.keyboard.press("Escape")
+    await expect(menu).toBeHidden()
+
+    await samples.nth(2).click()
+    await chooseInSubmenu(page, /Мова/, "English")
+    await expect(page.locator("html")).toHaveAttribute("lang", "en")
+    await expect(
+      page.getByText("Мову «English» збережено на сервері (демо)"),
+    ).toBeVisible()
   })
 
   test("усе керується з клавіатури", async ({ page }) => {

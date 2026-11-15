@@ -43,6 +43,8 @@
       "organization": "Organization"
     },
     "pagesShort": {
+      "appearance": "Theme",
+      "primitives": "Primitives",
       "formats": "Formats",
       "states": "States"
     },
@@ -71,6 +73,17 @@
       },
       "run": "Show durations",
       "reset": "Reset"
+    },
+    "userMenu": {
+      "title": "User menu",
+      "lead": "erp/user-menu: a project can hide the palette and density items and saves the language itself. The switches apply to the whole app.",
+      "full": "All items",
+      "fullHint": "Default: theme, palette, density, language, dark sidebar.",
+      "noAppearance": "Without palette and density",
+      "noAppearanceHint": "showPalette={false} showDensity={false}: a project with one palette and one density.",
+      "language": "Language saved by the project",
+      "languageHint": "onLanguageChange: as soon as a person picks a language, the project saves it.",
+      "languageSaved": "Language “{{language}}” saved on the server (demo)"
     }
   },
   "primitivesPage": {
@@ -345,7 +358,9 @@
     "chunkFailed": "Chunk failed to load after a deploy",
     "chunkFailedLead": "A real error boundary: the button reloads this page, and a second time within a minute the button is gone.",
     "unsavedChanges": "A form next to it has unsaved changes",
-    "chunkReloadFutile": "Reloading did not help"
+    "chunkReloadFutile": "Reloading did not help",
+    "compact": "Compact section state",
+    "compactLead": "PageState compact: one row, no large block, h3 heading. In a narrow container the actions wrap under the text."
   },
   "modulePage": {
     "lead": "Module {{id}} is not built yet, but the shell already leads to it.",

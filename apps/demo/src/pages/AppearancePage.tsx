@@ -1,4 +1,5 @@
 import { AppearanceControls } from "@/appearance/AppearanceControls"
+import { UserMenuVariants } from "@/appearance/UserMenuVariants"
 import { MotionPreview } from "@/preview/MotionPreview"
 import { TokenPreview } from "@/preview/TokenPreview"
 import { useDemoTranslation } from "@/i18n"
@@ -15,7 +16,10 @@ export function AppearancePage() {
         lead={t("appearancePage.lead")}
       />
       <div className="grid grid-cols-1 items-start gap-6 @5xl:grid-cols-3">
-        <AppearanceControls />
+        <div className="space-y-6">
+          <AppearanceControls />
+          <UserMenuVariants />
+        </div>
         <div className="space-y-6 @5xl:col-span-2">
           <TokenPreview />
           <MotionPreview />

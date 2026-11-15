@@ -106,9 +106,11 @@ export interface MockPermissionResource {
   actions?: string[]
   /** Дії з вибором «Свої / Усі» (`<ресурс>:<дія>:own`, A2c2b1); за замовчуванням — жодної. */
   own?: string[]
+  /** Назви дій проекту в матриці ролей; важливіші за назви, які знає мок. */
+  actionLabels?: Record<string, LocalizedText>
 }
 
-/** Назви дій, які знає мок; інші — як є. */
+/** Назви дій, які знає мок (CRUD, документи й модулі кіта); інші — з `actionLabels` ресурсу чи як є. */
 const ACTION_LABELS: Record<string, LocalizedText> = {
   read: { uk: "Перегляд", en: "Read" },
   create: { uk: "Створення", en: "Create" },
@@ -117,6 +119,16 @@ const ACTION_LABELS: Record<string, LocalizedText> = {
   export: { uk: "Експорт", en: "Export" },
   approve: { uk: "Погодження", en: "Approve" },
   impersonate: { uk: "«Увійти як…»", en: "“Sign in as…”" },
+  submit: { uk: "Проведення", en: "Submit" },
+  cancel: { uk: "Скасування", en: "Cancel" },
+  reverse: { uk: "Сторнування", en: "Reverse" },
+  amend: { uk: "Виправлення", en: "Amend" },
+  accept: { uk: "Прийняття клієнтом", en: "Mark accepted" },
+  decline: { uk: "Відмова клієнта", en: "Mark declined" },
+  order: { uk: "Створення замовлення", en: "Create order" },
+  complete: { uk: "Виконання", en: "Complete" },
+  invoice: { uk: "Виставлення рахунку", en: "Create invoice" },
+  creditNote: { uk: "Кредит-нота", en: "Credit note" },
 }
 const CRUD = ["read", "create", "update", "delete"]
 /**
@@ -226,7 +238,11 @@ export function createTeamHandlers({
         : {}),
       actions: (resource.actions ?? CRUD).map((action) => ({
         id: action,
-        label: localizedText(ACTION_LABELS[action], language) ?? action,
+        label:
+          localizedText(
+            resource.actionLabels?.[action] ?? ACTION_LABELS[action],
+            language,
+          ) ?? action,
         ...(resource.own?.includes(action) && !KIT_RESOURCES_WITHOUT_OWN.has(id)
           ? { own: true }
           : {}),

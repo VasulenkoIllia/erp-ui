@@ -159,6 +159,35 @@ test.describe("A2: ролі й права", () => {
     await expectNoA11yViolations(page)
   })
 
+  test("дії документів у матриці з назвами, а не ідентифікаторами", async ({
+    page,
+  }) => {
+    await openWith(page, {}, `${ROLES}?role=owner`)
+    await expect(
+      page.getByRole("checkbox", {
+        name: "Позначка оплати: Документи",
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("checkbox", {
+        name: "Переговори: Пропозиції",
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("checkbox", {
+        name: "Сторнування: Рахунки клієнтам",
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("checkbox", {
+        name: /^(submit|markPaid|cancel|reverse|amend|sendToReview|accept|decline|negotiate|order|complete|invoice|creditNote):/,
+      }),
+    ).toHaveCount(0)
+  })
+
   test("«Свої / Усі»: перемикач поруч з увімкненою дією, клавіатура, збереження", async ({
     page,
   }) => {

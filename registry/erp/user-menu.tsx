@@ -34,6 +34,8 @@ import {
  * Меню користувача в топбарі (SPEC §6.2, §7): профіль, вигляд і мова, вихід.
  * Тема, палітра, щільність, сайдбар і мова змінюються через lib/appearance — одразу для всього застосунку.
  * `children` — пункти проекту (профіль, налаштування) між вподобаннями й виходом.
+ * `showPalette`, `showDensity` — проект ховає пункт, якого йому не треба (за замовчуванням видно);
+ * `onLanguageChange` — мова, щойно людина обрала її в меню (зберегти на сервері проекту).
  */
 
 export interface MenuUser {
@@ -52,15 +54,29 @@ export function initials(name: string): string {
     .join("")
 }
 
+export interface UserMenuProps {
+  user: MenuUser
+  onSignOut?: () => void
+  /** Пункт «Палітра»; `false` — проект із однією палітрою. */
+  showPalette?: boolean
+  /** Пункт «Щільність»; `false` — проект з однією щільністю. */
+  showDensity?: boolean
+  /**
+   * Людина обрала мову в меню: мова вже застосована й збережена в браузері (lib/appearance),
+   * проект зберігає її у себе (`/me/preferences`, свій API). Інші зміни вигляду — `subscribeAppearance`.
+   */
+  onLanguageChange?: (language: Language) => void
+  children?: React.ReactNode
+}
+
 export function UserMenu({
   user,
   onSignOut,
+  showPalette = true,
+  showDensity = true,
+  onLanguageChange,
   children,
-}: {
-  user: MenuUser
-  onSignOut?: () => void
-  children?: React.ReactNode
-}) {
+}: UserMenuProps) {
   const t = useErpUiT()
   const [appearance, setAppearance] = useAppearance()
   return (
@@ -113,53 +129,57 @@ export function UserMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <SHELL_ICONS.palette aria-hidden />
-            {t("appearance.palette")}
-            <span className="ml-auto text-muted-foreground">
-              {t(`palettes.${appearance.palette}`)}
-            </span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-44">
-            <DropdownMenuRadioGroup
-              value={appearance.palette}
-              onValueChange={(palette: Palette) => {
-                setAppearance({ palette })
-              }}
-            >
-              {PALETTES.map((palette) => (
-                <DropdownMenuRadioItem key={palette} value={palette}>
-                  {t(`palettes.${palette}`)}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {showPalette ? (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <SHELL_ICONS.palette aria-hidden />
+              {t("appearance.palette")}
+              <span className="ml-auto text-muted-foreground">
+                {t(`palettes.${appearance.palette}`)}
+              </span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-44">
+              <DropdownMenuRadioGroup
+                value={appearance.palette}
+                onValueChange={(palette: Palette) => {
+                  setAppearance({ palette })
+                }}
+              >
+                {PALETTES.map((palette) => (
+                  <DropdownMenuRadioItem key={palette} value={palette}>
+                    {t(`palettes.${palette}`)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        ) : null}
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <SHELL_ICONS.density aria-hidden />
-            {t("appearance.density")}
-            <span className="ml-auto text-muted-foreground">
-              {t(`densities.${appearance.density}`)}
-            </span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-44">
-            <DropdownMenuRadioGroup
-              value={appearance.density}
-              onValueChange={(density: Density) => {
-                setAppearance({ density })
-              }}
-            >
-              {DENSITIES.map((density) => (
-                <DropdownMenuRadioItem key={density} value={density}>
-                  {t(`densities.${density}`)}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {showDensity ? (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <SHELL_ICONS.density aria-hidden />
+              {t("appearance.density")}
+              <span className="ml-auto text-muted-foreground">
+                {t(`densities.${appearance.density}`)}
+              </span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-44">
+              <DropdownMenuRadioGroup
+                value={appearance.density}
+                onValueChange={(density: Density) => {
+                  setAppearance({ density })
+                }}
+              >
+                {DENSITIES.map((density) => (
+                  <DropdownMenuRadioItem key={density} value={density}>
+                    {t(`densities.${density}`)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        ) : null}
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
@@ -174,6 +194,7 @@ export function UserMenu({
               value={appearance.language}
               onValueChange={(language: Language) => {
                 setAppearance({ language })
+                onLanguageChange?.(language)
               }}
             >
               {LANGUAGES.map((language) => (

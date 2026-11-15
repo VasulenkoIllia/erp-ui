@@ -210,6 +210,11 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
       "amend",
       "sendToReview",
     ],
+    // Дії демо поза тими, що знає мок (`actionLabels`, матриця ролей).
+    actionLabels: {
+      markPaid: { uk: "Позначка оплати", en: "Mark as paid" },
+      sendToReview: { uk: "Надсилання на перевірку", en: "Send for review" },
+    },
   },
   quotes: {
     label: { uk: "Пропозиції", en: "Quotes" },
@@ -227,6 +232,7 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
       "cancel",
       "amend",
     ],
+    actionLabels: { negotiate: { uk: "Переговори", en: "Negotiation" } },
   },
   orders: {
     label: { uk: "Замовлення", en: "Orders" },

@@ -196,7 +196,7 @@ function pageKey(location: Location, pathname: string) {
 /** Розділи в нижній панелі телефона. */
 const MOBILE_PAGES: Route[] = ["appearance", "primitives", "formats", "states"]
 /** Короткі підписи нижньої панелі: повні назви в en обрізаються на телефоні (`NavItem.shortLabel`). */
-const SHORT_PAGES = ["formats", "states"] as const
+const SHORT_PAGES = ["appearance", "primitives", "formats", "states"] as const
 const isShortPage = (route: Route): route is (typeof SHORT_PAGES)[number] =>
   (SHORT_PAGES as readonly Route[]).includes(route)
 

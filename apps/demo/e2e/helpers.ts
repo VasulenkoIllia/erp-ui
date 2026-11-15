@@ -54,9 +54,15 @@ export async function confirmWithPassword(
   await expect(reauth).toBeHidden()
 }
 
+/** Меню користувача в топбарі (на сторінці «Теми й вигляд» є ще меню-зразки). */
+export const topbarUserMenu = (page: Page) =>
+  page
+    .locator('[data-slot="topbar"]')
+    .getByRole("button", { name: /Меню користувача/ })
+
 /** Мова з меню користувача. */
 export async function chooseLanguage(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: /Меню користувача/ }).click()
+  await topbarUserMenu(page).click()
   await chooseInSubmenu(page, /Мова/, name)
 }
 
