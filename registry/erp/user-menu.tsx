@@ -63,7 +63,7 @@ export interface UserMenuProps {
   showDensity?: boolean
   /**
    * Людина обрала в меню іншу мову: мова вже застосована й збережена в браузері (lib/appearance),
-   * проект зберігає її у себе (`/me/preferences`, свій API). Інші зміни вигляду — `subscribeAppearance`.
+   * проект зі своїм API зберігає її у себе. Сервер PF11 отримує все через `syncPreferences` (lib/preferences).
    */
   onLanguageChange?: (language: Language) => void
   children?: React.ReactNode
