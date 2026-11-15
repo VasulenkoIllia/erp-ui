@@ -467,7 +467,11 @@ function CreateTokenDialog({
                     .map((scope) => {
                       const checkboxId = `${ids}-${scope.id}`
                       return (
-                        <Field key={scope.id} orientation="horizontal">
+                        <Field
+                          key={scope.id}
+                          orientation="horizontal"
+                          className="pointer-coarse:min-h-touch"
+                        >
                           <Checkbox
                             id={checkboxId}
                             checked={selected.includes(scope.id)}

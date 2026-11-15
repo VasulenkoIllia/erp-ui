@@ -21,4 +21,4 @@ export const richTextInvalidClass =
 
 /** Тіло поля: мінімальна висота не стрибає, коли лінивий редактор змінює заглушку. */
 export const richTextBodyClass =
-  "min-h-24 px-2.5 py-2 text-base outline-none @lg:min-h-32 md:text-sm"
+  "min-h-24 px-2.5 py-2 text-base outline-none @lg:min-h-32 pointer-fine:text-sm"

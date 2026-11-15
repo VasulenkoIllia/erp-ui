@@ -587,7 +587,11 @@ function WebhookDialog({
                     .map((event) => {
                       const checkboxId = `${ids}-${event.id}`
                       return (
-                        <Field key={event.id} orientation="horizontal">
+                        <Field
+                          key={event.id}
+                          orientation="horizontal"
+                          className="pointer-coarse:min-h-touch"
+                        >
                           <Checkbox
                             id={checkboxId}
                             checked={selected.includes(event.id)}

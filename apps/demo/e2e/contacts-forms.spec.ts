@@ -260,7 +260,8 @@ test.describe("B1: форми", () => {
 })
 
 test.describe("B1: форми на телефоні", () => {
-  test.use({ viewport: { width: 390, height: 844 } })
+  // hasTouch — дотиковий телефон: поле 16 px лише з «грубим» вказівником (ADR-0096 п. 3).
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true })
 
   test("форма в одну колонку без горизонтальної прокрутки, поля від 16px", async ({
     page,

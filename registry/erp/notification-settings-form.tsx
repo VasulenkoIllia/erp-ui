@@ -203,7 +203,7 @@ function Editor({ data }: { data: NotificationSettings }) {
                         return (
                           <span
                             key={channel.id}
-                            className="flex items-center gap-2 @xl:flex-col @xl:gap-1"
+                            className="flex items-center gap-2 @xl:flex-col @xl:gap-1 pointer-coarse:min-h-touch"
                           >
                             <Checkbox
                               id={id}

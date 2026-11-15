@@ -42,6 +42,10 @@
       "invoice": "Invoice",
       "organization": "Organization"
     },
+    "pagesShort": {
+      "formats": "Formats",
+      "states": "States"
+    },
     "product": "erp-ui · demo",
     "signIn": "Sign in",
     "meFailed": "Couldn't load your profile. Check your connection.",

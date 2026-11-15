@@ -34,7 +34,8 @@ import {
  *
  * - Десктоп (≥ 1280 px) — сайдбар із групами модулів; згортається кнопкою або Ctrl+B.
  * - Планшет (768–1279 px) — вузька панель з іконками й підказками.
- * - Телефон — нижня панель на 4 розділи (`mobile: true`) + «Ще», що відкриває повне меню.
+ * - Телефон — нижня панель на 4 розділи (`mobile: true`, короткий підпис — `shortLabel`) + «Ще», що
+ *   відкриває повне меню.
  * - Топбар: кнопка сайдбара, хлібні крихти, слот `actions` (пошук, сповіщення, меню користувача).
  * - Посилання — звичайні `<a href>`; для роутера передайте `renderLink` (напр. `<Link to={href} />`).
  * - «Перейти до вмісту» — перше, що отримує фокус; липкі панелі не перекривають елемент у фокусі.
@@ -48,6 +49,12 @@ export interface NavItem {
   badge?: number
   /** Показувати в нижній панелі телефона (до 4 пунктів; решта — у «Ще»). */
   mobile?: boolean
+  /**
+   * Короткий підпис у нижній панелі телефона, коли `label` не вміщається («Рахунки» замість
+   * «Рахунки клієнтам»). Повна назва лишається доступною назвою посилання. Беріть слово з `label`:
+   * голосове керування називає те, що видно (WCAG 2.5.3); інакше доступна назва — обидва підписи.
+   */
+  shortLabel?: string
 }
 
 export interface NavGroup {
@@ -91,6 +98,18 @@ export interface AppShellProps {
 
 const MAIN_ID = "erp-ui-main"
 const MOBILE_ITEMS = 4
+
+/**
+ * Доступна назва пункту нижньої панелі з коротким підписом: повна назва, а якщо короткого підпису в ній
+ * немає — обидва, щоб видиме слово було в назві (WCAG 2.5.3). Без короткого підпису — назва з тексту.
+ */
+function bottomNavName(item: Pick<NavItem, "label" | "shortLabel">) {
+  const short = item.shortLabel?.trim()
+  if (!short || short === item.label) return undefined
+  return item.label.toLowerCase().includes(short.toLowerCase())
+    ? item.label
+    : `${short}, ${item.label}`
+}
 
 function NavMenu({
   nav,
@@ -141,7 +160,8 @@ function BottomNav({
     .flatMap((group) => group.items)
     .filter((item) => item.mobile)
     .slice(0, MOBILE_ITEMS)
-  // min-w-0: довгий підпис (en, «Languages & formats») обрізається, а не виштовхує «Ще» за край.
+  // min-w-0: довгий підпис (en, «Languages & formats») обрізається, а не виштовхує «Ще» за край;
+  // щоб не обрізався, пункт дає `shortLabel`.
   const itemClass =
     "flex min-h-touch min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-primary [&_svg]:size-5"
   return (
@@ -154,6 +174,8 @@ function BottomNav({
         {items.map((item) => {
           const active = item.id === activeId
           const link = renderLink(item.href)
+          // Без короткого підпису aria-label не ставимо: він перекрив би свій aria-label посилання з renderLink.
+          const name = bottomNavName(item)
           return (
             <li key={item.id} className="flex min-w-0 flex-1">
               {React.cloneElement(
@@ -161,9 +183,12 @@ function BottomNav({
                 {
                   className: itemClass,
                   "aria-current": active ? "page" : undefined,
+                  ...(name ? { "aria-label": name } : {}),
                 } as React.HTMLAttributes<HTMLElement>,
                 <item.icon aria-hidden />,
-                <span className="max-w-full truncate">{item.label}</span>,
+                <span className="max-w-full truncate">
+                  {item.shortLabel?.trim() || item.label}
+                </span>,
               )}
             </li>
           )

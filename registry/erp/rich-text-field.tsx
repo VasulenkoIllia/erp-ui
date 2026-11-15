@@ -156,7 +156,7 @@ function RichTextStatic({
       <RichTextView
         value={value}
         empty={null}
-        className="text-base md:text-sm"
+        className="text-base pointer-fine:text-sm"
       />
     </div>
   )

@@ -232,6 +232,22 @@ test.describe("оболонка: телефон", () => {
     ).toBeVisible()
   })
 
+  test("короткий підпис у нижній панелі видно цілим, доступна назва — повна", async ({
+    page,
+  }) => {
+    await openWith(page, { language: "en" }, "/#/primitives")
+    const formats = page
+      .getByRole("navigation", { name: "Quick sections" })
+      .getByRole("link", { name: "Languages & formats" })
+    await expect(formats).toHaveText("Formats")
+    await expect(formats).toHaveAccessibleName("Languages & formats")
+    const label = formats.locator("span")
+    const clipped = await label.evaluate(
+      (span) => span.scrollWidth > span.clientWidth,
+    )
+    expect(clipped).toBe(false)
+  })
+
   test("елемент у фокусі не ховається під нижньою панеллю (WCAG 2.4.11)", async ({
     page,
   }) => {

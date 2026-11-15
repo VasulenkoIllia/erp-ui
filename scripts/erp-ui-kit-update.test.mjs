@@ -787,10 +787,30 @@ test("update: посилання в архіві кіта — зупинка д�
   assert.equal(project.read("src/lib/a.ts"), "export const a = 1\n")
 })
 
-test("check: конфіг Vite без запобіжника VITE_BACKEND — попередження, код 0", () => {
+test("check: моки кіта без запобіжника VITE_BACKEND у конфігу Vite — попередження, код 0; без моків — тиша", () => {
   const project = updateProject()
   assert.equal(project.update().status, 0)
   writeFileSync(path.join(project.dir, "vite.config.ts"), "export default {}\n")
+  const withoutMocks = project.check()
+  assert.equal(withoutMocks.status, 0, withoutMocks.stderr)
+  assert.doesNotMatch(withoutMocks.stderr, /запобіжника/)
+  // Моки — файлом lib/mocks.ts, який тягне модуль кіта, чи елементом mocks у списку.
+  const installed = project.manifest()
+  const writeManifest = (manifest) => {
+    writeFileSync(
+      path.join(project.dir, "kit-files.json"),
+      JSON.stringify({ ...manifest, checksum: manifestChecksum(manifest) }),
+    )
+  }
+  writeFileSync(path.join(project.dir, "src/lib/mocks.ts"), "export {}\n")
+  writeManifest({
+    ...installed,
+    files: { ...installed.files, "src/lib/mocks.ts": sha("export {}\n") },
+  })
+  const fromModule = project.check()
+  assert.equal(fromModule.status, 0, fromModule.stderr)
+  assert.match(fromModule.stderr, /немає запобіжника VITE_BACKEND/)
+  writeManifest({ ...installed, items: [...installed.items, "mocks"] })
   const unguarded = project.check()
   assert.equal(unguarded.status, 0, unguarded.stderr)
   assert.match(

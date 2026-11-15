@@ -93,6 +93,12 @@ const VITE_CONFIGS = [
   "vite.config.js",
   "vite.config.mjs",
 ]
+/**
+ * Елемент моків і назва файла моків кіта (`@lib/mocks.ts` за псевдонімом `lib` проекту, `mocks.ts` модуля): лише з
+ * ними в проекті є що пускати в продакшн без запобіжника.
+ */
+const MOCKS_ITEM = "mocks"
+const MOCKS_FILE = "mocks.ts"
 const RECOVERY_HINT =
   "Змінені файли — git diff, повернути все — git restore . (нові файли — git status, git clean); якщо залежності вже ставились — ще раз встановіть залежності проекту (напр. pnpm install)."
 
@@ -205,10 +211,25 @@ async function kitFileHashes(root, files) {
 }
 
 /**
- * Проект без запобіжника `VITE_BACKEND` у конфігу Vite (ADR-0079): збірка без змінної піде на
- * моках. Лише попередження: конфіг — файл проекту, кіт дає зразок (ADR-0088).
+ * Моки кіта в проекті: елемент `mocks` у списку або файл кіта `mocks.ts` у відбитках — `lib/mocks.ts` (його
+ * тягне й модуль) чи моки модуля; маніфест старого формату — без `items` (ADR-0096 п. 1).
  */
-export function viteGuardWarning(root) {
+export function hasKitMocks(manifest) {
+  return (
+    Boolean(manifest.items?.includes(MOCKS_ITEM)) ||
+    Object.keys(manifest.files).some(
+      (file) => path.posix.basename(file) === MOCKS_FILE,
+    )
+  )
+}
+
+/**
+ * Проект із моками кіта без запобіжника `VITE_BACKEND` у конфігу Vite (ADR-0079): збірка без змінної
+ * піде на моках. Лише попередження: конфіг — файл проекту, кіт дає зразок (ADR-0088). Без моків
+ * попереджати нема про що (ADR-0096 п. 1).
+ */
+export function viteGuardWarning(root, manifest) {
+  if (!hasKitMocks(manifest)) return undefined
   const configs = VITE_CONFIGS.filter((file) =>
     existsSync(path.join(root, file)),
   )
@@ -237,7 +258,7 @@ function checkCommand(root) {
   const checksum = checksumProblem(manifest, MANIFEST)
   if (checksum && !checksum.fatal) console.warn(checksum.message)
   printOrphans(presentOrphans(root, manifest))
-  const guard = viteGuardWarning(root)
+  const guard = viteGuardWarning(root, manifest)
   if (guard) console.warn(guard)
   const failures = [
     ...(changed.length || missing.length

@@ -319,7 +319,8 @@ test.describe("B1: адреси й рахунки в картці", () => {
 })
 
 test.describe("B1: адреси й рахунки на телефоні", () => {
-  test.use({ viewport: { width: 390, height: 844 } })
+  // hasTouch — дотиковий телефон: поле 16 px лише з «грубим» вказівником (ADR-0096 п. 3).
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true })
 
   test("меню рядка в картці, форма рахунку в одну колонку з полями від 16px, без горизонтальної прокрутки", async ({
     page,

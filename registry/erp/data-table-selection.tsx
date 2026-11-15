@@ -53,10 +53,8 @@ export interface SelectionScope {
 }
 
 const SELECT_COLUMN_ID = "select"
-/** Ширина колонки прапорців — ціль дотику 44 px (SPEC §6.5). */
+/** Ширина колонки прапорців — ціль дотику 44 px (SPEC §6.5); зону натиску (на дотиковому — 44 px) дає сам `ui/checkbox`. */
 const SELECT_COLUMN_REM = 2.75
-/** Область натискання прапорця 44 × 44 px навколо видимих 16 px. */
-const TARGET = "after:-inset-3.5"
 
 /** Зупинка Tab таблиці (активна клітинка гріда чи картка) — куди повернути фокус. */
 export function tableTabStop(table: Element | null | undefined) {
@@ -130,7 +128,6 @@ function HeaderCheckbox() {
   const { checked, indeterminate } = headerState(selection, scope)
   return (
     <Checkbox
-      className={TARGET}
       checked={checked}
       indeterminate={indeterminate}
       aria-label={t(
@@ -151,7 +148,6 @@ function RowCheckbox<T>({ row }: { row: T }) {
   const id = getRowId(row)
   return (
     <Checkbox
-      className={TARGET}
       checked={options.selection.isSelected(id)}
       aria-label={t("selection.row", { label: options.rowLabel(row) })}
       onCheckedChange={() => {

@@ -111,7 +111,7 @@ export const RoleMatrix = React.memo(function RoleMatrix({
                     key={resource.id}
                     className="flex flex-col gap-3 p-3 @xl:flex-row @xl:items-center"
                   >
-                    <div className="flex items-center gap-2 @xl:w-56 @xl:shrink-0">
+                    <div className="flex items-center gap-2 @xl:w-56 @xl:shrink-0 pointer-coarse:min-h-touch">
                       <Checkbox
                         id={allId}
                         checked={all}
@@ -283,7 +283,7 @@ function ActionPermission({
   const t = useErpUiT(ukRoles)
   const names = { action: action.label, resource: resource.label }
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 pointer-coarse:min-h-touch">
       <Checkbox
         id={id}
         checked={scope !== null}
@@ -327,7 +327,7 @@ const SCOPES: readonly PermissionScope[] = ["own", "all"]
 /**
  * Перемикач «Свої | Усі» — дві радіокнопки (одна зупинка Tab, стрілки між ними). Лише для перегляду
  * — у порядку Tab з `aria-readonly` і пунктирною рамкою, як галочки матриці (ADR-0033). Ціль дотику —
- * 44 px заввишки (`after:`), як у галочок; у forced-colors тло зникає — вибраний підкреслено.
+ * 44 px заввишки (`after:`), як зона галочок на дотиковому екрані; у forced-colors тло зникає — вибраний підкреслено.
  */
 function ScopeToggle({
   scope,

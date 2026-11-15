@@ -276,6 +276,7 @@ function ComboboxChip({
   )
 }
 
+// erp-ui: поле вводу серед міток — 16 px на дотиковому екрані, 14 px з мишею, як ui/input (ADR-0096 п. 3).
 function ComboboxChipsInput({
   className,
   ...props
@@ -283,7 +284,10 @@ function ComboboxChipsInput({
   return (
     <ComboboxPrimitive.Input
       data-slot="combobox-chip-input"
-      className={cn("min-w-16 flex-1 outline-none", className)}
+      className={cn(
+        "min-w-16 flex-1 text-base outline-none pointer-fine:text-sm",
+        className,
+      )}
       {...props}
     />
   )
