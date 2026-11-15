@@ -28,6 +28,7 @@ import {
   buildProject,
   COMMAND,
   commandAt,
+  commitAll,
   expect,
   followProjectSteps,
   git,
@@ -49,8 +50,11 @@ const UNTOUCHED = [
   "pnpm-workspace.yaml",
   ".gitignore",
   `${SERVER}/package.json`,
+  `${SERVER}/tsconfig.json`,
   SERVER_FILE,
 ]
+/** Усе, що є поза пакетом адмінки: файли кореня й сервера і один lock-файл воркспейсу. */
+const OUTSIDE_ADMIN = [...UNTOUCHED, "pnpm-lock.yaml"].sort()
 /** Файли кіта поза `src/` (команда, скіл, довідка, помічники e2e, фоновий файл push) і стилі — у пакеті адмінки. */
 const KIT_FILES = [
   MANIFEST,
@@ -61,8 +65,11 @@ const KIT_FILES = [
   "public/erp-ui-push-sw.js",
   "src/styles/erp-ui/themes.css",
 ]
-/** Запис адмінки до кіта точною версією: команда кіта не переписує його своїм діапазоном. */
-const PINNED = "i18next"
+/**
+ * Запис адмінки до кіта точною версією: команда кіта не переписує його своїм діапазоном. Залежність не з `base` і не
+ * з `init`: їх ставить сам CLI на першому кроці й переписав би діапазон.
+ */
+const PINNED = "sonner"
 /** Залежність кіта, що до встановлення є лише в сервері: команда ставить її адмінці. */
 const SERVER_ONLY = "zod"
 
@@ -146,31 +153,40 @@ function setupWorkspace(ws) {
   )
 }
 
-/** Файли кіта лише в пакеті адмінки, залежності — у її `package.json`, корінь і сервер — як були. */
-function assertLayout(ws, untouched, pinned, what) {
+/**
+ * Файли кіта лише в пакеті адмінки: поза ним — лише файли кореня й сервера та lock-файл воркспейсу (відстежувані й
+ * нові, без ігнорованих), їхній уміст як був; залежності — у `package.json` адмінки, CLI — у `devDependencies`.
+ */
+async function assertLayout(ws, untouched, pinned, what) {
   const admin = path.join(ws, ADMIN)
-  for (const file of KIT_FILES) {
+  for (const file of KIT_FILES)
     expect(
       existsSync(path.join(admin, file)),
       `${what}: немає ${ADMIN}/${file}`,
     )
-    for (const other of ["", SERVER])
-      expect(
-        !existsSync(path.join(ws, other, file)),
-        `${what}: файл кіта ${path.posix.join(other, file)} поза пакетом адмінки`,
-      )
-  }
+  const listed = await git(
+    ws,
+    "ls-files",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+  )
+  const outside = listed
+    .split("\n")
+    .filter((file) => file && !file.startsWith(`${ADMIN}/`))
+    .sort()
+  expect(
+    JSON.stringify(outside) === JSON.stringify(OUTSIDE_ADMIN),
+    `${what}: поза пакетом адмінки — ${outside.join(", ")}, а мають бути лише ${OUTSIDE_ADMIN.join(", ")}`,
+  )
   for (const [file, text] of untouched)
     expect(
       readFileSync(path.join(ws, file), "utf8") === text,
-      `${what}: команда кіта змінила ${file}`,
+      `${what}: змінено ${file} (корінь і сервер мають лишитися як були)`,
     )
-  expect(
-    existsSync(path.join(ws, "pnpm-lock.yaml")) &&
-      !existsSync(path.join(admin, "pnpm-lock.yaml")),
-    `${what}: lock-файл не лише в корені воркспейсу`,
+  const { dependencies, devDependencies } = readJsonFile(
+    path.join(admin, "package.json"),
   )
-  const { dependencies } = readJsonFile(path.join(admin, "package.json"))
   expect(
     dependencies[PINNED] === pinned,
     `${what}: запис адмінки ${PINNED} ${pinned} став ${String(dependencies[PINNED])}`,
@@ -178,6 +194,33 @@ function assertLayout(ws, untouched, pinned, what) {
   expect(
     dependencies[SERVER_ONLY],
     `${what}: ${SERVER_ONLY} є лише в сервері, а адмінці команда його не поставила`,
+  )
+  expect(
+    !dependencies.shadcn && /^\d+\.\d+\.\d+$/.test(devDependencies.shadcn),
+    `${what}: CLI shadcn не в devDependencies точною версією`,
+  )
+}
+
+/**
+ * Залежності ставить саме команда цієї версії: перед оновленням адмінка без `SERVER_ONLY` (він лишається в сервері),
+ * після — з ним, а звіт називає його новим.
+ */
+async function removeServerOnlyFromAdmin(admin) {
+  await mustRun("pnpm", ["remove", SERVER_ONLY], { cwd: admin })
+  await commitAll(admin, `адмінка без ${SERVER_ONLY}`)
+}
+
+/** `check-tokens` без аргументів перевіряє саме `src` пакета (тека з `components.json`, ADR-0096 п. 2). */
+async function assertTokensCheck(admin) {
+  const { stdout } = await mustRun(
+    process.execPath,
+    ["scripts/erp-ui-check-tokens.mjs"],
+    { cwd: admin, capture: true },
+  )
+  console.log(stdout)
+  expect(
+    /теки: src — /.test(stdout),
+    "check-tokens без аргументів перевірив не теку src пакета адмінки",
   )
 }
 
@@ -213,25 +256,34 @@ try {
     repo: ws,
     dependencies: { [PINNED]: pinned },
   })
-  assertLayout(ws, untouched, pinned, `доставка ${tag}`)
+  await assertLayout(ws, untouched, pinned, `доставка ${tag}`)
 
   console.log(`\n=== Оновлення ${tag} → HEAD командою цієї версії ===`)
   const script = await commandAt("HEAD", path.join(temp, "head"))
+  await removeServerOnlyFromAdmin(admin)
   await assertServerChangeStops(ws, script)
-  await kit(admin, script, toHead())
+  const report = await kit(admin, script, toHead())
+  expect(
+    report.includes(`${SERVER_ONLY}@${kitRange(SERVER_ONLY)}`),
+    `звіт update не назвав ${SERVER_ONLY} новою залежністю адмінки`,
+  )
+  await assertLayout(ws, untouched, pinned, "оновлення до HEAD")
   await followProjectSteps(admin, tag)
   await buildProject(admin, "адмінка після оновлення")
   await kit(admin, COMMAND, ["check"])
-  await mustRun(process.execPath, ["scripts/erp-ui-check-tokens.mjs"], {
-    cwd: admin,
-  })
+  await assertTokensCheck(admin)
   console.log("\n=== typecheck сервера зі схемами кіта ===")
   await mustRun("pnpm", ["typecheck"], { cwd: path.join(ws, SERVER) })
-  assertLayout(ws, untouched, pinned, "оновлення до HEAD")
   console.log(
     `\nOK: кіт ${tag} поставлено в ${ADMIN} і оновлено до цього коміту; файли й залежності кіта — у пакеті адмінки, корінь і сервер не змінено, правка сервера зупиняє update, адмінка й сервер компілюються.`,
   )
 } finally {
   if (keep) console.log(`Тестовий робочий простір лишено: ${temp}`)
-  else rmSync(temp, { recursive: true, force: true })
+  else
+    try {
+      rmSync(temp, { recursive: true, force: true })
+    } catch (error) {
+      // Збій прибирання не має підмінити справжню причину падіння сценарію.
+      console.warn(`Не вдалося прибрати ${temp}: ${String(error)}`)
+    }
 }
