@@ -51,6 +51,11 @@ import {
 import { withMockResponsible } from "@/registry/lib/mock-responsible"
 import { scenarioFor } from "@/registry/lib/mock-scenarios"
 import {
+  connectTrash,
+  withoutTrashSeeds,
+  type MockResourceTrash,
+} from "@/registry/lib/mock-trash"
+import {
   createPlatformHandlers,
   DEFAULT_MOCK_METHODS,
   type MockInvite,
@@ -164,6 +169,12 @@ export interface MockResourceOptions<T extends MockRecord> {
    */
   afterDelete?: (record: T) => void
   /**
+   * Кошик (PF16, ADR-0095, lib/mock-trash): `DELETE` і `db.remove` переносять запис у кошик `bin`,
+   * відновлення повертає його з тим самим `id` і новою версією. Повтор унікального поля чи зайнятий
+   * зв'язок (`canRestore`) — 409; `deleted` — записи засіву, що лежать у кошику з першого запиту.
+   */
+  trash?: MockResourceTrash<T>
+  /**
    * Своя перевірка сервера перед записом із запиту (`POST`, `PATCH` після версії): помилки полів — 422.
    * `next` — запис зі змінами ще до схеми; дії сервера (`db.patch`, `db.insert`) її не проходять.
    * Закриті періоди (PF13): `validateWrite` з `createPeriodLockMocks(...).forResource(...)`.
@@ -267,6 +278,7 @@ const DATA_VERBS = {
   created: { uk: "створення", en: "created" },
   updated: { uk: "зміна", en: "updated" },
   deleted: { uk: "видалення", en: "deleted" },
+  restored: { uk: "відновлення", en: "restored" },
 } as const
 
 export function createResourceHandlers<T extends MockRecord>({
@@ -287,6 +299,7 @@ export function createResourceHandlers<T extends MockRecord>({
   responsibleField,
   deniedActions,
   afterDelete,
+  trash,
   validateWrite,
   afterWrite,
   serverFields = [],
@@ -302,7 +315,7 @@ export function createResourceHandlers<T extends MockRecord>({
   const seed = () =>
     typeof data === "function" ? data() : structuredClone(data)
   let stored: T[] | null = null
-  const all = () => (stored ??= seed())
+  const all = () => (stored ??= withoutTrashSeeds(resource, seed(), trash))
   registerMockRecords(resource, {
     find: (id) => all().find((record) => record.id === id),
     titleField,
@@ -421,11 +434,7 @@ export function createResourceHandlers<T extends MockRecord>({
   }
 
   /** Зміна запису → журнал аудиту й шина подій (вебхуки, далі реальний час). */
-  const changed = (
-    verb: "created" | "updated" | "deleted",
-    record: T,
-    previous?: T,
-  ) => {
+  const changed = (verb: keyof typeof DATA_VERBS, record: T, previous?: T) => {
     const title = titleField ? record[titleField] : undefined
     // Запис без компанії — спільний: подія застосунку, її видно в кожній компанії (ADR-0036).
     const scope: MockScope = record.companyId
@@ -463,7 +472,12 @@ export function createResourceHandlers<T extends MockRecord>({
           }
         : {}),
     })
-    emitMockEvent(`${resource}.${verb}`, { ...record }, scope)
+    // Відновлений запис для каналу подій — новий: списки й картки перечитують його, як створений.
+    emitMockEvent(
+      `${resource}.${verb === "restored" ? "created" : verb}`,
+      { ...record },
+      scope,
+    )
   }
 
   /** Зміна запису без перевірки версії: схема, нова версія, журнал і подія; null — запису немає. */
@@ -526,9 +540,28 @@ export function createResourceHandlers<T extends MockRecord>({
   const remove = (record: T) => {
     replace(all().filter((r) => r.id !== record.id))
     pinStore?.forget(record.id)
+    trash?.bin.keep(resource, record)
     changed("deleted", record)
     afterDelete?.(record)
   }
+
+  if (trash)
+    connectTrash(resource, trash, {
+      grants: (user, permissions) =>
+        mockGrantsRecords(accessOf(user, permissions), "delete"),
+      sees: (user, permissions, record) =>
+        deniedBy(accessOf(user, permissions), record, "delete") === null,
+      listRow,
+      insert: (record) => {
+        if (duplicateFields(all(), record, unique)) return false
+        replace([record, ...all()])
+        changed("restored", record)
+        return true
+      },
+      ensureSeeded: () => {
+        all()
+      },
+    })
 
   const handlers: HttpHandler[] = [
     http.get(url, async ({ request }) => {

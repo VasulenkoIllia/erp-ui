@@ -64,6 +64,13 @@ import {
   type MockCreatedDocument,
 } from "@/lib/mock-transitions"
 import { createResourceHandlers } from "@/lib/mocks"
+import {
+  mockLinkSlot,
+  trashLinks,
+  type MockLinkSlot,
+  type MockTrashBin,
+  type MockTrashSeed,
+} from "@/lib/mock-trash"
 import { mergeTransitions } from "@/lib/statuses"
 
 import {
@@ -136,6 +143,26 @@ export interface InvoicesMocksOptions extends InvoiceFixtureOptions {
     readonly id: string
     readonly orderId?: string | null
   }) => void
+  /**
+   * Кошик застосунку (`createTrashMocks(...).bin`, ADR-0095): видалена чернетка — у кошик; `deleted` —
+   * чернетки засіву, що лежать у кошику з першого запиту (демо).
+   */
+  readonly trash?: {
+    readonly bin: MockTrashBin
+    readonly deleted?: {
+      readonly invoices?: readonly MockTrashSeed[]
+      readonly creditNotes?: readonly MockTrashSeed[]
+    }
+  }
+  /**
+   * Рахунок із замовлення в кошику: відновлення знову займає замовлення (моки B3, `orderInvoiceSlot`);
+   * замовлення вже дало інший рахунок — 409.
+   */
+  readonly orderSlot?: MockLinkSlot<{
+    id: string
+    version: number
+    orderId?: string | null
+  }>
   /**
    * Оплати модуля K4 (ADR-0073): сума оплат, що діють, за рахунком (`paymentsMocks.paidTotal`) і повернень
    * (`paymentsMocks.refundedTotal`, ADR-0083). Без них рахунок не знає про оплати: статусу «Оплачено» й
@@ -223,6 +250,8 @@ export function createInvoicesMocks({
   deniedActions,
   periodLock,
   releaseOrder,
+  trash,
+  orderSlot,
   payments,
   ...fixtureOptions
 }: InvoicesMocksOptions) {
@@ -318,6 +347,23 @@ export function createInvoicesMocks({
       releaseAmendedFrom(invoices.db, invoice)
       releaseOrder?.(invoice)
     },
+    // Відновлення займає те, що видалення звільнило: скасований рахунок і замовлення.
+    ...(trash
+      ? {
+          trash: {
+            bin: trash.bin,
+            deleted: trash.deleted?.invoices,
+            ...trashLinks<InvoiceCard>((): MockLinkSlot<InvoiceCard>[] => [
+              mockLinkSlot<InvoiceCard, InvoiceCard>(
+                invoices.db,
+                "amendedFrom",
+                "amendedBy",
+              ),
+              ...(orderSlot ? [orderSlot] : []),
+            ]),
+          },
+        }
+      : {}),
     // Причини життєвого циклу важливіші: закритий період додає лише дії, яких ще ніщо не забороняє.
     deniedActions: (actor, invoice) => {
       const denied = {
@@ -347,6 +393,9 @@ export function createInvoicesMocks({
     baseUrl,
     periodLock,
     openDay,
+    ...(trash
+      ? { trash: { bin: trash.bin, deleted: trash.deleted?.creditNotes } }
+      : {}),
     data: () =>
       createCreditNoteFixtures(
         createInvoiceFixtures(fixtureOptions).invoices,

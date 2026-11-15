@@ -17,6 +17,7 @@ import type { InvoicesPaths } from "./module-context"
 /** Адреси сторінок рахунку від `basePath` фабрики. */
 export interface InvoiceDocumentPaths {
   readonly list: string
+  readonly trash: string
   readonly record: (id: string) => string
   readonly create: string
   /** Нова форма, заповнена рахунком `id` («Копіювати»). */
@@ -30,6 +31,7 @@ export function invoiceDocumentPaths(
 ): InvoiceDocumentPaths {
   return {
     list: paths.invoices,
+    trash: paths.invoicesTrash,
     record: paths.invoice,
     create: paths.newInvoice,
     copy: copyPath(paths.newInvoice),

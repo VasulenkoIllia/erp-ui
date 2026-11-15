@@ -55,7 +55,7 @@ test.describe("майстер імпорту", () => {
     page,
   }) => {
     await openWith(page, {}, PAGE)
-    await expect(page.getByTestId("count")).toHaveText("Товарів у моках: 5")
+    await expect(page.getByTestId("count")).toHaveText("Товарів у моках: 6")
     await toCheck(page)
 
     await expect(wizard(page).getByText("Рядок 4")).toBeVisible()
@@ -80,7 +80,7 @@ test.describe("майстер імпорту", () => {
     await expect(
       wizard(page).getByRole("button", { name: "Назад" }),
     ).toHaveCount(0)
-    await expect(page.getByTestId("count")).toHaveText("Товарів у моках: 7")
+    await expect(page.getByTestId("count")).toHaveText("Товарів у моках: 8")
 
     await next(page, "Готово")
     await expect(stepHeading(page, "Файл")).toBeVisible()

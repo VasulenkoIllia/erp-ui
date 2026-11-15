@@ -26,6 +26,10 @@
  * Рахунок із замовлення (`POST /orders/:id/invoice`, ADR-0070) — лише з опцією `invoices` (моки модуля K2):
  * `invoiceId` на замовленні, повторно — 403 `linked`, замовлення з рахунком, що діє, не скасовують.
  *
+ * Кошик (PF16, ADR-0095) — з опцією `trash` (`createTrashMocks` з lib/mock-trash, один на застосунок):
+ * видалена чернетка йде в кошик; відновлення знову займає зв'язки, які звільнило видалення (перший
+ * документ виправленої копії, пропозицію замовлення), а коли їх уже зайняв інший документ — 409.
+ *
  * Нумерація — спільна для всіх документів проекту (`createNumberingMocks` один на застосунок), тож
  * модуль не створює своєї: дає засів серій `quotes` і `orders` з лічильниками (`salesNumberingSeeds`) і
  * бере `numbering.forResource`. Поля, статуси й переходи розширення проекту (`SalesMockExtension`) — у
@@ -34,6 +38,13 @@
 import type { z } from "zod"
 
 import type { LocalizedText } from "@/lib/localized-text"
+import {
+  mockLinkSlot,
+  trashLinks,
+  type MockLinkSlot,
+  type MockTrashBin,
+  type MockTrashSeed,
+} from "@/lib/mock-trash"
 import { addDays, todayIn, type CalendarDate } from "@/lib/dates"
 import { extensionShape, withMockValues } from "@/lib/extension-fields"
 import type {
@@ -123,6 +134,24 @@ export interface SalesMocksOptions extends SalesFixtureOptions {
    * немає. Видалена чернетка рахунку звільняє замовлення — `releaseOrderInvoice` результату.
    */
   readonly invoices?: SalesInvoiceMocks
+  /**
+   * Кошик застосунку (`createTrashMocks(...).bin`): видалена чернетка — у кошик; `deleted` — чернетки засіву,
+   * що лежать у кошику з першого запиту (демо).
+   */
+  readonly trash?: {
+    readonly bin: MockTrashBin
+    readonly deleted?: {
+      readonly quotes?: readonly MockTrashSeed[]
+      readonly orders?: readonly MockTrashSeed[]
+    }
+  }
+}
+
+/** Кошик одного ресурсу документа: зв'язки з іншим видом, які відновлення займає знову. */
+interface DocumentTrash<T extends SalesDocument & SalesDocumentDetail> {
+  readonly bin: MockTrashBin
+  readonly deleted: readonly MockTrashSeed[] | undefined
+  readonly links?: () => readonly MockLinkSlot<T>[]
 }
 
 /**
@@ -219,6 +248,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
     linkDenials,
     creates,
     afterDelete,
+    trash,
   }: {
     numbering: SalesMocksOptions["numbering"]
     extension: MockDocumentExtension | undefined
@@ -230,6 +260,7 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
     creates?: Readonly<Record<string, MockCreatedDocument<T>>>
     /** Що ще звільняє видалена чернетка: пропозицію видаленого замовлення. */
     afterDelete?: (document: T) => void
+    trash?: DocumentTrash<T> | undefined
   },
 ) {
   const { resource, dueField } = spec
@@ -278,6 +309,19 @@ function createDocumentMocks<T extends SalesDocument & SalesDocumentDetail>(
       releaseAmendedFrom(documents.db, document)
       afterDelete?.(document)
     },
+    ...(trash
+      ? {
+          trash: {
+            bin: trash.bin,
+            deleted: trash.deleted,
+            // Зв'язки читаються на відновленні: сховища обох видів тоді вже є.
+            ...trashLinks<T>((): MockLinkSlot<T>[] => [
+              mockLinkSlot<T, T>(documents.db, "amendedFrom", "amendedBy"),
+              ...(trash.links?.() ?? []),
+            ]),
+          },
+        }
+      : {}),
     // Проведений і скасований не змінюють, виправлений удруге не виправляють (ADR-0057).
     deniedActions: (actor, document) => {
       const denied = {
@@ -343,6 +387,7 @@ export function createSalesMocks({
   baseUrl,
   deniedActions,
   invoices,
+  trash,
   ...fixtureOptions
 }: SalesMocksOptions) {
   const fixtures = () => createSalesFixtures(fixtureOptions)
@@ -376,6 +421,13 @@ export function createSalesMocks({
       afterDelete: (order) => {
         releaseQuoteOrder(quotes.db, order)
       },
+      trash: trash && {
+        bin: trash.bin,
+        deleted: trash.deleted?.orders,
+        links: (): MockLinkSlot<OrderCard>[] => [
+          mockLinkSlot<OrderCard, QuoteCard>(quotes.db, "quoteId", "orderId"),
+        ],
+      },
     },
   )
   const quotes = createDocumentMocks<QuoteCard>(
@@ -395,6 +447,7 @@ export function createSalesMocks({
       extension: extension?.quotes,
       baseUrl,
       deniedActions: deniedActions?.quotes,
+      trash: trash && { bin: trash.bin, deleted: trash.deleted?.quotes },
       linkDenials: (quote) => quoteOrderDenials(quote, orders.db),
       creates: {
         [CREATE_ORDER]: mockCreatedDocument<QuoteCard, OrderCard>({
@@ -416,6 +469,11 @@ export function createSalesMocks({
     }) => {
       releaseOrderInvoice(orders.db, removed)
     },
+    /** Рахунок із замовлення в кошику (моки K2, `orderSlot`): відновлення знову займає замовлення. */
+    orderInvoiceSlot: mockLinkSlot<
+      { id: string; version: number; orderId?: string | null },
+      OrderCard
+    >(orders.db, "orderId", "invoiceId"),
     /** Джерела потоку документів у порядку процесу: для `createDocumentFlowHandlers` застосунку. */
     flowSources: salesFlowSources(quotes.db, orders.db),
   }

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router"
 
 import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { TrashLink } from "@/components/erp/trash-link"
 import {
   ListReport,
   useListReport,
@@ -51,7 +52,7 @@ const TAB_FILTERS: Record<ContactTabId, Record<string, string>> = {
  */
 export function ContactsListPage() {
   const t = useContactsT()
-  const { paths } = useContactsModule()
+  const { paths, preload } = useContactsModule()
   const navigate = useNavigate()
   const announceHandover = useAnnounceHandover(CONTACTS)
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
@@ -60,7 +61,17 @@ export function ContactsListPage() {
   const [isCreating, setCreating] = useState(false)
   const opener = useOpener()
   usePreloadForm("contact", "create")
-  const actions: (ListReportAction & { id: "create" })[] = [
+  const actions: (ListReportAction & { id: "trash" | "create" })[] = [
+    {
+      id: "trash",
+      node: (
+        <TrashLink
+          resource={CONTACTS}
+          to={paths.contactsTrash}
+          preload={preload}
+        />
+      ),
+    },
     {
       id: "create",
       node: (

@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import { useSearchParams } from "react-router"
 
 import { AccessLink } from "@/components/erp/access-link"
+import { TrashLink } from "@/components/erp/trash-link"
 import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
 import {
@@ -40,8 +41,9 @@ const DEFAULTS: ListDefaults = {
 /**
  * Список рахунків на шаблоні List Report сторінками (SPEC §7; ADR-0022, ADR-0070): вкладки за статусом (зі
  * статусами розширення), фільтри «Клієнт», «Дата» й, з валютами компанії, «Валюта» (ADR-0084), пошук за
- * номером чи клієнтом; номер — посилання на картку. «Створити рахунок» — сторінка форми. Вибрані — «Виставити», «Скасувати» й «Видалити» фоновою
- * задачею зі звітом про невдалі (ADR-0066).
+ * номером чи клієнтом; номер — посилання на картку. «Створити рахунок» — сторінка форми, «Кошик» — видалені
+ * чернетки (ADR-0095). Вибрані — «Виставити», «Скасувати» й «Видалити» фоновою задачею зі звітом про
+ * невдалі (ADR-0066).
  */
 export function InvoicesListPage() {
   const t = useInvoicesT()
@@ -49,7 +51,17 @@ export function InvoicesListPage() {
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t("invoices.title"))
-  const actions: (ListReportAction & { id: "create" })[] = [
+  const actions: (ListReportAction & { id: "trash" | "create" })[] = [
+    {
+      id: "trash",
+      node: (
+        <TrashLink
+          resource={INVOICE_KIND.resource}
+          to={paths.invoicesTrash}
+          preload={preload}
+        />
+      ),
+    },
     {
       id: "create",
       node: (

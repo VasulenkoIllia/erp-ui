@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router"
 import { AccessLink } from "@/components/erp/access-link"
 import { PageHeader } from "@/components/erp/page-header"
 import { PageSkeleton, PageState } from "@/components/erp/page-state"
+import { TrashLink } from "@/components/erp/trash-link"
 import {
   ListReport,
   useListReport,
@@ -88,7 +89,7 @@ function OrderList() {
 /**
  * Список документів продажу на шаблоні List Report сторінками (SPEC §7; ADR-0022): вкладки за
  * статусом (зі статусами розширення), фільтри «Клієнт» і «Дата», пошук за номером чи клієнтом; номер —
- * посилання на картку. «Створити …» — сторінка форми. Вибрані — масові дії графа й «Видалити» фоновою
+ * посилання на картку. «Створити …» — сторінка форми, «Кошик» — видалені чернетки (ADR-0095). Вибрані — масові дії графа й «Видалити» фоновою
  * задачею зі звітом про невдалі (ADR-0066); дії рядка й масові дії розширення — `useListSlots` (ADR-0086).
  */
 function SalesListPage({
@@ -104,7 +105,17 @@ function SalesListPage({
   // Без сесії ra-core перенаправить на вхід і повернеться сюди після входу.
   const { isPending } = useAuthenticated()
   const heading = usePageHeading(t(`${list}.title`))
-  const actions: (ListReportAction & { id: "create" })[] = [
+  const actions: (ListReportAction & { id: "trash" | "create" })[] = [
+    {
+      id: "trash",
+      node: (
+        <TrashLink
+          resource={kind.resource}
+          to={kind.pathsOf(paths).trash}
+          preload={preload}
+        />
+      ),
+    },
     {
       id: "create",
       node: (

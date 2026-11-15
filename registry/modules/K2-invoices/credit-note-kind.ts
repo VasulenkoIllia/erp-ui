@@ -24,6 +24,7 @@ export const CREDIT_NOTE_KIND: K2DocumentKind = {
   mainPath: ["draft", "issued"],
   pathsOf: (paths) => ({
     list: paths.creditNotes,
+    trash: paths.creditNotesTrash,
     record: paths.creditNote,
     edit: paths.editCreditNote,
     print: paths.printCreditNote,

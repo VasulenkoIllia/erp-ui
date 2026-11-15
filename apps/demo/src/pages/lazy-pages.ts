@@ -123,6 +123,8 @@ export const PAGES = {
   periodLock: lazyWithPreload(() =>
     import("./PeriodLockPage").then((m) => m.PeriodLockPage),
   ),
+  // Кошик: видалення зі «Скасувати», відновлення й бекенд без кошика (ADR-0095).
+  trash: lazyWithPreload(() => import("./TrashPage").then((m) => m.TrashPage)),
   securityPolicy: lazyWithPreload(() =>
     import("./SecurityPolicyPage").then((m) => m.SecurityPolicyPage),
   ),

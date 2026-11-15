@@ -14,6 +14,7 @@ export const MOCK_RESOURCES = [
   "numbering-series",
   "period-lock",
   "period-lock-exceptions",
+  "trash",
   "organizations",
   "contacts",
   "segments",
@@ -40,3 +41,15 @@ export const MOCK_RESOURCES = [
   "realtime",
   "timeline",
 ]
+
+/**
+ * Ресурс «сервера без кошика» на сторінці кошика демо (PF16, ADR-0095): `GET /trash` для нього відповідає
+ * 404, як бекенд без кошика.
+ */
+export const NO_TRASH_RESOURCE = "legacy-records"
+
+/**
+ * Товар компанії для картки сторінки «Кошик» (`data/products`): спільні товари змінює лише адміністратор
+ * платформи (ADR-0036), а цей бухгалтер може видалити.
+ */
+export const TRASH_CARD_SKU = "SKU-006"

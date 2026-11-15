@@ -862,6 +862,14 @@ export const CODE_ITEMS = {
     demo: "periodLock",
     spec: ["PF13", "§8", "§8.3"],
   },
+  "hooks/use-trash": {
+    title: "Кошик в інтерфейсі",
+    description:
+      "useTrashSettings: строк і ресурси кошика компанії (GET /trash/settings, раз на компанію); useKeepsInTrash(resource): чи переносить сервер записи ресурсу в кошик, бекенд без кошика чи збій налаштувань — ні (видалення з підтвердженням); useMovedToTrash: сповіщення «Перенесено в кошик» зі «Скасувати», що не зникає само (SPEC §8.2, рівень 1); useRestoreErrorMessage: запису вже немає (404), його місце зайняв інший (409 restore_conflict); useTrashRefresh — списки ресурсу й кошик (PF16, ADR-0095).",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§8.2"],
+  },
   "hooks/use-line-dictionaries": {
     title: "Довідники рядків документа",
     description:
@@ -1349,6 +1357,14 @@ export const CODE_ITEMS = {
     demo: "periodLock",
     spec: ["PF13", "§17"],
   },
+  "lib/mock-trash": {
+    title: "Мок кошика",
+    description:
+      "createTrashMocks({ retentionDays }): GET /trash/settings, GET /trash?resource= (право <ресурс>:delete, з :own — свої; новіші першими; строк минув — запису немає), POST /trash/<ресурс>/<id>/restore (нова версія, журнал <ресурс>.restored, подія created; місце зайняте — 409 restore_conflict); опція trash у createResourceHandlers: DELETE переносить запис у кошик, deleted — засів кошика; mockLinkSlot і trashLinks — зв'язки, які видалення звільнило, а відновлення займає знову; сценарії ресурсу trash (PF16, ADR-0095).",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§17"],
+  },
   "lib/i18n-uk-numbering": {
     title: "Рядки нумерації українською",
     description:
@@ -1431,6 +1447,21 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "periodLock",
     spec: ["PF13", "§11"],
+  },
+  "lib/i18n-uk-trash": {
+    title: "Рядки кошика українською",
+    description:
+      "Кнопка й сторінка кошика, строк зберігання, хто й коли видалив, «Відновити», збої відновлення, «Перенесено в кошик» (ADR-0095): окремий файл, простір імен erp-ui той самий; вантажиться з функцією: useErpUiT(частина), ADR-0094.",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§11"],
+  },
+  "lib/i18n-en-trash": {
+    title: "Рядки кошика англійською",
+    description: "Ті самі рядки кошика англійською.",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§11"],
   },
   "lib/i18n-uk-document-lines": {
     title: "Рядки редактора рядків документа українською",
@@ -1645,6 +1676,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "periodLock",
     spec: ["PF13", "§17"],
+  },
+  "lib/trash": {
+    title: "Кошик",
+    description:
+      "Контракт кошика (PF16): GET /trash/settings — строк зберігання retentionDays і ресурси resources, 404, 405 і 501 — бекенд без кошика (isTrashUnsupported); GET /trash?resource=&page=&perPage= — записи { resource, id, deletedAt, purgeAt, deletedBy, record } новіші першими; POST /trash/<ресурс>/<id>/restore — запис із новою версією, 404 — запису вже немає, 409 restore_conflict — місце зайняв інший; DELETE /<ресурс>/:id без змін; право — <ресурс>:delete; createTrashApi — під-API trash провайдера (lib/platform-api), keepsInTrash, TRASH_PURGE_SOON_DAYS (ADR-0095).",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§17"],
   },
   "lib/mock-team": {
     title: "Мок ролей і запрошень",
@@ -2004,6 +2043,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "organizations",
     spec: ["§7", "§8.1"],
+  },
+  "templates/trash-page": {
+    title: "Сторінка кошика",
+    description:
+      "TrashPage: кошик ресурсу в модулі — «Назад до списку», заголовок «Кошик: <список>», строк зберігання від сервера й erp/trash-view; модуль дає назву списку, підпис і схему рядка, адресу картки; маршрут <список>/trash перед /:id (SPEC §7, PF16, ADR-0095).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["§7", "PF16"],
   },
   "erp/status-tabs": {
     title: "Вкладки-статуси",
@@ -2935,7 +2982,7 @@ export const CODE_ITEMS = {
   "erp/document-delete-action": {
     title: "«Видалити чернетку»",
     description:
-      "DocumentDeleteAction: кнопка шапки картки документа для чернетки без номера з правом <ресурс>:delete; проведений і скасований документ — неактивна з причиною словами модуля, закритий період — причиною кіта, поки запис редагує інша людина — причиною блокування; підтвердження з наслідком, після видалення — список; відмова сервера — сповіщення, картка перечитується (ADR-0066, ADR-0086).",
+      "DocumentDeleteAction: кнопка шапки картки запису (чернетка документа без номера, організація, контакт) з правом <ресурс>:delete; проведений і скасований документ — неактивна з причиною словами модуля, закритий період — причиною кіта, поки запис редагує інша людина — причиною блокування; сервер переносить записи в кошик — без підтвердження, сповіщення зі «Скасувати», що не зникає само (ADR-0095), без кошика — підтвердження з наслідком; після видалення — список; відмова сервера — сповіщення, картка перечитується (ADR-0066, ADR-0086).",
     status: "beta",
     demo: "invoicesModule",
     spec: ["§8.2", "§8.4", "PF03"],
@@ -3107,6 +3154,22 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "periodLock",
     spec: ["PF13", "§8", "§9", "§10", "§11"],
+  },
+  "erp/trash-view": {
+    title: "Кошик ресурсу",
+    description:
+      "TrashView({ resource, schema, rowLabel, rowDescription, recordHref }): видалені записи ресурсу новіші першими, хто й коли видалив, коли сервер видалить назавжди (за TRASH_PURGE_SOON_DAYS до того — попередження словами), «Відновити» в рядку; після відновлення — сповіщення з «Відкрити», фокус на сусідній рядок; запису вже немає чи місце зайняте — причина; стани завантаження, офлайн, помилки, немає права, бекенд без кошика, порожньо, «Показати ще» (PF16, ADR-0095).",
+    status: "beta",
+    demo: "trash",
+    spec: ["PF16", "§8", "§9", "§10", "§11"],
+  },
+  "erp/trash-link": {
+    title: "Кнопка «Кошик»",
+    description:
+      "TrashLink({ resource, to, preload }): кнопка «Кошик» у шапці списку, лише коли сервер переносить записи ресурсу в кошик і людина має <ресурс>:delete; поки це невідомо, кнопки немає (PF16, ADR-0095).",
+    status: "beta",
+    demo: "contacts",
+    spec: ["PF16", "§10"],
   },
   "erp/period-lock-settings": {
     title: "Налаштування закритих періодів",
@@ -3773,7 +3836,7 @@ export const MODULE_ITEMS = {
     docs: [
       "Модуль B1 встановлено в src/modules/B1-contacts. Файли модуля не правте: зміни під клієнта — у src/extensions/B1-contacts.ts (тип ContactsExtension).",
       "1) createContactsModule({ basePath, extension }) з @/modules/B1-contacts: routes — у роутер, nav — у навігацію.",
-      "2) Моки: createContactsMocks({ extension }) з @/modules/B1-contacts/mocks — handlers у setupWorker.",
+      "2) Моки: createContactsMocks({ extension, trash }) з @/modules/B1-contacts/mocks — handlers у setupWorker; trash: { bin } — кошик застосунку (createTrashMocks з @/lib/mock-trash, його handlers теж у setupWorker).",
       "3) Права ролей: contacts, organizations, segments (read, create, update, delete). Докладно — src/modules/B1-contacts/README.md.",
     ].join("\n"),
   },
@@ -3787,7 +3850,7 @@ export const MODULE_ITEMS = {
     docs: [
       "Модуль B3 встановлено в src/modules/B3-sales. Файли модуля не правте: зміни під клієнта — у src/extensions/B3-sales.ts (тип SalesExtension, ключі quotes і orders).",
       "1) createSalesModule({ basePath, extension, clients, lineItem }) з @/modules/B3-sales: routes — у роутер, nav — у навігацію (пункти «Пропозиції» й «Замовлення» з access — лише тому, хто має право).",
-      "2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension }) з @/modules/B3-sales/mocks — handlers у setupWorker; flowSources — у createDocumentFlowHandlers застосунку (@/lib/mock-document-flow, потік документів на картках).",
+      "2) Моки: salesNumberingSeeds(…) — у засів createNumberingMocks (серії quotes і orders), далі createSalesMocks({ numbering, extension, trash }) з @/modules/B3-sales/mocks — handlers у setupWorker, trash: { bin } — кошик застосунку (createTrashMocks з @/lib/mock-trash); flowSources — у createDocumentFlowHandlers застосунку (@/lib/mock-document-flow, потік документів на картках).",
       "3) Права ролей: quotes (read, create, update, delete, submit, accept, decline, order — «Створити замовлення», ще й orders:create, cancel, amend), orders (read, create, update, delete, submit, complete, invoice — «Виставити рахунок» модуля K2, ще й sales-invoices:create, cancel, amend) і дії розширення; масові дії — ті самі права, хід задачі — createJobHandlers застосунку (@/lib/mock-jobs). Докладно — src/modules/B3-sales/README.md.",
     ].join("\n"),
   },
@@ -3801,7 +3864,7 @@ export const MODULE_ITEMS = {
     docs: [
       "Модуль K2 встановлено в src/modules/K2-invoices. Файли модуля не правте: зміни під клієнта — у src/extensions/K2-invoices.ts (тип InvoicesExtension, ключі invoices і creditNotes).",
       '1) createInvoicesModule({ basePath, extension, clients, sources, currencies, payments, aging, lineItem }) з @/modules/K2-invoices: routes — у роутер, nav — у навігацію (пункти «Рахунки клієнтам» з access sales-invoices:read, «Кредит-ноти» з access sales-credit-notes:read і, з payments і aging, «Борги клієнтів» K2-debts з access sales-invoices:read). clients.party — реквізити покупця з запису клієнта; sources — адреси карток замовлень і пропозицій B3 для потоку; currencies: { resource: "currencies" } — валюти компанії модуля A1 (поле «Валюта» у формі, сума в базовій валюті поруч); payments: { resource: "sales-payments", register: paymentsPaths(basePath).newPayment, href: paymentsPaths(basePath).payment, refunds: { resource: "sales-refunds", register: paymentsPaths(basePath).newRefund, href: paymentsPaths(basePath).refund } } — оплати й повернення модуля K4; aging: { buckets: [30, 60, 90] } — «Борги клієнтів», коли бекенд дає GET /sales-invoices/aging (без buckets — ці межі). У createSalesModule — invoices: { href: invoicesPaths(basePath).invoice }.',
-      "2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серії sales-invoices і sales-credit-notes), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder, rates, payments }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }); rates — базова валюта й rateOn моків A1; payments: { paidTotal, refundedTotal } моків K4 (з ними й обробник GET /sales-invoices/aging), а forPayments і invoicePaymentSeed(…) — у моки K4.",
+      "2) Моки: invoicesNumberingSeeds(…) — у засів createNumberingMocks (серії sales-invoices і sales-credit-notes), далі createInvoicesMocks({ numbering, extension, periodLock, releaseOrder, rates, payments, trash, orderSlot }) з @/modules/K2-invoices/mocks — handlers у setupWorker, flowSources — у createDocumentFlowHandlers; fromOrder і hasActive — у createSalesMocks({ invoices }); rates — базова валюта й rateOn моків A1; payments: { paidTotal, refundedTotal } моків K4 (з ними й обробник GET /sales-invoices/aging), а forPayments і invoicePaymentSeed(…) — у моки K4; trash: { bin } — кошик застосунку (createTrashMocks з @/lib/mock-trash), orderSlot — orderInvoiceSlot моків B3 (відновлений рахунок знову займає замовлення).",
       "3) Права ролей: sales-invoices (read, create, update, delete, submit, cancel, reverse, amend, creditNote — «Створити кредит-ноту», ще й sales-credit-notes:create), sales-credit-notes (read, create, update, delete, submit, cancel, reverse, amend) і дії розширення; рахунок із замовлення — orders:invoice разом із sales-invoices:create. Докладно — src/modules/K2-invoices/README.md.",
     ].join("\n"),
   },
@@ -4049,6 +4112,7 @@ export const CONTRACT_LAYER = {
     "shortcuts",
     "statuses-core",
     "timeline",
+    "trash",
     "ua-ids",
     "web-push",
   ],

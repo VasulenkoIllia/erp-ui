@@ -77,7 +77,12 @@ import {
   responsibleOf,
 } from "@/data/organizations"
 import { MY_ACTIVITY_SEEDS, TIMELINE_SEEDS } from "@/data/timeline"
-import { makeProducts, productSchema, type Product } from "@/data/products"
+import {
+  makeProductsWithTrash,
+  productSchema,
+  TRASHED_PRODUCT_SEEDS,
+  type Product,
+} from "@/data/products"
 import { usersMockExtension } from "@/extensions/A2-users-fields"
 import { companyMockExtension } from "@/extensions/A1-company-fields"
 import { dictionariesMockExtension } from "@/extensions/A6-dictionaries-fields"
@@ -103,7 +108,11 @@ import {
   PERMISSION_RESOURCES,
   ROLES,
 } from "./team"
+import { createDemoTrash } from "./trash"
 import { MOCK_INVITES, MOCK_USERS } from "./users"
+
+/** Кошик (PF16, ADR-0095): видалене в модулях B1, B3, K2 і товари сторінки «Кошик». */
+const trash = createDemoTrash()
 
 // Рахунки з полями розширення проекту (ADR-0020): схема їх пропускає, фікстури їх мають.
 export const invoices = createResourceHandlers({
@@ -142,10 +151,12 @@ const LOCKED_EVERY = 24
 const products = createResourceHandlers<Product>({
   resource: "products",
   schema: productSchema,
-  data: makeProducts,
+  data: makeProductsWithTrash,
   searchFields: ["sku", "name"],
   label: { uk: "Товари", en: "Products" },
   unique: ["sku"],
+  // Сторінка «Кошик» (PF16): видалені товари з різними строками й один, чиє місце вже зайняте.
+  trash: { bin: trash.bin, deleted: TRASHED_PRODUCT_SEEDS },
 })
 
 const invoiceBulk = createBulkHandlers<Invoice>({
@@ -187,6 +198,7 @@ const contacts = createContactsMocks({
   extension: contactsMockExtension,
   companyOf: organizationCompanyOf,
   responsibleOf,
+  trash: { bin: trash.bin },
 })
 
 /**
@@ -462,6 +474,14 @@ const salesInvoices = createInvoicesMocks({
   releaseOrder: (removed) => {
     sales.releaseOrderInvoice(removed)
   },
+  trash: { bin: trash.bin },
+  // Моки B3 — нижче: слот замовлення беремо на запит.
+  orderSlot: {
+    isFree: (invoice) => sales.orderInvoiceSlot.isFree(invoice),
+    claim: (invoice) => {
+      sales.orderInvoiceSlot.claim(invoice)
+    },
+  },
   payments: {
     paidTotal: (invoiceId) => salesPayments.paidTotal(invoiceId),
     refundedTotal: (invoiceId) => salesPayments.refundedTotal(invoiceId),
@@ -488,6 +508,7 @@ const sales = createSalesMocks({
     create: salesInvoices.fromOrder,
     hasActive: salesInvoices.hasActive,
   },
+  trash: { bin: trash.bin },
 })
 
 /**
@@ -589,6 +610,7 @@ export const handlers = [
     notificationChannels: NOTIFICATION_CHANNELS,
     notificationEvents: NOTIFICATION_EVENTS,
   }),
+  ...trash.handlers,
   ...createSavedViewHandlers(),
   ...createListSettingsHandlers(),
   ...createJobHandlers(),

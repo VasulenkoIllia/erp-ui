@@ -10,12 +10,14 @@
  * Поля й статуси розширення проекту (`ContactsMockExtension`) — у схемі й у фікстурах: проект з
  * розширенням працює на моках так само, як на бекенді. Відповідальний — у записах організацій і
  * контактів: «свої» записи на правах `:own`, автор під час створення, передача колезі (ADR-0039);
- * засів — `responsibleOf`.
+ * засів — `responsibleOf`. З опцією `trash` (`createTrashMocks` з lib/mock-trash, ADR-0095) видалена
+ * організація чи контакт іде в кошик; контакти видаленої організації лишаються з її `organizationId`.
  */
 import { z } from "zod"
 
 import { extensionAuditOptions, withMockValues } from "@/lib/extension-fields"
 import type { MockDeniedRule } from "@/lib/mock-scope"
+import type { MockTrashBin, MockTrashSeed } from "@/lib/mock-trash"
 import { createResourceHandlers, mockRecordTitle } from "@/lib/mocks"
 import type { ExtensionStatusChanges } from "@/lib/statuses"
 import { formatIban, normalizeIban, validateUaId } from "@/lib/ua-ids"
@@ -57,6 +59,17 @@ export interface ContactsMocksOptions extends ContactsFixtureOptions {
   readonly deniedActions?: {
     readonly organizations?: MockDeniedRule<OrganizationCard>
     readonly contacts?: MockDeniedRule<Contact>
+  }
+  /**
+   * Кошик застосунку (`createTrashMocks(...).bin`): видалена організація чи контакт — у кошик; `deleted` —
+   * записи засіву, що лежать у кошику з першого запиту (демо).
+   */
+  readonly trash?: {
+    readonly bin: MockTrashBin
+    readonly deleted?: {
+      readonly organizations?: readonly MockTrashSeed[]
+      readonly contacts?: readonly MockTrashSeed[]
+    }
   }
 }
 
@@ -185,6 +198,7 @@ export function createContactsMocks({
   extension,
   baseUrl,
   deniedActions,
+  trash,
   ...fixtureOptions
 }: ContactsMocksOptions = {}) {
   // Свіжі фікстури на кожне скидання моків: записи змінюються на місці (PATCH, закріплення).
@@ -246,6 +260,11 @@ export function createContactsMocks({
     pins: true,
     responsibleField: RESPONSIBLE_ID,
     deniedActions: deniedActions?.organizations,
+    ...(trash
+      ? {
+          trash: { bin: trash.bin, deleted: trash.deleted?.organizations },
+        }
+      : {}),
   })
 
   const contacts = createResourceHandlers({
@@ -268,6 +287,9 @@ export function createContactsMocks({
     pins: true,
     responsibleField: RESPONSIBLE_ID,
     deniedActions: deniedActions?.contacts,
+    ...(trash
+      ? { trash: { bin: trash.bin, deleted: trash.deleted?.contacts } }
+      : {}),
   })
 
   const segments = createResourceHandlers({

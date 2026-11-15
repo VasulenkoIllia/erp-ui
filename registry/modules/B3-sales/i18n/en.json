@@ -60,12 +60,17 @@
         "title_one": "Delete {{value}} quote?",
         "title_other": "Delete {{value}} quotes?",
         "description": "Only drafts without a number are deleted, for good. A sent quote is not deleted but cancelled: such quotes stay, the report lists them with the reason.",
+        "descriptionTrash": "Only drafts without a number go to the trash. A sent quote is not deleted but cancelled: such quotes stay, the report lists them with the reason.",
         "confirm_one": "Delete {{value}} quote",
         "confirm_other": "Delete {{value}} quotes",
         "progress": "Deleting drafts",
         "done": "Drafts deleted: {{value}}",
         "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
       }
+    },
+    "trash": {
+      "row": "Quote {{number}}",
+      "rowDraft": "Draft for {{client}} of {{date}}"
     }
   },
   "quote": {
@@ -127,6 +132,7 @@
       "descriptionAmended": "The draft is deleted for good together with its lines. The cancelled quote it was made from can be corrected again.",
       "confirm": "Delete draft",
       "done": "Draft deleted",
+      "trashed": "Draft moved to the trash",
       "locked": {
         "submitted": "A sent quote is not deleted: cancel it",
         "cancelled": "A cancelled quote is not deleted: it stays in the history"
@@ -237,12 +243,17 @@
         "title_one": "Delete {{value}} order?",
         "title_other": "Delete {{value}} orders?",
         "description": "Only drafts without a number are deleted, for good. A confirmed order is not deleted but cancelled: such orders stay, the report lists them with the reason.",
+        "descriptionTrash": "Only drafts without a number go to the trash. A confirmed order is not deleted but cancelled: such orders stay, the report lists them with the reason.",
         "confirm_one": "Delete {{value}} order",
         "confirm_other": "Delete {{value}} orders",
         "progress": "Deleting drafts",
         "done": "Drafts deleted: {{value}}",
         "partial": "Deleted {{done}} of {{total}}, not deleted: {{failed}}"
       }
+    },
+    "trash": {
+      "row": "Order {{number}}",
+      "rowDraft": "Draft for {{client}} of {{date}}"
     }
   },
   "order": {
@@ -298,6 +309,7 @@
       "descriptionAmended": "The draft is deleted for good with its lines. The cancelled order it was made from can be corrected again.",
       "confirm": "Delete draft",
       "done": "Draft deleted",
+      "trashed": "Draft moved to the trash",
       "locked": {
         "submitted": "A confirmed order is not deleted: cancel it",
         "cancelled": "A cancelled order is not deleted: it stays in the history"

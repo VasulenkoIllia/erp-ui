@@ -129,13 +129,20 @@ const listPage = () => import("./pages/sales-list-page")
 const recordPage = () => import("./pages/sales-record-page")
 const formPage = () => import("./pages/sales-form-page")
 const printPage = () => import("./pages/sales-print-page")
+const trashPage = () => import("./pages/sales-trash-page")
 
 const PAGES = {
   quotes: lazyWithPreload(() => listPage().then((m) => m.QuotesListPage)),
+  quotesTrash: lazyWithPreload(() =>
+    trashPage().then((m) => m.QuotesTrashPage),
+  ),
   quote: lazyWithPreload(() => recordPage().then((m) => m.QuotePage)),
   quoteForm: lazyWithPreload(() => formPage().then((m) => m.QuoteFormPage)),
   quotePrint: lazyWithPreload(() => printPage().then((m) => m.QuotePrintPage)),
   orders: lazyWithPreload(() => listPage().then((m) => m.OrdersListPage)),
+  ordersTrash: lazyWithPreload(() =>
+    trashPage().then((m) => m.OrdersTrashPage),
+  ),
   order: lazyWithPreload(() => recordPage().then((m) => m.OrderPage)),
   orderForm: lazyWithPreload(() => formPage().then((m) => m.OrderFormPage)),
   orderPrint: lazyWithPreload(() => printPage().then((m) => m.OrderPrintPage)),
@@ -158,11 +165,13 @@ export function createSalesModule<TItem extends RaRecord = RaRecord>({
     pages: [
       { path: paths.quotes, page: PAGES.quotes },
       { path: paths.newQuote, page: PAGES.quoteForm },
+      { path: paths.quotesTrash, page: PAGES.quotesTrash },
       { path: `${paths.quotes}/:id`, page: PAGES.quote },
       { path: `${paths.quotes}/:id/edit`, page: PAGES.quoteForm },
       { path: `${paths.quotes}/:id/print`, page: PAGES.quotePrint },
       { path: paths.orders, page: PAGES.orders },
       { path: paths.newOrder, page: PAGES.orderForm },
+      { path: paths.ordersTrash, page: PAGES.ordersTrash },
       { path: `${paths.orders}/:id`, page: PAGES.order },
       { path: `${paths.orders}/:id/edit`, page: PAGES.orderForm },
       { path: `${paths.orders}/:id/print`, page: PAGES.orderPrint },

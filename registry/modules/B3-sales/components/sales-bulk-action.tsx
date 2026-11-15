@@ -8,6 +8,7 @@ import {
 } from "@/components/erp/bulk-action"
 import type { ListReportBulk } from "@/components/templates/list-report"
 import type { RowSelection } from "@/hooks/use-row-selection"
+import { useTrashKeptFor } from "@/hooks/use-trash"
 import type { FilterValue } from "@/lib/api"
 import { useFormat } from "@/lib/format"
 import type { ActionIcon } from "@/lib/icons"
@@ -73,7 +74,10 @@ export function useSalesBulkTransition(
   })
 }
 
-/** «Видалити» вибрані чернетки (ADR-0066): проведені й скасовані — у звіті з причиною словами модуля. */
+/**
+ * «Видалити» вибрані чернетки (ADR-0066): проведені й скасовані — у звіті з причиною словами модуля. Сервер
+ * переносить чернетки в кошик (ADR-0095) — підтвердження каже, скільки днів їх можна відновити.
+ */
 export function useSalesBulkDelete({
   kind,
   selection,
@@ -81,12 +85,16 @@ export function useSalesBulkDelete({
 }: SalesBulkScope): BulkAction {
   const t = useSalesT()
   const lockedReason = useSalesLockedReason(kind)
+  const keptFor = useTrashKeptFor(kind.resource)
   const key = `${kind.keys.list}.bulk.delete` as const
-  const texts = useBulkActionTexts(
+  const base = useBulkActionTexts(
     key,
     t,
     t(`${kind.keys.record}.delete.denied`),
   )
+  const texts = keptFor
+    ? { ...base, description: `${t(`${key}.descriptionTrash`)} ${keptFor}` }
+    : base
   return useBulkAction({
     resource: kind.resource,
     selection,

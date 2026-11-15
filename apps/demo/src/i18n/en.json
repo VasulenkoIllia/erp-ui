@@ -19,6 +19,7 @@
       "documentGenerator": "Document from template",
       "richText": "Rich text field",
       "timeline": "Record timeline",
+      "trash": "Trash",
       "setup": "Get started",
       "states": "Page states",
       "data": "Data & mocks",
@@ -1084,6 +1085,26 @@
       "narrow": "Failure, narrow container",
       "open": "A document in an open period or a backend without closed periods: no banner."
     }
+  },
+  "trashPage": {
+    "lead": "The server moves a deleted record to the trash and keeps it for 30 days, so you can restore it in that time. Deleting doesn't ask for confirmation, and the notification with \"Undo\" stays until you act on it. In modules B1, B3 and K2 the \"Trash\" button sits above the list.",
+    "cardTitle": "Delete with \"Undo\"",
+    "cardDescription": "A company product. \"Delete product\" moves it to the trash without confirmation, and \"Undo\" in the notification brings it back. Without a trash on the server the same button asks for confirmation and deletes for good.",
+    "sku": "SKU {{sku}}",
+    "noProducts": "The product is in the trash: bring it back with \"Undo\" in the notification or \"Restore\" below.",
+    "delete": {
+      "button": "Delete product",
+      "denied": "An accountant can delete products",
+      "done": "Product deleted",
+      "title": "Delete the product?",
+      "description": "The product will be removed from the catalog for good.",
+      "confirm": "Delete",
+      "trashed": "Product moved to the trash"
+    },
+    "binTitle": "Product trash",
+    "binDescription": "Products deleted in the last 30 days. The server will delete one product for good in two days, and its row says so in words. Another one won't restore: its SKU-002 already belongs to another product. Mock scenarios for the trash resource are in the developer panel: slow, error, offline, forbidden, empty, conflict.",
+    "unsupportedTitle": "Server without a trash",
+    "unsupportedDescription": "The backend keeps no trash: the list answers 404, there's no \"Trash\" button above the list, and deleting asks for confirmation."
   },
   "timelinePage": {
     "noMailTitle": "Project without email",

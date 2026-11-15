@@ -43,6 +43,8 @@ import type { SalesKey } from "./use-sales-t"
 /** Адреси сторінок документа від `basePath` фабрики. */
 export interface SalesDocumentPaths {
   readonly list: string
+  /** Кошик списку (PF16, ADR-0095). */
+  readonly trash: string
   readonly record: (id: string) => string
   readonly create: string
   /** Нова форма, заповнена документом `id` («Копіювати»). */
@@ -166,6 +168,7 @@ export const QUOTE_KIND: QuoteKind = {
   extensionOf: (extension) => extension.quotes,
   pathsOf: (paths) => ({
     list: paths.quotes,
+    trash: paths.quotesTrash,
     record: paths.quote,
     create: paths.newQuote,
     copy: copyPath(paths.newQuote),
@@ -212,6 +215,7 @@ export const ORDER_KIND: OrderKind = {
   extensionOf: (extension) => extension.orders,
   pathsOf: (paths) => ({
     list: paths.orders,
+    trash: paths.ordersTrash,
     record: paths.order,
     create: paths.newOrder,
     copy: copyPath(paths.newOrder),

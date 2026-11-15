@@ -108,6 +108,9 @@ const SHOT_PAGES = {
   numbering: "/#/settings/numbering",
   // Закриті періоди (крок PF13, ADR-0069): дата закриття, роки, винятки, документ закритого періоду.
   periodLock: "/#/settings/period-lock",
+  // Кошик (крок PF16, ADR-0095): видалення зі «Скасувати», рядки зі строками, бекенд без кошика.
+  trash: "/#/trash",
+  contactsTrash: "/#/m/B1/contacts/trash",
   inbox: "/#/notifications",
 } as const
 /** Екрани входу — для гостя, решта — під бухгалтером. */

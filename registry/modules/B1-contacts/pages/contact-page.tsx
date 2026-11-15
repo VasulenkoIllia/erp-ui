@@ -35,6 +35,7 @@ import {
   useOpener,
 } from "../components/access-action"
 import { contactName } from "../components/contact-columns"
+import { ContactsDeleteAction } from "../components/record-delete"
 import { ContactFormDialog, usePreloadForm } from "../components/form-dialogs"
 import { ContactOrganization } from "../components/contact-organization"
 import {
@@ -238,6 +239,16 @@ function useContactHeader(
           record={contact}
           name={contactName(contact)}
           variant="button"
+        />
+      ),
+    },
+    {
+      id: "delete",
+      node: (
+        <ContactsDeleteAction
+          entity="contact"
+          record={contact}
+          lockReason={lock.reason}
         />
       ),
     },

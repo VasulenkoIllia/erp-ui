@@ -17,6 +17,7 @@ import { enPush } from "@/registry/lib/i18n-en-push"
 import { enRealtime } from "@/registry/lib/i18n-en-realtime"
 import { enRichText } from "@/registry/lib/i18n-en-rich-text"
 import { enTimeline } from "@/registry/lib/i18n-en-timeline"
+import { enTrash } from "@/registry/lib/i18n-en-trash"
 import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -1460,4 +1461,5 @@ export const en = {
   ...enParty,
   ...enPeriodLock,
   ...enDocumentGenerator,
+  ...enTrash,
 } satisfies ErpUiTranslation

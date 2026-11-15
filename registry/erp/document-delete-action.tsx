@@ -12,10 +12,12 @@ import {
   useRecordAccess,
   type RecordDenialText,
 } from "@/registry/hooks/use-record-access"
+import { useKeepsInTrash, useMovedToTrash } from "@/registry/hooks/use-trash"
 import { isApiError } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { ACTION_ICONS } from "@/registry/lib/icons"
 import { Button } from "@/registry/ui/button"
+import { Spinner } from "@/registry/ui/spinner"
 
 const DeleteIcon = ACTION_ICONS.delete
 
@@ -33,20 +35,31 @@ export interface DocumentDeleteTexts {
   /** Наслідок видалення в підтвердженні. */
   readonly description: string
   readonly confirm: string
+  /**
+   * Сповіщення, коли сервер переніс запис у кошик (ADR-0095): «Чернетку перенесено в кошик»; без нього —
+   * текст кіта.
+   */
+  readonly trashed?: string
 }
 
 /**
- * «Видалити чернетку» в шапці картки документа (ADR-0066, ADR-0086): лише чернетка без номера, право
- * `<ресурс>:delete`. Проведений і скасований документ — неактивна кнопка з причиною словами модуля
- * (`moduleText`), закритий період — причиною кіта, поки запис редагує інша людина — з причиною блокування
- * (SPEC §8.4). Підтвердження називає наслідок; після видалення — список. Відмова сервера (провели за мить
- * до того) — сповіщення з причиною, картка перечитується.
+ * «Видалити» в шапці картки запису (ADR-0066, ADR-0086, ADR-0095): чернетка документа без номера,
+ * організація, контакт; право `<ресурс>:delete`. Проведений і скасований документ — неактивна кнопка з
+ * причиною словами модуля (`moduleText`), закритий період — причиною кіта, поки запис редагує інша
+ * людина — з причиною блокування (SPEC §8.4). Відмова сервера (провели за мить до того) — сповіщення з
+ * причиною, картка перечитується. Після видалення — список.
+ *
+ * - Сервер переносить записи ресурсу в кошик (`useKeepsInTrash`) — без діалогу: запис іде в кошик одразу,
+ *   сповіщення зі «Скасувати» не зникає само (SPEC §8.2, рівень 1).
+ * - Кошика немає (чи його налаштування не прочитались) — підтвердження, що називає наслідок (рівень 2).
+ * - Поки права й налаштування кошика невідомі — кнопки немає.
  */
 export function DocumentDeleteAction({
   resource,
   document,
   listPath,
   texts,
+  name,
   moduleText,
   lockReason,
 }: {
@@ -55,6 +68,8 @@ export function DocumentDeleteAction({
   /** Куди після видалення: список документів. */
   listPath: string
   texts: DocumentDeleteTexts
+  /** Назва запису для «Відновлено: …» після «Скасувати»; без неї — «Запис <id>». */
+  name?: string
   /** Слова модуля для кодів позначки сервера (`useRecordAccess`). */
   moduleText?: RecordDenialText | undefined
   /** Запис редагує інша людина (`useEditLock`). */
@@ -64,6 +79,7 @@ export function DocumentDeleteAction({
   const companyId = useCompanyId()
   const errorMessage = useApiErrorMessage()
   const queryClient = useQueryClient()
+  const movedToTrash = useMovedToTrash()
   const [remove] = useDelete()
   const { canAccess, isPending, recordReason } = useRecordAccess({
     resource,
@@ -71,21 +87,23 @@ export function DocumentDeleteAction({
     record: document,
     moduleText,
   })
+  const { keeps } = useKeepsInTrash(resource)
   const [open, setOpen] = useState(false)
+  const [isDeleting, setDeleting] = useState(false)
   const reason = canAccess ? lockReason : (recordReason ?? texts.denied)
   // Дію заборонили, поки діалог відкритий (чернетку взяли в редагування): діалог закривається, а не
   // з'являється сам, коли заборону знімуть.
   if (open && (isPending || reason !== undefined)) setOpen(false)
-  if (isPending) return null
+  if (isPending || keeps === undefined) return null
   const content = (
     <>
-      <DeleteIcon aria-hidden />
+      {isDeleting ? <Spinner aria-hidden /> : <DeleteIcon aria-hidden />}
       {texts.button}
     </>
   )
   if (reason !== undefined)
     return <DeniedAction reason={reason}>{content}</DeniedAction>
-  const confirm = async () => {
+  const run = async () => {
     try {
       await remove(
         resource,
@@ -96,7 +114,14 @@ export function DocumentDeleteAction({
         },
         { mutationMode: "pessimistic", returnPromise: true },
       )
-      toast.success(texts.done)
+      if (keeps)
+        movedToTrash({
+          resource,
+          id: String(document.id),
+          name: name ?? String(document.id),
+          message: texts.trashed,
+        })
+      else toast.success(texts.done)
       setOpen(false)
       void navigate(listPath)
     } catch (failure: unknown) {
@@ -107,30 +132,41 @@ export function DocumentDeleteAction({
       }
     }
   }
+  const deleteToTrash = () => {
+    if (isDeleting) return
+    setDeleting(true)
+    void run().finally(() => {
+      setDeleting(false)
+    })
+  }
   return (
     <>
       <Button
         variant="outline"
+        aria-busy={isDeleting || undefined}
         onClick={() => {
-          setOpen(true)
+          if (keeps) deleteToTrash()
+          else setOpen(true)
         }}
       >
         {content}
       </Button>
-      <ConfirmDialog
-        open={open}
-        title={texts.title}
-        description={texts.description}
-        confirmLabel={texts.confirm}
-        destructive
-        lockWhileBusy
-        // Після видалення кнопки вже немає: фокус ставить заголовок списку після переходу.
-        returnFocus={() => false}
-        onClose={() => {
-          setOpen(false)
-        }}
-        onConfirm={confirm}
-      />
+      {keeps ? null : (
+        <ConfirmDialog
+          open={open}
+          title={texts.title}
+          description={texts.description}
+          confirmLabel={texts.confirm}
+          destructive
+          lockWhileBusy
+          // Після видалення кнопки вже немає: фокус ставить заголовок списку після переходу.
+          returnFocus={() => false}
+          onClose={() => {
+            setOpen(false)
+          }}
+          onConfirm={run}
+        />
+      )}
     </>
   )
 }
