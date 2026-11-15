@@ -85,7 +85,8 @@ test.describe("PF16: кошик", () => {
     await page.getByRole("button", { name: "Видалити", exact: true }).click()
     await expect(toast(page, "Контакт перенесено в кошик")).toBeVisible()
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Контакти")
-    await page.getByRole("link", { name: "Кошик" }).click()
+    // «Кошик» є ще в бічному меню демо: кнопка над списком — у вмісті сторінки.
+    await page.getByRole("main").getByRole("link", { name: "Кошик" }).click()
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Кошик: Контакти",
     )
