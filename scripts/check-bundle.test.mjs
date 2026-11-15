@@ -145,6 +145,20 @@ test("сторінка модуля кіта — свій маршрут, як �
   ])
 })
 
+test("дві сторінки з однаковою назвою файла валять перевірку", () => {
+  assert.throws(
+    () =>
+      splitFirstScreen({
+        ...manifest,
+        "../../registry/modules/N5-notifications/pages/DataPage.tsx": {
+          file: "a/n5-data.js",
+          isDynamicEntry: true,
+        },
+      }),
+    /дві сторінки з назвою DataPage\.tsx/,
+  )
+})
+
 test("збірка без сторінок валить перевірку, а не проходить порожньою", () => {
   const withoutPages = Object.fromEntries(
     Object.entries(manifest).filter(([key]) => !key.startsWith("src/pages/")),
