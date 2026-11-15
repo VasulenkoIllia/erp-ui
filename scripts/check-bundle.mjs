@@ -63,14 +63,16 @@ export function splitFirstScreen(manifest) {
       .filter((key) => MOCK_ENTRY.test(key))
       .flatMap((key) => without(staticClosure(manifest, key))),
   )
-  const pages = Object.fromEntries(
-    dynamic
-      .filter((key) => PAGE_ENTRY.test(key))
-      .map((key) => [
-        path.basename(key),
-        without(staticClosure(manifest, key)),
-      ]),
-  )
+  const pages = {}
+  for (const key of dynamic.filter((key) => PAGE_ENTRY.test(key))) {
+    const name = path.basename(key)
+    // Межа — за назвою файла: дві сторінки з однаковою назвою ділили б одну межу, і друга затерла б першу.
+    if (name in pages)
+      throw new Error(
+        `check-bundle: дві сторінки з назвою ${name} — перейменуйте одну, межі ведуться за назвою файла`,
+      )
+    pages[name] = without(staticClosure(manifest, key))
+  }
   // Без сторінок перевірка пройшла б зеленою, нічого не перевіривши.
   if (Object.keys(pages).length === 0)
     throw new Error(
@@ -203,14 +205,33 @@ function main() {
   const manifest = readJson(path.join(dist, ".vite/manifest.json"), build)
   const sources = readJson(path.join(dist, SOURCES_FILE), build)
   const budget = readJson(budgetFile, "файл меж")
+  for (const name of ["entryCeilingKb", "mocksLimitKb"])
+    if (typeof budget[name] !== "number")
+      throw new Error(
+        `check-bundle: у ${path.relative(repoRoot, budgetFile)} немає числа ${name} (ADR-0092)`,
+      )
   const size = (key) => {
     const file = manifest[key]?.file
     return file?.endsWith(".js")
       ? gzipSync(readFileSync(path.join(dist, file))).length
       : 0
   }
-  const parts = (key) => scaleParts(sources[manifest[key]?.file], size(key))
+  const parts = (key) => {
+    const bytes = size(key)
+    const groups = sources[manifest[key]?.file]
+    // Без складу звіт показав би нулі замість бібліотек, кіта й демо — краще впасти.
+    if (bytes > 0 && !SOURCE_GROUPS.some((group) => groups?.[group] > 0))
+      throw new Error(
+        `check-bundle: немає складу чанка ${manifest[key]?.file} у ${SOURCES_FILE} — плагін bundleSources у apps/demo/vite.config.ts його не записав`,
+      )
+    return scaleParts(groups, bytes)
+  }
   const report = budgetReport(splitFirstScreen(manifest), size, budget, parts)
+  // Нуль — не легкий вхід, а збірка, якої скрипт не розуміє (інше розширення чанків, інший маніфест).
+  if (!(report.entry.kb > 0))
+    throw new Error(
+      "check-bundle: у вході 0 КБ JS — змінився формат збірки (розширення чанків, маніфест)?",
+    )
 
   if (process.argv.includes("--update")) {
     writeFileSync(
@@ -220,10 +241,12 @@ function main() {
     console.log(
       `check-bundle: межі сторінок і шару моків оновлено в ${path.relative(repoRoot, budgetFile)}; стеля входу та сама`,
     )
-    if (report.entry.over)
+    if (report.entry.over) {
       console.error(
         `check-bundle: вхід ${report.entry.kb.toFixed(1)} КБ понад стелю ${report.entry.ceilingKb} — --update її не піднімає (ADR-0092)`,
       )
+      process.exit(1)
+    }
     return
   }
 

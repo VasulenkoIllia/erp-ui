@@ -12,11 +12,12 @@ const REGISTRY_DIR = fileURLToPath(new URL("../../registry/", import.meta.url))
  * чанку — `dist/.vite/bundle-sources.json`. Скрипт зводить ці числа до справжнього розміру чанка.
  */
 function bundleSources(): Plugin {
+  // Бібліотеки першими: у `registry` є свій `node_modules` (пакет workspace).
   const group = (id: string) =>
-    id.startsWith(REGISTRY_DIR)
-      ? "kit"
-      : id.startsWith("\0") || id.includes("/node_modules/")
-        ? "libs"
+    id.startsWith("\0") || id.includes("/node_modules/")
+      ? "libs"
+      : id.startsWith(REGISTRY_DIR)
+        ? "kit"
         : "demo"
   return {
     name: "erp-ui:bundle-sources",

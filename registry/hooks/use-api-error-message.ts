@@ -2,16 +2,20 @@
  * Текст помилки API для людини (SPEC §8.3): за кодом з єдиного формату помилок (ADR-0002),
  * мовою інтерфейсу. Технічне повідомлення сервера не показуємо — воно для журналу.
  * Якщо помилку повернув зовнішній сервіс (банк, ПРРО), до тексту додається його відповідь.
+ * Не завантажився чанк (API платформи вантажить код при першому виклику, ADR-0092) — просимо оновити
+ * сторінку: після деплою старого чанка вже немає, і «Спробувати ще» не допоможе.
  */
 import { useCallback } from "react"
 
 import { isApiError, isKnownApiErrorCode } from "@/registry/lib/api"
 import { useErpUiT } from "@/registry/lib/i18n"
+import { isChunkLoadError } from "@/registry/lib/lazy"
 
 export function useApiErrorMessage(): (error: unknown) => string {
   const t = useErpUiT()
   return useCallback(
     (error: unknown) => {
+      if (isChunkLoadError(error)) return t("apiErrors.chunk_load")
       if (!isApiError(error)) return t("apiErrors.unknown")
       const message = isKnownApiErrorCode(error.code)
         ? t(`apiErrors.${error.code}`)

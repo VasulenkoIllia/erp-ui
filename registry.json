@@ -799,6 +799,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         }
       ],
       "docs": "Шар даних erp-ui встановлено (ADR-0002, ADR-0003).\n1) Створіть клієнт: createApiClient() з @/lib/api; компанію для X-Company-Id веде @/lib/company-scope, перемикання — useCompany() з @/hooks/use-company.\n2) authProvider = createAuthProvider(client, { onMe: (me) => queryClient.setQueryData(ME_QUERY_KEY, me) }); dataProvider = createDataProvider(client).\n3) Обгорніть застосунок у <CoreAdminContext dataProvider authProvider i18nProvider={createRaI18nProvider(i18n)} queryClient>; queryClient = createQueryClient() з @/lib/query-client (елемент lib/query-client). CoreAdminContext, хуки й типи ra-core — з @/lib/ra-core (ADR-0090).\n4) Після входу: syncPreferences(client) з @/lib/preferences. Докладно — docs/erp-ui/CATALOG.md і SPEC §17.",
@@ -1151,6 +1156,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -45736,6 +45746,11 @@
           "target": "@lib/company-scope.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -47411,6 +47426,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -50311,6 +50331,11 @@
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-settings.ts",
@@ -53678,6 +53703,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -53991,6 +54021,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -54649,6 +54684,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -55385,6 +55425,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -56045,6 +56090,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -57533,6 +57583,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -58036,6 +58091,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -58573,6 +58633,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -59050,6 +59115,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -59534,6 +59604,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -60028,6 +60103,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -61017,6 +61097,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -61460,6 +61545,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -62766,6 +62856,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -63463,6 +63558,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -64547,6 +64647,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -65025,6 +65130,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -65501,6 +65611,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -66955,6 +67070,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -71583,6 +71703,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -72043,6 +72168,11 @@
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-settings.ts",
@@ -72676,6 +72806,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -74322,6 +74457,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -82111,6 +82251,11 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/session.ts",
           "type": "registry:lib",
           "target": "@lib/session.ts"
@@ -82728,6 +82873,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -83255,6 +83405,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -83770,6 +83925,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -85545,6 +85705,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -86618,6 +86783,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -87099,6 +87269,11 @@
           "target": "@lib/jobs.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-settings.ts",
           "type": "registry:lib",
           "target": "@lib/list-settings.ts"
@@ -87544,6 +87719,11 @@
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-settings.ts",
@@ -88007,6 +88187,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -88532,6 +88717,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -89065,6 +89255,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -89562,6 +89757,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -90272,6 +90472,11 @@
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-settings.ts",
@@ -91025,6 +91230,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -92357,6 +92567,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -92804,6 +93019,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -93813,6 +94033,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -94334,6 +94559,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -94878,6 +95108,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -96256,6 +96491,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -97146,6 +97386,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -97735,6 +97980,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -98327,6 +98577,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -99436,6 +99691,11 @@
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-settings.ts",
@@ -101985,6 +102245,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -102489,6 +102754,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -102944,6 +103214,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -103345,6 +103620,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -103838,6 +104118,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -104315,6 +104600,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -105026,6 +105316,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -107201,6 +107496,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -109085,6 +109385,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -110842,6 +111147,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -111304,6 +111614,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -112005,6 +112320,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -112495,6 +112815,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -113263,6 +113588,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -114074,6 +114404,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -114545,6 +114880,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -116044,6 +116384,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -117730,6 +118075,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/list-state.ts",
           "type": "registry:lib",
           "target": "@lib/list-state.ts"
@@ -118337,6 +118687,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -120767,6 +121122,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -121254,6 +121614,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -122861,6 +123226,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -123347,6 +123717,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -123842,6 +124217,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -124629,6 +125009,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -125148,6 +125533,11 @@
           "target": "@lib/invite-check.ts"
         },
         {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
+        },
+        {
           "path": "registry/lib/localized-text.ts",
           "type": "registry:lib",
           "target": "@lib/localized-text.ts"
@@ -125646,6 +126036,11 @@
           "path": "registry/lib/invite-check.ts",
           "type": "registry:lib",
           "target": "@lib/invite-check.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/localized-text.ts",
@@ -130970,6 +131365,11 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/lazy.ts",
+          "type": "registry:lib",
+          "target": "@lib/lazy.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
