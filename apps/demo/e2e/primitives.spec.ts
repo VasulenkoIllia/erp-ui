@@ -171,13 +171,13 @@ test.describe("примітиви: дотиковий планшет", () => {
     ).toHaveCSS("font-size", "16px")
   })
 
-  // Зона дотику прапорця — touch-target: ≥ --touch-min, 44 px у звичайній щільності, 24 px у компактній
-  // (тоді лишається 40 × 32 px основи: 12 px ліворуч).
+  // Зона дотику прапорця — touch-target (≥ --touch-min): 44 px у звичайній щільності; у компактній touch-target лише
+  // 24 px, тож зону дає основа, 40 × 32 px (11 px ліворуч від рамки).
   for (const [density, reachesFar] of [
     ["comfortable", true],
     ["compact", false],
   ] as const)
-    test(`прапорець у щільності ${density}: зона дотику ${reachesFar ? 44 : 24} px`, async ({
+    test(`прапорець у щільності ${density}: зона дотику ${reachesFar ? "44 × 44" : "40 × 32"} px`, async ({
       page,
     }) => {
       await openWith(page, { density }, PATH)
