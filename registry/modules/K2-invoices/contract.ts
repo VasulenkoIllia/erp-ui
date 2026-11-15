@@ -91,12 +91,12 @@ import {
   extensionShape,
   type ExtensionField,
   type ExtensionValues,
-} from "@/lib/extension-fields"
+} from "@/lib/extension-fields-core"
 import {
   statusSchema,
   type ExtensionStatusChanges,
   type StatusTransition,
-} from "@/lib/statuses"
+} from "@/lib/statuses-core"
 
 import { CREDIT_NOTES, INVOICES } from "./resources"
 

@@ -28,7 +28,7 @@ import { z } from "zod"
 
 import { recordBaseSchema } from "@/lib/api"
 import { isCalendarDate } from "@/lib/dates"
-import { extendSchema, type ExtensionField } from "@/lib/extension-fields"
+import { extendSchema, type ExtensionField } from "@/lib/extension-fields-core"
 
 export {
   COMPANY,

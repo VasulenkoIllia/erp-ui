@@ -1,92 +1,34 @@
 /**
  * Типи полів розширення й того, що з них будує модуль (ADR-0020, п. 2 і 4; ADR-0030). Окремо від
  * `lib/extension-fields`, щоб той лишався про поведінку; проект імпортує їх звідти ж
- * (`@/lib/extension-fields`) — шлях імпорту не змінився.
+ * (`@/lib/extension-fields`) — шлях імпорту не змінився. Типи самих полів (дані без React) — у
+ * `lib/extension-fields-core` (ADR-0093), тут вони реекспортуються.
  */
 import type { ReactNode } from "react"
 
 import type { LocalizedText } from "@/registry/lib/localized-text"
+import {
+  unknownFieldType,
+  type ExtensionAuditOptions,
+  type ExtensionField,
+  type ExtensionFieldOption,
+  type ExtensionFieldValue,
+  type ExtensionValues,
+  type RecordTitle,
+} from "@/registry/lib/extension-fields-core"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import type { Keyed } from "@/registry/lib/extensions"
 
-export type ExtensionFieldValue = string | number | boolean | null
-
-/**
- * Поля розширення в записі, розібраному схемою `extendSchema`. Значення — `unknown`: запис модуля
- * може мати масиви й вкладені об'єкти, а читати поле розширення — через `extensionValue`
- * (`lib/extensions`: компонент слота бере його без zod).
- */
-export type ExtensionValues = Readonly<Record<string, unknown>>
-
-export interface ExtensionFieldOption {
-  readonly value: string
-  readonly label: LocalizedText
+// Поля як дані — у `lib/extension-fields-core` без React (ADR-0093); тут вони реекспортуються.
+export {
+  unknownFieldType,
+  type ExtensionAuditOptions,
+  type ExtensionField,
+  type ExtensionFieldOption,
+  type ExtensionFieldValue,
+  type ExtensionValues,
+  type RecordTitle,
 }
-
-interface ExtensionFieldBase {
-  /** Ключ у записі, у колонці й у шапці картки: `manager`; не збігається з полем модуля. */
-  readonly id: string
-  readonly label: LocalizedText
-  /**
-   * Без значення запис не проходить схему. Обов'язкове поле має бути у формі модуля (`form.add`,
-   * `lib/extension-form`): без нього форма не збереться (помилка розробника), бо створення без
-   * значення сервер однаково відхилить.
-   */
-  readonly required?: boolean
-  /** Значення для моків і демо-даних: запис № i бере `mockValues[i % length]`. */
-  readonly mockValues?: readonly ExtensionFieldValue[]
-}
-
-/**
- * Нове поле: текст, число, календарна дата `YYYY-MM-DD`, так/ні, значення зі списку чи запис із
- * довідника сервера (`id` запису: відповідальний із користувачів).
- */
-export type ExtensionField =
-  | (ExtensionFieldBase & {
-      readonly type: "text" | "date" | "boolean"
-    })
-  | (ExtensionFieldBase & {
-      readonly type: "number"
-      /** Знаків після коми в полі форми; за замовчуванням — ціле число. */
-      readonly decimals?: number
-    })
-  | (ExtensionFieldBase & {
-      readonly type: "options"
-      readonly options: readonly ExtensionFieldOption[]
-    })
-  | (ExtensionFieldBase & {
-      readonly type: "record"
-      /** Ресурс API довідника (ADR-0002): `users`. */
-      readonly resource: string
-      /** Поле запису довідника з назвою: `name`. */
-      readonly labelField: string
-      /** Другий рядок варіанта у виборі: `email`. */
-      readonly descriptionField?: string
-      /** Постійні умови довідника, плоскі параметри API: `{ status: "active" }`. */
-      readonly filter?: Readonly<Record<string, string | readonly string[]>>
-      /** `id` записів довідника моків. */
-      readonly mockValues?: readonly (string | null)[]
-    })
-
-/** Тип, якого кіт не знає (дані від сервера новіші за кіт), — помилка, а не поле без перевірки. */
-export function unknownFieldType(field: never): never {
-  throw new Error(
-    `erp-ui: unknown extension field type "${String((field as { type?: unknown }).type)}"`,
-  )
-}
-
-/** Опції журналу змін моків для `createResourceHandlers` (ключ — ключ поля розширення). */
-export interface ExtensionAuditOptions {
-  fieldLabels: Record<string, LocalizedText>
-  auditValue: Record<string, (value: unknown) => string>
-}
-
-/** Назва запису довідника для журналу моків: `mockRecordTitle` з `lib/mocks`. */
-export type RecordTitle = (
-  resource: string,
-  id: string,
-  labelField: string,
-) => string | undefined
 
 /** Колонка списку з поля розширення: ключ колонки — ключ поля, решта — як у `DataTableColumn`. */
 export interface ExtensionColumn

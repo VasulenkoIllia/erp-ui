@@ -11,7 +11,7 @@ import {
   type SavedDocumentTotals,
 } from "@/registry/lib/document-lines"
 import { computeDocumentTotals } from "@/registry/lib/document-totals"
-import { currencyDigits } from "@/registry/lib/format"
+import { currencyDigits } from "@/registry/lib/format-core"
 
 export interface DocumentSumsBody {
   readonly currency: string

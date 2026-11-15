@@ -17,26 +17,27 @@ import i18next, { type BackendModule, type i18n } from "i18next"
 import { useMemo } from "react"
 import { initReactI18next, useTranslation } from "react-i18next"
 
+import {
+  DEFAULT_LANGUAGE,
+  isLanguage,
+  LANGUAGES,
+  LOCALES,
+  toLanguage,
+  type Language,
+} from "@/registry/lib/i18n-core"
 import { uk, type ErpUiMessages } from "@/registry/lib/i18n-uk"
 
-export const LANGUAGES = ["uk", "en"] as const
-export type Language = (typeof LANGUAGES)[number]
-export const DEFAULT_LANGUAGE = "uk" satisfies Language
-
-/** Мова інтерфейсу → локаль Intl для чисел, сум і дат. */
-export const LOCALES: Record<Language, string> = { uk: "uk-UA", en: "en-GB" }
+// Мови без i18next — у `lib/i18n-core` (ADR-0093); проект бере їх і звідси, як раніше.
+export {
+  DEFAULT_LANGUAGE,
+  isLanguage,
+  LANGUAGES,
+  LOCALES,
+  toLanguage,
+  type Language,
+}
 
 export const ERP_UI_NAMESPACE = "erp-ui"
-
-export function isLanguage(value: unknown): value is Language {
-  return LANGUAGES.includes(value as Language)
-}
-
-/** Мова з рядка i18next ("uk", "en-GB" тощо) → підтримувана мова інтерфейсу. */
-export function toLanguage(value: string | undefined): Language {
-  const base = value?.split("-")[0]
-  return isLanguage(base) ? base : DEFAULT_LANGUAGE
-}
 
 /** Рядки проекту однією мовою: простір імен → дерево рядків. */
 export type LanguageResources = Record<string, object>

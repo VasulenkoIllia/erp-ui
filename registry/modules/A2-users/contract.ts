@@ -41,7 +41,7 @@ import {
   extendSchema,
   type ExtensionField,
   type ExtensionValues,
-} from "@/lib/extension-fields"
+} from "@/lib/extension-fields-core"
 
 export { ROLES, USERS, USERS_RESOURCES } from "./resources"
 

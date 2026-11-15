@@ -2,7 +2,7 @@
  * Ресурси модуля A1 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту й панелі
  * розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 /** Налаштування компанії (`lib/company`): читає кожен у компанії, змінює `company:update`. */
 export const COMPANY = "company"

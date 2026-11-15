@@ -41,8 +41,8 @@ import {
   extendSchema,
   type ExtensionField,
   type ExtensionValues,
-} from "@/lib/extension-fields"
-import { statusSchema, type ExtensionStatusChanges } from "@/lib/statuses"
+} from "@/lib/extension-fields-core"
+import { statusSchema, type ExtensionStatusChanges } from "@/lib/statuses-core"
 
 export {
   CONTACTS,

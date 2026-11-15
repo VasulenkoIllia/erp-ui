@@ -2,7 +2,7 @@
  * Ресурси модуля B3 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту, токенів API
  * й панелі розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 export const QUOTES = "quotes"
 export const ORDERS = "orders"

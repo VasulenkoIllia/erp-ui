@@ -2,7 +2,7 @@
  * Ресурси модуля K4 без схем: їх бере точка входу (`index.ts`) для прав, журналу аудиту, токенів API
  * й панелі розробника, не тягнучи zod і схеми контракту в перший екран застосунку.
  */
-import type { ModuleResourceWithActions } from "@/lib/module"
+import type { ModuleResourceWithActions } from "@/lib/module-core"
 
 /**
  * Оплати клієнтів за рахунками (ADR-0073). `sales-payments`, бо оплати постачальникам (K3) — інший
