@@ -268,6 +268,11 @@ export const en = {
     haveAccount: "Already have an account?",
     backToLogin: "Back to sign in",
     invalidCredentials: "Incorrect email or password",
+    login: "Username",
+    invalidLogin: "Incorrect username or password",
+    tooManyAttempts: "Too many attempts. Try again later",
+    tooManyAttemptsIn: "Too many attempts. Try again in {{time}}",
+    passwordTooShort: "At least {{min}} characters",
     failed: "Could not sign in: {{message}}",
     sso: {
       google: "Sign in with Google",

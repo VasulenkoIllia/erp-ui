@@ -28,6 +28,11 @@ export const ukSignIn = {
     haveAccount: "Уже маєте акаунт?",
     backToLogin: "Повернутися до входу",
     invalidCredentials: "Невірний email або пароль",
+    login: "Логін",
+    invalidLogin: "Невірний логін або пароль",
+    tooManyAttempts: "Забагато спроб. Спробуйте пізніше",
+    tooManyAttemptsIn: "Забагато спроб. Спробуйте через {{time}}",
+    passwordTooShort: "Щонайменше {{min}} символів",
     sso: {
       google: "Увійти через Google",
       apple: "Увійти з Apple",

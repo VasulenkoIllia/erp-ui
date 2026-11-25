@@ -34,26 +34,25 @@ import {
   followProjectSteps,
   git,
   kit,
+  latestReleaseTag,
   markLocalOverride,
   MANIFEST,
   projectAt,
   readManifest,
+  RELEASE_TAG,
   root,
   SMOKE_ORPHAN,
+  toHead,
 } from "./upgrade-smoke-project.mjs"
 
 const args = process.argv.slice(2)
 const keep = args.includes("--keep")
 const fromTagAt = args.indexOf("--from-tag")
 
-const RELEASE_TAG = /^v\d+\.\d+\.\d+$/
 const ORPHAN_LINE = /^\s+\? (\S+) — у новій версії/gm
 const PROJECT_STEPS = "Що зробити в проекті"
 const GUARD_WARNING = "немає запобіжника VITE_BACKEND"
 const MARKED_FILE = "src/components/ui/button.tsx"
-
-/** `update` до цього коміту з цієї копії кіта. */
-const toHead = (...extra) => ["update", "HEAD", "--from", root, ...extra]
 
 /** Найновіший тег випуску (за версією), якщо не задано `--from-tag`. */
 async function previousTag() {
@@ -65,10 +64,7 @@ async function previousTag() {
     )
     return fromTag
   }
-  const tags = await git(root, "tag", "--list", "v*", "--sort=-v:refname")
-  const tag = tags.split("\n").find((name) => RELEASE_TAG.test(name))
-  expect(tag, "у копії немає тегів vX.Y.Z (CI: fetch-depth: 0)")
-  return tag
+  return latestReleaseTag()
 }
 
 /**

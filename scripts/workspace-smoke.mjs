@@ -33,14 +33,15 @@ import {
   followProjectSteps,
   git,
   kit,
+  latestReleaseTag,
   MANIFEST,
   projectAt,
   root,
+  toHead,
 } from "./upgrade-smoke-project.mjs"
 
 const keep = process.argv.includes("--keep")
 
-const RELEASE_TAG = /^v\d+\.\d+\.\d+$/
 const ADMIN = "apps/admin"
 const SERVER = "apps/server"
 const SERVER_FILE = `${SERVER}/src/invoices.ts`
@@ -79,17 +80,6 @@ const kitRange = (name) =>
 const writeFile = (file, text) => {
   mkdirSync(path.dirname(file), { recursive: true })
   writeFileSync(file, text)
-}
-
-/** `update` до цього коміту з цієї копії кіта. */
-const toHead = () => ["update", "HEAD", "--from", root]
-
-/** Найновіший тег випуску (за версією). */
-async function previousTag() {
-  const tags = await git(root, "tag", "--list", "v*", "--sort=-v:refname")
-  const tag = tags.split("\n").find((name) => RELEASE_TAG.test(name))
-  expect(tag, "у копії немає тегів vX.Y.Z (CI: fetch-depth: 0)")
-  return tag
 }
 
 /**
@@ -245,7 +235,7 @@ async function assertServerChangeStops(ws, script) {
 
 const temp = mkdtempSync(path.join(tmpdir(), "erp-ui-workspace-"))
 try {
-  const tag = await previousTag()
+  const tag = await latestReleaseTag()
   const ws = path.join(temp, "repo")
   const admin = path.join(ws, ADMIN)
   const head = (await git(root, "rev-parse", "HEAD")).trim()

@@ -45,34 +45,17 @@ import {
   windowOf,
   windowsForRange,
   type RowWindowState,
+  type WindowedList,
 } from "@/registry/lib/data-table-core"
+
+// Тип живе в lib/data-table-core, щоб erp/data-table не тягнула цей хук і ra-core (ADR-0099); старий шлях лишається.
+export type { WindowedList }
 
 export interface WindowedListParams {
   sort: SortPayload
   filter?: Record<string, unknown>
   /** Рядків в одному запиті (ADR-0002: `perPage` до 500). */
   windowSize?: number
-}
-
-/** Джерело рядків для erp/data-table. */
-export interface WindowedList<T> {
-  rowCount: number
-  rowAt: (index: number) => T | undefined
-  windowAt: (index: number) => RowWindowState | undefined
-  /** Які рядки зараз видно (з 0, включно). */
-  setRange: (start: number, end: number) => void
-  /** Ще нічого показати: первинне завантаження. */
-  isPending: boolean
-  /** Видно попередні дані, нові летять (новий фільтр, «Оновити»). */
-  isRefreshing: boolean
-  /** Дозавантажуються вікна, яких бракує на екрані. */
-  isLoadingRows: boolean
-  error: unknown
-  refetch: () => void
-  /** Коли отримано найстаріші з показаних даних, мс; 0 — ще нічого. */
-  updatedAt: number
-  /** Змінюється з фільтром, сортуванням чи компанією: таблиця повертається на початок. */
-  listKey: string
 }
 
 type ListBase = {

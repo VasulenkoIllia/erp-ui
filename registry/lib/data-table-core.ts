@@ -86,6 +86,36 @@ export interface DataTableSource<T> {
   listKey: string
 }
 
+/**
+ * Сортування на сервері (ADR-0002 `sort`): поле й напрям. Форма та сама, що `SortPayload` ra-core, тож
+ * проект на ra-core передає його як є, а таблиця не тягне пакет ra-core навіть типом (ADR-0099).
+ */
+export interface DataTableSort {
+  field: string
+  order: "ASC" | "DESC"
+}
+
+/** Великий список вікнами для erp/data-table; його дає `useWindowedList` (hooks/use-windowed-list). */
+export interface WindowedList<T> {
+  rowCount: number
+  rowAt: (index: number) => T | undefined
+  windowAt: (index: number) => RowWindowState | undefined
+  /** Які рядки зараз видно (з 0, включно). */
+  setRange: (start: number, end: number) => void
+  /** Ще нічого показати: первинне завантаження. */
+  isPending: boolean
+  /** Видно попередні дані, нові летять (новий фільтр, «Оновити»). */
+  isRefreshing: boolean
+  /** Дозавантажуються вікна, яких бракує на екрані. */
+  isLoadingRows: boolean
+  error: unknown
+  refetch: () => void
+  /** Коли отримано найстаріші з показаних даних, мс; 0 — ще нічого. */
+  updatedAt: number
+  /** Змінюється з фільтром, сортуванням чи компанією: таблиця повертається на початок. */
+  listKey: string
+}
+
 /** Рядків в одному запиті до сервера. */
 export const WINDOW_SIZE = 100
 /** Скільки рядків за межами видимого вже має бути завантажено. */

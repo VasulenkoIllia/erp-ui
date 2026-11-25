@@ -1,6 +1,6 @@
 import type * as React from "react"
 
-import type { FormControlProps } from "@/registry/erp/form"
+import type { FormControlProps } from "@/registry/lib/form-control"
 import {
   Select,
   SelectContent,
@@ -9,14 +9,31 @@ import {
   SelectValue,
 } from "@/registry/ui/select"
 
-export interface FormSelectItem<TValue extends string | null> {
+/** Значення варіанта: рядок, число (id з бази) чи null («не вибрано»). */
+export type FormSelectValue = string | number | null
+
+export interface FormSelectItem<TValue extends FormSelectValue> {
   value: TValue
   label: string
 }
 
-interface FormSelectProps<
-  TValue extends string | null,
-> extends FormControlProps {
+/**
+ * Доступна назва списку: `id` під `<label>` (так дає `FormField`), а без форми — `aria-label` чи
+ * `aria-labelledby`. Без жодного з них список без назви, тож тип вимагає одне.
+ */
+type FormSelectName =
+  { id: string } | { "aria-label": string } | { "aria-labelledby": string }
+
+type FormSelectProps<TValue extends FormSelectValue> =
+  FormSelectFields<TValue> & FormSelectName
+
+interface FormSelectFields<TValue extends FormSelectValue> extends Omit<
+  Partial<FormControlProps>,
+  "id"
+> {
+  id?: string
+  "aria-label"?: string
+  "aria-labelledby"?: string
   items: readonly FormSelectItem<TValue>[]
   value: TValue
   onValueChange: (value: TValue) => void
@@ -30,8 +47,12 @@ interface FormSelectProps<
  * Вибір одного значення з короткого списку для `FormField` (тип, статус, варіант поля розширення).
  * Список забирає фокус, тож «покинуто» — коли його закрили, а не коли відкрили: інакше помилка
  * обов'язкового поля з'являлась би посеред вибору. `ref` — на кнопку поля (фокус на помилці).
+ *
+ * Без форми — теж: `<FormSelect aria-label="Постачальник" items={…} value={id} onValueChange={setId} />`.
+ * Значення — рядок чи число (id з бази) без перетворень: що в `items`, те й прийде в `onValueChange`.
+ * Файл не тягне ні react-hook-form, ні ra-core (ADR-0099).
  */
-export function FormSelect<TValue extends string | null>({
+export function FormSelect<TValue extends FormSelectValue>({
   items,
   value,
   onValueChange,
@@ -60,7 +81,10 @@ export function FormSelect<TValue extends string | null>({
       </SelectTrigger>
       <SelectContent>
         {items.map((item) => (
-          <SelectItem key={item.value ?? ""} value={item.value}>
+          <SelectItem
+            key={`${typeof item.value}:${String(item.value)}`}
+            value={item.value}
+          >
             {item.label}
           </SelectItem>
         ))}

@@ -45,7 +45,7 @@ export const ROUTES = {
 } as const
 export type Route = keyof typeof ROUTES
 
-/** Екрани входу поза оболонкою (erp/login-screen, erp/account-recovery, erp/sign-up-screen). */
+/** Екрани входу поза оболонкою (erp/login-screen, erp/account-recovery, erp/sign-up-screen, erp/login-form). */
 export const AUTH_ROUTES = {
   login: "/login",
   forgot: "/login/forgot",
@@ -56,6 +56,9 @@ export const AUTH_ROUTES = {
   callback: "/auth/callback",
   /** Демо-сторінка провайдера SSO (справжній провайдер — Google, Apple). */
   mockSso: "/mock-sso",
+  /** Вхід і новий пароль для свого сервера проекту (erp/login-form, ADR-0099): демо-сервер у сторінці. */
+  lightLogin: "/light/login",
+  lightPassword: "/light/password",
 } as const
 export type AuthRoute = keyof typeof AUTH_ROUTES
 

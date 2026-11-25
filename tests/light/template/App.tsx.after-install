@@ -1,0 +1,220 @@
+// Підставляється після встановлення легкого набору (scripts/light-smoke.mjs, ADR-0099): свій сервер і свій вхід,
+// свій роутер із базовим шляхом Vite (`/new/`), без ra-core.
+import { BoxIcon, UsersIcon } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import {
+  createBrowserRouter,
+  Link,
+  RouterProvider,
+  useLocation,
+  useNavigate,
+} from "react-router"
+
+import { AppShell, type NavGroup } from "@/components/erp/app-shell"
+import { AuthCard } from "@/components/erp/auth-card"
+import { DataTable } from "@/components/erp/data-table"
+import { FormField } from "@/components/erp/form-field"
+import { FormSelect } from "@/components/erp/form-select"
+import { LoginForm, SetPasswordForm } from "@/components/erp/login-form"
+import { PageState } from "@/components/erp/page-state"
+import { UserMenu } from "@/components/erp/user-menu"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useAppearance } from "@/hooks/use-appearance"
+import type { DataTableColumn } from "@/lib/data-table-core"
+import { IconProvider } from "@/lib/icons"
+import { useErpUiT } from "@/lib/i18n"
+import { ukSignIn } from "@/lib/i18n-uk-sign-in"
+
+/** Пароль, з яким «сервер» тестового проекту пускає (свій сервер проекту, а не контракт кіта). */
+export const SMOKE_PASSWORD = "smoke-password-12"
+
+interface Supplier {
+  id: number
+  name: string
+  city: string
+}
+
+const SUPPLIERS: Supplier[] = [
+  { id: 17, name: "Північний склад", city: "Київ" },
+  { id: 42, name: "Опт Південь", city: "Одеса" },
+]
+
+const COLUMNS: DataTableColumn<Supplier>[] = [
+  { id: "name", header: "Постачальник", cell: (row) => row.name },
+  { id: "city", header: "Місто", cell: (row) => row.city },
+]
+
+const NAV: NavGroup[] = [
+  {
+    id: "main",
+    label: "Головне",
+    items: [
+      { id: "search", label: "Пошук", href: "/", icon: BoxIcon, mobile: true },
+      {
+        id: "suppliers",
+        label: "Постачальники",
+        href: "/suppliers",
+        icon: UsersIcon,
+        mobile: true,
+      },
+    ],
+  },
+]
+
+function Shell({
+  activeId,
+  children,
+}: {
+  activeId: string
+  children: React.ReactNode
+}) {
+  const navigate = useNavigate()
+  const [, setAppearance] = useAppearance()
+  return (
+    <AppShell
+      nav={NAV}
+      activeId={activeId}
+      renderLink={(href) => <Link to={href} />}
+      actions={
+        <UserMenu
+          user={{ name: "Менеджер" }}
+          showPalette={false}
+          showDensity={false}
+          onSignOut={() => {
+            void navigate("/login")
+          }}
+        />
+      }
+    >
+      <Button
+        variant="outline"
+        onClick={() => {
+          setAppearance({ language: "en" })
+        }}
+      >
+        English
+      </Button>
+      {children}
+    </AppShell>
+  )
+}
+
+function SearchPage() {
+  const { control } = useForm<{ query: string; supplierId: number | null }>({
+    defaultValues: { query: "", supplierId: null },
+  })
+  return (
+    <Shell activeId="search">
+      <form className="max-w-sm space-y-4">
+        <FormField
+          control={control}
+          name="query"
+          label="Запит"
+          render={({ field, control: aria }) => <Input {...aria} {...field} />}
+        />
+        <FormField
+          control={control}
+          name="supplierId"
+          label="Постачальник"
+          render={({ field, control: aria }) => (
+            <FormSelect<number | null>
+              {...aria}
+              ref={field.ref}
+              items={SUPPLIERS.map((s) => ({ value: s.id, label: s.name }))}
+              value={field.value}
+              onValueChange={field.onChange}
+              onBlur={field.onBlur}
+            />
+          )}
+        />
+      </form>
+      <PageState kind="empty" compact title="Ще нічого не знайдено" />
+    </Shell>
+  )
+}
+
+function SuppliersPage() {
+  return (
+    <Shell activeId="suppliers">
+      <DataTable
+        label="Постачальники"
+        columns={COLUMNS}
+        rows={SUPPLIERS}
+        getRowId={(row) => String(row.id)}
+      />
+    </Shell>
+  )
+}
+
+function LoginPage() {
+  const t = useErpUiT(ukSignIn)
+  const navigate = useNavigate()
+  return (
+    <AuthCard title={t("auth.title")}>
+      <LoginForm
+        onSubmit={async ({ password }) => {
+          await Promise.resolve()
+          if (password !== SMOKE_PASSWORD) return { kind: "credentials" }
+          void navigate("/")
+          return undefined
+        }}
+      />
+    </AuthCard>
+  )
+}
+
+/** Формат токена «сервера» тестового проекту. */
+const TOKEN = /^[\w-]{16,256}$/
+
+/** Як у посібнику: токен з `#` один раз, адреса без нього, токен не того формату — без форми. */
+function InvitePage() {
+  const t = useErpUiT(ukSignIn)
+  const navigate = useNavigate()
+  const { pathname, hash } = useLocation()
+  const [token] = useState(() => hash.slice(1))
+  const [saved, setSaved] = useState(false)
+  useEffect(() => {
+    void navigate(pathname, { replace: true })
+  }, [navigate, pathname])
+  return (
+    <AuthCard title={t("auth.reset.title")}>
+      {saved ? (
+        <p role="status">Пароль збережено</p>
+      ) : TOKEN.test(token) ? (
+        <SetPasswordForm
+          minLength={12}
+          onSubmit={async () => {
+            await Promise.resolve()
+            setSaved(true)
+            return undefined
+          }}
+        />
+      ) : (
+        <Alert variant="destructive">
+          <AlertDescription>{t("auth.link.expired")}</AlertDescription>
+        </Alert>
+      )}
+    </AuthCard>
+  )
+}
+
+const router = createBrowserRouter(
+  [
+    { path: "/login", element: <LoginPage /> },
+    { path: "/invite", element: <InvitePage /> },
+    { path: "/", element: <SearchPage /> },
+    { path: "/suppliers", element: <SuppliersPage /> },
+  ],
+  { basename: import.meta.env.BASE_URL.replace(/\/$/, "") },
+)
+
+export function App() {
+  return (
+    <IconProvider>
+      <RouterProvider router={router} />
+    </IconProvider>
+  )
+}

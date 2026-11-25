@@ -47,6 +47,7 @@ import {
 import { MOCK_USERS } from "@/mocks/users"
 import { AUTH_ROUTES, MODULE_ROUTES, ROUTES, type AuthRoute } from "@/router"
 
+import { LightAuthPage } from "./LightAuthPage"
 import { MockSsoPage } from "./MockSsoPage"
 
 const PATHS: AuthPaths = {
@@ -226,6 +227,8 @@ export function AuthPage({
   }>({ key: 0, email: "", password: "" })
 
   if (screen === "mockSso") return <MockSsoPage />
+  if (screen === "lightLogin" || screen === "lightPassword")
+    return <LightAuthPage screen={screen} language={<LanguageSelect />} />
 
   const footer = (
     <div className="flex flex-wrap items-center justify-center gap-2">
@@ -305,6 +308,14 @@ export function AuthPage({
                         className="inline-flex min-h-touch items-center text-primary underline-offset-4 hover:underline"
                       >
                         {t("inviteAccount")}
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href={`#${AUTH_ROUTES.lightLogin}`}
+                        className="inline-flex min-h-touch items-center text-primary underline-offset-4 hover:underline"
+                      >
+                        {t("lightLogin")}
                       </a>
                     </li>
                   </ul>

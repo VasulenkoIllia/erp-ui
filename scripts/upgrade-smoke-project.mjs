@@ -55,6 +55,12 @@ const GIT_IDENTITY = [
   "commit.gpgsign=false",
 ]
 
+/** Тег випуску кіта: `vX.Y.Z`. */
+export const RELEASE_TAG = /^v\d+\.\d+\.\d+$/
+
+/** `update` до цього коміту з цієї копії кіта; `extra` — ще аргументи команди. */
+export const toHead = (...extra) => ["update", "HEAD", "--from", root, ...extra]
+
 export function expect(condition, message) {
   if (!condition) throw new Error(`Сценарій оновлення: ${message}`)
 }
@@ -62,6 +68,14 @@ export function expect(condition, message) {
 export const git = async (cwd, ...gitArgs) =>
   (await mustRun("git", [...GIT_IDENTITY, ...gitArgs], { cwd, capture: true }))
     .stdout
+
+/** Найновіший тег випуску цієї копії (за версією). */
+export async function latestReleaseTag() {
+  const tags = await git(root, "tag", "--list", "v*", "--sort=-v:refname")
+  const tag = tags.split("\n").find((name) => RELEASE_TAG.test(name))
+  expect(tag, "у копії немає тегів vX.Y.Z (CI: fetch-depth: 0)")
+  return tag
+}
 
 export const commitAll = async (dir, message) => {
   await git(dir, "add", "-A")
@@ -178,15 +192,10 @@ export async function buildProject(dir, what) {
 }
 
 /**
- * Шаблон тегу й адаптер, CLI shadcn проекту, `shadcn init`, `base` тегу — як у посібнику. `repo` — корінь git і
- * робочого простору, коли проект — пакет адмінки в монорепо (ADR-0097); `dependencies` — записи проекту до
- * встановлення кіта.
+ * CLI shadcn закріплена в проекті: та сама версія, що в кіті, для встановлення й оновлення (посібник, розділ 8);
+ * `dependencies` — записи проекту до встановлення кіта.
  */
-async function startProject(tag, dir, temp, { repo = dir, dependencies = {} }) {
-  await extractAt(tag, [TEMPLATE], dir, temp, 3)
-  cpSync(path.join(root, "tests/consumer/upgrade"), dir, { recursive: true })
-  writeFileSync(path.join(dir, ".gitignore"), "node_modules/\ndist/\n")
-  // CLI shadcn закріплена в проекті: та сама для встановлення й оновлення (посібник, розділ 8).
+export function pinShadcn(dir, dependencies = {}) {
   const pkgFile = path.join(dir, "package.json")
   const pkg = JSON.parse(readFileSync(pkgFile, "utf8"))
   pkg.devDependencies.shadcn = JSON.parse(
@@ -194,31 +203,29 @@ async function startProject(tag, dir, temp, { repo = dir, dependencies = {} }) {
   ).version
   Object.assign(pkg.dependencies, dependencies)
   writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`)
-  // Пакет робочого простору ставиться з кореня воркспейсу; окремий проект — без воркспейсів вище.
-  await mustRun(
-    "pnpm",
-    repo === dir ? ["install", "--ignore-workspace"] : ["install"],
-    { cwd: repo },
-  )
+}
+
+/**
+ * `shadcn init` і `base` версії `ref` (тег чи `HEAD` цієї копії) — шляхами `--from` команди, лише ті, що є у
+ * версії (новий шлях цієї версії старий тег не має). Повертає registry.json версії.
+ */
+export async function addBase(ref, dir, temp) {
   const shadcn = path.join(dir, "node_modules/.bin/shadcn")
   await mustRun(
     shadcn,
     ["init", "-b", "base", "-p", "nova", "-y", "--no-rtl"],
     { cwd: dir },
   )
-
-  // Реєстр тегу для `base` — шляхами `--from` команди, лише ті, що є в тегу (новий шлях цієї версії
-  // старий тег не має).
-  const kitDir = path.join(temp, `kit-${tag}`)
+  const kitDir = path.join(temp, `kit-${ref}`)
   const present = await git(
     root,
     "ls-tree",
     "--name-only",
-    tag,
+    ref,
     "--",
     ...KIT_PATHS,
   )
-  await extractAt(tag, present.split("\n").filter(Boolean), kitDir, temp)
+  await extractAt(ref, present.split("\n").filter(Boolean), kitDir, temp)
   const registry = path.join(kitDir, "registry.json")
   const built = path.join(kitDir, "r")
   await mustRun(shadcn, ["build", registry, "-c", kitDir, "-o", built], {
@@ -230,10 +237,30 @@ async function startProject(tag, dir, temp, { repo = dir, dependencies = {} }) {
     ["add", path.join(built, "base.json"), "-y", "--overwrite"],
     { cwd: dir },
   )
+  return JSON.parse(readFileSync(registry, "utf8"))
+}
+
+/**
+ * Шаблон тегу й адаптер, CLI shadcn проекту, `shadcn init`, `base` тегу — як у посібнику. `repo` — корінь git і
+ * робочого простору, коли проект — пакет адмінки в монорепо (ADR-0097); `dependencies` — записи проекту до
+ * встановлення кіта.
+ */
+async function startProject(tag, dir, temp, { repo = dir, dependencies = {} }) {
+  await extractAt(tag, [TEMPLATE], dir, temp, 3)
+  cpSync(path.join(root, "tests/consumer/upgrade"), dir, { recursive: true })
+  writeFileSync(path.join(dir, ".gitignore"), "node_modules/\ndist/\n")
+  pinShadcn(dir, dependencies)
+  // Пакет робочого простору ставиться з кореня воркспейсу; окремий проект — без воркспейсів вище.
+  await mustRun(
+    "pnpm",
+    repo === dir ? ["install", "--ignore-workspace"] : ["install"],
+    { cwd: repo },
+  )
+  const registry = await addBase(tag, dir, temp)
   await git(repo, "init", "-q")
   await commitAll(dir, `erp-ui: base ${tag}`)
-  return JSON.parse(readFileSync(registry, "utf8"))
-    .items.filter(
+  return registry.items
+    .filter(
       (item) =>
         BUNDLES.includes(item.name) ||
         /^(ui|erp|templates|tools)\//.test(item.name) ||

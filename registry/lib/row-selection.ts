@@ -66,3 +66,14 @@ export function toBulkSelection(
   if (state.mode === "ids") return { ids: [...state.ids] }
   return state.except.size ? { filter, exclude: [...state.except] } : { filter }
 }
+
+/** Вибір рядків для `DataTable` (`selection`); його дає `useRowSelection` (hooks/use-row-selection). */
+export interface RowSelection {
+  state: RowSelectionState
+  isSelected: (id: string) => boolean
+  toggle: (id: string) => void
+  setRows: (ids: readonly string[], selected: boolean) => void
+  /** Усі записи за фільтром (режим `all`). */
+  selectAll: () => void
+  clear: () => void
+}

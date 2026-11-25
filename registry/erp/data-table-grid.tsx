@@ -4,7 +4,6 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
-import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { GridHeader, GridRow } from "@/registry/erp/data-table-cells"
 import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
@@ -17,6 +16,7 @@ import {
   type ColumnLayout,
   type DataTableColumn,
   type DataTableFeatures,
+  type DataTableSort,
   type DataTableSource,
 } from "@/registry/lib/data-table-core"
 
@@ -36,8 +36,8 @@ export interface DataTableGridProps<T> {
   label: string
   columns: readonly DataTableColumn<T>[]
   getRowId: (row: T) => string
-  sort?: SortPayload
-  onSortChange?: (sort: SortPayload) => void
+  sort?: DataTableSort
+  onSortChange?: (sort: DataTableSort) => void
   layout: ColumnLayout
   source: DataTableSource<T>
   height?: string
@@ -60,7 +60,7 @@ function rowHeightPx(el: Element): number | null {
 }
 
 function toSorting<T>(
-  sort: SortPayload | undefined,
+  sort: DataTableSort | undefined,
   columns: readonly DataTableColumn<T>[],
 ): SortingState {
   const column = sort && columns.find((c) => c.sortField === sort.field)

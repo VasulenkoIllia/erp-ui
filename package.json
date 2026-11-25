@@ -29,7 +29,8 @@
     "adr-index": "node scripts/adr-index.mjs",
     "consumer-smoke": "node scripts/consumer-smoke.mjs",
     "upgrade-smoke": "node scripts/upgrade-smoke.mjs",
-    "workspace-smoke": "node scripts/workspace-smoke.mjs"
+    "workspace-smoke": "node scripts/workspace-smoke.mjs",
+    "light-smoke": "node scripts/light-smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -592,7 +592,8 @@
       "zoriana": "Зоряна логістика"
     },
     "recoveryToast": "Email to {{to}}: your access recovery request was received",
-    "factorsResetToast": "Email to {{to}}: an administrator reset your two-step verification"
+    "factorsResetToast": "Email to {{to}}: an administrator reset your two-step verification",
+    "lightLogin": "Sign-in for the project's own server (light set)"
   },
   "securityPage": {
     "title": "Account security",
@@ -753,6 +754,19 @@
         "approval": "Approval",
         "warrantyKey": "Warranty",
         "warranty": "12 months"
+      }
+    },
+    "select": {
+      "title": "Select without a form",
+      "description": "FormSelect outside react-hook-form: the value is a number (database id), as it came from the server, with no conversion.",
+      "label": "Supplier",
+      "placeholder": "Choose a supplier",
+      "none": "Nothing selected",
+      "chosen": "Selected id {{id}} (number)",
+      "suppliers": {
+        "north": "North warehouse",
+        "south": "South wholesale",
+        "west": "West logistics"
       }
     }
   },
@@ -1263,5 +1277,27 @@
       "third": "Invite colleagues",
       "open": "Open"
     }
+  },
+  "lightAuthPage": {
+    "loginLead": "Light set: sign-in for the project's own server (erp/login-form). The server here is a demo inside the page.",
+    "passwordLead": "Invitation or password reset by link. At least {{min}} characters.",
+    "hintsTitle": "Demo server",
+    "identifierLabel": "First field",
+    "identifierLogin": "Username",
+    "identifierEmail": "Email",
+    "linkLabel": "Link",
+    "linkValid": "Valid",
+    "linkExpired": "Expired",
+    "valid": "{{login}} and password {{password}}: sign-in succeeds",
+    "limit": "limit: “Too many attempts” with a 30 s countdown (Retry-After)",
+    "budget": "budget: “Too many attempts” without Retry-After",
+    "offline": "offline: no connection",
+    "server": "server: server error",
+    "signedIn": "You are signed in as {{login}} (demo).",
+    "again": "Sign in again",
+    "saved": "Password saved (demo). You can sign in now.",
+    "toLogin": "Back to sign in",
+    "toPassword": "New password by link",
+    "kitLogin": "Full kit sign-in screen"
   }
 }

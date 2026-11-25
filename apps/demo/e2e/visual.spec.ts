@@ -95,6 +95,9 @@ const SHOT_PAGES = {
   signup: "/#/signup",
   inviteInvalid: "/#/login/invite?token=revoked",
   resetExpired: "/#/login/reset",
+  // Легкий набір (ADR-0099): вхід і новий пароль для свого сервера проекту.
+  lightLogin: "/#/light/login",
+  lightPassword: "/#/light/password",
   security: "/#/settings/security",
   users: "/#/settings/users",
   profile: "/#/settings/profile",
@@ -119,6 +122,8 @@ const GUEST_PAGES: readonly (keyof typeof SHOT_PAGES)[] = [
   "signup",
   "inviteInvalid",
   "resetExpired",
+  "lightLogin",
+  "lightPassword",
 ]
 const userFor = (pageId: keyof typeof SHOT_PAGES) =>
   GUEST_PAGES.includes(pageId) ? { user: null } : {}

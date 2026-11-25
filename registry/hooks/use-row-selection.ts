@@ -7,8 +7,12 @@ import {
   selectAllRows,
   setRows,
   toggleRow,
+  type RowSelection,
   type RowSelectionState,
 } from "@/registry/lib/row-selection"
+
+// Тип живе в lib/row-selection, щоб erp/data-table не тягнула цей хук і react-query (ADR-0099); старий шлях лишається.
+export type { RowSelection }
 
 /**
  * Вибір рядків списку для `DataTable` і масових дій (SPEC §8.1, стан 12; ADR-0018).
@@ -19,16 +23,6 @@ import {
  * `scope` — те, від чого залежить набір записів: фільтр і компанія. Інший набір — вибір скидається
  * (інакше «усі» стали б іншими записами); сортування, сторінка й вигляд — ні.
  */
-export interface RowSelection {
-  state: RowSelectionState
-  isSelected: (id: string) => boolean
-  toggle: (id: string) => void
-  setRows: (ids: readonly string[], selected: boolean) => void
-  /** Усі записи за фільтром (режим `all`). */
-  selectAll: () => void
-  clear: () => void
-}
-
 export function useRowSelection(scope: readonly unknown[]): RowSelection {
   const scopeKey = hashKey(scope)
   const [selection, setSelection] = useState({

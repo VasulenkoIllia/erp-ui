@@ -76,6 +76,104 @@ repo/
 - **Сервер на TypeScript** бере схеми й правила кіта з `apps/admin/src/` (розділ 5, «Сервер на TypeScript»).
 - Перевіряє це задача CI кіта «адмінка в монорепо» на pnpm; робочі простори npm, yarn і bun кіт не перевіряє. Спільний пакет стилів поза адмінкою (`packages/ui`) кіт не підтримує: `check-tokens` на ньому падає, теки коду називайте аргументами.
 
+### Легкий набір: свій сервер і свій вхід (ADR-0099)
+
+Проект без модулів кіта, шару даних і входу кіта — свій API, своя сесія, свої ролі — бере лише легкий набір: ці елементи й усі `ui/*` не ставлять ra-core і react-router. Перелік — [`CATALOG.md`](CATALOG.md), «Легкий набір»; що в ньому не з'являтиметься ra-core, перевіряє CI кіта (задача «легкий набір»: чистий проект ставить набір, збирає з базою `/new/` і відкриває сторінки в браузері).
+
+- **Старт** — як у розділі 1, без запобіжника `VITE_BACKEND` (моків кіта немає) і з іншим списком: `update v1.5.0 --items base,erp/app-shell,erp/user-menu,erp/page-state,erp/data-table,erp/form-field,erp/form-select,erp/auth-card,erp/login-form`; решта набору — `--add` за потребою. i18next лишається (SPEC §11): `main.tsx` — як у розділі 1, без моків.
+- **Вхід** — `LoginForm` з `erp/login-form` у картці `AuthCard` з `erp/auth-card`. Запит, сесію й перехід після входу робить проект; форма перевіряє поля, тримає кнопку зайнятою й показує причину відмови своїм текстом мовою інтерфейсу. Перше поле — логін (за замовчуванням) чи `identifier="email"`; посилання «Забули пароль?» — `forgotPassword`.
+
+```tsx
+import { useNavigate } from "react-router"
+
+import { AuthCard } from "@/components/erp/auth-card"
+import { LoginForm, type AuthFormFailure } from "@/components/erp/login-form"
+import { useErpUiT } from "@/lib/i18n"
+import { ukSignIn } from "@/lib/i18n-uk-sign-in"
+
+/** Відповідь свого сервера → причина відмови: текст сервера (`{ error }` англійською) людині не показуємо. */
+function failureOf(res: Response): AuthFormFailure {
+  if (res.status === 401) return { kind: "credentials" }
+  if (res.status === 429) {
+    const seconds = Number(res.headers.get("Retry-After"))
+    return { kind: "rateLimited", retryAfterSeconds: seconds > 0 ? seconds : undefined }
+  }
+  return { kind: "server" }
+}
+
+export function LoginPage() {
+  const t = useErpUiT(ukSignIn) // рядки входу кіта — частиною (ADR-0094)
+  const navigate = useNavigate()
+  return (
+    <AuthCard title={t("auth.title")}>
+      <LoginForm
+        onSubmit={async ({ identifier, password }) => {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ login: identifier, password }),
+          })
+          if (!res.ok) return failureOf(res)
+          void navigate("/")
+          return undefined
+        }}
+      />
+    </AuthCard>
+  )
+}
+```
+
+- **Причини відмови** (`AuthFormFailure`): `credentials`; `rateLimited` — з `retryAfterSeconds` (до години) кнопка чекає з відліком і стає доступною сама, без секунд (наприклад, денний ліміт) — «Спробуйте пізніше»; `linkInvalid`; `offline`; `server`; `message` — свій рядок проекту мовою інтерфейсу, а не текст відповіді сервера (той може розкрити, чи є такий логін). Збій мережі `fetch` кидає `TypeError`: не перехоплюйте його, форма покаже «Немає з'єднання». Кинута помилка видна в консолі (`erp-ui: sign-in request failed`): `TypeError` у своєму коді `onSubmit` теж дасть «Немає з'єднання», тож шукайте там. Після успіху форма лишається зайнятою, поки проект переходить далі.
+- **Сесія в cookie.** `HttpOnly`, `SameSite=Strict` і `Path=/api` браузер обробляє сам: запити того самого походження несуть cookie без `credentials: "include"`, а заголовок `Sec-Fetch-Site: same-origin`, на який спирається сервер без CSRF-токена, ставить браузер. Шлях API — абсолютний (`/api/…`), не від бази екрана. Сервер перевіряє заголовок на кожному запиті, що змінює дані, також на вході й виході; без заголовка (старий браузер, не браузер) — `Origin` чи відмова; GET нічого не змінює; ліміт спроб однаковий для наявного й неіснуючого логіна.
+- **Запрошення й скидання пароля** — `SetPasswordForm` з `minLength` проекту (без нього — типовий кіта, 10) і `context` (логін, ім'я: їх не має бути в паролі). Токен у `#` (`/invite#токен`) не йде на сервер ні з запитом сторінки, ні в `Referer`. Прочитайте його один раз і приберіть з адреси: він зникне з поля адреси й кнопки «Назад», але історія браузера посилання вже запам'ятала, тож на сервері токен одноразовий і короткоживучий. Порожній чи не того формату токен (зокрема після перезавантаження сторінки) — одразу «Посилання недійсне», без форми. Токен — лише в тілі запиту: у шляху `fetch` токен `../users/5` став би запитом того самого походження до іншого маршруту, і `Sec-Fetch-Site` його пропустив би. Відповідь про посилання — своя: недійсне, застаріле, використане → `linkInvalid`; відмова правил пароля → `message` зі своїм текстом; `credentials` тут не підходить.
+
+```tsx
+// Імпорти — як у LoginPage, плюс useState, useEffect, useLocation і Alert, AlertDescription з ui/alert.
+const TOKEN = /^[\w-]{16,256}$/ // формат токена вашого сервера
+
+export function InvitePage() {
+  const t = useErpUiT(ukSignIn)
+  const navigate = useNavigate()
+  const { pathname, hash } = useLocation()
+  const [token] = useState(() => hash.slice(1)) // один раз: далі адреса без токена
+  useEffect(() => {
+    void navigate(pathname, { replace: true })
+  }, [navigate, pathname])
+  return (
+    <AuthCard title={t("auth.reset.title")}>
+      {TOKEN.test(token) ? (
+        <SetPasswordForm
+          minLength={12}
+          onSubmit={async ({ password }) => {
+            const res = await fetch("/api/auth/invite", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ token, password }),
+            })
+            if (res.ok) {
+              void navigate("/login")
+              return undefined
+            }
+            if ([400, 404, 410].includes(res.status)) return { kind: "linkInvalid" }
+            return { kind: "server" }
+          }}
+        />
+      ) : (
+        <Alert variant="destructive">
+          <AlertDescription>{t("auth.link.expired")}</AlertDescription>
+        </Alert>
+      )}
+    </AuthCard>
+  )
+}
+```
+
+- **Брама й ролі — у проекті.** Запит профілю (`/api/me`): 401 — на `/login`, поки вантажиться — `LoadingFallback`, збій — `PageState` з `onRetry` і `headingLevel={1}` у `PageStateMain` (усе з `erp/page-state`). Пункти навігації за роллю — у `nav` для `AppShell`; меню користувача — `UserMenu` з `onSignOut` проекту, пункти палітри й щільності проект може сховати, мову — зберегти в себе (`onLanguageChange`, ADR-0098).
+- **Поля форми** — `FormField` з `erp/form-field` (react-hook-form + zod, розділ 3). `UnsavedChangesGuard` з `erp/form` тягне ra-core: у легкому проекті — без нього чи свій `beforeunload`. `FormSelect` без `FormField` — з `aria-label` (тип вимагає назву).
+- **Таблиця** — `DataTable` з `rows` (розділ 2, «Малий список»); сортування — `DataTableSort` (`{ field, order: "ASC" | "DESC" }`) з `lib/data-table-core`, `getRowId` — рядок (`String(row.id)`). Великий список (`hooks/use-windowed-list`) потребує шару даних кіта, вибір рядків (`hooks/use-row-selection`) — `@tanstack/react-query`: обидва поза легким набором.
+- **Екран не в корені сайту** (старий екран лишається на `/`): `base: "/new/"` у `vite.config.ts`, роутер — `createBrowserRouter(routes, { basename: import.meta.env.BASE_URL.replace(/\/$/, "") })`, посилання оболонки — `renderLink={(href) => <Link to={href} />}` з адресами без бази (`/suppliers`). Ассети, шрифти й англійські рядки кіта йдуть від бази самі; сервер віддає `index.html` на будь-яку адресу під `/new/`. Поза набором абсолютна адреса лишається у фонового файла push (`/erp-ui-push-sw.js`, ADR-0046).
+- **Модулі згодом** — сервер під контракт кіта (розділ 5) чи адаптер (розділ 5, «Наявний бекенд через адаптер»).
+
 ## 2. Компоненти
 
 ```sh
@@ -86,11 +184,11 @@ npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 
 Компоненти лягають у `src/components/ui/`, імпорти — `@/components/ui/button`. Кожен елемент приносить усе, що йому потрібно (наприклад, `ui/dialog` — ще й кнопку та `cn`). Ставте елементи командою кіта (`--add`), а не `shadcn add` напряму: так елемент потрапляє в `kit-files.json` і оновлюється разом з рештою (§8). Команди `shadcn add VasulenkoIllia/erp-ui/<елемент>` у розділах нижче — назви елементів для `--add`.
 
-Малий список (десятки записів, свій API, без вікон з сервера) складається з тих самих елементів, окремих «легких» немає:
+Малий список (десятки записів, свій API, без вікон з сервера) складається з тих самих елементів, окремих «легких» немає; усі вони — у легкому наборі (розділ 1, «Легкий набір»):
 
 - таблиця — `erp/data-table` з `rows` (поточна сторінка; `undefined` — ще вантажиться) і, за потреби, `pagination` замість `list`: ті самі стани, сортування й картки на телефоні (`cardsBelow`);
 - вибір файла — `erp/file-drop`: кнопка й перетягування, тип і розмір перевіряються біля поля;
-- вибір з короткого списку у формі — `erp/form-select` у `FormField`; значення — рядки, числовий id перетворіть (`String(id)`, назад — `Number(value)`).
+- вибір з короткого списку — `erp/form-select` у `FormField` чи без форми (`aria-label` чи `id` під свій `<label>`); значення — рядок чи число (id з бази), що в `items`, те й прийде в `onValueChange`: `<FormSelect<number | null> …>` (ADR-0099).
 
 ## 3. Мови й формати
 
@@ -345,6 +443,7 @@ interface ImportMetaEnv {
     { id: "dueDate", header: t("dueDate"), cell: (r) => format.date(r.dueDate), priority: 3, overflow: "hide" },
   ]
   // Великий список: вікна по 100 з сервера, прокрутка на висоту екрана.
+  // hooks/use-windowed-list ставлять шаблони списку; лише з erp/data-table — `--add hooks/use-windowed-list`.
   const list = useWindowedList<Invoice>("invoices", { sort, filter })
   <DataTable label={t("tableLabel")} columns={columns} getRowId={(r) => r.id} list={list} sort={sort} onSortChange={setSort}
     isFiltered={Boolean(filter.q)} onResetFilters={reset} countLabel={(count, value) => t("count", { count, value })} />
@@ -400,7 +499,7 @@ interface ImportMetaEnv {
 - Вибір рядків і масові дії (ADR-0018). Вибір живе на сторінці й скидається зі зміною фільтра; таблиця сама додає колонку прапорців і панель вибраного. Дія — фонова задача сервера, прогрес і підсумок — у сповіщенні, що живе поза сторінкою:
 
   ```tsx
-  const selection = useRowSelection([list.queryFilter, companyId])   // hooks/use-row-selection
+  const selection = useRowSelection([list.queryFilter, companyId])   // hooks/use-row-selection (без шаблону списку — --add)
   const dataProvider = useDataProvider<ErpDataProvider>()
   const approve = async () => {
     // У try — лише запуск: задачу прийнято, далі тільки показ (повторне «Погодити» не дублює її).

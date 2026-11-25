@@ -1,0 +1,24 @@
+{
+  "lightAuthPage": {
+    "loginLead": "Легкий набір: вхід для свого сервера проекту (erp/login-form). Сервер тут демонстраційний, у сторінці.",
+    "passwordLead": "Запрошення чи скидання пароля за посиланням. Мінімум {{min}} символів.",
+    "hintsTitle": "Демо-сервер",
+    "identifierLabel": "Перше поле",
+    "identifierLogin": "Логін",
+    "identifierEmail": "Email",
+    "linkLabel": "Посилання",
+    "linkValid": "Дійсне",
+    "linkExpired": "Застаріле",
+    "valid": "{{login}} і пароль {{password}}: вхід вдається",
+    "limit": "limit: «Забагато спроб» із відліком 30 с (Retry-After)",
+    "budget": "budget: «Забагато спроб» без Retry-After",
+    "offline": "offline: немає з'єднання",
+    "server": "server: помилка сервера",
+    "signedIn": "Ви увійшли як {{login}} (демо).",
+    "again": "Увійти ще раз",
+    "saved": "Пароль збережено (демо). Тепер можна увійти.",
+    "toLogin": "До входу",
+    "toPassword": "Новий пароль за посиланням",
+    "kitLogin": "Повний екран входу кіта"
+  }
+}

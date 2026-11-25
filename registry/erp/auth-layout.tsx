@@ -6,9 +6,9 @@ import {
   useNavigate,
 } from "@/registry/lib/ra-core"
 
+import { AuthCard, type AuthCardProps } from "@/registry/erp/auth-card"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
 import { clearEmailLinkTokens } from "@/registry/hooks/use-email-link-token"
-import { useFocusHeadingOnMount } from "@/registry/hooks/use-focus-heading"
 import { isApiError } from "@/registry/lib/api"
 import { setBrandAppearance, type Palette } from "@/registry/lib/appearance"
 import type { Branding, ErpAuthProvider } from "@/registry/lib/auth"
@@ -16,13 +16,6 @@ import { localizedText } from "@/registry/lib/localized-text"
 import { useErpUiT, useLanguage, type ErpUiKey } from "@/registry/lib/i18n"
 import { isChunkLoadError } from "@/registry/lib/lazy"
 import { cn } from "@/registry/lib/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/registry/ui/card"
 
 /**
  * Спільне для екранів входу (ADR-0010, ADR-0011): картка по центру, бренд (логотип, палітра, бічна
@@ -285,13 +278,10 @@ export function useAuthErrorText(): (error: unknown) => string {
 }
 
 /**
- * Картка екрана входу. Заголовок (h1) отримує фокус, коли змінюється крок (`title`), —
- * скрінрідер чує новий крок, а не мовчить; і коли екран з'являється на місці зниклого вмісту
- * (після виходу, після вдалого «Спробувати ще»), а фокус загубився (`useFocusHeadingOnMount`).
- *
- * Бренд (`GET /auth/methods` → `branding`): логотип над карткою, палітра, бічна панель на широких
- * екранах, посилання на документи й підтримку; назва бренду — у заголовку вкладки.
- * `branded={false}` — без бренду (напр. сторінка стороннього провайдера в демо).
+ * Картка екрана входу (erp/auth-card) з брендом (`GET /auth/methods` → `branding`): логотип над карткою,
+ * палітра, бічна панель на широких екранах, посилання на документи й підтримку; назва бренду — у заголовку
+ * вкладки. Фокус на заголовку при зміні кроку — у картці. `branded={false}` — без бренду (напр. сторінка
+ * стороннього провайдера в демо).
  */
 export function AuthLayout({
   title,
@@ -301,76 +291,36 @@ export function AuthLayout({
   branded = true,
   className,
   children,
-}: {
-  title: string
-  description?: React.ReactNode
-  /** Знак над карткою; за замовчуванням — логотип бренду. */
-  logo?: React.ReactNode
-  /** Під карткою: перемикач мови, підказки демо. */
-  footer?: React.ReactNode
+}: Omit<AuthCardProps, "aside" | "documentTitle"> & {
   branded?: boolean
-  className?: string
-  children: React.ReactNode
 }) {
-  const heading = React.useRef<HTMLHeadingElement>(null)
-  const first = React.useRef(true)
-  useFocusHeadingOnMount(heading)
   const brand = useBranding()
   const branding = branded ? brand : undefined
   useBrandAppearance()
-  const pageTitle = branding ? `${title} · ${branding.name}` : title
-  React.useEffect(() => {
-    document.title = pageTitle
-  }, [pageTitle])
-  React.useEffect(() => {
-    if (first.current) {
-      first.current = false
-      return
-    }
-    heading.current?.focus()
-  }, [title])
-
   return (
-    <main
-      id="erp-ui-main"
-      data-slot="auth-layout"
-      className={cn("@container min-h-svh bg-muted/40", className)}
-    >
-      <div
-        className={cn("grid min-h-svh", branding?.panel && "@5xl:grid-cols-2")}
-      >
-        <div className="grid place-items-center px-4 py-8">
-          <div className="w-full max-w-sm space-y-4">
-            {logo ??
-              (branding ? (
-                <div className="flex justify-center">
-                  <BrandLogo branding={branding} />
-                </div>
-              ) : null)}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <h1
-                    ref={heading}
-                    tabIndex={-1}
-                    className="text-xl font-semibold focus-visible:outline-none"
-                  >
-                    {title}
-                  </h1>
-                </CardTitle>
-                {description ? (
-                  <CardDescription>{description}</CardDescription>
-                ) : null}
-              </CardHeader>
-              <CardContent className="space-y-4">{children}</CardContent>
-            </Card>
-            {footer}
-            {branding ? <BrandLinks branding={branding} /> : null}
+    <AuthCard
+      title={title}
+      description={description}
+      documentTitle={branding ? `${title} · ${branding.name}` : title}
+      logo={
+        logo ??
+        (branding ? (
+          <div className="flex justify-center">
+            <BrandLogo branding={branding} />
           </div>
-        </div>
-        {branding ? <BrandPanel branding={branding} /> : null}
-      </div>
-    </main>
+        ) : null)
+      }
+      footer={
+        <>
+          {footer}
+          {branding ? <BrandLinks branding={branding} /> : null}
+        </>
+      }
+      aside={branding?.panel ? <BrandPanel branding={branding} /> : null}
+      className={className}
+    >
+      {children}
+    </AuthCard>
   )
 }
 

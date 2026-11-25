@@ -30,14 +30,21 @@ import {
   importSpecifiers,
   packageName,
 } from "./contract-layer.mjs"
+import { lightSetProblems, lightSetSection } from "./light-set.mjs"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REGISTRY_JSON = path.join(root, "registry.json")
 const CATALOG_MD = path.join(root, "docs/CATALOG.md")
 const ROUTER = path.join(root, "apps/demo/src/router.ts")
 
-const { REPO, CODE_ITEMS, BUNDLE_ITEMS, MODULE_ITEMS, CONTRACT_LAYER } =
-  await import(path.join(root, "registry/registry.config.mjs"))
+const {
+  REPO,
+  CODE_ITEMS,
+  BUNDLE_ITEMS,
+  MODULE_ITEMS,
+  CONTRACT_LAYER,
+  LIGHT_SET,
+} = await import(path.join(root, "registry/registry.config.mjs"))
 const MODULES_DIR = "registry/modules"
 const pkg = JSON.parse(
   readFileSync(path.join(root, "registry/package.json"), "utf8"),
@@ -349,6 +356,9 @@ function build() {
     })
   }
 
+  // Легкий набір (ADR-0099): без ra-core і react-router, разом із тим, що йде з елементом.
+  problems.push(...lightSetProblems(items, LIGHT_SET))
+
   // Сторінки демо, на які посилаються елементи, мусять існувати.
   const routes = new Set(
     [...readFileSync(ROUTER, "utf8").matchAll(/^\s+(\w+):\s*"#?\//gm)].map(
@@ -627,6 +637,7 @@ function catalog(items) {
     "",
     ...sections,
     contractLayerSection(CONTRACT_LAYER),
+    lightSetSection(LIGHT_SET),
   ].join("\n")
 }
 
