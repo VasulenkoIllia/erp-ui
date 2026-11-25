@@ -109,7 +109,10 @@ test.describe("легкий набір: вхід для свого сервер�
 
     await field.fill("коротко1")
     await save.click()
-    await expect(page.getByText("Щонайменше 12 символів")).toBeVisible()
+    // exact: підказка надійності теж каже «…щонайменше 12 символів».
+    await expect(
+      page.getByText("Щонайменше 12 символів", { exact: true }),
+    ).toBeVisible()
     await expect(field).toHaveAttribute("aria-invalid", "true")
     await expectNoA11yViolations(page)
 
