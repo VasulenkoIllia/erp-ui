@@ -187,3 +187,22 @@ test("справжній CHANGELOG.md: з v1.3.0 до v1.4.0 — кроки ли
     .filter((line) => line.startsWith("- **"))
   assert.equal(new Set(bullets).size, bullets.length)
 })
+
+test("справжній CHANGELOG.md: з v1.4.0 до v1.5.0 — кроки лише у вступі, без повтору з підрозділів", () => {
+  const changelog = readFileSync(
+    new URL("../CHANGELOG.md", import.meta.url),
+    "utf8",
+  )
+  const [section, ...rest] = projectSteps(changelog, "v1.4.0", "v1.5.0")
+  assert.equal(rest.length, 0)
+  assert.equal(section.version, "1.5.0")
+  assert.match(
+    section.steps,
+    /^Оновлення з v1\.4\.0: [^]*Що зробити в проекті:\n\n- \*\*Рядки функцій кіта\*\*/,
+  )
+  assert.doesNotMatch(section.steps, /### |- \*\*Що зробити в проекті|vX\.Y\.Z/)
+  const bullets = section.steps
+    .split("\n")
+    .filter((line) => line.startsWith("- **"))
+  assert.equal(new Set(bullets).size, bullets.length)
+})
