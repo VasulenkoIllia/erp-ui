@@ -1013,6 +1013,11 @@
           "target": "@components/erp/login-screen.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -1038,6 +1043,11 @@
           "target": "@components/erp/factor-setup.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -1056,6 +1066,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -1703,6 +1718,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/timezone-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/timezone-select.tsx"
@@ -1716,6 +1736,11 @@
           "path": "registry/hooks/use-tab-param.ts",
           "type": "registry:hook",
           "target": "@hooks/use-tab-param.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/list-state.ts",
@@ -2924,6 +2949,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -3044,6 +3074,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -3082,6 +3117,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -3452,6 +3492,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -4503,6 +4548,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -4573,6 +4623,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/impersonation.tsx",
           "type": "registry:component",
           "target": "@components/erp/impersonation.tsx"
@@ -4611,6 +4666,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -4966,6 +5026,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -5984,6 +6049,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -6312,6 +6382,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -7252,6 +7327,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -8104,6 +8184,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -8432,6 +8517,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -9400,6 +9490,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -9498,6 +9593,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -9883,6 +9983,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -10981,6 +11086,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -11154,6 +11264,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -11649,6 +11764,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -12728,6 +12848,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -12911,6 +13036,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -13446,6 +13576,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -14689,6 +14824,11 @@
           "target": "@components/erp/audit-log.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -14797,6 +14937,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -15187,6 +15332,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -16234,6 +16384,11 @@
           "target": "@components/erp/audit-changes.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -16267,6 +16422,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -16537,6 +16697,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -17401,6 +17566,11 @@
         "msw@^3.0.3"
       ],
       "files": [
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
         {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
@@ -22744,7 +22914,7 @@
       "name": "lib/data-table-core",
       "type": "registry:lib",
       "title": "Логіка таблиці даних",
-      "description": "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
+      "description": "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), сортування DataTableSort і великий список WindowedList без ra-core (ADR-0099), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
       "dependencies": [
         "@tanstack/react-table@^9.3.1"
       ],
@@ -25058,6 +25228,28 @@
         "spec": [
           "§7",
           "UI03"
+        ]
+      }
+    },
+    {
+      "name": "lib/form-control",
+      "type": "registry:lib",
+      "title": "Пропси поля форми",
+      "description": "FormControlProps: id, aria-invalid, aria-describedby, readOnly, disabled, які FormField дає полю. Окремо від react-hook-form: поле (FormSelect) бере тип без бібліотеки форм (ADR-0099).",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
+        }
+      ],
+      "meta": {
+        "layer": "lib",
+        "status": "beta",
+        "demo": "forms",
+        "spec": [
+          "§8.3"
         ]
       }
     },
@@ -56622,6 +56814,28 @@
       }
     },
     {
+      "name": "hooks/use-countdown",
+      "type": "registry:hook",
+      "title": "Відлік секунд",
+      "description": "useCountdown: start(секунди) з цієї миті, secondsLeft щосекунди (повтор коду, «Забагато спроб» за Retry-After); formatMinutesSeconds — «1:42».",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
+        }
+      ],
+      "meta": {
+        "layer": "hooks",
+        "status": "beta",
+        "demo": "lightLogin",
+        "spec": [
+          "PF01"
+        ]
+      }
+    },
+    {
       "name": "hooks/use-document-flow",
       "type": "registry:hook",
       "title": "Потік документа з сервера",
@@ -62613,6 +62827,11 @@
           "target": "@hooks/use-push-sync.ts"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -65044,6 +65263,11 @@
           "path": "registry/hooks/use-timeline.ts",
           "type": "registry:hook",
           "target": "@hooks/use-timeline.ts"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -67861,6 +68085,11 @@
           "target": "@components/erp/account-devices.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -68421,6 +68650,11 @@
           "target": "@components/erp/account-factors.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -68444,6 +68678,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -69046,6 +69285,11 @@
           "target": "@components/erp/account-recovery.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -69081,6 +69325,11 @@
           "target": "@components/erp/login-screen.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -69099,6 +69348,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -69650,9 +69904,19 @@
           "target": "@components/erp/account-security.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -70199,6 +70463,11 @@
           "target": "@components/erp/api-tokens.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -70212,6 +70481,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -70796,6 +71070,11 @@
           "path": "registry/erp/app-gate.tsx",
           "type": "registry:component",
           "target": "@components/erp/app-gate.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -72000,6 +72279,11 @@
           "target": "@components/erp/audit-changes.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -72551,10 +72835,50 @@
       }
     },
     {
+      "name": "erp/auth-card",
+      "type": "registry:component",
+      "title": "Картка екрана входу",
+      "description": "AuthCard: картка по центру сторінки з h1, фокус на заголовку при зміні кроку, логотип над карткою, підвал, бічна панель на широкому контейнері. Без провайдера входу й ra-core — для свого входу проекту (ADR-0099).",
+      "dependencies": [
+        "cn@^0.4.0"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
+          "path": "registry/hooks/use-focus-heading.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-focus-heading.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/card.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "lightLogin",
+        "spec": [
+          "PF01",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/auth-layout",
       "type": "registry:component",
       "title": "Основа екранів входу",
-      "description": "Картка екрана входу з фокусом на заголовку кроку; бренд (логотип, палітра, бічна панель, документи); useAuthMethods, AUTH_PATHS, перехід після входу, тексти помилок полів.",
+      "description": "AuthLayout — картка erp/auth-card із брендом (логотип, палітра, бічна панель, документи); useAuthMethods, AUTH_PATHS, перехід після входу, тексти помилок полів.",
       "dependencies": [
         "@tanstack/react-query@^5.104.2",
         "cn@^0.4.0",
@@ -72568,6 +72892,11 @@
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/hooks/use-api-error-message.ts",
@@ -73041,6 +73370,11 @@
           "target": "@components/erp/account-recovery.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -73086,6 +73420,11 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -73109,6 +73448,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -74968,6 +75312,11 @@
           "target": "@components/erp/challenge-form.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -74976,6 +75325,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -76240,6 +76594,11 @@
           "target": "@components/erp/company-branches.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -76808,6 +77167,11 @@
           "target": "@components/erp/company-images.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -77349,6 +77713,11 @@
           "path": "registry/erp/company-profile-form.tsx",
           "type": "registry:component",
           "target": "@components/erp/company-profile-form.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -79103,6 +79472,11 @@
           "path": "registry/erp/company-settings.tsx",
           "type": "registry:component",
           "target": "@components/erp/company-settings.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -81586,7 +81960,6 @@
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
-        "ra-core@^5.15.4",
         "react-i18next@^17.0.16"
       ],
       "files": [
@@ -81874,11 +82247,6 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
-        },
-        {
-          "path": "registry/lib/ra-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -82266,7 +82634,6 @@
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
-        "ra-core@^5.15.4",
         "react-i18next@^17.0.16"
       ],
       "files": [
@@ -82564,11 +82931,6 @@
           "path": "registry/lib/i18n-uk-wizard.ts",
           "type": "registry:lib",
           "target": "@lib/i18n-uk-wizard.ts"
-        },
-        {
-          "path": "registry/lib/ra-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/ra-core.ts"
         },
         {
           "path": "registry/lib/shortcuts.ts",
@@ -82928,7 +83290,6 @@
       "description": "Частина erp/data-table: липка колонка прапорців (у картках — перед назвою), «вибрати все» — сторінку чи всі за фільтром, панель вибраного в рядку стану з лічильником, «Вибрати всі N», масовими діями й «Зняти вибір» (SPEC §7 BulkActionBar, ADR-0018). Ставиться разом з erp/data-table.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-query@^5.104.2",
         "@tanstack/react-table@^9.3.1",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
@@ -82942,11 +83303,6 @@
           "path": "registry/erp/data-table-selection.tsx",
           "type": "registry:component",
           "target": "@components/erp/data-table-selection.tsx"
-        },
-        {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
         },
         {
           "path": "registry/lib/api.ts",
@@ -83287,14 +83643,12 @@
       "description": "DataTable на TanStack Table 9 + Virtual: 10 000 рядків вікнами з сервера (useWindowedList) або сторінка з пагінацією; колонки з пріоритетом і поведінкою на вузькому контейнері, липкі шапка й колонка, грід W3C APG, картки на телефоні, стани SPEC §8.1, рядок стану з live-регіоном і «Оновлено о…» (ADR-0016); вибір рядків «сторінка / усе» з масовими діями (ADR-0018); закріплені рядки позначені, межа після останнього (ADR-0024).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
-        "@tanstack/react-query@^5.104.2",
         "@tanstack/react-table@^9.3.1",
         "@tanstack/react-virtual@^3.14.17",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
-        "ra-core@^5.15.4",
         "react-i18next@^17.0.16",
         "zod@^4.6.6"
       ],
@@ -83335,11 +83689,6 @@
           "target": "@components/erp/page-state.tsx"
         },
         {
-          "path": "registry/hooks/use-company.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-company.ts"
-        },
-        {
           "path": "registry/hooks/use-element-size.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size.ts"
@@ -83355,29 +83704,9 @@
           "target": "@hooks/use-grid-keyboard.ts"
         },
         {
-          "path": "registry/hooks/use-me.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-me.ts"
-        },
-        {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
           "path": "registry/hooks/use-virtual-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-virtual-rows.ts"
-        },
-        {
-          "path": "registry/hooks/use-windowed-list.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-windowed-list.ts"
-        },
-        {
-          "path": "registry/lib/account.ts",
-          "type": "registry:lib",
-          "target": "@lib/account.ts"
         },
         {
           "path": "registry/lib/announce.ts",
@@ -83390,36 +83719,6 @@
           "target": "@lib/api.ts"
         },
         {
-          "path": "registry/lib/appearance.ts",
-          "type": "registry:lib",
-          "target": "@lib/appearance.ts"
-        },
-        {
-          "path": "registry/lib/appearance-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/appearance-core.ts"
-        },
-        {
-          "path": "registry/lib/audit.ts",
-          "type": "registry:lib",
-          "target": "@lib/audit.ts"
-        },
-        {
-          "path": "registry/lib/auth.ts",
-          "type": "registry:lib",
-          "target": "@lib/auth.ts"
-        },
-        {
-          "path": "registry/lib/auth-factors.ts",
-          "type": "registry:lib",
-          "target": "@lib/auth-factors.ts"
-        },
-        {
-          "path": "registry/lib/company.ts",
-          "type": "registry:lib",
-          "target": "@lib/company.ts"
-        },
-        {
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
@@ -83428,11 +83727,6 @@
           "path": "registry/lib/data-table-core.ts",
           "type": "registry:lib",
           "target": "@lib/data-table-core.ts"
-        },
-        {
-          "path": "registry/lib/dates.ts",
-          "type": "registry:lib",
-          "target": "@lib/dates.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -83700,79 +83994,14 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
-          "path": "registry/lib/invitations.ts",
-          "type": "registry:lib",
-          "target": "@lib/invitations.ts"
-        },
-        {
-          "path": "registry/lib/invite-check.ts",
-          "type": "registry:lib",
-          "target": "@lib/invite-check.ts"
-        },
-        {
           "path": "registry/lib/jobs.ts",
           "type": "registry:lib",
           "target": "@lib/jobs.ts"
         },
         {
-          "path": "registry/lib/localized-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/localized-text.ts"
-        },
-        {
-          "path": "registry/lib/notification-settings.ts",
-          "type": "registry:lib",
-          "target": "@lib/notification-settings.ts"
-        },
-        {
-          "path": "registry/lib/notifications.ts",
-          "type": "registry:lib",
-          "target": "@lib/notifications.ts"
-        },
-        {
-          "path": "registry/lib/passkey.ts",
-          "type": "registry:lib",
-          "target": "@lib/passkey.ts"
-        },
-        {
-          "path": "registry/lib/platform-api.ts",
-          "type": "registry:lib",
-          "target": "@lib/platform-api.ts"
-        },
-        {
-          "path": "registry/lib/ra-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/ra-core.ts"
-        },
-        {
-          "path": "registry/lib/realtime.ts",
-          "type": "registry:lib",
-          "target": "@lib/realtime.ts"
-        },
-        {
-          "path": "registry/lib/record-access.ts",
-          "type": "registry:lib",
-          "target": "@lib/record-access.ts"
-        },
-        {
-          "path": "registry/lib/rich-text.ts",
-          "type": "registry:lib",
-          "target": "@lib/rich-text.ts"
-        },
-        {
-          "path": "registry/lib/roles.ts",
-          "type": "registry:lib",
-          "target": "@lib/roles.ts"
-        },
-        {
           "path": "registry/lib/row-selection.ts",
           "type": "registry:lib",
           "target": "@lib/row-selection.ts"
-        },
-        {
-          "path": "registry/lib/security-policy.ts",
-          "type": "registry:lib",
-          "target": "@lib/security-policy.ts"
         },
         {
           "path": "registry/lib/session.ts",
@@ -83785,21 +84014,6 @@
           "target": "@lib/shortcuts.ts"
         },
         {
-          "path": "registry/lib/sse.ts",
-          "type": "registry:lib",
-          "target": "@lib/sse.ts"
-        },
-        {
-          "path": "registry/lib/timeline.ts",
-          "type": "registry:lib",
-          "target": "@lib/timeline.ts"
-        },
-        {
-          "path": "registry/lib/trash.ts",
-          "type": "registry:lib",
-          "target": "@lib/trash.ts"
-        },
-        {
           "path": "registry/lib/user-timezone.ts",
           "type": "registry:lib",
           "target": "@lib/user-timezone.ts"
@@ -83808,16 +84022,6 @@
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
-        },
-        {
-          "path": "registry/lib/web-push.ts",
-          "type": "registry:lib",
-          "target": "@lib/web-push.ts"
-        },
-        {
-          "path": "registry/lib/webhooks.ts",
-          "type": "registry:lib",
-          "target": "@lib/webhooks.ts"
         },
         {
           "path": "registry/ui/button.tsx",
@@ -86843,6 +87047,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -86881,6 +87090,11 @@
           "path": "registry/lib/document-totals.ts",
           "type": "registry:lib",
           "target": "@lib/document-totals.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -88242,6 +88456,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/picker-field.ts",
           "type": "registry:component",
           "target": "@components/erp/picker-field.ts"
@@ -88355,6 +88574,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -91238,6 +91462,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -91421,6 +91650,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -92019,6 +92253,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -92202,6 +92441,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -92811,6 +93055,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -93029,6 +93278,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -93639,6 +93893,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -93822,6 +94081,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -95126,6 +95390,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -95349,6 +95618,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -95923,6 +96197,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -95961,6 +96240,11 @@
           "path": "registry/lib/document-totals.ts",
           "type": "registry:lib",
           "target": "@lib/document-totals.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -98123,9 +98407,7 @@
         "i18next@^26.4.4",
         "lucide-react@^1.55.0",
         "ra-core@^5.15.4",
-        "react-hook-form@~7.90.0",
         "react-i18next@^17.0.16",
-        "react-router@^7.18.4",
         "sonner@^2.0.8",
         "zod@^4.6.6"
       ],
@@ -98134,16 +98416,6 @@
           "path": "registry/erp/export-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/export-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/confirm-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/confirm-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/form.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -98159,16 +98431,6 @@
           "path": "registry/hooks/use-export-run.ts",
           "type": "registry:hook",
           "target": "@hooks/use-export-run.ts"
-        },
-        {
-          "path": "registry/hooks/use-field-controller.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-field-controller.ts"
-        },
-        {
-          "path": "registry/hooks/use-tab-param.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-param.ts"
         },
         {
           "path": "registry/lib/account.ts",
@@ -98219,6 +98481,11 @@
           "path": "registry/lib/exports.ts",
           "type": "registry:lib",
           "target": "@lib/exports.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -98506,19 +98773,9 @@
           "target": "@lib/list-settings.ts"
         },
         {
-          "path": "registry/lib/list-state.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-state.ts"
-        },
-        {
           "path": "registry/lib/notification-settings.ts",
           "type": "registry:lib",
           "target": "@lib/notification-settings.ts"
-        },
-        {
-          "path": "registry/lib/page-reload.ts",
-          "type": "registry:lib",
-          "target": "@lib/page-reload.ts"
         },
         {
           "path": "registry/lib/passkey.ts",
@@ -98561,11 +98818,6 @@
           "target": "@ui/alert.tsx"
         },
         {
-          "path": "registry/ui/alert-dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert-dialog.tsx"
-        },
-        {
           "path": "registry/ui/button.tsx",
           "type": "registry:ui",
           "target": "@ui/button.tsx"
@@ -98584,11 +98836,6 @@
           "path": "registry/ui/field.tsx",
           "type": "registry:ui",
           "target": "@ui/field.tsx"
-        },
-        {
-          "path": "registry/ui/input.tsx",
-          "type": "registry:ui",
-          "target": "@ui/input.tsx"
         },
         {
           "path": "registry/ui/label.tsx",
@@ -98676,6 +98923,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -98836,6 +99088,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -99363,6 +99620,11 @@
           "path": "registry/erp/factor-setup.tsx",
           "type": "registry:component",
           "target": "@components/erp/factor-setup.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -101977,38 +102239,23 @@
       }
     },
     {
-      "name": "erp/form-select",
+      "name": "erp/form-field",
       "type": "registry:component",
-      "title": "Вибір у формі",
-      "description": "FormSelect: одне значення з короткого списку для FormField (тип, статус, варіант поля розширення); «покинуто» — коли список закрили, ref — на кнопку поля. Окремо від erp/form, щоб список не їхав у кожну сторінку з формою (ADR-0026).",
+      "title": "Поле форми",
+      "description": "FormField на react-hook-form (підпис, підказка, помилка біля поля, aria, read-only), FormErrorSummary для довгих форм з переходом до поля, keepFieldFocus для кнопок. Без ra-core (ADR-0099); захист незбережених змін — erp/form.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
         "cn@^0.4.0",
         "i18next@^26.4.4",
-        "lucide-react@^1.55.0",
-        "ra-core@^5.15.4",
         "react-hook-form@~7.90.0",
-        "react-i18next@^17.0.16",
-        "react-router@^7.18.4",
-        "sonner@^2.0.8",
-        "zod@^4.6.6"
+        "react-i18next@^17.0.16"
       ],
       "files": [
         {
-          "path": "registry/erp/form-select.tsx",
+          "path": "registry/erp/form-field.tsx",
           "type": "registry:component",
-          "target": "@components/erp/form-select.tsx"
-        },
-        {
-          "path": "registry/erp/confirm-dialog.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/confirm-dialog.tsx"
-        },
-        {
-          "path": "registry/erp/form.tsx",
-          "type": "registry:component",
-          "target": "@components/erp/form.tsx"
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/hooks/use-field-controller.ts",
@@ -102016,19 +102263,9 @@
           "target": "@hooks/use-field-controller.ts"
         },
         {
-          "path": "registry/hooks/use-tab-param.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-tab-param.ts"
-        },
-        {
-          "path": "registry/lib/api.ts",
+          "path": "registry/lib/form-control.ts",
           "type": "registry:lib",
-          "target": "@lib/api.ts"
-        },
-        {
-          "path": "registry/lib/company-scope.ts",
-          "type": "registry:lib",
-          "target": "@lib/company-scope.ts"
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -102286,26 +102523,6 @@
           "target": "@lib/i18n-uk-wizard.ts"
         },
         {
-          "path": "registry/lib/list-state.ts",
-          "type": "registry:lib",
-          "target": "@lib/list-state.ts"
-        },
-        {
-          "path": "registry/lib/page-reload.ts",
-          "type": "registry:lib",
-          "target": "@lib/page-reload.ts"
-        },
-        {
-          "path": "registry/lib/ra-core.ts",
-          "type": "registry:lib",
-          "target": "@lib/ra-core.ts"
-        },
-        {
-          "path": "registry/lib/session.ts",
-          "type": "registry:lib",
-          "target": "@lib/session.ts"
-        },
-        {
           "path": "registry/lib/utils.ts",
           "type": "registry:lib",
           "target": "@lib/utils.ts"
@@ -102316,24 +102533,9 @@
           "target": "@ui/alert.tsx"
         },
         {
-          "path": "registry/ui/alert-dialog.tsx",
-          "type": "registry:ui",
-          "target": "@ui/alert-dialog.tsx"
-        },
-        {
-          "path": "registry/ui/button.tsx",
-          "type": "registry:ui",
-          "target": "@ui/button.tsx"
-        },
-        {
           "path": "registry/ui/field.tsx",
           "type": "registry:ui",
           "target": "@ui/field.tsx"
-        },
-        {
-          "path": "registry/ui/input.tsx",
-          "type": "registry:ui",
-          "target": "@ui/input.tsx"
         },
         {
           "path": "registry/ui/label.tsx",
@@ -102341,19 +102543,51 @@
           "target": "@ui/label.tsx"
         },
         {
-          "path": "registry/ui/select.tsx",
-          "type": "registry:ui",
-          "target": "@ui/select.tsx"
-        },
-        {
           "path": "registry/ui/separator.tsx",
           "type": "registry:ui",
           "target": "@ui/separator.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "forms",
+        "spec": [
+          "§8.2",
+          "§8.3"
+        ]
+      }
+    },
+    {
+      "name": "erp/form-select",
+      "type": "registry:component",
+      "title": "Вибір у формі",
+      "description": "FormSelect: одне значення з короткого списку для FormField чи без форми (тип, статус, варіант поля розширення); значення — рядок чи число (id з бази); «покинуто» — коли список закрили, ref — на кнопку поля. Окремо від erp/form, щоб список не їхав у кожну сторінку з формою (ADR-0026); не тягне ні react-hook-form, ні ra-core (ADR-0099).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "cn@^0.4.0",
+        "lucide-react@^1.55.0"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/form-select.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-select.tsx"
         },
         {
-          "path": "registry/ui/spinner.tsx",
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/select.tsx",
           "type": "registry:ui",
-          "target": "@ui/spinner.tsx"
+          "target": "@ui/select.tsx"
         }
       ],
       "meta": {
@@ -102370,7 +102604,7 @@
       "name": "erp/form",
       "type": "registry:component",
       "title": "Форми",
-      "description": "Форми на react-hook-form + zod (ADR-0015): FormField (підпис, підказка, помилка, aria, read-only), FormErrorSummary для довгих форм, UnsavedChangesGuard (діалог у застосунку + beforeunload).",
+      "description": "Форми на react-hook-form + zod (ADR-0015): усе з erp/form-field і UnsavedChangesGuard (діалог у застосунку через роутер ra-core + beforeunload).",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "class-variance-authority@^0.7.1",
@@ -102396,6 +102630,11 @@
           "target": "@components/erp/confirm-dialog.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/hooks/use-field-controller.ts",
           "type": "registry:hook",
           "target": "@hooks/use-field-controller.ts"
@@ -102414,6 +102653,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -102771,9 +103015,19 @@
           "target": "@components/erp/impersonation.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -103829,6 +104083,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -103932,6 +104191,11 @@
           "path": "registry/lib/edit-lock.ts",
           "type": "registry:lib",
           "target": "@lib/edit-lock.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -104387,9 +104651,19 @@
           "target": "@components/erp/invitation-actions.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -104967,6 +105241,11 @@
           "target": "@components/erp/invitations-section.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -104990,6 +105269,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -105603,6 +105887,11 @@
           "target": "@components/erp/invite-account.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -105633,6 +105922,11 @@
           "target": "@components/erp/login-screen.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -105651,6 +105945,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -106202,6 +106501,11 @@
           "target": "@components/erp/invite-dialog.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -106210,6 +106514,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -107548,6 +107857,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
@@ -107591,6 +107905,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -107941,6 +108260,357 @@
       }
     },
     {
+      "name": "erp/login-form",
+      "type": "registry:component",
+      "title": "Вхід для свого сервера",
+      "description": "LoginForm (логін чи email і пароль) і SetPasswordForm (новий пароль за посиланням запрошення чи скидання, мінімум довжини проекту, підказка надійності) без ra-core: запит робить проект в onSubmit і повертає причину відмови — невірні дані, «Забагато спроб» із відліком за Retry-After, недійсне посилання, офлайн, помилка сервера, свій текст (ADR-0099).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/login-form.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/login-form.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-core.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-access.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-audit.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-base.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-base.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-company.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-dev-panel.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-dev-panel.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-modules.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-modules.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-profile.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-profile.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-roles.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-security.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-security.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-sign-in.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-sign-in.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/password.ts",
+          "type": "registry:lib",
+          "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/alert.tsx"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/field.tsx",
+          "type": "registry:ui",
+          "target": "@ui/field.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui",
+          "target": "@ui/label.tsx"
+        },
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/separator.tsx"
+        },
+        {
+          "path": "registry/ui/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/spinner.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "lightLogin",
+        "spec": [
+          "PF01",
+          "§8.3",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/login-screen",
       "type": "registry:component",
       "title": "Екран входу",
@@ -107963,6 +108633,11 @@
           "path": "registry/erp/login-screen.tsx",
           "type": "registry:component",
           "target": "@components/erp/login-screen.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -107990,6 +108665,11 @@
           "target": "@components/erp/factor-setup.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -108008,6 +108688,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -109585,6 +110270,11 @@
           "target": "@components/erp/notification-inbox.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -110147,6 +110837,11 @@
           "path": "registry/erp/notification-settings-form.tsx",
           "type": "registry:component",
           "target": "@components/erp/notification-settings-form.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -111376,6 +112071,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -111479,6 +112179,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -111969,6 +112674,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -112087,6 +112797,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -112583,6 +113298,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -112716,6 +113436,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -113897,6 +114622,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -113950,6 +114680,11 @@
           "path": "registry/lib/document-parties.ts",
           "type": "registry:lib",
           "target": "@lib/document-parties.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -114297,10 +115032,325 @@
       }
     },
     {
+      "name": "erp/password-field",
+      "type": "registry:component",
+      "title": "Поле пароля без входу кіта",
+      "description": "PasswordInput — кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7); PasswordStrengthMeter — підказка надійності смужкою й текстом з мінімумом довжини проекту. Без провайдера входу й ra-core (ADR-0099).",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "class-variance-authority@^0.7.1",
+        "cn@^0.4.0",
+        "i18next@^26.4.4",
+        "lucide-react@^1.55.0",
+        "react-i18next@^17.0.16"
+      ],
+      "files": [
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
+          "path": "registry/lib/i18n.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n.ts"
+        },
+        {
+          "path": "registry/lib/i18n-core.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-core.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-en-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-en-wizard.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-access.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-access.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-audit.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-audit.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-base.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-base.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-company.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-company.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-dev-panel.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-dev-panel.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-generator.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-generator.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-document-lines.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-document-lines.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-documents.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-documents.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-import.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-import.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-lists.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-lists.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-modules.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-modules.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-numbering.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-numbering.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-party.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-party.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-period-lock.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-period-lock.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-print.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-print.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-profile.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-profile.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-push.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-push.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-realtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-realtime.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-records.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-records.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-rich-text.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-rich-text.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-roles.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-roles.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-security.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-security.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-setup.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-setup.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-shortcuts.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-shortcuts.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-sign-in.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-sign-in.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-timeline.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-timeline.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-trash.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-trash.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-webhooks.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-webhooks.ts"
+        },
+        {
+          "path": "registry/lib/i18n-uk-wizard.ts",
+          "type": "registry:lib",
+          "target": "@lib/i18n-uk-wizard.ts"
+        },
+        {
+          "path": "registry/lib/password.ts",
+          "type": "registry:lib",
+          "target": "@lib/password.ts"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "@lib/utils.ts"
+        },
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        },
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/input-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/input-group.tsx"
+        },
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "meta": {
+        "layer": "erp",
+        "status": "beta",
+        "demo": "lightLogin",
+        "spec": [
+          "PF01",
+          "§10"
+        ]
+      }
+    },
+    {
       "name": "erp/password-input",
       "type": "registry:component",
       "title": "Поле пароля",
-      "description": "Кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7) і підказка надійності текстом.",
+      "description": "Для екранів входу кіта: PasswordInput і PasswordStrength з мінімумом довжини з політики організації (ADR-0012). Поле й смужка — erp/password-field.",
       "dependencies": [
         "@base-ui/react@^1.9.0",
         "@tanstack/react-query@^5.104.2",
@@ -114319,9 +115369,19 @@
           "target": "@components/erp/password-input.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/hooks/use-api-error-message.ts",
@@ -115324,6 +116384,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -115442,6 +116507,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -115980,6 +117050,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -116123,6 +117198,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -116682,6 +117762,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -116805,6 +117890,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -119036,6 +120126,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -119229,6 +120324,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -121073,6 +122173,11 @@
           "target": "@components/erp/profile-form.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -121091,6 +122196,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/phone-input.tsx",
@@ -121181,6 +122291,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -121685,6 +122800,11 @@
           "path": "registry/public/erp-ui-push-sw.js",
           "type": "registry:file",
           "target": "~/public/erp-ui-push-sw.js"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -122232,6 +123352,11 @@
           "target": "@components/erp/realtime-sync.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -122720,9 +123845,19 @@
           "target": "@components/erp/reauth-dialog.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -123281,6 +124416,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/record-form.tsx",
           "type": "registry:component",
           "target": "@components/erp/record-form.tsx"
@@ -123374,6 +124514,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -123855,6 +125000,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
@@ -123938,6 +125088,11 @@
           "path": "registry/lib/extensions.ts",
           "type": "registry:lib",
           "target": "@lib/extensions.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -124704,6 +125859,11 @@
           "path": "registry/erp/audit-log.tsx",
           "type": "registry:component",
           "target": "@components/erp/audit-log.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -126401,6 +127561,11 @@
           "target": "@components/erp/audit-changes.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -126434,6 +127599,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -126654,6 +127824,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -127219,6 +128394,11 @@
           "target": "@components/erp/remove-member-dialog.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -127227,6 +128407,11 @@
           "path": "registry/erp/confirm-dialog.tsx",
           "type": "registry:component",
           "target": "@components/erp/confirm-dialog.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -127809,6 +128994,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/repeating-rows-groups.ts",
           "type": "registry:component",
           "target": "@components/erp/repeating-rows-groups.ts"
@@ -127832,6 +129022,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -128233,6 +129428,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
@@ -128261,6 +129461,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -128642,6 +129847,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
@@ -128680,6 +129890,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -129060,6 +130275,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/repeating-row-actions.tsx",
           "type": "registry:component",
           "target": "@components/erp/repeating-row-actions.tsx"
@@ -129098,6 +130318,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -129468,6 +130693,11 @@
           "target": "@components/erp/reset-factors.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -129476,6 +130706,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -131600,9 +132835,19 @@
           "target": "@components/erp/role-detail.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -132177,6 +133422,11 @@
           "path": "registry/erp/role-list.tsx",
           "type": "registry:component",
           "target": "@components/erp/role-list.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -133023,6 +134273,11 @@
           "target": "@components/erp/role-picker.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -133530,6 +134785,11 @@
           "target": "@components/erp/roles-editor.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -133545,9 +134805,19 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -133678,6 +134948,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -134195,6 +135470,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/hooks/use-field-controller.ts",
           "type": "registry:hook",
           "target": "@hooks/use-field-controller.ts"
@@ -134213,6 +135493,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -134583,6 +135868,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
@@ -134606,6 +135896,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -135000,6 +136295,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
@@ -135063,6 +136363,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -135457,6 +136762,11 @@
           "target": "@components/erp/security-policy-form.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -135465,6 +136775,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -136038,6 +137353,11 @@
           "path": "registry/erp/session-guard.tsx",
           "type": "registry:component",
           "target": "@components/erp/session-guard.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -137894,6 +139214,11 @@
           "target": "@components/erp/sign-up-screen.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -137909,6 +139234,11 @@
           "target": "@components/erp/challenge-form.tsx"
         },
         {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
+        },
+        {
           "path": "registry/erp/password-input.tsx",
           "type": "registry:component",
           "target": "@components/erp/password-input.tsx"
@@ -137917,6 +139247,11 @@
           "path": "registry/hooks/use-api-error-message.ts",
           "type": "registry:hook",
           "target": "@hooks/use-api-error-message.ts"
+        },
+        {
+          "path": "registry/hooks/use-countdown.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-countdown.ts"
         },
         {
           "path": "registry/hooks/use-email-link-token.ts",
@@ -139863,6 +141198,11 @@
           "target": "@components/erp/timeline-activities.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -139886,6 +141226,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -140036,6 +141381,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -140587,6 +141937,11 @@
           "target": "@components/erp/timeline-activity-dialog.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -140610,6 +141965,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/form-select.tsx",
@@ -140735,6 +142095,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -141275,6 +142640,11 @@
           "target": "@components/erp/timeline-composer.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -141298,6 +142668,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -141443,6 +142818,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -141974,6 +143354,11 @@
           "target": "@components/erp/audit-changes.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -142002,6 +143387,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -142152,6 +143542,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -142702,6 +144097,11 @@
           "target": "@components/erp/audit-changes.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -142730,6 +144130,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -142885,6 +144290,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -143408,6 +144818,11 @@
           "path": "registry/erp/timeline-file-button.tsx",
           "type": "registry:component",
           "target": "@components/erp/timeline-file-button.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -143962,6 +145377,11 @@
           "path": "registry/erp/timeline-followers.tsx",
           "type": "registry:component",
           "target": "@components/erp/timeline-followers.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -144601,6 +146021,11 @@
           "target": "@components/erp/timeline-note-editor.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -144624,6 +146049,11 @@
           "path": "registry/erp/form.tsx",
           "type": "registry:component",
           "target": "@components/erp/form.tsx"
+        },
+        {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
         },
         {
           "path": "registry/erp/page-state.tsx",
@@ -144764,6 +146194,11 @@
           "path": "registry/lib/dates.ts",
           "type": "registry:lib",
           "target": "@lib/dates.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",
@@ -146952,6 +148387,11 @@
           "target": "@components/erp/user-access-actions.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -146965,6 +148405,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -147580,6 +149025,11 @@
           "target": "@components/erp/user-access-data.ts"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -148095,6 +149545,11 @@
           "target": "@components/erp/account-devices.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -148108,6 +149563,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -149085,6 +150545,11 @@
           "target": "@components/erp/user-roles-section.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -149093,6 +150558,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -149682,6 +151152,11 @@
           "path": "registry/erp/account-devices.tsx",
           "type": "registry:component",
           "target": "@components/erp/account-devices.tsx"
+        },
+        {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
         },
         {
           "path": "registry/erp/auth-layout.tsx",
@@ -150274,6 +151749,11 @@
           "target": "@components/erp/webhooks-section.tsx"
         },
         {
+          "path": "registry/erp/auth-card.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/auth-card.tsx"
+        },
+        {
           "path": "registry/erp/auth-layout.tsx",
           "type": "registry:component",
           "target": "@components/erp/auth-layout.tsx"
@@ -150292,6 +151772,11 @@
           "path": "registry/erp/page-state.tsx",
           "type": "registry:component",
           "target": "@components/erp/page-state.tsx"
+        },
+        {
+          "path": "registry/erp/password-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/password-field.tsx"
         },
         {
           "path": "registry/erp/password-input.tsx",
@@ -150970,6 +152455,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -151243,6 +152733,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -151956,6 +153451,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/form-select.tsx",
           "type": "registry:component",
           "target": "@components/erp/form-select.tsx"
@@ -152199,6 +153699,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -153163,6 +154668,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -153396,6 +154906,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -154049,11 +155564,6 @@
           "target": "@hooks/use-me.ts"
         },
         {
-          "path": "registry/hooks/use-row-selection.ts",
-          "type": "registry:hook",
-          "target": "@hooks/use-row-selection.ts"
-        },
-        {
           "path": "registry/hooks/use-virtual-rows.ts",
           "type": "registry:hook",
           "target": "@hooks/use-virtual-rows.ts"
@@ -154650,6 +156160,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/number-group.tsx",
           "type": "registry:component",
           "target": "@components/erp/number-group.tsx"
@@ -154873,6 +156388,11 @@
           "path": "registry/lib/filters.ts",
           "type": "registry:lib",
           "target": "@lib/filters.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/format.ts",
@@ -157003,6 +158523,11 @@
           "target": "@components/erp/form.tsx"
         },
         {
+          "path": "registry/erp/form-field.tsx",
+          "type": "registry:component",
+          "target": "@components/erp/form-field.tsx"
+        },
+        {
           "path": "registry/erp/stepper.tsx",
           "type": "registry:component",
           "target": "@components/erp/stepper.tsx"
@@ -157036,6 +158561,11 @@
           "path": "registry/lib/company-scope.ts",
           "type": "registry:lib",
           "target": "@lib/company-scope.ts"
+        },
+        {
+          "path": "registry/lib/form-control.ts",
+          "type": "registry:lib",
+          "target": "@lib/form-control.ts"
         },
         {
           "path": "registry/lib/i18n.ts",

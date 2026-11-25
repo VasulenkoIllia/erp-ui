@@ -1,6 +1,5 @@
 import * as React from "react"
 import { RefreshCwIcon } from "lucide-react"
-import type { SortPayload } from "@/registry/lib/ra-core"
 
 import { CardSortSelect, DataTableCards } from "@/registry/erp/data-table-cards"
 import { DataTableGrid } from "@/registry/erp/data-table-grid"
@@ -23,13 +22,14 @@ import {
   useElementSize,
   useFillHeight,
 } from "@/registry/hooks/use-element-size"
-import type { WindowedList } from "@/registry/hooks/use-windowed-list"
 import { errorStateKind } from "@/registry/lib/api"
 import {
   DEFAULT_MIN_WIDTH,
   layoutColumns,
   type DataTableColumn,
+  type DataTableSort,
   type DataTableSource,
+  type WindowedList,
 } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -82,9 +82,9 @@ export type DataTableProps<T> = DataTableRows<T> &
     label: string
     columns: readonly DataTableColumn<T>[]
     getRowId: (row: T) => string
-    sort?: SortPayload
+    sort?: DataTableSort
     /** Без нього заголовки й картки не пропонують сортування. */
-    onSortChange?: (sort: SortPayload) => void
+    onSortChange?: (sort: DataTableSort) => void
     isPending?: boolean
     isRefreshing?: boolean
     error?: unknown

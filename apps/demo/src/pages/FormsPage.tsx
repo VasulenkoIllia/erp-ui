@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMemo, useState } from "react"
+import { useId, useMemo, useState } from "react"
 import { useForm, useWatch, type Control } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -12,13 +12,14 @@ import {
   keepFieldFocus,
   UnsavedChangesGuard,
 } from "@/registry/erp/form"
+import { FormSelect } from "@/registry/erp/form-select"
 import { MoneyInput, NumberInput } from "@/registry/erp/number-input"
 import { amountInWords } from "@/registry/lib/amount-in-words"
 import { addDays, isCalendarDate, todayIn } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, useLanguage } from "@/registry/lib/i18n"
 import { Button } from "@/registry/ui/button"
-import { FieldGroup } from "@/registry/ui/field"
+import { Field, FieldGroup, FieldLabel } from "@/registry/ui/field"
 import { Input } from "@/registry/ui/input"
 import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
@@ -346,6 +347,41 @@ function ConfirmSection() {
   )
 }
 
+/** Постачальники з числовими id, як у базі проекту. */
+const SUPPLIER_IDS = { north: 17, south: 42, west: 108 } as const
+
+/** Вибір без форми з числовими значеннями (erp/form-select, ADR-0099): `onValueChange` дає число. */
+function StandaloneSelectSection() {
+  const t = usePageT()
+  const id = useId()
+  const [supplierId, setSupplierId] = useState<number | null>(null)
+  const items = (
+    Object.keys(SUPPLIER_IDS) as (keyof typeof SUPPLIER_IDS)[]
+  ).map((key) => ({
+    value: SUPPLIER_IDS[key],
+    label: t(`select.suppliers.${key}`),
+  }))
+  return (
+    <Section title={t("select.title")} description={t("select.description")}>
+      <Field className="max-w-xs">
+        <FieldLabel htmlFor={id}>{t("select.label")}</FieldLabel>
+        <FormSelect<number | null>
+          id={id}
+          placeholder={t("select.placeholder")}
+          items={items}
+          value={supplierId}
+          onValueChange={setSupplierId}
+        />
+      </Field>
+      <p className="text-sm text-muted-foreground" data-testid="supplier-id">
+        {supplierId === null
+          ? t("select.none")
+          : t("select.chosen", { id: supplierId })}
+      </p>
+    </Section>
+  )
+}
+
 export function FormsPage() {
   const t = usePageT()
   return (
@@ -354,6 +390,7 @@ export function FormsPage() {
       <Section title={t("form.title")} description={t("form.description")}>
         <InvoiceForm />
       </Section>
+      <StandaloneSelectSection />
       <RepeatingRowsSection />
       <ConfirmSection />
     </div>

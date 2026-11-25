@@ -4,6 +4,10 @@ import { FingerprintIcon } from "lucide-react"
 
 import { useFieldError } from "@/registry/erp/auth-layout"
 import { useApiErrorMessage } from "@/registry/hooks/use-api-error-message"
+import {
+  formatMinutesSeconds,
+  useCountdown,
+} from "@/registry/hooks/use-countdown"
 import { isApiError } from "@/registry/lib/api"
 import type { AuthFactor, Challenge } from "@/registry/lib/auth"
 import { useErpUiT } from "@/registry/lib/i18n"
@@ -27,24 +31,6 @@ import {
 } from "@/registry/ui/input-otp"
 import { Spinner } from "@/registry/ui/spinner"
 import { Textarea } from "@/registry/ui/textarea"
-
-/** Секунди, що лишилися до `until` (мс); оновлюється щосекунди. */
-function useSecondsLeft(until: number): number {
-  const [now, setNow] = React.useState(() => Date.now())
-  React.useEffect(() => {
-    if (until <= Date.now()) return
-    const timer = setInterval(() => {
-      setNow(Date.now())
-    }, 1000)
-    return () => {
-      clearInterval(timer)
-    }
-  }, [until])
-  return Math.max(0, Math.ceil((until - now) / 1000))
-}
-
-const mmss = (seconds: number) =>
-  `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}`
 
 const SENDS: AuthFactor[] = ["sms", "email"]
 
@@ -94,10 +80,8 @@ export function ChallengeForm({
   const [switching, setSwitching] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [codeError, setCodeError] = React.useState<string | null>(null)
-  const [resendAt, setResendAt] = React.useState(
-    () => Date.now() + (challenge.resendIn ?? 0) * 1000,
-  )
-  const secondsLeft = useSecondsLeft(resendAt)
+  const resend = useCountdown(challenge.resendIn ?? 0)
+  const { secondsLeft, until: resendAt } = resend
   const method = current.method
   const length = current.codeLength ?? 6
   const digitsOnly = method !== "backup_code"
@@ -135,7 +119,7 @@ export function ChallengeForm({
       const updated = await onSend(next)
       setCurrent(updated)
       setCode("")
-      setResendAt(Date.now() + (updated.resendIn ?? 0) * 1000)
+      resend.start(updated.resendIn ?? 0)
     } catch (failure) {
       setError(apiMessage(failure))
     } finally {
@@ -316,7 +300,9 @@ export function ChallengeForm({
           }}
         >
           {secondsLeft > 0
-            ? t("auth.challenge.resendIn", { time: mmss(secondsLeft) })
+            ? t("auth.challenge.resendIn", {
+                time: formatMinutesSeconds(secondsLeft),
+              })
             : t("auth.challenge.resend")}
         </Button>
       ) : null}

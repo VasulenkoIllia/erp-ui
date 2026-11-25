@@ -70,6 +70,7 @@ export default defineConfig(
     "docs/",
     "tests/consumer/template/",
     "tests/consumer/upgrade/",
+    "tests/light/template/",
     // Згенерований файл MSW (npx msw init), оновлюється разом із пакетом.
     "apps/demo/public/mockServiceWorker.js",
   ]),

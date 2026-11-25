@@ -1,12 +1,11 @@
 import * as React from "react"
 import { XIcon } from "lucide-react"
 
-import type { RowSelection } from "@/registry/hooks/use-row-selection"
 import type { DataTableColumn } from "@/registry/lib/data-table-core"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukLists } from "@/registry/lib/i18n-uk-lists"
-import { selectedCount } from "@/registry/lib/row-selection"
+import { selectedCount, type RowSelection } from "@/registry/lib/row-selection"
 import { Button } from "@/registry/ui/button"
 import { Checkbox } from "@/registry/ui/checkbox"
 

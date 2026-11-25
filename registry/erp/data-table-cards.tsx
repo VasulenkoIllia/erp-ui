@@ -1,11 +1,11 @@
 import * as React from "react"
-import type { SortPayload } from "@/registry/lib/ra-core"
 import { flushSync } from "react-dom"
 
 import { WindowFailed } from "@/registry/erp/data-table-cells"
 import { useVirtualRows } from "@/registry/hooks/use-virtual-rows"
 import type {
   DataTableColumn,
+  DataTableSort,
   DataTableSource,
   RowWindowState,
 } from "@/registry/lib/data-table-core"
@@ -296,8 +296,8 @@ export function CardSortSelect<T>({
   onSortChange,
 }: {
   columns: readonly DataTableColumn<T>[]
-  sort: SortPayload
-  onSortChange: (sort: SortPayload) => void
+  sort: DataTableSort
+  onSortChange: (sort: DataTableSort) => void
 }) {
   const t = useErpUiT()
   const id = React.useId()

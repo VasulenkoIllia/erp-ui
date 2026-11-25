@@ -281,7 +281,7 @@ export const CODE_ITEMS = {
   "lib/data-table-core": {
     title: "Логіка таблиці даних",
     description:
-      "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
+      "Для erp/data-table без React: опис колонки DataTableColumn (пріоритет, «лишити / перенести / сховати», липка колонка, місце в картці), сортування DataTableSort і великий список WindowedList без ra-core (ADR-0099), вікна по 100 рядків, розкладка колонок за шириною контейнера, навігація гріда W3C APG, можливості TanStack Table 9 (ADR-0016).",
     status: "beta",
     demo: "data",
     spec: ["§9", "§10"],
@@ -782,6 +782,14 @@ export const CODE_ITEMS = {
     demo: "documentForm",
     spec: ["UI05", "§8.3", "§18.1"],
   },
+  "hooks/use-countdown": {
+    title: "Відлік секунд",
+    description:
+      "useCountdown: start(секунди) з цієї миті, secondsLeft щосекунди (повтор коду, «Забагато спроб» за Retry-After); formatMinutesSeconds — «1:42».",
+    status: "beta",
+    demo: "lightLogin",
+    spec: ["PF01"],
+  },
   "hooks/use-element-size": {
     title: "useElementSize",
     description:
@@ -1005,6 +1013,14 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "login",
     spec: ["PF01"],
+  },
+  "lib/form-control": {
+    title: "Пропси поля форми",
+    description:
+      "FormControlProps: id, aria-invalid, aria-describedby, readOnly, disabled, які FormField дає полю. Окремо від react-hook-form: поле (FormSelect) бере тип без бібліотеки форм (ADR-0099).",
+    status: "beta",
+    demo: "forms",
+    spec: ["§8.3"],
   },
   "lib/brand-icons": {
     title: "Логотипи провайдерів входу",
@@ -2183,10 +2199,26 @@ export const CODE_ITEMS = {
   "erp/auth-layout": {
     title: "Основа екранів входу",
     description:
-      "Картка екрана входу з фокусом на заголовку кроку; бренд (логотип, палітра, бічна панель, документи); useAuthMethods, AUTH_PATHS, перехід після входу, тексти помилок полів.",
+      "AuthLayout — картка erp/auth-card із брендом (логотип, палітра, бічна панель, документи); useAuthMethods, AUTH_PATHS, перехід після входу, тексти помилок полів.",
     status: "beta",
     demo: "login",
     spec: ["PF01"],
+  },
+  "erp/auth-card": {
+    title: "Картка екрана входу",
+    description:
+      "AuthCard: картка по центру сторінки з h1, фокус на заголовку при зміні кроку, логотип над карткою, підвал, бічна панель на широкому контейнері. Без провайдера входу й ra-core — для свого входу проекту (ADR-0099).",
+    status: "beta",
+    demo: "lightLogin",
+    spec: ["PF01", "§10"],
+  },
+  "erp/login-form": {
+    title: "Вхід для свого сервера",
+    description:
+      "LoginForm (логін чи email і пароль) і SetPasswordForm (новий пароль за посиланням запрошення чи скидання, мінімум довжини проекту, підказка надійності) без ra-core: запит робить проект в onSubmit і повертає причину відмови — невірні дані, «Забагато спроб» із відліком за Retry-After, недійсне посилання, офлайн, помилка сервера, свій текст (ADR-0099).",
+    status: "beta",
+    demo: "lightLogin",
+    spec: ["PF01", "§8.3", "§10"],
   },
   "erp/login-screen": {
     title: "Екран входу",
@@ -2223,9 +2255,17 @@ export const CODE_ITEMS = {
   "erp/password-input": {
     title: "Поле пароля",
     description:
-      "Кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7) і підказка надійності текстом.",
+      "Для екранів входу кіта: PasswordInput і PasswordStrength з мінімумом довжини з політики організації (ADR-0012). Поле й смужка — erp/password-field.",
     status: "beta",
     demo: "login",
+    spec: ["PF01", "§10"],
+  },
+  "erp/password-field": {
+    title: "Поле пароля без входу кіта",
+    description:
+      "PasswordInput — кнопка «Показати пароль» замість повторного введення (WCAG 3.3.7); PasswordStrengthMeter — підказка надійності смужкою й текстом з мінімумом довжини проекту. Без провайдера входу й ra-core (ADR-0099).",
+    status: "beta",
+    demo: "lightLogin",
     spec: ["PF01", "§10"],
   },
   "erp/sso-buttons": {
@@ -3302,7 +3342,15 @@ export const CODE_ITEMS = {
   "erp/form": {
     title: "Форми",
     description:
-      "Форми на react-hook-form + zod (ADR-0015): FormField (підпис, підказка, помилка, aria, read-only), FormErrorSummary для довгих форм, UnsavedChangesGuard (діалог у застосунку + beforeunload).",
+      "Форми на react-hook-form + zod (ADR-0015): усе з erp/form-field і UnsavedChangesGuard (діалог у застосунку через роутер ra-core + beforeunload).",
+    status: "beta",
+    demo: "forms",
+    spec: ["§8.2", "§8.3"],
+  },
+  "erp/form-field": {
+    title: "Поле форми",
+    description:
+      "FormField на react-hook-form (підпис, підказка, помилка біля поля, aria, read-only), FormErrorSummary для довгих форм з переходом до поля, keepFieldFocus для кнопок. Без ra-core (ADR-0099); захист незбережених змін — erp/form.",
     status: "beta",
     demo: "forms",
     spec: ["§8.2", "§8.3"],
@@ -3310,7 +3358,7 @@ export const CODE_ITEMS = {
   "erp/form-select": {
     title: "Вибір у формі",
     description:
-      "FormSelect: одне значення з короткого списку для FormField (тип, статус, варіант поля розширення); «покинуто» — коли список закрили, ref — на кнопку поля. Окремо від erp/form, щоб список не їхав у кожну сторінку з формою (ADR-0026).",
+      "FormSelect: одне значення з короткого списку для FormField чи без форми (тип, статус, варіант поля розширення); значення — рядок чи число (id з бази); «покинуто» — коли список закрили, ref — на кнопку поля. Окремо від erp/form, щоб список не їхав у кожну сторінку з формою (ADR-0026); не тягне ні react-hook-form, ні ra-core (ADR-0099).",
     status: "beta",
     demo: "contacts",
     spec: ["§8.2", "§8.3"],
@@ -4134,3 +4182,31 @@ export const CONTRACT_LAYER = {
     "K4-payments": ["allocation"],
   },
 }
+
+/**
+ * Легкий набір (ADR-0099): елементи для проекту зі своїм сервером і своїм входом, без контракту кіта. Жоден не тягне
+ * ra-core і react-router: перевіряє `pnpm check:registry` (scripts/light-set.mjs) для цього переліку й усіх `ui/*`.
+ * Тестовий проект CI (`pnpm light-smoke`) ставить їх разом і збирає з базовим шляхом `/new/`. Елемент, якому
+ * потрібен ra-core, сюди не додаємо: легку частину виносимо в окремий файл, старий шлях її реекспортує.
+ */
+export const LIGHT_SET = [
+  "base",
+  "erp/app-shell",
+  "erp/auth-card",
+  "erp/confirm-dialog",
+  "erp/copy-button",
+  "erp/data-table",
+  "erp/date-input",
+  "erp/error-boundary",
+  "erp/file-drop",
+  "erp/form-field",
+  "erp/form-select",
+  "erp/login-form",
+  "erp/multi-select",
+  "erp/number-input",
+  "erp/page-header",
+  "erp/page-state",
+  "erp/password-field",
+  "erp/status-badge",
+  "erp/user-menu",
+]
