@@ -30,6 +30,7 @@ export const ROUTES = {
   states: "/states",
   data: "/data",
   organizations: "/organizations",
+  board: "/board",
   inbox: "/notifications",
   security: "/settings/security",
   users: "/settings/users",

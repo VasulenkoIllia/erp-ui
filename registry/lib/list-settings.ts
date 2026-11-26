@@ -1,15 +1,17 @@
 /**
- * Особисті налаштування списку (PF11; ADR-0024): поки що — скільки рядків на сторінці (`perPage` у
- * `mode: "pages"` шаблону List Report). Як вподобання (SPEC §6.2), на сервері: вибір переходить на
- * інший пристрій і переживає вихід.
+ * Особисті налаштування списку (PF11; ADR-0024): скільки рядків на сторінці (`perPage` у `mode: "pages"`
+ * шаблону List Report) і згорнуті колонки дошки (`collapsedColumns`, ADR-0100). Як вподобання (SPEC §6.2),
+ * на сервері: вибір переходить на інший пристрій і переживає вихід.
  *
  * Контракт (під `/api/v1`, конвенції ADR-0002):
- * - `GET /me/list-settings/<ресурс>` → `{ perPage }`; нічого не збережено — `{ perPage: null }`;
- * - `PATCH /me/list-settings/<ресурс>` `{ perPage }` → збережені налаштування; змінює лише передані
- *   поля (нові поля потім не затруться старим клієнтом), без `version`: перемагає останнє
- *   збереження;
+ * - `GET /me/list-settings/<ресурс>` → `{ perPage, collapsedColumns }`; нічого не збережено — `null` у
+ *   полі (сервер, що не знає `collapsedColumns`, поля не дає — так само «не збережено»);
+ * - `PATCH /me/list-settings/<ресурс>` `{ perPage }` чи `{ collapsedColumns }` → збережені налаштування;
+ *   змінює лише передані поля (нові поля потім не затруться старим клієнтом), без `version`: перемагає
+ *   останнє збереження;
  * - налаштування бачить і змінює лише власник; компанія (`X-Company-Id`) на них не впливає;
- * - `perPage` — ціле від 1 до `MAX_PER_PAGE` (ADR-0002), інакше 422 `validation`.
+ * - `perPage` — ціле від 1 до `MAX_PER_PAGE` (ADR-0002); `collapsedColumns` — ключі колонок, не більше
+ *   `MAX_COLLAPSED_COLUMNS`, кожен до `MAX_COLUMN_ID` символів; інакше 422 `validation`.
  */
 import { z } from "zod"
 
@@ -22,8 +24,18 @@ export const LIST_PAGE_SIZES = [10, 20, 50, 100] as const
 /** Скільки список чекає на налаштування, далі — типовий розмір (сценарій моків «повільно» — 3 с). */
 export const LIST_SETTINGS_TIMEOUT_MS = 5_000
 
+/** Скільки згорнутих колонок дошки зберігає сервер і яка довжина ключа колонки. */
+export const MAX_COLLAPSED_COLUMNS = 100
+export const MAX_COLUMN_ID = 100
+
 export const listSettingsSchema = z.object({
   perPage: z.number().int().min(1).max(MAX_PER_PAGE).nullable(),
+  /** Згорнуті колонки дошки (ADR-0100); `null` чи немає — не збережено, діє вибір модуля. */
+  collapsedColumns: z
+    .array(z.string().min(1).max(MAX_COLUMN_ID))
+    .max(MAX_COLLAPSED_COLUMNS)
+    .nullable()
+    .optional(),
 })
 export type ListSettings = z.infer<typeof listSettingsSchema>
 

@@ -28,6 +28,7 @@ export const ROLES: MockRole[] = [
       "sales-payments:*",
       "sales-refunds:*",
       "products:*",
+      "pipeline:*",
       "organizations:*",
       "contacts:*",
       "segments:*",
@@ -106,6 +107,10 @@ export const ROLES: MockRole[] = [
       "sales-credit-notes:read",
       "sales-payments:read",
       "sales-refunds:read",
+      // Дошка демо: угоди переносить і створює, видаляє — бухгалтер.
+      "pipeline:read",
+      "pipeline:create",
+      "pipeline:update",
       "organizations:read:own",
       "organizations:create",
       "organizations:update:own",
@@ -155,6 +160,8 @@ export const ROLES: MockRole[] = [
       "sales-credit-notes:read",
       "sales-payments:read",
       "sales-refunds:read",
+      // Дошка демо лише для перегляду: без «Перемістити в…» і швидкого створення.
+      "pipeline:read",
       "organizations:read",
       "contacts:read",
       "segments:read",
@@ -290,6 +297,11 @@ export const PERMISSION_RESOURCES: Record<string, MockPermissionResource> = {
   },
   products: {
     label: { uk: "Товари", en: "Products" },
+    group: SALES,
+    actions: ["read", "create", "update", "delete"],
+  },
+  pipeline: {
+    label: { uk: "Воронка продажів", en: "Sales pipeline" },
     group: SALES,
     actions: ["read", "create", "update", "delete"],
   },

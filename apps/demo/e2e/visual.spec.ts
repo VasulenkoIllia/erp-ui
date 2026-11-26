@@ -83,6 +83,8 @@ const SHOT_PAGES = {
   module: "/#/m/K2",
   data: "/#/data",
   organizations: "/#/organizations",
+  // Дошка (крок UI07a, ADR-0100): воронка угод колонками, суми, згорнута колонка, «Редагує …».
+  board: "/#/board",
   // Модуль B1 (крок 1.4a, ADR-0025): списки й картки з розширенням демо.
   companyCard: "/#/m/A1/company",
   companyCurrencies: "/#/m/A1/currencies",
@@ -142,6 +144,14 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
     await expect(listStatus(page)).toHaveText(/\d (організац|organization)/)
   if (pageId === "contacts")
     await expect(listStatus(page)).toHaveText(/\d (контакт|contact)/)
+  // Дошка: картки всіх колонок уже з сервера, а не скелетони.
+  if (pageId === "board") {
+    await expect(page.locator("[data-kanban-card]").first()).toBeVisible()
+    await expect(page.locator('[data-slot="kanban"]')).toHaveAttribute(
+      "aria-busy",
+      "false",
+    )
+  }
   // Журнал і сповіщення: кнопка над списком стає активною з приходом даних, і axe не має застати перехід.
   if (pageId === "audit")
     await expect(

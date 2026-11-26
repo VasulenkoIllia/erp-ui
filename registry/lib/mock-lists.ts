@@ -166,7 +166,7 @@ const settingsStore = userStore<ListSettings>(SETTINGS_PREFIX, (value) => {
   const parsed = listSettingsSchema.safeParse(value)
   return parsed.success ? parsed.data : undefined
 })
-const NO_SETTINGS: ListSettings = { perPage: null }
+const NO_SETTINGS: ListSettings = { perPage: null, collapsedColumns: null }
 const patchSchema = listSettingsSchema.partial().strict()
 
 const fieldErrorsOf = (error: z.ZodError) =>

@@ -19,7 +19,7 @@ import {
   toSearchParams,
 } from "@/registry/lib/api"
 import { setCompanyId } from "@/registry/lib/company-scope"
-import { createDataProvider } from "@/registry/lib/data-provider"
+import { createDataProvider, listSums } from "@/registry/lib/data-provider"
 import { resetScenarios, setScenario } from "@/registry/lib/mock-scenarios"
 import {
   createPlatformHandlers,
@@ -155,6 +155,18 @@ describe("конвенції запиту (ADR-0002)", () => {
       500,
     )
   })
+
+  it("суми за фільтром: sumOf туди й назад, без нього ключа немає (ADR-0100)", () => {
+    const sp = toSearchParams({ filter: { status: "paid" }, sumOf: ["amount"] })
+    expect(sp.toString()).toBe("status=paid&sumOf=amount")
+    expect(fromSearchParams(sp)).toMatchObject({
+      filter: { status: "paid" },
+      sumOf: ["amount"],
+    })
+    expect(
+      fromSearchParams(new URLSearchParams("status=paid")),
+    ).not.toHaveProperty("sumOf")
+  })
 })
 
 describe("dataProvider + мок ресурсу", () => {
@@ -174,6 +186,27 @@ describe("dataProvider + мок ресурсу", () => {
       filter: { q: "зоряна" },
     })
     expect(search.total).toBe(10)
+  })
+
+  it("суми за фільтром: meta.sumOf у запиті, meta.sums у результаті (ADR-0100)", async () => {
+    const result = await dataProvider.getList<Invoice>("invoices", {
+      pagination: { page: 1, perPage: 2 },
+      sort: { field: "amount", order: "DESC" },
+      filter: { status: "paid" },
+      meta: { sumOf: ["amount"] },
+    })
+    const all = await dataProvider.getList<Invoice>("invoices", {
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "amount", order: "DESC" },
+      filter: { status: "paid" },
+    })
+    expect(result.data).toHaveLength(2)
+    expect(listSums(result.meta)).toEqual({
+      amount: all.data.reduce((sum, row) => sum + row.amount, 0),
+    })
+    // Без sumOf сервер сум не дає; не числа — сум немає.
+    expect(all.meta).toBeUndefined()
+    expect(listSums({ sums: { amount: "12" } })).toBeUndefined()
   })
 
   // Записи за компаніями й заголовок із членством — `company-scope.test.ts` (ADR-0036).

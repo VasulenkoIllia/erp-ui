@@ -7,6 +7,9 @@
  *   `previousData`. Конфлікт → ApiError 409 із `current`; «зберегти мої зміни» — повтор із
  *   `version: current.version`.
  * - updateMany/deleteMany — запит на кожен запис.
+ * - Суми списку за фільтром (колонка дошки, ADR-0100): `getList` з `meta.sumOf: ["amount"]` шле
+ *   `sumOf=amount`, а `sums` відповіді повертає в `meta.sums` результату (`listSums`); сервер без сум їх
+ *   не дає, і результат без `meta`. Власний провайдер, що сум не вміє, просто їх не повертає.
  * - Масові дії з частковою невдачею — фоновою задачею сервера (lib/jobs, ADR-0018): `startBulk`
  *   → `POST /<ресурс>/bulk/<дія>` (з причиною дії — `{ reason }` четвертим аргументом, ADR-0066), `getJob` → `GET /jobs/:id` (фоновий запит, відповідь
  *   перевіряється схемою, чекає до `JOB_POLL_TIMEOUT_MS`), `retryJob` → `POST /jobs/:id/retry`. У компонентах —
@@ -33,9 +36,11 @@ import type {
 } from "@/registry/lib/ra-core"
 
 import {
+  listSumsSchema,
   toSearchParams,
   type ApiClient,
   type FilterValue,
+  type ListSums,
   type SortField,
 } from "@/registry/lib/api"
 import {
@@ -170,6 +175,26 @@ export interface DataProviderOptions {
 interface ListResponse {
   data: RaRecord[]
   total: number
+  sums?: unknown
+}
+
+/** Поля, суми яких просить `getList` (`meta.sumOf`, ADR-0100); інше в `meta` — не суми. */
+function sumFieldsOf(meta: unknown): string[] {
+  const fields = (meta as { sumOf?: unknown } | undefined)?.sumOf
+  return Array.isArray(fields)
+    ? fields.filter((field): field is string => typeof field === "string")
+    : []
+}
+
+/**
+ * Суми з результату `getList` (`meta.sums`, ADR-0100): `undefined` — сервер їх не дав чи дав не числа
+ * (тоді колонка дошки рахує суму сама, лише коли завантажено всі картки).
+ */
+export function listSums(meta: unknown): ListSums | undefined {
+  const parsed = listSumsSchema.safeParse(
+    (meta as { sums?: unknown } | undefined)?.sums,
+  )
+  return parsed.success ? parsed.data : undefined
 }
 
 function sortOf(params: GetListParams): SortField[] {
@@ -210,6 +235,7 @@ export function createDataProvider(
       page: params.pagination?.page,
       perPage: params.pagination?.perPage,
       sort: sortOf(params),
+      sumOf: sumFieldsOf(params.meta),
       filter: {
         ...(params.filter as Record<string, FilterValue>),
         ...extraFilter,
@@ -225,8 +251,10 @@ export function createDataProvider(
     supportAbortSignal: true,
 
     getList: async (resource, params) => {
-      const { data, total } = await list(resource, params)
-      return { data, total } as never
+      const { data, total, sums } = await list(resource, params)
+      return (
+        sums === undefined ? { data, total } : { data, total, meta: { sums } }
+      ) as never
     },
 
     getOne: async (resource, { id, signal }) => {
