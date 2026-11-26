@@ -4,10 +4,10 @@
  * не правлені. Файл ставить `shadcn add` (елементи `base` і `tools/kit`): у проекті його не правте.
  *
  *   node scripts/erp-ui-kit.mjs check                     # файли кіта як у версії (додайте в pnpm lint)
- *   node scripts/erp-ui-kit.mjs update v1.0.0             # усі встановлені елементи — до тегу
- *   node scripts/erp-ui-kit.mjs update v1.0.0 --dry-run   # лише показати, що зміниться
- *   node scripts/erp-ui-kit.mjs update v1.0.0 --add erp/command-palette   # ще й новий елемент
- *   node scripts/erp-ui-kit.mjs update v1.0.0 --prune     # і видалити незмінені файли-сироти
+ *   node scripts/erp-ui-kit.mjs update v1.6.0             # усі встановлені елементи — до тегу
+ *   node scripts/erp-ui-kit.mjs update v1.6.0 --dry-run   # лише показати, що зміниться
+ *   node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/command-palette   # ще й новий елемент
+ *   node scripts/erp-ui-kit.mjs update v1.6.0 --prune     # і видалити незмінені файли-сироти
  *   node scripts/erp-ui-kit.mjs update <гілка|SHA> --from ../erp-ui       # з локальної копії кіта
  *
  * Запуск — з теки з `components.json`; у монорепо — з теки пакета адмінки: файли кіта й нові залежності йдуть у

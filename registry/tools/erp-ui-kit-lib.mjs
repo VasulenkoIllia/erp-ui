@@ -114,7 +114,7 @@ export function isRegularFileInside(root, file) {
 }
 
 /**
- * Звіт `shadcn add --dry-run` (CLI 4.22): рядки `│ ~ src/… overwrite`, `+ … create`, `= … skip` і
+ * Звіт `shadcn add --dry-run` (CLI 4.22–4.23): рядки `│ ~ src/… overwrite`, `+ … create`, `= … skip` і
  * підсумок `├ Files (N) …`. Інший формат (інша версія CLI) — помилка, а не порожній список.
  */
 export function parseDryRun(output) {

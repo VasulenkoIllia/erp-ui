@@ -3,6 +3,7 @@ import { test } from "node:test"
 
 import {
   budgetReport,
+  devOnlyChunks,
   ratchetLimit,
   scaleParts,
   splitFirstScreen,
@@ -185,4 +186,23 @@ test("склад чанка зводиться до справжнього ро�
     demo: 0,
   })
   assert.deepEqual(scaleParts(undefined, 0), { libs: 0, kit: 0, demo: 0 })
+})
+
+test("код лише для розробки: чанк повного дерева рядків кіта в збірці знаходиться", () => {
+  assert.deepEqual(devOnlyChunks(manifest), [])
+  assert.deepEqual(
+    devOnlyChunks({
+      ...manifest,
+      "../../registry/lib/i18n-uk.ts": {
+        file: "a/i18n-uk.js",
+        isDynamicEntry: true,
+      },
+      "../../registry/lib/i18n-uk-base.ts": { file: "a/base.js" },
+      "../../registry/lib/i18n-en.ts": {
+        file: "a/en.js",
+        isDynamicEntry: true,
+      },
+    }),
+    ["../../registry/lib/i18n-uk.ts"],
+  )
 })

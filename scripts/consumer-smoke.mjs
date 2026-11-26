@@ -3,7 +3,7 @@
  * Перевірка доставки (крок 0.2b, ADR-0004): чистий клієнтський проект ставить кіт так само, як це
  * робитиме розробник, і має скомпілюватися.
  *
- *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--local] [--keep] [--diff-from <старий ref>]
+ *   node scripts/consumer-smoke.mjs --ref <коміт|тег|гілка> [--local] [--keep] [--audit] [--diff-from <старий ref>]
  *
  * Кроки: шаблон tests/consumer/template → pnpm install → shadcn init (Base UI, Nova) →
  * shadcn add base, пакунки data, mocks і auth, lib/query-client, усі елементи ui/*, erp/*, templates/* і tools/* та модулі
@@ -20,6 +20,8 @@
  *   елементів ставляться поодинці в чисті проекти: залежність, якої бракує елементу, не принесе сусід.
  * Без --local — усе з GitHub на --ref (перевірка тегу перед випуском).
  * --diff-from: спершу ставить усе зі старого ref, потім показує `add --diff` для нового (оновлення).
+ * --audit (сторож свіжих версій, ADR-0102): `pnpm audit --prod` повного проекту — знахідки в звіті й код 1 після решти
+ *   перевірок; збій самого аудиту (тайм-аут, не JSON) зупиняє одразу.
  * Відкритий репозиторій: токен не потрібен.
  */
 import { spawn } from "node:child_process"
@@ -39,6 +41,12 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { auditProject } from "./deps-watch.mjs"
+import {
+  repinShadcnAfterInit,
+  SHADCN_VERSION,
+} from "./upgrade-smoke-project.mjs"
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const args = process.argv.slice(2)
 const arg = (name) => {
@@ -49,6 +57,7 @@ const ref = arg("--ref")
 const diffFrom = arg("--diff-from")
 const local = args.includes("--local")
 const keep = args.includes("--keep")
+const audit = args.includes("--audit")
 if (!ref) {
   console.error("Потрібно --ref <коміт|тег|гілка>")
   process.exit(1)
@@ -58,9 +67,6 @@ const registry = JSON.parse(
   readFileSync(path.join(root, "registry.json"), "utf8"),
 )
 const repo = new URL(registry.homepage).pathname.slice(1)
-const shadcnVersion = JSON.parse(
-  readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
-).version
 /** Пакунки, які ставить проект: основа, шар даних, моки, вхід, політика повторів запитів. */
 const BUNDLES = ["base", "data", "mocks", "auth", "lib/query-client"]
 const uiItems = registry.items
@@ -167,10 +173,11 @@ async function createProject() {
   const dir = mkdtempSync(path.join(tmpdir(), "erp-ui-consumer-"))
   dirs.push(dir)
   const shadcn = (...cmdArgs) =>
-    run(dir, "npx", ["-y", `shadcn@${shadcnVersion}`, ...cmdArgs])
+    run(dir, "npx", ["-y", `shadcn@${SHADCN_VERSION}`, ...cmdArgs])
   cpSync(path.join(root, "tests/consumer/template"), dir, { recursive: true })
   await run(dir, "pnpm", ["install", "--ignore-workspace"])
   await shadcn("init", "-b", "base", "-p", "nova", "-y", "--no-rtl")
+  await repinShadcnAfterInit(dir)
   return { dir, shadcn, run: (cmd, cmdArgs) => run(dir, cmd, cmdArgs) }
 }
 
@@ -195,7 +202,7 @@ async function fromGithub(action) {
 async function serveLocalRegistry() {
   const out = mkdtempSync(path.join(tmpdir(), "erp-ui-registry-"))
   dirs.push(out)
-  await run(root, "npx", ["-y", `shadcn@${shadcnVersion}`, "build", "-o", out])
+  await run(root, "npx", ["-y", `shadcn@${SHADCN_VERSION}`, "build", "-o", out])
   const server = createServer((req, res) => {
     let file
     try {
@@ -285,6 +292,7 @@ async function fullInstall(source) {
   await exec("pnpm", ["typecheck"])
   await checkTokensInProject(dir)
   await checkMocksOutOfProduction(dir)
+  return dir
 }
 
 /** Перевірка «лише токени» з `base` (ADR-0089): код кіта в проекті чистий, а підкладене порушення вона ловить. */
@@ -421,7 +429,8 @@ async function isolatedInstall(item, add) {
 let source
 try {
   source = local ? await serveLocalRegistry() : undefined
-  await fullInstall(source)
+  const project = await fullInstall(source)
+  const isAuditClean = audit ? await auditProject(project) : true
   if (source) {
     for (const name of ISOLATED)
       await isolatedInstall(name, (shadcn) =>
@@ -434,6 +443,10 @@ try {
       ),
     )
   }
+  if (!isAuditClean)
+    throw new Error(
+      "pnpm audit --prod знайшов вразливості в залежностях застосунку (таблиця вище); оновлення — окремим PR (ADR-0102)",
+    )
   console.log(
     local
       ? `\nOK: ${String(uiItems.length + BUNDLES.length + modules.length)} елементів із робочої копії встановлено, файли модулів — дослівно, проект компілюється, моків у збірці з бекендом немає; поодинці: ${ISOLATED.join(", ")} і ui/button з ${repo}#${ref}.`

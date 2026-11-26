@@ -37,6 +37,7 @@ import {
   MANIFEST,
   projectAt,
   root,
+  SHADCN_VERSION,
   toHead,
 } from "./upgrade-smoke-project.mjs"
 
@@ -186,8 +187,8 @@ async function assertLayout(ws, untouched, pinned, what) {
     `${what}: ${SERVER_ONLY} є лише в сервері, а адмінці команда його не поставила`,
   )
   expect(
-    !dependencies.shadcn && /^\d+\.\d+\.\d+$/.test(devDependencies.shadcn),
-    `${what}: CLI shadcn не в devDependencies точною версією`,
+    !dependencies.shadcn && devDependencies.shadcn === SHADCN_VERSION,
+    `${what}: CLI shadcn не в devDependencies версією кіта ${SHADCN_VERSION}`,
   )
 }
 

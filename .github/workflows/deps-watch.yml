@@ -1,0 +1,84 @@
+name: Сторож свіжих версій
+
+# Щотижня те, що новий проект дістане новішим, ніж у lock-файлі кіта (ADR-0102): кіт без lock-файлу (найновіші версії
+# в діапазонах кіта) — typecheck, тести, збірка демо; чистий проект із повним кітом (`consumer-smoke`) — typecheck,
+# збірка й `pnpm audit --prod` його залежностей. Нічого не оновлює: що змінилось і що знайдено — у підсумку прогону;
+# червоний прогін — лист GitHub про збій; оновлення діапазону чи lock-файлу — окремим PR.
+#
+# Тут працює непереглянутий свіжий код пакетів (прогін за розкладом — в області гілки main): без кешу pnpm (його
+# збереження винесло б ці пакети в кеш main), без скриптів встановлення свіжих пакетів і без токена GitHub.
+on:
+  schedule:
+    - cron: "47 5 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/deps-watch.yml
+      - scripts/deps-watch.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  kit:
+    name: кіт на найновіших версіях у діапазонах
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Versions from the lockfile
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm list -r --depth 0 --json > "$RUNNER_TEMP/before.json"
+
+      # Без lock-файлу й node_modules: pnpm розв'язує все наново, як у новому проекті; скрипти встановлення не потрібні.
+      - name: Latest versions within the kit ranges
+        run: |
+          set -euo pipefail
+          rm -rf pnpm-lock.yaml node_modules apps/*/node_modules registry/node_modules
+          pnpm install --no-frozen-lockfile --ignore-scripts
+          pnpm list -r --depth 0 --json > "$RUNNER_TEMP/after.json"
+          node scripts/deps-watch.mjs drift "$RUNNER_TEMP/before.json" "$RUNNER_TEMP/after.json"
+
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @erp-ui/demo build
+
+      - name: Summary
+        run: |
+          echo "Кіт без lock-файлу — typecheck, тести й збірка демо зелені." >> "$GITHUB_STEP_SUMMARY"
+
+  project:
+    name: чистий проект і pnpm audit --prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - run: pnpm install --frozen-lockfile
+
+      # Повний кіт у чистий проект (залежності — найновіші в діапазонах кіта), typecheck, збірка й аудит залежностей
+      # застосунку; CLI shadcn — у devDependencies, як у посібнику. Без GH_TOKEN: відкритий репозиторій, з GitHub —
+      # один елемент.
+      - name: Clean project with the whole kit and its audit
+        env:
+          REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm consumer-smoke --local --ref "$REF" --audit
