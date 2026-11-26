@@ -152,11 +152,13 @@ describe("Board: колонки за полем", () => {
       },
     }
     renderBoard(fakeServer())
+    // Оголошена доріжка видна ще до карток, «Інше» — лише з ними: чекаємо саме її (на холодному прогоні дані
+    // приходять пізніше за перший кадр).
     expect(
-      await screen.findByRole("heading", { level: 3, name: "Олена" }),
+      await screen.findByRole("heading", { level: 3, name: "Інше" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("heading", { level: 3, name: "Інше" }),
+      screen.getByRole("heading", { level: 3, name: "Олена" }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole("list", { name: "Виграно, Олена" }),

@@ -25,6 +25,7 @@ pnpm adr-index    # стовпець «Статус» покажчика docs/ad
 pnpm check:docs   # покажчик ADR і рядки «Змінено», межі розміру скіла, назви в скілі є в коді (входить у lint)
 pnpm consumer-smoke --ref <коміт|тег>  # поставити кіт із GitHub у чистий проект і зібрати
 pnpm consumer-smoke --local --ref main  # те саме з реєстру робочої копії; з GitHub лише ui/button (як у CI)
+pnpm consumer-smoke --local --ref main --audit  # і pnpm audit --prod повного проекту (сторож свіжих версій, ADR-0102)
 pnpm upgrade-smoke  # проект на попередньому тегу оновити командою кіта до HEAD (закомічений стан), зібрати (як у CI)
 pnpm workspace-smoke  # те саме для адмінки окремим пакетом у монорепо з сервером (ADR-0097, як у CI)
 ```

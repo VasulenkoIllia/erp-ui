@@ -11,6 +11,8 @@
  *   межі сторінок не зачіпає: за нього відповідає стеля. Звіт показує й увесь перший екран маршруту.
  * - **Шар моків** (MSW, мок-сервер, фікстури, панель розробника) — свій храповик, як сторінки. У збірці
  *   проекту з бекендом його немає (ADR-0079, перевіряє consumer-smoke), але в демо він росте з модулями.
+ * - **Лише для розробки** — модулі, яких у продакшн-збірці бути не має: повне дерево рядків кіта (`lib/i18n-uk`)
+ *   вантажить тільки попередження розробки `createI18n` (ADR-0094). Такий чанк у збірці — помилка.
  *
  * Читає маніфест Vite і склад чанків, тож після збірки:
  *   pnpm --filter @erp-ui/demo build && node scripts/check-bundle.mjs [--update]
@@ -31,7 +33,14 @@ export const PAGE_ENTRY =
   /(^|\/)src\/pages\/[^/]+\.tsx$|(^|\/)registry\/modules\/[^/]+\/pages\/[^/]+\.tsx$/
 /** Групи коду у звіті входу; склад чанків пише плагін `bundleSources` у apps/demo/vite.config.ts. */
 export const SOURCE_GROUPS = ["libs", "kit", "demo"]
+/** Модулі лише для розробки: окремим чанком у продакшн-збірці їх бути не має. */
+export const DEV_ONLY_ENTRY = /(^|\/)registry\/lib\/i18n-uk\.ts$/
 export const SOURCES_FILE = ".vite/bundle-sources.json"
+
+/** Ключі маніфесту з модулями лише для розробки (`DEV_ONLY_ENTRY`). */
+export function devOnlyChunks(manifest) {
+  return Object.keys(manifest).filter((key) => DEV_ONLY_ENTRY.test(key))
+}
 
 /** Ключі маніфесту, досяжні зі `start` статичними імпортами (разом зі `start`). */
 export function staticClosure(manifest, start) {
@@ -252,6 +261,11 @@ function main() {
 
   printReport(report)
   const pagesOver = report.pages.filter((page) => page.over)
+  const devOnly = devOnlyChunks(manifest)
+  if (devOnly.length > 0)
+    console.error(
+      `\ncheck-bundle: у збірці код лише для розробки — ${devOnly.join(", ")}. Гілка import.meta.env.DEV має випадати зі збірки (ADR-0094).`,
+    )
   if (report.entry.over)
     console.error(
       `\ncheck-bundle: вхід понад стелю. Зніміть вагу з першого екрана (ліниві чанки, ADR-0009) або підніміть стелю окремим ADR із причиною (ADR-0092); --update стелю не змінює.`,
@@ -268,7 +282,8 @@ function main() {
     report.entry.over ||
     pagesOver.length > 0 ||
     report.mocks.over ||
-    report.stale.length > 0
+    report.stale.length > 0 ||
+    devOnly.length > 0
   )
     process.exit(1)
 }

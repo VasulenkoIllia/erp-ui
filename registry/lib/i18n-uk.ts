@@ -77,6 +77,82 @@ export const uk = {
 
 export type ErpUiMessages = typeof uk
 
+/**
+ * Частини рядків за іменем експорту (`ukRoles` — файл `lib/i18n-uk-roles`): за ним `createI18n` у розробці називає
+ * частину, якої бракує (ADR-0094). Службовий перелік кіта, не частина API для проекту; повноту стереже тест
+ * `i18n-parts.test.tsx`.
+ */
+export const ukParts: Readonly<Record<string, object>> = {
+  ukAccess,
+  ukAudit,
+  ukBoard,
+  ukCompany,
+  ukDevPanel,
+  ukDocumentGenerator,
+  ukDocumentLines,
+  ukDocuments,
+  ukImport,
+  ukLists,
+  ukModules,
+  ukNumbering,
+  ukParty,
+  ukPeriodLock,
+  ukPhotos,
+  ukPrint,
+  ukProfile,
+  ukPush,
+  ukRealtime,
+  ukRecords,
+  ukRichText,
+  ukRoles,
+  ukSecurity,
+  ukSetup,
+  ukShortcuts,
+  ukSignIn,
+  ukTimeline,
+  ukTrash,
+  ukWebhooks,
+  ukWizard,
+}
+
+const PLURAL_SUFFIX = /_(?:zero|one|two|few|many|other)$/
+
+/** Рядок `a.b.c` чи його форми множини (`c_one`…) є в дереві. */
+function hasString(tree: object, key: string): boolean {
+  const path = key.split(".")
+  const last = path.pop() ?? ""
+  let node: unknown = tree
+  for (const segment of path)
+    node =
+      typeof node === "object" && node !== null
+        ? (node as Record<string, unknown>)[segment]
+        : undefined
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    Object.keys(node).some(
+      (k) => k === last || k.replace(PLURAL_SUFFIX, "") === last,
+    )
+  )
+}
+
+/**
+ * Частина, де лежить рядок кіта, і її файл (`ukRoles` — `@/lib/i18n-uk-roles`), чи `undefined`, якщо такого ключа в
+ * частинах немає. Для попередження розробки в `createI18n` (ADR-0094).
+ */
+export function kitStringPart(
+  key: string,
+): { name: string; file: string } | undefined {
+  const name = Object.keys(ukParts).find((part) =>
+    hasString(ukParts[part] ?? {}, key),
+  )
+  if (!name) return undefined
+  const stem = name
+    .replace(/^uk/, "")
+    .replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+  return { name, file: `@/lib/i18n-uk${stem}` }
+}
+
 type ExtraPluralForm = "zero" | "one" | "two" | "few" | "many"
 
 /**

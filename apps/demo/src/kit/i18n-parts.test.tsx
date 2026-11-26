@@ -2,7 +2,7 @@ import { posix } from "node:path"
 
 import { render, screen } from "@testing-library/react"
 import { I18nextProvider } from "react-i18next"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   addStrings,
@@ -12,7 +12,7 @@ import {
   useStrings,
   type ErpUiStrings,
 } from "@/registry/lib/i18n"
-import { uk } from "@/registry/lib/i18n-uk"
+import { kitStringPart, uk, ukParts } from "@/registry/lib/i18n-uk"
 import { ukAudit } from "@/registry/lib/i18n-uk-audit"
 import { ukBase } from "@/registry/lib/i18n-uk-base"
 import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
@@ -373,5 +373,110 @@ describe("рядки функції з її чанком", () => {
         return sections.get(section) ?? null
       }),
     ).toEqual([])
+  })
+})
+
+describe("розробка: рядок кіта без частини (createI18n)", () => {
+  const kitWarnings = (spy: { mock: { calls: unknown[][] } }) =>
+    spy.mock.calls
+      .map(([message]) => String(message))
+      .filter((message) => message.startsWith("erp-ui:"))
+  /** `t` без типів ключів демо: перевіряємо саме рядки, яких немає. */
+  const untypedT = (i18n: ReturnType<typeof createI18n>) =>
+    i18n.t.bind(i18n) as unknown as (key: string, options?: object) => string
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("перелік частин — усі файли lib/i18n-uk-*, ім'я експорту за назвою файла", () => {
+    const fromFiles = Object.entries(kitParts).map(([file, module]) => {
+      const stem = /i18n-uk-([a-z-]+)\.ts$/.exec(file)?.[1] ?? ""
+      const name = `uk${stem.replace(/(^|-)([a-z])/g, (_, _dash, c: string) => c.toUpperCase())}`
+      return [name, module[name]] as const
+    })
+    expect(Object.keys(ukParts).sort()).toEqual(
+      fromFiles.map(([name]) => name).sort(),
+    )
+    for (const [name, tree] of fromFiles) expect(ukParts[name]).toBe(tree)
+  })
+
+  it("називає частину й її файл, раз на ключ", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    function Title() {
+      const t = useErpUiT()
+      return <h2>{t("periodLock.title")}</h2>
+    }
+    render(
+      <I18nextProvider i18n={createI18n()}>
+        <Title />
+        <Title />
+      </I18nextProvider>,
+    )
+    // Без частини людина бачить ключ: так виглядає сторінка, відкрита першою.
+    expect(
+      screen.getAllByRole("heading", { name: "periodLock.title" }),
+    ).toHaveLength(2)
+    await vi.waitFor(() => {
+      expect(kitWarnings(warn)).toHaveLength(1)
+    })
+    expect(kitWarnings(warn)[0]).toMatch(
+      /«periodLock\.title».*useErpUiT\(ukPeriodLock\) з @\/lib\/i18n-uk-period-lock/,
+    )
+  })
+
+  it("ключа немає в кіті — радить перевірити ключ", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    untypedT(createI18n())("periodLock.noSuchString", { ns: ERP_UI_NAMESPACE })
+    await vi.waitFor(() => {
+      expect(kitWarnings(warn)).toEqual([
+        expect.stringMatching(/«periodLock\.noSuchString».*перевірте ключ/),
+      ])
+    })
+  })
+
+  it("кожен екземпляр попереджає сам: другий createI18n не мовчить про той самий ключ", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const t = (i18n: ReturnType<typeof createI18n>) =>
+      i18n.t("periodLock.description", { ns: ERP_UI_NAMESPACE })
+    t(createI18n())
+    t(createI18n())
+    await vi.waitFor(() => {
+      expect(kitWarnings(warn)).toHaveLength(2)
+    })
+  })
+
+  it("без попередження: рядок є, запасний текст defaultValue чи defaultValue_one, інший простір імен", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const i18n = createI18n({ resources: { uk: { app: {} } } })
+    i18n.t("common.close", { ns: ERP_UI_NAMESPACE })
+    i18n.t("periodLock.statusOpen", {
+      ns: ERP_UI_NAMESPACE,
+      defaultValue: "Закритих періодів немає.",
+    })
+    untypedT(i18n)("periodLock.noSuchCount", {
+      ns: ERP_UI_NAMESPACE,
+      count: 2,
+      defaultValue_one: "один",
+      defaultValue_other: "кілька",
+    })
+    untypedT(i18n)("orders.title", { ns: "app" })
+    // Контроль: рядок без частини в тому самому екземплярі попереджає, отже обробник увімкнено.
+    i18n.t("periodLock.statusClosed", { ns: ERP_UI_NAMESPACE, date: "1" })
+    await vi.waitFor(() => {
+      expect(kitWarnings(warn)).toEqual([
+        expect.stringMatching(/«periodLock\.statusClosed»/),
+      ])
+    })
+  })
+
+  it("частина за ключем: форми множини так, схожий ключ ні; файл за ім'ям частини", () => {
+    expect(kitStringPart("documentGenerator.title")).toEqual({
+      name: "ukDocumentGenerator",
+      file: "@/lib/i18n-uk-document-generator",
+    })
+    expect(kitStringPart("board.cards")?.name).toBe("ukBoard")
+    expect(kitStringPart("periodLock.tit")).toBeUndefined()
+    expect(kitStringPart("periodLock.title_all")).toBeUndefined()
   })
 })

@@ -191,6 +191,11 @@ export async function buildProject(dir, what) {
   rmSync(path.join(dir, "dist"), { recursive: true, force: true })
 }
 
+/** Версія CLI shadcn кіта — одна точна для кіта, смоуків і проекту (ADR-0102). */
+export const SHADCN_VERSION = JSON.parse(
+  readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
+).version
+
 /**
  * CLI shadcn закріплена в проекті: та сама версія, що в кіті, для встановлення й оновлення (посібник, розділ 8);
  * `dependencies` — записи проекту до встановлення кіта.
@@ -198,11 +203,36 @@ export async function buildProject(dir, what) {
 export function pinShadcn(dir, dependencies = {}) {
   const pkgFile = path.join(dir, "package.json")
   const pkg = JSON.parse(readFileSync(pkgFile, "utf8"))
-  pkg.devDependencies.shadcn = JSON.parse(
-    readFileSync(path.join(root, "node_modules/shadcn/package.json"), "utf8"),
-  ).version
+  pkg.devDependencies.shadcn = SHADCN_VERSION
   Object.assign(pkg.dependencies, dependencies)
   writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`)
+}
+
+/**
+ * Закріплення CLI одразу після `shadcn init`, як у посібнику (розділ 1): `init` ставить найновішу CLI й переписує
+ * закріплену (ADR-0097 п. 4), а `build`, `add` і команда кіта мають іти на версії кіта.
+ */
+export async function repinShadcnAfterInit(dir) {
+  const manifest = () =>
+    JSON.parse(readFileSync(path.join(dir, "package.json"), "utf8"))
+  // `init` у чистому проекті кладе CLI в `dependencies`, у проекті із закріпленою — переписує запис у `devDependencies`.
+  if (manifest().dependencies?.shadcn)
+    await mustRun("pnpm", ["remove", "shadcn"], { cwd: dir })
+  await mustRun("pnpm", ["add", "-D", "-E", `shadcn@${SHADCN_VERSION}`], {
+    cwd: dir,
+  })
+  const { dependencies = {}, devDependencies = {} } = manifest()
+  const installed = JSON.parse(
+    readFileSync(path.join(dir, "node_modules/shadcn/package.json"), "utf8"),
+  ).version
+  if (
+    dependencies.shadcn ||
+    devDependencies.shadcn !== SHADCN_VERSION ||
+    installed !== SHADCN_VERSION
+  )
+    throw new Error(
+      `CLI shadcn після init: запис ${String(dependencies.shadcn ?? devDependencies.shadcn)}, встановлено ${installed}, а має бути ${SHADCN_VERSION} у devDependencies`,
+    )
 }
 
 /**
@@ -216,6 +246,7 @@ export async function addBase(ref, dir, temp) {
     ["init", "-b", "base", "-p", "nova", "-y", "--no-rtl"],
     { cwd: dir },
   )
+  await repinShadcnAfterInit(dir)
   const kitDir = path.join(temp, `kit-${ref}`)
   const present = await git(
     root,

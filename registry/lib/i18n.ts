@@ -141,6 +141,53 @@ function lazyLanguages(resources: AppResources): BackendModule {
 /** Перемикання на початкову мову, якщо вона не українська: його чекає `whenI18nReady`. */
 const initialLanguage = new WeakMap<i18n, Promise<unknown>>()
 
+/**
+ * Режим розробки збирача: Vite підставляє `import.meta.env.DEV`, і в продакшн-збірці гілка випадає разом із тим, що
+ * вона вантажить. Без Vite (`import.meta.env` немає) — не розробка. Тип свій, а не `ImportMeta`: у проекті з типами
+ * Vite і без них умова та сама.
+ */
+const isDevBuild =
+  (import.meta as unknown as { readonly env?: { readonly DEV?: unknown } }).env
+    ?.DEV === true
+
+/**
+ * Розробка (ADR-0094): попередження про рядок простору `erp-ui`, якого немає в пам'яті. Найчастіше це рядок функції
+ * кіта, чию частину код проекту не передав у `useErpUiT`: сторінка, відкрита першою, показує ключ, а типи й збірка
+ * мовчать. Повне дерево (`lib/i18n-uk`) вантажимо лише тут, щоб назвати частину. Виклик із `defaultValue`
+ * (чи `defaultValue_one`…) — свідомий запасний текст. Один раз на ключ для кожного екземпляра.
+ */
+function kitStringWarner() {
+  const warned = new Set<string>()
+  return (
+    _languages: readonly string[],
+    namespace: string,
+    key: string,
+    _fallback: string,
+    _update: boolean,
+    options?: Readonly<Record<string, unknown>>,
+  ): void => {
+    const hasDefault = Object.keys(options ?? {}).some(
+      (option) =>
+        option === "defaultValue" || option.startsWith("defaultValue_"),
+    )
+    if (namespace !== ERP_UI_NAMESPACE || hasDefault || warned.has(key)) return
+    warned.add(key)
+    const missing = `erp-ui: рядка «${key}» немає в пам'яті`
+    import("./i18n-uk")
+      .then(({ kitStringPart }) => {
+        const part = kitStringPart(key)
+        console.warn(
+          part
+            ? `${missing}. Компонент, що його бере, має підключити частину: useErpUiT(${part.name}) з ${part.file} (ADR-0094).`
+            : `${missing}, і в рядках кіта такого ключа немає: перевірте ключ.`,
+        )
+      })
+      .catch(() => {
+        console.warn(`${missing} (ADR-0094).`)
+      })
+  }
+}
+
 export function createI18n({
   language = DEFAULT_LANGUAGE,
   resources = {},
@@ -198,6 +245,11 @@ export function createI18n({
       initAsync: false,
       // React сам екранує текст.
       interpolation: { escapeValue: false },
+      ...(isDevBuild && {
+        saveMissing: true,
+        saveMissingPlurals: false,
+        missingKeyHandler: kitStringWarner(),
+      }),
     })
   if (language !== DEFAULT_LANGUAGE)
     initialLanguage.set(instance, instance.changeLanguage(language))
