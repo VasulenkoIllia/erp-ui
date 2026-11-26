@@ -24,6 +24,7 @@
       "states": "Page states",
       "data": "Data & mocks",
       "organizations": "Organizations",
+      "board": "Board",
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
@@ -534,6 +535,44 @@
     },
     "count_one": "{{value}} organization",
     "count_other": "{{value}} organizations"
+  },
+  "boardPage": {
+    "title": "Board",
+    "lead": "The Board template: the same deal pipeline as a board or a table, with the same tabs, search and views. Each column loads on its own, the server adds up the sum, and “Show more” adds cards. “Move to…” in a card's menu moves it without a mouse, and quick add puts a deal straight into a column. Collapsed columns are remembered for you on the server, and on a phone you see one column with a switcher. A won deal can't be moved back, and a colleague is editing one deal in negotiation. The team lead sees the board read-only. Mock scenarios for the pipeline resource (error, empty, offline, forbidden, conflict) are in the developer panel.",
+    "search": "Search by name or client",
+    "tabsLabel": "Deal stages",
+    "tableLabel": "Deals",
+    "layouts": {
+      "board": "Board",
+      "table": "Table"
+    },
+    "lanes": "Lanes by owner",
+    "tabs": {
+      "all": "All",
+      "open": "Open"
+    },
+    "stages": {
+      "new": "New",
+      "qualified": "Qualified",
+      "proposal": "Proposal",
+      "negotiation": "Negotiation",
+      "won": "Won",
+      "lost": "Lost"
+    },
+    "noOwner": "No owner",
+    "quickCreateLabel": "Deal name",
+    "closed": "A won deal can't be moved to another stage",
+    "columns": {
+      "title": "Deal",
+      "stage": "Stage",
+      "amount": "Amount",
+      "owner": "Owner"
+    },
+    "export": "Export",
+    "exported_one": "Export of {{value}} deal queued (demo)",
+    "exported_other": "Export of {{value}} deals queued (demo)",
+    "count_one": "{{value}} deal",
+    "count_other": "{{value}} deals"
   },
   "organizationPage": {
     "back": "Back to organizations",

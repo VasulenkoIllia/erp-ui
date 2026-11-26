@@ -101,6 +101,8 @@ export const PAGES = {
   organizations: lazyWithPreload(() =>
     import("./OrganizationsPage").then((m) => m.OrganizationsPage),
   ),
+  // Шаблон Board: дошка — подання списку угод (ADR-0091, ADR-0100).
+  board: lazyWithPreload(() => import("./BoardPage").then((m) => m.BoardPage)),
   inbox: lazyWithPreload(() => import("./InboxPage").then((m) => m.InboxPage)),
   security: lazyWithPreload(() =>
     import("./SecurityPage").then((m) => m.SecurityPage),

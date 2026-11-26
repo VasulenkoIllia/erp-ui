@@ -31,6 +31,7 @@ import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
 import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
 import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { ukTrash } from "@/registry/lib/i18n-uk-trash"
+import { ukBoard } from "@/registry/lib/i18n-uk-board"
 import { ukSetup } from "@/registry/lib/i18n-uk-setup"
 import { ukWebhooks } from "@/registry/lib/i18n-uk-webhooks"
 import { ukWizard } from "@/registry/lib/i18n-uk-wizard"
@@ -69,6 +70,7 @@ export const uk = {
   ...ukParty,
   ...ukPeriodLock,
   ...ukTrash,
+  ...ukBoard,
 }
 
 export type ErpUiMessages = typeof uk

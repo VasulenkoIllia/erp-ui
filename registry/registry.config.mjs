@@ -513,7 +513,7 @@ export const CODE_ITEMS = {
   "lib/api": {
     title: "Конвенції API",
     description:
-      "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія; межа часу запиту timeoutMs (сервер мовчить — ApiError offline).",
+      "HTTP-клієнт і контракт REST (ADR-0002): плоскі параметри списку, { data, total }, суми за фільтром sumOf → sums (ADR-0100), єдиний формат помилок ApiError, version для конфліктів, X-Company-Id, cookie-сесія; межа часу запиту timeoutMs (сервер мовчить — ApiError offline).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -529,7 +529,7 @@ export const CODE_ITEMS = {
   "lib/data-provider": {
     title: "dataProvider ra-core",
     description:
-      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024); дія над записом за графом переходів — runTransition (ADR-0057); потік документів — getDocumentFlow (ADR-0061).",
+      "createDataProvider: getList/getOne/getMany/create/update/delete за конвенціями API; суми списку — meta.sumOf у запиті, meta.sums у результаті (listSums, ADR-0100); update надсилає змінені поля + version; масові дії — startBulk, getJob, retryJob (lib/jobs, ADR-0018); закріплення й розмір сторінки — setPinned, getListSettings, saveListSettings (ADR-0024); дія над записом за графом переходів — runTransition (ADR-0057); потік документів — getDocumentFlow (ADR-0061).",
     status: "beta",
     demo: "data",
     spec: ["§17"],
@@ -721,7 +721,7 @@ export const CODE_ITEMS = {
   "hooks/use-list-settings": {
     title: "Розмір сторінки: дані",
     description:
-      "useRememberedPerPage: розмір сторінки списку з особистих налаштувань /me/list-settings/<ресурс>; список чекає на них, щоб не просити сторінку двічі; вибір діє одразу й зберігається на сервері, помилка — типовий розмір без повідомлення (ADR-0024).",
+      "useRememberedPerPage: розмір сторінки списку з особистих налаштувань /me/list-settings/<ресурс>; список чекає на них, щоб не просити сторінку двічі; вибір діє одразу й зберігається на сервері, помилка — типовий розмір без повідомлення (ADR-0024). useCollapsedColumns: згорнуті колонки дошки в тих самих налаштуваннях, без збереженого — колонки модуля (ADR-0100).",
     status: "beta",
     demo: "organizations",
     spec: ["§7", "PF11"],
@@ -1487,6 +1487,21 @@ export const CODE_ITEMS = {
     demo: "trash",
     spec: ["PF16", "§11"],
   },
+  "lib/i18n-uk-board": {
+    title: "Рядки дошки українською",
+    description:
+      "Колонки з кількістю, згортання, перемикач колонки на телефоні, доріжки, «Показати ще», швидке створення, «Перемістити в…», «Редагує …» (ADR-0100): окремий файл, простір імен erp-ui той самий; вантажиться з дошкою: useErpUiT(частина), ADR-0094.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§11"],
+  },
+  "lib/i18n-en-board": {
+    title: "Рядки дошки англійською",
+    description: "Ті самі рядки дошки англійською.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§11"],
+  },
   "lib/i18n-uk-document-lines": {
     title: "Рядки редактора рядків документа українською",
     description:
@@ -1537,7 +1552,7 @@ export const CODE_ITEMS = {
   "lib/list-settings": {
     title: "Налаштування списків: контракт",
     description:
-      "GET і PATCH /me/list-settings/<ресурс> → { perPage } (null — нічого не збережено), розміри сторінки на вибір 10, 20, 50, 100; особисті, як і збережені види (ADR-0024).",
+      "GET і PATCH /me/list-settings/<ресурс> → { perPage, collapsedColumns } (null чи немає поля — нічого не збережено), розміри сторінки на вибір 10, 20, 50, 100, згорнуті колонки дошки (ADR-0100); особисті, як і збережені види (ADR-0024).",
     status: "beta",
     demo: "organizations",
     spec: ["§7", "§17", "PF11"],
@@ -2076,6 +2091,38 @@ export const CODE_ITEMS = {
     demo: "contacts",
     spec: ["§7", "PF16"],
   },
+  "templates/board": {
+    title: "Дошка (Board)",
+    description:
+      "Шаблон Board: дошка списку сутностей — подання List Report (layouts) з тими самими вкладками, пошуком, видами й вибором; колонки за полем запису, запит на колонку з «Показати ще», сума від сервера (sumOf), згорнуті колонки в особистих налаштуваннях списку, доріжки, швидке створення з правом create, «Перемістити в…» зміною поля з версією чи дією модуля, причина без права, з позначкою запису чи коли картку редагує інша людина; стани колекції SPEC §8.1 (SPEC §7, UI07, ADR-0091, ADR-0100).",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§7", "§8.1", "§8.4", "§9", "§10"],
+  },
+  "templates/board-data": {
+    title: "Дані дошки",
+    description:
+      "Частина templates/board: запит на колонку (фільтр списку плюс поле колонки) з ключами useGetList ra-core, «Показати ще» більшою сторінкою до MAX_PER_PAGE, сума від сервера чи завантажених карток, коли завантажено всі; колонки за фільтром вкладки. Ставиться разом із шаблоном.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§8.1", "§17"],
+  },
+  "templates/board-actions": {
+    title: "Дії дошки",
+    description:
+      "Частина templates/board: перенесення (дія модуля чи зміна поля з версією; 409 — повідомлення й оновлена дошка) з фокусом на картку на новому місці й оголошенням, швидке створення з помилкою поля під полем. Ставиться разом із шаблоном.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§8.1", "§10"],
+  },
+  "templates/board-status": {
+    title: "Рядок стану дошки",
+    description:
+      "Частина templates/board: кількість карток (live-регіон), «Оновлено о…» з «Оновити», панель вибраного «усі за фільтром»; збій колонки з повтором; «Показати ще» з «Показано 20 з 87» і порада уточнити фільтр на межі сторінки сервера. Ставиться разом із шаблоном.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§8.1"],
+  },
   "erp/status-tabs": {
     title: "Вкладки-статуси",
     description:
@@ -2139,6 +2186,38 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "data",
     spec: ["§7", "§8.1", "§10"],
+  },
+  "erp/kanban": {
+    title: "Дошка-канбан",
+    description:
+      "Kanban: колонки з назвою, кількістю й сумою, доріжки (рядки дошки, «Інше» для невідомих), згортання колонки з поверненням фокуса, місце для швидкого створення, скелетон і стан колонки, «Показати ще» під картками; вужче за 42rem контейнера — одна колонка з перемикачем (useKanbanNarrow). Без даних і без ra-core: дані дає templates/board чи свій сервер проекту; перетягування немає, переносить «Перемістити в…» картки (SPEC §7 Board, §9, UI07, ADR-0100).",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§7", "§8.1", "§9", "§10"],
+  },
+  "erp/kanban-column": {
+    title: "Шапка колонки дошки",
+    description:
+      "Частина erp/kanban: назва з кількістю (h2), сума, «Згорнути» й згорнута смужка «Розгорнути», швидке створення, скелетон чи стан колонки; перемикач колонки на вузькому контейнері. Ставиться разом з erp/kanban.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§9", "§10"],
+  },
+  "erp/kanban-card": {
+    title: "Картка дошки",
+    description:
+      "Частина erp/kanban: KanbanCard — прапорець вибору, вміст модуля, меню «Перемістити в…» з колонками (поточна неактивна) чи причиною, чому не можна (SPEC §8.4), позначка «Редагує …», спінер під час перенесення. Ставиться разом з erp/kanban.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§8.1", "§8.4", "§10"],
+  },
+  "erp/kanban-quick-create": {
+    title: "Швидке створення на дошці",
+    description:
+      "Частина erp/kanban: KanbanQuickCreate — «Додати картку» стає полем назви з «Додати» й «Скасувати»; Enter додає, Esc закриває з фокусом на кнопку; після створення поле лишається для наступної картки, помилка — під полем. Ставиться разом з erp/kanban.",
+    status: "beta",
+    demo: "board",
+    spec: ["UI07", "§8.3", "§10"],
   },
   "erp/job-progress": {
     title: "Прогрес масової дії",
@@ -4201,6 +4280,9 @@ export const LIGHT_SET = [
   "erp/file-drop",
   "erp/form-field",
   "erp/form-select",
+  "erp/kanban",
+  "erp/kanban-card",
+  "erp/kanban-quick-create",
   "erp/login-form",
   "erp/multi-select",
   "erp/number-input",

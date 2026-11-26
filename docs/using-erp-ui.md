@@ -357,7 +357,7 @@ npx msw init public --save   # service worker для моків у браузе�
 
 `CoreAdminContext`, хуки й типи ra-core (`useGetList`, `useUpdate`, `useCanAccess`, `RaRecord`…) беріть з `@/lib/ra-core`: це шов кіта, він ставиться разом із пакунком `data` і кожним модулем (ADR-0090). Кіт імпортує ra-core лише через нього, тож мажорне оновлення бібліотеки зачепить один файл. Прямий імпорт `ra-core` у коді проекту теж працює; ім'я, якого в шві немає, беріть напряму.
 
-Списки на шаблоні List Report читають особисті види (`/me/views`) і розмір сторінки (`/me/list-settings/<ресурс>`): у моках це `createSavedViewHandlers()` з `@/lib/mock-views` (окремий елемент `lib/mock-views`) і `createListSettingsHandlers()` з `@/lib/mock-lists` поруч з обробниками ресурсів.
+Списки на шаблоні List Report читають особисті види (`/me/views`) і розмір сторінки чи згорнуті колонки дошки (`/me/list-settings/<ресурс>`): у моках це `createSavedViewHandlers()` з `@/lib/mock-views` (окремий елемент `lib/mock-views`) і `createListSettingsHandlers()` з `@/lib/mock-lists` поруч з обробниками ресурсів.
 
 ```tsx
 // src/data/providers.ts
@@ -432,7 +432,7 @@ interface ImportMetaEnv {
 - Перевірка: після збірки з бекендом `grep -rlF -e "[MSW]" -e "erp-ui:mock-" dist` нічого не знаходить (додайте рядок, що є лише у ваших моках, напр. пароль користувача моків). Так само кіт у CI перевіряє тестовий проект (`scripts/consumer-smoke.mjs`): без змінної, з опискою й з `mocks` лише з `.env`-файла збірка зупиняється, з `api` моків у `dist` немає, з `mocks` MSW і моки проекту — лише лінивими чанками.
 - `node scripts/erp-ui-kit.mjs check` попереджає (код 0), якщо в `vite.config.*` проекту немає `VITE_BACKEND`: старий проект бачить так, що запобіжника ще немає (ADR-0088). Лише коли моки кіта в проекті є: елемент `mocks` у `kit-files.json` чи файл кіта `mocks.ts` (`lib/mocks.ts`, який ставить і модуль кіта, чи моки модуля); проект без моків попередження не бачить (ADR-0096).
 
-- Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`.
+- Список: `useGetList("invoices", { pagination, sort, filter: { status: ["paid", "sent"], amount_gte: 10000, q } })` → `GET /api/v1/invoices?status=paid&status=sent&amount_gte=10000&q=…&sort=-date&page=1&perPage=25`. Суми за всім фільтром (дошка, ADR-0100): `meta: { sumOf: ["amount"] }` → `…&sumOf=amount`, сервер відповідає `{ data, total, sums: { amount: 125000 } }`, у ra-core — `meta.sums` результату (`listSums(meta)` з `lib/data-provider`); сервер, що сум не рахує, параметр пропускає (не фільтр), а поле суми бере лише зі свого переліку дозволених. `sumOf`, як `page`, `perPage` і `sort`, — не ім'я фільтра.
 - Таблиця (ADR-0016) — `DataTable` з `erp/data-table`: колонки описуються один раз для гріда й карток (на контейнері вужчому за 40 rem — картки), сортування й фільтри — на сервері.
 
   ```tsx
@@ -473,6 +473,32 @@ interface ImportMetaEnv {
   Колонки, фільтри, вкладки й дії — списки з ключами, порядок на екрані — порядок у списку: розширення модуля додає, ховає чи переставляє елемент за ключем (ADR-0020). Поки види вантажаться, таблиця — скелетон: дані не вантажаться двічі. Без `title` шапки в шаблоні немає: її ставить сторінка (`PageHeader` з `erp/page-header`, стара назва `ListReportHeader` — той самий компонент), напр. над перевіркою сесії, щоб шапка не з'являлась заново; сторінка без списку (налаштування, форма) теж бере `PageHeader`, а не шаблон списку. Збирати список вручну з `StatusTabs`, `FilterBar`, `SavedViewsMenu`, `useListState` і `DataTable` не треба; повний приклад — `src/pages/DataPage.tsx` у демо.
 
   Подання (ADR-0091) — ті самі записи дошкою, календарем чи картками з тими самими вкладками, фільтрами, видами й вибором: `useListReport({ …, layouts })`, де `layouts` (у `useMemo`) — `[{ id: "table", label, icon: LAYOUT_ICONS.table }, { id: "board", label, component: DealsBoard }]` (іконки подань — `LAYOUT_ICONS` з `lib/icons`; нове подання додає туди свою). Подання без `component` — таблиця шаблону, перше — за замовчуванням. Компонент подання отримує `ListReportContentProps` (`resource`, `label`, `filter` — вкладка поверх панелі, `sort`, `onSortChange`, `isFiltered`, `onResetFilters`, `selection`, `bulkActions` — масові дії `bulk` для своєї панелі вибраного), сам вантажить записи й показує стани колекції (скелетон, помилка з повтором, «нічого не знайдено» з `onResetFilters`, «порожньо»). Перемикач «Подання списку» шаблон ставить сам біля «Фільтри»; вибране подання — в адресі (`?layout=board`) і у збереженому виді, «Стандартний» вид і «Скинути фільтри» його не міняють, а інше подання, як і інша вкладка, скидає вибір. У списку з поданнями поле фільтра не називайте `layout`. Зразок — подання «Картки» в `src/pages/OrganizationsPage.tsx` демо.
+
+  Дошка (ADR-0100) — подання з `templates/board`: колонки за полем запису, кожна колонка — свій запит із фільтром списку, у шапці кількість і сума, «Показати ще», доріжки, згортання, швидке створення й «Перемістити в…» у меню картки (з клавіатури, без перетягування); на контейнері вужчому за 42rem — одна колонка з перемикачем.
+
+  ```tsx
+  function DealsBoard(props: ListReportContentProps) {          // подання списку з layouts
+    const columns = useMemo<BoardColumn[]>(() => STAGES.map((id) => ({
+      id, label: t(`stages.${id}`), collapsed: id === "lost",      // згорнута, поки людина не вибрала свого
+    })), [t])
+    const sum = useMemo(() => ({ field: "amount", format: (amount: number) => format.money({ amount, currency: "UAH" }) }), [format])
+    return (
+      <Board<Deal> {...props}
+        field="stage"                                              // значення поля — id колонки
+        columns={columns}
+        cardLabel={(deal) => deal.title}
+        renderCard={(deal) => <DealCard deal={deal} />}
+        sum={sum}                                                  // необов'язково
+        lanes={{ items: owners, of: (deal) => deal.ownerId ?? "" }} // необов'язково; невідома доріжка — «Інше»
+        quickCreate={{ field: "title", label: t("title") }}        // без права create кнопки немає
+        lockedBy={(deal) => deal.editedBy ?? undefined}            // «Редагує …» (ADR-0051)
+        denialText={denialText}                                    // слова модуля для deniedActions запису
+        countLabel={(count, value) => t("count", { count, value })} />
+    )
+  }
+  ```
+
+  Перенесення за замовчуванням — `update` поля колонки з версією запису (409 — повідомлення й оновлена дошка); перехід статусу через свою дію — `move: (record, column) => …`. Без права `update` (свій текст причини — `moveDenied`), з `deniedActions.update` запису чи коли картку редагує інша людина меню показує причину замість колонок. Згорнуті колонки людина вибирає сама, вибір зберігається в `/me/list-settings/<ресурс>` (`collapsedColumns`); `collapsed` у колонках — лише за замовчуванням. Бекенд без `sumOf` теж працює: сума — лише в колонці, завантаженій повністю; сервер, що вважає кожен невідомий параметр фільтром, оновлює розбір (`fromSearchParams` кіта) чи дошка йде без `sum`. Колонки покривають усі значення поля: «усі за фільтром» у масових діях бере фільтр списку без колонки. Без `templates/board` (легкий набір) — `erp/kanban` з власними даними. Зразок — `src/pages/BoardPage.tsx` демо.
 
   Закріплення записів угорі списку (ADR-0024) — колонка `usePinColumn({ resource, name })` з `erp/pin-toggle` першою в `columns` і `isPinned={isPinned}` (з `lib/pins`) у `ListReport`; порядок «закріплені спершу» дає сервер (`PUT`/`DELETE /<ресурс>/:id/pin`, `pinned: true` у відповіді), у моках — `pins: true` у `createResourceHandlers`. У шапці картки — `<PinToggle variant="button" … />`. Бекенд без закріплення — розширення ховає колонку `pin`. Розмір сторінки в `mode="pages"` запам'ятовується сам (`/me/list-settings/<ресурс>`, у моках — `createListSettingsHandlers()`); інші розміри — `perPageOptions`, без вибору — `perPageOptions={[]}`.
 

@@ -214,17 +214,36 @@ describe("закріплення: мок і dataProvider", () => {
 })
 
 describe("налаштування списків: мок і dataProvider", () => {
-  it("нічого не збережено — perPage null; PATCH зберігає лише своє й лише для власника", async () => {
-    expect(await provider.getListSettings("records")).toEqual({ perPage: null })
+  const NOTHING = { perPage: null, collapsedColumns: null }
+
+  it("нічого не збережено — null у полях; PATCH зберігає лише своє й лише для власника", async () => {
+    expect(await provider.getListSettings("records")).toEqual(NOTHING)
     expect(await provider.saveListSettings("records", { perPage: 50 })).toEqual(
-      { perPage: 50 },
+      { ...NOTHING, perPage: 50 },
     )
-    expect(await provider.getListSettings("records")).toEqual({ perPage: 50 })
-    expect(await provider.getListSettings("me/views")).toEqual({
-      perPage: null,
+    expect(await provider.getListSettings("records")).toEqual({
+      ...NOTHING,
+      perPage: 50,
     })
+    expect(await provider.getListSettings("me/views")).toEqual(NOTHING)
     signInMock("u2")
-    expect(await provider.getListSettings("records")).toEqual({ perPage: null })
+    expect(await provider.getListSettings("records")).toEqual(NOTHING)
+  })
+
+  it("згорнуті колонки дошки зберігаються окремо від розміру сторінки (ADR-0100)", async () => {
+    await provider.saveListSettings("records", { perPage: 50 })
+    expect(
+      await provider.saveListSettings("records", {
+        collapsedColumns: ["won", "lost"],
+      }),
+    ).toEqual({ perPage: 50, collapsedColumns: ["won", "lost"] })
+    expect(
+      await provider.saveListSettings("records", { collapsedColumns: [] }),
+    ).toEqual({ perPage: 50, collapsedColumns: [] })
+    const invalid = await provider
+      .saveListSettings("records", { collapsedColumns: [""] })
+      .catch((error: unknown) => error)
+    expect(isApiError(invalid) && invalid.code).toBe("validation")
   })
 
   it("неправильний розмір — 422 validation; сценарій list-settings", async () => {
@@ -247,7 +266,10 @@ describe("налаштування списків: мок і dataProvider", () =
       key,
       JSON.stringify({ ...stored, broken: { perPage: "many" } }),
     )
-    expect(await provider.getListSettings("records")).toEqual({ perPage: 50 })
-    expect(await provider.getListSettings("broken")).toEqual({ perPage: null })
+    expect(await provider.getListSettings("records")).toEqual({
+      ...NOTHING,
+      perPage: 50,
+    })
+    expect(await provider.getListSettings("broken")).toEqual(NOTHING)
   })
 })

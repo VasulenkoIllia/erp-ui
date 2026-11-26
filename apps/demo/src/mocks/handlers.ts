@@ -76,6 +76,13 @@ import {
   organizationParty,
   responsibleOf,
 } from "@/data/organizations"
+import {
+  makePipelineDeals,
+  PIPELINE,
+  PIPELINE_CLOSED_DENIAL,
+  pipelineDealSchema,
+  type PipelineDeal,
+} from "@/data/pipeline"
 import { MY_ACTIVITY_SEEDS, TIMELINE_SEEDS } from "@/data/timeline"
 import {
   makeProductsWithTrash,
@@ -157,6 +164,24 @@ const products = createResourceHandlers<Product>({
   unique: ["sku"],
   // Сторінка «Кошик» (PF16): видалені товари з різними строками й один, чиє місце вже зайняте.
   trash: { bin: trash.bin, deleted: TRASHED_PRODUCT_SEEDS },
+})
+
+// Дошка демо (UI07, ADR-0100): угоди воронки; суми колонок мок рахує за `sumOf`, виграну угоду не переносять.
+const pipeline = createResourceHandlers<PipelineDeal>({
+  resource: PIPELINE,
+  schema: pipelineDealSchema,
+  data: makePipelineDeals,
+  searchFields: ["title", "client"],
+  label: { uk: "Воронка продажів", en: "Sales pipeline" },
+  fieldLabels: {
+    title: { uk: "Назва", en: "Name" },
+    client: { uk: "Клієнт", en: "Client" },
+    stage: { uk: "Етап", en: "Stage" },
+    amount: { uk: "Сума, коп.", en: "Amount, minor units" },
+    owner: { uk: "Відповідальний", en: "Owner" },
+  },
+  deniedActions: (_actor, deal) =>
+    deal.stage === "won" ? { update: PIPELINE_CLOSED_DENIAL } : undefined,
 })
 
 const invoiceBulk = createBulkHandlers<Invoice>({
@@ -577,6 +602,7 @@ export const handlers = [
     companyProfiles: COMPANY_PROFILES,
     apiResources: {
       invoices: { uk: "Рахунки", en: "Invoices" },
+      [PIPELINE]: { uk: "Воронка продажів", en: "Sales pipeline" },
       organizations: { uk: "Організації", en: "Organizations" },
       contacts: { uk: "Контакти", en: "Contacts" },
       segments: { uk: "Сегменти", en: "Segments" },
@@ -618,6 +644,7 @@ export const handlers = [
   ...importExport.handlers,
   ...timeline.handlers,
   ...products.handlers,
+  ...pipeline.handlers,
   ...invoices.handlers,
   ...documentTransitions,
   ...documentFlow,

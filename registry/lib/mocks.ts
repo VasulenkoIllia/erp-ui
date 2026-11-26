@@ -267,6 +267,22 @@ function readableChanges<T extends MockRecord>(
   })
 }
 
+/** Суми полів за всім фільтром (`sumOf`, ADR-0100): нечислові значення не рахуються. */
+function mockSums(
+  records: readonly MockRecord[],
+  fields: readonly string[],
+): Record<string, number> {
+  return Object.fromEntries(
+    fields.map((field) => [
+      field,
+      records.reduce((sum, record) => {
+        const value = record[field]
+        return typeof value === "number" ? sum + value : sum
+      }, 0),
+    ]),
+  )
+}
+
 const validationError = (errors: Record<string, string>) =>
   errorResponse(422, {
     code: "validation",
@@ -573,7 +589,7 @@ export function createResourceHandlers<T extends MockRecord>({
       const access = await guard(request, "read")
       if (access instanceof Response) return access
       if (scenarioFor(resource) === "empty") return json({ data: [], total: 0 })
-      const { page, perPage, sort, filter } = fromSearchParams(
+      const { page, perPage, sort, filter, sumOf } = fromSearchParams(
         new URL(request.url).searchParams,
       )
       const pinned = pinnedIds()
@@ -593,6 +609,7 @@ export function createResourceHandlers<T extends MockRecord>({
             ),
           ),
         total: filtered.length,
+        ...(sumOf ? { sums: mockSums(filtered, sumOf) } : {}),
       })
     }),
 

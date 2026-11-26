@@ -4,7 +4,8 @@
  * - Ресурси: `GET /api/v1/<ресурс>` (список), `GET …/<id>`, `POST`, `PATCH …/<id>`, `DELETE …/<id>`.
  * - Список: плоскі параметри — `status=paid&status=sent&amount_gte=10000&q=…&sort=-date,number&page=2&perPage=50`;
  *   повтор ключа — «одне з»; суфікси `_gte`, `_lte`, `_gt`, `_lt`, `_ne`; `q` — повнотекстовий пошук.
- *   Відповідь — `{ data: T[], total: number }`.
+ *   Відповідь — `{ data: T[], total: number }`. Суми за фільтром (колонка дошки, ADR-0100): `sumOf=amount` (повтор —
+ *   кілька полів) → `sums: { amount: 123400 }` у відповіді; сервер, що сум не рахує, параметр пропускає.
  * - Помилки — `{ code, message, fieldErrors?, providerCode?, providerMessage?, current? }` + HTTP-статус.
  * - Конкурентне редагування: запис має `version`; PATCH надсилає її, розбіжність → 409 `conflict` з `current`.
  * - Сесія — httpOnly cookie (ADR-0003), тож клієнт завжди шле `credentials: "include"`.
@@ -41,7 +42,12 @@ export interface ListParams {
   perPage: number
   sort: SortField[]
   filter: Record<string, FilterValue>
+  /** Поля, суми яких за всім фільтром повернути в `sums` (ADR-0100); без них сум немає. */
+  sumOf?: string[]
 }
+
+/** Параметр запиту списку: суми яких полів повернути (ADR-0100). */
+export const LIST_SUM_PARAM = "sumOf"
 
 export const DEFAULT_PER_PAGE = 25
 export const MAX_PER_PAGE = 500
@@ -50,7 +56,7 @@ export const MAX_PER_PAGE = 500
 export const FILTER_OPERATORS = ["gte", "lte", "gt", "lt", "ne"] as const
 export type FilterOperator = (typeof FILTER_OPERATORS)[number] | "eq"
 
-const RESERVED = new Set(["page", "perPage", "sort"])
+const RESERVED = new Set(["page", "perPage", "sort", LIST_SUM_PARAM])
 
 /** Ключ фільтра → поле й оператор: "amount_gte" → { field: "amount", op: "gte" }. */
 export function parseFilterKey(key: string): {
@@ -97,6 +103,7 @@ export function toSearchParams(params: Partial<ListParams>): URLSearchParams {
   if (params.sort?.length) sp.set("sort", formatSort(params.sort))
   if (params.page) sp.set("page", String(params.page))
   if (params.perPage) sp.set("perPage", String(params.perPage))
+  for (const field of params.sumOf ?? []) sp.append(LIST_SUM_PARAM, field)
   return sp
 }
 
@@ -113,7 +120,14 @@ export function fromSearchParams(sp: URLSearchParams): ListParams {
     MAX_PER_PAGE,
     Math.max(1, Number(sp.get("perPage")) || DEFAULT_PER_PAGE),
   )
-  return { page, perPage, sort: parseSort(sp.get("sort")), filter }
+  const sumOf = sp.getAll(LIST_SUM_PARAM).filter(Boolean)
+  return {
+    page,
+    perPage,
+    sort: parseSort(sp.get("sort")),
+    filter,
+    ...(sumOf.length ? { sumOf } : {}),
+  }
 }
 
 export const API_ERROR_CODES = [
@@ -199,6 +213,10 @@ export function errorStateKind(
   if (isApiError(error) && error.status === 403) return "forbidden"
   return "error"
 }
+
+/** Суми списку за фільтром (`sumOf`, ADR-0100): поле → число; сервер без сум поля не дає. */
+export const listSumsSchema = z.record(z.string(), z.number())
+export type ListSums = z.infer<typeof listSumsSchema>
 
 /** Відповідь списку: `{ data, total }`. */
 export function listResultSchema<T extends z.ZodType>(item: T) {

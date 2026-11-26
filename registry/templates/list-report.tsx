@@ -257,6 +257,7 @@ export function ListReport<T extends RaRecord>({
 }: ListReportProps<T>) {
   const { resource, tabs, filters, layouts, list, views, counts, selection } =
     report
+  const root = React.useRef<HTMLDivElement>(null)
   const Content = layouts.find(
     (layout) => layout.id === list.state.layout,
   )?.component
@@ -269,6 +270,8 @@ export function ListReport<T extends RaRecord>({
     isFiltered: list.isFiltered,
     onResetFilters: () => {
       list.applyView(null)
+      // «Скинути фільтри» зникає разом зі станом «нічого не знайдено» — фокус у пошук (WCAG 2.4.3).
+      focusFilterBar(root.current)
     },
     selection,
     ...(bulk
@@ -294,7 +297,11 @@ export function ListReport<T extends RaRecord>({
     )
 
   return (
-    <div data-slot="list-report" className={cn("min-w-0 space-y-6", className)}>
+    <div
+      ref={root}
+      data-slot="list-report"
+      className={cn("min-w-0 space-y-6", className)}
+    >
       {title === undefined ? null : (
         <PageHeader
           title={title}
@@ -408,6 +415,20 @@ export type ListReportHeaderProps = PageHeaderProps
 export const ListReportHeader = PageHeader
 
 const recordId = (row: RaRecord) => String(row.id)
+
+/**
+ * Поле пошуку панелі фільтрів, а без нього — перша кнопка панелі («Фільтри»). На дотиковому екрані — одразу
+ * кнопка: фокус у полі відкрив би екранну клавіатуру.
+ */
+function focusFilterBar(root: HTMLElement | null) {
+  const bar = root?.querySelector('[data-slot="filter-bar"]')
+  const search = window.matchMedia(COARSE_POINTER).matches
+    ? null
+    : bar?.querySelector<HTMLElement>('input[type="search"]')
+  ;(search ?? bar?.querySelector<HTMLElement>("button"))?.focus()
+}
+
+const COARSE_POINTER = "(pointer: coarse)"
 
 /** Окремий компонент на дію: хуки в `render` не залежать від того, скільки дій і чи є вибір. */
 function BulkActionSlot({
