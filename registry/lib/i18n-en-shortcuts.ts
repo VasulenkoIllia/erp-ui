@@ -24,6 +24,7 @@ export const enShortcuts = {
       document: "Document lines",
       text: "Rich text field",
       avatar: "Profile photo",
+      photo: "Photo crop",
       project: "This application",
     },
     items: {
@@ -56,6 +57,10 @@ export const enShortcuts = {
       avatarMove: "Move the photo",
       avatarZoomIn: "Zoom in",
       avatarZoomOut: "Zoom out",
+      photoFrameMove: "Move the frame",
+      photoFrameResize: "Resize the frame",
+      photoFrameWhole: "Whole photo, no frame",
+      photoCornerCancel: "Cancel the first corner",
     },
     keys: {
       arrowUp: "up arrow",

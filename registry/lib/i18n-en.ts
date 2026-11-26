@@ -19,6 +19,7 @@ import { enRichText } from "@/registry/lib/i18n-en-rich-text"
 import { enTimeline } from "@/registry/lib/i18n-en-timeline"
 import { enTrash } from "@/registry/lib/i18n-en-trash"
 import { enBoard } from "@/registry/lib/i18n-en-board"
+import { enPhotos } from "@/registry/lib/i18n-en-photos"
 import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -1469,4 +1470,5 @@ export const en = {
   ...enDocumentGenerator,
   ...enTrash,
   ...enBoard,
+  ...enPhotos,
 } satisfies ErpUiTranslation

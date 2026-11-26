@@ -31,6 +31,7 @@ export const ROUTES = {
   data: "/data",
   organizations: "/organizations",
   board: "/board",
+  photos: "/photos",
   inbox: "/notifications",
   security: "/settings/security",
   users: "/settings/users",

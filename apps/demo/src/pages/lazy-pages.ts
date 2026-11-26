@@ -103,6 +103,10 @@ export const PAGES = {
   ),
   // Шаблон Board: дошка — подання списку угод (ADR-0091, ADR-0100).
   board: lazyWithPreload(() => import("./BoardPage").then((m) => m.BoardPage)),
+  // Фото: поле кількох фото, перегляд фото товару, сітка карток (UI11, ADR-0101).
+  photos: lazyWithPreload(() =>
+    import("./PhotosPage").then((m) => m.PhotosPage),
+  ),
   inbox: lazyWithPreload(() => import("./InboxPage").then((m) => m.InboxPage)),
   security: lazyWithPreload(() =>
     import("./SecurityPage").then((m) => m.SecurityPage),

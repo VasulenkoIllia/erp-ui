@@ -25,6 +25,7 @@ export const ukShortcuts = {
       document: "Рядки документа",
       text: "Поле тексту",
       avatar: "Фото профілю",
+      photo: "Обрізання фото",
       project: "Цей застосунок",
     },
     items: {
@@ -57,6 +58,10 @@ export const ukShortcuts = {
       avatarMove: "Зсунути фото",
       avatarZoomIn: "Збільшити",
       avatarZoomOut: "Зменшити",
+      photoFrameMove: "Зсунути рамку",
+      photoFrameResize: "Змінити розмір рамки",
+      photoFrameWhole: "Усе фото, без рамки",
+      photoCornerCancel: "Скасувати перший кут",
     },
     keys: {
       arrowUp: "стрілка вгору",

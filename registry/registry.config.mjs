@@ -790,6 +790,22 @@ export const CODE_ITEMS = {
     demo: "lightLogin",
     spec: ["PF01"],
   },
+  "hooks/use-photo-choice": {
+    title: "Стан поля фото",
+    description:
+      "usePhotoChoice: до max фото (типово 4), перевірка типу (JPEG, PNG, WebP) і розміру джерела, файл без розміру (SVG) чи нечитабельний — відмова з причиною, те саме фото вдруге — ні (відбиток вмісту); адреси blob: відкликаються при прибиранні й виході; settled() дочікується фото, що ще читаються (частина UI11, ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§10"],
+  },
+  "hooks/use-photo-drop": {
+    title: "Вставка й перетягування фото",
+    description:
+      "usePagePaste і useDropZone для erp/photo-input: скриншот із буфера бере поле, яке видно (не прихована вкладка, не за модальним вікном), текст у полі вводу не перехоплюється; перетягування підсвічує поле лише для файлів, файл повз поле браузер не відкриває (частина UI11, ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§10"],
+  },
   "hooks/use-element-size": {
     title: "useElementSize",
     description:
@@ -1502,6 +1518,21 @@ export const CODE_ITEMS = {
     demo: "board",
     spec: ["UI07", "§11"],
   },
+  "lib/i18n-uk-photos": {
+    title: "Рядки фото українською",
+    description:
+      "Поле кількох фото, обрізання, смуга мініатюр, перегляд фото товару, сітка карток (частина UI11, ADR-0101): окремий файл, простір імен erp-ui той самий; вантажиться з компонентами фото: useErpUiT(частина), ADR-0094.",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§11"],
+  },
+  "lib/i18n-en-photos": {
+    title: "Рядки фото англійською",
+    description: "Ті самі рядки фото англійською.",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§11"],
+  },
   "lib/i18n-uk-document-lines": {
     title: "Рядки редактора рядків документа українською",
     description:
@@ -1643,6 +1674,62 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "importExport",
     spec: ["UI11", "§8.3", "§9", "§10"],
+  },
+  "lib/photo-frame": {
+    title: "Рамка й стискання фото",
+    description:
+      "Рамка обрізання в пікселях фото (протягнути, з клавіатури, зсув і розмір у межах фото), розмір на виході, encodePhotoFrame — JPEG на білому тлі, довша сторона до 1024 px, на canvas без залежностей; blobToDataUrl (частина UI11, ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11"],
+  },
+  "lib/photo-choice": {
+    title: "Вибрані фото",
+    description:
+      "Чисті функції вибору фото: додати до межі без повторів, прибрати з розумним наступним показаним, рамка фото, показане фото; encodeChosenPhoto — готовий JPEG (частина UI11, ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11"],
+  },
+  "erp/photo-input": {
+    title: "Поле кількох фото",
+    description:
+      "PhotoInput (частина UI11): вибір кількох файлів, перетягування, вставка скриншота будь-де на сторінці (не з поля вводу тексту, лише коли поле видно), обрізання кожного фото, «Усе фото», смуга мініатюр, «Прибрати всі», причини відмови біля поля, додане фото озвучується; стан — usePhotoChoice (ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§8.3", "§9", "§10"],
+  },
+  "erp/photo-crop": {
+    title: "Обрізання фото",
+    description:
+      "PhotoCrop: рамка мишею чи дотиком, два кути без перетягування (WCAG 2.5.7), стрілки й Shift зі стрілками з клавіатури, Delete — усе фото; розмір і місце рамки чутно. Частина erp/photo-input (ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§10"],
+  },
+  "erp/photo-strip": {
+    title: "Смуга мініатюр фото",
+    description:
+      "PhotoStrip: мініатюри з назвою й позначкою «обрізано», вибір фото для обрізання, «Прибрати» з зоною ≥ --touch-min, подвійний клік прибирає одне, фокус після прибирання на сусідньому фото. Частина erp/photo-input (ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§10"],
+  },
+  "erp/photo-gallery": {
+    title: "Перегляд фото товару",
+    description:
+      "PhotoGallery (частина UI11): головне фото з мініатюрами й перемиканням, велике — посиланням у новій вкладці, запасні джерела по черзі (FallbackImage), lazy і no-referrer, «Без фото» й «Фото не завантажилось», позначка в куті (ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§8.1", "§10"],
+  },
+  "erp/product-grid": {
+    title: "Сітка карток товарів",
+    description:
+      "ProductGrid: колонки за шириною контейнера, до сотні карток без зайвих перемальовувань, скелетони; ProductCard зі слотами (фото, назва, опис, ціни, позначки, варіанти, дії); ProductVariants — згорнута таблиця варіантів, малюється при відкритті, порожні колонки сховано (ADR-0101).",
+    status: "beta",
+    demo: "photos",
+    spec: ["UI11", "§8.1", "§9", "§10"],
   },
   "erp/import-wizard": {
     title: "Майстер імпорту",
@@ -4289,6 +4376,11 @@ export const LIGHT_SET = [
   "erp/page-header",
   "erp/page-state",
   "erp/password-field",
+  "erp/photo-crop",
+  "erp/photo-gallery",
+  "erp/photo-input",
+  "erp/photo-strip",
+  "erp/product-grid",
   "erp/status-badge",
   "erp/user-menu",
 ]

@@ -21,6 +21,8 @@ export interface KeyCombo {
   mod?: boolean
   /** Саме Ctrl, зокрема на Mac (Ctrl+Home у гріді). */
   ctrl?: boolean
+  /** Разом із Shift (розмір рамки фото). Без цього поля Shift не заважає, як і раніше. */
+  shift?: boolean
 }
 
 export interface ShortcutDefinition {
@@ -48,6 +50,7 @@ export const SHORTCUT_GROUPS = [
   "document",
   "text",
   "avatar",
+  "photo",
 ] as const
 type ShortcutGroup = (typeof SHORTCUT_GROUPS)[number]
 
@@ -143,6 +146,30 @@ export const SHORTCUTS = {
     aliases: [{ key: "=" }],
   },
   avatarZoomOut: { group: "avatar", keys: [{ key: "-" }] },
+
+  photoFrameMove: {
+    group: "photo",
+    keys: [
+      { key: "ArrowUp" },
+      { key: "ArrowDown" },
+      { key: "ArrowLeft" },
+      { key: "ArrowRight" },
+    ],
+  },
+  photoFrameResize: {
+    group: "photo",
+    keys: [
+      { key: "ArrowRight", shift: true },
+      { key: "ArrowLeft", shift: true },
+      { key: "ArrowDown", shift: true },
+      { key: "ArrowUp", shift: true },
+    ],
+  },
+  photoFrameWhole: {
+    group: "photo",
+    keys: [{ key: "Delete" }, { key: "Backspace" }],
+  },
+  photoCornerCancel: { group: "photo", keys: [{ key: "Escape" }] },
 } as const satisfies Record<
   string,
   ShortcutDefinition & { group: ShortcutGroup }
@@ -187,6 +214,7 @@ function isSameLetter(event: KeyboardEvent, key: string): boolean {
 
 function matchesCombo(event: KeyboardEvent, combo: KeyCombo): boolean {
   if (!isSameLetter(event, combo.key)) return false
+  if (combo.shift && !event.shiftKey) return false
   if (combo.mod) return event.metaKey || event.ctrlKey
   if (combo.ctrl) return event.ctrlKey && !event.metaKey
   return !event.ctrlKey && !event.metaKey && !event.altKey
@@ -293,7 +321,8 @@ const keyLabel = (key: string) => KEY_LABELS.get(key) ?? upperLetter(key)
 
 /** Підпис поєднання: «⌘K» на Mac, «Ctrl K» деінде, «Ctrl Home», «↑». */
 export function comboLabel(combo: KeyCombo, isMac: boolean): string {
-  const key = keyLabel(combo.key)
+  const shift = combo.shift ? (isMac ? "⇧" : "Shift ") : ""
+  const key = `${shift}${keyLabel(combo.key)}`
   if (combo.mod) return isMac ? `⌘${key}` : `Ctrl ${key}`
   return combo.ctrl ? `Ctrl ${key}` : key
 }
@@ -305,7 +334,7 @@ export function ariaKeyShortcuts(
 ): string {
   return shortcut.keys
     .map((combo) => {
-      const key = upperLetter(combo.key)
+      const key = `${combo.shift ? "Shift+" : ""}${upperLetter(combo.key)}`
       if (combo.mod) return `${isMac ? "Meta" : "Control"}+${key}`
       return combo.ctrl ? `Control+${key}` : key
     })
