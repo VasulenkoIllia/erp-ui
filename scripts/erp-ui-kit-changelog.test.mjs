@@ -169,40 +169,37 @@ test("справжній CHANGELOG.md: з v1.2.0 до v1.3.0 — вступ ви
   assert.doesNotMatch(section.steps, /### /)
 })
 
-test("справжній CHANGELOG.md: з v1.3.0 до v1.4.0 — кроки лише у вступі, без повтору з підрозділів", () => {
-  const changelog = readFileSync(
-    new URL("../CHANGELOG.md", import.meta.url),
-    "utf8",
-  )
-  const [section, ...rest] = projectSteps(changelog, "v1.3.0", "v1.4.0")
-  assert.equal(rest.length, 0)
-  assert.equal(section.version, "1.4.0")
-  assert.match(
-    section.steps,
-    /^Оновлення з v1\.3\.0: [^]*Що зробити в проекті:\n\n- \*\*Команда оновлення\.\*\*/,
-  )
-  assert.doesNotMatch(section.steps, /### |- \*\*Що зробити в проекті/)
-  const bullets = section.steps
-    .split("\n")
-    .filter((line) => line.startsWith("- **"))
-  assert.equal(new Set(bullets).size, bullets.length)
-})
+// Випуски з v1.4.0: кроки лише у вступі (ADR-0088). Новий випуск — рядок тут: перший пункт його вступу.
+const RELEASES_WITH_STEPS_IN_INTRO = [
+  { from: "1.3.0", to: "1.4.0", firstStep: "Команда оновлення." },
+  { from: "1.4.0", to: "1.5.0", firstStep: "Рядки функцій кіта" },
+  { from: "1.5.0", to: "1.6.0", firstStep: "CLI shadcn 4.23.0" },
+]
 
-test("справжній CHANGELOG.md: з v1.4.0 до v1.5.0 — кроки лише у вступі, без повтору з підрозділів", () => {
-  const changelog = readFileSync(
-    new URL("../CHANGELOG.md", import.meta.url),
-    "utf8",
-  )
-  const [section, ...rest] = projectSteps(changelog, "v1.4.0", "v1.5.0")
-  assert.equal(rest.length, 0)
-  assert.equal(section.version, "1.5.0")
-  assert.match(
-    section.steps,
-    /^Оновлення з v1\.4\.0: [^]*Що зробити в проекті:\n\n- \*\*Рядки функцій кіта\*\*/,
-  )
-  assert.doesNotMatch(section.steps, /### |- \*\*Що зробити в проекті|vX\.Y\.Z/)
-  const bullets = section.steps
-    .split("\n")
-    .filter((line) => line.startsWith("- **"))
-  assert.equal(new Set(bullets).size, bullets.length)
-})
+for (const { from, to, firstStep } of RELEASES_WITH_STEPS_IN_INTRO) {
+  test(`справжній CHANGELOG.md: з v${from} до v${to} — кроки лише у вступі, без повтору з підрозділів`, () => {
+    const changelog = readFileSync(
+      new URL("../CHANGELOG.md", import.meta.url),
+      "utf8",
+    )
+    const [section, ...rest] = projectSteps(changelog, `v${from}`, `v${to}`)
+    assert.equal(rest.length, 0)
+    assert.equal(section.version, to)
+    assert.ok(
+      section.steps.startsWith(`Оновлення з v${from}: `),
+      section.steps.slice(0, 80),
+    )
+    assert.ok(
+      section.steps.includes(`Що зробити в проекті:\n\n- **${firstStep}**`),
+      `перший крок «${firstStep}»`,
+    )
+    assert.doesNotMatch(
+      section.steps,
+      /### |- \*\*Що зробити в проекті|vX\.Y\.Z/,
+    )
+    const bullets = section.steps
+      .split("\n")
+      .filter((line) => line.startsWith("- **"))
+    assert.equal(new Set(bullets).size, bullets.length)
+  })
+}

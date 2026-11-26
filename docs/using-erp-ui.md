@@ -23,16 +23,16 @@ pnpm add -D tailwindcss @tailwindcss/vite
 # "paths": { "@/*": ["./src/*"] } — і в tsconfig.json, і в tsconfig.app.json (шаблон Vite ділить їх)
 npx shadcn@4.23.0 init -b base -p nova
 pnpm remove shadcn && pnpm add -D -E shadcn@4.23.0   # init кладе shadcn у dependencies з ^: CLI — для розробки, та сама версія для встановлення й оновлення (розділ 8)
-pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.5.0
+pnpm exec shadcn add VasulenkoIllia/erp-ui/base#v1.6.0
 pnpm remove @fontsource-variable/geist   # шрифт від init: Geist тепер ставить base (@fontsource/geist)
-git add -A && git commit -m "erp-ui: base v1.5.0"   # команда кіта пише лише в чисте дерево
-node scripts/erp-ui-kit.mjs update v1.5.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
-git add -A && git commit -m "erp-ui: кіт v1.5.0"
+git add -A && git commit -m "erp-ui: base v1.6.0"   # команда кіта пише лише в чисте дерево
+node scripts/erp-ui-kit.mjs update v1.6.0 --items base,data,mocks,auth,erp/app-gate,erp/auth-routes,erp/app-shell,erp/user-menu,lib/query-client,tools/e2e
+git add -A && git commit -m "erp-ui: кіт v1.6.0"
 ```
 
 Комітів на старті два, і це навмисно: команда кіта пише лише в чисте дерево (ADR-0029, SPEC §3.3), тож перший коміт — шаблон, `init` і `base` (у ньому сама команда), другий — те, що команда поставила. Так кожна зміна кіта, і перша, і кожне оновлення, лежить окремим diff: її видно й можна відкотити, не зачепивши код проекту.
 
-Рядок `update` ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.5.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check` (файли кіта в проекті не правлені) і `node scripts/erp-ui-check-tokens.mjs` (лише токени тем у коді проекту, ADR-0089).
+Рядок `update` ставить решту кіта з тегу (розділи 4–6) і записує `kit-files.json`: список встановлених елементів, версію з SHA коміту, відбитки файлів кіта й контрольну суму. Далі нові елементи — `update v1.6.0 --add <елемент>`, оновлення — розділ 8. У `pnpm lint` проекту додайте `node scripts/erp-ui-kit.mjs check` (файли кіта в проекті не правлені) і `node scripts/erp-ui-check-tokens.mjs` (лише токени тем у коді проекту, ADR-0089).
 
 Код кіта компілюється й з налаштуваннями шаблону Vite (`verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`), перевірено тестовим проектом (крок 1.5b). Лінтер і форматер проекту (oxlint чи ESLint шаблону, Prettier) налаштуйте без файлів кіта (`src/components`, `src/hooks`, `src/lib`, `src/modules`, `src/styles/erp-ui`, `scripts/erp-ui-kit*.mjs`, `scripts/erp-ui-check-tokens.mjs`, `e2e/erp-ui.ts`, `docs/erp-ui`): їх перевіряє лінтер кіта, а правити їх у проекті не можна — `check` (розділ 8) не пропустить і переформатування.
 
@@ -80,7 +80,7 @@ repo/
 
 Проект без модулів кіта, шару даних і входу кіта — свій API, своя сесія, свої ролі — бере лише легкий набір: ці елементи й усі `ui/*` не ставлять ra-core і react-router. Перелік — [`CATALOG.md`](CATALOG.md), «Легкий набір»; що в ньому не з'являтиметься ra-core, перевіряє CI кіта (задача «легкий набір»: чистий проект ставить набір, збирає з базою `/new/` і відкриває сторінки в браузері).
 
-- **Старт** — як у розділі 1, без запобіжника `VITE_BACKEND` (моків кіта немає) і з іншим списком: `update v1.5.0 --items base,erp/app-shell,erp/user-menu,erp/page-state,erp/data-table,erp/form-field,erp/form-select,erp/auth-card,erp/login-form`; решта набору — `--add` за потребою. i18next лишається (SPEC §11): `main.tsx` — як у розділі 1, без моків.
+- **Старт** — як у розділі 1, без запобіжника `VITE_BACKEND` (моків кіта немає) і з іншим списком: `update v1.6.0 --items base,erp/app-shell,erp/user-menu,erp/page-state,erp/data-table,erp/form-field,erp/form-select,erp/auth-card,erp/login-form`; решта набору — `--add` за потребою. i18next лишається (SPEC §11): `main.tsx` — як у розділі 1, без моків.
 - **Вхід** — `LoginForm` з `erp/login-form` у картці `AuthCard` з `erp/auth-card`. Запит, сесію й перехід після входу робить проект; форма перевіряє поля, тримає кнопку зайнятою й показує причину відмови своїм текстом мовою інтерфейсу. Перше поле — логін (за замовчуванням) чи `identifier="email"`; посилання «Забули пароль?» — `forgotPassword`.
 
 ```tsx
@@ -231,7 +231,7 @@ export function SearchForm({ onSearch }: { onSearch: (images: string[]) => Promi
 ## 2. Компоненти
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add ui/button,ui/dialog
+node scripts/erp-ui-kit.mjs update v1.6.0 --add ui/button,ui/dialog
 npx shadcn@latest list VasulenkoIllia/erp-ui              # усе, що є
 npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 ```
@@ -284,7 +284,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ```
 
 - Мова даних (назви компаній, документи) — окремо від мови інтерфейсу: форматери з `lib/format` приймають локаль явно.
-- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
+- Ідентифікатори й телефони: `node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/ua-id-input,erp/phone-input`. Перевірка — `validateUaId(kind, value)` і `validatePhone(value)`; текст помилки — `t(uaIdIssueKey(kind, issue))` з `useErpUiT()`.
 - Поле телефону тягне дані libphonenumber (~120 КБ gzip): вантажте екрани з ним окремим чанком (`lazyWithPreload` з `@/lib/lazy`).
 - Вибір запису з пошуком на сервері (компанія контакту, відповідальний) — `erp/record-picker` (ADR-0023): значення — `id`, `optionLabel` і `sort` від проекту, «Створити…» — `create.onCreate(query)` відкриває форму проекту, а новий запис проект сам ставить у значення. Реквізити в картці з «Копіювати» — `erp/copyable-value` (`kind`: `code`, `iban`, `phone`, `email`, `url`).
 - Кілька значень із короткого довідника (сегменти, теги, ролі) — `MultiSelect` з `erp/multi-select` (ADR-0027): `options` — `{ value, label, description? }[]` (поки довідник вантажиться — не задавайте; не завантажився — `error` і `onRetry`), значення — масив ключів (`value`, `onValueChange`), `clearable`; на телефоні — шторка з «Готово». Ключ, якого вже немає в довіднику, лишається міткою, і його можна зняти. У `FormField` — `{...control}`, `value={field.value}`, `onValueChange={field.onChange}`, `onBlur={field.onBlur}`. Довідник на сотні записів і пошук на сервері — не сюди: мультивибору з пошуком на сервері ще немає.
@@ -292,7 +292,7 @@ format.relative(updatedAt)                           // 5 хвилин тому 
 ### Форми, дати, суми й підтвердження (ADR-0015)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
+node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/form,erp/date-input,erp/number-input,erp/confirm-dialog
 ```
 
 - Форма — react-hook-form + zod: `useForm({ mode: "onTouched", resolver: zodResolver(schema) })`. Схему будуйте в компоненті з `useErpUiT()`/`t` у `useMemo`, щоб помилки були мовою інтерфейсу. Зразок — `erp/profile-form`, повний приклад — `apps/demo/src/pages/FormsPage.tsx`.
@@ -315,7 +315,7 @@ node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/form,erp/date-input,erp/numb
 ## 4. Оболонка застосунку
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/shortcuts-help,erp/user-menu,erp/company-switcher,erp/notification-inbox
+node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/app-gate,erp/app-shell,erp/command-palette,erp/shortcuts-help,erp/user-menu,erp/company-switcher,erp/notification-inbox
 ```
 
 Застосунок — брама сесії навколо оболонки, екрани входу поруч (розділ 6):
@@ -406,7 +406,7 @@ useRoutes([
 Шар даних (ADR-0002, ADR-0003) і моки ставляться двома пакунками:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add data,mocks,lib/mock-views,lib/query-client
+node scripts/erp-ui-kit.mjs update v1.6.0 --add data,mocks,lib/mock-views,lib/query-client
 npx msw init public --save   # service worker для моків у браузері; без --save MSW питає в терміналі
 ```
 
@@ -657,7 +657,7 @@ export const invoicesExtension: InvoicesExtension = {
 ### Модуль у проекті (ADR-0025)
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add modules/B1-contacts
+node scripts/erp-ui-kit.mjs update v1.6.0 --add modules/B1-contacts
 ```
 
 Мінімальний набір для проекту з модулем на моках (тестовий проект `erp-ui-pilot`): `base`, `data`, `mocks`, `auth`, `lib/mock-views`, `lib/query-client`, `erp/app-gate`, `erp/auth-routes`, `erp/app-shell`, `erp/user-menu`, `ui/sonner`, `tools/e2e` і сам модуль — усі з одного тегу. Команда кіта ставить модуль з тегу одним запитом (§8): напряму з GitHub CLI робить на модуль сотні й тисячі запитів, кожен з тайм-аутом 15 с і без повтору.
@@ -997,7 +997,7 @@ const columns: ExportColumn<Contact>[] = [
 Канал подій сервера не обов'язковий: без нього все працює опитуванням, як раніше. Увімкнути:
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/realtime-sync,erp/edit-lock-notice,hooks/use-edit-lock
+node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/realtime-sync,erp/edit-lock-notice,hooks/use-edit-lock
 ```
 
 ```tsx
@@ -1041,7 +1041,7 @@ const start = async () => { if (await lock.acquire()) setEditing(true) }
 редактора не потребує.
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add erp/rich-text-field,erp/rich-text-view,lib/rich-text
+node scripts/erp-ui-kit.mjs update v1.6.0 --add erp/rich-text-field,erp/rich-text-view,lib/rich-text
 ```
 
 ```tsx
@@ -1740,7 +1740,7 @@ const flow = createDocumentFlowHandlers({ sources: [...invoices.flowSources, ...
 ## 6. Вхід і акаунт
 
 ```sh
-node scripts/erp-ui-kit.mjs update v1.5.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
+node scripts/erp-ui-kit.mjs update v1.6.0 --add auth,erp/auth-routes   # усі екрани входу й безпеки (потрібен пакунок data)
 ```
 
 Що показати на сторінці входу, вирішує бекенд (`GET /auth/methods`, ADR-0010): пароль, код на email чи в SMS, ключ доступу, Google, Apple, будь-який OIDC, реєстрація, відновлення. Маршрути — поза брамою сесії (розділ 4), усі одним викликом `createAuthRoutes` з `erp/auth-routes` (ADR-0029):
@@ -1854,12 +1854,12 @@ node scripts/erp-ui-check-tokens.mjs                  # лише токени т
   ```sh
   git status --short   # чисте дерево
   T="$(mktemp -d)"
-  for f in $(gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools?ref=v1.5.0" \
+  for f in $(gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools?ref=v1.6.0" \
       --jq '.[].name | select(startswith("erp-ui-kit"))'); do
-    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f?ref=v1.5.0" \
+    gh api "repos/VasulenkoIllia/erp-ui/contents/registry/tools/$f?ref=v1.6.0" \
       -H "Accept: application/vnd.github.raw" > "$T/$f"
   done
-  node "$T/erp-ui-kit.mjs" update v1.5.0 --items base,data,mocks,auth,modules/B1-contacts
+  node "$T/erp-ui-kit.mjs" update v1.6.0 --items base,data,mocks,auth,modules/B1-contacts
   rm -rf "$T"
   ```
 
@@ -1868,6 +1868,8 @@ node scripts/erp-ui-check-tokens.mjs                  # лише токени т
   З v1.3.0 на v1.4.0 — так само командою v1.4.0 з тимчасової теки, але `update v1.4.0` без `--items`: тоді маніфест одразу отримає SHA, відбиток, контрольну суму й сироти. Стара команда теж оновить, але сироти назве лише посеред звіту й не запам'ятає, а SHA й суму запише наступний `update`.
 
   З v1.4.0 на v1.5.0 — звичайною командою проекту, `node scripts/erp-ui-kit.mjs update v1.5.0`: у команді v1.4.0 уже є все потрібне, а що зробити руками, вона надрукує наприкінці з розділу [1.5.0] `CHANGELOG.md`.
+
+  З v1.5.0 на v1.6.0 — теж звичайною командою проекту, але спершу CLI shadcn 4.23.0 окремим комітом (нижче, «Версія CLI shadcn»: закріпити 4.23.0, `update v1.5.0`, коміт), потім `node scripts/erp-ui-kit.mjs update v1.6.0`; що зробити руками, команда надрукує з розділу [1.6.0] `CHANGELOG.md`.
 
   Відбитки проекту в старому форматі (`{ kit, files }`, як у тестовому проекті) команда читає: перевіряє за ними, що файли кіта не правлені, і перезаписує в новому.
 - Файли кіта в проекті не правляться — ні модулів, ні спільних шарів (`ui`, `erp`, `templates`, `lib`, `hooks`; ADR-0076). Бракує можливості компонента — PR у кіт; чекати не можна — свій компонент під іншою назвою в коді проекту. Файл кіта, який усе ж змінили, `check` і перевірка перед оновленням покажуть як змінений: перенесіть правку (у розширення, у кіт чи у свій компонент) і поверніть файл (`git checkout -- <файл>` чи попередня версія кіта). Позначки `// erp-ui: local override` більше немає: файл із нею `update` не перезаписує, а зупиняється зі списком.
