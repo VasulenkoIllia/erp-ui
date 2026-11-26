@@ -25,6 +25,7 @@
       "data": "Data & mocks",
       "organizations": "Organizations",
       "board": "Board",
+      "photos": "Photos",
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
@@ -1338,5 +1339,70 @@
     "toLogin": "Back to sign in",
     "toPassword": "New password by link",
     "kitLogin": "Full kit sign-in screen"
+  },
+  "photosPage": {
+    "title": "Photos",
+    "lead": "Product search by photo on the light set: a field for several photos with cropping, a product photo viewer and a card grid. Photos are cropped and compressed in the browser, with no new libraries.",
+    "input": {
+      "title": "Field for several photos",
+      "description": "Up to four photos of one product. Choose files, drag them onto the field or paste a screenshot anywhere on the page. Each photo can be cropped with a frame, “Whole photo” removes the frame. “Search” waits for photos still being read and shows what the server would get.",
+      "label": "Product photos",
+      "hint": "Several photos of one product from different sides",
+      "query": "What we're looking for",
+      "search": "Search",
+      "waiting": "The request is waiting for photos still being read…",
+      "noPhotos": "Request without photos",
+      "sent_one": "The request got {{count}} JPEG photo",
+      "sent_other": "The request got {{count}} JPEG photos",
+      "result": "Photo {{index}}: {{width}} × {{height}} px, {{size}}",
+      "resultAlt": "Photo {{index}} as the server would get it",
+      "failed": "Couldn't compress the photo: {{message}}",
+      "disabledTitle": "Disabled field",
+      "disabledDescription": "While the form is being sent, the photo field is disabled: pasting and dragging add nothing.",
+      "disabledLabel": "Photos (field disabled)"
+    },
+    "gallery": {
+      "title": "Product photo viewer",
+      "description": "The main photo with thumbnails, the large one opens in a new tab. With no reduced copy of our own, the supplier's link is used. When no source loads or there is no photo, the card says so.",
+      "several": "Several photos, no copy of our own",
+      "one": "One photo",
+      "failed": "No source loaded",
+      "none": "No photo"
+    },
+    "grid": {
+      "title": "Card grid",
+      "description": "Columns by the container's width, up to a hundred cards. The variants table is drawn once opened, empty columns are hidden, an opened card takes two columns.",
+      "label": "Search results",
+      "count": "How many cards",
+      "loading": "Loading",
+      "empty": "Nothing found",
+      "emptyTitle": "Nothing found",
+      "emptyText": "Try another photo or a broader query.",
+      "rank": "Place in the results",
+      "price": "{{from}} to {{to}}",
+      "noPrice": "No price",
+      "stock": "In stock: {{value}} pcs",
+      "noStock": "Stock unknown",
+      "page": "Product page",
+      "variants_one": "{{count}} variant",
+      "variants_other": "{{count}} variants",
+      "variantsLabel": "Variants: {{name}}",
+      "columns": {
+        "sku": "SKU",
+        "color": "Colour",
+        "size": "Size",
+        "stock": "Stock",
+        "arrival": "Arrival",
+        "price": "Price"
+      },
+      "offers": {
+        "print": "Printing",
+        "sale": "Sale"
+      },
+      "grade": "Rating: {{name}}",
+      "similar": "Similar",
+      "notSimilar": "Not it",
+      "link": "Link"
+    }
   }
 }

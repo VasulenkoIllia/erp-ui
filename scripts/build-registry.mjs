@@ -31,6 +31,7 @@ import {
   packageName,
 } from "./contract-layer.mjs"
 import { lightSetProblems, lightSetSection } from "./light-set.mjs"
+import { registrySizeProblems, serializeRegistry } from "./registry-json.mjs"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REGISTRY_JSON = path.join(root, "registry.json")
@@ -647,7 +648,13 @@ function main() {
     for (const p of problems) console.error(`ПОМИЛКА: ${p}`)
     process.exit(1)
   }
-  const json = JSON.stringify(registry, null, 2) + "\n"
+  const json = serializeRegistry(registry)
+  const size = registrySizeProblems(json)
+  if (size.error) {
+    console.error(`ПОМИЛКА: ${size.error}`)
+    process.exit(1)
+  }
+  if (size.warning) console.warn(`Увага: ${size.warning}`)
   if (process.argv.includes("--check")) {
     const stale = []
     if (

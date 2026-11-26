@@ -29,11 +29,9 @@ function ComboKbd({ combo, isMac }: { combo: KeyCombo; isMac: boolean }) {
   const label = comboLabel(combo, isMac)
   const isCommand = combo.mod === true && isMac
   if (!isSpokenKey(combo.key) && !isCommand) return <Kbd>{label}</Kbd>
-  const modifier = isCommand
-    ? "Command "
-    : combo.mod || combo.ctrl
-      ? "Ctrl "
-      : ""
+  const modifier = `${
+    isCommand ? "Command " : combo.mod || combo.ctrl ? "Ctrl " : ""
+  }${combo.shift ? "Shift " : ""}`
   return (
     <Kbd>
       <span aria-hidden>{label}</span>
@@ -56,7 +54,7 @@ export function ShortcutKeys({ shortcut }: { shortcut: ShortcutDefinition }) {
   const isMac = isMacPlatform()
   return shortcut.keys.map((combo, index) => (
     <React.Fragment
-      key={`${combo.mod ? "mod+" : combo.ctrl ? "ctrl+" : ""}${combo.key}`}
+      key={`${combo.mod ? "mod+" : combo.ctrl ? "ctrl+" : ""}${combo.shift ? "shift+" : ""}${combo.key}`}
     >
       {index > 0 ? (
         <span className="sr-only">{` ${t("shortcuts.or")} `}</span>

@@ -85,6 +85,8 @@ const SHOT_PAGES = {
   organizations: "/#/organizations",
   // Дошка (крок UI07a, ADR-0100): воронка угод колонками, суми, згорнута колонка, «Редагує …».
   board: "/#/board",
+  // Фото (крок UI11a, ADR-0101): порожнє поле, перегляд фото товару в усіх станах, сітка карток.
+  photos: "/#/photos",
   // Модуль B1 (крок 1.4a, ADR-0025): списки й картки з розширенням демо.
   companyCard: "/#/m/A1/company",
   companyCurrencies: "/#/m/A1/currencies",
@@ -152,6 +154,16 @@ const settle = async (page: Page, pageId: keyof typeof SHOT_PAGES) => {
       "false",
     )
   }
+  // Фото: картки й перегляд уже з фото чи запасним станом, а не порожні рамки.
+  if (pageId === "photos")
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-slot="photo-gallery"] img')
+          .first()
+          .evaluate((image: HTMLImageElement) => image.complete),
+      )
+      .toBe(true)
   // Журнал і сповіщення: кнопка над списком стає активною з приходом даних, і axe не має застати перехід.
   if (pageId === "audit")
     await expect(

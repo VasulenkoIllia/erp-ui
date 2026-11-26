@@ -174,6 +174,60 @@ export function InvitePage() {
 - **Екран не в корені сайту** (старий екран лишається на `/`): `base: "/new/"` у `vite.config.ts`, роутер — `createBrowserRouter(routes, { basename: import.meta.env.BASE_URL.replace(/\/$/, "") })`, посилання оболонки — `renderLink={(href) => <Link to={href} />}` з адресами без бази (`/suppliers`). Ассети, шрифти й англійські рядки кіта йдуть від бази самі; сервер віддає `index.html` на будь-яку адресу під `/new/`. Поза набором абсолютна адреса лишається у фонового файла push (`/erp-ui-push-sw.js`, ADR-0046).
 - **Модулі згодом** — сервер під контракт кіта (розділ 5) чи адаптер (розділ 5, «Наявний бекенд через адаптер»).
 
+### Фото: поле кількох фото, перегляд фото товару, сітка карток (ADR-0101)
+
+Пошук за фото, каталог, підбір товару. Усе в легкому наборі, без нових пакетів: обрізання й стискання — на canvas у
+браузері. Ставте `--add erp/photo-input,erp/photo-gallery,erp/product-grid`.
+
+- **Поле** — `PhotoInput` з `erp/photo-input`, стан — `usePhotoChoice` з `@/hooks/use-photo-choice` (до 4 фото, джерело
+  до 40 МБ: `{ max, maxBytes }`). Поле приймає вибір кількох файлів, перетягування й скриншот, вставлений будь-де на
+  сторінці, поки поле видно й не за відкритим вікном; текст, вставлений у поле вводу, лишається тексту. Кожне фото
+  обрізається рамкою: мишею, дотиком, двома кутами чи з клавіатури.
+- **Запит** — `settled()` дочікується фото, що ще читаються, `encodeChosenPhoto` з `@/lib/photo-choice` дає JPEG (довша
+  сторона до 1024 px, прозоре на білому), `blobToDataUrl` з `@/lib/photo-frame` — `data:` для JSON (API з
+  `multipart/form-data` краще отримує сам `Blob`). Іншу довшу сторону передайте обом: `encodeChosenPhoto(photo,
+  { maxSidePx })` і `PhotoInput maxSidePx` (підпис «На виході…»). Адреси `blob:` поле відкликає саме; JPEG, з якого ви
+  зробили свою адресу `URL.createObjectURL`, відкликаєте ви.
+
+```tsx
+import { PhotoInput } from "@/components/erp/photo-input"
+import { Button } from "@/components/ui/button"
+import { usePhotoChoice } from "@/hooks/use-photo-choice"
+import { encodeChosenPhoto } from "@/lib/photo-choice"
+import { blobToDataUrl } from "@/lib/photo-frame"
+
+export function SearchForm({ onSearch }: { onSearch: (images: string[]) => Promise<void> }) {
+  const photos = usePhotoChoice({ max: 4 })
+  // Пошук, натиснутий під час читання фото, бере й їх.
+  const search = async () => {
+    const { photos: chosen } = await photos.settled()
+    const jpegs = await Promise.all(chosen.map((photo) => encodeChosenPhoto(photo)))
+    await onSearch(await Promise.all(jpegs.map(blobToDataUrl)))
+  }
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault()
+        void search()
+      }}
+    >
+      <PhotoInput photos={photos} label="Фото товару" />
+      <Button type="submit">Шукати</Button>
+    </form>
+  )
+}
+```
+
+- **Фото товару** — `PhotoGallery` з `erp/photo-gallery`: `photos={[{ sources: [свояКопія, посиланняПостачальника],
+  href: велике }]}`, `name` (опис фото), `badge` (місце в результатах). Джерела пробуються по черзі; жодне — «Фото не
+  завантажилось», порожній список — «Без фото». Чужі адреси — з `referrerPolicy="no-referrer"`; CSP `img-src` має
+  дозволяти їхнє походження (`https:`) і `blob:`.
+- **Сітка** — `ProductGrid` з `erp/product-grid`: `items`, `getKey`, `renderItem` через `useCallback` (інакше сотня карток
+  перемальовується з кожною літерою в полі пошуку), `label`, `loading`. Картка — `ProductCard` зі слотами `photo`,
+  `eyebrow`, `title`, `description`, `prices`, `badges`, `variants`, `actions`; варіанти — `ProductVariants` з колонками
+  `{ id, header, value, numeric?, keep? }`: таблиця малюється при відкритті, порожні колонки сховано. Порожній результат —
+  `PageState kind="empty" compact` замість сітки.
+
 ## 2. Компоненти
 
 ```sh
@@ -187,7 +241,8 @@ npx shadcn@latest search VasulenkoIllia/erp-ui -q таблиця  # пошук
 Малий список (десятки записів, свій API, без вікон з сервера) складається з тих самих елементів, окремих «легких» немає; усі вони — у легкому наборі (розділ 1, «Легкий набір»):
 
 - таблиця — `erp/data-table` з `rows` (поточна сторінка; `undefined` — ще вантажиться) і, за потреби, `pagination` замість `list`: ті самі стани, сортування й картки на телефоні (`cardsBelow`);
-- вибір файла — `erp/file-drop`: кнопка й перетягування, тип і розмір перевіряються біля поля;
+- вибір файла — `erp/file-drop`: кнопка й перетягування, тип і розмір перевіряються біля поля; кілька фото з
+  обрізанням — `erp/photo-input` (розділ 1, «Фото»);
 - вибір з короткого списку — `erp/form-select` у `FormField` чи без форми (`aria-label` чи `id` під свій `<label>`); значення — рядок чи число (id з бази), що в `items`, те й прийде в `onValueChange`: `<FormSelect<number | null> …>` (ADR-0099).
 
 ## 3. Мови й формати
