@@ -1,5 +1,5 @@
 import * as React from "react"
-import { RefreshCwIcon } from "lucide-react"
+import { MoveRightIcon, RefreshCwIcon } from "lucide-react"
 
 import { SelectionBar } from "@/registry/erp/data-table-selection"
 import { PageState } from "@/registry/erp/page-state"
@@ -9,13 +9,21 @@ import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukBoard } from "@/registry/lib/i18n-uk-board"
 import { Button } from "@/registry/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/registry/ui/dropdown-menu"
 import { Spinner } from "@/registry/ui/spinner"
 import type { RaRecord } from "@/registry/lib/ra-core"
 import type { BoardColumnData } from "@/registry/templates/board-data"
 
 /**
- * Частина templates/board: рядок стану дошки (кількість, «Оновлено о…», «Оновити», панель вибраного),
- * збій колонки з повтором і «Показати ще» колонки. Ставиться разом із шаблоном.
+ * Частина templates/board: рядок стану дошки (кількість, «Оновлено о…», «Оновити», панель вибраного з
+ * «Перемістити в…»), збій колонки з повтором і «Показати ще» колонки. Ставиться разом із шаблоном.
  *
  * - «Показати ще»: поки вантажиться, кнопка лишається з фокусом (`aria-disabled`); коли картки прийшли,
  *   скрінрідер чує «Показано 40 з 87», а якщо кнопка зникла (усе завантажено, межа сторінки), фокус — на
@@ -27,11 +35,14 @@ export function BoardStatus({
   data,
   total,
   countLabel,
+  isSelectable = true,
   container,
 }: {
   data: readonly BoardColumnData<unknown>[]
   total: number | undefined
   countLabel: ((count: number, formatted: string) => string) | undefined
+  /** Чи є на дошці вибір: без нього немає й «вибрати все». */
+  isSelectable?: boolean
   container: React.RefObject<HTMLElement | null>
 }) {
   const t = useErpUiT(ukBoard)
@@ -69,7 +80,7 @@ export function BoardStatus({
         {t("dataTable.refresh")}
       </Button>
       <SelectionBar
-        cards={(total ?? 0) > 0}
+        cards={isSelectable && (total ?? 0) > 0}
         onCleared={() => {
           // Кнопка зникає разом із вибором — фокус на першу колонку дошки (WCAG 2.4.3); усі згорнуті — на
           // першу кнопку «розгорнути».
@@ -81,6 +92,56 @@ export function BoardStatus({
         }}
       />
     </div>
+  )
+}
+
+/**
+ * «Перемістити в…» на панелі вибраного (ADR-0103): колонки модуля, а коли вибрано «усі за фільтром» —
+ * причина замість колонок (SPEC §8.4): дошка переносить лише вибрані картки.
+ */
+export function BulkMove({
+  columns,
+  isAll,
+  onMove,
+}: {
+  columns: readonly { id: string; label: string }[]
+  isAll: boolean
+  onMove: (column: string) => void
+}) {
+  const t = useErpUiT(ukBoard)
+  const reason = isAll ? t("board.bulk.allMode") : undefined
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+        <MoveRightIcon aria-hidden />
+        {t("board.card.moveTo")}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-60">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>{t("board.card.moveTo")}</DropdownMenuLabel>
+          {reason ? (
+            // Причина — текст для читання, а не вимкнена дія: повний контраст (WCAG 1.4.3).
+            <DropdownMenuItem
+              disabled
+              className="whitespace-normal text-muted-foreground data-disabled:opacity-100"
+            >
+              {reason}
+            </DropdownMenuItem>
+          ) : (
+            columns.map((column) => (
+              <DropdownMenuItem
+                key={column.id}
+                onClick={() => {
+                  onMove(column.id)
+                }}
+              >
+                {column.label}
+              </DropdownMenuItem>
+            ))
+          )}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

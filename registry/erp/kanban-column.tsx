@@ -2,9 +2,16 @@ import * as React from "react"
 import { ChevronsLeftIcon } from "lucide-react"
 
 import type { KanbanColumn } from "@/registry/erp/kanban"
+import {
+  ANY_LANE,
+  useCardDraggable,
+  useCardDropTarget,
+  type KanbanCardDrag,
+} from "@/registry/erp/kanban-drag"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukBoard } from "@/registry/lib/i18n-uk-board"
+import { cn } from "@/registry/lib/utils"
 import { Button } from "@/registry/ui/button"
 import {
   Select,
@@ -16,8 +23,9 @@ import {
 import { Skeleton } from "@/registry/ui/skeleton"
 
 /**
- * Частина erp/kanban: шапка колонки (назва з кількістю, сума, згортання, швидке створення, стан) і
- * перемикач колонки на вузькому контейнері. Ставиться разом з erp/kanban.
+ * Частина erp/kanban: шапка колонки (назва з кількістю, сума, згортання, швидке створення, стан),
+ * перемикач колонки на вузькому контейнері, клітинка колонки в доріжці з картками; шапка й клітинка —
+ * місця, куди кидають картку (erp/kanban-drag). Ставиться разом з erp/kanban.
  */
 
 const SKELETON_CARDS = 3
@@ -163,5 +171,185 @@ function CardsSkeleton() {
         <Skeleton key={index} className="h-16 w-full rounded-lg" />
       ))}
     </div>
+  )
+}
+
+/** Перетягування для клітинок і шапок: дошка, чи можна тягнути, що робити з кинутою карткою. */
+export interface CellDrag<T> {
+  board: string
+  canDrag: (card: T) => boolean
+  onDrop: (card: string, column: string) => void
+}
+
+/** Шапка колонки в рядку шапок: сюди теж кидають картку (доріжка не змінюється). */
+export function HeadSlot<T>({
+  column,
+  drag,
+  children,
+}: {
+  column: string
+  drag: CellDrag<T> | undefined
+  children: React.ReactNode
+}) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  useCardDropTarget(
+    ref,
+    drag ? { board: drag.board, column, lane: ANY_LANE } : undefined,
+    (card, to) => drag?.onDrop(card, to),
+  )
+  return (
+    <div ref={ref} className={cn("min-w-0 rounded-lg", DROP_OVER)}>
+      {children}
+    </div>
+  )
+}
+
+/** Підсвітка місця, над яким тримають картку (атрибут ставить erp/kanban-drag). */
+const DROP_OVER =
+  "data-drop-over:bg-accent data-drop-over:ring-2 data-drop-over:ring-primary data-drop-over:ring-inset"
+
+export function ColumnCell<T>({
+  column,
+  cards,
+  collapsed,
+  laneId,
+  laneLabel,
+  headingId,
+  getCardId,
+  renderCard,
+  cardKey,
+  drag,
+}: {
+  column: KanbanColumn<T>
+  cards: readonly T[] | undefined
+  collapsed: boolean
+  laneId: string
+  laneLabel: string | undefined
+  headingId: string
+  getCardId: (card: T) => string
+  renderCard: (card: T, column: KanbanColumn<T>) => React.ReactNode
+  cardKey: ((card: T) => string) | undefined
+  drag: CellDrag<T> | undefined
+}) {
+  const t = useErpUiT(ukBoard)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const isTarget = Boolean(drag) && !collapsed && cards !== undefined
+  useCardDropTarget(
+    ref,
+    drag && isTarget
+      ? { board: drag.board, column: column.id, lane: laneId }
+      : undefined,
+    (card, to) => drag?.onDrop(card, to),
+  )
+  // Згорнута колонка чи ще без карток: клітинка порожня, усе видно в шапці.
+  if (collapsed || cards === undefined) return <div className="min-w-0" />
+  if (!cards.length)
+    return (
+      <div
+        ref={ref}
+        data-kanban-cell={column.id}
+        data-kanban-lane={laneId}
+        className={cn(
+          "min-w-0 rounded-lg border border-dashed p-3 text-sm text-muted-foreground",
+          DROP_OVER,
+        )}
+      >
+        {laneLabel === undefined ? t("board.noCards") : null}
+      </div>
+    )
+  const name =
+    laneLabel === undefined
+      ? { "aria-labelledby": headingId }
+      : {
+          "aria-label": t("board.cell", {
+            column: column.label,
+            lane: laneLabel,
+          }),
+        }
+  return (
+    <div
+      ref={ref}
+      data-kanban-cell={column.id}
+      data-kanban-lane={laneId}
+      className={cn("min-w-0 rounded-lg", DROP_OVER)}
+    >
+      <ul
+        {...name}
+        data-kanban-cards={column.id}
+        data-kanban-lane={laneId}
+        className="flex min-w-0 flex-col gap-2"
+      >
+        {cards.map((card) => (
+          <CardItem
+            key={getCardId(card)}
+            id={getCardId(card)}
+            drag={
+              drag?.canDrag(card)
+                ? {
+                    board: drag.board,
+                    id: getCardId(card),
+                    column: column.id,
+                    lane: laneId,
+                  }
+                : undefined
+            }
+          >
+            <CardBody
+              card={card}
+              column={column.id}
+              stateKey={cardKey?.(card)}
+              render={() => renderCard(card, column)}
+            />
+          </CardItem>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/**
+ * Вміст картки: без ключа стану — щоразу, з ключем — лише за новим записом, колонкою чи ключем (`cardKey`).
+ */
+const CardBody = React.memo(
+  function CardBody({
+    render,
+  }: {
+    card: unknown
+    column: string
+    stateKey: string | undefined
+    render: () => React.ReactNode
+  }) {
+    return render()
+  },
+  (previous, next) =>
+    next.stateKey !== undefined &&
+    previous.card === next.card &&
+    previous.column === next.column &&
+    previous.stateKey === next.stateKey,
+)
+
+function CardItem({
+  id,
+  drag,
+  children,
+}: {
+  id: string
+  drag: KanbanCardDrag | undefined
+  children: React.ReactNode
+}) {
+  const ref = React.useRef<HTMLLIElement>(null)
+  useCardDraggable(ref, drag)
+  return (
+    <li
+      ref={ref}
+      data-kanban-card={id}
+      className={cn(
+        "rounded-lg data-dragging:opacity-40",
+        // Довгий натиск на телефоні — перетягування, а не меню посилання чи зображення.
+        drag && "cursor-grab [-webkit-touch-callout:none]",
+      )}
+    >
+      {children}
+    </li>
   )
 }

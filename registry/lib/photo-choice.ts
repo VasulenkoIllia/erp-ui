@@ -85,6 +85,34 @@ export function removePhoto(choice: PhotoChoice, url: string): PhotoChoice {
   }
 }
 
+/**
+ * Фото `url` на місце `index` (0 — перше, головне; ADR-0103). Показане фото те саме; те саме місце лишає
+ * вибір тим самим об'єктом.
+ */
+export function movePhoto(
+  choice: PhotoChoice,
+  url: string,
+  index: number,
+): PhotoChoice {
+  const from = choice.photos.findIndex((photo) => photo.url === url)
+  const to = Math.min(Math.max(index, 0), choice.photos.length - 1)
+  const photo = choice.photos[from]
+  if (!photo || from === to) return choice
+  const photos = choice.photos.filter((each) => each.url !== url)
+  photos.splice(to, 0, photo)
+  return { ...choice, photos }
+}
+
+/** Місце фото з `from`, яке кинули перед фото `over` чи після нього: решта зсувається на його місце. */
+export function dropIndex(
+  from: number,
+  over: number,
+  edge: "before" | "after",
+): number {
+  const target = edge === "before" ? over : over + 1
+  return target > from ? target - 1 : target
+}
+
 /** Нова рамка фото. Та сама рамка лишає вибір тим самим об'єктом: проект бачить, що нічого не змінилось. */
 export function withCrop(
   choice: PhotoChoice,

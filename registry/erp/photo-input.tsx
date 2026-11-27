@@ -3,7 +3,7 @@ import { ImagePlusIcon } from "lucide-react"
 
 import { useFileSizeText } from "@/registry/erp/file-drop"
 import { PhotoCrop } from "@/registry/erp/photo-crop"
-import { PhotoStrip } from "@/registry/erp/photo-strip"
+import { PhotoOrder, PhotoStrip } from "@/registry/erp/photo-strip"
 import {
   PHOTO_TYPES,
   type PhotoAddResult,
@@ -14,7 +14,11 @@ import { useDropZone, usePagePaste } from "@/registry/hooks/use-photo-drop"
 import { announce } from "@/registry/lib/announce"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukPhotos } from "@/registry/lib/i18n-uk-photos"
-import { selectedPhoto, type ChosenPhoto } from "@/registry/lib/photo-choice"
+import {
+  movePhoto,
+  selectedPhoto,
+  type ChosenPhoto,
+} from "@/registry/lib/photo-choice"
 import {
   fullRect,
   outputSize,
@@ -36,6 +40,8 @@ import { FieldError } from "@/registry/ui/field"
  * - Розмір готового фото задає `encodeChosenPhoto(photo, { maxSidePx })`; `maxSidePx` поля лише
  *   підписує його («На виході…»), тож передайте обом те саме число.
  * - Додане фото озвучується; причини відмови — під полем (`role="alert"`).
+ * - Порядок фото (ADR-0103): мініатюри перетягують, а «Раніше» й «Пізніше» під показаним фото пересувають його
+ *   без перетягування; перше фото — головне. Нове місце озвучується.
  */
 export interface PhotoInputProps {
   readonly photos: PhotoChoiceState
@@ -126,7 +132,25 @@ export function PhotoInput({
   const { value, max, add } = photos
   const count = value.photos.length
   const selected = selectedPhoto(value)
+  const selectedIndex = selected ? value.photos.indexOf(selected) : -1
   const isFull = count >= max
+  const move = (url: string, index: number) => {
+    // Місце те саме (кинули на сусідній край, «Раніше» на першому) — нічого не озвучуємо.
+    const next = movePhoto(value, url, index)
+    const place = next.photos.findIndex((each) => each.url === url)
+    const photo = next.photos[place]
+    if (next === value || !photo) return
+    photos.move(url, index)
+    announce(
+      place === 0
+        ? t("photos.input.movedMain", { name: photo.name })
+        : t("photos.input.moved", {
+            name: photo.name,
+            index: place + 1,
+            count,
+          }),
+    )
+  }
 
   const report = ({ added, rejected }: PhotoAddResult) => {
     setError(rejectionText(rejected))
@@ -206,6 +230,15 @@ export function PhotoInput({
             )}
           </div>
         )}
+        {selected && count > 1 ? (
+          <PhotoOrder
+            photo={selected}
+            index={selectedIndex}
+            count={count}
+            disabled={disabled}
+            onMove={move}
+          />
+        ) : null}
         {count ? (
           <PhotoStrip
             photos={value.photos}
@@ -213,6 +246,7 @@ export function PhotoInput({
             disabled={disabled}
             onSelect={photos.select}
             onRemove={remove}
+            onMove={move}
           />
         ) : null}
         <PhotoHints

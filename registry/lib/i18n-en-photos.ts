@@ -1,5 +1,5 @@
 /**
- * Photo strings in English (part of UI11, ADR-0101). Ukrainian — lib/i18n-uk-photos.
+ * Photo strings in English (part of UI11, ADR-0101, ADR-0103). Ukrainian — lib/i18n-uk-photos.
  */
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
 import type { ukPhotos } from "@/registry/lib/i18n-uk-photos"
@@ -26,6 +26,12 @@ export const enPhotos = {
       addedSeveral_other: "Added {{count}} photos",
       removed: "Removed the photo “{{name}}”",
       cleared: "Photos removed",
+      earlier: "Earlier",
+      later: "Later",
+      earlierLabel: "Earlier: photo “{{name}}”",
+      laterLabel: "Later: photo “{{name}}”",
+      moved: "Photo “{{name}}” is now {{index}} of {{count}}",
+      movedMain: "Photo “{{name}}” is now the main one",
       errors: {
         type: "“{{name}}” isn't a JPEG, PNG or WebP photo.",
         size: "“{{name}}” is larger than {{size}}.",
@@ -48,6 +54,7 @@ export const enPhotos = {
       label: "Chosen photos",
       position: "Photo {{index}} of {{count}}:",
       cropped: "cropped",
+      main: "main",
       removeShort: "Remove",
       remove: "Remove photo {{index}}: {{name}}",
     },

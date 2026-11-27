@@ -3,6 +3,7 @@ import * as React from "react"
 import {
   addPhotos,
   DEFAULT_MAX_PHOTOS,
+  movePhoto,
   NO_PHOTOS,
   removePhoto,
   withCrop,
@@ -58,6 +59,8 @@ export interface PhotoChoiceState {
   readonly clear: () => void
   readonly select: (url: string) => void
   readonly setCrop: (url: string, crop: PhotoRect | null) => void
+  /** Фото на місце `index` (0 — головне): порядок мініатюр (ADR-0103). */
+  readonly move: (url: string, index: number) => void
   /** Вибір, коли всі фото, що читаються зараз, прочитано. */
   readonly settled: () => Promise<PhotoChoice>
 }
@@ -235,7 +238,7 @@ const reasonOf = (reason: PhotoRejectionReason) => (photo: ChosenPhoto) => ({
 
 const NOTHING_ADDED: PhotoAddResult = { added: [], rejected: [] }
 
-/** Зміни вибору без читання файлів: прибрати, вибрати, обрізати. */
+/** Зміни вибору без читання файлів: прибрати, вибрати, обрізати, переставити. */
 function useChoiceEdits(
   latestRef: React.RefObject<PhotoChoice>,
   generationRef: React.RefObject<number>,
@@ -271,7 +274,14 @@ function useChoiceEdits(
     },
     [latestRef, commit],
   )
-  return { remove, clear, select, setCrop }
+  const move = React.useCallback(
+    (url: string, index: number) => {
+      const next = movePhoto(latestRef.current, url, index)
+      if (next !== latestRef.current) commit(next)
+    },
+    [latestRef, commit],
+  )
+  return { remove, clear, select, setCrop, move }
 }
 
 /** Читання, що йдуть зараз: скільки фото читається (для «Читаємо…») і дочікування всіх. */
@@ -312,7 +322,7 @@ export function usePhotoChoice({
     latest.current = next
     setValue(next)
   }, [])
-  const { remove, clear, select, setCrop } = useChoiceEdits(
+  const { remove, clear, select, setCrop, move } = useChoiceEdits(
     latest,
     generation,
     commit,
@@ -379,8 +389,8 @@ export function usePhotoChoice({
   }, [idle])
 
   const actions = React.useMemo(
-    () => ({ add, remove, clear, select, setCrop, settled }),
-    [add, remove, clear, select, setCrop, settled],
+    () => ({ add, remove, clear, select, setCrop, move, settled }),
+    [add, remove, clear, select, setCrop, move, settled],
   )
   return React.useMemo(
     () => ({ value, max, maxBytes, loading, ...actions }),

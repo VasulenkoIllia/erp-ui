@@ -28,6 +28,8 @@ import {
   PIPELINE_CLOSED_DENIAL,
   PIPELINE_OWNERS,
   PIPELINE_STAGES,
+  PIPELINE_STRESS_CARDS,
+  isPipelineStress,
   type PipelineDeal,
 } from "@/data/pipeline"
 import { useDemoTranslation } from "@/i18n"
@@ -49,8 +51,11 @@ const BOARD_LIST_DEFAULTS: Omit<ListDefaults, "layouts"> = {
 /** Етапи вкладки «Відкриті»: дошка показує лише їхні колонки. */
 const OPEN_STAGES = ["new", "qualified", "proposal", "negotiation"]
 
-/** Доріжки за відповідальним вмикає перемикач над дошкою: подання отримує лише пропси списку. */
-const LanesContext = createContext(false)
+/**
+ * Доріжки за відповідальним вмикає перемикач над дошкою, а велику колонку — адреса `?cards=500` (перевірка
+ * швидкості): подання отримує лише пропси списку.
+ */
+const BoardPageContext = createContext({ withLanes: false, isStress: false })
 
 /**
  * Шаблон Board (UI07, ADR-0100) на угодах воронки демо: подання «Дошка» й «Таблиця» одного списку
@@ -78,6 +83,8 @@ function PipelineList() {
   const t = usePageT()
   const [searchParams, setSearchParams] = useSearchParams()
   const [withLanes, setWithLanes] = useState(false)
+  // Список переписує адресу своїми параметрами: велику колонку беремо з адреси один раз.
+  const [isStress] = useState(() => isPipelineStress())
   const tabs = useMemo<ListTab[]>(
     () => [
       { id: "all", label: t("tabs.all"), filter: {} },
@@ -106,6 +113,10 @@ function PipelineList() {
     layouts,
   })
   const columns = usePipelineColumns()
+  const context = useMemo(
+    () => ({ withLanes, isStress }),
+    [withLanes, isStress],
+  )
   const bulk = useMemo<ListReportBulk<PipelineDeal>>(
     () => ({
       actions: [
@@ -116,7 +127,7 @@ function PipelineList() {
     [],
   )
   return (
-    <LanesContext value={withLanes}>
+    <BoardPageContext value={context}>
       <ListReport
         report={report}
         mode="pages"
@@ -142,7 +153,7 @@ function PipelineList() {
           },
         ]}
       />
-    </LanesContext>
+    </BoardPageContext>
   )
 }
 
@@ -154,7 +165,7 @@ const ownerName = (id: string | null | undefined) =>
 function PipelineBoard(props: ListReportContentProps) {
   const t = usePageT()
   const format = useFormat()
-  const withLanes = use(LanesContext)
+  const { withLanes, isStress } = use(BoardPageContext)
   const columns = useMemo<BoardColumn[]>(
     () =>
       PIPELINE_STAGES.map((stage) => ({
@@ -200,6 +211,7 @@ function PipelineBoard(props: ListReportContentProps) {
       lockedBy={(deal) => deal.editedBy ?? undefined}
       denialText={denialText}
       countLabel={(count, value) => t("count", { count, value })}
+      {...(isStress ? { pageSize: PIPELINE_STRESS_CARDS } : {})}
     />
   )
 }

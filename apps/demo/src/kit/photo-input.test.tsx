@@ -477,6 +477,68 @@ describe("PhotoCrop у полі", () => {
   })
 })
 
+describe("PhotoInput: порядок фото", () => {
+  it("«Раніше» й «Пізніше» пересувають показане фото, перше — «головне»; нове місце чутно", async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await userEvent.upload(input(), [png("a.png"), png("b.png"), png("c.png")])
+    await waitFor(() => {
+      expect(thumbs()).toHaveLength(3)
+    })
+    const names = () => thumbs().map((thumb) => thumb.textContent)
+    expect(names()[0]).toMatch(/a\.png\s*головне/)
+    // Показане — останнє додане «c»: «Пізніше» вимкнене, «Раніше» — ні.
+    const later = screen.getByRole("button", { name: "Пізніше: фото «c.png»" })
+    expect(later).toHaveAttribute("aria-disabled", "true")
+    const earlier = screen.getByRole("button", {
+      name: "Раніше: фото «c.png»",
+    })
+    await user.click(earlier)
+    expect(names().map((name) => name?.match(/\w\.png/)?.[0])).toEqual([
+      "a.png",
+      "c.png",
+      "b.png",
+    ])
+    await waitFor(() => {
+      expect(document.getElementById("erp-ui-announcer")).toHaveTextContent(
+        "Фото «c.png» тепер 2 з 3",
+      )
+    })
+    await user.click(earlier)
+    expect(names()[0]).toMatch(/c\.png\s*головне/)
+    expect(state?.value.photos.map((photo) => photo.name)).toEqual([
+      "c.png",
+      "a.png",
+      "b.png",
+    ])
+    // На краю кнопка вимкнена, але фокус на ній лишається.
+    expect(earlier).toHaveAttribute("aria-disabled", "true")
+    expect(earlier).toHaveFocus()
+    await waitFor(() => {
+      expect(document.getElementById("erp-ui-announcer")).toHaveTextContent(
+        "Фото «c.png» тепер головне",
+      )
+    })
+  })
+
+  it("одне фото чи недоступне поле — без порядку", async () => {
+    const { rerender } = render(<Harness />)
+    await userEvent.upload(input(), [png("a.png")])
+    await waitFor(() => {
+      expect(thumbs()).toHaveLength(1)
+    })
+    expect(screen.queryByRole("button", { name: /^Раніше/ })).toBeNull()
+    expect(thumbs()[0]).not.toHaveTextContent("головне")
+    await userEvent.upload(input(), [png("b.png")])
+    await waitFor(() => {
+      expect(thumbs()).toHaveLength(2)
+    })
+    rerender(<Harness disabled />)
+    expect(screen.getByRole("button", { name: /^Раніше/ })).toBeDisabled()
+    expect(strip()?.querySelector("li[draggable='true']")).toBeNull()
+  })
+})
+
 describe("PhotoInput англійською", () => {
   it("рядки поля є англійською", async () => {
     await act(async () => {
