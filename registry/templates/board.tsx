@@ -8,21 +8,25 @@ import {
   type KanbanColumn,
   type KanbanLanes,
 } from "@/registry/erp/kanban"
-import { KanbanCard, type KanbanCardMove } from "@/registry/erp/kanban-card"
 import { KanbanQuickCreate } from "@/registry/erp/kanban-quick-create"
 import { PageState, SectionSkeleton } from "@/registry/erp/page-state"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useCollapsedColumns } from "@/registry/hooks/use-list-settings"
-import {
-  useRecordDenialReason,
-  type RecordDenialText,
-} from "@/registry/hooks/use-record-access"
+import type { RecordDenialText } from "@/registry/hooks/use-record-access"
 import { errorStateKind } from "@/registry/lib/api"
-import { useErpUiT } from "@/registry/lib/i18n"
-import { ukBoard } from "@/registry/lib/i18n-uk-board"
-import { useBoardActions } from "@/registry/templates/board-actions"
+import {
+  useBoardActions,
+  type BoardActions,
+} from "@/registry/templates/board-actions"
+import {
+  recordId,
+  selectedCards,
+  useBoardCard,
+  useMoveReason,
+} from "@/registry/templates/board-card"
 import {
   BoardStatus,
+  BulkMove,
   ColumnError,
   ColumnMore,
   hasMore,
@@ -33,6 +37,7 @@ import {
   boardColumnsFor,
   useBoardColumns,
   useColumnPages,
+  withPendingMoves,
   type BoardColumnData,
 } from "@/registry/templates/board-data"
 
@@ -57,7 +62,11 @@ import {
  * - Стани (SPEC §8.1): скелетон, оновлення з видимими картками, «Показати ще», порожньо (пояснення над
  *   колонками, швидке створення лишається), нічого не знайдено зі скиданням фільтрів, помилка з повтором,
  *   збій однієї колонки з повтором у ній, немає доступу, офлайн, «Оновлено о…», вибір «усі за фільтром»,
- *   картку редагує інша людина, лише перегляд. Оптимістичне перенесення й перетягування — UI07b.
+ *   картку редагує інша людина, лише перегляд.
+ * - Перенесення оптимістичне (ADR-0103): картка одразу на новому місці, відмова сервера повертає її з
+ *   поясненням. Перетягування — на широкому контейнері (erp/kanban-drag); вибрану картку тягнуть разом з
+ *   усіма вибраними. З правом `update` на дошці є вибір і «Перемістити в…» на панелі вибраного (лише
+ *   вибрані картки, не «усі за фільтром»).
  */
 
 export interface BoardColumn {
@@ -77,7 +86,10 @@ export interface BoardOptions<T extends RaRecord> {
   columns: readonly BoardColumn[]
   /** Назва картки: прапорець, меню, оголошення («Угода з ТОВ Альфа»). */
   cardLabel: (record: T) => string
-  /** Вміст картки: назва-посилання, сума, відповідальний. */
+  /**
+   * Вміст картки: назва-посилання, сума, відповідальний. Перемальовується, коли змінився запис, мова чи стан
+   * картки (ADR-0103): мову й формат усередині беріть хуками компонентів.
+   */
   renderCard: (record: T) => React.ReactNode
   /** Сума колонки: поле й формат («340 000,00 ₴»). */
   sum?: { field: string; format: (value: number) => string }
@@ -180,7 +192,20 @@ type BoardBodyProps<T extends RaRecord> = Omit<BoardProps<T>, "columns"> & {
  * ховає дошку з фокусом), нічого не знайдено, порожньо вперше.
  */
 function BoardBody<T extends RaRecord>(props: BoardBodyProps<T>) {
-  const { isFiltered, onResetFilters, data } = props
+  const { isFiltered, onResetFilters, data, resource, selection } = props
+  const update = useCanAccess({ resource, action: "update" })
+  const actions = useBoardActions<T>({
+    resource,
+    field: props.field,
+    columns: props.allColumns,
+    cardLabel: props.cardLabel,
+    quickCreate: props.quickCreate,
+    move: props.move,
+    container: props.container,
+    columnOf: (column) => data.find(({ id }) => id === column),
+  })
+  const reasonOf = useMoveReason(props, update.canAccess === true)
+  const canMove = update.canAccess === true
   const failed = data.filter((column) => column.error && !column.cards)
   const first = failed[0]
   if (first && failed.length === data.length) {
@@ -202,78 +227,78 @@ function BoardBody<T extends RaRecord>(props: BoardBodyProps<T>) {
   const total = data.reduce((sum, column) => sum + (column.total ?? 0), 0)
   if (isKnown && total === 0 && isFiltered)
     return <PageState kind="no-results" onReset={onResetFilters} />
-  const content = (
-    <div className="space-y-3">
-      <BoardStatus
-        data={props.data}
-        total={isKnown ? total : undefined}
-        countLabel={props.countLabel}
-        container={props.container}
-      />
-      {isKnown && total === 0
-        ? (props.empty ?? <PageState kind="empty" compact />)
-        : null}
-      <BoardKanban {...props} />
-    </div>
-  )
-  if (!props.bulkActions) return content
+  const isSelectable = Boolean(props.bulkActions) || canMove
+  const moveSelected = (to: string) => {
+    void actions.moveCards(selectedCards(data, selection), to, { reasonOf })
+  }
+  // Обгортка вибору є завжди: інакше, коли права прийдуть, уся дошка змонтувалась би заново й фокус загубився б.
   return (
     <SelectionProvider
       options={{
-        selection: props.selection,
+        selection,
         rowLabel: props.cardLabel,
-        bulkActions: props.bulkActions,
+        bulkActions: (count) => (
+          <>
+            {canMove ? (
+              <BulkMove
+                columns={props.allColumns}
+                isAll={selection.state.mode === "all"}
+                onMove={moveSelected}
+              />
+            ) : null}
+            {props.bulkActions?.(count)}
+          </>
+        ),
       }}
       getRowId={recordId}
       scope={{ kind: "all", pageIds: NO_IDS, total }}
     >
-      {content}
+      <div className="space-y-3">
+        <BoardStatus
+          data={props.data}
+          total={isKnown ? total : undefined}
+          countLabel={props.countLabel}
+          isSelectable={isSelectable}
+          container={props.container}
+        />
+        {isKnown && total === 0
+          ? (props.empty ?? <PageState kind="empty" compact />)
+          : null}
+        <BoardKanban
+          {...props}
+          actions={actions}
+          reasonOf={reasonOf}
+          isSelectable={isSelectable}
+          isAccessPending={update.isPending}
+        />
+      </div>
     </SelectionProvider>
   )
 }
 
 const NO_IDS: readonly string[] = []
-const recordId = (record: RaRecord) => String(record.id)
 
-/** Колонки й картки: права, перенесення, швидке створення, «Показати ще». */
-function BoardKanban<T extends RaRecord>(props: BoardBodyProps<T>) {
-  const { resource, field, data, allColumns, selection, cardLabel } = props
-  const t = useErpUiT(ukBoard)
-  const actions = useBoardActions<T>({
-    resource,
+type BoardKanbanProps<T extends RaRecord> = BoardBodyProps<T> & {
+  actions: BoardActions<T>
+  reasonOf: (record: T) => string | undefined
+  isSelectable: boolean
+  /** Права ще не відомі: ні меню, ні перетягування. */
+  isAccessPending: boolean
+}
+
+/** Колонки й картки: права, перенесення, перетягування, швидке створення, «Показати ще». */
+function BoardKanban<T extends RaRecord>(props: BoardKanbanProps<T>) {
+  const { resource, field, actions } = props
+  const data = withPendingMoves(
+    props.data,
+    actions.pending,
     field,
-    columns: allColumns,
-    cardLabel,
-    quickCreate: props.quickCreate,
-    move: props.move,
-    container: props.container,
-    columnOf: (column) => data.find(({ id }) => id === column),
-  })
+    props.sum?.field,
+  )
   const onMore = useLoadMore(data, props.onMore, props.container)
-  const update = useCanAccess({ resource, action: "update" })
   const create = useCanAccess({ resource, action: "create" })
-  const recordReason = useRecordDenialReason(props.denialText)
+  const card = useBoardCard<T>(props)
   const byId = new Map(data.map((column) => [column.id, column]))
-  const isSelectable = Boolean(props.bulkActions)
-
-  const moveOf = (record: T): KanbanCardMove | undefined => {
-    if (update.isPending) return undefined
-    const holder = props.lockedBy?.(record)
-    const reason = holder
-      ? t("board.card.lockedReason", { name: holder })
-      : (recordReason(record, "update") ??
-        (update.canAccess
-          ? undefined
-          : (props.moveDenied ?? t("board.card.noRight"))))
-    return {
-      columns: allColumns,
-      current: String(record[field]),
-      onMove: (column) => {
-        void actions.moveCard(record, column)
-      },
-      ...(reason ? { disabledReason: reason } : {}),
-    }
-  }
 
   const columns = props.columns.map((column): KanbanColumn<T> => {
     const loaded = byId.get(column.id)
@@ -318,27 +343,9 @@ function BoardKanban<T extends RaRecord>(props: BoardBodyProps<T>) {
       onCollapsedChange={props.onCollapsedChange}
       narrow={props.narrow}
       busy={data.some((column) => column.isFetching)}
-      renderCard={(record) => {
-        const id = recordId(record)
-        return (
-          <KanbanCard
-            label={cardLabel(record)}
-            move={moveOf(record)}
-            lockedBy={props.lockedBy?.(record)}
-            busy={actions.movingIds.has(id)}
-            {...(isSelectable
-              ? {
-                  selected: selection.isSelected(id),
-                  onSelectedChange: () => {
-                    selection.toggle(id)
-                  },
-                }
-              : {})}
-          >
-            {props.renderCard(record)}
-          </KanbanCard>
-        )
-      }}
+      drag={card.drag}
+      cardKey={card.cardKey}
+      renderCard={card.renderCard}
     />
   )
 }

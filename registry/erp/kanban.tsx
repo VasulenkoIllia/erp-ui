@@ -1,7 +1,19 @@
 import * as React from "react"
 
-import { ColumnHead, ColumnSwitch } from "@/registry/erp/kanban-column"
-import { remPx, useElementSize } from "@/registry/hooks/use-element-size"
+import {
+  ColumnCell,
+  ColumnHead,
+  ColumnSwitch,
+  HeadSlot,
+  type CellDrag,
+} from "@/registry/erp/kanban-column"
+import { useBoardAutoScroll } from "@/registry/erp/kanban-drag"
+import { onKanbanKeyDown } from "@/registry/erp/kanban-keyboard"
+import {
+  remPx,
+  useElementSize,
+  useFillHeight,
+} from "@/registry/hooks/use-element-size"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukBoard } from "@/registry/lib/i18n-uk-board"
 import { cn } from "@/registry/lib/utils"
@@ -20,7 +32,12 @@ import { cn } from "@/registry/lib/utils"
  * - Згорнута колонка — вузька смужка з кнопкою «Розгорнути» (назва й кількість); фокус переходить на
  *   кнопку-пару, а не губиться (WCAG 2.4.3).
  * - Поки картки колонки вантажаться — скелетон у ній; стан колонки (помилка з повтором) — під шапкою.
- * - Перетягування немає: картку переносить меню «Перемістити в…» картки (SPEC §9, WCAG 2.5.7).
+ * - Перетягування (`drag`, erp/kanban-drag, ADR-0103): картку кидають у клітинку колонки своєї доріжки чи
+ *   на шапку колонки (і згорнутої); на вузькому контейнері колонка одна, тож перетягування немає. Меню
+ *   «Перемістити в…» картки лишається (SPEC §9, WCAG 2.5.7).
+ * - Стрілки між картками — erp/kanban-keyboard.
+ * - На широкому контейнері дошка прокручується сама до низу екрана (`useFillHeight`, як таблиця): шапки
+ *   колонок лишаються вгорі, назви доріжок — ліворуч, а фокус не ховається під шапками (WCAG 2.4.11).
  */
 
 /** Вужче за цю ширину контейнера, rem, — одна колонка з перемикачем (SPEC §9). */
@@ -60,12 +77,26 @@ export interface KanbanLanes<T> {
   of: (card: T) => string
 }
 
+export interface KanbanDrag<T> {
+  /** Чи можна тягнути картку: право, позначка запису, картка зайнята. */
+  canDrag: (card: T) => boolean
+  /** Картку кинули в колонку. */
+  onDrop: (card: T, column: string) => void
+}
+
 export interface KanbanProps<T> {
   /** Назва дошки для скрінрідера: «Угоди». */
   label: string
   columns: readonly KanbanColumn<T>[]
   getCardId: (card: T) => string
   renderCard: (card: T, column: KanbanColumn<T>) => React.ReactNode
+  /**
+   * Стан картки поза записом (вибрана, переноситься): з ним картка перемальовується, лише коли змінився запис,
+   * колонка чи цей ключ (ADR-0103), і колонка на 500 карток не рендериться вся на кожну дію. Тоді `renderCard`
+   * бере з-поза запису лише те, що є в ключі, а мову й формат — хуками в компонентах картки. Колонку картка
+   * бачить за `id`: назва, кількість і сума колонки в ключ не входять.
+   */
+  cardKey?: (card: T) => string
   lanes?: KanbanLanes<T>
   /** Згорнуті колонки (на широкому контейнері). */
   collapsed?: ReadonlySet<string>
@@ -75,6 +106,8 @@ export interface KanbanProps<T> {
   narrow: boolean
   /** Іде оновлення даних: `aria-busy`. */
   busy?: boolean
+  /** Перетягування карток; без нього картки переносить лише меню. */
+  drag?: KanbanDrag<T>
   className?: string
 }
 
@@ -93,16 +126,24 @@ export function Kanban<T>({
   columns,
   getCardId,
   renderCard,
+  cardKey,
   lanes,
   collapsed = NONE,
   onCollapsedChange,
   narrow,
   busy = false,
+  drag,
   className,
 }: KanbanProps<T>) {
   const t = useErpUiT(ukBoard)
   const root = React.useRef<HTMLElement>(null)
+  const scroller = React.useRef<HTMLDivElement>(null)
+  const headRow = React.useRef<HTMLDivElement>(null)
   const ids = React.useId()
+  const fillHeight = useFillHeight(scroller, !narrow)
+  const headHeight = useElementSize(headRow, "height")
+  const board = drag && !narrow ? ids : undefined
+  useBoardAutoScroll(scroller, board)
   const [active, setActive] = React.useState<string | undefined>()
   const activeColumn =
     columns.find((column) => column.id === active) ?? columns[0]
@@ -144,6 +185,19 @@ export function Kanban<T>({
   const hasFooter = shown.some(
     (column) => column.footer && !isCollapsed(column),
   )
+  const cellDrag: CellDrag<T> | undefined =
+    drag && board !== undefined
+      ? {
+          board,
+          canDrag: drag.canDrag,
+          onDrop: (id, column) => {
+            const card = columns
+              .flatMap((each) => each.cards ?? [])
+              .find((each) => getCardId(each) === id)
+            if (card) drag.onDrop(card, column)
+          },
+        }
+      : undefined
 
   return (
     <section
@@ -152,6 +206,7 @@ export function Kanban<T>({
       aria-busy={busy}
       data-slot="kanban"
       className={cn("min-w-0 space-y-3", className)}
+      onKeyDownCapture={onKanbanKeyDown}
     >
       {narrow && columns.length > 1 && activeColumn ? (
         <ColumnSwitch
@@ -160,25 +215,50 @@ export function Kanban<T>({
           onValueChange={setActive}
         />
       ) : null}
-      <div className="overflow-x-auto pb-2">
+      <div
+        ref={scroller}
+        data-slot="kanban-scroll"
+        className="pb-2"
+        // Прокрутка інлайн: автопрокрутка перетягування перевіряє її за обчисленим стилем (і в тестах).
+        style={{
+          overflowX: "auto",
+          maxHeight: fillHeight,
+          ...(headHeight ? { scrollPaddingTop: headHeight } : {}),
+        }}
+      >
         <div
           className="grid gap-x-3 gap-y-2"
           style={{ gridTemplateColumns: narrow ? "minmax(0, 1fr)" : template }}
         >
-          {shown.map((column) => (
-            <ColumnHead
-              key={column.id}
-              column={column}
-              headingId={headingId(column.id)}
-              collapsed={isCollapsed(column)}
-              onToggle={narrow ? undefined : toggle}
-            />
-          ))}
+          {/* Один липкий рядок шапок із непрозорим тлом: картки під ним не просвічують (ADR-0103). */}
+          <div
+            ref={headRow}
+            className="sticky top-0 z-10 col-span-full grid grid-cols-subgrid bg-background"
+          >
+            {shown.map((column) => (
+              <HeadSlot
+                key={column.id}
+                column={column.id}
+                // Колонка без завантажених карток (скелетон, помилка) картку не приймає: та зникла б до відповіді.
+                drag={column.cards === undefined ? undefined : cellDrag}
+              >
+                <ColumnHead
+                  column={column}
+                  headingId={headingId(column.id)}
+                  collapsed={isCollapsed(column)}
+                  onToggle={narrow ? undefined : toggle}
+                />
+              </HeadSlot>
+            ))}
+          </div>
           {rows.map((row) => (
             <React.Fragment key={row.id}>
               {row.lane ? (
                 <h3 className="col-span-full pt-2 text-sm font-medium break-words">
-                  {row.lane}
+                  {/* Назва доріжки лишається ліворуч, коли дошку гортають убік. */}
+                  <span className="sticky start-0 inline-block max-w-full">
+                    {row.lane}
+                  </span>
                 </h3>
               ) : null}
               {shown.map((column) => (
@@ -187,10 +267,13 @@ export function Kanban<T>({
                   column={column}
                   cards={row.cards.get(column.id)}
                   collapsed={isCollapsed(column)}
+                  laneId={row.id}
                   laneLabel={row.lane}
                   headingId={headingId(column.id)}
                   getCardId={getCardId}
                   renderCard={renderCard}
+                  cardKey={cardKey}
+                  drag={cellDrag}
                 />
               ))}
             </React.Fragment>
@@ -251,54 +334,4 @@ function laneRows<T>(
     column.cards?.some((card) => laneOf(card) === OTHER_LANE),
   )
   return hasOther && other ? rows : rows.slice(0, -1)
-}
-
-function ColumnCell<T>({
-  column,
-  cards,
-  collapsed,
-  laneLabel,
-  headingId,
-  getCardId,
-  renderCard,
-}: {
-  column: KanbanColumn<T>
-  cards: readonly T[] | undefined
-  collapsed: boolean
-  laneLabel: string | undefined
-  headingId: string
-  getCardId: (card: T) => string
-  renderCard: (card: T, column: KanbanColumn<T>) => React.ReactNode
-}) {
-  const t = useErpUiT(ukBoard)
-  // Згорнута колонка чи ще без карток: клітинка порожня, усе видно в шапці.
-  if (collapsed || cards === undefined) return <div className="min-w-0" />
-  if (!cards.length)
-    return (
-      <div className="min-w-0 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-        {laneLabel === undefined ? t("board.noCards") : null}
-      </div>
-    )
-  const name =
-    laneLabel === undefined
-      ? { "aria-labelledby": headingId }
-      : {
-          "aria-label": t("board.cell", {
-            column: column.label,
-            lane: laneLabel,
-          }),
-        }
-  return (
-    <ul
-      {...name}
-      data-kanban-cards={column.id}
-      className="flex min-w-0 flex-col gap-2"
-    >
-      {cards.map((card) => (
-        <li key={getCardId(card)} data-kanban-card={getCardId(card)}>
-          {renderCard(card, column)}
-        </li>
-      ))}
-    </ul>
-  )
 }

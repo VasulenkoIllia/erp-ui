@@ -1,6 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test"
 
 import { SESSION_KEY, USERS } from "./helpers"
+import { BOARD_STRESS, boardReady, interactWithBoard } from "./perf-board"
 import {
   DOCUMENT_FORM,
   documentRow,
@@ -325,7 +326,18 @@ test.describe("швидкість @perf", () => {
     expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
   })
 
-  for (const { name, url, interact } of [
+  const documentReady = async (page: Page) => {
+    await expect(documentRow(page)(3).getByLabel("Ціна")).toBeVisible({
+      timeout: 30_000,
+    })
+  }
+  for (const {
+    name,
+    url,
+    viewport = PHONE,
+    ready = documentReady,
+    interact,
+  } of [
     {
       name: "великий документ: 500 рядків, лише видимі",
       url: DOCUMENT_FORM,
@@ -341,23 +353,19 @@ test.describe("швидкість @perf", () => {
       url: DOCUMENT_FORM,
       interact: interactWithDocumentKeyboard,
     },
+    {
+      name: "дошка: колонка на 500 карток, перенесення й перетягування",
+      url: BOARD_STRESS,
+      viewport: DESKTOP,
+      ready: boardReady,
+      interact: interactWithBoard,
+    },
   ])
     test(name, async ({ browser }) => {
       test.setTimeout(300_000)
       const cpu = await calibratedSlowdown(browser)
       const result = {
-        ...(await measure(
-          browser,
-          cpu.rate,
-          PHONE,
-          url,
-          async (page) => {
-            await expect(documentRow(page)(3).getByLabel("Ціна")).toBeVisible({
-              timeout: 30_000,
-            })
-          },
-          interact,
-        )),
+        ...(await measure(browser, cpu.rate, viewport, url, ready, interact)),
         cpu,
       }
       console.log(`perf ${url}: ${JSON.stringify(result)}`)
@@ -365,7 +373,7 @@ test.describe("швидкість @perf", () => {
         type: "perf",
         description: JSON.stringify(result),
       })
-      // Кадр — та сама межа для дій меню, які INP не бачить.
+      // Кадр — та сама межа для дій меню й перенесень після кидка, які INP не бачить.
       expect(result.inp, "INP, мс").toBeLessThanOrEqual(INP_BUDGET_MS)
       expect(
         result.frame,

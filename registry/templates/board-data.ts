@@ -1,6 +1,7 @@
 import * as React from "react"
 import {
   hashKey,
+  replaceEqualDeep,
   useQueries,
   useQueryClient,
   type QueryKey,
@@ -31,6 +32,8 @@ import type { ListFilter } from "@/registry/lib/list-state"
  *   картки: `useQueries` шукає спостерігача за ключем, тож `keepPreviousData` тут не діє, і колонка
  *   стала б скелетоном, а кнопка «Показати ще» з фокусом зникла б. Розгорнута щойно колонка
  *   (була одна картка) — скелетон.
+ * - Незмінена картка нової відповіді — той самий об'єкт, що й у попередній (`shareCardsById`), навіть коли
+ *   вона зсунулась: дошка перемальовує лише змінені картки (ADR-0103).
  */
 
 export interface BoardColumnData<T> {
@@ -166,6 +169,7 @@ export function useBoardColumns<T extends RaRecord>({
         dataProvider.getList<T>(resource, { ...params, signal }),
       placeholderData: (previous: GetListResult<T> | undefined) =>
         previous ?? placeholderOf(id),
+      structuralSharing: shareCardsById,
       enabled,
     })),
   })
@@ -196,6 +200,99 @@ export function useBoardColumns<T extends RaRecord>({
       refetch: () => {
         void result?.refetch()
       },
+    }
+  })
+}
+
+const isList = (value: unknown): value is { data: readonly RaRecord[] } =>
+  typeof value === "object" &&
+  value !== null &&
+  Array.isArray((value as { data?: unknown }).data)
+
+/**
+ * Відповідь колонки з записами попередньої за `id`: React Query зіставляє масив за місцем, і коли картку вище
+ * перенесли, кожна нижча стала б новим об'єктом і перемалювалась би (ADR-0103).
+ */
+export function shareCardsById(previous: unknown, next: unknown): unknown {
+  if (!isList(previous) || !isList(next))
+    return replaceEqualDeep(previous, next)
+  const byId = new Map(previous.data.map((card) => [String(card.id), card]))
+  const data = next.data.map((card) => {
+    const old = byId.get(String(card.id))
+    return old === undefined ? card : replaceEqualDeep(old, card)
+  })
+  // Масив — не через replaceEqualDeep: той зіставив би картки за місцем і створив би їх копії.
+  const isSameData =
+    data.length === previous.data.length &&
+    data.every((card, index) => card === previous.data[index])
+  const previousRest = { ...previous, data: undefined }
+  const rest = replaceEqualDeep(previousRest, { ...next, data: undefined })
+  if (isSameData && rest === previousRest) return previous
+  return { ...rest, data: isSameData ? previous.data : data }
+}
+
+/** Картка, яку перенесли, а сервер ще не відповів (ADR-0103). */
+export interface PendingMove<T> {
+  record: T
+  from: string
+  to: string
+}
+
+/**
+ * Колонки з картками, які вже перенесли, а сервер ще не відповів (ADR-0103): картка вгорі нової колонки,
+ * кількість і сума обох колонок зсунуті на неї. Кожна колонка зсувається, лише поки її відповідь сервера ще
+ * без перенесення (картка ще у старій, ще не в новій): двічі воно не рахується. `record` — уже з новою
+ * колонкою в полі, тож картка лишається тим самим об'єктом між рендерами.
+ */
+export function withPendingMoves<T extends RaRecord>(
+  columns: readonly BoardColumnData<T>[],
+  pending: ReadonlyMap<string, PendingMove<T>>,
+  field: string,
+  sumField: string | undefined,
+): readonly BoardColumnData<T>[] {
+  if (!pending.size) return columns
+  const byId = new Map(columns.map((column) => [column.id, column]))
+  const shifts = new Map<string, { count: number; sum: number; added: T[] }>()
+  const shiftOf = (column: string) => {
+    const shift = shifts.get(column) ?? { count: 0, sum: 0, added: [] }
+    shifts.set(column, shift)
+    return shift
+  }
+  const has = (column: string, id: string) =>
+    byId.get(column)?.cards?.some((card) => String(card.id) === id) ?? false
+  for (const [id, move] of pending) {
+    const to = shiftOf(move.to)
+    to.added.push(
+      move.record[field] === move.to
+        ? move.record
+        : { ...move.record, [field]: move.to },
+    )
+    const value: unknown = sumField ? move.record[sumField] : undefined
+    const amount = typeof value === "number" ? value : 0
+    // Кожна колонка — за своєю відповіддю: одна вже може містити перенесення, а друга ще ні.
+    if (has(move.from, id)) {
+      const from = shiftOf(move.from)
+      from.count -= 1
+      from.sum -= amount
+    }
+    if (!has(move.to, id)) {
+      to.count += 1
+      to.sum += amount
+    }
+  }
+  return columns.map((column) => {
+    const shift = shifts.get(column.id)
+    const kept = column.cards?.filter((card) => !pending.has(String(card.id)))
+    if (!shift)
+      return kept?.length === column.cards?.length
+        ? column
+        : { ...column, cards: kept }
+    return {
+      ...column,
+      cards: kept && [...shift.added, ...kept],
+      total:
+        column.total === undefined ? undefined : column.total + shift.count,
+      sum: column.sum === undefined ? undefined : column.sum + shift.sum,
     }
   })
 }

@@ -3,11 +3,14 @@ import { describe, expect, it } from "vitest"
 import { precheckPhoto } from "@/registry/hooks/use-photo-choice"
 import {
   addPhotos,
+  dropIndex,
+  movePhoto,
   NO_PHOTOS,
   removePhoto,
   selectedPhoto,
   withCrop,
   type ChosenPhoto,
+  type PhotoChoice,
 } from "@/registry/lib/photo-choice"
 import {
   frameBetween,
@@ -132,6 +135,31 @@ describe("вибрані фото", () => {
     expect(selectedPhoto({ ...cropped, selectedUrl: "blob:gone" })?.name).toBe(
       "a",
     )
+  })
+
+  it("порядок: фото на нове місце, показане те саме; місце за краєм — до межі", () => {
+    const choice: PhotoChoice = addPhotos(NO_PHOTOS, [
+      photo("a"),
+      photo("b"),
+      photo("c"),
+    ])
+    const names = (each: PhotoChoice) =>
+      each.photos.map((item) => item.name).join("")
+    expect(names(movePhoto(choice, "blob:c", 0))).toBe("cab")
+    expect(names(movePhoto(choice, "blob:a", 2))).toBe("bca")
+    expect(names(movePhoto(choice, "blob:a", 9))).toBe("bca")
+    expect(movePhoto(choice, "blob:c", 0).selectedUrl).toBe("blob:c")
+    expect(movePhoto(choice, "blob:b", 1)).toBe(choice)
+    expect(movePhoto(choice, "blob:gone", 0)).toBe(choice)
+  })
+
+  it("місце кинутого фото: перед чи після того, на яке кинули", () => {
+    // a b c d: «a» після «c» стає третім (індекс 2), «d» перед «b» — другим (індекс 1).
+    expect(dropIndex(0, 2, "after")).toBe(2)
+    expect(dropIndex(0, 2, "before")).toBe(1)
+    expect(dropIndex(3, 1, "before")).toBe(1)
+    expect(dropIndex(3, 1, "after")).toBe(2)
+    expect(dropIndex(2, 0, "before")).toBe(0)
   })
 
   it("тип і розмір перевіряються до читання; файл без типу пробуємо", () => {

@@ -283,6 +283,53 @@ test.describe("поле фото", () => {
   })
 })
 
+test.describe("порядок фото", () => {
+  test("перетягування мініатюри й «Раніше» / «Пізніше»; перше — головне", async ({
+    page,
+  }) => {
+    await openWith(page, {}, PAGE)
+    const files = []
+    for (const [name, color] of [
+      ["a.png", "orange"],
+      ["b.png", "seagreen"],
+      ["c.png", "slateblue"],
+    ] as const)
+      files.push({
+        name,
+        buffer: await pngOf(page, { width: 400, height: 300, color }),
+      })
+    await choose(page, files)
+    await expect(thumbs(page)).toHaveCount(3)
+    const order = () =>
+      thumbs(page).evaluateAll((items) =>
+        items.map((item) => /\w\.png/.exec(item.textContent)?.[0]),
+      )
+    await expect(thumbs(page).first()).toContainText("головне")
+
+    // «c» — на місце перед «a»: ліва половина першої мініатюри.
+    const items = page
+      .getByRole("list", { name: "Вибрані фото" })
+      .locator(":scope > li")
+    await items.nth(2).dragTo(items.nth(0), {
+      targetPosition: { x: 8, y: 20 },
+    })
+    await expect.poll(order).toEqual(["c.png", "a.png", "b.png"])
+    await expect(thumbs(page).first()).toContainText("c.png")
+    await expect(thumbs(page).first()).toContainText("головне")
+
+    // Показане фото — останнє додане «c»: «Пізніше» двічі веде його в кінець.
+    const later = page.getByRole("button", { name: "Пізніше: фото «c.png»" })
+    await later.click()
+    await later.click()
+    await expect.poll(order).toEqual(["a.png", "b.png", "c.png"])
+    await expect(later).toBeFocused()
+    await expect(later).toHaveAttribute("aria-disabled", "true")
+    await expect(page.locator("#erp-ui-announcer")).toContainText(
+      "Фото «c.png» тепер 3 з 3",
+    )
+  })
+})
+
 test.describe("перегляд фото й сітка", () => {
   test("запасне джерело, «Фото не завантажилось», «Без фото», велике в новій вкладці", async ({
     page,

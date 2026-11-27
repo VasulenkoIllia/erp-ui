@@ -40,6 +40,21 @@ export type PipelineDeal = z.infer<typeof pipelineDealSchema>
 /** Відповідальні — доріжки дошки; порожній ключ — «Без відповідального». */
 export const PIPELINE_OWNERS = ["u-olena", "u-ivan", "u-marta"] as const
 
+/**
+ * Перевірка швидкості (`pnpm perf`, ADR-0103): сторінка, відкрита з `#/board?cards=500`, бере колонку «Нові» на
+ * 500 угод основної компанії, і дошка показує її одразу. Мок читає адресу один раз, коли вперше дає угоди.
+ */
+export const PIPELINE_STRESS_PARAM = "cards"
+export const PIPELINE_STRESS_CARDS = 500
+
+export function isPipelineStress(hash = globalThis.location.hash): boolean {
+  const query = hash.split("?")[1] ?? ""
+  return (
+    new URLSearchParams(query).get(PIPELINE_STRESS_PARAM) ===
+    String(PIPELINE_STRESS_CARDS)
+  )
+}
+
 /** Скільки угод у кожному етапі: «Нові» довші за сторінку колонки, щоб було «Показати ще». */
 const STAGE_SIZES: Record<PipelineStage, number> = {
   new: 26,
@@ -71,16 +86,21 @@ const SUBJECTS = [
 ]
 
 export function makePipelineDeals(): PipelineDeal[] {
+  const isStress = isPipelineStress()
+  const sizes = isStress
+    ? { ...STAGE_SIZES, new: PIPELINE_STRESS_CARDS }
+    : STAGE_SIZES
   let index = 0
   return PIPELINE_STAGES.flatMap((stage) =>
-    Array.from({ length: STAGE_SIZES[stage] }, () => {
+    Array.from({ length: sizes[stage] }, () => {
       index += 1
       const client = CLIENTS[index % CLIENTS.length] ?? ""
       return pipelineDealSchema.parse({
         id: `deal-${String(index)}`,
         version: 1,
         // Кожна сьома угода — другої компанії: перемикач компанії міняє дошку.
-        companyId: (index % 7 === 0 ? COMPANIES[1] : COMPANIES[0]).id,
+        companyId: (index % 7 === 0 && !isStress ? COMPANIES[1] : COMPANIES[0])
+          .id,
         title: `${SUBJECTS[index % SUBJECTS.length] ?? ""}: ${client}`,
         client,
         stage,
