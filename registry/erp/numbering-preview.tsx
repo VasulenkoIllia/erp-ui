@@ -6,7 +6,7 @@ import { FormSelect } from "@/registry/erp/form-select"
 import type { RecordFormItemProps } from "@/registry/erp/record-form"
 import { useCompanyId } from "@/registry/hooks/use-company"
 import { useCompanyProfile } from "@/registry/hooks/use-company-profile"
-import { announce } from "@/registry/lib/announce"
+import { useSettledAnnouncement } from "@/registry/hooks/use-settled-announcement"
 import { MAX_PER_PAGE } from "@/registry/lib/api"
 import { companyScope } from "@/registry/lib/company-scope"
 import { todayIn } from "@/registry/lib/dates"
@@ -144,29 +144,4 @@ export function NumberingPreview({
       </div>
     </div>
   )
-}
-
-/** Пауза в наборі, після якої перегляд звучить для скрінрідера, як у `erp/save-bar`. */
-const PREVIEW_ANNOUNCE_DELAY_MS = 700
-
-/**
- * Оголосити `message`, коли змінився `key` (шаблон, правила, філія) і людина зробила паузу. Перший
- * показ і нові лічильники з сервера не оголошуються: людина нічого не змінювала.
- */
-function useSettledAnnouncement(key: string, message: string) {
-  const announced = React.useRef(key)
-  const latest = React.useRef(message)
-  React.useEffect(() => {
-    latest.current = message
-  })
-  React.useEffect(() => {
-    if (key === announced.current) return
-    announced.current = key
-    const timer = setTimeout(() => {
-      announce(latest.current)
-    }, PREVIEW_ANNOUNCE_DELAY_MS)
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [key])
 }

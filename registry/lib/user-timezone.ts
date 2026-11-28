@@ -8,18 +8,12 @@
  */
 import { useSyncExternalStore } from "react"
 
+import { isTimeZone } from "@/registry/lib/time-zone"
+
 let userTimeZone: string | undefined
 const listeners = new Set<() => void>()
 
-/** Чи знає Intl такий часовий пояс IANA ("Europe/Kyiv"). */
-export function isTimeZone(zone: string): boolean {
-  try {
-    new Intl.DateTimeFormat("en", { timeZone: zone })
-    return true
-  } catch {
-    return false
-  }
-}
+export { isTimeZone }
 
 /** Пояс користувача з профілю; невідомий пояс ігнорується (лишається пояс пристрою). */
 export function setUserTimeZone(zone: string | null | undefined): void {

@@ -406,13 +406,45 @@ export const CODE_ITEMS = {
     demo: "formats",
     spec: ["§11"],
   },
+  "lib/time-zone": {
+    title: "Перевірка часового поясу",
+    description:
+      "isTimeZone(zone): чи знає Intl пояс IANA, відповідь запам'ятовується. Окремо від lib/dates, щоб lib/user-timezone на кожній сторінці не тягнув увесь модуль дат (UI41, ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["§11"],
+  },
   "lib/dates": {
     title: "Календарні дати й періоди",
     description:
-      'Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» й кінець дня (`endOfDayIn`) у поясі користувача, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.',
+      'Календарні дати "YYYY-MM-DD" без поясу: перевірка, арифметика, «сьогодні» й кінець дня (`endOfDayIn`) у поясі користувача, мить для дати й часу в поясі за RFC 5545 (`instantIn`), дата з року, місяця й дня, днів у місяці, день тижня ISO, пресети періодів (тиждень з понеділка, квартали), введення дат із клавіатури у форматі мови, час 24 години.',
     status: "beta",
     demo: "fields",
     spec: ["UI39", "§11"],
+  },
+  "lib/recurrence": {
+    title: "Правило повтору",
+    description:
+      "Контракт UI41: значення Recurrence (перше повторення, правило, пояс IANA), правило — підмножина RRULE RFC 5545 (FREQ DAILY|WEEKLY|MONTHLY|YEARLY, INTERVAL, BYDAY без номера, BYMONTHDAY одне число чи -1, BYMONTH щороку, UNTIL або COUNT); parseRecurrenceRule і formatRecurrenceRule туди й назад; найближчі повторення { date, at } за годинником поясу правила (дня, якого в місяці немає, немає й повтору); recurrenceSkip для тексту; recurrenceSchema для запиту (рядок, як його пише formatRecurrenceRule, пояс IANA). Наступні дати рахує сервер (ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§11"],
+  },
+  "lib/recurrence-draft": {
+    title: "Повтор у формі",
+    description:
+      "RecurrenceDraft — поля редактора повтору: recurrenceDraft з сервера, recurrenceFromDraft на сервер, recurrenceDraftSchema (помилка біля поля; та сама перевірка, з якої recurrenceRuleOfDraft будує правило), isRecurrenceUntilBeforeStart для superRefine форми; правило поза підмножиною лишається, як було (UI41, ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§8.3"],
+  },
+  "lib/recurrence-text": {
+    title: "Повтор людською мовою",
+    description:
+      "useRecurrenceText: «Щомісяця 5-го, 10 разів», «Кожні 2 тижні в понеділок і п'ятницю о 09:00, до 31.03.2027 включно», «по буднях», пояс правила — коли не пояс користувача (псевдонім того самого поясу — той самий); окремим реченням — день, який повтор пропускає (UI41, ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§11"],
   },
   "lib/amount-in-words": {
     title: "Сума прописом",
@@ -820,6 +852,14 @@ export const CODE_ITEMS = {
       "useFocusHeadingOnNavigation(heading, location, ready): після переходу між сторінками фокус на заголовку (WCAG 2.4.3) — один раз на перехід, не на першому екрані й не забираючи фокус у людини, що пішла деінде; адресу дає роутер застосунку. Для шаблонів List Report і Object Page. useFocusHeadingOnMount(heading): заголовок на місці зниклого вмісту (стан замість сторінки, екран входу після повтору чи виходу) бере фокус, коли фокус загубився.",
     status: "beta",
     demo: "data",
+    spec: ["§10"],
+  },
+  "hooks/use-settled-announcement": {
+    title: "Оголошення після паузи",
+    description:
+      "useSettledAnnouncement(key, message): скрінрідер чує текст перегляду, коли людина змінила поле й зробила паузу, а не на кожну цифру; перший показ і зміни не від людини не звучать. Для erp/numbering-preview і erp/recurrence-editor.",
+    status: "beta",
+    demo: "recurrence",
     spec: ["§10"],
   },
   "hooks/use-tab-counter": {
@@ -1533,6 +1573,21 @@ export const CODE_ITEMS = {
     demo: "photos",
     spec: ["UI11", "§11"],
   },
+  "lib/i18n-uk-recurrence": {
+    title: "Рядки повторів українською",
+    description:
+      "Поля редактора повтору, правило реченням, пропущені дні, найближчі повторення (UI41, ADR-0104): окремий файл, простір імен erp-ui той самий; вантажиться з редактором: useErpUiT(частина), ADR-0094.",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§11"],
+  },
+  "lib/i18n-en-recurrence": {
+    title: "Рядки повторів англійською",
+    description: "Ті самі рядки повторів англійською.",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§11"],
+  },
   "lib/i18n-uk-document-lines": {
     title: "Рядки редактора рядків документа українською",
     description:
@@ -1730,6 +1785,30 @@ export const CODE_ITEMS = {
     status: "beta",
     demo: "photos",
     spec: ["UI11", "§8.1", "§9", "§10"],
+  },
+  "erp/recurrence-editor": {
+    title: "Редактор повтору",
+    description:
+      "RecurrenceEditor для react-hook-form: щодня, щотижня в обрані дні, щомісяця в число чи останній день, щороку, кожні N, до дати чи N разів; під полями правило реченням, пропущені дні (31-ше, 29 лютого) і найближчі повторення, скрінрідер чує правило після паузи; правило поза підмножиною показано текстом і не губиться; лише читання — реченням. Значення форми — RecurrenceDraft з lib/recurrence-draft; useRecurrenceMessages — тексти помилок для recurrenceDraftSchema (UI41, ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§8.3", "§9", "§10", "§11"],
+  },
+  "erp/recurrence-summary": {
+    title: "Повтор реченням",
+    description:
+      "RecurrenceSummary: правило людською мовою, день, який повтор пропускає, перший день поза правилом, найближчі повторення від зараз (з часом — у поясі користувача), підказка, поки поля не заповнено; announceKey — озвучення після паузи. Частина erp/recurrence-editor; окремо — для картки чи списку, де повтор лише показують (UI41, ADR-0104).",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§10", "§11"],
+  },
+  "erp/recurrence-weekdays": {
+    title: "Дні тижня повтору",
+    description:
+      "Частина erp/recurrence-editor: сім кнопок-перемикачів від понеділка (aria-pressed), назва з видимого скорочення й повного дня («Пн, понеділок»), помилка біля групи. Ставиться разом з erp/recurrence-editor.",
+    status: "beta",
+    demo: "recurrence",
+    spec: ["UI41", "§10"],
   },
   "erp/import-wizard": {
     title: "Майстер імпорту",
@@ -4352,11 +4431,14 @@ export const CONTRACT_LAYER = {
     "payment-qr",
     "period-lock",
     "record-access",
+    "recurrence",
+    "recurrence-draft",
     "rich-text",
     "roles",
     "session",
     "shortcuts",
     "statuses-core",
+    "time-zone",
     "timeline",
     "trash",
     "ua-ids",

@@ -28,6 +28,7 @@ import { ukShortcuts } from "@/registry/lib/i18n-uk-shortcuts"
 import { ukSignIn } from "@/registry/lib/i18n-uk-sign-in"
 import { ukPush } from "@/registry/lib/i18n-uk-push"
 import { ukRealtime } from "@/registry/lib/i18n-uk-realtime"
+import { ukRecurrence } from "@/registry/lib/i18n-uk-recurrence"
 import { ukRichText } from "@/registry/lib/i18n-uk-rich-text"
 import { ukTimeline } from "@/registry/lib/i18n-uk-timeline"
 import { ukTrash } from "@/registry/lib/i18n-uk-trash"
@@ -73,6 +74,7 @@ export const uk = {
   ...ukTrash,
   ...ukBoard,
   ...ukPhotos,
+  ...ukRecurrence,
 }
 
 export type ErpUiMessages = typeof uk
@@ -103,6 +105,7 @@ export const ukParts: Readonly<Record<string, object>> = {
   ukPush,
   ukRealtime,
   ukRecords,
+  ukRecurrence,
   ukRichText,
   ukRoles,
   ukSecurity,
