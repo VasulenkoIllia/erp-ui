@@ -62,6 +62,42 @@ function fromUtc(date: Date): CalendarDate {
   )
 }
 
+/** Календарна дата з року, місяця (1–12) і дня; місяць і день поза межами переносяться. */
+export function calendarDateOf(
+  year: number,
+  month: number,
+  day: number,
+): CalendarDate {
+  return fromUtc(utcDate(year, month - 1, day))
+}
+
+/** Скільки днів у місяці (1–12) року: лютий 2028 — 29. */
+export function daysInMonth(year: number, month: number): number {
+  return utcDate(year, month, 0).getUTCDate()
+}
+
+/** День тижня ISO 8601: 1 — понеділок, 7 — неділя. */
+export function isoWeekday(value: CalendarDate): number {
+  return toUtc(value).getUTCDay() || 7
+}
+
+const knownZones = new Map<string, boolean>()
+
+/** Чи знає Intl часовий пояс IANA ("Europe/Kyiv"); відповідь запам'ятовується. */
+export function isTimeZone(zone: string): boolean {
+  let known = knownZones.get(zone)
+  if (known === undefined) {
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: zone })
+      known = true
+    } catch {
+      known = false
+    }
+    knownZones.set(zone, known)
+  }
+  return known
+}
+
 /** Чи рядок — справжня календарна дата ("2026-02-30" — ні). */
 export function isCalendarDate(value: unknown): value is CalendarDate {
   if (typeof value !== "string" || !CALENDAR_DATE.test(value)) return false
@@ -134,6 +170,26 @@ export function endOfDayIn(value: CalendarDate, timeZone?: string): Date {
   return new Date(start - 1)
 }
 
+/**
+ * Мить, коли на годиннику поясу (за замовчуванням — пристрою) календарна дата й час "HH:mm", як RFC 5545: часу, якого
+ * немає (перехід на літній час), — зсув до переходу, тож 03:30 стає 04:30; час, що буває двічі (на зимовий), — перший.
+ */
+export function instantIn(
+  value: CalendarDate,
+  time: string,
+  timeZone?: string,
+): Date {
+  if (!TIME.test(time)) throw new RangeError(`Некоректний час: ${time}`)
+  const [hours, minutes] = time.split(":").map(Number)
+  const wall = toUtc(value).getTime() + (hours * 60 + minutes) * 60_000
+  const before = zoneOffsetMs(wall - DAY_MS, timeZone)
+  const after = zoneOffsetMs(wall + DAY_MS, timeZone)
+  const fits = (offset: number) =>
+    zoneOffsetMs(wall - offset, timeZone) === offset
+  const candidates = [before, after].filter(fits).map((offset) => wall - offset)
+  return new Date(candidates.length ? Math.min(...candidates) : wall - before)
+}
+
 export function addDays(value: CalendarDate, days: number): CalendarDate {
   return fromUtc(new Date(toUtc(value).getTime() + days * DAY_MS))
 }
@@ -156,8 +212,7 @@ export function compareCalendarDates(a: CalendarDate, b: CalendarDate): number {
 
 /** Понеділок тижня, що містить дату. */
 function weekStart(value: CalendarDate): CalendarDate {
-  const weekday = toUtc(value).getUTCDay() || 7
-  return addDays(value, 1 - weekday)
+  return addDays(value, 1 - isoWeekday(value))
 }
 
 /** Пресети періодів для фільтрів і звітів (UI39). */

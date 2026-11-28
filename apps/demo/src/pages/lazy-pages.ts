@@ -107,6 +107,10 @@ export const PAGES = {
   photos: lazyWithPreload(() =>
     import("./PhotosPage").then((m) => m.PhotosPage),
   ),
+  // Повтори: редактор правила й текст людською мовою (UI41, ADR-0104).
+  recurrence: lazyWithPreload(() =>
+    import("./RecurrencePage").then((m) => m.RecurrencePage),
+  ),
   inbox: lazyWithPreload(() => import("./InboxPage").then((m) => m.InboxPage)),
   security: lazyWithPreload(() =>
     import("./SecurityPage").then((m) => m.SecurityPage),

@@ -20,6 +20,7 @@ import { enTimeline } from "@/registry/lib/i18n-en-timeline"
 import { enTrash } from "@/registry/lib/i18n-en-trash"
 import { enBoard } from "@/registry/lib/i18n-en-board"
 import { enPhotos } from "@/registry/lib/i18n-en-photos"
+import { enRecurrence } from "@/registry/lib/i18n-en-recurrence"
 import { enSetup } from "@/registry/lib/i18n-en-setup"
 import { enWizard } from "@/registry/lib/i18n-en-wizard"
 import type { ErpUiTranslation } from "@/registry/lib/i18n-uk"
@@ -1471,4 +1472,5 @@ export const en = {
   ...enTrash,
   ...enBoard,
   ...enPhotos,
+  ...enRecurrence,
 } satisfies ErpUiTranslation

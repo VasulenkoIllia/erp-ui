@@ -26,6 +26,7 @@
       "organizations": "Organizations",
       "board": "Board",
       "photos": "Photos",
+      "recurrence": "Repeats",
       "security": "Account security",
       "users": "Users",
       "profile": "Profile",
@@ -1403,6 +1404,43 @@
       "similar": "Similar",
       "notSimilar": "Not it",
       "link": "Link"
+    }
+  },
+  "recurrencePage": {
+    "title": "Repeats",
+    "lead": "A repeat editor for tasks, invoices and events: daily, weekly on chosen days, monthly on a day or the last day, annually, until a date or a number of times. Under the fields the rule is written as a plain sentence, and days a month does not have are named. The rule is stored as a calendar standard string, and the server works out the next dates. The editor shows only the next few.",
+    "fields": {
+      "date": "First day",
+      "time": "Time ({{zone}})",
+      "recurrence": "Repeat"
+    },
+    "save": "Save",
+    "sent": "The server would get this, and the rule was read back into the editor:",
+    "cases": {
+      "task": {
+        "title": "A task without a time",
+        "description": "A report monthly on day 5, 10 times. The rule from the server was read into the fields. Change the first day or the rule and save."
+      },
+      "meeting": {
+        "title": "A meeting with a time in another time zone",
+        "description": "Every two weeks on Monday, Wednesday and Friday at 09:00 New York time until 31/03/2027. The time on the New York clock does not shift when clocks change, and the next dates are shown in your time zone."
+      },
+      "fresh": {
+        "title": "A new repeat from the 31st",
+        "description": "No repeat yet. Choose “Monthly”: the day comes from the first day, and the text says months without a 31st are skipped. “Last day” repeats every month."
+      },
+      "foreign": {
+        "title": "A rule from another program",
+        "description": "Monthly on the second Tuesday: the editor does not change such a rule. It stays as it was until you choose another repeat."
+      },
+      "readOnly": {
+        "title": "Read-only",
+        "description": "No right to change it: the repeat is shown as a sentence without fields. 29 February comes only in leap years."
+      }
+    },
+    "samples": {
+      "title": "How the text names skipped days",
+      "description": "A card or a list that only shows the repeat uses the same text."
     }
   }
 }
