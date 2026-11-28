@@ -8,7 +8,7 @@
  */
 import { useSyncExternalStore } from "react"
 
-import { isTimeZone } from "@/registry/lib/dates"
+import { isTimeZone } from "@/registry/lib/time-zone"
 
 let userTimeZone: string | undefined
 const listeners = new Set<() => void>()

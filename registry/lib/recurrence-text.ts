@@ -12,7 +12,7 @@ import { useCallback } from "react"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT, type ErpUiTranslate } from "@/registry/lib/i18n"
 import { ukRecurrence } from "@/registry/lib/i18n-uk-recurrence"
-import { isTimeZone } from "@/registry/lib/dates"
+import { isTimeZone } from "@/registry/lib/time-zone"
 import {
   LAST_DAY_OF_MONTH,
   recurrenceSkip,

@@ -81,23 +81,6 @@ export function isoWeekday(value: CalendarDate): number {
   return toUtc(value).getUTCDay() || 7
 }
 
-const knownZones = new Map<string, boolean>()
-
-/** Чи знає Intl часовий пояс IANA ("Europe/Kyiv"); відповідь запам'ятовується. */
-export function isTimeZone(zone: string): boolean {
-  let known = knownZones.get(zone)
-  if (known === undefined) {
-    try {
-      new Intl.DateTimeFormat("en", { timeZone: zone })
-      known = true
-    } catch {
-      known = false
-    }
-    knownZones.set(zone, known)
-  }
-  return known
-}
-
 /** Чи рядок — справжня календарна дата ("2026-02-30" — ні). */
 export function isCalendarDate(value: unknown): value is CalendarDate {
   if (typeof value !== "string" || !CALENDAR_DATE.test(value)) return false

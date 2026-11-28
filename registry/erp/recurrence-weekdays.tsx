@@ -72,15 +72,14 @@ function RecurrenceWeekdays<
             aria-pressed={chosen.includes(day)}
             // Після невдалої відправки фокус тут: помилку чути й без опису групи.
             aria-describedby={index === 0 ? errorId : undefined}
+            // Назва явно: зі схованої частини браузери складають її по-різному («Нд , неділя» в Chromium).
+            aria-label={`${t(`recurrence.weekdays.short.${day}`)}, ${t(`recurrence.weekdays.long.${day}`)}`}
             className="min-w-0 px-0"
             onClick={() => {
               toggle(day)
             }}
           >
             {t(`recurrence.weekdays.short.${day}`)}
-            <span className="sr-only">
-              {`, ${t(`recurrence.weekdays.long.${day}`)}`}
-            </span>
           </Button>
         ))}
       </div>

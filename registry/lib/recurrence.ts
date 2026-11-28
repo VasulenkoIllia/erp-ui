@@ -29,10 +29,10 @@ import {
   isCalendarDate,
   isoWeekday,
   isTime,
-  isTimeZone,
   todayIn,
   type CalendarDate,
 } from "@/registry/lib/dates"
+import { isTimeZone } from "@/registry/lib/time-zone"
 
 export const RECURRENCE_WEEKDAYS = [
   "MO",

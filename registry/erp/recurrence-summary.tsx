@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { useSettledAnnouncement } from "@/registry/hooks/use-settled-announcement"
-import { isTimeZone, todayIn } from "@/registry/lib/dates"
+import { todayIn } from "@/registry/lib/dates"
 import { useFormat } from "@/registry/lib/format"
 import { useErpUiT } from "@/registry/lib/i18n"
 import { ukRecurrence } from "@/registry/lib/i18n-uk-recurrence"
@@ -13,6 +13,7 @@ import {
   type RecurrenceRule,
 } from "@/registry/lib/recurrence"
 import { useRecurrenceText } from "@/registry/lib/recurrence-text"
+import { isTimeZone } from "@/registry/lib/time-zone"
 import { cn } from "@/registry/lib/utils"
 
 /**

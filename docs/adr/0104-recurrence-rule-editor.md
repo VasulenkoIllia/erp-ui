@@ -76,7 +76,7 @@
   версією, коли знадобляться проекту. Сервер мусить перевіряти правило сам (`recurrenceSchema` — для сервера на
   TypeScript).
 - Версії: мінорна — нові елементи реєстру (зокрема `hooks/use-settled-announcement`) і нові експорти `lib/dates`
-  (`instantIn`, `calendarDateOf`, `daysInMonth`, `isoWeekday`, `isTimeZone`).
+  (`instantIn`, `calendarDateOf`, `daysInMonth`, `isoWeekday`); перевірка поясу — `lib/time-zone`.
 
 ## Розглянуті варіанти
 
